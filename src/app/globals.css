@@ -1,26 +1,115 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f5f1;
+  --foreground: #1b1a17;
+  --card: #ffffff;
+  --card-foreground: #1b1a17;
+  --popover: #ffffff;
+  --popover-foreground: #1b1a17;
+  --primary: #1b1a17;
+  --primary-foreground: #ffffff;
+  --secondary: #f0eee8;
+  --secondary-foreground: #1b1a17;
+  --muted: #efede7;
+  --muted-foreground: #57554e;
+  --accent: #7c8c63;
+  --accent-foreground: #ffffff;
+  --destructive: #b4453c;
+  --border: #e6e4dc;
+  --input: #e4e2da;
+  --ring: #7c8c63;
+  --chip-bg: #f2f4ea;
+  --chip-border: #d6dac8;
+  --star: #c9a227;
+  --radius: 14px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chip-bg: var(--chip-bg);
+  --color-chip-border: var(--chip-border);
+  --color-star: var(--star);
+  --font-sans: var(--font-instrument-sans);
+  --font-serif: var(--font-newsreader);
   --font-mono: var(--font-geist-mono);
+  --radius-sm: 9px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 16px;
+  --shadow-laitstyle: 0 30px 80px rgba(0, 0, 0, .12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes leemPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+@keyframes leemHook {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
+}
+
+@keyframes leemRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes leemShimmer {
+  0% { background-position: -320px 0; }
+  100% { background-position: 320px 0; }
+}
+
+::selection {
+  background: #c7d0b4;
+}
+
+input::placeholder {
+  color: #a7a59b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-instrument-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
