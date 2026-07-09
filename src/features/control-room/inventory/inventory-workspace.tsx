@@ -12,7 +12,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
@@ -180,15 +180,17 @@ export function InventoryWorkspace({
             Product imagery leads the workspace, while stock, holds, visibility and sales stay close enough for daily decisions.
           </p>
         </div>
-        <Button
-          className="h-11 rounded-full px-5"
-          render={<Link href="/shop" />}
-          size="lg"
-          variant="outline"
+        <Link
+          className={buttonVariants({
+            variant: "outline",
+            size: "lg",
+            className: "h-11 rounded-full px-5",
+          })}
+          href="/shop"
         >
           Preview catalogue
           <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
-        </Button>
+        </Link>
       </section>
 
       <InventorySummaryStrip summary={summary} />
