@@ -2,23 +2,24 @@
 
 ## Current score
 
-**Phase 3 of 7 complete — 10/10 accepted**
+**Phase 4 of 7 in progress — Sales workspace**
 
-Phase 4 is not started.
+Active batch: **4A — sales domain and typed actions**.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 3 complete |
+| Status | In progress |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft |
 | Source specification | `docs/control-room-v2/spec.md` |
 | Execution plan | `docs/control-room-v2/implementation-plan.md` |
+| Phase 4 plan | `docs/control-room-v2/phase4-plan.md` |
 | Architecture decisions | `docs/control-room-v2/decisions.md` |
-| Accepted application head | `ba05d413d62154f1b41a415e5d31003bdf2c20f1` |
-| Accepted workflow | `29035766157` |
-| Next phase | Phase 4 — not started |
+| Active batch | 4A — sales domain and typed actions |
+| Next batch | 4B — blocked until 4A passes |
+| Next phase | Phase 5 — blocked until Phase 4 is complete |
 
 ## Completed phases
 
@@ -53,139 +54,158 @@ Final Phase 2 application verification: GitHub Actions run `29021779448` on `b5a
 
 ### Phase 3 — Add-product wizard and Intake queue
 
-- [x] Seven-step product editor
-- [x] Unique, stocked and variant branches
+- [x] Seven-step unique, stocked and variant product editor
 - [x] React Hook Form and Zod validation
-- [x] Step-local validation and final publication summary
-- [x] Back/Next value preservation
-- [x] Dirty-close confirmation
-- [x] Session-only image previews with cover, defect, alt text and ordering controls
-- [x] Save draft, Publish now and Schedule actions
-- [x] Large desktop dialog
-- [x] Full-viewport mobile editor from the first frame
+- [x] Back/Next preservation and dirty-close confirmation
+- [x] Session-only media controls
+- [x] Draft, publish and schedule actions
 - [x] Existing-product editing
-- [x] Connected Intake saved view and adjacent stage transitions
-- [x] Same product identity throughout Intake
-- [x] Committed-stock edit guards
+- [x] Connected Intake queue and adjacent transitions
 - [x] Explicit subscribed catalogue store
-- [x] Live Inventory count, search and cards update after draft save
-- [x] No backend persistence or upload capability falsely claimed
+- [x] Live Inventory updates after draft save
+- [x] Full-viewport mobile editor
+- [x] 30 tests, production build, browser interactions and React Doctor 100/100
 
-## Phase 3 batch record
+Final Phase 3 application verification: GitHub Actions run `29035766157` on `ba05d413d62154f1b41a415e5d31003bdf2c20f1`.
 
-### Batch 3A — editor domain, schemas and prototype actions
+The documentation-only Phase 3 closure head `c897d5a7135cf7c93ee048016514c0bdebf27780` also passed both required workflows.
 
-- [x] Typed editor draft model
-- [x] Seven-step field ownership map
-- [x] Zod schemas for common, unique, stocked and variant branches
-- [x] Draft-to-product conversion
-- [x] Typed save-draft, publish and Intake-transition results
-- [x] Shared prototype action boundary
-- [x] Focused validation, conversion and transition tests
+## Phase 4 locked scope
 
-Accepted evidence:
+### Goal
 
-- GitHub Actions run `29024023435`
-- Application head `e3cc7c7892f9e2e971b997cdecac2af4718a310e`
-- 23 tests passed
-- Production build passed
-- React Doctor 100/100
+Connect Orders, Holds, Offline Sales and Returns to the same inventory, revenue, customer and activity truth.
 
-### Batch 3B — responsive seven-step editor
+### In scope
 
-- [x] Product-editor feature folder
-- [x] Responsive dialog/full-height mobile shell
-- [x] Accessible progress navigation and step status
-- [x] Product type step
-- [x] Identity step
-- [x] Images step with truthful local previews
-- [x] Stock and variant branches
-- [x] Pricing and margin preview
-- [x] Fulfilment step
-- [x] Review and publish step
-- [x] Back/Next preservation
-- [x] Inline field errors
-- [x] Dirty-close confirmation
+- Orders route and status views
+- Order detail and timeline
+- Permitted order transitions
+- Holds route and risk views
+- Extend, release and convert-hold actions
+- Global Record Sale dialog
+- Product/variant and quantity validation
+- Channel, customer and payment capture
+- Connected offline-sale action
+- Returns route and return/refund states
+- Typed Result errors
+- Loading, empty, error, success and confirmation states
 
-### Batch 3C — Inventory and Intake integration
+### Out of scope
 
-- [x] Add product exposed only after the complete editor worked
-- [x] Save draft updates shared session catalogue state
-- [x] Publish creates a valid active product through the same action boundary
-- [x] Intake queue shows real stage context
-- [x] Intake transitions mutate the same product record
-- [x] Existing-product editing does not create duplicates
-- [x] Success and recoverable error feedback
-- [x] Inventory grid, table and mobile cards consume the shared state
-- [x] `useSyncExternalStore` subscription removes the stale Inventory propagation bug
-- [x] Store regression test proves subscribers receive draft commits
+- Real payment capture
+- Courier integration
+- Messaging integration
+- Production refunds
+- Backend, database, API or auth work
+- Phase 5 customer workspace
+- Supplier, accounting, warehouse or multi-store expansion
 
-### Batch 3D — acceptance and browser evidence
+## Phase 4 batches
 
-- [x] PR diff and scope audit
-- [x] ESLint
-- [x] TypeScript
-- [x] 30 Vitest tests
-- [x] Production build
-- [x] React Doctor 100/100 — no issues found
-- [x] Playwright at 375 × 812, 768 × 1024 and 1280 × 800
-- [x] Wizard Escape/dirty-close behaviour
-- [x] Back/Next preservation
-- [x] Live draft visible in Inventory after save
-- [x] Mobile full-viewport presentation
-- [x] Desktop large-dialog composition
-- [x] Intake stage progression evidence
-- [x] Same Intake product reopened in the editor
+### Batch 4A — sales domain and typed actions
 
-## Phase 3 accepted verification
+- [ ] Focused sales domain types
+- [ ] Expanded connected order, hold and return records
+- [ ] Explicit order transition graph
+- [ ] Stock reserve, release, sale and return helpers
+- [ ] Typed order transition action
+- [ ] Typed hold extend/release/convert actions
+- [ ] Typed offline-sale action
+- [ ] Typed return actions
+- [ ] Shared store integration
+- [ ] Focused tests for unique, stocked and variant products
+- [ ] Existing Phase 1–3 browser regression gate
+- [ ] React Doctor 100/100
 
-GitHub Actions run `29035766157` passed on application head `ba05d413d62154f1b41a415e5d31003bdf2c20f1`.
+No Sales route or global action is exposed during Batch 4A.
 
-The accepted run includes:
+### Batch 4B — Orders workspace
 
-- Lint: passed
-- TypeScript: passed
-- Tests: 30 passed across 6 files
-- Production build: passed
-- Browser viewport and interaction checks: passed
-- React Doctor: 100/100, no issues found
-- Parity workflow: passed
-- Screenshot and log artifacts uploaded
+- [ ] `/admin/orders`
+- [ ] Status views and search/filter controls
+- [ ] Desktop operational table
+- [ ] Mobile order cards
+- [ ] Order detail sheet and timeline
+- [ ] Permitted transition controls
+- [ ] Empty, loading, error and success states
 
-The real browser flow proved:
+### Batch 4C — Holds workspace
 
-1. Add product opens on desktop and mobile.
-2. Product mode can change without retaining the previous stock branch.
-3. Back/Next preserves entered identity values.
-4. Escape on dirty work opens a discard confirmation.
-5. Save draft commits through the shared catalogue store.
-6. The draft immediately appears in Inventory search and result cards.
-7. Intake moves from Details required to Pricing review.
-8. Continue product opens the same Intake product identity.
-9. The mobile editor occupies the full 375 × 812 viewport from its first frame.
+- [ ] `/admin/holds`
+- [ ] Active, expiring, expired and payment-risk views
+- [ ] Responsive hold list/cards
+- [ ] Extend action
+- [ ] Release confirmation
+- [ ] Convert-to-order action
+- [ ] Recoverable error feedback
 
-## Phase 3 acceptance criteria
+### Batch 4D — global Record Sale
 
-- [x] Product mode changes the stock step without retaining irrelevant hidden values
-- [x] Moving backward preserves valid entered data
-- [x] Required errors appear beside their fields
-- [x] Draft and publish are visibly distinct actions
-- [x] Intake moves one product record through stages and never duplicates it
-- [x] Closing dirty work requires confirmation
-- [x] No upload or persistence integration is claimed
-- [x] Add product was not exposed until the complete workflow was connected
-- [x] Keyboard and mobile behaviour pass
-- [x] No feature file became a replacement monolith
-- [x] All required phase checks pass
+- [ ] Global entry point
+- [ ] Guided sale form
+- [ ] Product, variant and quantity validation
+- [ ] Channel, customer, payment and notes capture
+- [ ] Connected offline-sale action
+- [ ] Inventory, orders, revenue inputs, stock movement and activity updates
+- [ ] Success summary and conflict errors
+
+### Batch 4E — Returns workspace
+
+- [ ] `/admin/returns`
+- [ ] Return states and filters
+- [ ] Order-line context
+- [ ] Quantity and prior-return validation
+- [ ] Restock/damage disposition
+- [ ] Confirmation and recoverable errors
+
+### Batch 4F — acceptance
+
+- [ ] Scope and PR diff audit
+- [ ] ESLint
+- [ ] TypeScript
+- [ ] Full Vitest suite
+- [ ] Production build
+- [ ] React Doctor changed-scope review
+- [ ] Required viewport matrix
+- [ ] Orders browser interactions
+- [ ] Holds browser interactions
+- [ ] Offline-sale browser interactions
+- [ ] Return/restock browser interactions
+- [ ] Overview and Inventory cross-workspace regression
+- [ ] Tracker and PR body updated
+
+## Batch 4A acceptance criteria
+
+- [ ] Unique-item sale prevents a second sale
+- [ ] Stocked and variant mutations affect only the selected quantity bucket
+- [ ] Holds reserve quantities correctly
+- [ ] Release restores reserved stock
+- [ ] Hold conversion creates an order and consumes reserved stock
+- [ ] Offline sale creates an order/sales record rather than only changing stock
+- [ ] Invalid transitions return understandable typed errors
+- [ ] Returns cannot exceed the eligible sold quantity
+- [ ] Revenue selectors can distinguish paid online and offline sales
+- [ ] No UI route or later batch action is exposed
+- [ ] Required checks pass
 
 ## Loaded implementation contract
 
-Before Phase 3 code began, the specification, implementation plan, tracker, `AGENTS.md`, PR feedback and relevant controller skills were reloaded. The controller did not contain the expected `brainstorming` skill path; `find-skills` was used and no replacement skill was invented.
+Before Batch 4A code begins:
+
+- [x] Reloaded `docs/control-room-v2/spec.md`
+- [x] Reloaded `docs/control-room-v2/implementation-plan.md`
+- [x] Reloaded the prior progress tracker
+- [x] Reloaded `AGENTS.md`
+- [x] Confirmed the Phase 3 closure head is green
+- [x] Inspected current order, hold, customer, product and stock-movement seed records
+- [x] Reloaded current controller process, product, UI, React, Next.js, shadcn, TypeScript and error-handling guidance
+- [x] Searched for the expected `brainstorming` skill; it remains absent and no replacement was invented
 
 ## Blockers
 
-None for Phase 3.
+None for Batch 4A.
 
 ## Next action
 
-Do not begin Phase 4 until it is explicitly started as a new gated phase. Phase 4 remains not started.
+Implement and verify Batch 4A only. Do not expose Orders, Holds, Record Sale or Returns UI until the corresponding later batch is complete.
