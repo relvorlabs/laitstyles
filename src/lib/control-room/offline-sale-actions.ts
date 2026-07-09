@@ -198,9 +198,11 @@ function resolveSaleCustomer(
   { customer: ControlRoomCustomer; customers: ControlRoomCustomer[] },
   SalesActionError
 > {
-  if (input.customer.kind === "existing") {
+  const customerInput = input.customer;
+
+  if (customerInput.kind === "existing") {
     const customer = state.customers.find(
-      (item) => item.id === input.customer.customerId,
+      (item) => item.id === customerInput.customerId,
     );
     if (!customer) {
       return err({
@@ -214,10 +216,10 @@ function resolveSaleCustomer(
 
   const customer: ControlRoomCustomer = {
     id: idFactory("customer"),
-    name: input.customer.name.trim() || "Walk-in customer",
-    email: input.customer.email.trim(),
-    phone: input.customer.phone.trim(),
-    city: input.customer.city.trim() || "Lagos",
+    name: customerInput.name.trim() || "Walk-in customer",
+    email: customerInput.email.trim(),
+    phone: customerInput.phone.trim(),
+    city: customerInput.city.trim() || "Lagos",
   };
   return ok({ customer, customers: [customer, ...state.customers] });
 }
