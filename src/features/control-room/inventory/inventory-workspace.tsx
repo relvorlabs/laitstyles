@@ -1,24 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  ArrowUpRight01Icon,
-  CheckmarkCircle02Icon,
-} from "@hugeicons/core-free-icons";
-import {
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
 import { InventoryEmptyState } from "@/features/control-room/inventory/inventory-empty-state";
 import { downloadInventoryCsv } from "@/features/control-room/inventory/inventory-export";
+import { InventoryExportAlert } from "@/features/control-room/inventory/inventory-export-alert";
 import { InventoryGrid } from "@/features/control-room/inventory/inventory-grid";
 import { InventoryMobileList } from "@/features/control-room/inventory/inventory-mobile-list";
 import { InventorySavedViews } from "@/features/control-room/inventory/inventory-saved-views";
@@ -26,7 +15,7 @@ import { InventorySelectionBar } from "@/features/control-room/inventory/invento
 import { InventorySummaryStrip } from "@/features/control-room/inventory/inventory-summary-strip";
 import { InventoryTable } from "@/features/control-room/inventory/inventory-table";
 import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { InventoryWorkspaceHeader } from "@/features/control-room/inventory/inventory-workspace-header";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -172,31 +161,7 @@ export function InventoryWorkspace({
 
   return (
     <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Catalogue operations
-          </p>
-          <h1 className="mt-3 max-w-[820px] text-balance font-serif text-[40px] font-medium leading-[.98] sm:text-[52px]">
-            See every piece, unit and variant as one catalogue truth.
-          </h1>
-          <p className="mt-4 max-w-[720px] text-[14px] leading-6 text-muted-foreground">
-            Product imagery leads the workspace, while stock, holds, visibility and sales stay close enough for daily decisions.
-          </p>
-        </div>
-        <Link
-          className={buttonVariants({
-            variant: "outline",
-            size: "lg",
-            className: "h-11 rounded-full px-5",
-          })}
-          href="/shop"
-        >
-          Preview catalogue
-          <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
-        </Link>
-      </section>
-
+      <InventoryWorkspaceHeader />
       <InventorySummaryStrip summary={summary} />
 
       <Card className="gap-0 overflow-hidden py-0">
@@ -216,26 +181,10 @@ export function InventoryWorkspace({
         />
       </Card>
 
-      {exportedCount ? (
-        <Alert className="border-[#C9D1B8] bg-[#E7EBDD] text-[#4A5540]">
-          <ControlRoomIcon icon={CheckmarkCircle02Icon} size={18} />
-          <AlertTitle>Inventory export created</AlertTitle>
-          <AlertDescription className="text-[#59644A]">
-            {exportedCount} selected product{exportedCount === 1 ? "" : "s"} were exported as a CSV file.
-          </AlertDescription>
-          <AlertAction>
-            <Button
-              className="h-8 rounded-full px-3"
-              onClick={() => setExportedCount(null)}
-              size="sm"
-              type="button"
-              variant="ghost"
-            >
-              Dismiss
-            </Button>
-          </AlertAction>
-        </Alert>
-      ) : null}
+      <InventoryExportAlert
+        count={exportedCount}
+        onDismiss={() => setExportedCount(null)}
+      />
 
       {items.length ? (
         <>
@@ -245,7 +194,6 @@ export function InventoryWorkspace({
             onSelectedChange={setProductSelected}
             selectedIds={selectedIds}
           />
-
           <div
             className={
               presentation === "grid"
@@ -261,7 +209,6 @@ export function InventoryWorkspace({
               selectedIds={selectedIds}
             />
           </div>
-
           {presentation === "table" ? (
             <InventoryTable
               items={items}
@@ -285,7 +232,6 @@ export function InventoryWorkspace({
         onOpenSelected={openSelected}
         selectedCount={selectedIds.size}
       />
-
       <InventoryDetailSheet
         item={openItem}
         onOpenChange={(open) => {
