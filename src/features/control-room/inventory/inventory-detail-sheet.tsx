@@ -51,7 +51,7 @@ export function InventoryDetailSheet({
   state,
   onOpenChange,
 }: InventoryDetailSheetProps) {
-  const productId = item?.product.id;
+  const productId = item?.product.id ?? null;
   const orders = productId
     ? state.orders.filter((order) =>
         order.lines.some((line) => line.productId === productId),
@@ -91,7 +91,7 @@ export function InventoryDetailSheet({
   return (
     <Sheet onOpenChange={onOpenChange} open={Boolean(item)}>
       <SheetContent
-        className="w-[min(96vw,760px)] gap-0 overflow-y-auto sm:max-w-[760px]"
+        className="w-[min(96vw,760px)] gap-0 overflow-y-auto overscroll-contain sm:max-w-[760px]"
         side="right"
       >
         {item && productId ? (
