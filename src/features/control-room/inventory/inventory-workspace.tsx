@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
@@ -44,7 +44,6 @@ export function InventoryWorkspace({
   initialOpenProductId,
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] =
     useState<InventoryPresentation>(initialPresentation);
@@ -80,17 +79,18 @@ export function InventoryWorkspace({
     allItems.find((item) => item.product.id === openProductId) ?? null;
 
   function replaceUrl(
-    nextView = query.view,
+    nextQuery = query,
     nextPresentation = presentation,
     nextProductId = openProductId,
   ) {
-    router.replace(
+    window.history.replaceState(
+      null,
+      "",
       buildInventoryHref(pathname, {
-        view: nextView,
+        query: nextQuery,
         presentation: nextPresentation,
         productId: nextProductId,
       }),
-      { scroll: false },
     );
   }
 
@@ -98,28 +98,28 @@ export function InventoryWorkspace({
     const nextQuery = { ...query, ...patch };
     setQuery(nextQuery);
     setExportedCount(null);
-    if (patch.view) replaceUrl(nextQuery.view);
+    replaceUrl(nextQuery);
   }
 
   function resetQuery() {
     setQuery(defaultInventoryQuery);
     setExportedCount(null);
-    replaceUrl("all");
+    replaceUrl(defaultInventoryQuery);
   }
 
   function changePresentation(nextPresentation: InventoryPresentation) {
     setPresentation(nextPresentation);
-    replaceUrl(query.view, nextPresentation);
+    replaceUrl(query, nextPresentation);
   }
 
   function openProduct(productId: string) {
     setOpenProductId(productId);
-    replaceUrl(query.view, presentation, productId);
+    replaceUrl(query, presentation, productId);
   }
 
   function closeProduct() {
     setOpenProductId(null);
-    replaceUrl(query.view, presentation, null);
+    replaceUrl(query, presentation, null);
   }
 
   function setProductSelected(productId: string, selected: boolean) {
