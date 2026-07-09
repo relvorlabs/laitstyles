@@ -21,7 +21,7 @@ export function ControlRoomShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-[#ECEBE6] text-foreground">
       <a
-        className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0"
+        className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
         href="#control-room-main"
       >
         Skip to Control Room content
@@ -36,6 +36,7 @@ export function ControlRoomShell({ children }: { children: ReactNode }) {
           <ControlRoomTopbar
             onOpenNavigation={() => setNavigationOpen(true)}
             onOpenSearch={() => setSearchOpen(true)}
+            pathname={pathname}
           />
           <main id="control-room-main" tabIndex={-1}>
             {children}
