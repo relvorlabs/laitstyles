@@ -102,10 +102,9 @@ export function InventoryFilterFields({
         onChange={(value) =>
           onQueryChange({ sort: value as InventoryQuery["sort"] })
         }
-        options={inventorySortOptions.map((option) => [
-          option.value,
-          option.label,
-        ])}
+        options={inventorySortOptions.map(
+          (option) => [option.value, option.label] as const,
+        )}
         value={query.sort}
       />
     </>
