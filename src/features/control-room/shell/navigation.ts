@@ -1,6 +1,7 @@
 import {
   ArrowUpRight01Icon,
   DashboardSquare01Icon,
+  PackageIcon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ControlRoomIconData } from "@/features/control-room/shared/control-room-icon";
@@ -12,14 +13,39 @@ export type ControlRoomNavigationItem = {
   description: string;
 };
 
-export const controlRoomNavigation: ControlRoomNavigationItem[] = [
+export type ControlRoomNavigationGroup = {
+  label: string;
+  items: ControlRoomNavigationItem[];
+};
+
+export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
-    label: "Overview",
-    href: "/admin",
-    icon: DashboardSquare01Icon,
-    description: "Today’s health, priorities and recent changes.",
+    label: "Control room",
+    items: [
+      {
+        label: "Overview",
+        href: "/admin",
+        icon: DashboardSquare01Icon,
+        description: "Today’s health, priorities and recent changes.",
+      },
+    ],
+  },
+  {
+    label: "Catalogue",
+    items: [
+      {
+        label: "Inventory",
+        href: "/admin/inventory",
+        icon: PackageIcon,
+        description: "Pieces, stocked products and variants.",
+      },
+    ],
   },
 ];
+
+export const controlRoomNavigation = controlRoomNavigationGroups.flatMap(
+  (group) => group.items,
+);
 
 export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
   {
@@ -35,3 +61,13 @@ export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
     description: "Return to today’s store pulse.",
   },
 ];
+
+export function getControlRoomPage(pathname: string) {
+  return (
+    controlRoomNavigation.find((item) =>
+      item.href === "/admin"
+        ? pathname === item.href
+        : pathname === item.href || pathname.startsWith(`${item.href}/`),
+    ) ?? controlRoomNavigation[0]
+  );
+}
