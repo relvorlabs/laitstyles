@@ -12,7 +12,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     steps:
       - name: Check out repository
@@ -66,6 +66,46 @@ jobs:
           set -o pipefail
           pnpm build 2>&1 | tee build.log
 
+      - name: Browser viewport checks
+        id: browser
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p control-room-screenshots
+          pnpm dlx playwright@latest install --with-deps chromium 2>&1 | tee browser.log
+
+          pnpm start >> browser.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..60}; do
+            if curl --silent --fail http://127.0.0.1:3000/admin >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --silent --fail http://127.0.0.1:3000/admin >/dev/null
+
+          for viewport in 375,812 768,1024 1280,800; do
+            label=${viewport/,/x}
+            pnpm dlx playwright@latest screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1200 \
+              --full-page \
+              http://127.0.0.1:3000/admin \
+              "control-room-screenshots/active-${label}.png" 2>&1 | tee -a browser.log
+
+            pnpm dlx playwright@latest screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1200 \
+              --full-page \
+              'http://127.0.0.1:3000/admin?view=new-store' \
+              "control-room-screenshots/new-store-${label}.png" 2>&1 | tee -a browser.log
+          done
+
       - name: React Doctor diagnostics
         id: react_doctor
         continue-on-error: true
@@ -84,7 +124,17 @@ jobs:
             typescript.log
             tests.log
             build.log
+            browser.log
             react-doctor.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-room-v2-screenshots
+          path: control-room-screenshots
           if-no-files-found: warn
           retention-days: 7
 
@@ -95,10 +145,12 @@ jobs:
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           TESTS_OUTCOME: ${{ steps.tests.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
         run: |
-          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\n' \
-            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME"
+          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\nbrowser=%s\n' \
+            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME" "$BROWSER_OUTCOME"
           test "$LINT_OUTCOME" = success
           test "$TYPESCRIPT_OUTCOME" = success
           test "$TESTS_OUTCOME" = success
           test "$BUILD_OUTCOME" = success
+          test "$BROWSER_OUTCOME" = success
