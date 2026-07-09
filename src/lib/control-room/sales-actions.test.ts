@@ -13,6 +13,7 @@ import { getRevenueByChannel } from "@/lib/control-room/sales-selectors";
 import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 import type {
+  ControlRoomOrder,
   ControlRoomState,
   InventoryProduct,
 } from "@/lib/control-room/types";
@@ -30,10 +31,13 @@ function productById(state: ControlRoomState, id: string) {
   return product;
 }
 
-function stockFor(
-  product: InventoryProduct,
-  variantId?: string,
-) {
+function orderById(state: ControlRoomState, id: string) {
+  const order = state.orders.find((item) => item.id === id);
+  if (!order) throw new Error(`Missing order ${id}`);
+  return order;
+}
+
+function stockFor(product: InventoryProduct, variantId?: string) {
   if (product.inventoryMode !== "variant") return product.stock;
   const variant = product.variants.find((item) => item.id === variantId);
   if (!variant) throw new Error(`Missing variant ${variantId}`);
@@ -120,7 +124,7 @@ describe("sales stock mutations", () => {
 });
 
 describe("order transitions", () => {
-  it("reserves stock when a pending order becomes payment confirmed", () => {
+  it("marks stock as sold when a pending order becomes payment confirmed", () => {
     const result = applyOrderTransition(
       activeControlRoomSeed,
       "LS-20479",
@@ -132,9 +136,40 @@ describe("order transitions", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const tote = productById(result.value.state, "canvas-carry-tote");
-    expect(stockFor(tote)).toMatchObject({ available: 2, reserved: 3 });
+    expect(stockFor(tote)).toMatchObject({
+      available: 2,
+      reserved: 2,
+      sold: 16,
+    });
     expect(result.value.action.order.paymentStatus).toBe("paid");
-    expect(result.value.action.order.lines[0]?.stockState).toBe("reserved");
+    expect(result.value.action.order.lines[0]?.stockState).toBe("sold");
+  });
+
+  it("restores sold stock when a paid order is cancelled before dispatch", () => {
+    const result = applyOrderTransition(
+      activeControlRoomSeed,
+      "LS-20481",
+      "cancelled",
+      now,
+      idFactory(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(
+      stockFor(productById(result.value.state, "botanical-jeans")),
+    ).toMatchObject({ available: 30, sold: 17 });
+    expect(
+      stockFor(
+        productById(result.value.state, "ribbed-studio-tank"),
+        "tank-m-cream",
+      ),
+    ).toMatchObject({ available: 7, sold: 2 });
+    expect(
+      result.value.action.order.lines.every(
+        (line) => line.stockState === "released",
+      ),
+    ).toBe(true);
   });
 
   it("rejects skipped fulfilment transitions", () => {
@@ -167,11 +202,7 @@ describe("hold actions", () => {
     expect(result.value.action.hold.status).toBe("released");
   });
 
-  it("converts a hold into an order without double-moving reserved stock", () => {
-    const before = stockFor(
-      productById(activeControlRoomSeed, "ribbed-studio-tank"),
-      "tank-s-cream",
-    );
+  it("converts a paid hold from reserved stock into sold stock", () => {
     const result = applyHoldConversion(
       activeControlRoomSeed,
       {
@@ -191,9 +222,35 @@ describe("hold actions", () => {
       productById(result.value.state, "ribbed-studio-tank"),
       "tank-s-cream",
     );
-    expect(after).toEqual(before);
+    expect(after).toMatchObject({ available: 2, reserved: 0, sold: 6 });
     expect(result.value.action.hold.status).toBe("converted");
+    expect(result.value.action.order?.lines[0]?.stockState).toBe("sold");
+  });
+
+  it("keeps stock reserved when a hold becomes a pending-payment order", () => {
+    const before = stockFor(
+      productById(activeControlRoomSeed, "botanical-jeans"),
+    );
+    const result = applyHoldConversion(
+      activeControlRoomSeed,
+      {
+        holdId: "hold-botanical",
+        paymentMethod: "bank-transfer",
+        paymentStatus: "pending",
+        deliveryCity: "Ikeja",
+        notes: "Waiting for transfer.",
+      },
+      "2026-07-09T11:30:00+01:00",
+      idFactory(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(
+      stockFor(productById(result.value.state, "botanical-jeans")),
+    ).toEqual(before);
     expect(result.value.action.order?.lines[0]?.stockState).toBe("reserved");
+    expect(result.value.action.order?.fulfilmentStatus).toBe("pending-payment");
   });
 });
 
@@ -344,6 +401,9 @@ describe("returns", () => {
     expect(
       stockFor(productById(restocked.value.state, "botanical-jeans")),
     ).toMatchObject({ available: 30, sold: 17, returned: 0 });
+    expect(orderById(restocked.value.state, "LS-20472").fulfilmentStatus).toBe(
+      "returned",
+    );
   });
 
   it("prevents returns above the remaining eligible order quantity", () => {
@@ -364,5 +424,95 @@ describe("returns", () => {
       expect(result.error.code).toBe("return-quantity-exceeded");
       expect(result.error.available).toBe(1);
     }
+  });
+
+  it("rejects a return before the order is delivered", () => {
+    const result = applyCreateReturn(
+      activeControlRoomSeed,
+      {
+        orderId: "LS-20481",
+        reason: "Should be cancellation instead",
+        note: "",
+        lines: [{ orderLineId: "line-20481-1", quantity: 1 }],
+      },
+      now,
+      idFactory(),
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("invalid-return-transition");
+    }
+  });
+
+  it("subtracts a partial refund from net revenue without closing the full order", () => {
+    const sourceOrder = orderById(activeControlRoomSeed, "LS-20481");
+    const deliveredOrder: ControlRoomOrder = {
+      ...sourceOrder,
+      id: "LS-PARTIAL-REFUND",
+      fulfilmentStatus: "delivered",
+      attention: undefined,
+      lines: sourceOrder.lines.map((line) => ({ ...line, stockState: "sold" })),
+    };
+    const state: ControlRoomState = {
+      ...activeControlRoomSeed,
+      orders: [deliveredOrder, ...activeControlRoomSeed.orders],
+    };
+    const revenueBefore = getRevenueByChannel(state.orders);
+    const opened = applyCreateReturn(
+      state,
+      {
+        orderId: deliveredOrder.id,
+        reason: "One item was unsuitable",
+        note: "Partial order return.",
+        lines: [{ orderLineId: "line-20481-1", quantity: 1 }],
+      },
+      now,
+      idFactory(),
+    );
+    expect(opened.ok).toBe(true);
+    if (!opened.ok) return;
+
+    const returnId = opened.value.action.returnRecord.id;
+    const approved = applyReturnTransition(
+      opened.value.state,
+      returnId,
+      "approved",
+      now,
+      idFactory(),
+    );
+    if (!approved.ok) throw new Error(approved.error.message);
+    const received = applyReturnTransition(
+      approved.value.state,
+      returnId,
+      "received",
+      now,
+      idFactory(),
+    );
+    if (!received.ok) throw new Error(received.error.message);
+    const inspecting = applyReturnTransition(
+      received.value.state,
+      returnId,
+      "inspecting",
+      now,
+      idFactory(),
+    );
+    if (!inspecting.ok) throw new Error(inspecting.error.message);
+    const refunded = applyReturnTransition(
+      inspecting.value.state,
+      returnId,
+      "refunded",
+      now,
+      idFactory(),
+    );
+    expect(refunded.ok).toBe(true);
+    if (!refunded.ok) return;
+
+    const order = orderById(refunded.value.state, deliveredOrder.id);
+    const revenueAfter = getRevenueByChannel(refunded.value.state.orders);
+    expect(order.refundedAmount).toBe(28500);
+    expect(order.paymentStatus).toBe("paid");
+    expect(order.fulfilmentStatus).toBe("delivered");
+    expect(revenueAfter.online).toBe(revenueBefore.online - 28500);
   });
 });
