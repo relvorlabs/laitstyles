@@ -52,10 +52,10 @@ export function OrderDetailSheet({
   return (
     <Sheet onOpenChange={onOpenChange} open>
       <SheetContent
-        className="data-[side=right]:gap-0 data-[side=right]:overflow-y-auto data-[side=right]:overscroll-contain max-sm:!inset-x-0 max-sm:!w-screen max-sm:!max-w-none max-sm:border-l-0 max-sm:duration-0 data-[side=right]:sm:w-[min(94vw,780px)] data-[side=right]:sm:max-w-[780px]"
+        className="data-[side=right]:gap-0 data-[side=right]:overflow-y-auto data-[side=right]:overscroll-contain max-sm:!inset-x-0 max-sm:!w-screen max-sm:!max-w-none max-sm:border-l-0 max-sm:pb-[env(safe-area-inset-bottom)] max-sm:duration-0 data-[side=right]:sm:w-[min(94vw,780px)] data-[side=right]:sm:max-w-[780px]"
         side="right"
       >
-        <SheetHeader className="border-b border-border px-5 py-5 pr-14 sm:px-6">
+        <SheetHeader className="border-b border-border px-5 py-5 pr-14 max-sm:pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
