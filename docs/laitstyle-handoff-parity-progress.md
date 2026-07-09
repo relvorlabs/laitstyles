@@ -32,12 +32,12 @@ Excluded:
 | 6 | Dedicated order-confirmation route and receipt handoff | Complete |
 | 7 | Home, PLP and PDP connected to the same reservation lifecycle | Complete |
 | 8 | Account/deep-link cleanup, design tokens and accessibility pass | Complete |
-| 9 | Lint, TypeScript, tests, React Doctor and production build pass | In progress |
-| 10 | PR complete, checks recorded and no known in-scope blocker | Pending |
+| 9 | Lint, TypeScript, tests, React Doctor and production build pass | Complete |
+| 10 | Live responsive/browser validation complete and PR ready for final review | Blocked |
 
 ## Current score
 
-**8/10**
+**9/10**
 
 ## Out-of-scope watch
 
@@ -45,4 +45,14 @@ No backend, admin, deployment or product-strategy work has been added. Payment a
 
 ## Verification status
 
-The branch includes a pull-request workflow for lint, TypeScript, available tests, production build and non-blocking React Doctor diagnostics. Live Chrome DevTools MCP validation remains blocked until that MCP server is available to the execution environment.
+GitHub Actions run `29011687658` passed:
+
+- pnpm frozen-lockfile installation
+- ESLint
+- TypeScript with `tsc --noEmit`
+- Vitest with no test-file failure
+- Next.js production build
+- React Doctor diagnostics execution
+- Final required-check enforcement
+
+Live Chrome DevTools MCP validation at 375 × 812, 768 × 1024 and 1280 × 800 remains blocked because that MCP server is not available to the execution environment. The PR remains a draft until that final gate is completed or explicitly waived during review.
