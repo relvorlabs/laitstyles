@@ -2,7 +2,9 @@
 
 ## Status
 
-Phase 3 implementation is complete. The final simplified workflow is pending on the current branch head.
+**Accepted — Phase 3 is complete at 10/10.**
+
+Phase 4 is not started.
 
 ## Implemented scope
 
@@ -15,27 +17,54 @@ Phase 3 implementation is complete. The final simplified workflow is pending on 
 - Save draft, Publish now and Schedule actions
 - Dirty-close confirmation
 - Large desktop dialog and full-viewport mobile editor
-- Shared session catalogue state
-- Live Inventory updates
 - Existing-product editing
 - Connected Intake queue and adjacent stage transitions
 - Same product identity throughout Intake
 - Committed-stock edit guards
+- Explicit subscribed catalogue store
+- Live Inventory updates after editor commits
 
-## Evidence already collected
+## Fixed acceptance blocker
 
-GitHub Actions run `29027425978` on application head `881baf197acef412010e81d2452f448318d4465a` produced clean logs for:
+The original client provider relied on provider re-render propagation through the Admin route tree. The editor action returned success, but Inventory did not reliably observe the updated catalogue snapshot in the same browser session.
 
-- ESLint
-- TypeScript
-- 28 Vitest tests
-- Next.js production build
-- Static Playwright viewport matrix
-- Real Phase 3 Playwright interactions
-- React Doctor 100/100
+The fix introduced a dedicated `ControlRoomStore` with `subscribe`, `getSnapshot` and typed actions. `useControlRoom` now consumes that store through `useSyncExternalStore`, so Inventory is notified directly whenever a product or Intake action commits.
 
-That job failed only in the removed synthetic outcome-enforcement step. The required checks now fail the job directly while later diagnostics still run with `always()`.
+A regression test now proves that saving a draft:
 
-## Final gate
+- notifies subscribers,
+- changes the catalogue snapshot from 13 to 14 products,
+- and exposes the new draft immediately.
 
-The next workflow run must pass directly on the simplified workflow and provide the accepted screenshot and log artifacts before Phase 3 is marked complete in the main progress tracker and PR description.
+## Accepted evidence
+
+GitHub Actions run `29035766157` passed on application head `ba05d413d62154f1b41a415e5d31003bdf2c20f1`.
+
+- ESLint: passed
+- TypeScript: passed
+- Vitest: 30 tests passed across 6 files
+- Next.js production build: passed
+- Static Playwright viewport matrix: passed
+- Real Phase 3 Playwright interactions: passed
+- React Doctor: 100/100, no issues found
+- Laitstyle parity checks: passed
+- Log and screenshot artifacts uploaded
+
+## Browser-proven flow
+
+1. Open Add product on desktop.
+2. Change the product mode.
+3. Enter identity data.
+4. Verify dirty-close confirmation with Escape.
+5. Move Back and Continue without losing values.
+6. Save a draft.
+7. Confirm the draft appears in the live Inventory result set.
+8. Open the Intake saved view.
+9. Move Ivory Linen Wrap Skirt from Details required to Pricing review.
+10. Reopen the same Intake product in the editor.
+11. Open Add product on a 375 × 812 viewport.
+12. Confirm the mobile editor occupies the full viewport from its first frame.
+
+## Prototype truth
+
+All product and Intake changes remain session-only. Refreshing restores deterministic seed data. No backend persistence, real upload storage or background scheduler is claimed.
