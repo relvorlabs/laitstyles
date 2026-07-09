@@ -57,10 +57,12 @@ export function InventoryTable({
             <TableHead className="min-w-[280px]">Product</TableHead>
             <TableHead className="hidden xl:table-cell">Mode</TableHead>
             <TableHead className="text-right">Available</TableHead>
-            <TableHead className="hidden text-right xl:table-cell">Reserved</TableHead>
+            <TableHead className="hidden text-right xl:table-cell">
+              Reserved
+            </TableHead>
             <TableHead className="hidden text-right xl:table-cell">Sold</TableHead>
             <TableHead className="text-right">Price</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Status & visibility</TableHead>
             <TableHead className="hidden 2xl:table-cell">Updated</TableHead>
             <TableHead className="w-14 text-right">
               <span className="sr-only">Actions</span>
@@ -72,7 +74,10 @@ export function InventoryTable({
             const selected = selectedIds.has(item.product.id);
 
             return (
-              <TableRow data-state={selected ? "selected" : undefined} key={item.product.id}>
+              <TableRow
+                data-state={selected ? "selected" : undefined}
+                key={item.product.id}
+              >
                 <TableCell className="px-4">
                   <Checkbox
                     aria-label={`Select ${item.product.name}`}
@@ -125,7 +130,14 @@ export function InventoryTable({
                     : "Needs price"}
                 </TableCell>
                 <TableCell>
-                  <InventoryStatusBadge health={item.health} />
+                  <div className="flex flex-col items-start gap-1.5">
+                    <InventoryStatusBadge health={item.health} />
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      {item.product.publication === "published"
+                        ? `${item.product.channels.length} selling channel${item.product.channels.length === 1 ? "" : "s"}`
+                        : "Not visible to shoppers"}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell className="hidden text-[11px] text-muted-foreground 2xl:table-cell">
                   {formatInventoryDate(item.product.updatedAt)}
