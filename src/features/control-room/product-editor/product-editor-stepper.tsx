@@ -1,19 +1,10 @@
 "use client";
 
 import { Progress } from "@/components/ui/progress";
+import { productEditorStepLabels } from "@/features/control-room/product-editor/product-editor-step-labels";
 import { productEditorSteps } from "@/lib/control-room/product-editor-types";
 import type { ProductEditorStep } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
-
-const stepLabels: Record<ProductEditorStep, string> = {
-  type: "Product type",
-  identity: "Identity",
-  images: "Images",
-  stock: "Stock & variants",
-  pricing: "Pricing",
-  fulfilment: "Fulfilment",
-  review: "Review & publish",
-};
 
 export function ProductEditorStepper({
   activeStep,
@@ -34,7 +25,7 @@ export function ProductEditorStepper({
           <span>
             Step {activeIndex + 1} of {productEditorSteps.length}
           </span>
-          <span>{stepLabels[activeStep]}</span>
+          <span>{productEditorStepLabels[activeStep]}</span>
         </div>
         <Progress className="mt-3" value={progress} />
       </div>
@@ -78,7 +69,7 @@ export function ProductEditorStepper({
                     {complete ? "✓" : index + 1}
                   </span>
                   <span className="text-[12px] font-semibold">
-                    {stepLabels[step]}
+                    {productEditorStepLabels[step]}
                   </span>
                 </button>
               </li>
@@ -88,8 +79,4 @@ export function ProductEditorStepper({
       </nav>
     </div>
   );
-}
-
-export function getProductEditorStepLabel(step: ProductEditorStep) {
-  return stepLabels[step];
 }
