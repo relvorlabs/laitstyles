@@ -1,4 +1,9 @@
-export type ProductState = "available" | "lastone" | "resYou" | "resOthers" | "sold";
+export type ProductState =
+  | "available"
+  | "lastone"
+  | "resYou"
+  | "resOthers"
+  | "sold";
 
 export type Product = {
   id: string;
@@ -47,11 +52,11 @@ export const categories = [
 ];
 
 export const reducedItems = [
-  { name: "Eco Shell Jacket", price: "\u20A631,000", original: "\u20A639,000", discount: "-21%", image: img("1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_") },
-  { name: "Soft Beige Knit", price: "\u20A618,000", original: "\u20A624,000", discount: "-25%", image: img("1ZrtULUSgSWrmIRSve5DAuKqspfdzS71I") },
-  { name: "Cream Cotton Longsleeve", price: "\u20A612,500", original: "\u20A617,000", discount: "-26%", image: img("1iCzHDF9lrDV612Ndwi5_m03oqJ7o45NH") },
-  { name: "Bloom Belted Coat", price: "\u20A645,000", original: "\u20A658,000", discount: "-22%", image: img("1BI3_38frghBjJx-x8s248hh0EOZOSan1") },
-  { name: "Herringbone Scarf", price: "\u20A69,500", original: "\u20A614,000", discount: "-32%", image: img("1oClPdqgEJiM83D0we53IaNOfQGTFaP1D") },
+  { name: "Eco Shell Jacket", price: "₦31,000", original: "₦39,000", discount: "-21%", image: img("1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_") },
+  { name: "Soft Beige Knit", price: "₦18,000", original: "₦24,000", discount: "-25%", image: img("1ZrtULUSgSWrmIRSve5DAuKqspfdzS71I") },
+  { name: "Cream Cotton Longsleeve", price: "₦12,500", original: "₦17,000", discount: "-26%", image: img("1iCzHDF9lrDV612Ndwi5_m03oqJ7o45NH") },
+  { name: "Bloom Belted Coat", price: "₦45,000", original: "₦58,000", discount: "-22%", image: img("1BI3_38frghBjJx-x8s248hh0EOZOSan1") },
+  { name: "Herringbone Scarf", price: "₦9,500", original: "₦14,000", discount: "-32%", image: img("1oClPdqgEJiM83D0we53IaNOfQGTFaP1D") },
 ];
 
 export const journal = [
@@ -84,7 +89,7 @@ export const plpItems: PlpProduct[] = [
   { id: "p14", rank: 14, name: "Verdant Cargo Trousers", category: "Trousers", size: "L", color: "Olive", condition: "Good", price: 22000, original: 28000, state: "available", brand: "Field", era: "Workwear", image: img("1RbUrJyyoo6nkKfK6NJwdHO0zIHY2n04D") },
   { id: "p15", rank: 15, name: "Vintage Straight Jeans", category: "Denim", size: "L", color: "Indigo", condition: "Good", price: 20000, original: 27000, state: "lastone", brand: "Rework", era: "Vintage", image: img("1wAcVBwOdlLJw5mMbduiMYgPH4WWUTspP") },
   { id: "p16", rank: 16, name: "Daisy Field Dress", category: "Dresses", size: "S", color: "Ivory", condition: "Excellent", price: 26000, original: 33000, state: "available", brand: "Bloom", era: "Vintage", image: img("1dXXWxCEEg6ezYPsRCK6B1XxD5QpAiZfh") },
-  { id: "p17", rank: 17, name: "Pleated Midi Skirt", category: "Skirts", size: "M", color: "Charcoal", condition: "Good", price: 16000, original: 21000, state: "resOthers", minutes: 6, brand: "Aria", era: "Minimal", image: img("1FVxsSzsHCh4tKe5VMLKO0O25UyGk0DZJ") },
+  { id: "p17", rank: 17, name: "Pleated Midi Skirt", category: "Skirts", size: "M", color: "Charcoal", condition: "Good", price: 16000, original: 21000, state: "resOthers", minutes: 6, brand: "Aria", era: "Minimal", image: img("1FVxsSzsHCh5tKe5VMLKO0O25UyGk0DZJ") },
   { id: "p18", rank: 18, name: "Tailored Wool Blazer", category: "Blazers", size: "M", color: "Charcoal", condition: "Excellent", price: 38000, original: 49000, state: "available", brand: "Line", era: "Minimal", image: img("1a_gBKr983vl3VEPy5mT-oC6M4kMmiipy") },
   { id: "p19", rank: 19, name: "Pique Polo", category: "Tees", size: "L", color: "Forest", condition: "Good", price: 11000, original: 15000, state: "available", brand: "Basics", era: "Minimal", image: img("1yKF2UM6-vHyrC_8zL2FzIWy91SnBrEaE") },
   { id: "p20", rank: 20, name: "Canvas Carry Tote", category: "Accessories", size: "OS", color: "Khaki", condition: "Excellent", price: 15000, original: 19000, state: "available", brand: "Wovn", era: "Workwear", image: img("1wcW3Loif83NNUqILRSsQKU0RgrIyENGA") },
@@ -92,6 +97,22 @@ export const plpItems: PlpProduct[] = [
   { id: "p22", rank: 22, name: "Chunky Cable Sweater", category: "Knitwear", size: "M", color: "Rust", condition: "Good", price: 23000, original: 29000, state: "lastone", brand: "Wovn", era: "Vintage", image: img("127OwSWR8AB6eyu9zzWjc_k7KW3cYa-Uw") },
   { id: "p23", rank: 23, name: "Sporty Windbreaker", category: "Jackets", size: "S", color: "Sage", condition: "Good", price: 19000, original: 25000, state: "sold", brand: "Kit", era: "Y2K", image: img("10tiVM8fylrSZH-2nh0BCLytTf9NdvxkU") },
 ];
+
+const feedAliases: Record<string, string> = {
+  vest: "p2",
+  nature: "p1",
+  botan: "p0",
+  ivory: "p3",
+  bloom: "p9",
+  moss: "p7",
+  tote: "p20",
+  cargo: "p14",
+  "pool-denim": "p4",
+  "pool-cord": "p5",
+  "pool-scarf": "p10",
+  "pool-track": "p6",
+  "pool-linen": "p11",
+};
 
 const pdpGalleryPools: Record<string, string[]> = {
   Jackets: ["1T0XygfKzp92Id6ch09aTFcUyG8PbIG66", "1HgIA3DQUUjqGb5ypR-rHNJCoyP2aztRn", "1PDPeY2i810fzrtHsOUIcbh569FWkkNep", "1L2YrWAOexraRWeEg269qX7UUyXc1J6cM", "1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_", "1v8dZZ4LGxNFuJXC6Qnhqtc9CYIs8Gedd"],
@@ -111,20 +132,48 @@ function driveIdFromThumbnail(url: string) {
   return url.match(/[?&]id=([^&]+)/)?.[1] ?? "";
 }
 
+export function canonicalProductId(id: string) {
+  return feedAliases[id] ?? id;
+}
+
+export function canonicalizeProduct(product: Product): Product {
+  const canonicalId = canonicalProductId(product.id);
+  const match =
+    plpItems.find((item) => item.id === canonicalId) ??
+    plpItems.find((item) => item.name === product.name);
+
+  if (!match) return product;
+
+  return {
+    ...match,
+    state: product.state,
+    minutes: product.minutes,
+    secondsLeft: product.secondsLeft,
+    dropped: product.dropped,
+  };
+}
+
 export function galleryForProduct(product: PlpProduct) {
   const mainId = driveIdFromThumbnail(product.image);
-  const pool = (pdpGalleryPools[product.category] ?? []).filter((id) => id !== mainId);
+  const pool = (pdpGalleryPools[product.category] ?? []).filter(
+    (id) => id !== mainId,
+  );
   return [mainId, ...pool].filter(Boolean).slice(0, 5).map(img);
 }
 
 export function findCatalogueProduct(id?: string) {
-  return plpItems.find((item) => item.id === id) ?? plpItems[0];
+  const canonicalId = canonicalProductId(id ?? "");
+  return plpItems.find((item) => item.id === canonicalId) ?? plpItems[0];
 }
 
 export function pdpHref(id: string) {
-  return `/p/${id}`;
+  return `/p/${canonicalProductId(id)}`;
 }
 
 export function naira(value: number) {
-  return `\u20A6${value.toLocaleString()}`;
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
