@@ -26,13 +26,13 @@ export function ProductSummaryPanel({ item }: { item: InventoryListItem }) {
   ] as const;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
       <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-secondary">
         <Image
           alt={item.coverImage.alt}
           className="object-cover"
           fill
-          sizes="(min-width: 1024px) 260px, 100vw"
+          sizes="(min-width: 1024px) 220px, 100vw"
           src={item.coverImage.url}
         />
       </div>
