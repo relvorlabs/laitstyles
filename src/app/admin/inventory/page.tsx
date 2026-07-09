@@ -13,6 +13,7 @@ type InventoryPageProps = {
   searchParams: Promise<{
     view?: string | string[];
     presentation?: string | string[];
+    product?: string | string[];
   }>;
 };
 
@@ -28,14 +29,23 @@ export default async function InventoryPage({
   const requestedPresentation = Array.isArray(params.presentation)
     ? params.presentation[0]
     : params.presentation;
+  const requestedProduct = Array.isArray(params.product)
+    ? params.product[0]
+    : params.product;
   const view = savedViewValues.has(requestedView as InventorySavedView)
     ? (requestedView as InventorySavedView)
     : "all";
   const presentation: InventoryPresentation =
     requestedPresentation === "table" ? "table" : "grid";
+  const productId = activeControlRoomSeed.products.some(
+    (product) => product.id === requestedProduct,
+  )
+    ? requestedProduct ?? null
+    : null;
 
   return (
     <InventoryWorkspace
+      initialOpenProductId={productId}
       initialPresentation={presentation}
       initialQuery={{ ...defaultInventoryQuery, view }}
       state={activeControlRoomSeed}
