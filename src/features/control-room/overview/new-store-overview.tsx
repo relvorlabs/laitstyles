@@ -52,13 +52,16 @@ export function NewStoreOverview() {
       <section className="overflow-hidden rounded-[22px] bg-primary text-primary-foreground">
         <div className="grid gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:px-10 lg:py-12">
           <div>
-            <Badge className="border-white/12 bg-white/8 text-[#D9E1C9]" variant="outline">
+            <Badge
+              className="border-white/[0.14] bg-white/[0.08] text-[#D9E1C9]"
+              variant="outline"
+            >
               New store workspace
             </Badge>
             <h1 className="mt-5 max-w-[690px] text-balance font-serif text-[40px] font-medium leading-[.98] sm:text-[54px]">
               Set up the shop in the order a real store needs it.
             </h1>
-            <p className="mt-5 max-w-[620px] text-[14px] leading-6 text-white/64 sm:text-[15px]">
+            <p className="mt-5 max-w-[620px] text-[14px] leading-6 text-white/[0.72] sm:text-[15px]">
               Start with products, delivery and how customers can pay. Sales charts and fulfilment queues appear only after the store has activity worth managing.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -71,7 +74,7 @@ export function NewStoreOverview() {
                 <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
               </Button>
               <Button
-                className="h-11 rounded-full border-white/18 px-5 text-white hover:bg-white/8 hover:text-white"
+                className="h-11 rounded-full border-white/[0.22] px-5 text-white hover:bg-white/[0.08] hover:text-white"
                 render={<Link href="/admin" />}
                 size="lg"
                 variant="outline"
@@ -81,9 +84,9 @@ export function NewStoreOverview() {
             </div>
           </div>
 
-          <div className="rounded-[18px] border border-white/12 bg-white/6 p-5 sm:p-6">
+          <div className="rounded-[18px] border border-white/[0.14] bg-white/[0.07] p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/46">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/[0.64]">
                 Store readiness
               </span>
               <span className="font-serif text-[28px] tabular-nums">20%</span>
@@ -91,14 +94,14 @@ export function NewStoreOverview() {
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full w-1/5 rounded-full bg-[#AFC48A]" />
             </div>
-            <p className="mt-4 text-[12.5px] leading-5 text-white/58">
+            <p className="mt-4 text-[12.5px] leading-5 text-white/[0.68]">
               The store identity exists. Products, delivery and selling preferences still need owner decisions.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_340px]" id="setup">
+      <section className="grid scroll-mt-24 gap-4 lg:grid-cols-[1fr_340px]" id="setup">
         <Card className="gap-0 py-0">
           <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
             <CardTitle className="font-serif text-[29px] font-medium">
@@ -111,7 +114,7 @@ export function NewStoreOverview() {
           <CardContent className="divide-y divide-border p-0">
             {setupSteps.map((step, index) => (
               <article
-                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-5 sm:gap-4 sm:px-6"
+                className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 px-5 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-6"
                 key={step.title}
               >
                 <span className="grid size-11 place-items-center rounded-[13px] bg-secondary text-[#4A5540]">
@@ -125,7 +128,9 @@ export function NewStoreOverview() {
                     {step.detail}
                   </p>
                 </div>
-                <Badge variant="outline">{step.phase}</Badge>
+                <Badge className="col-start-2 mt-1 sm:col-start-auto sm:mt-0" variant="outline">
+                  {step.phase}
+                </Badge>
               </article>
             ))}
           </CardContent>
