@@ -189,9 +189,8 @@ function ProductEditorForm({
     applyIssues(issues);
     setActionError(null);
     if (issues.length) {
-      const firstStep = getFirstIssueStep(issues);
       setHighestVisited(productEditorSteps.length - 1);
-      setActiveStep(firstStep);
+      setActiveStep(getFirstIssueStep(issues));
       return;
     }
 
@@ -216,7 +215,7 @@ function ProductEditorForm({
     <>
       <Dialog onOpenChange={requestClose} open={open}>
         <DialogContent
-          className="flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-[18px] p-0 sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px]"
+          className="flex flex-col gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]"
         >
           <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -240,10 +239,7 @@ function ProductEditorForm({
           ) : null}
 
           <FormProvider {...methods}>
-            <form
-              className="flex min-h-0 flex-1 flex-col overflow-hidden"
-              onSubmit={(event) => event.preventDefault()}
-            >
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <div className="grid min-h-0 flex-1 lg:grid-cols-[230px_minmax(0,1fr)]">
                 <ProductEditorStepper
                   activeStep={activeStep}
@@ -273,7 +269,7 @@ function ProductEditorForm({
                 onSaveDraft={() => commit("draft")}
                 onSchedule={() => commit("schedule")}
               />
-            </form>
+            </div>
           </FormProvider>
         </DialogContent>
       </Dialog>
