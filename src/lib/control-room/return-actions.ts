@@ -48,6 +48,15 @@ export function applyCreateReturn(
     });
   }
 
+  if (order.fulfilmentStatus !== "delivered") {
+    return err({
+      code: "invalid-return-transition",
+      message:
+        "Only a delivered order can enter the customer return workflow. Cancel or refund an undelivered order instead.",
+      orderId: order.id,
+    });
+  }
+
   if (!input.lines.length) {
     return err({
       code: "return-line-not-found",
