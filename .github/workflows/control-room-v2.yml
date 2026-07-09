@@ -12,7 +12,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
 
     steps:
       - name: Check out repository
@@ -86,6 +86,7 @@ jobs:
             sleep 1
           done
           curl --silent --fail http://127.0.0.1:3000/admin >/dev/null
+          curl --silent --fail http://127.0.0.1:3000/admin/inventory >/dev/null
 
           for viewport in 375,812 768,1024 1280,800; do
             label=${viewport/,/x}
@@ -104,6 +105,33 @@ jobs:
               --full-page \
               'http://127.0.0.1:3000/admin?view=new-store' \
               "control-room-screenshots/new-store-${label}.png" 2>&1 | tee -a browser.log
+
+            pnpm dlx playwright@latest screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1500 \
+              --full-page \
+              http://127.0.0.1:3000/admin/inventory \
+              "control-room-screenshots/inventory-grid-${label}.png" 2>&1 | tee -a browser.log
+          done
+
+          pnpm dlx playwright@latest screenshot \
+            --browser chromium \
+            --viewport-size "1280,800" \
+            --wait-for-timeout 1500 \
+            --full-page \
+            'http://127.0.0.1:3000/admin/inventory?presentation=table' \
+            "control-room-screenshots/inventory-table-1280x800.png" 2>&1 | tee -a browser.log
+
+          for viewport in 375,812 1280,800; do
+            label=${viewport/,/x}
+            pnpm dlx playwright@latest screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1500 \
+              --full-page \
+              'http://127.0.0.1:3000/admin/inventory?product=botanical-jeans' \
+              "control-room-screenshots/inventory-detail-${label}.png" 2>&1 | tee -a browser.log
           done
 
       - name: React Doctor diagnostics
