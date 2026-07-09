@@ -215,7 +215,7 @@ function ProductEditorForm({
     <>
       <Dialog onOpenChange={requestClose} open={open}>
         <DialogContent
-          className="flex flex-col gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]"
+          className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]"
         >
           <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
