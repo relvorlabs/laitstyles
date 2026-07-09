@@ -1,38 +1,17 @@
+import { getProductStock } from "@/lib/control-room/inventory-selectors";
 import type {
   AttentionItem,
   ControlRoomHold,
   ControlRoomOrder,
   ControlRoomState,
   FulfilmentLaneItem,
-  InventoryCounts,
   InventoryProduct,
   OverviewSnapshot,
 } from "@/lib/control-room/types";
 
 const paidPaymentStates = new Set(["paid", "deposit"] as const);
 
-export function getProductStock(product: InventoryProduct): InventoryCounts {
-  if (product.inventoryMode !== "variant") return product.stock;
-
-  return product.variants.reduce<InventoryCounts>(
-    (total, variant) => ({
-      totalReceived: total.totalReceived + variant.stock.totalReceived,
-      available: total.available + variant.stock.available,
-      reserved: total.reserved + variant.stock.reserved,
-      sold: total.sold + variant.stock.sold,
-      returned: total.returned + variant.stock.returned,
-      damaged: total.damaged + variant.stock.damaged,
-    }),
-    {
-      totalReceived: 0,
-      available: 0,
-      reserved: 0,
-      sold: 0,
-      returned: 0,
-      damaged: 0,
-    },
-  );
-}
+export { getProductStock } from "@/lib/control-room/inventory-selectors";
 
 export function getCustomerName(state: ControlRoomState, customerId: string) {
   return (
@@ -75,6 +54,7 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
     .filter((product) => {
       const inventory = getProductStock(product);
       return (
+        product.inventoryMode !== "unique" &&
         product.lifecycle === "active" &&
         inventory.available > 0 &&
         inventory.available <= product.lowStockThreshold
@@ -212,7 +192,7 @@ function buildAttentionItems(
       eyebrow: "Low stock",
       title: `${lowStock.name} has ${inventory.available} available`,
       detail: `Threshold is ${lowStock.lowStockThreshold} units`,
-      href: "#inventory-watch",
+      href: "/admin/inventory?view=low-stock",
     });
   }
 
@@ -224,7 +204,7 @@ function buildAttentionItems(
       eyebrow: "Continue intake",
       title: `${incomplete.name} is not ready to publish`,
       detail: "Measurements, condition or price still need review",
-      href: "#continue-working",
+      href: "/admin/inventory?view=intake",
     });
   }
 
