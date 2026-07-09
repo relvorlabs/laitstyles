@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowUpRight01Icon,
@@ -59,18 +59,19 @@ export function ControlRoomCommandMenu({
   onOpenChange,
 }: ControlRoomCommandMenuProps) {
   const router = useRouter();
+  const toggleOpen = useEffectEvent(() => onOpenChange(!open));
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        onOpenChange(!open);
+        toggleOpen();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onOpenChange, open]);
+  }, []);
 
   function choose(target: string) {
     onOpenChange(false);
