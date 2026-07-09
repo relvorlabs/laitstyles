@@ -78,16 +78,19 @@ export function ControlRoomTopbar({
           <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background bg-destructive" />
         </a>
 
-        <Link
-          className={buttonVariants({
-            size: "lg",
-            className: "hidden h-11 rounded-full px-5 text-[13px] sm:inline-flex",
-          })}
-          href="/"
-        >
-          Preview storefront
-          <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
-        </Link>
+        <div className="hidden sm:block">
+          <Link
+            className={buttonVariants({
+              size: "lg",
+              className:
+                "h-11 rounded-full px-5 text-[13px] !text-primary-foreground",
+            })}
+            href="/"
+          >
+            Preview storefront
+            <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
+          </Link>
+        </div>
       </div>
     </header>
   );
