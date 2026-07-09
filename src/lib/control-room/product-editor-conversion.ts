@@ -124,9 +124,11 @@ export function convertEditorValuesToProduct(
 }
 
 function normalizeMedia(values: ProductEditorValues["media"]): ProductMedia[] {
-  return values.map(({ source: _source, ...item }, position) => ({
-    ...item,
+  return values.map((item, position) => ({
+    id: item.id,
+    url: item.url,
     alt: item.alt.trim(),
+    kind: item.kind,
     position,
   }));
 }
