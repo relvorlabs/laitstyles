@@ -4,7 +4,7 @@ import {
   Search01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ActivityStream } from "@/features/control-room/overview/activity-stream";
 import { AttentionQueue } from "@/features/control-room/overview/attention-queue";
 import { ContinueWorking } from "@/features/control-room/overview/continue-working";
@@ -37,24 +37,28 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
         </div>
 
         <div className="flex flex-wrap gap-2 xl:justify-end">
-          <Button
-            className="h-11 rounded-full px-4"
-            render={<a href="#attention" />}
-            size="lg"
-            variant="outline"
+          <a
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className: "h-11 rounded-full px-4",
+            })}
+            href="#attention"
           >
             <ControlRoomIcon icon={Search01Icon} size={16} />
             Review attention
-          </Button>
-          <Button
-            className="h-11 rounded-full px-4"
-            render={<Link href="/" />}
-            size="lg"
+          </a>
+          <Link
+            className={buttonVariants({
+              size: "lg",
+              className: "h-11 rounded-full px-4",
+            })}
+            href="/"
           >
             <ControlRoomIcon icon={Store01Icon} size={16} />
             Preview storefront
             <ControlRoomIcon icon={ArrowRight01Icon} size={15} />
-          </Button>
+          </Link>
         </div>
       </section>
 
