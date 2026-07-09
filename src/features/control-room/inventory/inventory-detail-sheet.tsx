@@ -1,5 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -44,11 +53,14 @@ const detailTabs = [
   ["activity", "Activity"],
 ] as const;
 
+type DetailTab = (typeof detailTabs)[number][0];
+
 export function InventoryDetailSheet({
   item,
   state,
   onOpenChange,
 }: InventoryDetailSheetProps) {
+  const [activeTab, setActiveTab] = useState<DetailTab>("summary");
   const productId = item?.product.id ?? null;
   const orders = productId
     ? state.orders.filter((order) =>
@@ -103,8 +115,37 @@ export function InventoryDetailSheet({
               </SheetDescription>
             </SheetHeader>
 
-            <Tabs className="min-h-0 flex-1" defaultValue="summary">
-              <div className="overflow-x-auto overscroll-x-contain border-b border-border px-4 sm:px-5">
+            <Tabs
+              className="min-h-0 flex-1"
+              onValueChange={(value) => setActiveTab(value as DetailTab)}
+              value={activeTab}
+            >
+              <div className="border-b border-border px-4 py-3 sm:hidden">
+                <Select
+                  onValueChange={(value) => {
+                    if (value) setActiveTab(value as DetailTab);
+                  }}
+                  value={activeTab}
+                >
+                  <SelectTrigger
+                    aria-label="Product detail section"
+                    className="h-11 w-full justify-between"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectGroup>
+                      {detailTabs.map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="hidden overflow-x-auto overscroll-x-contain border-b border-border px-4 sm:block sm:px-5">
                 <TabsList
                   className="h-12 min-w-max gap-1 rounded-none bg-transparent p-0"
                   variant="line"
