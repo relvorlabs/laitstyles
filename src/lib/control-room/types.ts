@@ -3,6 +3,7 @@ import type {
   ProductReview,
   StockMovement,
 } from "@/lib/control-room/inventory-types";
+import type { IntakeRecord } from "@/lib/control-room/product-editor-types";
 
 export type {
   CatalogueChannel,
@@ -21,6 +22,7 @@ export type {
   InventoryStockFilter,
   InventorySummary,
   ProductBase,
+  ProductFulfilment,
   ProductLifecycle,
   ProductMeasurement,
   ProductMedia,
@@ -34,6 +36,26 @@ export type {
   UniqueProduct,
   VariantProduct,
 } from "@/lib/control-room/inventory-types";
+
+export type {
+  IntakeRecord,
+  IntakeStage,
+  IntakeTransitionSuccess,
+  ProductEditorActionError,
+  ProductEditorActionSuccess,
+  ProductEditorBase,
+  ProductEditorFulfilment,
+  ProductEditorIntent,
+  ProductEditorIssue,
+  ProductEditorMeasurement,
+  ProductEditorMedia,
+  ProductEditorStep,
+  ProductEditorValues,
+  ProductEditorVariant,
+  StockedProductEditorValues,
+  UniqueProductEditorValues,
+  VariantProductEditorValues,
+} from "@/lib/control-room/product-editor-types";
 
 export type CurrencyCode = "NGN";
 
@@ -146,6 +168,7 @@ export type ControlRoomState = {
   currency: CurrencyCode;
   isNewStore: boolean;
   products: InventoryProduct[];
+  intake: IntakeRecord[];
   orders: ControlRoomOrder[];
   holds: ControlRoomHold[];
   customers: ControlRoomCustomer[];
