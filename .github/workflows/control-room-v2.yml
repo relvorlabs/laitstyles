@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pnpm dlx react-doctor@latest . --verbose --diff 2>&1 | tee react-doctor.log
+          pnpm dlx react-doctor@latest . --verbose --scope changed --base origin/main 2>&1 | tee react-doctor.log
 
       - name: Upload verification logs
         if: always()
