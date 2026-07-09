@@ -7,7 +7,7 @@ import {
   Store01Icon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,6 +24,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import type { ControlRoomState } from "@/lib/control-room/types";
 
 const setupSteps = [
   {
@@ -46,7 +47,9 @@ const setupSteps = [
   },
 ] as const;
 
-export function NewStoreOverview() {
+export function NewStoreOverview({ state }: { state: ControlRoomState }) {
+  const readiness = state.continueTasks[0]?.progress ?? 0;
+
   return (
     <div className="mx-auto flex w-full max-w-[1220px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section className="overflow-hidden rounded-[22px] bg-primary text-primary-foreground">
@@ -56,7 +59,7 @@ export function NewStoreOverview() {
               className="border-white/[0.14] bg-white/[0.08] text-[#D9E1C9]"
               variant="outline"
             >
-              New store workspace
+              New {state.storeName} workspace
             </Badge>
             <h1 className="mt-5 max-w-[690px] text-balance font-serif text-[40px] font-medium leading-[.98] sm:text-[54px]">
               Set up the shop in the order a real store needs it.
@@ -65,22 +68,28 @@ export function NewStoreOverview() {
               Start with products, delivery and how customers can pay. Sales charts and fulfilment queues appear only after the store has activity worth managing.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button
-                className="h-11 rounded-full bg-[#D9E1C9] px-5 text-primary hover:bg-[#C9D5B3]"
-                render={<Link href="/" />}
-                size="lg"
+              <Link
+                className={buttonVariants({
+                  size: "lg",
+                  className:
+                    "h-11 rounded-full bg-[#D9E1C9] px-5 text-primary hover:bg-[#C9D5B3]",
+                })}
+                href="/"
               >
                 Preview storefront
                 <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
-              </Button>
-              <Button
-                className="h-11 rounded-full border-white/[0.22] px-5 text-white hover:bg-white/[0.08] hover:text-white"
-                render={<Link href="/admin" />}
-                size="lg"
-                variant="outline"
+              </Link>
+              <Link
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "lg",
+                  className:
+                    "h-11 rounded-full border-white/[0.22] px-5 text-white hover:bg-white/[0.08] hover:text-white",
+                })}
+                href="/admin"
               >
                 View active-store example
-              </Button>
+              </Link>
             </div>
           </div>
 
@@ -89,10 +98,15 @@ export function NewStoreOverview() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/[0.64]">
                 Store readiness
               </span>
-              <span className="font-serif text-[28px] tabular-nums">20%</span>
+              <span className="font-serif text-[28px] tabular-nums">
+                {readiness}%
+              </span>
             </div>
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full w-1/5 rounded-full bg-[#AFC48A]" />
+              <div
+                className="h-full rounded-full bg-[#AFC48A]"
+                style={{ width: `${readiness}%` }}
+              />
             </div>
             <p className="mt-4 text-[12.5px] leading-5 text-white/[0.68]">
               The store identity exists. Products, delivery and selling preferences still need owner decisions.
