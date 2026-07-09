@@ -245,6 +245,7 @@ export type SalesActionErrorCode =
   | "invalid-payment-state"
   | "return-not-found"
   | "return-line-not-found"
+  | "return-line-not-sold"
   | "return-quantity-exceeded"
   | "invalid-return-transition";
 
