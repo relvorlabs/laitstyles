@@ -66,15 +66,10 @@ export function inferOrderLineStockState(
   if (line.stockState) return line.stockState;
 
   if (order.fulfilmentStatus === "cancelled") return "released";
+  if (order.fulfilmentStatus === "refunded") return "released";
   if (order.fulfilmentStatus === "returned") return "returned";
-  if (
-    order.fulfilmentStatus === "delivered" ||
-    order.source === "offline-sale"
-  ) {
-    return "sold";
-  }
   if (order.fulfilmentStatus === "pending-payment") return "uncommitted";
-  return "reserved";
+  return "sold";
 }
 
 export function isHoldActive(hold: ControlRoomHold, asOf: string) {
