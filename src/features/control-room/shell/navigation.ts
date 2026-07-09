@@ -48,16 +48,15 @@ export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
     label: "Catalogue",
     items: [inventoryItem],
   },
+  {
+    label: "Sales",
+    items: [ordersItem],
+  },
 ];
 
 export const controlRoomNavigation = controlRoomNavigationGroups.flatMap(
   (group) => group.items,
 );
-
-const controlRoomPageRegistry = [
-  ...controlRoomNavigation,
-  ordersItem,
-];
 
 export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
   {
@@ -76,7 +75,7 @@ export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
 
 export function getControlRoomPage(pathname: string) {
   return (
-    controlRoomPageRegistry.find((item) =>
+    controlRoomNavigation.find((item) =>
       item.href === "/admin"
         ? pathname === item.href
         : pathname === item.href || pathname.startsWith(`${item.href}/`),
