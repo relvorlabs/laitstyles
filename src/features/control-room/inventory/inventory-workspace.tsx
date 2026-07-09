@@ -42,12 +42,14 @@ type InventoryWorkspaceProps = {
   state: ControlRoomState;
   initialQuery: InventoryQuery;
   initialPresentation: InventoryPresentation;
+  initialOpenProductId: string | null;
 };
 
 export function InventoryWorkspace({
   state,
   initialQuery,
   initialPresentation,
+  initialOpenProductId,
 }: InventoryWorkspaceProps) {
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] =
@@ -55,7 +57,9 @@ export function InventoryWorkspace({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [openProductId, setOpenProductId] = useState<string | null>(null);
+  const [openProductId, setOpenProductId] = useState<string | null>(
+    initialOpenProductId,
+  );
   const [exportedCount, setExportedCount] = useState<number | null>(null);
 
   const items = useMemo(
