@@ -9,6 +9,7 @@ import { InventoryEmptyState } from "@/features/control-room/inventory/inventory
 import { downloadInventoryCsv } from "@/features/control-room/inventory/inventory-export";
 import { InventoryExportAlert } from "@/features/control-room/inventory/inventory-export-alert";
 import { InventoryGrid } from "@/features/control-room/inventory/inventory-grid";
+import { InventoryIntakeQueue } from "@/features/control-room/inventory/inventory-intake-queue";
 import { InventoryMobileList } from "@/features/control-room/inventory/inventory-mobile-list";
 import { InventorySavedViews } from "@/features/control-room/inventory/inventory-saved-views";
 import { InventorySelectionBar } from "@/features/control-room/inventory/inventory-selection-bar";
@@ -16,6 +17,8 @@ import { InventorySummaryStrip } from "@/features/control-room/inventory/invento
 import { InventoryTable } from "@/features/control-room/inventory/inventory-table";
 import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
 import { InventoryWorkspaceHeader } from "@/features/control-room/inventory/inventory-workspace-header";
+import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
+import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -25,25 +28,24 @@ import {
   toInventoryListItem,
 } from "@/lib/control-room/inventory-selectors";
 import type {
-  ControlRoomState,
   InventoryPresentation,
   InventoryQuery,
 } from "@/lib/control-room/types";
 
 type InventoryWorkspaceProps = {
-  state: ControlRoomState;
   initialQuery: InventoryQuery;
   initialPresentation: InventoryPresentation;
   initialOpenProductId: string | null;
 };
 
 export function InventoryWorkspace({
-  state,
   initialQuery,
   initialPresentation,
   initialOpenProductId,
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
+  const { state } = useControlRoom();
+  const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] =
     useState<InventoryPresentation>(initialPresentation);
@@ -77,6 +79,7 @@ export function InventoryWorkspace({
   );
   const openItem =
     allItems.find((item) => item.product.id === openProductId) ?? null;
+  const isIntake = query.view === "intake";
 
   function replaceUrl(
     nextQuery = query,
@@ -97,12 +100,14 @@ export function InventoryWorkspace({
   function patchQuery(patch: Partial<InventoryQuery>) {
     const nextQuery = { ...query, ...patch };
     setQuery(nextQuery);
+    setSelectedIds(new Set());
     setExportedCount(null);
     replaceUrl(nextQuery);
   }
 
   function resetQuery() {
     setQuery(defaultInventoryQuery);
+    setSelectedIds(new Set());
     setExportedCount(null);
     replaceUrl(defaultInventoryQuery);
   }
@@ -120,6 +125,11 @@ export function InventoryWorkspace({
   function closeProduct() {
     setOpenProductId(null);
     replaceUrl(query, presentation, null);
+  }
+
+  function editProduct(productId: string) {
+    closeProduct();
+    openExistingProduct(productId);
   }
 
   function setProductSelected(productId: string, selected: boolean) {
@@ -187,38 +197,42 @@ export function InventoryWorkspace({
       />
 
       {items.length ? (
-        <>
-          <InventoryMobileList
-            items={items}
-            onOpen={openProduct}
-            onSelectedChange={setProductSelected}
-            selectedIds={selectedIds}
-          />
-          <div
-            className={
-              presentation === "grid"
-                ? "hidden md:block"
-                : "hidden md:block lg:hidden"
-            }
-          >
-            <InventoryGrid
-              className="grid gap-4 md:grid-cols-2"
+        isIntake ? (
+          <InventoryIntakeQueue items={items} />
+        ) : (
+          <>
+            <InventoryMobileList
               items={items}
               onOpen={openProduct}
               onSelectedChange={setProductSelected}
               selectedIds={selectedIds}
             />
-          </div>
-          {presentation === "table" ? (
-            <InventoryTable
-              items={items}
-              onOpen={openProduct}
-              onSelectedChange={setProductSelected}
-              onSelectVisible={selectVisible}
-              selectedIds={selectedIds}
-            />
-          ) : null}
-        </>
+            <div
+              className={
+                presentation === "grid"
+                  ? "hidden md:block"
+                  : "hidden md:block lg:hidden"
+              }
+            >
+              <InventoryGrid
+                className="grid gap-4 md:grid-cols-2"
+                items={items}
+                onOpen={openProduct}
+                onSelectedChange={setProductSelected}
+                selectedIds={selectedIds}
+              />
+            </div>
+            {presentation === "table" ? (
+              <InventoryTable
+                items={items}
+                onOpen={openProduct}
+                onSelectedChange={setProductSelected}
+                onSelectVisible={selectVisible}
+                selectedIds={selectedIds}
+              />
+            ) : null}
+          </>
+        )
       ) : (
         <InventoryEmptyState
           hasProducts={state.products.length > 0}
@@ -226,14 +240,17 @@ export function InventoryWorkspace({
         />
       )}
 
-      <InventorySelectionBar
-        onClear={() => setSelectedIds(new Set())}
-        onExport={exportSelection}
-        onOpenSelected={openSelected}
-        selectedCount={selectedIds.size}
-      />
+      {!isIntake ? (
+        <InventorySelectionBar
+          onClear={() => setSelectedIds(new Set())}
+          onExport={exportSelection}
+          onOpenSelected={openSelected}
+          selectedCount={selectedIds.size}
+        />
+      ) : null}
       <InventoryDetailSheet
         item={openItem}
+        onEdit={editProduct}
         onOpenChange={(open) => {
           if (!open) closeProduct();
         }}
