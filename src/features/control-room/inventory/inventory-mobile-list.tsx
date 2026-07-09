@@ -64,15 +64,15 @@ export function InventoryMobileList({
                       {getProductDescriptor(item.product)}
                     </p>
                   </button>
-                  <label className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-background">
-                    <span className="sr-only">Select {item.product.name}</span>
+                  <div className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background">
                     <Checkbox
+                      aria-label={`Select ${item.product.name}`}
                       checked={selected}
                       onCheckedChange={(checked) =>
                         onSelectedChange(item.product.id, Boolean(checked))
                       }
                     />
-                  </label>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
