@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  channelLabels,
   formatInventoryDate,
   inventoryModeLabels,
 } from "@/features/control-room/inventory/inventory-labels";
@@ -50,8 +52,9 @@ export function InventoryTable({
             <TableHead className="w-12 px-4">
               <Checkbox
                 aria-label="Select all visible products"
-                checked={allSelected ? true : partiallySelected ? "mixed" : false}
-                onCheckedChange={(checked) => onSelectVisible(Boolean(checked))}
+                checked={allSelected}
+                indeterminate={partiallySelected}
+                onCheckedChange={onSelectVisible}
               />
             </TableHead>
             <TableHead className="min-w-[280px]">Product</TableHead>
@@ -83,7 +86,7 @@ export function InventoryTable({
                     aria-label={`Select ${item.product.name}`}
                     checked={selected}
                     onCheckedChange={(checked) =>
-                      onSelectedChange(item.product.id, Boolean(checked))
+                      onSelectedChange(item.product.id, checked)
                     }
                   />
                 </TableCell>
@@ -130,13 +133,23 @@ export function InventoryTable({
                     : "Needs price"}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col items-start gap-1.5">
+                  <div className="flex max-w-[220px] flex-wrap items-center gap-1.5">
                     <InventoryStatusBadge health={item.health} />
-                    <span className="text-[10px] font-medium text-muted-foreground">
+                    <Badge variant="outline">
                       {item.product.publication === "published"
-                        ? `${item.product.channels.length} selling channel${item.product.channels.length === 1 ? "" : "s"}`
-                        : "Not visible to shoppers"}
-                    </span>
+                        ? "Published"
+                        : "Not published"}
+                    </Badge>
+                    {item.product.channels.slice(0, 1).map((channel) => (
+                      <Badge key={channel} variant="secondary">
+                        {channelLabels[channel]}
+                      </Badge>
+                    ))}
+                    {item.product.channels.length > 1 ? (
+                      <Badge variant="outline">
+                        +{item.product.channels.length - 1}
+                      </Badge>
+                    ) : null}
                   </div>
                 </TableCell>
                 <TableCell className="hidden text-[11px] text-muted-foreground 2xl:table-cell">
