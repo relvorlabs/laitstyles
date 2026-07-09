@@ -41,6 +41,59 @@ describe("Control Room store subscriptions", () => {
     unsubscribe();
   });
 
+  it("notifies every workspace after a connected offline sale", () => {
+    const store = createControlRoomStore(
+      activeControlRoomSeed,
+      () => "2026-07-09T18:00:00+01:00",
+    );
+    const listener = vi.fn();
+    store.subscribe(listener);
+    const before = store.getSnapshot();
+    const beforeProduct = before.products.find(
+      (product) => product.id === "botanical-jeans",
+    );
+    if (!beforeProduct || beforeProduct.inventoryMode !== "stocked") {
+      throw new Error("Missing Botanical Jeans fixture");
+    }
+
+    const result = store.recordOfflineSale({
+      lines: [
+        {
+          productId: "botanical-jeans",
+          quantity: 1,
+          unitPrice: 28000,
+        },
+      ],
+      channel: "physical-store",
+      customer: { kind: "existing", customerId: "customer-amara" },
+      paymentMethod: "pos",
+      paymentStatus: "paid",
+      notes: "Shared-store regression sale.",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(1);
+    const after = store.getSnapshot();
+    expect(after.orders).toHaveLength(before.orders.length + 1);
+    expect(after.orders[0]).toEqual(
+      expect.objectContaining({
+        source: "offline-sale",
+        fulfilmentStatus: "delivered",
+        total: 28000,
+      }),
+    );
+    const afterProduct = after.products.find(
+      (product) => product.id === "botanical-jeans",
+    );
+    if (!afterProduct || afterProduct.inventoryMode !== "stocked") {
+      throw new Error("Missing updated Botanical Jeans fixture");
+    }
+    expect(afterProduct.stock.available).toBe(
+      beforeProduct.stock.available - 1,
+    );
+    expect(afterProduct.stock.sold).toBe(beforeProduct.stock.sold + 1);
+  });
+
   it("stops notifying a removed subscriber", () => {
     const store = createControlRoomStore(activeControlRoomSeed);
     const listener = vi.fn();
