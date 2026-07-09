@@ -27,17 +27,23 @@ export function InventoryEmptyState({
           />
         </EmptyMedia>
         <EmptyTitle className="font-serif text-[28px] font-medium">
-          {hasProducts ? "No products match this view" : "Inventory is ready for its first product"}
+          {hasProducts
+            ? "No products match this view"
+            : "Inventory is ready for its first product"}
         </EmptyTitle>
         <EmptyDescription className="max-w-[480px]">
           {hasProducts
             ? "Clear the current search or filters to return to the wider catalogue."
-            : "The product creation flow arrives in Phase 3. Until then, this workspace remains truthful rather than exposing a dead Add product action."}
+            : "No catalogue records exist yet. Product controls will appear here when the store has an item ready to prepare."}
         </EmptyDescription>
       </EmptyHeader>
       {hasProducts ? (
         <EmptyContent>
-          <Button className="h-11 rounded-full px-5" onClick={onReset} type="button">
+          <Button
+            className="h-11 rounded-full px-5"
+            onClick={onReset}
+            type="button"
+          >
             Reset Inventory view
           </Button>
         </EmptyContent>
