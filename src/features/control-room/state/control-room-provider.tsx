@@ -4,6 +4,7 @@ import {
   createContext,
   use,
   useCallback,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -104,13 +105,12 @@ export function ControlRoomProvider({
     commit(normalizedInitialState);
   }, [commit, normalizedInitialState]);
 
-  return (
-    <ControlRoomContext
-      value={{ state, saveProduct, transitionIntake, resetPrototypeState }}
-    >
-      {children}
-    </ControlRoomContext>
+  const value = useMemo<ControlRoomContextValue>(
+    () => ({ state, saveProduct, transitionIntake, resetPrototypeState }),
+    [state, saveProduct, transitionIntake, resetPrototypeState],
   );
+
+  return <ControlRoomContext value={value}>{children}</ControlRoomContext>;
 }
 
 export function useControlRoom() {
