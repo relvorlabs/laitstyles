@@ -79,9 +79,10 @@ export type ControlRoomStore = {
 
 export function createControlRoomStore(
   initialState: ControlRoomState,
-  now: () => string = () => new Date().toISOString(),
+  now?: () => string,
 ): ControlRoomStore {
   const normalizedInitialState = normalizeState(initialState);
+  const getNow = now ?? createSessionClock(normalizedInitialState.asOf);
   let state = normalizedInitialState;
   const listeners = new Set<() => void>();
 
@@ -106,37 +107,39 @@ export function createControlRoomStore(
     },
     saveProduct(values, intent) {
       return commitAction(
-        applyProductEditorAction(state, values, intent, now()),
+        applyProductEditorAction(state, values, intent, getNow()),
       );
     },
     transitionIntake(productId, nextStage) {
       return commitAction(
-        applyIntakeTransition(state, productId, nextStage, now()),
+        applyIntakeTransition(state, productId, nextStage, getNow()),
       );
     },
     transitionOrder(orderId, nextStatus) {
       return commitAction(
-        applyOrderTransition(state, orderId, nextStatus, now()),
+        applyOrderTransition(state, orderId, nextStatus, getNow()),
       );
     },
     extendHold(holdId, minutes) {
-      return commitAction(applyHoldExtension(state, holdId, minutes, now()));
+      return commitAction(
+        applyHoldExtension(state, holdId, minutes, getNow()),
+      );
     },
     releaseHold(holdId) {
-      return commitAction(applyHoldRelease(state, holdId, now()));
+      return commitAction(applyHoldRelease(state, holdId, getNow()));
     },
     convertHold(input) {
-      return commitAction(applyHoldConversion(state, input, now()));
+      return commitAction(applyHoldConversion(state, input, getNow()));
     },
     recordOfflineSale(input) {
-      return commitAction(applyOfflineSale(state, input, now()));
+      return commitAction(applyOfflineSale(state, input, getNow()));
     },
     createReturn(input) {
-      return commitAction(applyCreateReturn(state, input, now()));
+      return commitAction(applyCreateReturn(state, input, getNow()));
     },
     transitionReturn(returnId, nextStatus) {
       return commitAction(
-        applyReturnTransition(state, returnId, nextStatus, now()),
+        applyReturnTransition(state, returnId, nextStatus, getNow()),
       );
     },
     resetPrototypeState() {
@@ -159,4 +162,12 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
     ),
     returns: initialState.returns ?? [],
   };
+}
+
+function createSessionClock(anchor: string) {
+  const anchorTime = Date.parse(anchor);
+  const startedAt = Date.now();
+
+  return () =>
+    new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }
