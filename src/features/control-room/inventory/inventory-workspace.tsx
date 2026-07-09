@@ -41,15 +41,17 @@ import type {
 type InventoryWorkspaceProps = {
   state: ControlRoomState;
   initialQuery: InventoryQuery;
+  initialPresentation: InventoryPresentation;
 };
 
 export function InventoryWorkspace({
   state,
   initialQuery,
+  initialPresentation,
 }: InventoryWorkspaceProps) {
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] =
-    useState<InventoryPresentation>("grid");
+    useState<InventoryPresentation>(initialPresentation);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(),
   );
