@@ -166,11 +166,20 @@ export function isLowStock(
   product: InventoryProduct,
   counts = getProductStock(product),
 ) {
+  if (product.inventoryMode === "unique" || product.lifecycle !== "active") {
+    return false;
+  }
+
+  if (product.inventoryMode === "variant") {
+    return product.variants.some(
+      (variant) =>
+        variant.stock.available > 0 &&
+        variant.stock.available <= product.lowStockThreshold,
+    );
+  }
+
   return (
-    product.inventoryMode !== "unique" &&
-    product.lifecycle === "active" &&
-    counts.available > 0 &&
-    counts.available <= product.lowStockThreshold
+    counts.available > 0 && counts.available <= product.lowStockThreshold
   );
 }
 
