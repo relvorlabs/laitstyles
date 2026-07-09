@@ -57,6 +57,7 @@ export type ProductBase = {
   channels: CatalogueChannel[];
   lowStockThreshold: number;
   fulfilment?: ProductFulfilment;
+  scheduledAt?: string;
   createdAt: string;
   updatedAt: string;
 };
