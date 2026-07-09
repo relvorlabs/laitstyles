@@ -78,6 +78,9 @@ describe("product editor validation", () => {
     unique.unique.size = "M";
 
     const stocked = changeProductEditorMode(unique, "stocked");
+    if (stocked.inventoryMode !== "stocked") {
+      throw new Error("Expected stocked editor values after switching mode");
+    }
 
     expect(stocked.inventoryMode).toBe("stocked");
     expect(stocked.name).toBe("Shared identity");
