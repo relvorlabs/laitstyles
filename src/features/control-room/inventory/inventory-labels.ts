@@ -5,6 +5,12 @@ import type {
   InventoryProduct,
 } from "@/lib/control-room/types";
 
+const inventoryDateFormatter = new Intl.DateTimeFormat("en-NG", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 export const inventoryModeLabels: Record<InventoryMode, string> = {
   unique: "Unique piece",
   stocked: "Stocked product",
@@ -43,9 +49,5 @@ export function getProductDescriptor(product: InventoryProduct) {
 }
 
 export function formatInventoryDate(value: string) {
-  return new Intl.DateTimeFormat("en-NG", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
+  return inventoryDateFormatter.format(new Date(value));
 }
