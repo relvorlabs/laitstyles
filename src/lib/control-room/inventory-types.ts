@@ -40,6 +40,7 @@ export type ProductBase = {
   category: string;
   collection: string | null;
   brand: string;
+  image: string;
   media: ProductMedia[];
   price: number;
   referencePrice: number | null;
