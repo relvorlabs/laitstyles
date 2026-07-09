@@ -34,7 +34,10 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
   }
 
   return (
-    <Card className="h-full bg-[#E7EBDD] ring-[#C9D1B8] scroll-mt-24" id="continue-working">
+    <Card
+      className="h-full scroll-mt-24 bg-[#E7EBDD] ring-[#C9D1B8]"
+      id="continue-working"
+    >
       <CardHeader>
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="grid size-11 place-items-center rounded-[13px] bg-card text-[#4A5540] ring-1 ring-foreground/10">
@@ -62,7 +65,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
       <CardFooter className="border-[#C9D1B8] bg-white/45">
         <Button
           className="h-10 rounded-full px-4"
-          render={<Link href={task.href} />}
+          render={<Link href="#inventory-watch" />}
           size="lg"
         >
           Review what is missing
