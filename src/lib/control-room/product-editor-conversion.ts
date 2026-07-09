@@ -23,9 +23,15 @@ export function convertEditorValuesToProduct(
   const idFactory = options.idFactory ?? defaultIdFactory;
   const id = values.productId ?? idFactory("product");
   const publication = getPublication(options.intent);
-  const lifecycle = options.intent === "draft" ? "draft" : "active";
+  const lifecycle =
+    options.intent === "draft"
+      ? options.existingProduct?.lifecycle === "intake"
+        ? "intake"
+        : "draft"
+      : "active";
   const media = normalizeMedia(values.media);
-  const image = media.find((item) => item.kind === "cover")?.url ??
+  const image =
+    media.find((item) => item.kind === "cover")?.url ??
     options.existingProduct?.image ??
     "/product-placeholder.svg";
   const createdAt = options.existingProduct?.createdAt ?? options.now;
@@ -47,9 +53,11 @@ export function convertEditorValuesToProduct(
     lifecycle,
     publication,
     channels: values.channels,
-    lowStockThreshold: values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
+    lowStockThreshold:
+      values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
     fulfilment: values.fulfilment,
-    scheduledAt: options.intent === "schedule" ? values.scheduledAt : undefined,
+    scheduledAt:
+      options.intent === "schedule" ? values.scheduledAt : undefined,
     createdAt,
     updatedAt: options.now,
   } as const;
@@ -63,7 +71,10 @@ export function convertEditorValuesToProduct(
       size: values.unique.size.trim() || "Not recorded",
       colour: values.unique.colour.trim() || "Not recorded",
       measurements: values.unique.measurements
-        .filter((measurement) => measurement.label.trim() || measurement.value.trim())
+        .filter(
+          (measurement) =>
+            measurement.label.trim() || measurement.value.trim(),
+        )
         .map(({ label, value }) => ({
           label: label.trim() || "Measurement",
           value: value.trim() || "Not recorded",
@@ -186,11 +197,13 @@ function getPublication(intent: ProductEditorIntent): PublicationState {
 }
 
 function createSlug(value: string) {
-  return value
-    .trim()
-    .toLocaleLowerCase("en-NG")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "untitled-product";
+  return (
+    value
+      .trim()
+      .toLocaleLowerCase("en-NG")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "untitled-product"
+  );
 }
 
 function modeLabel(mode: ProductEditorValues["inventoryMode"]) {
