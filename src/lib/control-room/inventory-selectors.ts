@@ -25,11 +25,9 @@ export {
   queryInventory,
 } from "@/lib/control-room/inventory-query";
 
-export {
-  validateInventoryDataset,
-  validateInventoryProduct,
-} from "@/lib/control-room/inventory-validation";
+export { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
+export { validateInventoryDataset } from "@/lib/control-room/inventory-validation";
 export type {
   InventoryDataset,
   InventoryValidationIssue,
-} from "@/lib/control-room/inventory-validation";
+} from "@/lib/control-room/inventory-validation-types";
