@@ -8,11 +8,10 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { EditorTextField } from "@/features/control-room/product-editor/product-editor-fields";
-import { getProductEditorStepLabel } from "@/features/control-room/product-editor/product-editor-stepper";
+import { getProductEditorStepLabel } from "@/features/control-room/product-editor/product-editor-step-labels";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatNaira } from "@/lib/control-room/formatters";
 import type {
   ProductEditorIssue,
@@ -62,10 +61,10 @@ export function ProductReviewStep({
             Resolve these items before publishing or scheduling.
           </AlertDescription>
           <div className="col-start-2 mt-3 flex flex-col gap-2">
-            {issues.slice(0, 8).map((issue, index) => (
+            {issues.slice(0, 8).map((issue) => (
               <button
                 className="rounded-[10px] border border-destructive/25 bg-background/60 px-3 py-2 text-left text-[11.5px] leading-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                key={`${issue.path}-${index}`}
+                key={`${issue.step}:${issue.path}:${issue.message}`}
                 onClick={() => onStepChange(issue.step)}
                 type="button"
               >
