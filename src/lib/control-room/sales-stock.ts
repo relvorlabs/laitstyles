@@ -11,6 +11,7 @@ export type SalesStockMutationKind =
   | "release"
   | "sell-available"
   | "sell-reserved"
+  | "restore-sold"
   | "return-sold"
   | "restock-returned"
   | "damage-returned";
@@ -185,7 +186,17 @@ function mutateCounts(
         "sold",
         quantity,
         "insufficient-reserved-stock",
-        "The order does not have enough reserved stock to complete this sale.",
+        "The order does not have enough reserved stock to confirm this sale.",
+        mutation,
+      );
+    case "restore-sold":
+      return moveStock(
+        counts,
+        "sold",
+        "available",
+        quantity,
+        "insufficient-sold-stock",
+        "The sold stock is lower than the quantity being restored.",
         mutation,
       );
     case "return-sold":
