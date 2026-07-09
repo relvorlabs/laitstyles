@@ -44,19 +44,23 @@ export function InventoryProductCard({
           src={item.coverImage.url}
         />
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
-          <div className="grid size-10 place-items-center rounded-full bg-background/92 shadow-sm backdrop-blur-sm">
+          <label className="grid size-11 cursor-pointer place-items-center rounded-full bg-background/92 shadow-sm backdrop-blur-sm">
+            <span className="sr-only">Select {product.name}</span>
             <Checkbox
-              aria-label={`Select ${product.name}`}
               checked={selected}
-              onCheckedChange={(checked) => onSelectedChange(Boolean(checked))}
+              onCheckedChange={(checked) => onSelectedChange(checked)}
             />
-          </div>
+          </label>
           <InventoryStatusBadge health={item.health} />
         </div>
       </div>
 
       <CardContent className="flex flex-col gap-4 px-4 py-4">
-        <button className="text-left" onClick={onOpen} type="button">
+        <button
+          className="rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          onClick={onOpen}
+          type="button"
+        >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
