@@ -59,7 +59,7 @@ export function Header() {
             </label>
           </form>
           <div className="flex items-center gap-4">
-            <Link aria-label="Wishlist" className="flex p-1" href="/account?tab=saved">
+            <Link aria-label="Wishlist" className="flex p-1" href="/account?tab=wishlist">
               <Heart aria-hidden="true" />
             </Link>
             <Link aria-label="Account" className="flex p-1" href="/account">
@@ -96,7 +96,7 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
-                <Link className="border-t border-secondary px-3.5 py-3.5 text-[16px]" href="/account?tab=saved">
+                <Link className="border-t border-secondary px-3.5 py-3.5 text-[16px]" href="/account?tab=wishlist">
                   Saved pieces
                 </Link>
               </nav>
