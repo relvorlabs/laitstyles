@@ -10,7 +10,10 @@ export function validateInventoryProduct(
 ): Result<InventoryProduct, InventoryValidationIssue[]> {
   const issues: InventoryValidationIssue[] = [];
 
-  if (!Number.isInteger(product.lowStockThreshold) || product.lowStockThreshold < 0) {
+  if (
+    !Number.isInteger(product.lowStockThreshold) ||
+    product.lowStockThreshold < 0
+  ) {
     issues.push({
       path: "lowStockThreshold",
       code: "invalid-threshold",
@@ -18,12 +21,17 @@ export function validateInventoryProduct(
     });
   }
 
-  const coverCount = product.media.filter((item) => item.kind === "cover").length;
-  if (coverCount === 0) {
+  const coverCount = product.media.filter(
+    (item) => item.kind === "cover",
+  ).length;
+  const requiresCover =
+    product.lifecycle !== "draft" && product.lifecycle !== "intake";
+
+  if (requiresCover && coverCount === 0) {
     issues.push({
       path: "media",
       code: "missing-cover",
-      message: "Every product requires one cover image.",
+      message: "Active and archived products require one cover image.",
     });
   } else if (coverCount > 1) {
     issues.push({
@@ -65,7 +73,9 @@ export function validateInventoryProduct(
       }
       variantSkus.add(normalizedSku);
 
-      issues.push(...validateCounts(variant.stock, `variants.${index}.stock`));
+      issues.push(
+        ...validateCounts(variant.stock, `variants.${index}.stock`),
+      );
     }
   } else {
     issues.push(...validateCounts(product.stock, "stock"));
