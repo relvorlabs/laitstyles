@@ -33,6 +33,10 @@ async function runDesktop(browser) {
 
   await page.goto(`${baseUrl}/admin/orders`, { waitUntil: "networkidle" });
   await expectVisible(
+    page.locator("aside").getByRole("link", { name: /Orders/ }),
+    "Orders was not exposed in the desktop navigation.",
+  );
+  await expectVisible(
     page.getByRole("heading", { name: "Orders", exact: true }),
     "Orders heading did not render.",
   );
@@ -124,6 +128,15 @@ async function runMobile(browser) {
     page.getByRole("heading", { name: "Orders", exact: true }),
     "Mobile Orders heading did not render.",
   );
+  await page.getByRole("button", { name: "Open Control Room navigation" }).click();
+  const navigation = page.getByRole("dialog");
+  await expectVisible(
+    navigation.getByRole("link", { name: /Orders/ }),
+    "Orders was not exposed in the mobile navigation.",
+  );
+  await page.keyboard.press("Escape");
+  await navigation.waitFor({ state: "hidden", timeout: 10000 });
+
   await page.getByRole("button", { name: "Open LS-20479" }).click();
   const sheet = page.getByRole("dialog");
   await expectVisible(sheet, "Mobile order detail did not open.");
