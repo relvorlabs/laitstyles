@@ -79,9 +79,13 @@ jobs:
           mkdir -p control-room-screenshots
           pnpm dlx playwright@latest install --with-deps chromium 2>&1 | tee browser.log
 
-          pnpm start >> browser.log 2>&1 &
+          ./node_modules/.bin/next start >> browser.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          cleanup() {
+            kill "$SERVER_PID" 2>/dev/null || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
 
           for attempt in {1..60}; do
             if curl --silent --fail http://127.0.0.1:3000/admin >/dev/null; then
@@ -138,6 +142,10 @@ jobs:
               "control-room-screenshots/inventory-detail-${label}.png" 2>&1 | tee -a browser.log
           done
 
+          cleanup
+          trap - EXIT
+          true
+
       - name: React Doctor diagnostics
         id: react_doctor
         continue-on-error: true
@@ -178,11 +186,13 @@ jobs:
           TESTS_OUTCOME: ${{ steps.tests.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          REACT_DOCTOR_OUTCOME: ${{ steps.react_doctor.outcome }}
         run: |
-          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\nbrowser=%s\n' \
-            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME" "$BROWSER_OUTCOME"
+          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\nbrowser=%s\nreact_doctor=%s\n' \
+            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME" "$BROWSER_OUTCOME" "$REACT_DOCTOR_OUTCOME"
           test "$LINT_OUTCOME" = success
           test "$TYPESCRIPT_OUTCOME" = success
           test "$TESTS_OUTCOME" = success
           test "$BUILD_OUTCOME" = success
           test "$BROWSER_OUTCOME" = success
+          test "$REACT_DOCTOR_OUTCOME" = success
