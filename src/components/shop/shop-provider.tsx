@@ -68,17 +68,23 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as HeldItem[];
-        if (Array.isArray(parsed)) setHeldItems(normalizeHeldItems(parsed));
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored) as HeldItem[];
+          if (Array.isArray(parsed)) {
+            setHeldItems(normalizeHeldItems(parsed));
+          }
+        }
+      } catch {
+        // A blocked or malformed localStorage entry should not break shopping.
+      } finally {
+        setHydrated(true);
       }
-    } catch {
-      // A blocked or malformed localStorage entry should not break shopping.
-    } finally {
-      setHydrated(true);
-    }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
