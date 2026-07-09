@@ -8,13 +8,13 @@ import {
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
 import {
   EditorNumberField,
   EditorTextField,
-  getFieldError,
   type EditorFieldName,
 } from "@/features/control-room/product-editor/product-editor-fields";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
 export function VariantProductFields() {
@@ -27,7 +27,10 @@ export function VariantProductFields() {
     name: "variant.variants",
     keyName: "fieldKey",
   });
-  const variantsError = getFieldError(errors, "variant.variants");
+  const variantsError = getProductEditorFieldError(
+    errors,
+    "variant.variants",
+  );
 
   return (
     <div className="space-y-6">
