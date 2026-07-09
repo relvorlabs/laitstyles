@@ -103,6 +103,7 @@ export type ControlRoomOrder = {
   fulfilmentStatus: OrderStatus;
   lines: OrderLine[];
   total: number;
+  refundedAmount?: number;
   placedAt: string;
   deliveryCity: string;
   deliveryAddress?: DeliveryAddress | null;
