@@ -165,6 +165,17 @@ export function applyHoldConversion(
   const priceResult = getHeldUnitPrice(product, hold.variantId);
   if (!priceResult.ok) return priceResult;
 
+  const paymentConfirmed = input.paymentStatus !== "pending";
+  const stockResult = paymentConfirmed
+    ? applySalesStockMutation(state.products, {
+        productId: hold.productId,
+        variantId: hold.variantId,
+        quantity: hold.quantity,
+        kind: "sell-reserved",
+      })
+    : ok({ products: state.products, product });
+  if (!stockResult.ok) return stockResult;
+
   const orderId = createOrderId(idFactory);
   const fulfilmentStatus = getConvertedOrderStatus(input.paymentStatus);
   const order: ControlRoomOrder = {
@@ -183,7 +194,7 @@ export function applyHoldConversion(
         variantId: hold.variantId,
         quantity: hold.quantity,
         unitPrice: priceResult.value,
-        stockState: "reserved",
+        stockState: paymentConfirmed ? "sold" : "reserved",
       },
     ],
     total: priceResult.value * hold.quantity,
@@ -199,7 +210,9 @@ export function applyHoldConversion(
         status: fulfilmentStatus,
         occurredAt: now,
         actor: "Store owner",
-        note: `Converted from hold ${hold.id}. Reserved stock transferred to the order.`,
+        note: paymentConfirmed
+          ? `Converted from hold ${hold.id}; reserved stock became sold when payment was confirmed.`
+          : `Converted from hold ${hold.id}; reserved stock remains attached to the pending order.`,
       },
     ],
     payments: [
@@ -219,14 +232,30 @@ export function applyHoldConversion(
     convertedOrderId: order.id,
     releasedAt: now,
   };
+  const movement: StockMovement | null = paymentConfirmed
+    ? {
+        id: idFactory("movement"),
+        productId: hold.productId,
+        variantId: hold.variantId ?? null,
+        kind: "sold",
+        quantity: hold.quantity,
+        occurredAt: now,
+        actor: "Store owner",
+        note: `Hold ${hold.id} converted to paid order ${order.id}.`,
+      }
+    : null;
   const message = `${hold.customerLabel}'s hold was converted to order ${order.id}.`;
 
   return ok({
     state: {
       ...state,
       asOf: now,
+      products: stockResult.value.products,
       holds: replaceHold(state.holds, updatedHold),
       orders: [order, ...state.orders],
+      stockMovements: movement
+        ? [movement, ...state.stockMovements]
+        : state.stockMovements,
       activities: [
         {
           id: idFactory("activity"),
