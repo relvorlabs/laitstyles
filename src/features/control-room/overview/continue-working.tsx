@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight01Icon, PackageIcon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ import type { ContinueTask } from "@/lib/control-room/types";
 export function ContinueWorking({ task }: { task?: ContinueTask }) {
   if (!task) {
     return (
-      <Card className="h-full">
+      <Card className="self-start">
         <CardHeader>
           <CardTitle className="font-serif text-[27px] font-medium">
             Nothing unfinished.
@@ -35,7 +35,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
 
   return (
     <Card
-      className="h-full scroll-mt-24 bg-[#E7EBDD] ring-[#C9D1B8]"
+      className="self-start scroll-mt-24 bg-[#E7EBDD] ring-[#C9D1B8]"
       id="continue-working"
     >
       <CardHeader>
@@ -63,14 +63,17 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
         </Progress>
       </CardContent>
       <CardFooter className="border-[#C9D1B8] bg-white/45">
-        <Button
-          className="h-10 rounded-full px-4"
-          render={<Link href="#inventory-watch" />}
-          size="lg"
+        <Link
+          className={buttonVariants({
+            size: "lg",
+            className:
+              "h-10 rounded-full px-4 !text-primary-foreground",
+          })}
+          href="#inventory-watch"
         >
           Review what is missing
           <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
-        </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
