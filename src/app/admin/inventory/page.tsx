@@ -4,10 +4,16 @@ import {
   inventorySavedViews,
 } from "@/lib/control-room/inventory-selectors";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { InventorySavedView } from "@/lib/control-room/types";
+import type {
+  InventoryPresentation,
+  InventorySavedView,
+} from "@/lib/control-room/types";
 
 type InventoryPageProps = {
-  searchParams: Promise<{ view?: string | string[] }>;
+  searchParams: Promise<{
+    view?: string | string[];
+    presentation?: string | string[];
+  }>;
 };
 
 const savedViewValues = new Set<InventorySavedView>(
@@ -19,12 +25,18 @@ export default async function InventoryPage({
 }: InventoryPageProps) {
   const params = await searchParams;
   const requestedView = Array.isArray(params.view) ? params.view[0] : params.view;
+  const requestedPresentation = Array.isArray(params.presentation)
+    ? params.presentation[0]
+    : params.presentation;
   const view = savedViewValues.has(requestedView as InventorySavedView)
     ? (requestedView as InventorySavedView)
     : "all";
+  const presentation: InventoryPresentation =
+    requestedPresentation === "table" ? "table" : "grid";
 
   return (
     <InventoryWorkspace
+      initialPresentation={presentation}
       initialQuery={{ ...defaultInventoryQuery, view }}
       state={activeControlRoomSeed}
     />
