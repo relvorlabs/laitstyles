@@ -1,17 +1,38 @@
 import {
+  applyHoldConversion,
+  applyHoldExtension,
+  applyHoldRelease,
+} from "@/lib/control-room/hold-actions";
+import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
+import { applyOrderTransition } from "@/lib/control-room/order-actions";
+import {
   applyIntakeTransition,
   applyProductEditorAction,
   createInitialIntakeRecords,
 } from "@/lib/control-room/product-editor-actions";
+import {
+  applyCreateReturn,
+  applyReturnTransition,
+} from "@/lib/control-room/return-actions";
 import type { Result } from "@/lib/control-room/result";
 import type {
   ControlRoomState,
+  ConvertHoldInput,
+  CreateReturnInput,
+  HoldActionSuccess,
   IntakeStage,
   IntakeTransitionSuccess,
+  OfflineSaleInput,
+  OfflineSaleSuccess,
+  OrderStatus,
+  OrderTransitionSuccess,
   ProductEditorActionError,
   ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
+  ReturnActionSuccess,
+  ReturnStatus,
+  SalesActionError,
 } from "@/lib/control-room/types";
 
 type ProductActionResult = Result<
@@ -24,6 +45,11 @@ type IntakeActionResult = Result<
   ProductEditorActionError
 >;
 
+type OrderActionResult = Result<OrderTransitionSuccess, SalesActionError>;
+type HoldResult = Result<HoldActionSuccess, SalesActionError>;
+type OfflineSaleResult = Result<OfflineSaleSuccess, SalesActionError>;
+type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
+
 export type ControlRoomStore = {
   getSnapshot: () => ControlRoomState;
   subscribe: (listener: () => void) => () => void;
@@ -35,6 +61,19 @@ export type ControlRoomStore = {
     productId: string,
     nextStage: IntakeStage,
   ) => IntakeActionResult;
+  transitionOrder: (
+    orderId: string,
+    nextStatus: OrderStatus,
+  ) => OrderActionResult;
+  extendHold: (holdId: string, minutes: number) => HoldResult;
+  releaseHold: (holdId: string) => HoldResult;
+  convertHold: (input: ConvertHoldInput) => HoldResult;
+  recordOfflineSale: (input: OfflineSaleInput) => OfflineSaleResult;
+  createReturn: (input: CreateReturnInput) => ReturnResult;
+  transitionReturn: (
+    returnId: string,
+    nextStatus: ReturnStatus,
+  ) => ReturnResult;
   resetPrototypeState: () => void;
 };
 
@@ -51,6 +90,14 @@ export function createControlRoomStore(
     for (const listener of listeners) listener();
   }
 
+  function commitAction<TAction, TError>(
+    result: Result<{ state: ControlRoomState; action: TAction }, TError>,
+  ): Result<TAction, TError> {
+    if (!result.ok) return result;
+    emit(result.value.state);
+    return { ok: true, value: result.value.action };
+  }
+
   return {
     getSnapshot: () => state,
     subscribe(listener) {
@@ -58,18 +105,39 @@ export function createControlRoomStore(
       return () => listeners.delete(listener);
     },
     saveProduct(values, intent) {
-      const result = applyProductEditorAction(state, values, intent, now());
-      if (!result.ok) return result;
-
-      emit(result.value.state);
-      return { ok: true, value: result.value.action };
+      return commitAction(
+        applyProductEditorAction(state, values, intent, now()),
+      );
     },
     transitionIntake(productId, nextStage) {
-      const result = applyIntakeTransition(state, productId, nextStage, now());
-      if (!result.ok) return result;
-
-      emit(result.value.state);
-      return { ok: true, value: result.value.action };
+      return commitAction(
+        applyIntakeTransition(state, productId, nextStage, now()),
+      );
+    },
+    transitionOrder(orderId, nextStatus) {
+      return commitAction(
+        applyOrderTransition(state, orderId, nextStatus, now()),
+      );
+    },
+    extendHold(holdId, minutes) {
+      return commitAction(applyHoldExtension(state, holdId, minutes, now()));
+    },
+    releaseHold(holdId) {
+      return commitAction(applyHoldRelease(state, holdId, now()));
+    },
+    convertHold(input) {
+      return commitAction(applyHoldConversion(state, input, now()));
+    },
+    recordOfflineSale(input) {
+      return commitAction(applyOfflineSale(state, input, now()));
+    },
+    createReturn(input) {
+      return commitAction(applyCreateReturn(state, input, now()));
+    },
+    transitionReturn(returnId, nextStatus) {
+      return commitAction(
+        applyReturnTransition(state, returnId, nextStatus, now()),
+      );
     },
     resetPrototypeState() {
       emit(normalizedInitialState);
@@ -89,5 +157,6 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
       initialState.asOf,
       idFactory,
     ),
+    returns: initialState.returns ?? [],
   };
 }
