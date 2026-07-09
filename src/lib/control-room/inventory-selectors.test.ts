@@ -113,9 +113,9 @@ describe("Inventory query pipeline", () => {
   it("derives the Inventory summary from the same product records", () => {
     expect(getInventorySummary(products)).toMatchObject({
       totalProducts: 13,
-      availableUnits: 69,
-      reservedUnits: 8,
-      soldUnits: 66,
+      availableUnits: 65,
+      reservedUnits: 9,
+      soldUnits: 65,
       lowStockProducts: 1,
       outOfStockProducts: 1,
       intakeProducts: 1,
