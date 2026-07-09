@@ -2,19 +2,20 @@
 
 ## Current score
 
-**Phase 2 of 7 complete — Inventory domain and responsive workspace**
+**Phase 3 of 7 in progress — Add-product wizard and Intake queue**
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Complete |
+| Status | In progress |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft |
 | Source specification | `docs/control-room-v2/spec.md` |
 | Execution plan | `docs/control-room-v2/implementation-plan.md` |
 | Architecture decisions | `docs/control-room-v2/decisions.md` |
-| Next phase | Phase 3 — not started |
+| Active batch | 3A — editor domain, schemas and prototype actions |
+| Next phase | Phase 4 — blocked until Phase 3 is complete |
 
 ## Completed phases
 
@@ -32,166 +33,151 @@
 - [x] Connected operational selectors and deterministic records
 - [x] Loading and error boundaries
 - [x] Legacy Admin catch-all monolith removed
-- [x] Lint, TypeScript, tests, production build, Playwright and React Doctor gate
+- [x] Full lint, TypeScript, tests, production build, Playwright and React Doctor gate
 
 ### Phase 2 — Inventory domain and responsive workspace
 
-Implemented:
+- [x] Unique, stocked and variant inventory model
+- [x] Quantity invariants and cross-record validation
+- [x] Saved views, search, filters and sorting
+- [x] Storefront-aligned grid, desktop table and mobile cards
+- [x] Deep-linkable product detail workspace
+- [x] Real CSV export and selection feedback
+- [x] Responsive browser matrix and screenshot-driven corrections
+- [x] React Doctor 100/100
 
-- Full discriminated Inventory model for unique, stocked and variant products
-- Media, measurements, channels, costs, reference prices and variant-level pricing boundaries
-- Quantity invariants and typed validation results
-- Cross-record integrity validation for products, references, stock movements and reviews
-- Deterministic stock movements, reviews, holds, orders and activity joins
-- `/admin/inventory` route with loading and error boundaries
-- Saved Inventory views
-- Search, filters and sorting
-- Deep-linkable Inventory query, presentation and selected product state
-- Storefront-aligned visual grid
-- Desktop operational table using the existing shadcn `Table`
-- Mobile operational cards instead of a compressed desktop table
-- Shared ordered result set across grid, table and mobile cards
-- Product detail workspace with Summary, Stock/variants, Media, Pricing, Orders, Holds, Movements, Returns/damage, Reviews and Activity
-- Desktop detail tabs and a mobile detail-section selector
-- Selection, select-visible, clear selection and real CSV export
-- Export success feedback announced with `aria-live`
-- Inventory navigation in desktop, mobile and command search
-- Overview attention and resume links connected to real Inventory saved views
-- Meaningful default, no-result, loading, error and success states
+Final Phase 2 application verification: GitHub Actions run `29021779448` on `b5ad5c64a906cef216a6b8e441893d095b09e4ff`.
 
-## Phase 2 table architecture decision
+## Phase 3 locked scope
 
-Decision 001 is accepted in `docs/control-room-v2/decisions.md`.
+### Goal
 
-**Decision:** do not add TanStack Table or TanStack Query in Phase 2.
+Deliver a complete product-creation workflow and make Intake a real stage of Inventory rather than a duplicate page.
 
-Use:
+### In scope
 
-```text
-Inventory query state
-        ↓
-Typed selectors
-        ↓
-One ordered result set
-   ↙        ↓        ↘
-Grid      Table     Mobile cards
-```
+- Product-editor feature folder
+- Large responsive desktop dialog and full-height mobile presentation
+- React Hook Form and Zod validation
+- Seven specification steps
+- Unique, stocked and variant field branches
+- Back/next navigation without losing valid values
+- Local step validation and final validation summary
+- Dirty-close confirmation
+- Save-draft prototype action through one shared action boundary
+- Publish prototype action when blocking requirements are satisfied
+- Intake saved view and stage transitions on the same product record
+- Product edit boundary for existing records
+- Success, validation and recoverable error feedback
 
-Reasons:
+### Out of scope
 
-- Laitstyle inventory remains product-led and image-first like the storefront.
-- The current prototype has no server pagination, grouping, resizing, dynamic columns or virtualization requirement.
-- The existing shadcn Table supports the fixed operational comparison view.
-- A TanStack row model would add a second abstraction without proportional value.
-- The decision must be revisited when real server data, pagination or inventory volume creates those requirements.
+- Real file upload or storage
+- Real backend persistence
+- AI extraction claims
+- Order, hold or sales mutations
+- Supplier, accounting, warehouse or multi-store features
+- Phase 4 navigation or actions
 
-## Phase 2 exclusions respected
+## Phase 3 batches
 
-- No add-product or edit-product wizard
-- No Intake mutations
-- No media upload/storage
-- No backend persistence
-- No publish, unpublish, archive or collection-assignment mutations
-- No order or hold management
-- No offline-sale recording
-- No Customers workspace
-- No Settings forms
-- No Collections route
-- No TanStack dependency
-- No Cache Components
-- No premature pagination or virtualization
+### Batch 3A — editor domain, schemas and prototype actions
 
-The required persistent Add product action remains intentionally absent until the complete Phase 3 wizard exists. No dead action was exposed.
+- [ ] Typed editor draft model
+- [ ] Seven-step field ownership map
+- [ ] Zod schemas for common, unique, stocked and variant branches
+- [ ] Draft-to-product conversion
+- [ ] Typed save-draft, publish and intake-transition results
+- [ ] One prototype state/action boundary
+- [ ] Focused tests for validation, conversion and transitions
+- [ ] Lint, TypeScript, tests and build gate
 
-## Phase 2 acceptance checklist
+### Batch 3B — responsive seven-step editor
 
-- [x] Specification, plan, tracker and `AGENTS.md` reloaded
-- [x] Current PR feedback inspected; no comments or unresolved review threads
-- [x] Relevant current skills reloaded
-- [x] Storefront product model and visual language inspected
-- [x] Existing shadcn Table inspected
-- [x] TanStack decision recorded before table implementation
-- [x] Inventory types cover unique, stocked and variant products without optional-field sprawl
-- [x] Quantity invariants prevent impossible stock totals
-- [x] Stock movement and related operational records exist
-- [x] Inventory route and route boundaries exist
-- [x] Saved views, search, filters and sorting operate on one result set
-- [x] Grid, desktop table and mobile cards show the same inventory truth
-- [x] Botanical Jeans shows 50 received, 29 available, 3 reserved and 18 sold
-- [x] Unique pieces remain quantity-one records
-- [x] Variant products expose per-variant availability
-- [x] Product detail sheet exposes every required read-only operational section
-- [x] Bulk export and clear-selection actions work without fake persistence
-- [x] Empty and no-results states are distinct and useful
-- [x] Inventory is available in desktop, mobile and command navigation
-- [x] No Add product action is exposed before the Phase 3 wizard exists
-- [x] No horizontal desktop table is forced onto mobile
-- [x] No feature file became a replacement monolith
-- [x] Latest Web Interface Guidelines review passes
-- [x] ESLint passes
-- [x] TypeScript passes
-- [x] Available tests pass
-- [x] Production build passes
-- [x] React Doctor changed-scope analysis passes at 100/100
-- [x] Playwright renders pass at 375 × 812, 768 × 1024 and 1280 × 800
-- [x] Grid, table and product-detail screenshots were visually inspected
-- [x] The desktop detail-width defect was corrected and the full gate rerun
-- [x] Mobile product-detail navigation was converted to a compact selector and reverified
-- [x] PR body and this tracker are updated before Phase 3 begins
+- [ ] Product-editor feature folder
+- [ ] Responsive dialog/full-height mobile shell
+- [ ] Progress navigation and accessible step status
+- [ ] Product type step
+- [ ] Identity step
+- [ ] Images step with local placeholder media management
+- [ ] Stock and variant branches
+- [ ] Pricing and margin preview
+- [ ] Fulfilment step
+- [ ] Review and publish step
+- [ ] Back/next preservation
+- [ ] Inline field errors
+- [ ] Dirty-close confirmation
 
-## Phase 2 verification evidence
+### Batch 3C — Inventory and Intake integration
 
-GitHub Actions run `29021779448` passed on final application head `b5ad5c64a906cef216a6b8e441893d095b09e4ff`:
+- [ ] Add product entry point exposed only after the full editor works
+- [ ] Save draft updates the shared prototype catalogue state
+- [ ] Publish creates a valid active product through the same action boundary
+- [ ] Intake queue shows real stage context
+- [ ] Intake stage transitions mutate the same product record
+- [ ] Existing product edit boundary is available without creating duplicates
+- [ ] Success and recoverable error feedback
+- [ ] Inventory grid, table and mobile cards update from shared state
 
-- pnpm frozen-lockfile installation
-- ESLint
-- `tsc --noEmit`
-- Inventory and URL-state Vitest suites
-- Next.js production build
-- Playwright Chromium production rendering
-- React Doctor changed-scope analysis
-- Final required-check enforcement
+### Batch 3D — acceptance and browser evidence
 
-React Doctor result: **100/100 — no issues found.**
+- [ ] Latest Web Interface Guidelines review
+- [ ] PR diff and scope audit
+- [ ] ESLint
+- [ ] TypeScript
+- [ ] Vitest
+- [ ] Production build
+- [ ] React Doctor changed-scope review
+- [ ] Playwright at 375 × 812, 768 × 1024 and 1280 × 800
+- [ ] Wizard keyboard flow and Escape/dirty-close behaviour
+- [ ] Mobile full-height presentation
+- [ ] Desktop large-dialog composition
+- [ ] Intake stage progression screenshot evidence
+- [ ] Tracker and PR body updated with accepted run
 
-Playwright rendered and uploaded:
+## Phase 3 acceptance criteria
 
-- Active Overview — 375 × 812, 768 × 1024 and 1280 × 800
-- New-store Overview — 375 × 812, 768 × 1024 and 1280 × 800
-- Inventory grid — 375 × 812, 768 × 1024 and 1280 × 800
-- Inventory table — 1280 × 800
-- Botanical Jeans detail workspace — 375 × 812 and 1280 × 800
+- [ ] Product mode changes the stock step without retaining irrelevant hidden values
+- [ ] Moving backward preserves valid entered data
+- [ ] Required errors appear beside their fields
+- [ ] Draft and publish are visibly distinct actions
+- [ ] Intake moves one product record through stages and never duplicates it
+- [ ] Closing dirty work requires confirmation
+- [ ] No upload or persistence integration is claimed
+- [ ] Add product is not exposed until the complete workflow is connected
+- [ ] Keyboard and mobile behaviour pass
+- [ ] No feature file becomes a replacement monolith
+- [ ] Phase checks pass
 
-### Screenshot-driven corrections
+## Loaded implementation contract
 
-The first production render exposed a desktop defect: Base UI’s default `sm:max-w-sm` kept the product sheet at roughly 384px and crushed the Summary column. The sheet width was explicitly corrected, catalogue panels were split, the Summary image column was balanced, and the complete gate was rerun. The accepted desktop detail render now shows a readable wide product workspace.
+Before Phase 3 code began, the following were reloaded:
 
-The final mobile pass replaced the horizontally scrolling ten-section tab strip with a compact section selector. The mobile detail workspace remains stacked, readable and keyboard-accessible. The exact final application head was then rerun through the complete gate.
+- `docs/control-room-v2/spec.md`
+- `docs/control-room-v2/implementation-plan.md`
+- This progress tracker
+- `AGENTS.md`
+- Current PR feedback — no comments or unresolved review threads
+- Current package and shadcn project configuration
+- `using-superpowers`
+- `find-skills`
+- `create-pr`
+- `product-designer`
+- `ui-ux-pro-max`
+- `frontend-design`
+- `web-design-guidelines`
+- `web-artifacts-builder`
+- `next-best-practices`
+- `next-cache-components`
+- `vercel-react-best-practices`
+- `vercel-composition-patterns`
+- `react-doctor`
+- `shadcn`
+- `typescript-advanced-types`
+- `error-handling-patterns`
 
-Chrome DevTools MCP was unavailable, so no DevTools-specific console, network or performance claim is made. Browser evidence is the successful production Playwright matrix above.
-
-## Phase 2 implementation structure
-
-### Domain and validation
-
-- `inventory-types.ts`
-- `inventory-constants.ts`
-- `inventory-derivations.ts`
-- `inventory-query.ts`
-- `inventory-validation-types.ts`
-- `inventory-product-validation.ts`
-- `inventory-validation.ts`
-- `inventory-selectors.ts` public façade
-- `result.ts`
-
-### Inventory feature
-
-Inventory routing, controls, URL state, grid, table, mobile cards, selection/export and product-detail sections are split into focused files under `src/features/control-room/inventory/`. The largest controller file remains below the repository’s review threshold and does not own domain data or validation.
+The controller did not contain the expected `brainstorming` skill path. `find-skills` was used as required; no replacement skill was invented. The approved specification and implementation plan already lock the Phase 3 product decisions.
 
 ## Blockers
 
-None for the completed Phase 2 scope.
-
-## Next phase gate
-
-Phase 3 is **not started**. It is limited to the complete Add-product wizard and Intake queue described in the implementation plan. Before Phase 3 code begins, the specification, plan, tracker, relevant skills, current PR feedback and repository state must be reloaded.
+None at Phase 3 start.
