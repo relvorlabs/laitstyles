@@ -17,19 +17,18 @@ export function OrdersSummaryStrip({
   ];
 
   return (
-    <Card className="grid gap-0 overflow-hidden py-0 sm:grid-cols-3 xl:grid-cols-6">
-      {metrics.map((metric, index) => (
+    <Card className="grid grid-cols-2 gap-0 overflow-hidden py-0 sm:grid-cols-3 xl:grid-cols-6">
+      {metrics.map((metric) => (
         <div
-          className="border-b border-border px-5 py-5 last:border-b-0 sm:[&:nth-child(3n)]:border-r-0 sm:[&:nth-last-child(-n+3)]:border-b-0 sm:border-r xl:border-b-0 xl:[&:nth-child(3n)]:border-r xl:last:border-r-0"
+          className="border-r border-b border-border px-4 py-5 even:border-r-0 [&:nth-last-child(-n+2)]:border-b-0 sm:px-5 sm:even:border-r sm:[&:nth-child(3n)]:border-r-0 sm:[&:nth-last-child(-n+3)]:border-b-0 xl:border-b-0 xl:[&:nth-child(3n)]:border-r xl:last:border-r-0"
           key={metric.label}
         >
-          <div className="font-serif text-[28px] font-medium leading-none tabular-nums">
+          <div className="font-serif text-[27px] font-medium leading-none tabular-nums sm:text-[28px]">
             {metric.value}
           </div>
-          <div className="mt-2 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="mt-2 text-[9px] font-semibold uppercase tracking-[0.13em] text-muted-foreground sm:text-[9.5px] sm:tracking-[0.14em]">
             {metric.label}
           </div>
-          <span className="sr-only">Metric {index + 1}</span>
         </div>
       ))}
     </Card>
