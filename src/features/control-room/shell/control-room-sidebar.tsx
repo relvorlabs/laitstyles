@@ -6,7 +6,8 @@ import {
 } from "@/features/control-room/shared/control-room-icon";
 import {
   controlRoomExternalLinks,
-  controlRoomNavigation,
+  controlRoomNavigationGroups,
+  type ControlRoomNavigationItem,
 } from "@/features/control-room/shell/navigation";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,7 @@ export function ControlRoomSidebar({
           href="/admin"
           onClick={onNavigate}
         >
-          <span className="grid size-11 place-items-center rounded-full border border-white/[0.15] bg-white/[0.08] text-[#D9E1C9] transition-transform group-hover:-rotate-3">
+          <span className="grid size-11 place-items-center rounded-full border border-white/[0.15] bg-white/[0.08] text-[#D9E1C9] transition-transform group-hover:-rotate-3 motion-reduce:transition-none">
             <ControlRoomIcon icon={Store01Icon} size={21} />
           </span>
           <span className="min-w-0">
@@ -49,18 +50,24 @@ export function ControlRoomSidebar({
       </div>
 
       <div className={cn("flex flex-1 flex-col", compact ? "p-4" : "p-5")}>
-        <div className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/[0.58]">
-          Today
-        </div>
-        <nav aria-label="Control Room" className="flex flex-col gap-1.5">
-          {controlRoomNavigation.map((item) => (
-            <SidebarLink
-              active={pathname === item.href}
-              icon={item.icon}
-              item={item}
-              key={item.href}
-              onNavigate={onNavigate}
-            />
+        <nav aria-label="Control Room" className="flex flex-col gap-5">
+          {controlRoomNavigationGroups.map((group) => (
+            <div key={group.label}>
+              <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/[0.58]">
+                {group.label}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {group.items.map((item) => (
+                  <SidebarLink
+                    active={isActive(pathname, item.href)}
+                    icon={item.icon}
+                    item={item}
+                    key={item.href}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -115,7 +122,7 @@ export function ControlRoomSidebar({
 type SidebarLinkProps = {
   active: boolean;
   icon: ControlRoomIconData;
-  item: (typeof controlRoomNavigation)[number];
+  item: ControlRoomNavigationItem;
   onNavigate?: () => void;
 };
 
@@ -160,4 +167,9 @@ function SidebarLink({
       </span>
     </Link>
   );
+}
+
+function isActive(pathname: string, href: string) {
+  if (href === "/admin") return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
