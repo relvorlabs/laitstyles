@@ -66,8 +66,11 @@ export function InventoryControls({
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Search Inventory"
+            autoComplete="off"
+            name="inventory-search"
             onChange={(event) => onQueryChange({ search: event.target.value })}
-            placeholder="Search name, archive number, SKU or variant"
+            placeholder="Search name, archive number, SKU or variant…"
+            spellCheck={false}
             value={query.search}
           />
         </InputGroup>
@@ -94,7 +97,10 @@ export function InventoryControls({
               <ControlRoomIcon icon={Settings01Icon} size={17} />
               Filters
             </SheetTrigger>
-            <SheetContent className="w-[min(92vw,420px)]" side="right">
+            <SheetContent
+              className="w-[min(92vw,420px)] overscroll-contain"
+              side="right"
+            >
               <SheetHeader>
                 <SheetTitle>Filter Inventory</SheetTitle>
                 <SheetDescription>
@@ -117,7 +123,7 @@ export function InventoryControls({
                   type="button"
                   variant="outline"
                 >
-                  Reset filters
+                  Reset Filters
                 </Button>
               </SheetFooter>
             </SheetContent>
@@ -143,7 +149,7 @@ export function InventoryControls({
               <button
                 aria-pressed={presentation === option}
                 className={cn(
-                  "min-h-9 rounded-full px-3 text-[11px] font-semibold capitalize transition-colors",
+                  "min-h-9 rounded-full px-3 text-[11px] font-semibold capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   presentation === option
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
