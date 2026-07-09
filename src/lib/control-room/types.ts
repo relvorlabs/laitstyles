@@ -4,6 +4,13 @@ import type {
   StockMovement,
 } from "@/lib/control-room/inventory-types";
 import type { IntakeRecord } from "@/lib/control-room/product-editor-types";
+import type {
+  ControlRoomHold,
+  ControlRoomOrder,
+  ControlRoomReturn,
+  CurrencyCode,
+  FulfilmentStatus,
+} from "@/lib/control-room/sales-types";
 
 export type {
   CatalogueChannel,
@@ -57,66 +64,43 @@ export type {
   VariantProductEditorValues,
 } from "@/lib/control-room/product-editor-types";
 
-export type CurrencyCode = "NGN";
-
-export type SalesChannel =
-  | "online"
-  | "physical-store"
-  | "whatsapp"
-  | "instagram"
-  | "phone"
-  | "pop-up"
-  | "staff-assisted";
-
-export type PaymentStatus = "pending" | "paid" | "deposit" | "failed" | "refunded";
-
-export type FulfilmentStatus =
-  | "pending-payment"
-  | "payment-confirmed"
-  | "preparing"
-  | "packed"
-  | "ready-for-pickup"
-  | "dispatched"
-  | "out-for-delivery"
-  | "delivered"
-  | "cancelled"
-  | "returned";
-
-export type OrderLine = {
-  id: string;
-  productId: string;
-  variantId?: string;
-  quantity: number;
-  unitPrice: number;
-};
-
-export type ControlRoomOrder = {
-  id: string;
-  customerId: string;
-  channel: SalesChannel;
-  paymentStatus: PaymentStatus;
-  fulfilmentStatus: FulfilmentStatus;
-  lines: OrderLine[];
-  total: number;
-  placedAt: string;
-  deliveryCity: string;
-  attention?: "payment" | "delivery" | "packing";
-};
-
-export type HoldStage = "product" | "cart" | "checkout" | "payment";
-
-export type ControlRoomHold = {
-  id: string;
-  customerId?: string;
-  customerLabel: string;
-  productId: string;
-  variantId?: string;
-  quantity: number;
-  stage: HoldStage;
-  source: "storefront" | "admin";
-  startedAt: string;
-  expiresAt: string;
-};
+export type {
+  ControlRoomHold,
+  ControlRoomOrder,
+  ControlRoomReturn,
+  ConvertHoldInput,
+  CreateReturnInput,
+  CurrencyCode,
+  DeliveryAddress,
+  ExistingSaleCustomer,
+  FulfilmentStatus,
+  HoldActionSuccess,
+  HoldSource,
+  HoldStage,
+  HoldStatus,
+  NewSaleCustomer,
+  OfflineSaleCustomer,
+  OfflineSaleInput,
+  OfflineSaleLineInput,
+  OfflineSaleSuccess,
+  OrderCourierBoundary,
+  OrderLine,
+  OrderLineStockState,
+  OrderPaymentEvent,
+  OrderSource,
+  OrderStatus,
+  OrderTimelineEvent,
+  OrderTransitionSuccess,
+  PaymentMethod,
+  PaymentStatus,
+  ReturnActionSuccess,
+  ReturnDisposition,
+  ReturnLine,
+  ReturnStatus,
+  SalesActionError,
+  SalesActionErrorCode,
+  SalesChannel,
+} from "@/lib/control-room/sales-types";
 
 export type ControlRoomCustomer = {
   id: string;
@@ -132,7 +116,9 @@ export type ActivityKind =
   | "inventory"
   | "delivery"
   | "customer"
-  | "draft";
+  | "draft"
+  | "sale"
+  | "return";
 
 export type ControlRoomActivity = {
   id: string;
@@ -171,6 +157,7 @@ export type ControlRoomState = {
   intake?: IntakeRecord[];
   orders: ControlRoomOrder[];
   holds: ControlRoomHold[];
+  returns?: ControlRoomReturn[];
   customers: ControlRoomCustomer[];
   activities: ControlRoomActivity[];
   stockMovements: StockMovement[];
