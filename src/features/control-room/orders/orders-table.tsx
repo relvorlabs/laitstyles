@@ -11,10 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  channelLabels,
-  formatOrderDate,
-} from "@/features/control-room/orders/order-labels";
+import { channelLabels } from "@/features/control-room/orders/order-labels";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
@@ -38,18 +35,16 @@ export function OrdersTable({
 }) {
   return (
     <div className="hidden overflow-hidden rounded-[18px] border border-border bg-card lg:block">
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow className="bg-secondary/55 hover:bg-secondary/55">
-            <TableHead className="min-w-[170px]">Order</TableHead>
-            <TableHead className="min-w-[180px]">Customer</TableHead>
-            <TableHead className="hidden xl:table-cell">Channel</TableHead>
-            <TableHead>Items</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-            <TableHead>Payment</TableHead>
-            <TableHead>Fulfilment</TableHead>
-            <TableHead className="hidden 2xl:table-cell">Placed</TableHead>
-            <TableHead className="w-14 text-right">
+            <TableHead className="w-[16%]">Order</TableHead>
+            <TableHead className="w-[18%]">Customer</TableHead>
+            <TableHead className="w-[22%]">Items</TableHead>
+            <TableHead className="w-[13%] text-right">Total</TableHead>
+            <TableHead className="w-[12%]">Payment</TableHead>
+            <TableHead className="w-[16%]">Fulfilment</TableHead>
+            <TableHead className="w-[3%] text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -59,62 +54,56 @@ export function OrdersTable({
             const item = toOrderWorkspaceItem(state, order);
             return (
               <TableRow key={order.id}>
-                <TableCell>
+                <TableCell className="overflow-hidden">
                   <button
-                    className="rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="max-w-full rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => onOpen(order.id)}
                     type="button"
                   >
-                    <span className="block text-[13px] font-semibold">
+                    <span className="block truncate text-[13px] font-semibold">
                       {order.id}
                     </span>
-                    <span className="mt-1 block text-[10.5px] capitalize text-muted-foreground">
-                      {(order.source ?? "online-order").replaceAll("-", " ")}
+                    <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
+                      {channelLabels[order.channel]} · {(order.source ?? "online-order").replaceAll("-", " ")}
                     </span>
                   </button>
                 </TableCell>
-                <TableCell>
-                  <span className="block text-[12.5px] font-medium">
+                <TableCell className="overflow-hidden">
+                  <span className="block truncate text-[12.5px] font-medium">
                     {item.customerName}
                   </span>
-                  <span className="mt-1 block text-[10.5px] text-muted-foreground">
+                  <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
                     {item.customerCity || "No city"}
                   </span>
                 </TableCell>
-                <TableCell className="hidden xl:table-cell">
-                  <Badge variant="outline">{channelLabels[order.channel]}</Badge>
-                </TableCell>
-                <TableCell>
+                <TableCell className="overflow-hidden">
                   <span className="block text-[12px] font-medium tabular-nums">
                     {item.unitCount} unit{item.unitCount === 1 ? "" : "s"}
                   </span>
-                  <span className="mt-1 block max-w-[200px] truncate text-[10.5px] text-muted-foreground">
+                  <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
                     {item.productNames.join(", ")}
                   </span>
                 </TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">
-                  {formatNaira(order.total)}
+                <TableCell className="overflow-hidden text-right font-semibold tabular-nums">
+                  <span className="block truncate">{formatNaira(order.total)}</span>
                   {order.refundedAmount ? (
-                    <span className="mt-1 block text-[10px] font-normal text-muted-foreground">
+                    <span className="mt-1 block truncate text-[10px] font-normal text-muted-foreground">
                       Net {formatNaira(item.netRevenue)}
                     </span>
                   ) : null}
                 </TableCell>
-                <TableCell>
+                <TableCell className="overflow-hidden">
                   <PaymentStatusBadge status={order.paymentStatus} />
                 </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap items-center gap-1.5">
+                <TableCell className="overflow-hidden">
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                     <OrderStatusBadge status={order.fulfilmentStatus} />
                     {item.needsAttention ? (
                       <Badge variant="destructive">Attention</Badge>
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell className="hidden text-[10.5px] text-muted-foreground 2xl:table-cell">
-                  {formatOrderDate(order.placedAt)}
-                </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="px-1 text-right">
                   <Button
                     aria-label={`Open ${order.id}`}
                     className="size-9 rounded-full"
