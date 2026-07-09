@@ -16,7 +16,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Check out repository
@@ -70,14 +70,16 @@ jobs:
           set -o pipefail
           pnpm build 2>&1 | tee build.log
 
-      - name: Browser viewport checks
+      - name: Browser viewport and interaction checks
         id: browser
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
           mkdir -p control-room-screenshots
-          pnpm dlx playwright@latest install --with-deps chromium 2>&1 | tee browser.log
+          npm install --prefix /tmp/control-room-browser playwright@latest --no-save --omit=optional 2>&1 | tee browser.log
+          PLAYWRIGHT=/tmp/control-room-browser/node_modules/.bin/playwright
+          "$PLAYWRIGHT" install --with-deps chromium 2>&1 | tee -a browser.log
 
           ./node_modules/.bin/next start >> browser.log 2>&1 &
           SERVER_PID=$!
@@ -98,7 +100,7 @@ jobs:
 
           for viewport in 375,812 768,1024 1280,800; do
             label=${viewport/,/x}
-            pnpm dlx playwright@latest screenshot \
+            "$PLAYWRIGHT" screenshot \
               --browser chromium \
               --viewport-size "$viewport" \
               --wait-for-timeout 1200 \
@@ -106,7 +108,7 @@ jobs:
               http://127.0.0.1:3000/admin \
               "control-room-screenshots/active-${label}.png" 2>&1 | tee -a browser.log
 
-            pnpm dlx playwright@latest screenshot \
+            "$PLAYWRIGHT" screenshot \
               --browser chromium \
               --viewport-size "$viewport" \
               --wait-for-timeout 1200 \
@@ -114,7 +116,7 @@ jobs:
               'http://127.0.0.1:3000/admin?view=new-store' \
               "control-room-screenshots/new-store-${label}.png" 2>&1 | tee -a browser.log
 
-            pnpm dlx playwright@latest screenshot \
+            "$PLAYWRIGHT" screenshot \
               --browser chromium \
               --viewport-size "$viewport" \
               --wait-for-timeout 1500 \
@@ -123,7 +125,7 @@ jobs:
               "control-room-screenshots/inventory-grid-${label}.png" 2>&1 | tee -a browser.log
           done
 
-          pnpm dlx playwright@latest screenshot \
+          "$PLAYWRIGHT" screenshot \
             --browser chromium \
             --viewport-size "1280,800" \
             --wait-for-timeout 1500 \
@@ -133,7 +135,7 @@ jobs:
 
           for viewport in 375,812 1280,800; do
             label=${viewport/,/x}
-            pnpm dlx playwright@latest screenshot \
+            "$PLAYWRIGHT" screenshot \
               --browser chromium \
               --viewport-size "$viewport" \
               --wait-for-timeout 1500 \
@@ -141,6 +143,11 @@ jobs:
               'http://127.0.0.1:3000/admin/inventory?product=botanical-jeans' \
               "control-room-screenshots/inventory-detail-${label}.png" 2>&1 | tee -a browser.log
           done
+
+          NODE_PATH=/tmp/control-room-browser/node_modules \
+            CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+            CONTROL_ROOM_SCREENSHOT_DIR=control-room-screenshots \
+            node scripts/control-room-phase3-check.cjs 2>&1 | tee -a browser.log
 
           cleanup
           trap - EXIT
