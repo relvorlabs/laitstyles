@@ -75,7 +75,7 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           mkdir -p control-room-screenshots
           npm install --prefix /tmp/control-room-browser playwright@latest --no-save --omit=optional 2>&1 | tee browser.log
           PLAYWRIGHT=/tmp/control-room-browser/node_modules/.bin/playwright
@@ -151,7 +151,6 @@ jobs:
 
           cleanup
           trap - EXIT
-          true
 
       - name: React Doctor diagnostics
         id: react_doctor
