@@ -69,7 +69,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
             className:
               "h-10 rounded-full px-4 !text-primary-foreground",
           })}
-          href="#inventory-watch"
+          href={task.href}
         >
           Review what is missing
           <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
