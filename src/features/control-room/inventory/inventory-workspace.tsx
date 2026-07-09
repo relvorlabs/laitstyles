@@ -25,6 +25,7 @@ import { InventorySavedViews } from "@/features/control-room/inventory/inventory
 import { InventorySelectionBar } from "@/features/control-room/inventory/inventory-selection-bar";
 import { InventorySummaryStrip } from "@/features/control-room/inventory/inventory-summary-strip";
 import { InventoryTable } from "@/features/control-room/inventory/inventory-table";
+import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import {
   defaultInventoryQuery,
@@ -38,7 +39,6 @@ import type {
   ControlRoomState,
   InventoryPresentation,
   InventoryQuery,
-  InventorySavedView,
 } from "@/lib/control-room/types";
 
 type InventoryWorkspaceProps = {
@@ -90,22 +90,47 @@ export function InventoryWorkspace({
   const openItem =
     allItems.find((item) => item.product.id === openProductId) ?? null;
 
-  function patchQuery(patch: Partial<InventoryQuery>) {
-    setQuery((current) => ({ ...current, ...patch }));
-    setExportedCount(null);
-    if (patch.view) syncSavedView(patch.view);
+  function replaceUrl(
+    nextView = query.view,
+    nextPresentation = presentation,
+    nextProductId = openProductId,
+  ) {
+    router.replace(
+      buildInventoryHref(pathname, {
+        view: nextView,
+        presentation: nextPresentation,
+        productId: nextProductId,
+      }),
+      { scroll: false },
+    );
   }
 
-  function syncSavedView(view: InventorySavedView) {
-    router.replace(view === "all" ? pathname : `${pathname}?view=${view}`, {
-      scroll: false,
-    });
+  function patchQuery(patch: Partial<InventoryQuery>) {
+    const nextQuery = { ...query, ...patch };
+    setQuery(nextQuery);
+    setExportedCount(null);
+    if (patch.view) replaceUrl(nextQuery.view);
   }
 
   function resetQuery() {
     setQuery(defaultInventoryQuery);
     setExportedCount(null);
-    router.replace(pathname, { scroll: false });
+    replaceUrl("all");
+  }
+
+  function changePresentation(nextPresentation: InventoryPresentation) {
+    setPresentation(nextPresentation);
+    replaceUrl(query.view, nextPresentation);
+  }
+
+  function openProduct(productId: string) {
+    setOpenProductId(productId);
+    replaceUrl(query.view, presentation, productId);
+  }
+
+  function closeProduct() {
+    setOpenProductId(null);
+    replaceUrl(query.view, presentation, null);
   }
 
   function setProductSelected(productId: string, selected: boolean) {
@@ -142,7 +167,7 @@ export function InventoryWorkspace({
 
   function openSelected() {
     const [productId] = selectedIds;
-    if (productId) setOpenProductId(productId);
+    if (productId) openProduct(productId);
   }
 
   return (
@@ -182,7 +207,7 @@ export function InventoryWorkspace({
         />
         <InventoryControls
           facets={facets}
-          onPresentationChange={setPresentation}
+          onPresentationChange={changePresentation}
           onQueryChange={patchQuery}
           onReset={resetQuery}
           presentation={presentation}
@@ -216,7 +241,7 @@ export function InventoryWorkspace({
         <>
           <InventoryMobileList
             items={items}
-            onOpen={setOpenProductId}
+            onOpen={openProduct}
             onSelectedChange={setProductSelected}
             selectedIds={selectedIds}
           />
@@ -231,7 +256,7 @@ export function InventoryWorkspace({
             <InventoryGrid
               className="grid gap-4 md:grid-cols-2"
               items={items}
-              onOpen={setOpenProductId}
+              onOpen={openProduct}
               onSelectedChange={setProductSelected}
               selectedIds={selectedIds}
             />
@@ -240,7 +265,7 @@ export function InventoryWorkspace({
           {presentation === "table" ? (
             <InventoryTable
               items={items}
-              onOpen={setOpenProductId}
+              onOpen={openProduct}
               onSelectedChange={setProductSelected}
               onSelectVisible={selectVisible}
               selectedIds={selectedIds}
@@ -264,7 +289,7 @@ export function InventoryWorkspace({
       <InventoryDetailSheet
         item={openItem}
         onOpenChange={(open) => {
-          if (!open) setOpenProductId(null);
+          if (!open) closeProduct();
         }}
         state={state}
       />
