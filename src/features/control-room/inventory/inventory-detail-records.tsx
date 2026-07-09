@@ -1,6 +1,12 @@
+import { Children, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { formatInventoryDate } from "@/features/control-room/inventory/inventory-labels";
 import { formatNaira } from "@/lib/control-room/formatters";
 import type {
@@ -15,7 +21,10 @@ export function ProductOrdersPanel({ orders }: { orders: ControlRoomOrder[] }) {
   return (
     <RecordStack empty="No order currently references this product.">
       {orders.map((order) => {
-        const quantity = order.lines.reduce((total, line) => total + line.quantity, 0);
+        const quantity = order.lines.reduce(
+          (total, line) => total + line.quantity,
+          0,
+        );
         return (
           <RecordCard
             badge={order.fulfilmentStatus.replaceAll("-", " ")}
@@ -122,12 +131,10 @@ function RecordStack({
   children,
   empty,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   empty: string;
 }) {
-  const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
-
-  if (!hasChildren) {
+  if (Children.count(children) === 0) {
     return (
       <Empty className="min-h-[280px] border border-dashed border-border bg-secondary/25">
         <EmptyHeader>
