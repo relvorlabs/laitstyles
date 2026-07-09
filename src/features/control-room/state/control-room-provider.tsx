@@ -16,23 +16,21 @@ import {
 import type {
   ControlRoomState,
   IntakeStage,
+  IntakeTransitionSuccess,
   ProductEditorActionError,
+  ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
 } from "@/lib/control-room/types";
 import type { Result } from "@/lib/control-room/result";
 
 type ProductActionResult = Result<
-  ReturnType<typeof applyProductEditorAction> extends Result<infer T, unknown>
-    ? T["action"]
-    : never,
+  ProductEditorActionSuccess,
   ProductEditorActionError
 >;
 
 type IntakeActionResult = Result<
-  ReturnType<typeof applyIntakeTransition> extends Result<infer T, unknown>
-    ? T["action"]
-    : never,
+  IntakeTransitionSuccess,
   ProductEditorActionError
 >;
 
@@ -58,9 +56,9 @@ export function ControlRoomProvider({
   children: ReactNode;
   initialState: ControlRoomState;
 }) {
-  const normalizedInitialState = useRef(normalizeState(initialState));
-  const [state, setState] = useState(normalizedInitialState.current);
-  const stateRef = useRef(state);
+  const [normalizedInitialState] = useState(() => normalizeState(initialState));
+  const [state, setState] = useState(normalizedInitialState);
+  const stateRef = useRef(normalizedInitialState);
 
   const commit = useCallback((nextState: ControlRoomState) => {
     stateRef.current = nextState;
@@ -103,8 +101,8 @@ export function ControlRoomProvider({
   );
 
   const resetPrototypeState = useCallback(() => {
-    commit(normalizedInitialState.current);
-  }, [commit]);
+    commit(normalizedInitialState);
+  }, [commit, normalizedInitialState]);
 
   return (
     <ControlRoomContext
