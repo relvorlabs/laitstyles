@@ -64,7 +64,7 @@ export function OrdersTable({
                       {order.id}
                     </span>
                     <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
-                      {channelLabels[order.channel]} · {(order.source ?? "online-order").replaceAll("-", " ")}
+                      {channelLabels[order.channel]}
                     </span>
                   </button>
                 </TableCell>
