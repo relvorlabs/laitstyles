@@ -8,17 +8,21 @@ import {
   Clock,
   Heart,
   Home,
-  LogOut,
   MapPin,
   Package,
-  Pencil,
   Plus,
   ShoppingBag,
   Trash2,
   Truck,
-  User,
+  X,
 } from "lucide-react";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import {
   naira,
@@ -26,7 +30,13 @@ import {
   plpItems,
   type PlpProduct,
 } from "@/lib/catalogue";
-import { ORDER_STORAGE_KEY, type OrderReceipt } from "@/lib/order";
+import {
+  getLatestOrderSnapshot,
+  getServerOrderSnapshot,
+  parseOrderReceipt,
+  subscribeToLatestOrder,
+  type OrderReceipt,
+} from "@/lib/order";
 
 type AccountTab =
   | "overview"
@@ -91,13 +101,20 @@ function AccountSurface() {
   const router = useRouter();
   const params = useSearchParams();
   const { heldItems, release, rehold } = useShop();
-  const [signedIn, setSignedIn] = useState(true);
   const [wishlist, setWishlist] = useState(initialWishlist);
   const [addresses, setAddresses] = useState(initialAddresses);
-  const [latestOrder, setLatestOrder] = useState<OrderReceipt | null>(null);
   const [addressFormOpen, setAddressFormOpen] = useState(false);
-  const [toast, setToast] = useState("");
+  const [notice, setNotice] = useState("");
 
+  const orderSnapshot = useSyncExternalStore(
+    subscribeToLatestOrder,
+    getLatestOrderSnapshot,
+    getServerOrderSnapshot,
+  );
+  const latestOrder = useMemo(
+    () => parseOrderReceipt(orderSnapshot),
+    [orderSnapshot],
+  );
   const tab = normalizeTab(params.get("tab"));
   const activeHolds = heldItems.filter((item) => item.secondsLeft > 0);
   const expiredHolds = heldItems.filter((item) => item.secondsLeft <= 0);
@@ -109,46 +126,8 @@ function AccountSurface() {
     [wishlist],
   );
 
-  useEffect(() => {
-    try {
-      const stored = window.sessionStorage.getItem(ORDER_STORAGE_KEY);
-      if (stored) setLatestOrder(JSON.parse(stored) as OrderReceipt);
-    } catch {
-      // The account remains usable without browser storage.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(""), 3500);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-
   function go(next: AccountTab) {
     router.push(next === "overview" ? "/account" : `/account?tab=${next}`);
-  }
-
-  if (!signedIn) {
-    return (
-      <main className="mx-auto flex w-full max-w-[1240px] flex-1 items-center justify-center px-6 py-20 max-sm:px-4">
-        <section className="w-full max-w-[680px] rounded-[16px] border border-border bg-white px-8 py-14 text-center shadow-laitstyle max-sm:px-5">
-          <div className="mx-auto flex size-[74px] items-center justify-center rounded-full bg-[#F2F4EA] text-[#7C8C63]">
-            <User aria-hidden="true" className="size-8" />
-          </div>
-          <h1 className="mt-6 font-serif text-[34px] font-medium">Sign in to see your rail</h1>
-          <p className="mx-auto mt-3 max-w-[430px] text-[14px] leading-[1.65] text-[#57554E]">
-            Holds, saved pieces and delivery addresses all live here. Authentication remains an integration boundary in this storefront build.
-          </p>
-          <button
-            className="mt-7 h-[50px] rounded-full bg-primary px-7 text-[14.5px] font-semibold text-primary-foreground"
-            onClick={() => setSignedIn(true)}
-            type="button"
-          >
-            Continue with preview account
-          </button>
-        </section>
-      </main>
-    );
   }
 
   return (
@@ -159,9 +138,14 @@ function AccountSurface() {
             Your Laitstyle rail
           </div>
           <h1 className="font-serif text-[42px] font-medium italic">Welcome back, Amara.</h1>
-          <p className="mt-2 text-[13.5px] text-[#6E6C64]">Manage the pieces you hold, save and send home.</p>
+          <p className="mt-2 text-[13.5px] text-[#6E6C64]">
+            Manage the pieces you hold, save and send home.
+          </p>
         </div>
-        <Link className="inline-flex h-11 items-center gap-2 rounded-full border border-primary px-5 text-[13px] font-semibold" href="/shop">
+        <Link
+          className="inline-flex h-11 items-center gap-2 rounded-full border border-primary px-5 text-[13px] font-semibold"
+          href="/shop"
+        >
           <ShoppingBag aria-hidden="true" className="size-4" />
           Browse the drop
         </Link>
@@ -170,7 +154,10 @@ function AccountSurface() {
       <div className="grid grid-cols-[230px_minmax(0,1fr)] gap-8 max-md:grid-cols-1">
         <aside>
           <div className="rounded-[16px] border border-border bg-white p-3 max-md:overflow-x-auto">
-            <nav aria-label="Account sections" className="flex flex-col gap-1 max-md:min-w-max max-md:flex-row">
+            <nav
+              aria-label="Account sections"
+              className="flex flex-col gap-1 max-md:min-w-max max-md:flex-row"
+            >
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const count =
@@ -181,6 +168,7 @@ function AccountSurface() {
                       : item.key === "addresses"
                         ? addresses.length
                         : undefined;
+
                 return (
                   <button
                     aria-current={tab === item.key ? "page" : undefined}
@@ -204,25 +192,17 @@ function AccountSurface() {
                 );
               })}
             </nav>
-            <button
-              className="mt-3 flex h-11 w-full items-center gap-3 border-t border-border px-3.5 pt-3 text-left text-[13px] text-[#8A887E] max-md:hidden"
-              onClick={() => setSignedIn(false)}
-              type="button"
-            >
-              <LogOut aria-hidden="true" className="size-[17px]" />
-              Sign out of preview
-            </button>
           </div>
         </aside>
 
         <section className="min-w-0">
           {tab === "overview" ? (
             <Overview
-              addresses={addresses}
               activeHolds={activeHolds}
+              addresses={addresses}
+              go={go}
               latestOrder={latestOrder}
               savedProducts={savedProducts}
-              go={go}
             />
           ) : null}
           {tab === "orders" ? <Orders latestOrder={latestOrder} /> : null}
@@ -239,7 +219,7 @@ function AccountSurface() {
               products={savedProducts}
               remove={(id) => {
                 setWishlist((current) => current.filter((item) => item !== id));
-                setToast("Piece removed from your wishlist.");
+                setNotice("Piece removed from your wishlist.");
               }}
             />
           ) : null}
@@ -250,11 +230,14 @@ function AccountSurface() {
               onAdd={(address) => {
                 setAddresses((current) => [...current, address]);
                 setAddressFormOpen(false);
-                setToast("Delivery address saved.");
+                setNotice("Delivery address saved.");
               }}
+              onCancel={() => setAddressFormOpen(false)}
               onDelete={(id) => {
-                setAddresses((current) => current.filter((address) => address.id !== id));
-                setToast("Address removed.");
+                setAddresses((current) =>
+                  current.filter((address) => address.id !== id),
+                );
+                setNotice("Address removed.");
               }}
               onOpen={() => setAddressFormOpen(true)}
               onSetDefault={(id) =>
@@ -270,9 +253,15 @@ function AccountSurface() {
         </section>
       </div>
 
-      {toast ? (
-        <div aria-live="polite" className="fixed bottom-5 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-[#1B1A17] px-5 py-3 text-[12.5px] font-semibold text-white shadow-laitstyle">
-          {toast}
+      {notice ? (
+        <div
+          aria-live="polite"
+          className="fixed bottom-5 left-1/2 z-[90] flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#1B1A17] px-5 py-3 text-[12.5px] font-semibold text-white shadow-laitstyle"
+        >
+          <span>{notice}</span>
+          <button aria-label="Dismiss notification" onClick={() => setNotice("")} type="button">
+            <X aria-hidden="true" className="size-3.5" />
+          </button>
         </div>
       ) : null}
     </main>
@@ -307,14 +296,30 @@ function Overview({
           <h2 className="font-serif text-[28px] font-medium">Reserved to you</h2>
           <p className="mt-1 text-[12.5px] text-[#8A887E]">Active holds stay synchronized with your bag.</p>
         </div>
-        <button className="text-[12.5px] font-semibold text-[#7C8C63]" onClick={() => go("reservations")} type="button">View reservations →</button>
+        <button className="text-[12.5px] font-semibold text-[#7C8C63]" onClick={() => go("reservations")} type="button">
+          View reservations →
+        </button>
       </div>
+
       {activeHolds.length ? (
         <div className="mt-4 grid grid-cols-2 gap-4 max-sm:grid-cols-1">
           {activeHolds.slice(0, 2).map(({ product, secondsLeft }) => (
-            <Link className="flex gap-3 rounded-[14px] border border-border bg-white p-3" href={pdpHref(product.id)} key={product.id}>
-              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-[9px] bg-muted"><Image alt={product.name} className="object-cover" fill sizes="80px" src={product.image} /></div>
-              <div className="min-w-0"><div className="line-clamp-2 text-[13.5px] font-semibold">{product.name}</div><div className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.condition}</div><div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#F2F4EA] px-2.5 py-1 text-[11px] font-semibold text-[#4A5540]"><Clock aria-hidden="true" className="size-3" />{formatHoldTime(secondsLeft)}</div></div>
+            <Link
+              className="flex gap-3 rounded-[14px] border border-border bg-white p-3"
+              href={pdpHref(product.id)}
+              key={product.id}
+            >
+              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-[9px] bg-muted">
+                <Image alt={product.name} className="object-cover" fill sizes="80px" src={product.image} />
+              </div>
+              <div className="min-w-0">
+                <div className="line-clamp-2 text-[13.5px] font-semibold">{product.name}</div>
+                <div className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.condition}</div>
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#F2F4EA] px-2.5 py-1 text-[11px] font-semibold text-[#4A5540]">
+                  <Clock aria-hidden="true" className="size-3" />
+                  {formatHoldTime(secondsLeft)}
+                </div>
+              </div>
             </Link>
           ))}
         </div>
@@ -323,8 +328,13 @@ function Overview({
       )}
 
       <div className="mt-9 flex items-end justify-between gap-4">
-        <div><h2 className="font-serif text-[28px] font-medium">Saved pieces</h2><p className="mt-1 text-[12.5px] text-[#8A887E]">Still live on the rail for every shopper.</p></div>
-        <button className="text-[12.5px] font-semibold text-[#7C8C63]" onClick={() => go("wishlist")} type="button">View all wishlist →</button>
+        <div>
+          <h2 className="font-serif text-[28px] font-medium">Saved pieces</h2>
+          <p className="mt-1 text-[12.5px] text-[#8A887E]">Still live on the rail for every shopper.</p>
+        </div>
+        <button className="text-[12.5px] font-semibold text-[#7C8C63]" onClick={() => go("wishlist")} type="button">
+          View all wishlist →
+        </button>
       </div>
       <ProductGrid products={savedProducts.slice(0, 4)} />
     </div>
@@ -338,15 +348,36 @@ function Orders({ latestOrder }: { latestOrder: OrderReceipt | null }) {
       {latestOrder ? (
         <article className="rounded-[16px] border border-border bg-white p-6 max-sm:p-4">
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
-            <div><div className="text-[11px] uppercase tracking-[.12em] text-[#8A887E]">Order #{latestOrder.orderNumber}</div><h2 className="mt-1 font-serif text-[25px]">Confirmed and preparing</h2><p className="mt-1 text-[12.5px] text-[#6E6C64]">Estimated delivery {latestOrder.eta}</p></div>
-            <span className="rounded-full bg-[#EAF0DD] px-3 py-1.5 text-[11px] font-semibold text-[#5F7043]">PAID · {latestOrder.paymentName}</span>
+            <div>
+              <div className="text-[11px] uppercase tracking-[.12em] text-[#8A887E]">Order #{latestOrder.orderNumber}</div>
+              <h2 className="mt-1 font-serif text-[25px]">Confirmed and preparing</h2>
+              <p className="mt-1 text-[12.5px] text-[#6E6C64]">Estimated delivery {latestOrder.eta}</p>
+            </div>
+            <span className="rounded-full bg-[#EAF0DD] px-3 py-1.5 text-[11px] font-semibold text-[#5F7043]">
+              PAID · {latestOrder.paymentName}
+            </span>
           </div>
           <div className="py-4">
             {latestOrder.items.map((item) => (
-              <div className="flex items-center gap-3 border-b border-[#F4F3EE] py-3 last:border-b-0" key={item.id}><div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-[9px] bg-muted"><Image alt={item.name} className="object-cover" fill sizes="56px" src={item.image} /></div><div className="min-w-0 flex-1"><div className="text-[13.5px] font-medium">{item.name}</div><div className="text-[11.5px] text-[#8A887E]">Size {item.size} · {item.condition}</div></div><span className="text-[13px] font-semibold">{naira(item.price)}</span></div>
+              <div className="flex items-center gap-3 border-b border-[#F4F3EE] py-3 last:border-b-0" key={item.id}>
+                <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-[9px] bg-muted">
+                  <Image alt={item.name} className="object-cover" fill sizes="56px" src={item.image} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13.5px] font-medium">{item.name}</div>
+                  <div className="text-[11.5px] text-[#8A887E]">Size {item.size} · {item.condition}</div>
+                </div>
+                <span className="text-[13px] font-semibold">{naira(item.price)}</span>
+              </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div className="inline-flex items-center gap-2 text-[12.5px] text-[#57554E]"><Truck aria-hidden="true" className="size-4 text-[#7C8C63]" />{latestOrder.zoneName}</div><div className="font-serif text-[23px]">{naira(latestOrder.total)}</div></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+            <div className="inline-flex items-center gap-2 text-[12.5px] text-[#57554E]">
+              <Truck aria-hidden="true" className="size-4 text-[#7C8C63]" />
+              {latestOrder.zoneName}
+            </div>
+            <div className="font-serif text-[23px]">{naira(latestOrder.total)}</div>
+          </div>
         </article>
       ) : (
         <EmptyRail title="No orders yet" text="Your completed one-of-one purchases will appear here after checkout." />
@@ -370,16 +401,38 @@ function Reservations({
   return (
     <div>
       <SectionHeading eyebrow="Time-sensitive" title="Reservations" />
-      <p className="-mt-4 mb-6 max-w-[620px] text-[13.5px] leading-[1.6] text-[#6E6C64]">Your reservation rail is the same bag used on Home, product pages, cart and checkout.</p>
+      <p className="-mt-4 mb-6 max-w-[620px] text-[13.5px] leading-[1.6] text-[#6E6C64]">
+        Your reservation rail is the same bag used on Home, product pages, cart and checkout.
+      </p>
       {items.length ? (
         <div className="flex flex-col gap-3">
           {items.map(({ product, secondsLeft }) => {
             const expired = secondsLeft <= 0;
             return (
               <article className="flex flex-wrap items-center gap-4 rounded-[16px] border border-border bg-white p-4" key={product.id}>
-                <Link className="relative h-28 w-[88px] shrink-0 overflow-hidden rounded-[11px] bg-muted" href={pdpHref(product.id)}><Image alt={product.name} className={expired ? "object-cover opacity-55 grayscale" : "object-cover"} fill sizes="88px" src={product.image} /></Link>
-                <div className="min-w-[200px] flex-1"><Link className="text-[15px] font-semibold" href={pdpHref(product.id)}>{product.name}</Link><p className="mt-1 text-[12.5px] text-[#8A887E]">Size {product.size} · {product.color} · {product.condition}</p><span className={expired ? "mt-3 inline-flex rounded-full bg-[#FBF0EE] px-3 py-1 text-[11.5px] font-semibold text-[#8A362F]" : "mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#F2F4EA] px-3 py-1 text-[11.5px] font-semibold text-[#4A5540]"}>{expired ? "Hold expired" : <><Clock aria-hidden="true" className="size-3" />{formatHoldTime(secondsLeft)} remaining</>}</span></div>
-                <div className="flex flex-col items-end gap-3"><span className="font-serif text-[21px]">{naira(product.price)}</span><div className="flex gap-2">{expired ? <button className="h-9 rounded-full bg-primary px-4 text-[12px] font-semibold text-primary-foreground" onClick={() => rehold(product.id)} type="button">Re-hold</button> : <Link className="flex h-9 items-center rounded-full bg-primary px-4 text-[12px] font-semibold text-primary-foreground" href="/cart">Review bag</Link>}<button aria-label={`Release ${product.name}`} className="flex size-9 items-center justify-center rounded-full border border-border" onClick={() => release(product.id)} type="button"><Trash2 aria-hidden="true" className="size-4" /></button></div></div>
+                <Link className="relative h-28 w-[88px] shrink-0 overflow-hidden rounded-[11px] bg-muted" href={pdpHref(product.id)}>
+                  <Image alt={product.name} className={expired ? "object-cover opacity-55 grayscale" : "object-cover"} fill sizes="88px" src={product.image} />
+                </Link>
+                <div className="min-w-[200px] flex-1">
+                  <Link className="text-[15px] font-semibold" href={pdpHref(product.id)}>{product.name}</Link>
+                  <p className="mt-1 text-[12.5px] text-[#8A887E]">Size {product.size} · {product.color} · {product.condition}</p>
+                  <span className={expired ? "mt-3 inline-flex rounded-full bg-[#FBF0EE] px-3 py-1 text-[11.5px] font-semibold text-[#8A362F]" : "mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#F2F4EA] px-3 py-1 text-[11.5px] font-semibold text-[#4A5540]"}>
+                    {expired ? "Hold expired" : <><Clock aria-hidden="true" className="size-3" />{formatHoldTime(secondsLeft)} remaining</>}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end gap-3">
+                  <span className="font-serif text-[21px]">{naira(product.price)}</span>
+                  <div className="flex gap-2">
+                    {expired ? (
+                      <button className="h-9 rounded-full bg-primary px-4 text-[12px] font-semibold text-primary-foreground" onClick={() => rehold(product.id)} type="button">Re-hold</button>
+                    ) : (
+                      <Link className="flex h-9 items-center rounded-full bg-primary px-4 text-[12px] font-semibold text-primary-foreground" href="/cart">Review bag</Link>
+                    )}
+                    <button aria-label={`Release ${product.name}`} className="flex size-9 items-center justify-center rounded-full border border-border" onClick={() => release(product.id)} type="button">
+                      <Trash2 aria-hidden="true" className="size-4" />
+                    </button>
+                  </div>
+                </div>
               </article>
             );
           })}
@@ -395,11 +448,29 @@ function Wishlist({ products, remove }: { products: PlpProduct[]; remove: (id: s
   return (
     <div>
       <SectionHeading eyebrow="Saved rail" title={`Wishlist — ${products.length}`} />
-      <p className="-mt-4 mb-6 max-w-[650px] text-[13.5px] leading-[1.6] text-[#6E6C64]">Saved pieces remain available to other shoppers until you reserve them.</p>
+      <p className="-mt-4 mb-6 max-w-[650px] text-[13.5px] leading-[1.6] text-[#6E6C64]">
+        Saved pieces remain available to other shoppers until you reserve them.
+      </p>
       {products.length ? (
         <div className="grid grid-cols-3 gap-x-4 gap-y-8 max-lg:grid-cols-2">
           {products.map((product) => (
-            <article key={product.id}><div className="relative aspect-[4/5] overflow-hidden rounded-[14px] bg-muted"><Link href={pdpHref(product.id)}><Image alt={product.name} className={product.state === "sold" || product.state === "resOthers" ? "object-cover opacity-60 grayscale" : "object-cover"} fill sizes="(max-width: 768px) 50vw, 28vw" src={product.image} /></Link><button aria-label={`Remove ${product.name} from wishlist`} className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/92" onClick={() => remove(product.id)} type="button"><Trash2 aria-hidden="true" className="size-4" /></button></div><div className="mt-3 flex justify-between gap-3"><div className="min-w-0"><Link className="line-clamp-2 text-[14px] font-medium" href={pdpHref(product.id)}>{product.name}</Link><p className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.condition}</p></div><span className="shrink-0 text-[13.5px] font-semibold">{naira(product.price)}</span></div></article>
+            <article key={product.id}>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[14px] bg-muted">
+                <Link href={pdpHref(product.id)}>
+                  <Image alt={product.name} className={product.state === "sold" || product.state === "resOthers" ? "object-cover opacity-60 grayscale" : "object-cover"} fill sizes="(max-width: 768px) 50vw, 28vw" src={product.image} />
+                </Link>
+                <button aria-label={`Remove ${product.name} from wishlist`} className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/92" onClick={() => remove(product.id)} type="button">
+                  <Trash2 aria-hidden="true" className="size-4" />
+                </button>
+              </div>
+              <div className="mt-3 flex justify-between gap-3">
+                <div className="min-w-0">
+                  <Link className="line-clamp-2 text-[14px] font-medium" href={pdpHref(product.id)}>{product.name}</Link>
+                  <p className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.condition}</p>
+                </div>
+                <span className="shrink-0 text-[13.5px] font-semibold">{naira(product.price)}</span>
+              </div>
+            </article>
           ))}
         </div>
       ) : (
@@ -413,6 +484,7 @@ function Addresses({
   addresses,
   formOpen,
   onAdd,
+  onCancel,
   onDelete,
   onOpen,
   onSetDefault,
@@ -420,33 +492,95 @@ function Addresses({
   addresses: Address[];
   formOpen: boolean;
   onAdd: (address: Address) => void;
+  onCancel: () => void;
   onDelete: (id: string) => void;
   onOpen: () => void;
   onSetDefault: (id: string) => void;
 }) {
   return (
     <div>
-      <div className="flex items-start justify-between gap-4"><SectionHeading eyebrow="Delivery book" title="Addresses" /><button className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-5 text-[12.5px] font-semibold text-primary-foreground" onClick={onOpen} type="button"><Plus aria-hidden="true" className="size-4" />Add address</button></div>
-      {formOpen ? <AddressForm onAdd={onAdd} /> : null}
+      <div className="flex items-start justify-between gap-4">
+        <SectionHeading eyebrow="Delivery book" title="Addresses" />
+        {!formOpen ? (
+          <button className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-5 text-[12.5px] font-semibold text-primary-foreground" onClick={onOpen} type="button">
+            <Plus aria-hidden="true" className="size-4" />
+            Add address
+          </button>
+        ) : null}
+      </div>
+      {formOpen ? <AddressForm onAdd={onAdd} onCancel={onCancel} /> : null}
       <div className="grid grid-cols-2 gap-4 max-lg:grid-cols-1">
         {addresses.map((address) => (
-          <article className="rounded-[16px] border border-border bg-white p-5" key={address.id}><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2"><h2 className="font-serif text-[23px]">{address.label}</h2>{address.isDefault ? <span className="rounded-full bg-[#EAF0DD] px-2 py-1 text-[10px] font-semibold text-[#5F7043]">DEFAULT</span> : null}</div><div className="mt-4 text-[13px] leading-[1.65] text-[#57554E]"><strong className="text-[#1B1A17]">{address.recipient}</strong><br />{address.street}<br />{address.city}, {address.state}<br />{address.phone}</div></div><MapPin aria-hidden="true" className="size-5 text-[#7C8C63]" /></div><div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">{!address.isDefault ? <button className="h-9 rounded-full border border-border px-3.5 text-[11.5px] font-semibold" onClick={() => onSetDefault(address.id)} type="button">Make default</button> : null}<button className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-[11.5px] font-semibold" type="button"><Pencil aria-hidden="true" className="size-3" />Edit</button><button aria-label={`Delete ${address.label} address`} className="inline-flex size-9 items-center justify-center rounded-full border border-border text-[#B4453C]" onClick={() => onDelete(address.id)} type="button"><Trash2 aria-hidden="true" className="size-3.5" /></button></div></article>
+          <article className="rounded-[16px] border border-border bg-white p-5" key={address.id}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif text-[23px]">{address.label}</h2>
+                  {address.isDefault ? <span className="rounded-full bg-[#EAF0DD] px-2 py-1 text-[10px] font-semibold text-[#5F7043]">DEFAULT</span> : null}
+                </div>
+                <div className="mt-4 text-[13px] leading-[1.65] text-[#57554E]">
+                  <strong className="text-[#1B1A17]">{address.recipient}</strong><br />
+                  {address.street}<br />
+                  {address.city}, {address.state}<br />
+                  {address.phone}
+                </div>
+              </div>
+              <MapPin aria-hidden="true" className="size-5 text-[#7C8C63]" />
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+              {!address.isDefault ? (
+                <button className="h-9 rounded-full border border-border px-3.5 text-[11.5px] font-semibold" onClick={() => onSetDefault(address.id)} type="button">Make default</button>
+              ) : null}
+              <button aria-label={`Delete ${address.label} address`} className="inline-flex size-9 items-center justify-center rounded-full border border-border text-[#B4453C]" onClick={() => onDelete(address.id)} type="button">
+                <Trash2 aria-hidden="true" className="size-3.5" />
+              </button>
+            </div>
+          </article>
         ))}
       </div>
     </div>
   );
 }
 
-function AddressForm({ onAdd }: { onAdd: (address: Address) => void }) {
+function AddressForm({ onAdd, onCancel }: { onAdd: (address: Address) => void; onCancel: () => void }) {
   const [form, setForm] = useState({ label: "Home", recipient: "", phone: "+234 ", street: "", city: "", state: "Lagos" });
   const [error, setError] = useState("");
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.recipient.trim() || !form.street.trim() || !form.city.trim() || form.phone.replace(/\D/g, "").length < 10) { setError("Complete the recipient, phone, street and city fields."); return; }
+    if (!form.recipient.trim() || !form.street.trim() || !form.city.trim() || form.phone.replace(/\D/g, "").length < 10) {
+      setError("Complete the recipient, phone, street and city fields.");
+      return;
+    }
     onAdd({ id: `address-${Date.now()}`, ...form, isDefault: false });
   }
+
   return (
-    <form className="mb-6 rounded-[16px] border border-[#D6DAC8] bg-[#F7F8F2] p-5" onSubmit={submit}><h2 className="font-serif text-[25px]">Add delivery address</h2><div className="mt-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">{(["label", "recipient", "phone", "street", "city", "state"] as const).map((field) => <label className={field === "street" ? "col-span-2 max-sm:col-span-1" : ""} key={field}><span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[.06em] text-[#6E6C64]">{field}</span><input autoComplete={field === "recipient" ? "name" : field === "phone" ? "tel" : field === "street" ? "street-address" : field === "city" ? "address-level2" : field === "state" ? "address-level1" : "off"} className="h-11 w-full rounded-[9px] border border-border bg-white px-3.5 text-[13px] outline-none focus:border-primary" name={field} onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value }))} type={field === "phone" ? "tel" : "text"} value={form[field]} /></label>)}</div>{error ? <p className="mt-3 text-[12px] text-[#B4453C]" role="alert">{error}</p> : null}<button className="mt-4 h-11 rounded-full bg-primary px-5 text-[12.5px] font-semibold text-primary-foreground" type="submit">Save address</button></form>
+    <form className="mb-6 rounded-[16px] border border-[#D6DAC8] bg-[#F7F8F2] p-5" onSubmit={submit}>
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="font-serif text-[25px]">Add delivery address</h2>
+        <button aria-label="Cancel adding address" className="flex size-9 items-center justify-center rounded-full border border-border bg-white" onClick={onCancel} type="button">
+          <X aria-hidden="true" className="size-4" />
+        </button>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+        {(["label", "recipient", "phone", "street", "city", "state"] as const).map((field) => (
+          <label className={field === "street" ? "col-span-2 max-sm:col-span-1" : ""} key={field}>
+            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[.06em] text-[#6E6C64]">{field}</span>
+            <input
+              autoComplete={field === "recipient" ? "name" : field === "phone" ? "tel" : field === "street" ? "street-address" : field === "city" ? "address-level2" : field === "state" ? "address-level1" : "off"}
+              className="h-11 w-full rounded-[9px] border border-border bg-white px-3.5 text-[13px] outline-none focus:border-primary"
+              name={field}
+              onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value }))}
+              type={field === "phone" ? "tel" : "text"}
+              value={form[field]}
+            />
+          </label>
+        ))}
+      </div>
+      {error ? <p className="mt-3 text-[12px] text-[#B4453C]" role="alert">{error}</p> : null}
+      <button className="mt-4 h-11 rounded-full bg-primary px-5 text-[12.5px] font-semibold text-primary-foreground" type="submit">Save address</button>
+    </form>
   );
 }
 
@@ -467,7 +601,7 @@ function EmptyRail({ text, title }: { text: string; title: string }) {
 }
 
 function AccountLoading() {
-  return <main className="mx-auto w-full max-w-[1240px] px-6 py-10"><div className="h-20 w-2/3 animate-pulse rounded-[14px] bg-muted" /><div className="mt-8 grid grid-cols-[230px_1fr] gap-8"><div className="h-[360px] animate-pulse rounded-[16px] bg-muted" /><div className="h-[520px] animate-pulse rounded-[16px] bg-muted" /></div></main>;
+  return <main className="mx-auto w-full max-w-[1240px] px-6 py-10"><div className="h-20 w-2/3 animate-pulse rounded-[14px] bg-muted" /><div className="mt-8 grid grid-cols-[230px_1fr] gap-8 max-md:grid-cols-1"><div className="h-[360px] animate-pulse rounded-[16px] bg-muted" /><div className="h-[520px] animate-pulse rounded-[16px] bg-muted" /></div></main>;
 }
 
 function normalizeTab(value: string | null): AccountTab {
