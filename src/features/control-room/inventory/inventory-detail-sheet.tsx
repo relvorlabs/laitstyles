@@ -8,11 +8,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ProductMediaPanel,
-  ProductPricingPanel,
-  ProductSummaryPanel,
-} from "@/features/control-room/inventory/inventory-detail-catalogue";
+import { ProductMediaPanel } from "@/features/control-room/inventory/inventory-detail-media";
+import { ProductPricingPanel } from "@/features/control-room/inventory/inventory-detail-pricing";
 import {
   ProductActivityPanel,
   ProductHoldsPanel,
@@ -22,6 +19,7 @@ import {
   ProductReviewsPanel,
 } from "@/features/control-room/inventory/inventory-detail-records";
 import { ProductStockPanel } from "@/features/control-room/inventory/inventory-detail-stock";
+import { ProductSummaryPanel } from "@/features/control-room/inventory/inventory-detail-summary";
 import type {
   ControlRoomState,
   InventoryListItem,
@@ -91,7 +89,7 @@ export function InventoryDetailSheet({
   return (
     <Sheet onOpenChange={onOpenChange} open={Boolean(item)}>
       <SheetContent
-        className="w-[min(96vw,760px)] gap-0 overflow-y-auto overscroll-contain sm:max-w-[760px]"
+        className="data-[side=right]:w-[calc(100vw-1rem)] data-[side=right]:gap-0 data-[side=right]:overflow-y-auto data-[side=right]:overscroll-contain data-[side=right]:sm:w-[min(92vw,760px)] data-[side=right]:sm:max-w-[760px]"
         side="right"
       >
         {item && productId ? (
@@ -106,7 +104,7 @@ export function InventoryDetailSheet({
             </SheetHeader>
 
             <Tabs className="min-h-0 flex-1" defaultValue="summary">
-              <div className="overflow-x-auto border-b border-border px-4 sm:px-5">
+              <div className="overflow-x-auto overscroll-x-contain border-b border-border px-4 sm:px-5">
                 <TabsList
                   className="h-12 min-w-max gap-1 rounded-none bg-transparent p-0"
                   variant="line"
