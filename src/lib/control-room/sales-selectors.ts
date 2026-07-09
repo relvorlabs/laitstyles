@@ -101,9 +101,14 @@ export function getPaidOrders(orders: ControlRoomOrder[]) {
   return orders.filter(
     (order) =>
       paidPaymentStates.has(order.paymentStatus as "paid" | "deposit") &&
-      order.fulfilmentStatus !== "cancelled" &&
-      order.fulfilmentStatus !== "refunded",
+      order.fulfilmentStatus !== "cancelled",
   );
+}
+
+export function getOrderNetRevenue(order: ControlRoomOrder) {
+  const refundedAmount =
+    order.refundedAmount ?? (order.paymentStatus === "refunded" ? order.total : 0);
+  return Math.max(0, order.total - refundedAmount);
 }
 
 export function getRevenueByChannel(orders: ControlRoomOrder[]) {
@@ -112,8 +117,9 @@ export function getRevenueByChannel(orders: ControlRoomOrder[]) {
   let offline = 0;
 
   for (const order of paidOrders) {
-    if (order.channel === "online") online += order.total;
-    else offline += order.total;
+    const netRevenue = getOrderNetRevenue(order);
+    if (order.channel === "online") online += netRevenue;
+    else offline += netRevenue;
   }
 
   return { online, offline, total: online + offline };
