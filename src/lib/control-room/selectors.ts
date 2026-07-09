@@ -1,5 +1,6 @@
 import type {
   AttentionItem,
+  ControlRoomHold,
   ControlRoomOrder,
   ControlRoomState,
   FulfilmentLaneItem,
@@ -189,10 +190,7 @@ function buildAttentionItems(
     });
   }
 
-  const expiringHold = activeHolds
-    .map((hold) => ({ hold, seconds: getSecondsUntil(state, hold.expiresAt) }))
-    .filter((entry) => entry.seconds <= 5 * 60)
-    .toSorted((left, right) => left.seconds - right.seconds)[0];
+  const expiringHold = findSoonestExpiringHold(state, activeHolds, 5 * 60);
 
   if (expiringHold) {
     items.push({
@@ -231,6 +229,24 @@ function buildAttentionItems(
   }
 
   return items.slice(0, 5);
+}
+
+function findSoonestExpiringHold(
+  state: ControlRoomState,
+  holds: ControlRoomHold[],
+  thresholdSeconds: number,
+) {
+  let soonest: { hold: ControlRoomHold; seconds: number } | undefined;
+
+  for (const hold of holds) {
+    const seconds = getSecondsUntil(state, hold.expiresAt);
+    if (seconds > thresholdSeconds) continue;
+    if (!soonest || seconds < soonest.seconds) {
+      soonest = { hold, seconds };
+    }
+  }
+
+  return soonest;
 }
 
 export function formatCountdown(seconds: number) {
