@@ -36,10 +36,10 @@ export function TodayStrip({ snapshot, reportingLabel }: TodayStripProps) {
       />
       <CardHeader className="relative border-b border-white/10 px-5 py-5 sm:px-7 sm:py-6">
         <CardTitle className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/54">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/[0.68]">
             Today · {reportingLabel}
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-[#D9E1C9]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.14] bg-white/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#D9E1C9]">
             <span className="size-1.5 rounded-full bg-[#AFC48A]" />
             Storefront live
           </span>
@@ -76,7 +76,7 @@ export function TodayStrip({ snapshot, reportingLabel }: TodayStripProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 overflow-hidden rounded-[16px] border border-white/10 bg-white/5">
+          <div className="grid grid-cols-2 overflow-hidden rounded-[16px] border border-white/10 bg-white/[0.06]">
             <ChannelMetric
               label="Online"
               value={formatCompactNaira(snapshot.revenue.online)}
@@ -101,13 +101,13 @@ type PulseMetricProps = {
 function PulseMetric({ icon, label, value }: PulseMetricProps) {
   return (
     <div className="min-w-0">
-      <span className="grid size-9 place-items-center rounded-[11px] bg-white/8 text-[#D9E1C9]">
+      <span className="grid size-9 place-items-center rounded-[11px] bg-white/[0.09] text-[#D9E1C9]">
         <ControlRoomIcon icon={icon} size={17} />
       </span>
       <div className="mt-3 font-serif text-[28px] font-medium leading-none tabular-nums">
         {value}
       </div>
-      <div className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/42">
+      <div className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/[0.62]">
         {label}
       </div>
     </div>
@@ -117,7 +117,7 @@ function PulseMetric({ icon, label, value }: PulseMetricProps) {
 function ChannelMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-r border-white/10 px-4 py-5 last:border-r-0 sm:px-5">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/42">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.62]">
         {label}
       </div>
       <div className="mt-2 text-[18px] font-semibold tabular-nums text-white sm:text-[21px]">
