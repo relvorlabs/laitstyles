@@ -101,7 +101,6 @@ export default async function InventoryPage({
         channel: pick(first(params.channel), channelValues, "all"),
         sort: pick(first(params.sort), sortValues, "updated-desc"),
       }}
-      state={activeControlRoomSeed}
     />
   );
 }
