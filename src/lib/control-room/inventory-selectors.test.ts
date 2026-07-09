@@ -1,30 +1,56 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultInventoryQuery,
+  getInventoryAttention,
+  getInventoryHealth,
   getInventorySummary,
   getProductStock,
   queryInventory,
+  validateInventoryDataset,
   validateInventoryProduct,
 } from "@/lib/control-room/inventory-selectors";
+import type {
+  InventoryProduct,
+  UniqueProduct,
+  VariantProduct,
+} from "@/lib/control-room/inventory-types";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { UniqueProduct } from "@/lib/control-room/types";
 
-const products = activeControlRoomSeed.products;
+function productById(id: string) {
+  const product = activeControlRoomSeed.products.find((item) => item.id === id);
+  if (!product) throw new Error(`Missing test product: ${id}`);
+  return product;
+}
 
-describe("Inventory invariants", () => {
-  it("accepts every deterministic Inventory seed record", () => {
-    for (const product of products) {
-      expect(validateInventoryProduct(product)).toEqual({
-        ok: true,
-        value: product,
-      });
-    }
+function variantProductById(id: string): VariantProduct {
+  const product = productById(id);
+  if (product.inventoryMode !== "variant") {
+    throw new Error(`${id} is not a variant product`);
+  }
+  return product;
+}
+
+function uniqueProductById(id: string): UniqueProduct {
+  const product = productById(id);
+  if (product.inventoryMode !== "unique") {
+    throw new Error(`${id} is not a unique product`);
+  }
+  return product;
+}
+
+describe("inventory dataset", () => {
+  it("keeps the connected Phase 2 seed internally valid", () => {
+    const result = validateInventoryDataset({
+      products: activeControlRoomSeed.products,
+      stockMovements: activeControlRoomSeed.stockMovements,
+      reviews: activeControlRoomSeed.reviews,
+    });
+
+    expect(result.ok).toBe(true);
   });
 
-  it("keeps Botanical Jeans at the approved quantity truth", () => {
-    const product = products.find((item) => item.id === "botanical-jeans");
-    expect(product).toBeDefined();
-    expect(product && getProductStock(product)).toEqual({
+  it("represents Botanical Jeans as a real multi-unit product", () => {
+    expect(getProductStock(productById("botanical-jeans"))).toEqual({
       totalReceived: 50,
       available: 29,
       reserved: 3,
@@ -34,10 +60,10 @@ describe("Inventory invariants", () => {
     });
   });
 
-  it("aggregates variant stock without flattening variant records", () => {
-    const product = products.find((item) => item.id === "ribbed-studio-tank");
-    expect(product?.inventoryMode).toBe("variant");
-    expect(product && getProductStock(product)).toEqual({
+  it("aggregates variant stock without hiding variant-level low stock", () => {
+    const product = variantProductById("ribbed-studio-tank");
+
+    expect(getProductStock(product)).toEqual({
       totalReceived: 24,
       available: 9,
       reserved: 2,
@@ -45,80 +71,146 @@ describe("Inventory invariants", () => {
       returned: 0,
       damaged: 0,
     });
+    expect(getInventoryAttention(product)).toContain("low-stock");
+    expect(getInventoryHealth(product)).toBe("low-stock");
   });
 
-  it("rejects a unique product that represents more than one unit", () => {
-    const source = products.find(
-      (item): item is UniqueProduct => item.id === "nature-utility-vest",
-    );
-    expect(source).toBeDefined();
-    if (!source) return;
-
-    const invalid: UniqueProduct = {
-      ...source,
-      stock: {
-        totalReceived: 2,
-        available: 2,
-        reserved: 0,
-        sold: 0,
-        returned: 0,
-        damaged: 0,
-      },
+  it("rejects a unique piece that represents more than one physical unit", () => {
+    const product = structuredClone(uniqueProductById("nature-utility-vest"));
+    product.stock = {
+      totalReceived: 2,
+      available: 2,
+      reserved: 0,
+      sold: 0,
+      returned: 0,
+      damaged: 0,
     };
 
-    const result = validateInventoryProduct(invalid);
+    const result = validateInventoryProduct(product);
+
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.some((issue) => issue.code === "unique-quantity")).toBe(
-        true,
+      expect(result.error.map((issue) => issue.code)).toContain(
+        "unique-quantity",
       );
+    }
+  });
+
+  it("reports duplicate references and orphan operational records", () => {
+    const products = structuredClone(activeControlRoomSeed.products);
+    const duplicate = products.find(
+      (product): product is UniqueProduct =>
+        product.id === "nature-utility-vest" &&
+        product.inventoryMode === "unique",
+    );
+    if (!duplicate) throw new Error("Missing duplicate-reference fixture");
+    duplicate.archiveNumber = "LS-0042";
+
+    const result = validateInventoryDataset({
+      products,
+      stockMovements: [
+        ...activeControlRoomSeed.stockMovements,
+        {
+          id: "movement-orphan",
+          productId: "missing-product",
+          variantId: null,
+          kind: "adjusted",
+          quantity: 1,
+          occurredAt: activeControlRoomSeed.asOf,
+          actor: "Test",
+          note: "Invalid fixture",
+        },
+      ],
+      reviews: activeControlRoomSeed.reviews,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const codes = result.error.map((issue) => issue.code);
+      expect(codes).toContain("duplicate-reference");
+      expect(codes).toContain("orphan-stock-movement");
     }
   });
 });
 
-describe("Inventory query pipeline", () => {
-  it("searches variant SKU and label text", () => {
-    const result = queryInventory(products, {
+describe("inventory query pipeline", () => {
+  it("searches variant SKUs through the shared product result set", () => {
+    const results = queryInventory(activeControlRoomSeed.products, {
       ...defaultInventoryQuery,
       search: "LS-RST-INK-L",
     });
 
-    expect(result.map((item) => item.product.id)).toEqual([
+    expect(results.map((item) => item.product.id)).toEqual([
       "ribbed-studio-tank",
     ]);
   });
 
-  it("treats low stock as a multi-unit warning rather than flagging every unique piece", () => {
-    const result = queryInventory(products, {
+  it("keeps low-stock, sold and out-of-stock saved views distinct", () => {
+    const lowStock = queryInventory(activeControlRoomSeed.products, {
       ...defaultInventoryQuery,
       view: "low-stock",
     });
-
-    expect(result.map((item) => item.product.id)).toEqual([
-      "canvas-carry-tote",
-    ]);
-  });
-
-  it("keeps sold unique pieces out of the stocked-product out-of-stock view", () => {
-    const result = queryInventory(products, {
+    const sold = queryInventory(activeControlRoomSeed.products, {
+      ...defaultInventoryQuery,
+      view: "sold",
+    });
+    const outOfStock = queryInventory(activeControlRoomSeed.products, {
       ...defaultInventoryQuery,
       view: "out-of-stock",
     });
 
-    expect(result.map((item) => item.product.id)).toEqual([
+    expect(lowStock.map((item) => item.product.id)).toEqual([
+      "ribbed-studio-tank",
+      "canvas-carry-tote",
+      "verdant-cargo-trousers",
+    ]);
+    expect(sold.map((item) => item.product.id)).toEqual([
+      "bloom-belted-coat",
+    ]);
+    expect(outOfStock.map((item) => item.product.id)).toEqual([
       "washed-denim-overshirt",
     ]);
   });
 
-  it("derives the Inventory summary from the same product records", () => {
-    expect(getInventorySummary(products)).toMatchObject({
+  it("applies mode, category and price sorting to one ordered result", () => {
+    const results = queryInventory(activeControlRoomSeed.products, {
+      ...defaultInventoryQuery,
+      mode: "stocked",
+      category: "Denim",
+      sort: "price-asc",
+    });
+
+    expect(results.map((item) => item.product.id)).toEqual([
+      "washed-denim-overshirt",
+      "botanical-jeans",
+    ]);
+  });
+
+  it("derives the Inventory workspace summary from product truth", () => {
+    expect(getInventorySummary(activeControlRoomSeed.products)).toEqual({
       totalProducts: 13,
+      liveProducts: 5,
       availableUnits: 65,
       reservedUnits: 9,
       soldUnits: 65,
-      lowStockProducts: 1,
+      lowStockProducts: 3,
       outOfStockProducts: 1,
       intakeProducts: 1,
     });
+  });
+
+  it("does not mutate source products while querying", () => {
+    const products: InventoryProduct[] = structuredClone(
+      activeControlRoomSeed.products,
+    );
+    const before = JSON.stringify(products);
+
+    queryInventory(products, {
+      ...defaultInventoryQuery,
+      sort: "stock-desc",
+      search: "field",
+    });
+
+    expect(JSON.stringify(products)).toBe(before);
   });
 });
