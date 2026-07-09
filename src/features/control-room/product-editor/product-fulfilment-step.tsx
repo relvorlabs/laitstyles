@@ -6,9 +6,9 @@ import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
   FieldLegend,
   FieldSet,
+  FieldTitle,
 } from "@/components/ui/field";
 import {
   EditorCheckboxField,
@@ -22,9 +22,21 @@ import type {
 
 const channels = [
   ["storefront", "Storefront", "Visible in the customer-facing catalogue."],
-  ["physical-store", "Physical store", "Available for in-person assisted sales."],
-  ["whatsapp", "WhatsApp", "Can be shared and sold through WhatsApp conversations."],
-  ["instagram", "Instagram", "Can be surfaced through Instagram-assisted selling."],
+  [
+    "physical-store",
+    "Physical store",
+    "Available for in-person assisted sales.",
+  ],
+  [
+    "whatsapp",
+    "WhatsApp",
+    "Can be shared and sold through WhatsApp conversations.",
+  ],
+  [
+    "instagram",
+    "Instagram",
+    "Can be surfaced through Instagram-assisted selling.",
+  ],
 ] as const satisfies ReadonlyArray<
   readonly [CatalogueChannel, string, string]
 >;
@@ -61,30 +73,32 @@ export function ProductFulfilmentStep() {
             <div className="grid gap-3 sm:grid-cols-2">
               {channels.map(([value, label, description]) => {
                 const selected = field.value.includes(value);
+                const descriptionId = `selling-channel-${value}-description`;
 
                 return (
-                  <FieldLabel key={value}>
-                    <Field orientation="horizontal">
-                      <Checkbox
-                        aria-label={label}
-                        checked={selected}
-                        onCheckedChange={(checked) => {
-                          const next = checked
-                            ? [...field.value, value]
-                            : field.value.filter((item) => item !== value);
-                          field.onChange(next);
-                        }}
-                      />
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[12.5px] font-semibold">
-                          {label}
-                        </span>
-                        <span className="text-[11.5px] leading-5 text-muted-foreground">
-                          {description}
-                        </span>
-                      </div>
-                    </Field>
-                  </FieldLabel>
+                  <Field
+                    className="rounded-[14px] border border-border bg-card p-4"
+                    key={value}
+                    orientation="horizontal"
+                  >
+                    <Checkbox
+                      aria-describedby={descriptionId}
+                      aria-label={label}
+                      checked={selected}
+                      onCheckedChange={(checked) => {
+                        const next = checked
+                          ? [...field.value, value]
+                          : field.value.filter((item) => item !== value);
+                        field.onChange(next);
+                      }}
+                    />
+                    <div className="flex flex-col gap-1">
+                      <FieldTitle>{label}</FieldTitle>
+                      <FieldDescription id={descriptionId}>
+                        {description}
+                      </FieldDescription>
+                    </div>
+                  </Field>
                 );
               })}
             </div>
