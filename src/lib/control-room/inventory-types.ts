@@ -32,6 +32,13 @@ export type ProductMeasurement = {
   value: string;
 };
 
+export type ProductFulfilment = {
+  weightKg: number | null;
+  pickupAvailable: boolean;
+  deliveryRestrictions: string;
+  packagingNotes: string;
+};
+
 export type ProductBase = {
   id: string;
   slug: string;
@@ -49,6 +56,7 @@ export type ProductBase = {
   publication: PublicationState;
   channels: CatalogueChannel[];
   lowStockThreshold: number;
+  fulfilment?: ProductFulfilment;
   createdAt: string;
   updatedAt: string;
 };
