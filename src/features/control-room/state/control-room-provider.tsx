@@ -2,53 +2,19 @@
 
 import {
   createContext,
-  use,
-  useCallback,
+  useContext,
   useMemo,
-  useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
-  applyIntakeTransition,
-  applyProductEditorAction,
-  createInitialIntakeRecords,
-} from "@/lib/control-room/product-editor-actions";
-import type {
-  ControlRoomState,
-  IntakeStage,
-  IntakeTransitionSuccess,
-  ProductEditorActionError,
-  ProductEditorActionSuccess,
-  ProductEditorIntent,
-  ProductEditorValues,
-} from "@/lib/control-room/types";
-import type { Result } from "@/lib/control-room/result";
+  createControlRoomStore,
+  type ControlRoomStore,
+} from "@/features/control-room/state/control-room-store";
+import type { ControlRoomState } from "@/lib/control-room/types";
 
-type ProductActionResult = Result<
-  ProductEditorActionSuccess,
-  ProductEditorActionError
->;
-
-type IntakeActionResult = Result<
-  IntakeTransitionSuccess,
-  ProductEditorActionError
->;
-
-type ControlRoomContextValue = {
-  state: ControlRoomState;
-  saveProduct: (
-    values: ProductEditorValues,
-    intent: ProductEditorIntent,
-  ) => ProductActionResult;
-  transitionIntake: (
-    productId: string,
-    nextStage: IntakeStage,
-  ) => IntakeActionResult;
-  resetPrototypeState: () => void;
-};
-
-const ControlRoomContext = createContext<ControlRoomContextValue | null>(null);
+const ControlRoomContext = createContext<ControlRoomStore | null>(null);
 
 export function ControlRoomProvider({
   children,
@@ -57,81 +23,34 @@ export function ControlRoomProvider({
   children: ReactNode;
   initialState: ControlRoomState;
 }) {
-  const [normalizedInitialState] = useState(() => normalizeState(initialState));
-  const [state, setState] = useState(normalizedInitialState);
-  const stateRef = useRef(normalizedInitialState);
+  const [store] = useState(() => createControlRoomStore(initialState));
 
-  const commit = useCallback((nextState: ControlRoomState) => {
-    stateRef.current = nextState;
-    setState(nextState);
-  }, []);
-
-  const saveProduct = useCallback(
-    (
-      values: ProductEditorValues,
-      intent: ProductEditorIntent,
-    ): ProductActionResult => {
-      const result = applyProductEditorAction(
-        stateRef.current,
-        values,
-        intent,
-        new Date().toISOString(),
-      );
-
-      if (!result.ok) return result;
-      commit(result.value.state);
-      return { ok: true, value: result.value.action };
-    },
-    [commit],
+  return (
+    <ControlRoomContext.Provider value={store}>
+      {children}
+    </ControlRoomContext.Provider>
   );
-
-  const transitionIntake = useCallback(
-    (productId: string, nextStage: IntakeStage): IntakeActionResult => {
-      const result = applyIntakeTransition(
-        stateRef.current,
-        productId,
-        nextStage,
-        new Date().toISOString(),
-      );
-
-      if (!result.ok) return result;
-      commit(result.value.state);
-      return { ok: true, value: result.value.action };
-    },
-    [commit],
-  );
-
-  const resetPrototypeState = useCallback(() => {
-    commit(normalizedInitialState);
-  }, [commit, normalizedInitialState]);
-
-  const value = useMemo<ControlRoomContextValue>(
-    () => ({ state, saveProduct, transitionIntake, resetPrototypeState }),
-    [state, saveProduct, transitionIntake, resetPrototypeState],
-  );
-
-  return <ControlRoomContext value={value}>{children}</ControlRoomContext>;
 }
 
 export function useControlRoom() {
-  const context = use(ControlRoomContext);
-  if (!context) {
+  const store = useContext(ControlRoomContext);
+  if (!store) {
     throw new Error("useControlRoom must be used inside ControlRoomProvider");
   }
-  return context;
-}
 
-function normalizeState(initialState: ControlRoomState): ControlRoomState {
-  let index = 0;
-  const idFactory = (prefix: string) => `${prefix}-seed-${++index}`;
+  const state = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getSnapshot,
+  );
 
-  return {
-    ...initialState,
-    intake: createInitialIntakeRecords(
-      initialState.products,
-      initialState.intake,
-      initialState.asOf,
-      idFactory,
-    ),
-  };
+  return useMemo(
+    () => ({
+      state,
+      saveProduct: store.saveProduct,
+      transitionIntake: store.transitionIntake,
+      resetPrototypeState: store.resetPrototypeState,
+    }),
+    [state, store],
+  );
 }
