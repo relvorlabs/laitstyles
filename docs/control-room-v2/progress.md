@@ -14,7 +14,7 @@
 | Source specification | `docs/control-room-v2/spec.md` |
 | Execution plan | `docs/control-room-v2/implementation-plan.md` |
 | Architecture decisions | `docs/control-room-v2/decisions.md` |
-| Active batch | 3A — editor domain, schemas and prototype actions |
+| Active batch | 3B — responsive seven-step editor |
 | Next phase | Phase 4 — blocked until Phase 3 is complete |
 
 ## Completed phases
@@ -83,14 +83,24 @@ Deliver a complete product-creation workflow and make Intake a real stage of Inv
 
 ### Batch 3A — editor domain, schemas and prototype actions
 
-- [ ] Typed editor draft model
-- [ ] Seven-step field ownership map
-- [ ] Zod schemas for common, unique, stocked and variant branches
-- [ ] Draft-to-product conversion
-- [ ] Typed save-draft, publish and intake-transition results
-- [ ] One prototype state/action boundary
-- [ ] Focused tests for validation, conversion and transitions
-- [ ] Lint, TypeScript, tests and build gate
+- [x] Typed editor draft model
+- [x] Seven-step field ownership map
+- [x] Zod schemas for common, unique, stocked and variant branches
+- [x] Draft-to-product conversion
+- [x] Typed save-draft, publish and intake-transition results
+- [x] One prototype state/action boundary
+- [x] Focused tests for validation, conversion and transitions
+- [x] Lint, TypeScript, tests and build gate
+
+Accepted evidence:
+
+- GitHub Actions run `29024023435`
+- Application head `e3cc7c7892f9e2e971b997cdecac2af4718a310e`
+- 23 Vitest tests passed
+- Production build passed
+- Existing Overview and Inventory Playwright matrix passed with the provider mounted
+- React Doctor 100/100 — no issues found
+- Required enforcement passed, including React Doctor and browser outcomes
 
 ### Batch 3B — responsive seven-step editor
 
@@ -180,4 +190,4 @@ The controller did not contain the expected `brainstorming` skill path. `find-sk
 
 ## Blockers
 
-None at Phase 3 start.
+None for Batch 3B start.
