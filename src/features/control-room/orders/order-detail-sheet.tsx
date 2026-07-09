@@ -52,7 +52,7 @@ export function OrderDetailSheet({
   return (
     <Sheet onOpenChange={onOpenChange} open>
       <SheetContent
-        className="data-[side=right]:w-[calc(100vw-1rem)] data-[side=right]:gap-0 data-[side=right]:overflow-y-auto data-[side=right]:overscroll-contain data-[side=right]:sm:w-[min(94vw,780px)] data-[side=right]:sm:max-w-[780px]"
+        className="data-[side=right]:gap-0 data-[side=right]:overflow-y-auto data-[side=right]:overscroll-contain max-sm:!inset-x-0 max-sm:!w-screen max-sm:!max-w-none max-sm:border-l-0 max-sm:duration-0 data-[side=right]:sm:w-[min(94vw,780px)] data-[side=right]:sm:max-w-[780px]"
         side="right"
       >
         <SheetHeader className="border-b border-border px-5 py-5 pr-14 sm:px-6">
@@ -106,7 +106,7 @@ export function OrderDetailSheet({
             <h2 className="font-serif text-[24px] font-medium" id="order-summary-title">
               Order summary
             </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <DetailMetric label="Customer" value={item.customerName} />
               <DetailMetric label="Units" value={String(item.unitCount)} />
               <DetailMetric label="Order total" value={formatNaira(order.total)} />
@@ -222,11 +222,11 @@ export function OrderDetailSheet({
 
 function DetailMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[14px] bg-secondary/65 p-4">
-      <p className="font-serif text-[22px] font-medium leading-tight tabular-nums">
+    <div className="min-w-0 rounded-[14px] bg-secondary/65 p-4">
+      <p className="break-words font-serif text-[21px] font-medium leading-tight tabular-nums sm:text-[22px]">
         {value}
       </p>
-      <p className="mt-2 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+      <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.11em] text-muted-foreground sm:text-[9.5px] sm:tracking-[0.12em]">
         {label}
       </p>
     </div>
