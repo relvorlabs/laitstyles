@@ -17,14 +17,26 @@ import type {
   StockMovement,
 } from "@/lib/control-room/types";
 
-export function ProductOrdersPanel({ orders }: { orders: ControlRoomOrder[] }) {
+export function ProductOrdersPanel({
+  orders,
+  productId,
+}: {
+  orders: ControlRoomOrder[];
+  productId: string;
+}) {
   return (
     <RecordStack empty="No order currently references this product.">
       {orders.map((order) => {
-        const quantity = order.lines.reduce(
-          (total, line) => total + line.quantity,
-          0,
-        );
+        const quantity = order.lines
+          .filter((line) => line.productId === productId)
+          .reduce((total, line) => total + line.quantity, 0);
+        const productValue = order.lines
+          .filter((line) => line.productId === productId)
+          .reduce(
+            (total, line) => total + line.quantity * line.unitPrice,
+            0,
+          );
+
         return (
           <RecordCard
             badge={order.fulfilmentStatus.replaceAll("-", " ")}
@@ -32,7 +44,7 @@ export function ProductOrdersPanel({ orders }: { orders: ControlRoomOrder[] }) {
             key={order.id}
             meta={formatInventoryDate(order.placedAt)}
             title={order.id}
-            value={formatNaira(order.total)}
+            value={formatNaira(productValue)}
           />
         );
       })}
@@ -72,6 +84,32 @@ export function ProductMovementsPanel({
           meta={formatInventoryDate(movement.occurredAt)}
           title={`${movement.quantity} unit${movement.quantity === 1 ? "" : "s"}`}
           value={movement.variantId ? "Variant" : "Product"}
+        />
+      ))}
+    </RecordStack>
+  );
+}
+
+export function ProductReturnsPanel({
+  movements,
+}: {
+  movements: StockMovement[];
+}) {
+  const returns = movements.filter(
+    (movement) =>
+      movement.kind === "returned" || movement.kind === "damaged",
+  );
+
+  return (
+    <RecordStack empty="No return or damage record is attached to this product.">
+      {returns.map((movement) => (
+        <RecordCard
+          badge={movement.kind}
+          detail={`${movement.actor} · ${movement.note}`}
+          key={movement.id}
+          meta={formatInventoryDate(movement.occurredAt)}
+          title={`${movement.quantity} unit${movement.quantity === 1 ? "" : "s"}`}
+          value={movement.kind === "returned" ? "Review required" : "Not sellable"}
         />
       ))}
     </RecordStack>
