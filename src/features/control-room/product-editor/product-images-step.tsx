@@ -18,8 +18,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { getFieldError } from "@/features/control-room/product-editor/product-editor-fields";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
 export function ProductImagesStep() {
@@ -36,7 +36,7 @@ export function ProductImagesStep() {
     name: "media",
     keyName: "fieldKey",
   });
-  const mediaError = getFieldError(errors, "media");
+  const mediaError = getProductEditorFieldError(errors, "media");
 
   function appendPreview(url: string, source: "local-preview" | "url") {
     const existing = getValues("media");
@@ -165,7 +165,10 @@ export function ProductImagesStep() {
         <div className="grid gap-4 md:grid-cols-2">
           {fields.map((field, index) => {
             const kind = getValues(`media.${index}.kind`);
-            const altError = getFieldError(errors, `media.${index}.alt`);
+            const altError = getProductEditorFieldError(
+              errors,
+              `media.${index}.alt`,
+            );
 
             return (
               <article
