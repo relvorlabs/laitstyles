@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight01Icon,
   CheckmarkCircle02Icon,
@@ -17,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
 import { InventoryEmptyState } from "@/features/control-room/inventory/inventory-empty-state";
+import { downloadInventoryCsv } from "@/features/control-room/inventory/inventory-export";
 import { InventoryGrid } from "@/features/control-room/inventory/inventory-grid";
 import { InventoryMobileList } from "@/features/control-room/inventory/inventory-mobile-list";
 import { InventorySavedViews } from "@/features/control-room/inventory/inventory-saved-views";
@@ -36,6 +38,7 @@ import type {
   ControlRoomState,
   InventoryPresentation,
   InventoryQuery,
+  InventorySavedView,
 } from "@/lib/control-room/types";
 
 type InventoryWorkspaceProps = {
@@ -51,6 +54,8 @@ export function InventoryWorkspace({
   initialPresentation,
   initialOpenProductId,
 }: InventoryWorkspaceProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] =
     useState<InventoryPresentation>(initialPresentation);
@@ -88,11 +93,19 @@ export function InventoryWorkspace({
   function patchQuery(patch: Partial<InventoryQuery>) {
     setQuery((current) => ({ ...current, ...patch }));
     setExportedCount(null);
+    if (patch.view) syncSavedView(patch.view);
+  }
+
+  function syncSavedView(view: InventorySavedView) {
+    router.replace(view === "all" ? pathname : `${pathname}?view=${view}`, {
+      scroll: false,
+    });
   }
 
   function resetQuery() {
     setQuery(defaultInventoryQuery);
     setExportedCount(null);
+    router.replace(pathname, { scroll: false });
   }
 
   function setProductSelected(productId: string, selected: boolean) {
@@ -123,47 +136,7 @@ export function InventoryWorkspace({
     );
     if (!selected.length) return;
 
-    const rows = [
-      [
-        "Product",
-        "Reference",
-        "Mode",
-        "Category",
-        "Collection",
-        "Available",
-        "Reserved",
-        "Sold",
-        "Returned",
-        "Damaged",
-        "Price",
-        "Publication",
-      ],
-      ...selected.map((item) => [
-        item.product.name,
-        item.reference,
-        item.product.inventoryMode,
-        item.product.category,
-        item.product.collection ?? "",
-        item.stock.available,
-        item.stock.reserved,
-        item.stock.sold,
-        item.stock.returned,
-        item.stock.damaged,
-        item.product.price,
-        item.product.publication,
-      ]),
-    ];
-    const csv = rows
-      .map((row) => row.map((value) => escapeCsv(String(value))).join(","))
-      .join("\n");
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `laitstyle-inventory-${state.reportingDate}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadInventoryCsv(selected, state.reportingDate);
     setExportedCount(selected.length);
   }
 
@@ -297,9 +270,4 @@ export function InventoryWorkspace({
       />
     </div>
   );
-}
-
-function escapeCsv(value: string) {
-  if (!/[",\n]/.test(value)) return value;
-  return `"${value.replaceAll('"', '""')}"`;
 }
