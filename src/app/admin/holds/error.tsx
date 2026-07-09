@@ -1,0 +1,32 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+export default function HoldsError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-[920px] px-4 py-12 sm:px-6 lg:px-8">
+      <Card className="items-start p-6 sm:p-8">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-destructive">
+          Holds unavailable
+        </p>
+        <h1 className="mt-3 font-serif text-[34px] font-medium leading-tight">
+          The reservation workspace could not be loaded.
+        </h1>
+        <p className="mt-4 max-w-[620px] text-[12.5px] leading-6 text-muted-foreground">
+          {error.message ||
+            "The session hold record encountered an unexpected error."}
+        </p>
+        <Button className="mt-6 h-11 rounded-full px-5" onClick={reset} type="button">
+          Try again
+        </Button>
+      </Card>
+    </div>
+  );
+}
