@@ -1,4 +1,9 @@
 import { getProductStock } from "@/lib/control-room/inventory-selectors";
+import {
+  getActiveSalesHolds,
+  getPaidOrders,
+  getRevenueByChannel,
+} from "@/lib/control-room/sales-selectors";
 import type {
   AttentionItem,
   ControlRoomHold,
@@ -9,11 +14,13 @@ import type {
   OverviewSnapshot,
 } from "@/lib/control-room/types";
 
-const paidPaymentStates = new Set(["paid", "deposit"] as const);
-
 export { getProductStock } from "@/lib/control-room/inventory-selectors";
 
-export function getCustomerName(state: ControlRoomState, customerId: string) {
+export function getCustomerName(
+  state: ControlRoomState,
+  customerId: string | null,
+) {
+  if (!customerId) return "Guest customer";
   return (
     state.customers.find((customer) => customer.id === customerId)?.name ??
     "Customer"
@@ -28,10 +35,7 @@ export function getProductName(state: ControlRoomState, productId: string) {
 }
 
 export function getActiveHolds(state: ControlRoomState) {
-  const asOf = new Date(state.asOf).getTime();
-  return state.holds.filter(
-    (hold) => new Date(hold.expiresAt).getTime() > asOf,
-  );
+  return getActiveSalesHolds(state);
 }
 
 export function getSecondsUntil(state: ControlRoomState, isoDate: string) {
@@ -43,11 +47,8 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
   const todaysOrders = state.orders.filter((order) =>
     order.placedAt.startsWith(state.reportingDate),
   );
-  const paidOrders = todaysOrders.filter((order) =>
-    paidPaymentStates.has(order.paymentStatus as "paid" | "deposit"),
-  );
-  const onlineOrders = paidOrders.filter((order) => order.channel === "online");
-  const offlineOrders = paidOrders.filter((order) => order.channel !== "online");
+  const paidOrders = getPaidOrders(todaysOrders);
+  const revenue = getRevenueByChannel(todaysOrders);
   const activeHolds = getActiveHolds(state);
 
   const lowStockProducts = state.products
@@ -71,11 +72,7 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
   );
 
   return {
-    revenue: {
-      total: sumOrders(paidOrders),
-      online: sumOrders(onlineOrders),
-      offline: sumOrders(offlineOrders),
-    },
+    revenue,
     ordersToday: todaysOrders.length,
     unitsSoldToday: paidOrders.reduce(
       (total, order) =>
@@ -102,10 +99,6 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
       .slice(0, 5),
     continueTask: state.continueTasks[0],
   };
-}
-
-function sumOrders(orders: ControlRoomOrder[]) {
-  return orders.reduce((total, order) => total + order.total, 0);
 }
 
 function buildFulfilmentLane(orders: ControlRoomOrder[]): FulfilmentLaneItem[] {
