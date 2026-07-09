@@ -12,14 +12,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -28,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { InventoryFilterFields } from "@/features/control-room/inventory/inventory-filter-fields";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type {
   InventoryFacetOptions,
@@ -173,141 +166,11 @@ export function InventoryControls({
           </strong>{" "}
           product{resultCount === 1 ? "" : "s"} in this view
         </span>
-        <span className="inline-flex items-center gap-2">
+        <span className="hidden items-center gap-2 sm:inline-flex">
           <ControlRoomIcon icon={PackageIcon} size={15} />
           Grid, table and mobile cards share this result set
         </span>
       </div>
     </div>
-  );
-}
-
-type InventoryFilterFieldsProps = {
-  query: InventoryQuery;
-  facets: InventoryFacetOptions;
-  mobile?: boolean;
-  onQueryChange: (patch: Partial<InventoryQuery>) => void;
-};
-
-function InventoryFilterFields({
-  query,
-  facets,
-  mobile = false,
-  onQueryChange,
-}: InventoryFilterFieldsProps) {
-  const triggerClassName = mobile ? "h-11 w-full justify-between" : "h-10";
-
-  return (
-    <>
-      <FilterSelect
-        className={triggerClassName}
-        label="Product mode"
-        onChange={(value) =>
-          onQueryChange({ mode: value as InventoryQuery["mode"] })
-        }
-        options={[
-          ["all", "All modes"],
-          ["unique", "Unique pieces"],
-          ["stocked", "Stocked products"],
-          ["variant", "Products with variants"],
-        ]}
-        value={query.mode}
-      />
-      <FilterSelect
-        className={triggerClassName}
-        label="Stock status"
-        onChange={(value) =>
-          onQueryChange({ stock: value as InventoryQuery["stock"] })
-        }
-        options={[
-          ["all", "All stock"],
-          ["healthy", "Available"],
-          ["low-stock", "Low stock"],
-          ["out-of-stock", "Out of stock"],
-          ["held", "Held"],
-          ["sold", "Has sales"],
-        ]}
-        value={query.stock}
-      />
-      <FilterSelect
-        className={triggerClassName}
-        label="Category"
-        onChange={(value) => onQueryChange({ category: value })}
-        options={[["all", "All categories"], ...facets.categories.map((item) => [item, item] as const)]}
-        value={query.category}
-      />
-      <FilterSelect
-        className={triggerClassName}
-        label="Collection"
-        onChange={(value) => onQueryChange({ collection: value })}
-        options={[["all", "All collections"], ...facets.collections.map((item) => [item, item] as const)]}
-        value={query.collection}
-      />
-      <FilterSelect
-        className={triggerClassName}
-        label="Channel"
-        onChange={(value) =>
-          onQueryChange({ channel: value as InventoryQuery["channel"] })
-        }
-        options={[
-          ["all", "All channels"],
-          ["storefront", "Storefront"],
-          ["physical-store", "Physical store"],
-          ["whatsapp", "WhatsApp"],
-          ["instagram", "Instagram"],
-        ]}
-        value={query.channel}
-      />
-      <FilterSelect
-        className={triggerClassName}
-        label="Sort"
-        onChange={(value) =>
-          onQueryChange({ sort: value as InventoryQuery["sort"] })
-        }
-        options={[
-          ["updated-desc", "Recently updated"],
-          ["stock-asc", "Stock: low to high"],
-          ["stock-desc", "Stock: high to low"],
-          ["sold-desc", "Best selling"],
-          ["price-asc", "Price: low to high"],
-          ["price-desc", "Price: high to low"],
-          ["name-asc", "Name: A–Z"],
-        ]}
-        value={query.sort}
-      />
-    </>
-  );
-}
-
-type FilterSelectProps = {
-  label: string;
-  value: string;
-  className?: string;
-  options: ReadonlyArray<readonly [string, string]>;
-  onChange: (value: string) => void;
-};
-
-function FilterSelect({
-  label,
-  value,
-  className,
-  options,
-  onChange,
-}: FilterSelectProps) {
-  return (
-    <Select onValueChange={(next) => onChange(next ?? "all")} value={value}>
-      <SelectTrigger aria-label={label} className={className}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {options.map(([optionValue, optionLabel]) => (
-            <SelectItem key={optionValue} value={optionValue}>
-              {optionLabel}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
   );
 }
