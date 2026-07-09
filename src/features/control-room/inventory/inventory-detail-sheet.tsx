@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Edit02Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -29,6 +31,7 @@ import {
 } from "@/features/control-room/inventory/inventory-detail-records";
 import { ProductStockPanel } from "@/features/control-room/inventory/inventory-detail-stock";
 import { ProductSummaryPanel } from "@/features/control-room/inventory/inventory-detail-summary";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type {
   ControlRoomState,
   InventoryListItem,
@@ -38,6 +41,7 @@ type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
   state: ControlRoomState;
   onOpenChange: (open: boolean) => void;
+  onEdit: (productId: string) => void;
 };
 
 const detailTabs = [
@@ -59,6 +63,7 @@ export function InventoryDetailSheet({
   item,
   state,
   onOpenChange,
+  onEdit,
 }: InventoryDetailSheetProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
   const productId = item?.product.id ?? null;
@@ -106,13 +111,26 @@ export function InventoryDetailSheet({
       >
         {item && productId ? (
           <>
-            <SheetHeader className="border-b border-border px-5 py-5 sm:px-6">
-              <SheetTitle className="font-serif text-[28px] font-medium leading-tight">
-                {item.product.name}
-              </SheetTitle>
-              <SheetDescription>
-                Read-only catalogue, stock and operational history for this product.
-              </SheetDescription>
+            <SheetHeader className="border-b border-border px-5 py-5 pr-14 sm:px-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <SheetTitle className="font-serif text-[28px] font-medium leading-tight">
+                    {item.product.name}
+                  </SheetTitle>
+                  <SheetDescription className="mt-1">
+                    Catalogue, stock and operational history for this product.
+                  </SheetDescription>
+                </div>
+                <Button
+                  className="h-10 rounded-full px-4"
+                  onClick={() => onEdit(productId)}
+                  type="button"
+                  variant="outline"
+                >
+                  <ControlRoomIcon icon={Edit02Icon} size={16} />
+                  Edit product
+                </Button>
+              </div>
             </SheetHeader>
 
             <Tabs
