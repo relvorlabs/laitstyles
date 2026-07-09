@@ -115,7 +115,8 @@
   background: #c7d0b4;
 }
 
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #a7a59b;
 }
 
@@ -136,6 +137,29 @@ a:hover {
 button:not(:disabled),
 [role="button"]:not(:disabled) {
   cursor: pointer;
+}
+
+.control-input {
+  height: 44px;
+  width: 100%;
+  border: 1px solid #d8d5cb;
+  border-radius: 11px;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 12.5px;
+  color: #1d1c19;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.control-input:focus {
+  border-color: #7c8c63;
+  box-shadow: 0 0 0 3px rgba(124, 140, 99, .12);
+}
+
+.control-input:disabled {
+  background: #efede7;
+  color: #9a978d;
 }
 
 @media (prefers-reduced-motion: reduce) {
