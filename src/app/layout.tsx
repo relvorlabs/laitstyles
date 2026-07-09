@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Sans, Newsreader, Inter } from "next/font/google";
+import { Geist_Mono, Instrument_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -26,7 +24,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Laitstyle",
+  title: {
+    default: "Laitstyle",
+    template: "%s · Laitstyle",
+  },
   description: "One-of-one second-hand pieces from Lagos.",
 };
 
@@ -38,7 +39,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", instrumentSans.variable, newsreader.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn(
+        "h-full antialiased",
+        instrumentSans.variable,
+        newsreader.variable,
+        geistMono.variable,
+      )}
     >
       <body className="flex min-h-full flex-col">
         <SiteChrome>{children}</SiteChrome>
