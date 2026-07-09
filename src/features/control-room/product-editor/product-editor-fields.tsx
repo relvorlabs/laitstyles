@@ -3,7 +3,6 @@
 import {
   Controller,
   useFormContext,
-  type FieldErrors,
   type FieldPath,
 } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
 export type EditorFieldName = FieldPath<ProductEditorValues>;
@@ -48,7 +48,7 @@ export function EditorTextField({
     register,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
-  const error = getFieldError(errors, name);
+  const error = getProductEditorFieldError(errors, name);
   const descriptionId = description ? `${name}-description` : undefined;
   const errorId = error ? `${name}-error` : undefined;
 
@@ -94,7 +94,7 @@ export function EditorNumberField({
     register,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
-  const error = getFieldError(errors, name);
+  const error = getProductEditorFieldError(errors, name);
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -137,7 +137,7 @@ export function EditorTextareaField({
     register,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
-  const error = getFieldError(errors, name);
+  const error = getProductEditorFieldError(errors, name);
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -173,7 +173,7 @@ export function EditorSelectField({
     control,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
-  const error = getFieldError(errors, name);
+  const error = getProductEditorFieldError(errors, name);
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -241,26 +241,4 @@ export function EditorCheckboxField({
       )}
     />
   );
-}
-
-export function getFieldError(
-  errors: FieldErrors<ProductEditorValues>,
-  name: string,
-) {
-  let current: unknown = errors;
-  for (const segment of name.split(".")) {
-    if (!current || typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[segment];
-  }
-
-  if (
-    current &&
-    typeof current === "object" &&
-    "message" in current &&
-    typeof current.message === "string"
-  ) {
-    return current.message;
-  }
-
-  return undefined;
 }
