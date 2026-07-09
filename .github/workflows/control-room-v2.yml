@@ -139,10 +139,10 @@ jobs:
               "control-room-screenshots/inventory-detail-${label}.png" 2>&1 | tee -a browser.log
           done
 
-          NODE_PATH=/tmp/control-room-browser/node_modules \
-            CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR=control-room-screenshots \
-            node scripts/control-room-phase3-check.mjs 2>&1 | tee -a browser.log
+          cp scripts/control-room-phase3-check.mjs /tmp/control-room-browser/control-room-phase3-check.mjs
+          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
+            node /tmp/control-room-browser/control-room-phase3-check.mjs 2>&1 | tee -a browser.log
 
           cleanup
           trap - EXIT
