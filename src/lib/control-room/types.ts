@@ -168,7 +168,7 @@ export type ControlRoomState = {
   currency: CurrencyCode;
   isNewStore: boolean;
   products: InventoryProduct[];
-  intake: IntakeRecord[];
+  intake?: IntakeRecord[];
   orders: ControlRoomOrder[];
   holds: ControlRoomHold[];
   customers: ControlRoomCustomer[];
