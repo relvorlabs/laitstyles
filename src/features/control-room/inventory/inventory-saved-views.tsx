@@ -16,7 +16,10 @@ export function InventorySavedViews({
   onChange,
 }: InventorySavedViewsProps) {
   return (
-    <div className="overflow-x-auto border-b border-border" aria-label="Inventory saved views">
+    <div
+      aria-label="Inventory saved views"
+      className="overflow-x-auto overscroll-x-contain border-b border-border"
+    >
       <div className="flex min-w-max items-center gap-1 px-4 sm:px-5">
         {inventorySavedViews.map((view) => {
           const active = value === view.value;
@@ -25,7 +28,7 @@ export function InventorySavedViews({
             <button
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex min-h-12 items-center gap-2 px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                "relative flex min-h-12 touch-manipulation items-center gap-2 px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active && "text-foreground",
               )}
               key={view.value}
