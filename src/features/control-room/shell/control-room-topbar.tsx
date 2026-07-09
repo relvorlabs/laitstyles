@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import {
+  Add01Icon,
   ArrowUpRight01Icon,
   Menu01Icon,
   Notification03Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { getControlRoomPage } from "@/features/control-room/shell/navigation";
 
@@ -23,6 +25,7 @@ export function ControlRoomTopbar({
   onOpenSearch,
 }: ControlRoomTopbarProps) {
   const page = getControlRoomPage(pathname);
+  const { openNewProduct } = useProductEditorController();
   const attentionHref = pathname === "/admin" ? "#attention" : "/admin#attention";
 
   return (
@@ -49,7 +52,7 @@ export function ControlRoomTopbar({
         </div>
 
         <button
-          className="hidden min-h-11 min-w-[280px] items-center gap-3 rounded-full border border-border bg-card px-4 text-left text-[13px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground md:flex"
+          className="hidden min-h-11 min-w-[240px] items-center gap-3 rounded-full border border-border bg-card px-4 text-left text-[13px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground xl:flex"
           onClick={onOpenSearch}
           type="button"
         >
@@ -62,7 +65,7 @@ export function ControlRoomTopbar({
 
         <Button
           aria-label="Search the Control Room"
-          className="size-11 rounded-full md:hidden"
+          className="size-11 rounded-full xl:hidden"
           onClick={onOpenSearch}
           size="icon-lg"
           type="button"
@@ -76,7 +79,7 @@ export function ControlRoomTopbar({
           className={buttonVariants({
             variant: "outline",
             size: "icon-lg",
-            className: "relative size-11 rounded-full",
+            className: "relative hidden size-11 rounded-full sm:inline-flex",
           })}
           href={attentionHref}
         >
@@ -84,19 +87,27 @@ export function ControlRoomTopbar({
           <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background bg-destructive" />
         </Link>
 
-        <div className="hidden sm:block">
-          <Link
-            className={buttonVariants({
-              size: "lg",
-              className:
-                "h-11 rounded-full px-5 text-[13px] !text-primary-foreground",
-            })}
-            href="/"
-          >
-            Preview storefront
-            <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
-          </Link>
-        </div>
+        <Link
+          className={buttonVariants({
+            variant: "outline",
+            size: "lg",
+            className: "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
+          })}
+          href="/"
+        >
+          Preview storefront
+          <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
+        </Link>
+
+        <Button
+          aria-label="Add product"
+          className="h-11 rounded-full px-4 sm:px-5"
+          onClick={openNewProduct}
+          type="button"
+        >
+          <ControlRoomIcon icon={Add01Icon} size={17} />
+          <span className="hidden sm:inline">Add product</span>
+        </Button>
       </div>
     </header>
   );
