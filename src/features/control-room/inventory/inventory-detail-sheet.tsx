@@ -18,6 +18,7 @@ import {
   ProductHoldsPanel,
   ProductMovementsPanel,
   ProductOrdersPanel,
+  ProductReturnsPanel,
   ProductReviewsPanel,
 } from "@/features/control-room/inventory/inventory-detail-records";
 import { ProductStockPanel } from "@/features/control-room/inventory/inventory-detail-stock";
@@ -40,6 +41,7 @@ const detailTabs = [
   ["orders", "Orders"],
   ["holds", "Holds"],
   ["movements", "Movements"],
+  ["returns", "Returns & damage"],
   ["reviews", "Reviews"],
   ["activity", "Activity"],
 ] as const;
@@ -92,7 +94,7 @@ export function InventoryDetailSheet({
         className="w-[min(96vw,760px)] gap-0 overflow-y-auto sm:max-w-[760px]"
         side="right"
       >
-        {item ? (
+        {item && productId ? (
           <>
             <SheetHeader className="border-b border-border px-5 py-5 sm:px-6">
               <SheetTitle className="font-serif text-[28px] font-medium leading-tight">
@@ -105,9 +107,16 @@ export function InventoryDetailSheet({
 
             <Tabs className="min-h-0 flex-1" defaultValue="summary">
               <div className="overflow-x-auto border-b border-border px-4 sm:px-5">
-                <TabsList className="h-12 min-w-max gap-1 rounded-none bg-transparent p-0" variant="line">
+                <TabsList
+                  className="h-12 min-w-max gap-1 rounded-none bg-transparent p-0"
+                  variant="line"
+                >
                   {detailTabs.map(([value, label]) => (
-                    <TabsTrigger className="px-3 text-[11.5px]" key={value} value={value}>
+                    <TabsTrigger
+                      className="px-3 text-[11.5px]"
+                      key={value}
+                      value={value}
+                    >
                       {label}
                     </TabsTrigger>
                   ))}
@@ -128,13 +137,16 @@ export function InventoryDetailSheet({
                   <ProductPricingPanel item={item} />
                 </TabsContent>
                 <TabsContent value="orders">
-                  <ProductOrdersPanel orders={orders} />
+                  <ProductOrdersPanel orders={orders} productId={productId} />
                 </TabsContent>
                 <TabsContent value="holds">
                   <ProductHoldsPanel holds={holds} />
                 </TabsContent>
                 <TabsContent value="movements">
                   <ProductMovementsPanel movements={movements} />
+                </TabsContent>
+                <TabsContent value="returns">
+                  <ProductReturnsPanel movements={movements} />
                 </TabsContent>
                 <TabsContent value="reviews">
                   <ProductReviewsPanel reviews={reviews} />
