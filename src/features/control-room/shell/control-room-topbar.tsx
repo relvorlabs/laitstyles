@@ -9,16 +9,22 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { getControlRoomPage } from "@/features/control-room/shell/navigation";
 
 type ControlRoomTopbarProps = {
+  pathname: string;
   onOpenNavigation: () => void;
   onOpenSearch: () => void;
 };
 
 export function ControlRoomTopbar({
+  pathname,
   onOpenNavigation,
   onOpenSearch,
 }: ControlRoomTopbarProps) {
+  const page = getControlRoomPage(pathname);
+  const attentionHref = pathname === "/admin" ? "#attention" : "/admin#attention";
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl">
       <div className="flex min-h-[72px] items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -38,7 +44,7 @@ export function ControlRoomTopbar({
             Control room
           </div>
           <div className="mt-0.5 truncate font-serif text-[21px] font-medium leading-none">
-            Overview
+            {page.label}
           </div>
         </div>
 
@@ -48,7 +54,7 @@ export function ControlRoomTopbar({
           type="button"
         >
           <ControlRoomIcon icon={Search01Icon} size={17} />
-          <span className="flex-1">Search today’s workspace</span>
+          <span className="flex-1">Search the Control Room</span>
           <kbd className="rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
             ⌘ K
           </kbd>
@@ -65,18 +71,18 @@ export function ControlRoomTopbar({
           <ControlRoomIcon icon={Search01Icon} size={18} />
         </Button>
 
-        <a
+        <Link
           aria-label="Go to items needing attention"
           className={buttonVariants({
             variant: "outline",
             size: "icon-lg",
             className: "relative size-11 rounded-full",
           })}
-          href="#attention"
+          href={attentionHref}
         >
           <ControlRoomIcon icon={Notification03Icon} size={18} />
           <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background bg-destructive" />
-        </a>
+        </Link>
 
         <div className="hidden sm:block">
           <Link
