@@ -18,34 +18,46 @@ export type ControlRoomNavigationGroup = {
   items: ControlRoomNavigationItem[];
 };
 
+const overviewItem: ControlRoomNavigationItem = {
+  label: "Overview",
+  href: "/admin",
+  icon: DashboardSquare01Icon,
+  description: "Today’s health, priorities and recent changes.",
+};
+
+const inventoryItem: ControlRoomNavigationItem = {
+  label: "Inventory",
+  href: "/admin/inventory",
+  icon: PackageIcon,
+  description: "Pieces, stocked products and variants.",
+};
+
+const ordersItem: ControlRoomNavigationItem = {
+  label: "Orders",
+  href: "/admin/orders",
+  icon: PackageIcon,
+  description: "Payment, fulfilment and delivery operations.",
+};
+
 export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "Control room",
-    items: [
-      {
-        label: "Overview",
-        href: "/admin",
-        icon: DashboardSquare01Icon,
-        description: "Today’s health, priorities and recent changes.",
-      },
-    ],
+    items: [overviewItem],
   },
   {
     label: "Catalogue",
-    items: [
-      {
-        label: "Inventory",
-        href: "/admin/inventory",
-        icon: PackageIcon,
-        description: "Pieces, stocked products and variants.",
-      },
-    ],
+    items: [inventoryItem],
   },
 ];
 
 export const controlRoomNavigation = controlRoomNavigationGroups.flatMap(
   (group) => group.items,
 );
+
+const controlRoomPageRegistry = [
+  ...controlRoomNavigation,
+  ordersItem,
+];
 
 export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
   {
@@ -64,10 +76,10 @@ export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
 
 export function getControlRoomPage(pathname: string) {
   return (
-    controlRoomNavigation.find((item) =>
+    controlRoomPageRegistry.find((item) =>
       item.href === "/admin"
         ? pathname === item.href
         : pathname === item.href || pathname.startsWith(`${item.href}/`),
-    ) ?? controlRoomNavigation[0]
+    ) ?? overviewItem
   );
 }
