@@ -153,6 +153,7 @@ jobs:
         run: |
           set -o pipefail
           pnpm dlx react-doctor@latest . --verbose --scope changed --base origin/main 2>&1 | tee react-doctor.log
+          grep -a -i -q 'No issues found!' react-doctor.log
 
       - name: Upload verification logs
         if: always()
