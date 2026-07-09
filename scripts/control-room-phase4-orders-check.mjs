@@ -47,7 +47,7 @@ async function runDesktop(browser) {
     "Order search did not reduce the result set.",
   );
   await expectVisible(
-    page.getByText("LS-20480", { exact: true }).first(),
+    page.getByRole("button", { name: "Open LS-20480" }),
     "Expected searched order was not visible.",
   );
   await page.getByLabel("Search orders").fill("");
@@ -135,6 +135,18 @@ async function runMobile(browser) {
     sheet.getByRole("button", { name: "Payment confirmed" }),
     "The permitted payment-confirmation transition was not available.",
   );
+
+  const box = await sheet.boundingBox();
+  if (
+    !box ||
+    box.x > 1 ||
+    box.y > 1 ||
+    Math.abs(box.width - 375) > 2 ||
+    Math.abs(box.height - 812) > 2
+  ) {
+    throw new Error(`Mobile order detail is not full viewport: ${JSON.stringify(box)}`);
+  }
+
   await page.screenshot({
     path: path.join(screenshotDir, "phase4-orders-detail-375x812.png"),
     fullPage: false,
