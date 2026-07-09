@@ -3,29 +3,35 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Check, Home, MapPin, PackageCheck, Truck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { naira } from "@/lib/catalogue";
 import {
-  ORDER_STORAGE_KEY,
-  type OrderReceipt,
+  getClientReadySnapshot,
+  getLatestOrderSnapshot,
+  getServerClientReadySnapshot,
+  getServerOrderSnapshot,
+  parseOrderReceipt,
+  subscribeToClientReady,
+  subscribeToLatestOrder,
 } from "@/lib/order";
 
 export default function OrderConfirmationPage() {
-  const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const receiptSnapshot = useSyncExternalStore(
+    subscribeToLatestOrder,
+    getLatestOrderSnapshot,
+    getServerOrderSnapshot,
+  );
+  const clientReady = useSyncExternalStore(
+    subscribeToClientReady,
+    getClientReadySnapshot,
+    getServerClientReadySnapshot,
+  );
+  const receipt = useMemo(
+    () => parseOrderReceipt(receiptSnapshot),
+    [receiptSnapshot],
+  );
 
-  useEffect(() => {
-    try {
-      const stored = window.sessionStorage.getItem(ORDER_STORAGE_KEY);
-      if (stored) setReceipt(JSON.parse(stored) as OrderReceipt);
-    } catch {
-      // A direct visit without a receipt is handled by the empty state below.
-    } finally {
-      setLoaded(true);
-    }
-  }, []);
-
-  if (!loaded) {
+  if (!clientReady) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-[#ECEBE6] px-5 py-10">
         <div className="h-[720px] w-full max-w-[640px] animate-pulse rounded-[16px] bg-white/70" />
