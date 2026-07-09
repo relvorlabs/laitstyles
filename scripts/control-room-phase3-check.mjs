@@ -110,7 +110,7 @@ async function runDesktop(browser) {
     "Intake queue did not render.",
   );
   await expectVisible(
-    page.getByText("Ivory Wrap Skirt", { exact: true }),
+    page.getByText("Ivory Linen Wrap Skirt", { exact: true }),
     "Expected Intake product was missing.",
   );
   await page.screenshot({
@@ -135,7 +135,9 @@ async function runDesktop(browser) {
     "Existing Intake product did not open in the editor.",
   );
   await expectVisible(
-    existingDialog.getByRole("heading", { name: "Ivory Wrap Skirt" }),
+    existingDialog.getByRole("heading", {
+      name: "Ivory Linen Wrap Skirt",
+    }),
     "The editor did not retain the Intake product identity.",
   );
 
