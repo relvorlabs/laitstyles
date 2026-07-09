@@ -1,18 +1,28 @@
+const nairaFormatter = new Intl.NumberFormat("en-NG", {
+  style: "currency",
+  currency: "NGN",
+  maximumFractionDigits: 0,
+});
+
+const compactNairaFormatter = new Intl.NumberFormat("en-NG", {
+  style: "currency",
+  currency: "NGN",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const reportingDateFormatter = new Intl.DateTimeFormat("en-NG", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
 export function formatNaira(value: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return nairaFormatter.format(value);
 }
 
 export function formatCompactNaira(value: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return compactNairaFormatter.format(value);
 }
 
 export function formatRelativeTime(asOf: string, occurredAt: string) {
@@ -31,9 +41,5 @@ export function formatRelativeTime(asOf: string, occurredAt: string) {
 }
 
 export function formatReportingDate(value: string) {
-  return new Intl.DateTimeFormat("en-NG", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date(`${value}T12:00:00+01:00`));
+  return reportingDateFormatter.format(new Date(`${value}T12:00:00+01:00`));
 }
