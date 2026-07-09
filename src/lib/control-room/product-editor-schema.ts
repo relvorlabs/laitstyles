@@ -11,6 +11,11 @@ const measurementSchema = z.object({
   value: z.string(),
 });
 
+const publishMeasurementSchema = measurementSchema.extend({
+  label: z.string().trim().min(1, "Enter the measurement name."),
+  value: z.string().trim().min(1, "Enter the measurement value."),
+});
+
 const mediaSchema = z.object({
   id: z.string().min(1),
   url: z.string().min(1),
@@ -133,7 +138,9 @@ const uniqueStockSchema = z.object({
     condition: z.enum(["Excellent", "Good", "Fair"]),
     size: z.string().trim().min(1, "Enter the piece size."),
     colour: z.string().trim().min(1, "Enter the piece colour."),
-    measurements: z.array(measurementSchema),
+    measurements: z
+      .array(publishMeasurementSchema)
+      .min(1, "Add at least one measurement before publishing."),
   }),
 });
 
