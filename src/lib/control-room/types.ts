@@ -162,6 +162,7 @@ export type ContinueTask = {
 export type ControlRoomState = {
   storeName: string;
   reportingDate: string;
+  asOf: string;
   currency: CurrencyCode;
   isNewStore: boolean;
   products: InventoryProduct[];
