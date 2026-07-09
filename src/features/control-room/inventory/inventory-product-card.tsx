@@ -44,13 +44,13 @@ export function InventoryProductCard({
           src={item.coverImage.url}
         />
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
-          <label className="grid size-10 cursor-pointer place-items-center rounded-full bg-background/92 shadow-sm backdrop-blur-sm">
-            <span className="sr-only">Select {product.name}</span>
+          <div className="grid size-10 place-items-center rounded-full bg-background/92 shadow-sm backdrop-blur-sm">
             <Checkbox
+              aria-label={`Select ${product.name}`}
               checked={selected}
               onCheckedChange={(checked) => onSelectedChange(Boolean(checked))}
             />
-          </label>
+          </div>
           <InventoryStatusBadge health={item.health} />
         </div>
       </div>
@@ -99,7 +99,8 @@ export function InventoryProductCard({
 
       <CardFooter className="justify-between px-4 py-3">
         <span className="text-[10.5px] text-muted-foreground">
-          {product.publication === "published" ? "Visible" : "Not visible"} · {product.channels.length} channel
+          {product.publication === "published" ? "Visible" : "Not visible"} ·{" "}
+          {product.channels.length} channel
           {product.channels.length === 1 ? "" : "s"}
         </span>
         <Button
