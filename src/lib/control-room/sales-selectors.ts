@@ -38,25 +38,25 @@ export const returnTransitionMap = {
 } satisfies Record<ReturnStatus, ReturnStatus[]>;
 
 export function getPermittedOrderTransitions(status: OrderStatus) {
-  return orderTransitionMap[status];
+  return orderTransitionMap[status] as readonly OrderStatus[];
 }
 
 export function canTransitionOrder(
   status: OrderStatus,
   nextStatus: OrderStatus,
 ) {
-  return orderTransitionMap[status].includes(nextStatus);
+  return getPermittedOrderTransitions(status).includes(nextStatus);
 }
 
 export function getPermittedReturnTransitions(status: ReturnStatus) {
-  return returnTransitionMap[status];
+  return returnTransitionMap[status] as readonly ReturnStatus[];
 }
 
 export function canTransitionReturn(
   status: ReturnStatus,
   nextStatus: ReturnStatus,
 ) {
-  return returnTransitionMap[status].includes(nextStatus);
+  return getPermittedReturnTransitions(status).includes(nextStatus);
 }
 
 export function inferOrderLineStockState(
