@@ -1,61 +1,41 @@
+import type {
+  InventoryProduct,
+  ProductReview,
+  StockMovement,
+} from "@/lib/control-room/inventory-types";
+
+export type {
+  CatalogueChannel,
+  InventoryAttentionReason,
+  InventoryCounts,
+  InventoryFacetOptions,
+  InventoryHealth,
+  InventoryListItem,
+  InventoryMode,
+  InventoryModeFilter,
+  InventoryPresentation,
+  InventoryProduct,
+  InventoryQuery,
+  InventorySavedView,
+  InventorySortKey,
+  InventoryStockFilter,
+  InventorySummary,
+  ProductBase,
+  ProductLifecycle,
+  ProductMeasurement,
+  ProductMedia,
+  ProductMediaKind,
+  ProductReview,
+  ProductVariant,
+  PublicationState,
+  StockedProduct,
+  StockMovement,
+  StockMovementKind,
+  UniqueProduct,
+  VariantProduct,
+} from "@/lib/control-room/inventory-types";
+
 export type CurrencyCode = "NGN";
-
-export type InventoryCounts = {
-  totalReceived: number;
-  available: number;
-  reserved: number;
-  sold: number;
-  returned: number;
-  damaged: number;
-};
-
-export type ProductLifecycle = "draft" | "intake" | "active" | "archived";
-export type PublicationState = "published" | "unpublished" | "scheduled";
-
-export type ProductBase = {
-  id: string;
-  name: string;
-  category: string;
-  collection?: string;
-  brand?: string;
-  image: string;
-  price: number;
-  cost?: number;
-  lifecycle: ProductLifecycle;
-  publication: PublicationState;
-  lowStockThreshold: number;
-  updatedAt: string;
-};
-
-export type UniqueProduct = ProductBase & {
-  inventoryMode: "unique";
-  archiveNumber: string;
-  condition: "Excellent" | "Good" | "Fair";
-  size: string;
-  stock: InventoryCounts;
-};
-
-export type StockedProduct = ProductBase & {
-  inventoryMode: "stocked";
-  sku: string;
-  stock: InventoryCounts;
-};
-
-export type ProductVariant = {
-  id: string;
-  label: string;
-  sku: string;
-  size?: string;
-  colour?: string;
-  stock: InventoryCounts;
-};
-
-export type VariantProduct = ProductBase & {
-  inventoryMode: "variant";
-  variants: ProductVariant[];
-};
-
-export type InventoryProduct = UniqueProduct | StockedProduct | VariantProduct;
 
 export type SalesChannel =
   | "online"
@@ -170,6 +150,8 @@ export type ControlRoomState = {
   holds: ControlRoomHold[];
   customers: ControlRoomCustomer[];
   activities: ControlRoomActivity[];
+  stockMovements: StockMovement[];
+  reviews: ProductReview[];
   salesPulse: SalesPulsePoint[];
   continueTasks: ContinueTask[];
 };
