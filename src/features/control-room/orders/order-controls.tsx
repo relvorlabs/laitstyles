@@ -13,12 +13,26 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { orderSortOptions } from "@/features/control-room/orders/order-selectors";
 import type { OrderQuery } from "@/features/control-room/orders/order-types";
+
+const channelFilterLabels: Record<OrderQuery["channel"], string> = {
+  all: "All channels",
+  online: "Online",
+  offline: "Offline & assisted",
+};
+
+const paymentFilterLabels: Record<OrderQuery["payment"], string> = {
+  all: "All payments",
+  pending: "Pending",
+  paid: "Paid",
+  deposit: "Deposit",
+  failed: "Failed",
+  refunded: "Refunded",
+};
 
 export function OrderControls({
   query,
@@ -36,6 +50,9 @@ export function OrderControls({
     query.channel !== "all" ||
     query.payment !== "all" ||
     query.sort !== "placed-desc";
+  const sortLabel =
+    orderSortOptions.find((option) => option.value === query.sort)?.label ??
+    "Newest first";
 
   return (
     <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
@@ -64,7 +81,9 @@ export function OrderControls({
           value={query.channel}
         >
           <SelectTrigger aria-label="Filter orders by channel" className="h-11 w-full">
-            <SelectValue />
+            <span className="flex-1 truncate text-left">
+              {channelFilterLabels[query.channel]}
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -85,7 +104,9 @@ export function OrderControls({
           value={query.payment}
         >
           <SelectTrigger aria-label="Filter orders by payment" className="h-11 w-full">
-            <SelectValue />
+            <span className="flex-1 truncate text-left">
+              {paymentFilterLabels[query.payment]}
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -107,7 +128,7 @@ export function OrderControls({
           value={query.sort}
         >
           <SelectTrigger aria-label="Sort orders" className="h-11 w-full">
-            <SelectValue />
+            <span className="flex-1 truncate text-left">{sortLabel}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
