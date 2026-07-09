@@ -52,6 +52,7 @@ Implemented:
 - Mobile operational cards instead of a compressed desktop table
 - Shared ordered result set across grid, table and mobile cards
 - Product detail workspace with Summary, Stock/variants, Media, Pricing, Orders, Holds, Movements, Returns/damage, Reviews and Activity
+- Desktop detail tabs and a mobile detail-section selector
 - Selection, select-visible, clear selection and real CSV export
 - Export success feedback announced with `aria-live`
 - Inventory navigation in desktop, mobile and command search
@@ -134,12 +135,13 @@ The required persistent Add product action remains intentionally absent until th
 - [x] React Doctor changed-scope analysis passes at 100/100
 - [x] Playwright renders pass at 375 × 812, 768 × 1024 and 1280 × 800
 - [x] Grid, table and product-detail screenshots were visually inspected
-- [x] The first desktop detail defect was corrected and the full gate rerun
+- [x] The desktop detail-width defect was corrected and the full gate rerun
+- [x] Mobile product-detail navigation was converted to a compact selector and reverified
 - [x] PR body and this tracker are updated before Phase 3 begins
 
 ## Phase 2 verification evidence
 
-GitHub Actions run `29021124884` passed on application head `ab1dc9df7b4bf3ba9c3db1911d511c153de1f31d`:
+GitHub Actions run `29021779448` passed on final application head `b5ad5c64a906cef216a6b8e441893d095b09e4ff`:
 
 - pnpm frozen-lockfile installation
 - ESLint
@@ -160,9 +162,11 @@ Playwright rendered and uploaded:
 - Inventory table — 1280 × 800
 - Botanical Jeans detail workspace — 375 × 812 and 1280 × 800
 
-### Screenshot-driven correction
+### Screenshot-driven corrections
 
-The first production render exposed a real desktop defect: Base UI’s default `sm:max-w-sm` kept the product sheet at roughly 384px and crushed the Summary column. The sheet width was explicitly corrected, catalogue panels were split, the Summary image column was balanced, and the complete gate was rerun. The accepted desktop detail render now shows a readable wide product workspace; mobile remains stacked and task-focused.
+The first production render exposed a desktop defect: Base UI’s default `sm:max-w-sm` kept the product sheet at roughly 384px and crushed the Summary column. The sheet width was explicitly corrected, catalogue panels were split, the Summary image column was balanced, and the complete gate was rerun. The accepted desktop detail render now shows a readable wide product workspace.
+
+The final mobile pass replaced the horizontally scrolling ten-section tab strip with a compact section selector. The mobile detail workspace remains stacked, readable and keyboard-accessible. The exact final application head was then rerun through the complete gate.
 
 Chrome DevTools MCP was unavailable, so no DevTools-specific console, network or performance claim is made. Browser evidence is the successful production Playwright matrix above.
 
