@@ -31,14 +31,18 @@ Excluded:
 | 5 | Checkout connected to shared cart state | Complete |
 | 6 | Dedicated order-confirmation route and receipt handoff | Complete |
 | 7 | Home, PLP and PDP connected to the same reservation lifecycle | Complete |
-| 8 | Account/deep-link cleanup, design tokens and accessibility pass | In progress |
-| 9 | Lint, TypeScript, React Doctor and production build pass | Pending |
+| 8 | Account/deep-link cleanup, design tokens and accessibility pass | Complete |
+| 9 | Lint, TypeScript, tests, React Doctor and production build pass | In progress |
 | 10 | PR complete, checks recorded and no known in-scope blocker | Pending |
 
 ## Current score
 
-**7/10**
+**8/10**
 
 ## Out-of-scope watch
 
 No backend, admin, deployment or product-strategy work has been added. Payment and authentication remain explicit integration boundaries rather than simulated production claims.
+
+## Verification status
+
+The branch includes a pull-request workflow for lint, TypeScript, available tests, production build and non-blocking React Doctor diagnostics. Live Chrome DevTools MCP validation remains blocked until that MCP server is available to the execution environment.
