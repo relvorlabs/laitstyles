@@ -20,7 +20,10 @@ export function InventoryExportAlert({
   if (!count) return null;
 
   return (
-    <Alert className="border-[#C9D1B8] bg-[#E7EBDD] text-[#4A5540]">
+    <Alert
+      aria-live="polite"
+      className="border-[#C9D1B8] bg-[#E7EBDD] text-[#4A5540]"
+    >
       <ControlRoomIcon icon={CheckmarkCircle02Icon} size={18} />
       <AlertTitle>Inventory export created</AlertTitle>
       <AlertDescription className="text-[#59644A]">
