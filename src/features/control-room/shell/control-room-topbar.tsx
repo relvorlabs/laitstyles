@@ -7,7 +7,7 @@ import {
   Notification03Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 
 type ControlRoomTopbarProps = {
@@ -50,7 +50,7 @@ export function ControlRoomTopbar({
           <ControlRoomIcon icon={Search01Icon} size={17} />
           <span className="flex-1">Search today’s workspace</span>
           <kbd className="rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
-            ⌘K
+            ⌘ K
           </kbd>
         </button>
 
@@ -65,25 +65,29 @@ export function ControlRoomTopbar({
           <ControlRoomIcon icon={Search01Icon} size={18} />
         </Button>
 
-        <Button
+        <a
           aria-label="Go to items needing attention"
-          className="relative size-11 rounded-full"
-          render={<a href="#attention" />}
-          size="icon-lg"
-          variant="outline"
+          className={buttonVariants({
+            variant: "outline",
+            size: "icon-lg",
+            className: "relative size-11 rounded-full",
+          })}
+          href="#attention"
         >
           <ControlRoomIcon icon={Notification03Icon} size={18} />
           <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background bg-destructive" />
-        </Button>
+        </a>
 
-        <Button
-          className="hidden h-11 rounded-full px-5 text-[13px] sm:inline-flex"
-          render={<Link href="/" />}
-          size="lg"
+        <Link
+          className={buttonVariants({
+            size: "lg",
+            className: "hidden h-11 rounded-full px-5 text-[13px] sm:inline-flex",
+          })}
+          href="/"
         >
           Preview storefront
           <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
-        </Button>
+        </Link>
       </div>
     </header>
   );
