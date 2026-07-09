@@ -4,7 +4,7 @@
 
 **Phase 4 of 7 in progress — Sales workspace**
 
-Active batch: **4A — sales domain and typed actions**.
+Active batch: **4B — Orders workspace**.
 
 ## Current phase
 
@@ -17,8 +17,10 @@ Active batch: **4A — sales domain and typed actions**.
 | Execution plan | `docs/control-room-v2/implementation-plan.md` |
 | Phase 4 plan | `docs/control-room-v2/phase4-plan.md` |
 | Architecture decisions | `docs/control-room-v2/decisions.md` |
-| Active batch | 4A — sales domain and typed actions |
-| Next batch | 4B — blocked until 4A passes |
+| Accepted Batch 4A head | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` |
+| Accepted Batch 4A run | `29044424035` |
+| Active batch | 4B — Orders workspace |
+| Next batch | 4C — blocked until 4B passes |
 | Next phase | Phase 5 — blocked until Phase 4 is complete |
 
 ## Completed phases
@@ -68,8 +70,6 @@ Final Phase 2 application verification: GitHub Actions run `29021779448` on `b5a
 
 Final Phase 3 application verification: GitHub Actions run `29035766157` on `ba05d413d62154f1b41a415e5d31003bdf2c20f1`.
 
-The documentation-only Phase 3 closure head `c897d5a7135cf7c93ee048016514c0bdebf27780` also passed both required workflows.
-
 ## Phase 4 locked scope
 
 ### Goal
@@ -103,24 +103,37 @@ Connect Orders, Holds, Offline Sales and Returns to the same inventory, revenue,
 
 ## Phase 4 batches
 
-### Batch 4A — sales domain and typed actions
+### Batch 4A — sales domain and typed actions — accepted
 
-- [ ] Focused sales domain types
-- [ ] Expanded connected order, hold and return records
-- [ ] Explicit order transition graph
-- [ ] Stock reserve, release, sale and return helpers
-- [ ] Typed order transition action
-- [ ] Typed hold extend/release/convert actions
-- [ ] Typed offline-sale action
-- [ ] Typed return actions
-- [ ] Shared store integration
-- [ ] Focused tests for unique, stocked and variant products
-- [ ] Existing Phase 1–3 browser regression gate
-- [ ] React Doctor 100/100
+- [x] Focused sales domain types
+- [x] Expanded connected order, hold and return records
+- [x] Explicit order transition graph
+- [x] Atomic stock reserve, release, sale, cancellation and return helpers
+- [x] Payment-confirmed orders own sold stock
+- [x] Typed order transition action
+- [x] Typed hold extend/release/convert actions
+- [x] Typed offline-sale action
+- [x] Typed return and refund actions
+- [x] Partial refund and net-revenue tracking
+- [x] Shared store integration
+- [x] Focused tests for unique, stocked and variant products
+- [x] Existing Phase 1–3 browser regression gate
+- [x] React Doctor 100/100
 
-No Sales route or global action is exposed during Batch 4A.
+Accepted evidence:
 
-### Batch 4B — Orders workspace
+- Application head `2b14028c4e60c3395a9bbe819506adca8bfdcae1`
+- Control Room run `29044424035`
+- Parity run `29044424098`
+- 46 tests passed across 7 files
+- Production build passed
+- Existing Overview, Inventory, Product Editor and Intake browser interactions passed
+- React Doctor 100/100 — no issues found
+- Screenshot and log artifacts uploaded
+
+No Sales route or global action was exposed during Batch 4A.
+
+### Batch 4B — Orders workspace — active
 
 - [ ] `/admin/orders`
 - [ ] Status views and search/filter controls
@@ -128,7 +141,12 @@ No Sales route or global action is exposed during Batch 4A.
 - [ ] Mobile order cards
 - [ ] Order detail sheet and timeline
 - [ ] Permitted transition controls
+- [ ] Confirmation for cancellation/refund actions
+- [ ] Recoverable transition errors
 - [ ] Empty, loading, error and success states
+- [ ] Orders navigation exposed only after full workspace verification
+- [ ] Desktop, tablet and mobile browser evidence
+- [ ] React Doctor 100/100
 
 ### Batch 4C — Holds workspace
 
@@ -175,23 +193,39 @@ No Sales route or global action is exposed during Batch 4A.
 - [ ] Overview and Inventory cross-workspace regression
 - [ ] Tracker and PR body updated
 
-## Batch 4A acceptance criteria
+## Batch 4A accepted invariants
 
-- [ ] Unique-item sale prevents a second sale
-- [ ] Stocked and variant mutations affect only the selected quantity bucket
-- [ ] Holds reserve quantities correctly
-- [ ] Release restores reserved stock
-- [ ] Hold conversion creates an order and consumes reserved stock
-- [ ] Offline sale creates an order/sales record rather than only changing stock
-- [ ] Invalid transitions return understandable typed errors
-- [ ] Returns cannot exceed the eligible sold quantity
-- [ ] Revenue selectors can distinguish paid online and offline sales
-- [ ] No UI route or later batch action is exposed
-- [ ] Required checks pass
+- [x] Unique-item sale prevents a second sale
+- [x] Stocked and variant mutations affect only the selected quantity bucket
+- [x] Holds reserve quantities correctly
+- [x] Release restores reserved stock
+- [x] Paid hold conversion moves reserved stock to sold
+- [x] Pending hold conversion preserves reservation ownership
+- [x] Payment confirmation marks order stock as sold
+- [x] Pre-dispatch cancellation restores sold stock
+- [x] Offline sale creates an order/sales record rather than only changing stock
+- [x] Invalid transitions return understandable typed errors
+- [x] Only delivered sold lines can enter customer Returns
+- [x] Returns cannot exceed the eligible sold quantity
+- [x] Partial refunds reduce net revenue without falsely closing the whole order
+- [x] Shared store subscribers receive sales commits
+- [x] No UI route or later batch action was exposed
+- [x] Required checks pass
+
+## Batch 4B implementation contract
+
+- Orders consumes the shared Control Room store; it must not own a parallel order array.
+- The existing shadcn table decision remains valid; no TanStack dependency is added.
+- Search, saved status views and lightweight filters stay local because the dataset is session-only.
+- Destructive cancellation/refund transitions require confirmation.
+- Only transitions returned by `getPermittedOrderTransitions` may be shown.
+- The detail workspace must show customer, channel, lines, payment boundary, delivery boundary, notes and timeline without claiming courier/payment integration.
+- `/admin/orders` and Orders navigation remain hidden until the full batch passes browser verification.
+- Holds, Record Sale and Returns UI remain out of scope for this batch.
 
 ## Loaded implementation contract
 
-Before Batch 4A code begins:
+Before Phase 4 code began:
 
 - [x] Reloaded `docs/control-room-v2/spec.md`
 - [x] Reloaded `docs/control-room-v2/implementation-plan.md`
@@ -204,8 +238,8 @@ Before Batch 4A code begins:
 
 ## Blockers
 
-None for Batch 4A.
+None for Batch 4B.
 
 ## Next action
 
-Implement and verify Batch 4A only. Do not expose Orders, Holds, Record Sale or Returns UI until the corresponding later batch is complete.
+Implement and verify the complete Orders workspace only. Do not begin Holds, Record Sale or Returns UI until Batch 4B passes.
