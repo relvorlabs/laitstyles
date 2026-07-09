@@ -145,12 +145,6 @@ function buildOrderStockPlan(
     const currentState = inferOrderLineStockState(order, line);
 
     if (nextStatus === "payment-confirmed") {
-      return currentState === "uncommitted"
-        ? { line, mutation: "reserve", nextStockState: "reserved" }
-        : { line, mutation: null, nextStockState: currentState };
-    }
-
-    if (nextStatus === "delivered") {
       if (currentState === "reserved") {
         return { line, mutation: "sell-reserved", nextStockState: "sold" };
       }
@@ -160,10 +154,27 @@ function buildOrderStockPlan(
       return { line, mutation: null, nextStockState: currentState };
     }
 
-    if (nextStatus === "cancelled" || nextStatus === "refunded") {
-      return currentState === "reserved"
-        ? { line, mutation: "release", nextStockState: "released" }
-        : { line, mutation: null, nextStockState: currentState };
+    if (nextStatus === "cancelled") {
+      if (currentState === "reserved") {
+        return { line, mutation: "release", nextStockState: "released" };
+      }
+      if (currentState === "sold") {
+        return { line, mutation: "restore-sold", nextStockState: "released" };
+      }
+      return { line, mutation: null, nextStockState: "released" };
+    }
+
+    if (nextStatus === "refunded") {
+      if (currentState === "reserved") {
+        return { line, mutation: "release", nextStockState: "released" };
+      }
+      if (
+        currentState === "sold" &&
+        order.fulfilmentStatus !== "delivered"
+      ) {
+        return { line, mutation: "restore-sold", nextStockState: "released" };
+      }
+      return { line, mutation: null, nextStockState: currentState };
     }
 
     if (nextStatus === "returned") {
@@ -173,6 +184,7 @@ function buildOrderStockPlan(
       if (currentState === "reserved") {
         return { line, mutation: "release", nextStockState: "released" };
       }
+      return { line, mutation: null, nextStockState: currentState };
     }
 
     return { line, mutation: null, nextStockState: currentState };
@@ -190,6 +202,8 @@ function getMovementKind(
     case "sell-available":
     case "sell-reserved":
       return "sold";
+    case "restore-sold":
+      return "adjusted";
     case "return-sold":
       return "returned";
     case "restock-returned":
