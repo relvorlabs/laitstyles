@@ -96,8 +96,8 @@ export function ControlRoomSidebar({
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/64">
                 Storefront
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-brand-sage-soft">
-                <span className="size-1.5 rounded-full bg-brand-sage-soft" />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-sidebar-primary">
+                <span className="size-1.5 rounded-full bg-sidebar-primary" />
                 Live
               </span>
             </div>
@@ -120,7 +120,7 @@ export function ControlRoomSidebar({
           </div>
 
           <div className="flex items-center gap-3 border-t border-sidebar-border px-1 pt-5">
-            <span className="grid size-10 place-items-center rounded-full bg-brand-sage-soft text-[12px] font-bold text-brand-ink">
+            <span className="grid size-10 place-items-center rounded-full bg-sidebar-primary text-[12px] font-bold text-sidebar-primary-foreground">
               SO
             </span>
             <span className="min-w-0 flex-1">
@@ -157,7 +157,7 @@ function SidebarLink({
       className={cn(
         "group flex min-h-14 items-center gap-3 rounded-[14px] px-3.5 text-[13.5px] transition-colors",
         active
-          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg hover:text-sidebar-primary-foreground"
+          ? "bg-sidebar-selected text-sidebar-selected-foreground shadow-laitstyle-sm hover:text-sidebar-selected-foreground"
           : "text-sidebar-foreground/74 hover:bg-sidebar-accent hover:text-sidebar-foreground",
       )}
       href={item.href}
@@ -167,7 +167,7 @@ function SidebarLink({
         className={cn(
           "grid size-9 shrink-0 place-items-center rounded-[11px]",
           active
-            ? "bg-accent text-accent-foreground"
+            ? "bg-sidebar-selected-foreground/12 text-sidebar-selected-foreground"
             : "bg-sidebar-accent text-sidebar-foreground/78",
         )}
       >
@@ -179,7 +179,7 @@ function SidebarLink({
           className={cn(
             "mt-0.5 block truncate text-[10.5px]",
             active
-              ? "text-sidebar-primary-foreground/62"
+              ? "text-sidebar-selected-foreground/68"
               : "text-sidebar-foreground/58",
           )}
         >
