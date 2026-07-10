@@ -31,7 +31,13 @@ export function generateVariantSku(
   existingReferences: string[] = [],
 ) {
   const base = normaliseSegment(baseReference) || "LS-VAR-PRODUCT";
-  const optionCode = codeFrom([label, size, colour].filter(Boolean).join(" ") || "Option", 5);
+  const structuredSegments = [
+    compactCode(colour, 3),
+    compactCode(size, 4),
+  ].filter(Boolean);
+  const optionCode = structuredSegments.length
+    ? structuredSegments.join("-")
+    : compactCode(label || "Option", 5) || "OPT";
   return makeUnique(`${base}-${optionCode}`, existingReferences);
 }
 
@@ -45,12 +51,7 @@ function makeUnique(candidate: string, references: string[]) {
 }
 
 function codeFrom(value: string, maxLength: number) {
-  const words = value
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean);
+  const words = wordsFrom(value);
 
   if (!words.length) return "NA";
   if (words.length > 1) {
@@ -59,6 +60,27 @@ function codeFrom(value: string, maxLength: number) {
   }
 
   return words.join("").slice(0, maxLength).padEnd(Math.min(maxLength, 3), "X");
+}
+
+function compactCode(value: string, maxLength: number) {
+  const words = wordsFrom(value);
+  if (!words.length) return "";
+  if (words.length > 1) {
+    return words
+      .map((word) => word[0])
+      .join("")
+      .slice(0, maxLength);
+  }
+  return words[0].slice(0, maxLength);
+}
+
+function wordsFrom(value: string) {
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
 function normaliseSegment(value: string) {
