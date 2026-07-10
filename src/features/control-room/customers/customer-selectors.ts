@@ -63,6 +63,7 @@ export const defaultCustomerQuery: CustomerQuery = {
 export function queryCustomers(
   state: ControlRoomState,
   query: CustomerQuery,
+  profiles = getCustomerRelationshipProfiles(state),
 ): CustomerRelationshipProfile[] {
   const productNames = new Map(
     state.products.map((product) => [product.id, product.name]),
@@ -73,7 +74,7 @@ export function queryCustomers(
     .split(/\s+/)
     .filter(Boolean);
 
-  return getCustomerRelationshipProfiles(state)
+  return profiles
     .filter((profile) => matchesView(profile, query.view))
     .filter(
       (profile) =>
@@ -108,8 +109,8 @@ export function getCustomerSavedViewCounts(
 
 export function getCustomerWorkspaceSummary(
   state: ControlRoomState,
+  profiles = getCustomerRelationshipProfiles(state),
 ): CustomerWorkspaceSummary {
-  const profiles = getCustomerRelationshipProfiles(state);
   return {
     totalCustomers: profiles.length,
     relationshipValue: profiles.reduce(
