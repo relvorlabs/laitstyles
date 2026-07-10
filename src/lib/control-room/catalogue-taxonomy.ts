@@ -108,7 +108,7 @@ export function applyRenameCatalogueTaxonomy(
 
   const item = { ...current, name, slug: createSlug(name), updatedAt: now };
   const products = state.products.map((product) =>
-    renameProductTaxonomy(product, current.kind, current.name, name),
+    renameProductTaxonomy(product, current.kind, current.name, name, now),
   );
 
   return ok({
@@ -196,7 +196,14 @@ function addSeedItem(
   const key = `${kind}:${normaliseName(name)}`;
   if (!name || seen.has(key)) return;
   seen.add(key);
-  items.push({ id: idFactory(kind), kind, name, slug: createSlug(name), createdAt: now, updatedAt: now });
+  items.push({
+    id: idFactory(kind),
+    kind,
+    name,
+    slug: createSlug(name),
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 function renameProductTaxonomy(
@@ -204,12 +211,13 @@ function renameProductTaxonomy(
   kind: CatalogueTaxonomyKind,
   previousName: string,
   nextName: string,
+  now: string,
 ): InventoryProduct {
   if (kind === "category" && product.category === previousName) {
-    return { ...product, category: nextName };
+    return { ...product, category: nextName, updatedAt: now };
   }
   if (kind === "collection" && product.collection === previousName) {
-    return { ...product, collection: nextName };
+    return { ...product, collection: nextName, updatedAt: now };
   }
   return product;
 }
@@ -235,7 +243,13 @@ function withTaxonomyActivity(
     asOf: now,
     catalogueTaxonomy,
     activities: [
-      { id: idFactory("activity"), kind: "inventory", title, detail, occurredAt: now },
+      {
+        id: idFactory("activity"),
+        kind: "inventory",
+        title,
+        detail,
+        occurredAt: now,
+      },
       ...state.activities,
     ],
   };
