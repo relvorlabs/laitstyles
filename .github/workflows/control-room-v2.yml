@@ -97,169 +97,87 @@ jobs:
             fi
             sleep 1
           done
-          curl --silent --fail http://127.0.0.1:3000/ >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/inventory >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/orders >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/holds >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/returns >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/customers >/dev/null
-          curl --silent --fail http://127.0.0.1:3000/admin/settings >/dev/null
 
+          routes=(
+            "/"
+            "/admin"
+            "/admin/inventory"
+            "/admin/inventory?presentation=table"
+            "/admin/orders"
+            "/admin/holds"
+            "/admin/returns"
+            "/admin/customers"
+            "/admin/settings"
+          )
+          for route in "${routes[@]}"; do
+            curl --silent --fail "http://127.0.0.1:3000${route}" >/dev/null
+          done
+
+          screenshot_routes=(
+            "overview|/admin"
+            "inventory-grid|/admin/inventory"
+            "inventory-table|/admin/inventory?presentation=table"
+            "orders|/admin/orders"
+            "holds|/admin/holds"
+            "returns|/admin/returns"
+            "customers|/admin/customers"
+            "settings|/admin/settings"
+          )
           for viewport in 375,812 768,1024 1280,800; do
             label=${viewport/,/x}
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1200 \
-              --full-page \
-              http://127.0.0.1:3000/admin \
-              "control-room-screenshots/active-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1200 \
-              --full-page \
-              'http://127.0.0.1:3000/admin?view=new-store' \
-              "control-room-screenshots/new-store-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/inventory \
-              "control-room-screenshots/inventory-grid-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/orders \
-              "control-room-screenshots/orders-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/holds \
-              "control-room-screenshots/holds-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/returns \
-              "control-room-screenshots/returns-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/customers \
-              "control-room-screenshots/customers-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              http://127.0.0.1:3000/admin/settings \
-              "control-room-screenshots/settings-${label}.png" 2>&1 | tee -a browser.log
+            for entry in "${screenshot_routes[@]}"; do
+              name=${entry%%|*}
+              route=${entry#*|}
+              "$PLAYWRIGHT" screenshot \
+                --browser chromium \
+                --viewport-size "$viewport" \
+                --wait-for-timeout 1500 \
+                --full-page \
+                "http://127.0.0.1:3000${route}" \
+                "control-room-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
+            done
           done
 
-          "$PLAYWRIGHT" screenshot \
-            --browser chromium \
-            --viewport-size "1280,800" \
-            --wait-for-timeout 1500 \
-            --full-page \
-            'http://127.0.0.1:3000/admin/inventory?presentation=table' \
-            "control-room-screenshots/inventory-table-1280x800.png" 2>&1 | tee -a browser.log
-
+          detail_routes=(
+            "inventory-detail|/admin/inventory?product=botanical-jeans"
+            "orders-detail|/admin/orders?order=LS-20481"
+            "holds-detail|/admin/holds?hold=hold-botanical"
+            "customers-detail|/admin/customers?customer=customer-amara"
+            "settings-team|/admin/settings?section=team"
+          )
           for viewport in 375,812 1280,800; do
             label=${viewport/,/x}
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              'http://127.0.0.1:3000/admin/inventory?product=botanical-jeans' \
-              "control-room-screenshots/inventory-detail-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              'http://127.0.0.1:3000/admin/orders?order=LS-20481' \
-              "control-room-screenshots/orders-detail-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              'http://127.0.0.1:3000/admin/holds?hold=hold-botanical' \
-              "control-room-screenshots/holds-detail-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              'http://127.0.0.1:3000/admin/customers?customer=customer-amara' \
-              "control-room-screenshots/customers-detail-${label}.png" 2>&1 | tee -a browser.log
-
-            "$PLAYWRIGHT" screenshot \
-              --browser chromium \
-              --viewport-size "$viewport" \
-              --wait-for-timeout 1500 \
-              --full-page \
-              'http://127.0.0.1:3000/admin/settings?section=team' \
-              "control-room-screenshots/settings-team-${label}.png" 2>&1 | tee -a browser.log
+            for entry in "${detail_routes[@]}"; do
+              name=${entry%%|*}
+              route=${entry#*|}
+              "$PLAYWRIGHT" screenshot \
+                --browser chromium \
+                --viewport-size "$viewport" \
+                --wait-for-timeout 1500 \
+                --full-page \
+                "http://127.0.0.1:3000${route}" \
+                "control-room-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
+            done
           done
 
-          cp scripts/control-room-phase3-check.mjs /tmp/control-room-browser/control-room-phase3-check.mjs
-          cp scripts/control-room-phase4-orders-check.mjs /tmp/control-room-browser/control-room-phase4-orders-check.mjs
-          cp scripts/control-room-phase4-holds-check.mjs /tmp/control-room-browser/control-room-phase4-holds-check.mjs
-          cp scripts/control-room-phase4-sales-returns-check.mjs /tmp/control-room-browser/control-room-phase4-sales-returns-check.mjs
-          cp scripts/control-room-phase5-customers-check.mjs /tmp/control-room-browser/control-room-phase5-customers-check.mjs
-          cp scripts/control-room-phase6-settings-check.mjs /tmp/control-room-browser/control-room-phase6-settings-check.mjs
-          cp scripts/control-room-phase7-theme-media-check.mjs /tmp/control-room-browser/control-room-phase7-theme-media-check.mjs
-          cp scripts/control-room-phase7-theme-routes-check.mjs /tmp/control-room-browser/control-room-phase7-theme-routes-check.mjs
-          cp scripts/control-room-phase8-check.mjs /tmp/control-room-browser/control-room-phase8-check.mjs
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase3-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase4-orders-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase4-holds-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase4-sales-returns-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase5-customers-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase6-settings-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase7-theme-media-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase7-theme-routes-check.mjs 2>&1 | tee -a browser.log
-          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-            node /tmp/control-room-browser/control-room-phase8-check.mjs 2>&1 | tee -a browser.log
+          scripts=(
+            "control-room-phase3-check.mjs"
+            "control-room-phase4-orders-check.mjs"
+            "control-room-phase4-holds-check.mjs"
+            "control-room-phase4-sales-returns-check.mjs"
+            "control-room-phase5-customers-check.mjs"
+            "control-room-phase6-settings-check.mjs"
+            "control-room-phase7-theme-media-check.mjs"
+            "control-room-phase7-theme-routes-check.mjs"
+            "control-room-phase8-check.mjs"
+            "control-room-inventory-catalogue-check.mjs"
+          )
+          for script in "${scripts[@]}"; do
+            cp "scripts/${script}" "/tmp/control-room-browser/${script}"
+            CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+              CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
+              node "/tmp/control-room-browser/${script}" 2>&1 | tee -a browser.log
+          done
 
           cleanup
           trap - EXIT
