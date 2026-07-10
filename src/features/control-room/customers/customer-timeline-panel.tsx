@@ -33,31 +33,29 @@ export function CustomerTimelinePanel({
         {events.map((event) => {
           const href = getEventHref(event);
           const content = (
-            <>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline">
-                      {customerTimelineLabels[event.kind]}
-                    </Badge>
-                    <span className="text-[10.5px] text-muted-foreground">
-                      {formatCustomerDateTime(event.occurredAt)}
-                    </span>
-                  </div>
-                  <h3 className="mt-3 text-sm font-semibold text-foreground">
-                    {event.title}
-                  </h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {event.detail}
-                  </p>
-                </div>
-                {href ? (
-                  <span className="shrink-0 text-[11px] font-semibold text-foreground underline underline-offset-4">
-                    Open record
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">
+                    {customerTimelineLabels[event.kind]}
+                  </Badge>
+                  <span className="text-[10.5px] text-muted-foreground">
+                    {formatCustomerDateTime(event.occurredAt)}
                   </span>
-                ) : null}
+                </div>
+                <h3 className="mt-3 break-words text-sm font-semibold text-foreground">
+                  {event.title}
+                </h3>
+                <p className="mt-1 break-words text-sm leading-6 text-muted-foreground">
+                  {event.detail}
+                </p>
               </div>
-            </>
+              {href ? (
+                <span className="shrink-0 text-[11px] font-semibold text-foreground underline underline-offset-4">
+                  Open record
+                </span>
+              ) : null}
+            </div>
           );
 
           return (
