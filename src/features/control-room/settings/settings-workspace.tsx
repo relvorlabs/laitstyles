@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   FormProvider,
   useForm,
@@ -22,6 +23,7 @@ import {
 } from "@/features/control-room/settings/settings-save-bar";
 import { SettingsSectionContent } from "@/features/control-room/settings/settings-section-content";
 import { SettingsStatusStrip } from "@/features/control-room/settings/settings-status-strip";
+import { buildSettingsHref } from "@/features/control-room/settings/settings-url";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
 import { storeSettingsInputSchema } from "@/lib/control-room/settings-schema";
@@ -36,6 +38,7 @@ export function SettingsWorkspace({
 }: {
   initialSection: SettingsSection;
 }) {
+  const pathname = usePathname();
   const { state, saveStoreSettings } = useControlRoom();
   const persistedSettings =
     state.settings ?? createDefaultStoreSettings(state.asOf);
@@ -95,9 +98,7 @@ export function SettingsWorkspace({
     window.history.replaceState(
       null,
       "",
-      section === "identity"
-        ? "/admin/settings"
-        : `/admin/settings?section=${section}`,
+      buildSettingsHref(pathname, section),
     );
   }
 
