@@ -38,6 +38,7 @@ const roleDescriptions: Record<TeamRole, string> = {
 export function TeamSection() {
   const {
     control,
+    register,
     formState: { errors },
   } = useFormContext<SaveStoreSettingsInput>();
   const members = useFieldArray({
@@ -96,8 +97,16 @@ export function TeamSection() {
           const current = team?.members?.[index] ?? member;
           const base = `team.members.${index}` as const;
           const soleOwner = current.role === "owner" && ownerCount <= 1;
+          const statusLabel =
+            current.status === "active" ? "Current team member" : "Invite not sent";
           return (
             <Card className="gap-5 p-4 sm:p-5" key={member.fieldKey}>
+              <input
+                {...register(
+                  `${base}.status` as FieldPath<SaveStoreSettingsInput>,
+                )}
+                type="hidden"
+              />
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -109,9 +118,7 @@ export function TeamSection() {
                         current.status === "active" ? "secondary" : "outline"
                       }
                     >
-                      {current.status === "active"
-                        ? "Current team record"
-                        : "Invite not sent"}
+                      {statusLabel}
                     </Badge>
                   </div>
                   <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
@@ -149,12 +156,15 @@ export function TeamSection() {
                   name={`${base}.role` as FieldPath<SaveStoreSettingsInput>}
                   options={roleOptions}
                 />
-                <SettingsTextField
-                  description="Shows whether this person already belongs to the store record."
-                  label="Team status"
-                  name={`${base}.status` as FieldPath<SaveStoreSettingsInput>}
-                  readOnly
-                />
+                <div>
+                  <p className="text-sm font-medium">Team status</p>
+                  <div className="mt-2 flex h-11 items-center rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
+                    {statusLabel}
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    Shows whether this person already belongs to the store record.
+                  </p>
+                </div>
                 <div className="sm:col-span-2">
                   <SettingsTextareaField
                     description="Describe the work this person is expected to own or approve."
