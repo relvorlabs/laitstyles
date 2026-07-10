@@ -33,7 +33,7 @@ const checks = [
   {
     label: "raw inline colour style",
     pattern: new RegExp(
-      `(?:background|backgroundColor|borderColor|color|fill|stroke)\\s*:\\s*["'\\`]${rawColour}`,
+      `(?:background|backgroundColor|borderColor|color|fill|stroke)\\s*:\\s*["']${rawColour}`,
       "g",
     ),
   },
