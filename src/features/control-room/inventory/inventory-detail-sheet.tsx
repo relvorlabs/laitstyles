@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductMediaPanel } from "@/features/control-room/inventory/inventory-detail-media";
+import { InventoryProductLifecycleActions } from "@/features/control-room/inventory/inventory-product-lifecycle-actions";
 import { ProductPricingPanel } from "@/features/control-room/inventory/inventory-detail-pricing";
 import {
   ProductActivityPanel,
@@ -131,6 +132,12 @@ export function InventoryDetailSheet({
                   Edit product
                 </Button>
               </div>
+              <InventoryProductLifecycleActions
+                lifecycle={item.product.lifecycle}
+                onDeleted={() => onOpenChange(false)}
+                productId={productId}
+                productName={item.product.name}
+              />
             </SheetHeader>
 
             <Tabs
