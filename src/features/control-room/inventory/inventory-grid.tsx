@@ -8,6 +8,7 @@ type InventoryGridProps = {
   selectedIds: Set<string>;
   onSelectedChange: (productId: string, selected: boolean) => void;
   onOpen: (productId: string) => void;
+  onOpenMedia: (productId: string, mediaId: string) => void;
   className?: string;
 };
 
@@ -16,20 +17,23 @@ export function InventoryGrid({
   selectedIds,
   onSelectedChange,
   onOpen,
+  onOpenMedia,
   className,
 }: InventoryGridProps) {
   return (
     <div
       className={
         className ??
-        "grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+        "grid gap-3 md:grid-cols-3 xl:grid-cols-5 min-[1720px]:grid-cols-6"
       }
+      data-inventory-grid
     >
       {items.map((item) => (
         <InventoryProductCard
           item={item}
           key={item.product.id}
           onOpen={() => onOpen(item.product.id)}
+          onOpenMedia={() => onOpenMedia(item.product.id, item.coverImage.id)}
           onSelectedChange={(selected) =>
             onSelectedChange(item.product.id, selected)
           }
