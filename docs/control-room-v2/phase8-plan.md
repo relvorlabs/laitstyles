@@ -4,7 +4,7 @@
 
 **Batches 8A–8F implemented. Consolidated executable and visual acceptance blocked.**
 
-Application implementation head: `943424f606c5a22eabaff68b832bb6cf4a87376f`.
+Application implementation head: `a9055d65bc205511a220949cff055e662782b5d1`.
 
 Phase 8 was extended by the user with a focused Inventory catalogue-hardening batch after the first end-to-end implementation. This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted, does not resolve the missing workflow execution, and does not resolve the branch’s divergence from `main`.
 
@@ -17,7 +17,8 @@ The Inventory model must remain suitable for a single-seller fashion store:
 - a unique piece represents one physical item and one unique internal reference;
 - a stocked product represents interchangeable units under one catalogue SKU and quantity, such as 50 matching Adidas jeans;
 - a variant product gives every sellable size, colour or option combination its own SKU and quantity;
-- operational history must never be erased merely to remove a product from sale.
+- operational history must never be erased merely to remove a product from sale;
+- optional cost data must remain unknown when it was not recorded rather than being silently converted to zero.
 
 ## Implemented batches
 
@@ -77,13 +78,16 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - Reduced card height through a shorter `5/6` image ratio, fewer stacked metadata rows, compact stock figures and one aligned footer action.
 - Added shared URL-backed pagination for grid, mobile cards and desktop table.
 - Added 10, 15, 25 and 50 item page sizes, visible result ranges, page controls and page resets after filtering.
+- Uses the presentation-neutral label **Items per page** rather than table-only “rows”.
 
 #### Managed categories and collections
 
 - Added one session-owned catalogue taxonomy for categories and collections.
 - Existing product categories and collections hydrate into managed choices.
 - Added create, rename and delete management from Inventory and the product editor.
-- Rename cascades to connected product records.
+- Creating a group from an open product form selects it immediately.
+- Renaming a selected group updates the open product form instead of leaving a stale value.
+- Rename cascades to connected product records and refreshes their `updatedAt` timestamps.
 - Delete is blocked while a category or collection is in use.
 - Category and collection are dropdowns in product forms and remain filterable in Inventory.
 
@@ -92,7 +96,7 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - Added deterministic collision-aware SKU generation.
 - Unique pieces receive one unique internal reference.
 - Stocked catalogue products use one SKU with a received quantity for interchangeable units.
-- Variant option combinations receive independent SKUs and quantities.
+- Variant option combinations receive independent, readable SKUs such as `...-IND-M` for Indigo / M.
 - Stocked and variant forms display total received and available-stock context.
 - Existing committed quantities cannot be silently reduced through product editing.
 
@@ -103,15 +107,17 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - Remote URLs can be edited; images can be removed and reordered.
 - Exactly one image is the featured storefront/grid cover.
 - Detail and defect images remain distinct.
-- Image descriptions, duplicate detection and URL validation are enforced before publishing.
+- Image descriptions, case-insensitive duplicate detection and URL validation are enforced before publishing.
+- Multi-file additions stop safely at the limit, revoke rejected object URLs and reset the file input for re-selection.
 
 #### Pricing
 
-- Replaced unexplained “acquisition price” wording with optional **Unit cost** and plain-language guidance.
+- Replaced unexplained “acquisition price” wording with optional **Unit cost** and plain-language guidance in the editor, review and product detail.
 - Selling price remains the customer-facing source of truth.
 - Compare-at price is optional and must be higher than selling price.
 - Added a discount-percentage calculator that derives selling price from compare-at price without storing a second conflicting discount source.
 - Added gross-margin and loss warnings while keeping unit cost private.
+- Unknown unit cost remains `null`; a genuine zero unit cost remains `0`.
 
 #### Safe product CRUD
 
@@ -123,11 +129,11 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 #### Added coverage
 
-- SKU generation and collision tests.
-- Category/collection create, rename, cascade, duplicate and in-use deletion tests.
+- SKU generation, readable option codes and collision tests.
+- Category/collection create, rename, selected-form synchronisation, cascade, timestamp, duplicate and in-use deletion tests.
 - Product archive, restore, protected deletion and unused-draft deletion tests.
-- Image, pricing and variant validation edge-case tests.
-- Browser coverage for taxonomy CRUD, product dropdowns, SKU generation, multi-image preview, cover selection, stock preview, discount calculation, category filtering and grid/table pagination.
+- Image, optional-cost, pricing and variant validation edge-case tests.
+- Browser coverage for taxonomy CRUD, active-editor rename synchronisation, product dropdowns, SKU generation, multi-image preview, cover selection, stock preview, discount calculation, category filtering and grid/table pagination.
 
 ## Acceptance criteria state
 
@@ -141,9 +147,10 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - [x] Compact professional card anatomy implemented
 - [x] Grid and table pagination implemented
 - [x] Category and collection dropdown CRUD implemented
+- [x] Active editor remains consistent after category or collection create/rename/delete
 - [x] SKU and stock-mode semantics implemented
 - [x] Multi-image URL/file CRUD and featured-cover selection implemented
-- [x] Pricing terminology and discount computation implemented
+- [x] Pricing terminology, null-cost truth and discount computation implemented
 - [x] Safe product archive, restore and delete behavior implemented
 - [x] Consolidated acceptance scripts and screenshots wired
 - [ ] ESLint executed on the final Phase 8 head
@@ -166,6 +173,6 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 ## Blocker and gate
 
-GitHub has not produced executable final-head evidence for the private-repository workflow, and no local worktree is available in the current environment. Exact evidence remains recorded in `docs/control-room-v2/phase8-blocker.md`.
+GitHub has produced no pull-request workflow run and no combined commit status for application head `a9055d65bc205511a220949cff055e662782b5d1`. The available execution environment also has no usable local repository worktree. Exact evidence is recorded in `docs/control-room-v2/phase8-blocker.md`.
 
 Phase 8 is implemented but not accepted. Phase 9 must not start until the consolidated Phase 8 gate passes unless the user explicitly overrides it. PR #4 remains draft and non-review-ready.
