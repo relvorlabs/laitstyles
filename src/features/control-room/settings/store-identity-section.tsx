@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
+import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -9,6 +10,8 @@ import {
 } from "@/features/control-room/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+
+const approvedLogoPath = "/brand/laitstyle-symbol.svg";
 
 export function StoreIdentitySection() {
   const { control } = useFormContext<SaveStoreSettingsInput>();
@@ -76,10 +79,10 @@ export function StoreIdentitySection() {
           type="url"
         />
         <SettingsTextField
-          description="Use a known image address for the preview. Direct logo upload is not available yet."
+          description="The approved woven mark is used by default. Direct logo upload is not available yet."
           label="Logo image"
           name="identity.logoPreviewUrl"
-          placeholder="/logo.svg"
+          placeholder={approvedLogoPath}
         />
       </div>
     </SettingsSectionFrame>
@@ -96,6 +99,7 @@ function StorefrontIdentityPreview({
     identity?.description?.trim() ||
     "Your store description will appear here as customers browse.";
   const initial = name.slice(0, 1).toUpperCase();
+  const usesApprovedMark = identity?.logoPreviewUrl === approvedLogoPath;
   const contact =
     identity?.contactEmail?.trim() ||
     identity?.contactPhone?.trim() ||
@@ -116,8 +120,16 @@ function StorefrontIdentityPreview({
       </div>
       <div className="p-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-background font-serif text-xl">
-            {initial}
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground">
+            {usesApprovedMark ? (
+              <LaitstyleSymbol
+                aria-hidden="true"
+                className="h-10 w-7"
+                focusable="false"
+              />
+            ) : (
+              <span className="font-serif text-xl">{initial}</span>
+            )}
           </div>
           <div className="min-w-0">
             <p className="truncate font-serif text-xl font-medium">{name}</p>
