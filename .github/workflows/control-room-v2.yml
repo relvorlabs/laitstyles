@@ -59,6 +59,13 @@ jobs:
           set -o pipefail
           pnpm exec vitest run --passWithNoTests 2>&1 | tee tests.log
 
+      - name: Theme token audit
+        if: always()
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/control-room-phase7-theme-audit.mjs 2>&1 | tee theme-audit.log
+
       - name: Production build
         if: always()
         shell: bash
@@ -90,6 +97,7 @@ jobs:
             fi
             sleep 1
           done
+          curl --silent --fail http://127.0.0.1:3000/ >/dev/null
           curl --silent --fail http://127.0.0.1:3000/admin >/dev/null
           curl --silent --fail http://127.0.0.1:3000/admin/inventory >/dev/null
           curl --silent --fail http://127.0.0.1:3000/admin/orders >/dev/null
@@ -222,6 +230,7 @@ jobs:
           cp scripts/control-room-phase4-sales-returns-check.mjs /tmp/control-room-browser/control-room-phase4-sales-returns-check.mjs
           cp scripts/control-room-phase5-customers-check.mjs /tmp/control-room-browser/control-room-phase5-customers-check.mjs
           cp scripts/control-room-phase6-settings-check.mjs /tmp/control-room-browser/control-room-phase6-settings-check.mjs
+          cp scripts/control-room-phase7-theme-media-check.mjs /tmp/control-room-browser/control-room-phase7-theme-media-check.mjs
           CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
             CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
             node /tmp/control-room-browser/control-room-phase3-check.mjs 2>&1 | tee -a browser.log
@@ -240,6 +249,9 @@ jobs:
           CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
             CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
             node /tmp/control-room-browser/control-room-phase6-settings-check.mjs 2>&1 | tee -a browser.log
+          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
+            node /tmp/control-room-browser/control-room-phase7-theme-media-check.mjs 2>&1 | tee -a browser.log
 
           cleanup
           trap - EXIT
@@ -261,6 +273,7 @@ jobs:
             lint.log
             typescript.log
             tests.log
+            theme-audit.log
             build.log
             browser.log
             react-doctor.log
