@@ -53,6 +53,13 @@ const returnsItem: ControlRoomNavigationItem = {
   description: "Requests, inspection, refund state and stock disposition.",
 };
 
+const customersItem: ControlRoomNavigationItem = {
+  label: "Customers",
+  href: "/admin/customers",
+  icon: Store01Icon,
+  description: "Relationships, spend, follow-up and delivery context.",
+};
+
 export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "Control room",
@@ -65,6 +72,10 @@ export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "Sales",
     items: [ordersItem, holdsItem, returnsItem],
+  },
+  {
+    label: "People",
+    items: [customersItem],
   },
 ];
 
