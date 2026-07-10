@@ -12,25 +12,29 @@ const notificationOptions = [
     name: "notifications.newOrders" as const,
     key: "newOrders" as const,
     label: "New orders",
-    description: "Surface new customer and offline orders that need payment or fulfilment work.",
+    description:
+      "Surface new customer and offline orders that need payment or fulfilment work.",
   },
   {
     name: "notifications.expiringHolds" as const,
     key: "expiringHolds" as const,
     label: "Expiring holds",
-    description: "Flag reservations that are close to release or need a customer decision.",
+    description:
+      "Flag reservations that are close to release or need a customer decision.",
   },
   {
     name: "notifications.lowStock" as const,
     key: "lowStock" as const,
     label: "Low stock",
-    description: "Highlight stocked products that reach the store warning threshold.",
+    description:
+      "Highlight stocked products that reach the store warning threshold.",
   },
   {
     name: "notifications.paymentIssues" as const,
     key: "paymentIssues" as const,
     label: "Payment issues",
-    description: "Surface pending, failed or disputed payment states that need review.",
+    description:
+      "Surface pending, failed or disputed payment states that need review.",
   },
   {
     name: "notifications.deliveryExceptions" as const,
@@ -63,7 +67,7 @@ export function NotificationsSection() {
         ))}
       </div>
       <div className="rounded-xl border border-border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground">
-        These choices control which events should be surfaced inside the Control Room. Email, SMS, push and WhatsApp delivery channels are not connected.
+        These choices decide what should appear inside the Control Room. They do not send email, SMS, push or WhatsApp messages.
       </div>
     </SettingsSectionFrame>
   );
@@ -103,7 +107,7 @@ function NotificationPreview({
         })}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        The store can keep calm defaults while still making high-risk sales and fulfilment work visible.
+        Keep routine work calm while still surfacing sales and fulfilment risks that need attention.
       </p>
     </Card>
   );
