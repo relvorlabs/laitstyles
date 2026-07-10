@@ -49,7 +49,7 @@ export function convertEditorValuesToProduct(
     media,
     price: values.sellingPrice ?? 0,
     referencePrice: values.referencePrice,
-    cost: values.cost ?? 0,
+    cost: values.cost,
     lifecycle,
     publication,
     channels: values.channels,
