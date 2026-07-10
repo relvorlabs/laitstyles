@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, Menu, Search, UserRound } from "lucide-react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { CartSheet } from "@/components/layout/cart-sheet";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Input } from "@/components/ui/input";
 import {
   Sheet,
@@ -20,13 +21,17 @@ export function Header() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-background/86 backdrop-blur-[14px] max-md:hidden">
         <div className="mx-auto flex max-w-[1240px] items-center gap-7 px-8 py-4">
-          <Link href="/" aria-label="Laitstyle home">
+          <Link aria-label="Laitstyle home" href="/">
             <BrandMark />
           </Link>
           <nav className="ml-2 flex items-center gap-[26px]">
             {nav.map((item) => (
               <Link
-                key={item}
+                className={
+                  item === "Shop New In"
+                    ? "text-[14px] font-medium"
+                    : "text-[14px] text-muted-foreground"
+                }
                 href={
                   item === "Shop New In"
                     ? "/#justin"
@@ -34,11 +39,7 @@ export function Header() {
                       ? "/#journal"
                       : "#"
                 }
-                className={
-                  item === "Shop New In"
-                    ? "text-[14px] font-medium"
-                    : "text-[14px] text-muted-foreground"
-                }
+                key={item}
               >
                 {item}
               </Link>
@@ -46,18 +47,19 @@ export function Header() {
           </nav>
           <div className="flex-1" />
           <label className="flex w-[230px] items-center gap-2 rounded-full border border-border bg-card px-4 py-[9px]">
-            <Search className="text-[#9A988F]" aria-hidden="true" />
+            <Search aria-hidden="true" className="text-muted-foreground" />
             <Input
               aria-label="Search"
-              placeholder="Search one-of-one pieces"
               className="h-auto border-0 bg-transparent p-0 text-[13.5px] shadow-none focus-visible:ring-0"
+              placeholder="Search one-of-one pieces"
             />
           </label>
-          <div className="flex items-center gap-4">
-            <Link href="#" aria-label="Wishlist" className="flex p-1">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link aria-label="Wishlist" className="flex p-1" href="#">
               <Heart />
             </Link>
-            <Link href="#" aria-label="Account" className="flex p-1">
+            <Link aria-label="Account" className="flex p-1" href="#">
               <UserRound />
             </Link>
             <CartSheet />
@@ -74,16 +76,19 @@ export function Header() {
             >
               <Menu />
             </SheetTrigger>
-            <SheetContent side="left" className="w-[78%] max-w-[320px] gap-0 bg-card p-0">
+            <SheetContent
+              className="w-[78%] max-w-[320px] gap-0 bg-card p-0"
+              side="left"
+            >
               <SheetHeader className="flex-row items-center justify-between border-b border-border p-4">
-                <SheetTitle className="text-[14px] font-semibold tracking-[.24em]">
-                  LAITSTYLE
+                <SheetTitle>
+                  <BrandMark compact />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col px-1.5 py-2">
                 {nav.map((item) => (
                   <Link
-                    key={item}
+                    className="border-b border-secondary px-3.5 py-3.5 text-[16px] last:border-b-0"
                     href={
                       item === "Shop New In"
                         ? "/#justin"
@@ -91,7 +96,7 @@ export function Header() {
                           ? "/#journal"
                           : "#"
                     }
-                    className="border-b border-secondary px-3.5 py-3.5 text-[16px] last:border-b-0"
+                    key={item}
                   >
                     {item}
                   </Link>
@@ -99,11 +104,12 @@ export function Header() {
               </nav>
             </SheetContent>
           </Sheet>
-          <Link href="/" aria-label="Laitstyle home">
+          <Link aria-label="Laitstyle home" href="/">
             <BrandMark compact />
           </Link>
-          <div className="flex items-center gap-3.5">
-            <Link href="#" aria-label="Account" className="flex p-0.5">
+          <div className="flex items-center gap-2.5">
+            <ThemeToggle className="size-10" />
+            <Link aria-label="Account" className="flex p-0.5" href="#">
               <UserRound />
             </Link>
             <CartSheet compact />
@@ -111,11 +117,11 @@ export function Header() {
         </div>
         <div className="px-4 pb-3">
           <label className="flex items-center gap-2 rounded-full border border-border bg-card px-[15px] py-[9px]">
-            <Search className="text-[#9A988F]" aria-hidden="true" />
+            <Search aria-hidden="true" className="text-muted-foreground" />
             <Input
               aria-label="Search"
-              placeholder="Search one-of-one pieces"
               className="h-auto border-0 bg-transparent p-0 text-[14px] shadow-none focus-visible:ring-0"
+              placeholder="Search one-of-one pieces"
             />
           </label>
         </div>
