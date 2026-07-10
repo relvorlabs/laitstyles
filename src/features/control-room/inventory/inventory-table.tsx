@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Expand } from "lucide-react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ type InventoryTableProps = {
   onSelectedChange: (productId: string, selected: boolean) => void;
   onSelectVisible: (selected: boolean) => void;
   onOpen: (productId: string) => void;
+  onOpenMedia: (productId: string, mediaId: string) => void;
 };
 
 export function InventoryTable({
@@ -37,6 +39,7 @@ export function InventoryTable({
   onSelectedChange,
   onSelectVisible,
   onOpen,
+  onOpenMedia,
 }: InventoryTableProps) {
   const visibleSelected = items.filter((item) =>
     selectedIds.has(item.product.id),
@@ -48,7 +51,7 @@ export function InventoryTable({
     <div className="hidden overflow-hidden rounded-[18px] border border-border bg-card lg:block">
       <Table>
         <TableHeader>
-          <TableRow className="bg-secondary/55 hover:bg-secondary/55">
+          <TableRow className="bg-surface-sunken hover:bg-surface-sunken">
             <TableHead className="w-12 px-4">
               <Checkbox
                 aria-label="Select all visible products"
@@ -57,7 +60,7 @@ export function InventoryTable({
                 onCheckedChange={onSelectVisible}
               />
             </TableHead>
-            <TableHead className="min-w-[280px]">Product</TableHead>
+            <TableHead className="min-w-[300px]">Product</TableHead>
             <TableHead className="hidden xl:table-cell">Mode</TableHead>
             <TableHead className="text-right">Available</TableHead>
             <TableHead className="hidden text-right xl:table-cell">
@@ -86,34 +89,44 @@ export function InventoryTable({
                     aria-label={`Select ${item.product.name}`}
                     checked={selected}
                     onCheckedChange={(checked) =>
-                      onSelectedChange(item.product.id, checked)
+                      onSelectedChange(item.product.id, Boolean(checked))
                     }
                   />
                 </TableCell>
                 <TableCell>
-                  <button
-                    className="flex min-w-0 items-center gap-3 text-left"
-                    onClick={() => onOpen(item.product.id)}
-                    type="button"
-                  >
-                    <span className="relative aspect-[4/5] w-12 shrink-0 overflow-hidden rounded-[9px] bg-secondary">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <button
+                      aria-label={`Preview images for ${item.product.name}`}
+                      className="group/media relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded-[10px] bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() =>
+                        onOpenMedia(item.product.id, item.coverImage.id)
+                      }
+                      type="button"
+                    >
                       <Image
                         alt={item.coverImage.alt}
-                        className="object-cover"
+                        className="object-cover transition-transform group-hover/media:scale-105 motion-reduce:transition-none"
                         fill
-                        sizes="48px"
+                        sizes="56px"
                         src={item.coverImage.url}
                       />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold">
+                      <span className="absolute inset-0 grid place-items-center bg-overlay/0 text-surface-inverse-foreground opacity-0 transition-opacity group-hover/media:bg-overlay/55 group-hover/media:opacity-100 group-focus-visible/media:bg-overlay/55 group-focus-visible/media:opacity-100">
+                        <Expand aria-hidden="true" className="size-4" />
+                      </span>
+                    </button>
+                    <button
+                      className="min-w-0 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => onOpen(item.product.id)}
+                      type="button"
+                    >
+                      <span className="block truncate text-[13.5px] font-semibold">
                         {item.product.name}
                       </span>
-                      <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
+                      <span className="mt-1 block truncate text-[11px] text-muted-foreground">
                         {item.reference} · {item.product.category} · {item.product.brand}
                       </span>
-                    </span>
-                  </button>
+                    </button>
+                  </div>
                 </TableCell>
                 <TableCell className="hidden text-[11.5px] text-muted-foreground xl:table-cell">
                   {inventoryModeLabels[item.product.inventoryMode]}
