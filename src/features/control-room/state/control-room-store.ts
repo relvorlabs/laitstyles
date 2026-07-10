@@ -1,3 +1,12 @@
+import {
+  applyCreateCatalogueTaxonomy,
+  applyDeleteCatalogueTaxonomy,
+  applyRenameCatalogueTaxonomy,
+  hydrateCatalogueTaxonomy,
+  type CatalogueTaxonomyActionError,
+  type CatalogueTaxonomyActionSuccess,
+  type CatalogueTaxonomyInput,
+} from "@/lib/control-room/catalogue-taxonomy";
 import { applyAddCustomerNote } from "@/lib/control-room/customer-actions";
 import { hydrateCustomerProfiles } from "@/lib/control-room/customer-profile-seed";
 import type {
@@ -69,6 +78,10 @@ type StoreSettingsResult = Result<
   StoreSettingsActionSuccess,
   StoreSettingsActionError
 >;
+type CatalogueTaxonomyResult = Result<
+  CatalogueTaxonomyActionSuccess,
+  CatalogueTaxonomyActionError
+>;
 
 export type ControlRoomStore = {
   getSnapshot: () => ControlRoomState;
@@ -77,6 +90,12 @@ export type ControlRoomStore = {
     values: ProductEditorValues,
     intent: ProductEditorIntent,
   ) => ProductActionResult;
+  createCatalogueTaxonomy: (input: CatalogueTaxonomyInput) => CatalogueTaxonomyResult;
+  renameCatalogueTaxonomy: (
+    taxonomyId: string,
+    name: string,
+  ) => CatalogueTaxonomyResult;
+  deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
   transitionIntake: (
     productId: string,
     nextStage: IntakeStage,
@@ -132,6 +151,19 @@ export function createControlRoomStore(
         applyProductEditorAction(state, values, intent, getNow()),
       );
     },
+    createCatalogueTaxonomy(input) {
+      return commitAction(applyCreateCatalogueTaxonomy(state, input, getNow()));
+    },
+    renameCatalogueTaxonomy(taxonomyId, name) {
+      return commitAction(
+        applyRenameCatalogueTaxonomy(state, taxonomyId, name, getNow()),
+      );
+    },
+    deleteCatalogueTaxonomy(taxonomyId) {
+      return commitAction(
+        applyDeleteCatalogueTaxonomy(state, taxonomyId, getNow()),
+      );
+    },
     transitionIntake(productId, nextStage) {
       return commitAction(
         applyIntakeTransition(state, productId, nextStage, getNow()),
@@ -182,6 +214,12 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
 
   return {
     ...initialState,
+    catalogueTaxonomy: hydrateCatalogueTaxonomy(
+      initialState.products,
+      initialState.catalogueTaxonomy,
+      initialState.asOf,
+      idFactory,
+    ),
     customers: hydrateCustomerProfiles(initialState.customers),
     settings:
       initialState.settings ?? createDefaultStoreSettings(initialState.asOf),
