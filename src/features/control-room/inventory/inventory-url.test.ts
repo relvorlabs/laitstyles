@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
+import {
+  buildInventoryHref,
+  defaultInventoryPageSize,
+} from "@/features/control-room/inventory/inventory-url";
 import { defaultInventoryQuery } from "@/lib/control-room/inventory-selectors";
 
 describe("Inventory URL state", () => {
@@ -9,11 +12,13 @@ describe("Inventory URL state", () => {
         query: defaultInventoryQuery,
         presentation: "grid",
         productId: null,
+        page: 1,
+        pageSize: defaultInventoryPageSize,
       }),
     ).toBe("/admin/inventory");
   });
 
-  it("serializes the complete shareable workspace state", () => {
+  it("serializes filters, presentation, pagination and open product", () => {
     expect(
       buildInventoryHref("/admin/inventory", {
         query: {
@@ -29,9 +34,11 @@ describe("Inventory URL state", () => {
         },
         presentation: "table",
         productId: "ribbed-studio-tank",
+        page: 3,
+        pageSize: 25,
       }),
     ).toBe(
-      "/admin/inventory?view=low-stock&q=cream+tank&mode=variant&stock=low-stock&category=Tops&collection=Daily+Form&channel=storefront&sort=stock-asc&presentation=table&product=ribbed-studio-tank",
+      "/admin/inventory?view=low-stock&q=cream+tank&mode=variant&stock=low-stock&category=Tops&collection=Daily+Form&channel=storefront&sort=stock-asc&presentation=table&page=3&pageSize=25&product=ribbed-studio-tank",
     );
   });
 });
