@@ -1,5 +1,6 @@
 import type { ReturnWorkspaceSummary } from "@/features/control-room/returns/return-types";
 import { formatCompactNaira } from "@/lib/control-room/formatters";
+import { cn } from "@/lib/utils";
 
 export function ReturnsSummaryStrip({
   summary,
@@ -21,7 +22,12 @@ export function ReturnsSummaryStrip({
     >
       {metrics.map(([label, value], index) => (
         <div
-          className="min-w-0 border-border p-4 not-last:border-r max-sm:nth-[2n]:border-r-0 max-sm:nth-[n+3]:border-t sm:p-5"
+          className={cn(
+            "min-w-0 border-border p-4 sm:border-r sm:p-5",
+            index % 2 === 0 && index < 4 ? "border-r" : "",
+            index >= 2 ? "border-t sm:border-t-0" : "",
+            index === 4 ? "col-span-2 border-t sm:col-span-1 sm:border-r-0 sm:border-t-0" : "",
+          )}
           key={label}
         >
           <p className="truncate font-serif text-[24px] font-medium tabular-nums">
