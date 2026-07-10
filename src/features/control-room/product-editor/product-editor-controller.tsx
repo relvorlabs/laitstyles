@@ -66,11 +66,15 @@ export function ProductEditorControllerProvider({
       {result ? (
         <Alert
           aria-live="polite"
-          className="fixed right-4 bottom-4 z-[80] w-[min(92vw,420px)] border-[#CBD2BA] bg-[#E7EBDD] text-[#4A5540] shadow-xl"
+          className="fixed bottom-4 right-4 z-[80] w-[min(92vw,420px)] border-success/35 bg-card text-card-foreground shadow-xl"
         >
-          <ControlRoomIcon icon={CheckmarkCircle02Icon} size={18} />
+          <ControlRoomIcon
+            className="text-success"
+            icon={CheckmarkCircle02Icon}
+            size={18}
+          />
           <AlertTitle>{result.message}</AlertTitle>
-          <AlertDescription className="text-[#59644A]">
+          <AlertDescription className="text-muted-foreground">
             Catalogue views now use this session-only product record. Refreshing resets the prototype.
           </AlertDescription>
           <AlertAction>
