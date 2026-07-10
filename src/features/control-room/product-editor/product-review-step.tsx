@@ -110,8 +110,8 @@ export function ProductReviewStep({
           }
           supporting={
             typeof values.cost === "number"
-              ? `${formatNaira(values.cost)} acquisition cost`
-              : "Cost not recorded"
+              ? `${formatNaira(values.cost)} unit cost`
+              : "Unit cost not recorded"
           }
         />
         <ReviewCard
