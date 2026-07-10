@@ -12,6 +12,7 @@ import {
   createControlRoomStore,
   type ControlRoomStore,
 } from "@/features/control-room/state/control-room-store";
+import { ControlRoomRepositoryProvider } from "@/lib/control-room/data/repository-context";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
 const ControlRoomContext = createContext<ControlRoomStore | null>(null);
@@ -27,7 +28,9 @@ export function ControlRoomProvider({
 
   return (
     <ControlRoomContext.Provider value={store}>
-      {children}
+      <ControlRoomRepositoryProvider store={store}>
+        {children}
+      </ControlRoomRepositoryProvider>
     </ControlRoomContext.Provider>
   );
 }
