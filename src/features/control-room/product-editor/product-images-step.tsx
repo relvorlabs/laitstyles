@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import {
   ArrowDown01Icon,
   ArrowUp01Icon,
@@ -22,8 +22,11 @@ import { getProductEditorFieldError } from "@/features/control-room/product-edit
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
+const MAX_IMAGES = 12;
+
 export function ProductImagesStep() {
   const [imageUrl, setImageUrl] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
   const {
     control,
     getValues,
@@ -31,6 +34,7 @@ export function ProductImagesStep() {
     setValue,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
+  const watchedMedia = useWatch({ control, name: "media" }) ?? [];
   const { fields, append, move, replace } = useFieldArray({
     control,
     name: "media",
@@ -40,6 +44,14 @@ export function ProductImagesStep() {
 
   function appendPreview(url: string, source: "local-preview" | "url") {
     const existing = getValues("media");
+    if (existing.length >= MAX_IMAGES) {
+      setFeedback(`A product can have up to ${MAX_IMAGES} images.`);
+      return;
+    }
+    if (existing.some((item) => item.url.trim() === url.trim())) {
+      setFeedback("That image is already in this product record.");
+      return;
+    }
     append({
       id: `media-${crypto.randomUUID()}`,
       url,
@@ -50,11 +62,16 @@ export function ProductImagesStep() {
       position: existing.length,
       source,
     });
+    setFeedback("Image added. Add a description and choose the featured cover.");
   }
 
   function addFiles(files: FileList | null) {
     if (!files?.length) return;
     for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        setFeedback(`${file.name} is not an image.`);
+        continue;
+      }
       appendPreview(URL.createObjectURL(file), "local-preview");
     }
   }
@@ -62,6 +79,13 @@ export function ProductImagesStep() {
   function addUrlPreview() {
     const value = imageUrl.trim();
     if (!value) return;
+    try {
+      const parsed = new URL(value);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error();
+    } catch {
+      setFeedback("Enter a complete http or https image URL.");
+      return;
+    }
     appendPreview(value, "url");
     setImageUrl("");
   }
@@ -77,6 +101,7 @@ export function ProductImagesStep() {
             : item.kind,
     }));
     replace(next);
+    setFeedback("Featured cover updated.");
   }
 
   function removePreview(index: number) {
@@ -91,6 +116,16 @@ export function ProductImagesStep() {
       next[0] = { ...next[0], kind: "cover" };
     }
     replace(next.map((item, position) => ({ ...item, position })));
+    setFeedback("Image removed. The first remaining image becomes cover when needed.");
+  }
+
+  function movePreview(from: number, to: number) {
+    move(from, to);
+    const reordered = getValues("media").map((item, position) => ({
+      ...item,
+      position,
+    }));
+    setValue("media", reordered, { shouldDirty: true });
   }
 
   return (
@@ -106,15 +141,15 @@ export function ProductImagesStep() {
           Build the product’s visual record.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          These are session-only previews. Files are not uploaded or stored and will disappear after a refresh.
+          Add up to {MAX_IMAGES} images, edit remote URLs, reorder them, mark defects and choose one featured cover. Local files remain session-only previews until real storage is connected.
         </p>
       </div>
 
-      <div className="grid gap-4 rounded-[18px] border border-dashed border-border bg-secondary/35 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+      <div className="grid gap-4 rounded-[18px] border border-dashed border-border bg-surface-sunken p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <Field>
           <FieldLabel htmlFor="product-image-files">Choose image files</FieldLabel>
           <FieldDescription>
-            Select one or more local files to preview in this browser session.
+            Select several images at once. They preview immediately in this browser session.
           </FieldDescription>
           <Input
             accept="image/*"
@@ -126,7 +161,7 @@ export function ProductImagesStep() {
           />
         </Field>
         <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground md:block">
-          No upload occurs
+          {fields.length}/{MAX_IMAGES} images
         </span>
       </div>
 
@@ -137,26 +172,38 @@ export function ProductImagesStep() {
             className="h-11"
             id="product-image-url"
             onChange={(event) => setImageUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addUrlPreview();
+              }
+            }}
             placeholder="https://…"
             value={imageUrl}
           />
         </Field>
         <Button
           className="h-11 rounded-full px-5"
-          disabled={!imageUrl.trim()}
+          disabled={!imageUrl.trim() || fields.length >= MAX_IMAGES}
           onClick={addUrlPreview}
           type="button"
           variant="outline"
         >
           <ControlRoomIcon icon={ImageAdd01Icon} size={17} />
-          Add preview
+          Add image
         </Button>
       </div>
 
+      {feedback ? (
+        <p aria-live="polite" className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground">
+          {feedback}
+        </p>
+      ) : null}
+
       <Field data-invalid={Boolean(mediaError)}>
-        <FieldLabel>Image previews</FieldLabel>
+        <FieldLabel>Product images</FieldLabel>
         <FieldDescription>
-          Choose one cover, describe every image, and mark defects honestly.
+          The featured cover leads grid cards and the storefront. Every image needs a useful description.
         </FieldDescription>
         <FieldError>{mediaError}</FieldError>
       </Field>
@@ -164,10 +211,15 @@ export function ProductImagesStep() {
       {fields.length ? (
         <div className="grid gap-4 md:grid-cols-2">
           {fields.map((field, index) => {
-            const kind = getValues(`media.${index}.kind`);
+            const media = watchedMedia[index] ?? field;
+            const kind = media.kind;
             const altError = getProductEditorFieldError(
               errors,
               `media.${index}.alt`,
+            );
+            const urlError = getProductEditorFieldError(
+              errors,
+              `media.${index}.url`,
             );
 
             return (
@@ -175,19 +227,19 @@ export function ProductImagesStep() {
                 className="overflow-hidden rounded-[18px] border border-border bg-card"
                 key={field.fieldKey}
               >
-                <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
+                <div className="relative aspect-[4/5] overflow-hidden bg-surface-sunken">
                   <img
-                    alt={getValues(`media.${index}.alt`) || "Product preview"}
+                    alt={media.alt || "Product preview"}
                     className="size-full object-cover"
-                    src={field.url}
+                    src={media.url}
                   />
                   <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
                     <Badge variant={kind === "cover" ? "default" : "secondary"}>
-                      {kind}
+                      {kind === "cover" ? "Featured cover" : kind}
                     </Badge>
                     <Button
                       aria-label={`Remove image ${index + 1}`}
-                      className="size-9 rounded-full bg-background/90"
+                      className="size-10 rounded-full bg-surface-raised/92"
                       onClick={() => removePreview(index)}
                       size="icon"
                       type="button"
@@ -199,6 +251,23 @@ export function ProductImagesStep() {
                 </div>
 
                 <div className="space-y-4 p-4">
+                  <Field data-invalid={Boolean(urlError)}>
+                    <FieldLabel htmlFor={`media.${index}.url`}>Image URL</FieldLabel>
+                    <FieldDescription>
+                      {media.source === "local-preview"
+                        ? "Local preview URLs cannot be edited. Remove and choose the file again to replace it."
+                        : "Edit this URL to replace the image while keeping its order and description."}
+                    </FieldDescription>
+                    <Input
+                      {...register(`media.${index}.url`)}
+                      aria-invalid={Boolean(urlError)}
+                      className="h-11"
+                      id={`media.${index}.url`}
+                      readOnly={media.source === "local-preview"}
+                    />
+                    <FieldError>{urlError}</FieldError>
+                  </Field>
+
                   <Field data-invalid={Boolean(altError)}>
                     <FieldLabel htmlFor={`media.${index}.alt`}>
                       Image description
@@ -208,7 +277,7 @@ export function ProductImagesStep() {
                       aria-invalid={Boolean(altError)}
                       className="h-11"
                       id={`media.${index}.alt`}
-                      placeholder="Front view showing the botanical print"
+                      placeholder="Front view showing the denim wash and relaxed fit"
                     />
                     <FieldError>{altError}</FieldError>
                   </Field>
@@ -222,7 +291,7 @@ export function ProductImagesStep() {
                       type="button"
                       variant="outline"
                     >
-                      Use as cover
+                      Set as featured cover
                     </Button>
                     <Button
                       className="rounded-full"
@@ -243,9 +312,9 @@ export function ProductImagesStep() {
                     <span className="ml-auto flex gap-1">
                       <Button
                         aria-label="Move image earlier"
-                        className="size-9 rounded-full"
+                        className="size-10 rounded-full"
                         disabled={index === 0}
-                        onClick={() => move(index, index - 1)}
+                        onClick={() => movePreview(index, index - 1)}
                         size="icon"
                         type="button"
                         variant="ghost"
@@ -254,9 +323,9 @@ export function ProductImagesStep() {
                       </Button>
                       <Button
                         aria-label="Move image later"
-                        className="size-9 rounded-full"
+                        className="size-10 rounded-full"
                         disabled={index === fields.length - 1}
-                        onClick={() => move(index, index + 1)}
+                        onClick={() => movePreview(index, index + 1)}
                         size="icon"
                         type="button"
                         variant="ghost"
@@ -277,10 +346,10 @@ export function ProductImagesStep() {
               <ControlRoomIcon icon={ImageAdd01Icon} size={22} />
             </span>
             <p className="mt-4 font-serif text-[22px] font-medium">
-              No image previews yet
+              No product images yet
             </p>
             <p className="mt-2 max-w-[420px] text-[12.5px] leading-5 text-muted-foreground">
-              Drafts can be saved without images. Publishing requires exactly one cover image.
+              Drafts can be saved without images. Publishing requires one featured cover and useful descriptions.
             </p>
           </div>
         </div>
