@@ -40,10 +40,18 @@ export function TeamSection() {
     control,
     formState: { errors },
   } = useFormContext<SaveStoreSettingsInput>();
-  const members = useFieldArray({ control, name: "team.members" });
-  const team = useWatch({ control, name: "team" }) as SaveStoreSettingsInput["team"];
+  const members = useFieldArray({
+    control,
+    name: "team.members",
+    keyName: "fieldKey",
+  });
+  const team = useWatch({
+    control,
+    name: "team",
+  }) as SaveStoreSettingsInput["team"];
   const teamError = getSettingsFieldError(errors, "team.members");
-  const ownerCount = team?.members?.filter((member) => member.role === "owner").length ?? 0;
+  const ownerCount =
+    team?.members?.filter((member) => member.role === "owner").length ?? 0;
 
   return (
     <SettingsSectionFrame
@@ -51,9 +59,9 @@ export function TeamSection() {
       section="team"
     >
       <div className="rounded-xl border border-border bg-muted/30 p-4">
-        <p className="text-sm font-medium">Prototype responsibility boundary</p>
+        <p className="text-sm font-medium">Responsibility guide</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Roles below document expected store responsibility only. They do not create accounts, send invitations, authenticate staff or enforce permissions.
+          Use this section to document who is expected to handle store work. Adding someone here does not create a sign-in or send an invitation.
         </p>
       </div>
 
@@ -65,6 +73,7 @@ export function TeamSection() {
           </p>
         </div>
         <Button
+          className="h-11"
           onClick={() =>
             members.append({
               id: `team-member-${crypto.randomUUID()}`,
@@ -88,15 +97,21 @@ export function TeamSection() {
           const base = `team.members.${index}` as const;
           const soleOwner = current.role === "owner" && ownerCount <= 1;
           return (
-            <Card className="gap-5 p-4 sm:p-5" key={member.id}>
+            <Card className="gap-5 p-4 sm:p-5" key={member.fieldKey}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="truncate text-sm font-medium">
                       {current.name || `Team member ${index + 1}`}
                     </p>
-                    <Badge variant={current.status === "active" ? "secondary" : "outline"}>
-                      {current.status === "active" ? "Active record" : "Prototype invite"}
+                    <Badge
+                      variant={
+                        current.status === "active" ? "secondary" : "outline"
+                      }
+                    >
+                      {current.status === "active"
+                        ? "Current team record"
+                        : "Invite not sent"}
                     </Badge>
                   </div>
                   <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
@@ -129,13 +144,13 @@ export function TeamSection() {
                   type="email"
                 />
                 <SettingsSelectField
-                  description="A responsibility label only; access is not enforced."
+                  description="This describes expected responsibility; it does not grant access."
                   label="Role"
                   name={`${base}.role` as FieldPath<SaveStoreSettingsInput>}
                   options={roleOptions}
                 />
                 <SettingsTextField
-                  description="Read-only prototype state for this team record."
+                  description="Shows whether this person already belongs to the store record."
                   label="Team status"
                   name={`${base}.status` as FieldPath<SaveStoreSettingsInput>}
                   readOnly
@@ -204,7 +219,7 @@ function TeamBoundaryPreview({ members }: { members: TeamMemberBoundary[] }) {
         ))}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        This map helps the operator communicate ownership. It is not an authentication or permission system.
+        This map helps the operator communicate ownership. Staff sign-in and access control are not managed here.
       </p>
     </Card>
   );
