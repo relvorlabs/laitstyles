@@ -59,7 +59,7 @@ export function HoldConversionDialog({
   initialCity: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (input: ConvertHoldInput) => void;
+  onSubmit: (input: ConvertHoldInput) => string | null;
 }) {
   const [paymentStatus, setPaymentStatus] = useState<
     Extract<PaymentStatus, "pending" | "paid" | "deposit">
@@ -77,14 +77,14 @@ export function HoldConversionDialog({
       return;
     }
 
-    setError(null);
-    onSubmit({
+    const actionError = onSubmit({
       holdId,
       paymentStatus,
       paymentMethod,
       deliveryCity: deliveryCity.trim(),
       notes: notes.trim(),
     });
+    setError(actionError);
   }
 
   return (
@@ -112,6 +112,7 @@ export function HoldConversionDialog({
                         "pending" | "paid" | "deposit"
                       >,
                     );
+                    setError(null);
                   }
                 }}
                 value={paymentStatus}
@@ -138,7 +139,10 @@ export function HoldConversionDialog({
               <Label htmlFor="hold-payment-method">Payment method</Label>
               <Select
                 onValueChange={(value) => {
-                  if (value) setPaymentMethod(value as PaymentMethod);
+                  if (value) {
+                    setPaymentMethod(value as PaymentMethod);
+                    setError(null);
+                  }
                 }}
                 value={paymentMethod}
               >
@@ -166,7 +170,10 @@ export function HoldConversionDialog({
             <Input
               autoComplete="address-level2"
               id="hold-delivery-city"
-              onChange={(event) => setDeliveryCity(event.target.value)}
+              onChange={(event) => {
+                setDeliveryCity(event.target.value);
+                setError(null);
+              }}
               placeholder="e.g. Ikeja"
               value={deliveryCity}
             />
@@ -176,7 +183,10 @@ export function HoldConversionDialog({
             <Label htmlFor="hold-conversion-notes">Internal notes</Label>
             <Textarea
               id="hold-conversion-notes"
-              onChange={(event) => setNotes(event.target.value)}
+              onChange={(event) => {
+                setNotes(event.target.value);
+                setError(null);
+              }}
               placeholder="Transfer reference, pickup arrangement, or staff note…"
               value={notes}
             />
