@@ -2,11 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { CreateReturnDialog } from "@/features/control-room/returns/create-return-dialog";
 import { ReturnControls } from "@/features/control-room/returns/return-controls";
@@ -18,7 +13,10 @@ import {
   getReturnWorkspaceSummary,
   queryReturns,
 } from "@/features/control-room/returns/return-selectors";
-import type { ReturnQuery } from "@/features/control-room/returns/return-types";
+import type {
+  ReturnActionFeedback,
+  ReturnQuery,
+} from "@/features/control-room/returns/return-types";
 import { ReturnsEmptyState } from "@/features/control-room/returns/returns-empty-state";
 import { ReturnsHeader } from "@/features/control-room/returns/returns-header";
 import { ReturnsMobileList } from "@/features/control-room/returns/returns-mobile-list";
@@ -45,11 +43,7 @@ export function ReturnsWorkspace({
     initialOpenReturnId,
   );
   const [createOpen, setCreateOpen] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    tone: "success" | "error";
-    title: string;
-    message: string;
-  } | null>(null);
+  const [feedback, setFeedback] = useState<ReturnActionFeedback | null>(null);
 
   const returns = useMemo(() => queryReturns(state, query), [query, state]);
   const counts = useMemo(() => getReturnSavedViewCounts(state), [state]);
@@ -81,6 +75,11 @@ export function ReturnsWorkspace({
     replaceUrl(defaultReturnQuery);
   }
 
+  function openCreateDialog() {
+    setFeedback(null);
+    setCreateOpen(true);
+  }
+
   function openReturnRecord(returnId: string) {
     setOpenReturnId(returnId);
     setFeedback(null);
@@ -89,6 +88,7 @@ export function ReturnsWorkspace({
 
   function closeReturnRecord() {
     setOpenReturnId(null);
+    setFeedback(null);
     replaceUrl(query, null);
   }
 
@@ -100,7 +100,7 @@ export function ReturnsWorkspace({
         title: "Return could not be opened",
         message: result.error.message,
       });
-      return;
+      return result.error.message;
     }
 
     setCreateOpen(false);
@@ -111,6 +111,7 @@ export function ReturnsWorkspace({
       message: result.value.message,
     });
     replaceUrl(query, result.value.returnRecord.id);
+    return null;
   }
 
   function transition(returnId: string, status: ReturnStatus) {
@@ -121,7 +122,7 @@ export function ReturnsWorkspace({
         title: "Return could not move",
         message: result.error.message,
       });
-      return;
+      return result.error.message;
     }
 
     setFeedback({
@@ -129,11 +130,12 @@ export function ReturnsWorkspace({
       title: "Return updated",
       message: result.value.message,
     });
+    return null;
   }
 
   return (
     <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <ReturnsHeader onCreate={() => setCreateOpen(true)} />
+      <ReturnsHeader onCreate={openCreateDialog} />
       <ReturnsSummaryStrip summary={summary} />
 
       <Card className="gap-0 overflow-hidden py-0">
@@ -149,16 +151,6 @@ export function ReturnsWorkspace({
           resultCount={returns.length}
         />
       </Card>
-
-      {feedback ? (
-        <Alert
-          aria-live="polite"
-          variant={feedback.tone === "error" ? "destructive" : "default"}
-        >
-          <AlertTitle>{feedback.title}</AlertTitle>
-          <AlertDescription>{feedback.message}</AlertDescription>
-        </Alert>
-      ) : null}
 
       {returns.length ? (
         <>
@@ -176,20 +168,24 @@ export function ReturnsWorkspace({
       ) : (
         <ReturnsEmptyState
           hasReturns={(state.returns ?? []).length > 0}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={openCreateDialog}
           onReset={resetQuery}
         />
       )}
 
       <CreateReturnDialog
         key={createOpen ? `return-open-${state.orders.length}` : "return-closed"}
-        onOpenChange={setCreateOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) setFeedback(null);
+        }}
         onSubmit={create}
         open={createOpen}
         state={state}
       />
 
       <ReturnDetailSheet
+        feedback={feedback}
         onOpenChange={(open) => {
           if (!open) closeReturnRecord();
         }}
