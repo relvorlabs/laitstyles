@@ -96,6 +96,7 @@ jobs:
           curl --silent --fail http://127.0.0.1:3000/admin/holds >/dev/null
           curl --silent --fail http://127.0.0.1:3000/admin/returns >/dev/null
           curl --silent --fail http://127.0.0.1:3000/admin/customers >/dev/null
+          curl --silent --fail http://127.0.0.1:3000/admin/settings >/dev/null
 
           for viewport in 375,812 768,1024 1280,800; do
             label=${viewport/,/x}
@@ -154,6 +155,14 @@ jobs:
               --full-page \
               http://127.0.0.1:3000/admin/customers \
               "control-room-screenshots/customers-${label}.png" 2>&1 | tee -a browser.log
+
+            "$PLAYWRIGHT" screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1500 \
+              --full-page \
+              http://127.0.0.1:3000/admin/settings \
+              "control-room-screenshots/settings-${label}.png" 2>&1 | tee -a browser.log
           done
 
           "$PLAYWRIGHT" screenshot \
@@ -197,6 +206,14 @@ jobs:
               --full-page \
               'http://127.0.0.1:3000/admin/customers?customer=customer-amara' \
               "control-room-screenshots/customers-detail-${label}.png" 2>&1 | tee -a browser.log
+
+            "$PLAYWRIGHT" screenshot \
+              --browser chromium \
+              --viewport-size "$viewport" \
+              --wait-for-timeout 1500 \
+              --full-page \
+              'http://127.0.0.1:3000/admin/settings?section=team' \
+              "control-room-screenshots/settings-team-${label}.png" 2>&1 | tee -a browser.log
           done
 
           cp scripts/control-room-phase3-check.mjs /tmp/control-room-browser/control-room-phase3-check.mjs
@@ -204,6 +221,7 @@ jobs:
           cp scripts/control-room-phase4-holds-check.mjs /tmp/control-room-browser/control-room-phase4-holds-check.mjs
           cp scripts/control-room-phase4-sales-returns-check.mjs /tmp/control-room-browser/control-room-phase4-sales-returns-check.mjs
           cp scripts/control-room-phase5-customers-check.mjs /tmp/control-room-browser/control-room-phase5-customers-check.mjs
+          cp scripts/control-room-phase6-settings-check.mjs /tmp/control-room-browser/control-room-phase6-settings-check.mjs
           CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
             CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
             node /tmp/control-room-browser/control-room-phase3-check.mjs 2>&1 | tee -a browser.log
@@ -219,6 +237,9 @@ jobs:
           CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
             CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
             node /tmp/control-room-browser/control-room-phase5-customers-check.mjs 2>&1 | tee -a browser.log
+          CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+            CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
+            node /tmp/control-room-browser/control-room-phase6-settings-check.mjs 2>&1 | tee -a browser.log
 
           cleanup
           trap - EXIT
