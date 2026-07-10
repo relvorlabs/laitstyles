@@ -17,6 +17,7 @@ import { InventorySummaryStrip } from "@/features/control-room/inventory/invento
 import { InventoryTable } from "@/features/control-room/inventory/inventory-table";
 import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
 import { InventoryWorkspaceHeader } from "@/features/control-room/inventory/inventory-workspace-header";
+import { ProductMediaViewer } from "@/features/control-room/inventory/product-media-viewer";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import {
@@ -55,6 +56,10 @@ export function InventoryWorkspace({
   const [openProductId, setOpenProductId] = useState<string | null>(
     initialOpenProductId,
   );
+  const [openMedia, setOpenMedia] = useState<{
+    productId: string;
+    mediaId: string;
+  } | null>(null);
   const [exportedCount, setExportedCount] = useState<number | null>(null);
 
   const items = useMemo(
@@ -79,6 +84,8 @@ export function InventoryWorkspace({
   );
   const openItem =
     allItems.find((item) => item.product.id === openProductId) ?? null;
+  const mediaItem =
+    allItems.find((item) => item.product.id === openMedia?.productId) ?? null;
   const isIntake = query.view === "intake";
 
   function replaceUrl(
@@ -130,6 +137,10 @@ export function InventoryWorkspace({
   function editProduct(productId: string) {
     closeProduct();
     openExistingProduct(productId);
+  }
+
+  function openProductMedia(productId: string, mediaId: string) {
+    setOpenMedia({ productId, mediaId });
   }
 
   function setProductSelected(productId: string, selected: boolean) {
@@ -215,9 +226,14 @@ export function InventoryWorkspace({
               }
             >
               <InventoryGrid
-                className="grid gap-4 md:grid-cols-2"
+                className={
+                  presentation === "table"
+                    ? "grid gap-3 md:grid-cols-2"
+                    : undefined
+                }
                 items={items}
                 onOpen={openProduct}
+                onOpenMedia={openProductMedia}
                 onSelectedChange={setProductSelected}
                 selectedIds={selectedIds}
               />
@@ -255,6 +271,15 @@ export function InventoryWorkspace({
           if (!open) closeProduct();
         }}
         state={state}
+      />
+      <ProductMediaViewer
+        initialMediaId={openMedia?.mediaId}
+        media={mediaItem?.product.media ?? []}
+        onOpenChange={(open) => {
+          if (!open) setOpenMedia(null);
+        }}
+        open={Boolean(mediaItem && openMedia)}
+        productName={mediaItem?.product.name ?? "Product media"}
       />
     </div>
   );
