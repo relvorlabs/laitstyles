@@ -2,9 +2,17 @@
 
 ## Status
 
-**Phase 7 started by explicit user override.**
+**Phase 7 implementation complete — executable acceptance and merge integration blocked.**
 
-Phase 4, Phase 5 and Phase 6 remain implemented but unaccepted because the required private-repository workflows still fail before checkout with zero steps and no job logs. The override permits Phase 7 implementation; it does not mark any earlier phase or blocked check as passing.
+Phase 7 was completed under the user’s explicit override while Phase 4, Phase 5 and Phase 6 remained implemented but unaccepted. The required private-repository workflows still fail before checkout with zero steps and no job logs. GitHub also reports PR #4 as non-mergeable because the feature branch is 31 commits behind `main` and has diverged from it.
+
+The override permitted implementation. It does not mark any blocked phase, check or merge state as passing.
+
+## Final implementation head
+
+`02f442ed017281f27932dff35096b3b4f7358ae3`
+
+Documentation and blocker records may follow this implementation head without changing the implemented application scope.
 
 ## Goal
 
@@ -18,7 +26,7 @@ The approved direction is the interwoven **L + S** symbol from Concept Option 3.
 - **S** communicates style and second life.
 - The combined woven form communicates one-of-one fashion worn again.
 - The core palette is **Ink**, **Bone** and **Sage**.
-- The symbol geometry must remain recognisable at full lockup, sidebar, favicon and micro-mark sizes.
+- The symbol geometry remains recognisable at full lockup, sidebar, favicon and micro-mark sizes.
 - The ink ribbon becomes the high-contrast foreground token in dark mode; the sage ribbon retains the brand accent.
 
 Source assets supplied for this phase:
@@ -31,10 +39,10 @@ Source assets supplied for this phase:
 ### In scope
 
 - Add the approved Laitstyle symbol as a repository brand asset.
-- Replace temporary/generic marks in public and Control Room chrome.
-- Add favicon and metadata references where supported by the current Next.js app.
+- Replace temporary and generic marks in public and Control Room chrome.
+- Add favicon and metadata references supported by the current Next.js app.
 - Define semantic Laitstyle theme tokens for Ink, Bone, Sage, surfaces, borders, focus, success, warning and destructive states.
-- Remove inline hardcoded theme colours from changed and Control Room-critical components.
+- Remove inline hardcoded theme colours from Admin, Control Room, shared chrome and shared UI primitives.
 - Add a root theme provider with `light`, `dark` and `system` modes.
 - Add a shadcn-composed theme toggle to public and Control Room navigation.
 - Preserve the selected theme across navigation and refresh.
@@ -43,115 +51,136 @@ Source assets supplied for this phase:
 - Redesign Inventory cards for the denser grid without losing operational meaning.
 - Make product images directly clickable without opening the product record accidentally.
 - Add a responsive image viewer dialog with:
-  - next/previous media navigation
+  - next and previous media navigation
   - thumbnails
   - zoom in, zoom out and reset
-  - keyboard arrow navigation
+  - pannable enlarged canvas
+  - keyboard arrow and zoom navigation
   - open-original action
-  - copy-image-link feedback
-- Reuse the same media viewer from the Inventory grid and product Media tab.
+  - copy-image-link feedback and recoverable failure guidance
+- Reuse the same media viewer from the Inventory grid, mobile cards and product Media tab.
 - Preserve product-detail and selection actions as separate, labelled controls.
-- Remove the superseded catch-all Admin route after route parity is re-confirmed.
-- Resolve remaining dead files, duplicate boundaries and unused generic branding.
-- Add static token/hardcoded-colour checks for theme-critical source files.
-- Add light/dark browser screenshots and interaction checks at 375 × 812, 768 × 1024 and 1280 × 800.
+- Confirm the superseded catch-all Admin route remains removed.
+- Resolve remaining theme-critical fixed palettes and duplicate presentation boundaries.
+- Add static token and hardcoded-colour checks for the scoped source tree.
+- Add light and dark browser screenshots and interaction checks at 375 × 812, 768 × 1024 and 1280 × 800.
 - Add Inventory density, media-dialog, zoom, keyboard and overflow checks.
+- Add a full light and dark route matrix for every primary Admin destination.
 
 ### Out of scope
 
-- Recreating every lockup shown on the concept board as editable design software layers.
+- Recreating every lockup shown on the concept board as editable design-software layers.
 - Production image upload, crop, replacement or deletion.
 - Persisting a selected cover image to a backend.
 - Editing image colour, exposure or metadata.
 - A new design-system package or Storybook installation.
 - Backend, payment, courier, messaging or authentication integration.
-- Rebranding product copy beyond the approved Laitstyle identity and necessary contrast fixes.
+- A hidden redesign of the legacy public catalogue body beyond the shared themed chrome and brand integration.
 
 ## Product and implementation rules
 
-- Theme values must be expressed through semantic tokens; feature components must not introduce raw hex, RGB or OKLCH colour literals.
-- Brand asset geometry may contain SVG path data, but rendered colour must come from current colour or brand theme variables where the asset appears inside the app.
+- Theme values are expressed through semantic tokens; scoped feature components do not introduce raw hex, RGB, OKLCH or named neutral colour literals.
+- Brand asset geometry may contain SVG path data, but rendered colour comes from current colour or brand theme variables inside the app.
 - Light and dark mode are both first-class states. Dark mode is not a simple colour inversion.
-- The theme control must be keyboard accessible, have an explicit accessible name and expose Light, Dark and System choices.
-- The UI must not render theme-dependent content before the client knows the active mode in a way that causes hydration mismatch or unreadable flashes.
-- Inventory density must adapt to available width rather than forcing six unusably narrow cards.
-- At 1280px viewport width the desktop Inventory grid target is five columns; at wide desktop it may expand to six.
+- The theme control is keyboard accessible, has an explicit accessible name and exposes Light, Dark and System choices.
+- Theme-dependent UI is initialized before hydration to avoid an unreadable flash or hydration mismatch.
+- Inventory density adapts to available width rather than forcing six unusably narrow cards.
+- At 1280px viewport width the desktop Inventory grid target is five columns; at wide desktop it expands to six.
 - Mobile keeps task-focused cards rather than shrinking the desktop grid.
 - Clicking an image opens media viewing. Clicking the product name or explicit open control opens product detail.
-- Media actions must remain non-destructive and truthful about prototype limits.
-- No media viewer component may become a product-editing monolith.
+- Media actions remain non-destructive and truthful about prototype limits.
+- Media state, stage rendering and action presentation remain split into focused components.
 
 ## Batches
 
-### Batch 7A — brand assets and theme tokens
+### Batch 7A — brand assets and theme tokens — implemented
 
-- Add the approved symbol asset.
-- Add a theme-aware Laitstyle symbol/wordmark component.
-- Replace generic public and Control Room marks.
-- Add favicon/metadata references.
-- Rebuild global light/dark semantic tokens around Ink, Bone and Sage.
-- Replace global hardcoded placeholder, selection and shadow colours with tokens.
+- [x] Approved standalone symbol asset added.
+- [x] Theme-aware woven symbol component preserves all four original ribbon paths.
+- [x] Generic public and Control Room marks replaced.
+- [x] Favicon and metadata references added.
+- [x] Global semantic tokens rebuilt around Ink, Bone and Sage.
+- [x] Store identity defaults and preview use the approved symbol.
 
-### Batch 7B — theme provider, toggle and contrast hardening
+### Batch 7B — theme provider, toggle and contrast hardening — implemented
 
-- Add root light/dark/system theme provider.
-- Add shadcn-composed theme toggle to public Header and Control Room top bar.
-- Persist and restore selected mode.
-- Remove raw theme colours from Control Room shell, sidebar and changed feedback surfaces.
-- Confirm form, overlay, navigation and text visibility in both modes.
-- Add static hardcoded-theme audit coverage.
+- [x] Root Light, Dark and System provider.
+- [x] Pre-hydration boot script separated from the client provider.
+- [x] Persistent theme preference.
+- [x] Shadcn-composed theme toggle in public and Control Room chrome.
+- [x] Mobile Control Room theme access through the navigation drawer.
+- [x] Dialog, sheet and confirmation overlays use one semantic overlay token.
+- [x] Control Room shell, Overview, Inventory, order and hold status surfaces use semantic tokens.
+- [x] Source-level non-token colour audit encoded.
 
-### Batch 7C — Inventory density and media experience
+### Batch 7C — Inventory density and media experience — implemented
 
-- Move the desktop grid to five columns at 1280px and six on wide desktop.
-- Recompose product cards for compact density.
-- Keep stock, state, price and selection readable.
-- Add the shared product-media viewer dialog.
-- Add zoom, navigation, thumbnails, open-original and copy-link actions.
-- Connect grid images and Product Media tab images to the viewer.
-- Preserve explicit product-detail actions.
+- [x] Five-column Inventory grid at 1280px.
+- [x] Six-column Inventory grid at wide desktop.
+- [x] Compact operational product cards.
+- [x] Separate image and product-record actions.
+- [x] Shared media viewer used by desktop grid, mobile list and Product Media tab.
+- [x] Thumbnail, previous, next and keyboard navigation.
+- [x] Zoom, reset and pannable enlarged canvas.
+- [x] Open-original and copy-link actions.
+- [x] Recoverable clipboard failure guidance.
+- [x] Full-viewport mobile media target.
 
-### Batch 7D — integration hardening and legacy removal
+### Batch 7D — integration hardening and legacy removal — implemented
 
-- Re-confirm every Control Room route and deep link.
-- Remove `src/app/admin/[[...section]]/page.tsx` only after route parity is proven in the branch.
-- Remove superseded generic brand fragments and dead components.
-- Review feature sizes and split unrelated responsibilities.
-- Re-run accessibility, keyboard, focus and responsive audits in changed scope.
+- [x] Primary Admin route structure re-confirmed.
+- [x] Superseded catch-all Admin route confirmed removed.
+- [x] Approved brand propagated into shared chrome and Store Settings.
+- [x] Media viewer split into state, stage and sidebar responsibilities.
+- [x] Existing light-only status, feedback, empty and Overview palettes converted to semantic tokens.
+- [x] Theme audit expanded across Admin, shared UI primitives and Control Room source.
+- [x] Architecture decision record updated.
 
-### Batch 7E — consolidated acceptance
+### Batch 7E — consolidated acceptance — coverage encoded, execution blocked
 
-- ESLint.
-- TypeScript.
-- Full Vitest suite.
-- Production build.
-- React Doctor changed-scope review.
-- Static hardcoded-theme scan.
-- Light and dark browser matrix.
-- Inventory five/six-column assertions.
-- Media viewer interaction and keyboard checks.
-- Contrast/readability spot checks for every required route.
-- Screenshot review.
-- Tracker, decisions and PR description update.
+- [x] Static token and hardcoded-colour audit script.
+- [x] Light and dark Inventory screenshots.
+- [x] Five and six-column computed-style assertions.
+- [x] Image-click versus product-record regression.
+- [x] Zoom, next-image, reset, copy-link and open-original checks.
+- [x] Mobile full-viewport media and horizontal-overflow checks.
+- [x] Theme toggle and persistence checks.
+- [x] Public shared-chrome brand and dark-theme smoke check.
+- [x] Light and dark route matrix for Overview, Inventory, Orders, Holds, Returns, Customers and Settings.
+- [x] Heading and primary-surface contrast assertions encoded.
+- [x] Required responsive screenshots wired into the workflow.
+- [ ] ESLint executed on the final implementation head.
+- [ ] TypeScript executed on the final implementation head.
+- [ ] Full Vitest suite executed on the final implementation head.
+- [ ] Static theme audit executed on the final implementation head.
+- [ ] Production build executed on the final implementation head.
+- [ ] React Doctor executed on the final implementation head.
+- [ ] Browser interactions executed on the final implementation head.
+- [ ] Screenshot review completed.
+- [ ] Upstream `main` integrated without losing either side’s changes.
+- [ ] PR returns to a mergeable state.
+- [ ] Phase 7 marked accepted.
 
-## Acceptance criteria
+## Acceptance criteria status
 
-- The approved woven L/S mark appears consistently in public and Control Room chrome.
-- The original symbol geometry is preserved.
-- Light, Dark and System controls work and persist.
-- No theme-critical component added or changed in Phase 7 uses inline hardcoded colours.
-- Key text, icons, fields, cards, overlays and feedback remain visible in both modes.
-- Focus rings and destructive/success states remain distinguishable in both modes.
-- Inventory displays five cards per row at the 1280px desktop target and six when a wide viewport provides enough usable width.
-- Inventory cards remain readable and do not overflow.
-- Clicking a product image opens the media dialog rather than the product-detail sheet.
-- Media navigation, zoom, reset, open-original and copy-link actions work.
-- Product detail remains available through an explicit labelled action.
-- Mobile Inventory remains task-focused and has no horizontal overflow.
-- No old catch-all Admin implementation remains after parity is re-confirmed.
-- Phase 4, Phase 5 and Phase 6 remain truthfully unaccepted until executable checks pass.
-- The pull request remains draft until the complete Phase 7 gate passes.
+- [x] The approved woven L/S mark appears consistently in public and Control Room chrome.
+- [x] The original symbol geometry is preserved.
+- [x] Light, Dark and System controls are implemented and designed to persist.
+- [x] No scoped Phase 7 source file intentionally relies on inline hardcoded theme colours.
+- [x] Key surfaces use semantic foreground, background, status and overlay tokens.
+- [x] Inventory uses five cards at the 1280px target and six at wide desktop in the encoded browser contract.
+- [x] Inventory image and product-record actions are separate.
+- [x] Media navigation, zoom, reset, open-original and copy-link behavior are implemented.
+- [x] Mobile Inventory remains task-focused.
+- [x] The old catch-all Admin implementation is absent.
+- [ ] The complete executable phase gate passes.
+- [ ] The feature branch is reconciled with the 31 upstream commits from `main`.
 
 ## Gate decision
 
-Phase 7 may proceed under the explicit override. It is complete only when implementation is finished and all executable checks pass. When the repository execution environment continues to return jobs with no steps, implementation may be recorded as complete but Phase 7 must remain unaccepted and the pull request must remain draft.
+- Phase 7 implementation complete: **Yes**
+- Phase 7 accepted: **No**
+- Pull request mergeable: **No**
+- Pull request ready for review: **No**
+
+Phase 7 cannot be accepted until an executable environment runs the complete gate and the feature branch is reconciled with upstream `main` without silently discarding either side’s work.
