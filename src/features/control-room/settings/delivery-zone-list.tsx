@@ -23,8 +23,15 @@ import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 export function DeliveryZoneList() {
   const { control } = useFormContext<SaveStoreSettingsInput>();
-  const zones = useFieldArray({ control, name: "delivery.zones" });
-  const delivery = useWatch({ control, name: "delivery" }) as SaveStoreSettingsInput["delivery"];
+  const zones = useFieldArray({
+    control,
+    name: "delivery.zones",
+    keyName: "fieldKey",
+  });
+  const delivery = useWatch({
+    control,
+    name: "delivery",
+  }) as SaveStoreSettingsInput["delivery"];
 
   return (
     <div className="space-y-4">
@@ -36,6 +43,7 @@ export function DeliveryZoneList() {
           </p>
         </div>
         <Button
+          className="h-11"
           onClick={() =>
             zones.append({
               id: `delivery-zone-${crypto.randomUUID()}`,
@@ -61,7 +69,7 @@ export function DeliveryZoneList() {
             zones.fields.length > 1 ||
             Boolean(delivery?.pickupLocations?.length);
           return (
-            <Card className="gap-5 p-4 sm:p-5" key={zone.id}>
+            <Card className="gap-5 p-4 sm:p-5" key={zone.fieldKey}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">
