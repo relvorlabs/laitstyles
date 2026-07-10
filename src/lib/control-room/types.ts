@@ -1,3 +1,4 @@
+import type { CatalogueTaxonomyItem } from "@/lib/control-room/catalogue-taxonomy";
 import type { ControlRoomCustomer } from "@/lib/control-room/customer-types";
 import type {
   InventoryProduct,
@@ -13,6 +14,14 @@ import type {
   FulfilmentStatus,
 } from "@/lib/control-room/sales-types";
 import type { StoreSettings } from "@/lib/control-room/settings-types";
+
+export type {
+  CatalogueTaxonomyActionError,
+  CatalogueTaxonomyActionSuccess,
+  CatalogueTaxonomyInput,
+  CatalogueTaxonomyItem,
+  CatalogueTaxonomyKind,
+} from "@/lib/control-room/catalogue-taxonomy";
 
 export type {
   AddCustomerNoteInput,
@@ -193,6 +202,7 @@ export type ControlRoomState = {
   currency: CurrencyCode;
   isNewStore: boolean;
   products: InventoryProduct[];
+  catalogueTaxonomy?: CatalogueTaxonomyItem[];
   intake?: IntakeRecord[];
   orders: ControlRoomOrder[];
   holds: ControlRoomHold[];
