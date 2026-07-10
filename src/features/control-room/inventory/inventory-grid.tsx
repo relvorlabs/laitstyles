@@ -24,7 +24,7 @@ export function InventoryGrid({
     <div
       className={
         className ??
-        "grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4"
+        "grid grid-cols-2 items-stretch gap-3 md:grid-cols-3 xl:grid-cols-5"
       }
       data-inventory-grid
     >
