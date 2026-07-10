@@ -46,10 +46,10 @@ export function ProductIdentityStep() {
     setValue(
       "internalReference",
       generateProductSku({
-        mode,
-        name,
-        brand,
-        category,
+        mode: mode ?? "unique",
+        name: name ?? "",
+        brand: brand ?? "",
+        category: category ?? "",
         existingReferences,
       }),
       { shouldDirty: true, shouldValidate: true },
