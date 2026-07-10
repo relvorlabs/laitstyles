@@ -99,8 +99,8 @@ async function runDesktop(browser) {
     .nth(1)
     .fill("Coordinates product intake and delivery handoff.");
   await expectVisible(
-    page.getByText("Prototype invite", { exact: true }),
-    "New team member did not retain the truthful prototype-invite boundary.",
+    page.getByText("Invite not sent", { exact: true }).first(),
+    "New team member did not retain the truthful unsent-invite boundary.",
   );
 
   await page.getByRole("button", { name: "Save store settings" }).click();
@@ -143,7 +143,10 @@ async function runMobile(browser) {
     "Mobile Settings route did not honour the requested section.",
   );
   const sectionSelect = page.getByLabel("Choose settings section");
-  await expectVisible(sectionSelect, "Mobile settings section selector was not visible.");
+  await expectVisible(
+    sectionSelect,
+    "Mobile settings section selector was not visible.",
+  );
   await sectionSelect.click();
   await page.getByRole("option", { name: /Notifications/ }).click();
   await expectVisible(
@@ -154,8 +157,10 @@ async function runMobile(browser) {
     throw new Error("Mobile settings navigation did not update the URL.");
   }
 
+  await page.getByRole("checkbox", { name: "Low stock" }).click();
   const saveButton = page.getByRole("button", { name: "Save store settings" });
   await expectVisible(saveButton, "Mobile settings save action was not available.");
+  await saveButton.scrollIntoViewIfNeeded();
   await expectInsideViewport(
     saveButton,
     "Mobile settings save action was outside the visible viewport",
