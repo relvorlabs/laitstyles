@@ -38,7 +38,7 @@ export function CustomersSummaryStrip({
   return (
     <Card className="gap-0 overflow-hidden py-0">
       <div className="grid grid-cols-2 md:grid-cols-5">
-        {items.map((item, index) => (
+        {items.map((item) => (
           <div
             className="min-w-0 border-border p-4 even:border-l md:border-l md:first:border-l-0 md:p-5 max-md:[&:nth-child(n+3)]:border-t"
             key={item.label}
