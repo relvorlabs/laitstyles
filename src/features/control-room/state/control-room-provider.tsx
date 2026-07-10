@@ -57,6 +57,7 @@ export function useControlRoom() {
       createReturn: store.createReturn,
       transitionReturn: store.transitionReturn,
       addCustomerNote: store.addCustomerNote,
+      saveStoreSettings: store.saveStoreSettings,
       resetPrototypeState: store.resetPrototypeState,
     }),
     [state, store],
