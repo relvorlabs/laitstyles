@@ -9,11 +9,7 @@ import {
   type Resolver,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card } from "@/components/ui/card";
-import {
-  settingsSections,
-  type SettingsSectionDefinition,
-} from "@/features/control-room/settings/settings-config";
+import { settingsSections } from "@/features/control-room/settings/settings-config";
 import {
   countSettingsSectionErrors,
   getFirstSettingsErrorSection,
@@ -25,6 +21,7 @@ import {
   type SettingsFeedback,
 } from "@/features/control-room/settings/settings-save-bar";
 import { SettingsSectionContent } from "@/features/control-room/settings/settings-section-content";
+import { SettingsStatusStrip } from "@/features/control-room/settings/settings-status-strip";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
 import { storeSettingsInputSchema } from "@/lib/control-room/settings-schema";
@@ -155,7 +152,7 @@ export function SettingsWorkspace({
     setFeedback({
       tone: "success",
       title: "Unsaved changes discarded",
-      message: "The form has returned to the last saved settings in this session.",
+      message: "The form has returned to the last saved values.",
     });
     setDiscardOpen(false);
   }
@@ -171,7 +168,6 @@ export function SettingsWorkspace({
         <SettingsStatusStrip
           activeSection={activeSection}
           dirty={methods.formState.isDirty}
-          sections={settingsSections}
           updatedAt={persistedSettings.updatedAt}
         />
 
@@ -199,41 +195,6 @@ export function SettingsWorkspace({
   );
 }
 
-function SettingsStatusStrip({
-  activeSection,
-  dirty,
-  sections,
-  updatedAt,
-}: {
-  activeSection: SettingsSection;
-  dirty: boolean;
-  sections: readonly SettingsSectionDefinition[];
-  updatedAt: string;
-}) {
-  const active = sections.find((section) => section.value === activeSection);
-  return (
-    <Card className="grid gap-4 p-4 sm:grid-cols-3 sm:p-5">
-      <StatusItem label="Current section" value={active?.label ?? "Store identity"} />
-      <StatusItem
-        label="Form state"
-        value={dirty ? "Unsaved changes" : "All changes saved"}
-      />
-      <StatusItem label="Session updated" value={formatUpdatedAt(updatedAt)} />
-    </Card>
-  );
-}
-
-function StatusItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 truncate text-sm font-medium">{value}</p>
-    </div>
-  );
-}
-
 function createSettingsInput(settings: StoreSettings): SaveStoreSettingsInput {
   return structuredClone({
     identity: settings.identity,
@@ -243,13 +204,4 @@ function createSettingsInput(settings: StoreSettings): SaveStoreSettingsInput {
     notifications: settings.notifications,
     team: settings.team,
   });
-}
-
-function formatUpdatedAt(value: string) {
-  return new Intl.DateTimeFormat("en-NG", {
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
 }
