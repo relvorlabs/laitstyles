@@ -2,15 +2,15 @@
 
 ## Current score
 
-**Phase 5 of 7 started — Batch 5A customer truth and selectors**
+**Phase 5 of 7 implemented — consolidated acceptance blocked**
 
-Phase 5 began by explicit user override. Phase 4 remains implemented but unaccepted because both required GitHub Actions workflows still fail before checkout with zero steps and no logs. The override permits Phase 5 work; it does not mark Phase 4 as passing.
+Phase 5 was completed under the user’s explicit override. Phase 4 remains implemented but unaccepted, and Phase 5 cannot be accepted, because both required private-repository workflows continue to fail before checkout with zero steps and no logs.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 5 Batch 5A in progress; repository verification environment blocked |
+| Status | Phase 5 implementation complete; consolidated verification blocked |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft |
 | Source specification | `docs/control-room-v2/spec.md` |
@@ -23,10 +23,10 @@ Phase 5 began by explicit user override. Phase 4 remains implemented but unaccep
 | Accepted Batch 4B head | `2dd8442898703354d34e292361e0f5f70064ebdc` |
 | Accepted Batch 4B run | `29046530809` |
 | Unresolved earlier gate | 4F — consolidated Phase 4 acceptance |
-| Active batch | 5A — customer truth and selectors |
-| Next batch | 5B — blocked until Batch 5A is reviewed and executable checks pass or are explicitly overridden |
+| Active gate | 5D — consolidated Phase 5 acceptance |
+| Next phase | Phase 6 remains locked until an executable verification environment is restored or explicitly overridden |
 
-## Completed phases
+## Completed and accepted phases
 
 ### Phase 0 — Discovery, specification and execution contract
 
@@ -73,19 +73,15 @@ Final Phase 3 verification: run `29035766157` on `ba05d413d62154f1b41a415e5d3100
 
 ## Phase 4 — Sales workspace
 
-Connect Orders, Holds, Offline Sales and Returns to the same inventory, revenue, customer and activity truth.
-
 ### Batch 4A — sales domain and typed actions — accepted
 
-- [x] Focused sales domain types
-- [x] Explicit order and return transition graphs
 - [x] Atomic reserve, release, sale, cancellation and return helpers
 - [x] Payment-confirmed orders own sold stock
 - [x] Typed order, hold, offline-sale and return actions
 - [x] Partial refund and net-revenue tracking
 - [x] Shared store integration
 - [x] Unique, stocked and variant tests
-- [x] Existing Phase 1–3 browser regression
+- [x] Existing Phase 1–3 regression
 - [x] React Doctor 100/100
 
 Accepted evidence:
@@ -98,16 +94,12 @@ Accepted evidence:
 ### Batch 4B — Orders workspace — accepted
 
 - [x] `/admin/orders`
-- [x] Saved status views, search, channel/payment filters and sorting
-- [x] Desktop operational table
-- [x] Responsive order cards
-- [x] Connected order detail sheet and timeline
-- [x] Only domain-permitted transitions exposed
-- [x] Confirmation for cancellation/refund actions
-- [x] Recoverable transition errors and success feedback
-- [x] Empty, loading and route error states
-- [x] Desktop and mobile Sales navigation
-- [x] Full-width mobile detail with safe-area handling
+- [x] Saved views, search, channel/payment filters and sorting
+- [x] Desktop table and responsive cards
+- [x] Connected detail, timeline and valid transitions
+- [x] Cancellation/refund confirmations
+- [x] Empty, loading and error states
+- [x] Full-width mobile detail
 - [x] Desktop, tablet and mobile browser evidence
 - [x] React Doctor 100/100
 
@@ -117,152 +109,133 @@ Accepted evidence:
 - Control Room run `29046530809`
 - Parity run `29046530866`
 - 52 tests across 9 files
-- Production build passed
-- Orders search, detail opening, normal transition, cancellation confirmation and confirmed cancellation passed in Chromium
-- Desktop and mobile navigation passed
-- Mobile detail passed exact 375 × 812 viewport geometry
-- Phase 3 interaction regression passed
-- Screenshot and log artifacts uploaded
+- Production build and Chromium interactions passed
 
-### Batch 4C — Holds workspace — implemented, consolidated verification blocked
+### Batch 4C — Holds workspace — implemented, acceptance blocked
 
 - [x] `/admin/holds`
 - [x] Active, expiring, expired and payment-risk views
-- [x] Search and lightweight filters
-- [x] Desktop operational table and responsive cards
-- [x] Hold detail, extend, release confirmation and convert-to-order workflow
+- [x] Desktop table and responsive cards
+- [x] Extend, release confirmation and convert-to-order
 - [x] Recoverable feedback inside the active surface
 - [x] Full-viewport mobile detail target
-- [x] Focused selector, URL and browser scripts
-- [ ] Consolidated lint, TypeScript, tests, build, browser and React Doctor run
+- [x] Selector, URL and browser checks encoded
+- [ ] Consolidated executable verification
 
-### Batch 4D — global Record Sale — implemented, consolidated verification blocked
+### Batch 4D — Record Sale — implemented, acceptance blocked
 
 - [x] Global entry point and four-step responsive workflow
 - [x] Product, variant, quantity, channel, customer, payment and notes capture
-- [x] Dirty-close confirmation and truthful payment-provider boundary
+- [x] Dirty-close confirmation and truthful payment boundary
 - [x] Connected inventory, Orders, revenue, movement and activity action
-- [x] Success summary and generated-order deep link
-- [x] Conflict and insufficient-stock errors
-- [x] Theme-safe semantic success styling
-- [x] Full-viewport mobile target and browser script
-- [ ] Consolidated lint, TypeScript, tests, build, browser and React Doctor run
+- [x] Success summary and deep link
+- [x] Theme-safe semantic feedback
+- [x] Mobile target and browser checks encoded
+- [ ] Consolidated executable verification
 
-### Batch 4E — Returns workspace — implemented, consolidated verification blocked
+### Batch 4E — Returns workspace — implemented, acceptance blocked
 
 - [x] `/admin/returns`
-- [x] Saved views, search, status filter and sorting
-- [x] Desktop table and responsive mobile cards
-- [x] Eligible delivered order-line selection and quantity validation
-- [x] Return detail and permitted transitions
-- [x] Refund-state, rejection and damage confirmations
+- [x] Saved views, search, filters and sorting
+- [x] Desktop table and responsive cards
+- [x] Eligible order-line selection and quantity validation
+- [x] Detail, valid transitions and confirmations
 - [x] Restock/damage inventory disposition
-- [x] Feedback and validation inside the active surface
-- [x] Loading, empty and error states
-- [x] Deep-linkable full-viewport mobile targets
-- [x] Selector, URL and cross-workspace browser scripts
-- [ ] Consolidated lint, TypeScript, tests, build, browser and React Doctor run
+- [x] Active-surface feedback and validation
+- [x] Mobile targets and cross-workspace checks encoded
+- [ ] Consolidated executable verification
 
 ### Batch 4F — consolidated acceptance — unresolved
 
-- [x] Scope and PR diff audit
-- [x] Latest Web Interface Guidelines fetched and applied
+- [x] Scope and UI audit
 - [x] Required viewport and interaction coverage encoded
-- [x] Phase 3, Orders, Holds, Record Sale, Returns, Overview and Inventory regression scripts present
 - [ ] ESLint
 - [ ] TypeScript
 - [ ] Full Vitest suite
 - [ ] Production build
-- [ ] React Doctor changed-scope review
-- [ ] Required 375 × 812, 768 × 1024 and 1280 × 800 browser matrix
-- [ ] Screenshot review
-- [ ] Phase 4 changed from blocked to accepted
+- [ ] React Doctor
+- [ ] Browser matrix and screenshot review
+- [ ] Phase 4 marked accepted
 
-## Phase 5 locked scope
+## Phase 5 — Customers workspace
 
-Deliver an operational customer relationship workspace connected to orders, holds, returns, reviews, products, addresses and activity.
+### Batch 5A — customer truth and selectors — implemented
 
-### In scope
-
-- Customer route, search, segments, type filter and sorting
-- Responsive customer table/cards
-- Customer detail summary and relationship timeline
-- Purchased, held, saved and reviewed product context
-- Addresses, delivery history and preferences
-- Session-only internal notes
-- Default, loading, empty, error, validation and success states
-
-### Out of scope
-
-- Marketing automation
-- Messaging integration
-- Enterprise CRM pipelines
-- Loyalty programme
-- Backend, database, API, auth or staff-permission work
-- Phase 6 Settings
-
-## Phase 5 batches
-
-### Batch 5A — customer truth and selectors — active
-
-- [x] Phase 5 product and execution plan
-- [x] Dedicated typed customer profile domain
-- [x] Derived spend, average order value, orders, returns, cancellations, holds and reviews
-- [x] Derived operational segments and attention reasons
-- [x] Connected customer timeline selectors
+- [x] Typed customer profile domain
+- [x] Derived lifetime spend, average order value, orders, paid orders, returns, cancellations, holds and reviews
+- [x] Operational segments and attention reasons
+- [x] Connected order, offline-sale, payment, delivery, hold, return and review timeline
 - [x] Purchased, held, saved and reviewed product relationships
-- [x] Delivery-history selector
-- [x] Focused tests for connected totals, offline sales, holds, returns and product relationships
-- [x] Customers route and navigation remain hidden
-- [ ] ESLint
-- [ ] TypeScript
-- [ ] Focused and full Vitest suites
-- [ ] Production build
-- [ ] React Doctor changed-scope review
+- [x] Delivery-history selectors
+- [x] Stable customer type, addresses, preferences, saved products and notes hydration
+- [x] Focused selector tests
 
-### Batch 5B — responsive Customers workspace — locked
+### Batch 5B — responsive Customers workspace — implemented
 
-- [ ] `/admin/customers`
-- [ ] URL-backed search, segments, type filter and sorting
-- [ ] Desktop operational table
-- [ ] Tablet composition
-- [ ] Mobile customer cards
-- [ ] Summary strip and empty state
-- [ ] Loading and route error states
-- [ ] People navigation exposed after route completion
+- [x] `/admin/customers`
+- [x] URL-backed search, saved views, customer-type filter and sorting
+- [x] Relationship summary strip
+- [x] Desktop operational table
+- [x] Tablet two-column cards
+- [x] Mobile task-focused cards
+- [x] Default and empty states
+- [x] Loading and route error boundaries
+- [x] People navigation exposed after route completion
 
-### Batch 5C — detail workspace and notes — locked
+### Batch 5C — detail workspace and notes — implemented
 
-- [ ] Deep-linkable customer detail
-- [ ] Summary, timeline, products, addresses and delivery sections
-- [ ] Internal note action through shared store
-- [ ] Validation and visible success feedback
-- [ ] Full-viewport mobile detail target
-- [ ] Cross-workspace interaction tests
+- [x] Deep-linkable customer detail
+- [x] Overview, timeline, products and delivery tabs
+- [x] Derived summary metrics and attention context
+- [x] Saved addresses, delivery history and preferences
+- [x] Connected links to Order and Inventory records
+- [x] Session-only internal note action through the shared store
+- [x] Field validation and visible sticky success/error feedback
+- [x] Full-viewport mobile detail target
+- [x] Cross-workspace Record Sale and note browser checks encoded
 
-### Batch 5D — consolidated acceptance — locked
+### Batch 5D — consolidated acceptance — blocked
 
-- [ ] Scope and PR diff audit
-- [ ] Latest Web Interface Guidelines review
-- [ ] ESLint, TypeScript, tests and production build
-- [ ] React Doctor changed-scope review
-- [ ] Required browser viewport matrix
-- [ ] Screenshot review
-- [ ] Tracker and PR updated
+- [x] Scope and changed-file audit
+- [x] Latest Web Interface Guidelines review and changed-scope hardening
+- [x] Focused selector, URL and action tests added
+- [x] Phase 5 browser interaction script added
+- [x] Required route and detail screenshots encoded at 375 × 812, 768 × 1024 and 1280 × 800
+- [x] Exact mobile detail geometry and horizontal-overflow assertions encoded
+- [ ] ESLint executed on final head
+- [ ] TypeScript executed on final head
+- [ ] Full Vitest suite executed on final head
+- [ ] Production build executed on final head
+- [ ] React Doctor executed on final head
+- [ ] Browser interactions executed on final head
+- [ ] Screenshot review completed
+- [ ] Phase 5 marked accepted
+
+## Phase 5 implementation invariants
+
+- [x] Customer totals derive from connected records rather than duplicated profile numbers
+- [x] Offline sales enter customer metrics and timeline through their connected order
+- [x] Holds and returns enter relationship history through `customerId`
+- [x] Payment, delivery, return and risky-hold context creates explainable attention reasons
+- [x] Customer profile data contains only stable relationship context
+- [x] Notes update subscribers through one typed shared-store action
+- [x] Notes remain session-only and never claim persistence or messaging
+- [x] Mobile detail is task-separated with tabs rather than a compressed desktop sheet
+- [x] No marketing automation, CRM pipeline, loyalty or messaging surface was introduced
 
 ## Verification blocker
 
-After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. The jobs fail before checkout, expose no logs or artifacts, and failed-job reruns behave the same way. This remains an external runner, billing or organization execution condition rather than an application result.
+After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. Each job fails before checkout, exposes no log URL or artifacts, and reruns behave the same way. This remains an external runner, billing or organization execution condition rather than an application result.
 
-Phase 5 started only because the user explicitly overrode the earlier phase gate. No blocked check is represented as passing.
+Phase 5 was fully implemented only because the user explicitly overrode the earlier phase and batch gates. No blocked check is represented as passing.
 
 ## Loaded implementation contract
 
 - [x] Reloaded specification, implementation plan, tracker and `AGENTS.md`
-- [x] Loaded current process, product, UI/UX, frontend, Web Interface Guidelines, Next.js, React, composition, shadcn, TypeScript, error-handling, Playwright, React Doctor and PR skills
+- [x] Loaded process, product, UI/UX, frontend, Web Interface Guidelines, Next.js, React, composition, shadcn, TypeScript, error-handling, Playwright, React Doctor and PR skills
 - [x] Searched for `brainstorming`; no current skill was found and no replacement was invented
-- [x] Re-fetched the latest Web Interface Guidelines
+- [x] Re-fetched and applied the latest Web Interface Guidelines
 
 ## Next action
 
-Run or restore an executable validation environment for Batch 5A. Review and resolve any static or test failures before opening Batch 5B unless the user explicitly overrides that batch gate too.
+Restore or provide an executable repository validation environment, then run the consolidated Phase 4 and Phase 5 gates. Do not mark the PR ready for review or start Phase 6 without a passing gate or another explicit user override.
