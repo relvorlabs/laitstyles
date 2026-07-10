@@ -37,19 +37,25 @@ describe("Catalogue taxonomy management", () => {
     ).toBe(false);
   });
 
-  it("renames a category across connected products and blocks deletion while used", () => {
+  it("renames a category across connected products, timestamps them and blocks deletion while used", () => {
     const store = createControlRoomStore(activeControlRoomSeed, () => now);
     const current = store
       .getSnapshot()
       .catalogueTaxonomy?.find((item) => item.kind === "category");
     if (!current) throw new Error("Expected a seeded category");
 
+    const connectedBefore = store
+      .getSnapshot()
+      .products.filter((product) => product.category === current.name);
     const nextName = `${current.name} Edit`;
     const renamed = store.renameCatalogueTaxonomy(current.id, nextName);
     expect(renamed.ok).toBe(true);
-    expect(
-      store.getSnapshot().products.some((product) => product.category === nextName),
-    ).toBe(true);
+
+    const connectedAfter = store
+      .getSnapshot()
+      .products.filter((product) => product.category === nextName);
+    expect(connectedAfter).toHaveLength(connectedBefore.length);
+    expect(connectedAfter.every((product) => product.updatedAt === now)).toBe(true);
 
     const deletion = store.deleteCatalogueTaxonomy(current.id);
     expect(deletion.ok).toBe(false);
