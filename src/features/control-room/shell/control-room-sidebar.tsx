@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   ControlRoomIcon,
   type ControlRoomIconData,
 } from "@/features/control-room/shared/control-room-icon";
 import {
+  type ControlRoomNavigationItem,
   controlRoomExternalLinks,
   controlRoomNavigationGroups,
-  type ControlRoomNavigationItem,
 } from "@/features/control-room/shell/navigation";
 import { cn } from "@/lib/utils";
 
@@ -37,16 +36,10 @@ export function ControlRoomSidebar({
           onClick={onNavigate}
         >
           <span className="grid size-11 place-items-center rounded-xl border border-sidebar-border bg-sidebar-accent text-sidebar-foreground transition-transform group-hover:-rotate-3 motion-reduce:transition-none">
-            <LaitstyleSymbol
-              aria-hidden="true"
-              className="h-8 w-5"
-              focusable="false"
-            />
+            <LaitstyleSymbol aria-hidden="true" className="h-8 w-5" focusable="false" />
           </span>
           <span className="min-w-0">
-            <span className="block font-serif text-[24px] font-medium leading-none">
-              Laitstyle
-            </span>
+            <span className="block font-serif text-[24px] font-medium leading-none">Laitstyle</span>
             <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/60">
               Control room
             </span>
@@ -102,46 +95,6 @@ export function ControlRoomSidebar({
           </section>
         </div>
       </div>
-
-      <div
-        className={cn(
-          "shrink-0 border-t border-sidebar-border bg-sidebar",
-          compact ? "p-4" : "p-5",
-        )}
-      >
-        <div className="flex items-center justify-between gap-3 rounded-[14px] border border-sidebar-border bg-sidebar-accent/70 p-3">
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/64">
-              Appearance
-            </p>
-            <p className="mt-0.5 truncate text-[11px] text-sidebar-foreground/58">
-              Light, dark or device
-            </p>
-          </div>
-          <ThemeToggle
-            align="start"
-            className="shrink-0 border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-          />
-        </div>
-
-        <div className="mt-3 flex items-center gap-3 px-1">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sidebar-selected text-[12px] font-bold text-sidebar-selected-foreground">
-            SO
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-semibold">
-              Store owner
-            </span>
-            <span className="mt-0.5 block truncate text-[11.5px] text-sidebar-foreground/62">
-              Owner workspace
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-sage-soft">
-            <span className="size-1.5 rounded-full bg-brand-sage-soft" />
-            Live
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -153,12 +106,7 @@ type SidebarLinkProps = {
   onNavigate?: () => void;
 };
 
-function SidebarLink({
-  active,
-  icon,
-  item,
-  onNavigate,
-}: SidebarLinkProps) {
+function SidebarLink({ active, icon, item, onNavigate }: SidebarLinkProps) {
   return (
     <Link
       aria-current={active ? "page" : undefined}
@@ -186,9 +134,7 @@ function SidebarLink({
         <span
           className={cn(
             "mt-0.5 block truncate text-[10.5px]",
-            active
-              ? "text-sidebar-selected-foreground/72"
-              : "text-sidebar-foreground/58",
+            active ? "text-sidebar-selected-foreground/72" : "text-sidebar-foreground/58",
           )}
         >
           {item.description}
