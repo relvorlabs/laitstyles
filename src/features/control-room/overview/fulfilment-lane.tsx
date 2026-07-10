@@ -14,7 +14,7 @@ export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
   const total = items.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <Card className="h-full gap-0 py-0 scroll-mt-24" id="fulfilment">
+    <Card className="h-full scroll-mt-24 gap-0 py-0" id="fulfilment">
       <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
         <CardTitle className="flex items-start justify-between gap-4">
           <span>
@@ -25,7 +25,7 @@ export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
               Move paid orders forward.
             </span>
           </span>
-          <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-secondary text-[#4A5540]">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
             <ControlRoomIcon icon={TruckDeliveryIcon} size={20} />
           </span>
         </CardTitle>
