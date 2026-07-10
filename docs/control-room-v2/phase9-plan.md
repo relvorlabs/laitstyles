@@ -2,11 +2,23 @@
 
 ## Status
 
-**Planned. Implementation has not started.**
+**Batch 9A started — repository boundary and first typed query keys implemented; package and QueryClient installation pending.**
 
-Phase 9 is an explicit user-approved architecture extension. It supersedes the earlier blanket rule that TanStack Query must wait for a production backend, but it does not permit fake production claims, fake API routes or random network delays.
+Phase 9 began under the user's explicit override after the compact Inventory gallery-card correction. Phase 8 remains implemented but unaccepted. Starting this phase does not mark any blocked Phase 4–8 check as passing.
 
-Phase 8 remains the next visual and interaction phase. Phase 9 must not begin until Phase 8 is accepted unless the user explicitly overrides that gate again.
+The package/provider portion is intentionally not represented as complete. The current environment cannot safely regenerate the pnpm lockfile, and changing `package.json` without the matching lockfile would break the repository's frozen-lockfile install contract.
+
+## Implemented Phase 9 foundation
+
+- Added typed repository interfaces for Inventory, Orders, Holds, Returns, Customers, Settings and Overview.
+- Added a deterministic Promise-based in-memory adapter.
+- The adapter reads `ControlRoomStore.getSnapshot()` at call time rather than copying server-like records into a second global state container.
+- Repository results are structured clones, preventing feature code from mutating the store by reference.
+- Mounted one stable repository composition context at the existing Control Room provider boundary.
+- Added tests proving repository isolation, live reads after writes, derived Overview consistency and missing-detail behavior.
+- Added typed Inventory and Product key factories with normalized filter, pagination and stable-ID inputs.
+- Added query-key tests for equivalent inputs, filter/page separation and detail/media identity.
+- Added `docs/control-room-v2/phase9-adapter-boundary.md` for the future production adapter handoff.
 
 ## Refined implementation brief
 
@@ -43,7 +55,7 @@ A global provider must not duplicate query data merely to make it convenient to 
 ### Truthful prototype adapter
 
 - Define repository interfaces by domain capability, not by current seed-file shape.
-- Supply deterministic in-memory implementations backed by the existing typed seed records.
+- Supply deterministic in-memory implementations backed by the existing typed records.
 - Repository methods return Promises so the component contract matches future async integrations.
 - Do not add `setTimeout`, random failure, random latency or fake background jobs as normal behavior.
 - Error and stale-state tests use explicit test adapters or injected failure controls rather than random runtime behavior.
@@ -131,19 +143,26 @@ Every optimistic mutation must implement:
 
 ### Batch 9A — package, provider and repository boundary
 
-- Add `@tanstack/react-query` using the repository’s pnpm package manager.
+Implemented:
+
+- Typed domain repository contracts.
+- Deterministic Promise-based in-memory adapter over the live current store.
+- Stable repository provider at the Control Room boundary.
+- Production adapter replacement documentation.
+- First Inventory and Product key factories and tests.
+
+Pending:
+
+- Add `@tanstack/react-query` using the repository's pnpm package manager.
 - Add `@tanstack/eslint-plugin-query` and configure the applicable recommended rules.
 - Add React Query Devtools only when it is development-only and does not enter the production bundle; otherwise leave it out.
 - Create a stable browser `QueryClient` provider at the narrow Control Room application boundary.
 - Ensure a fresh per-request QueryClient is used if server prefetch or hydration is introduced.
 - Define shared query defaults for stale time, garbage collection, retry and refetch behavior, then override by domain where necessary.
-- Define typed repository interfaces and deterministic in-memory adapters.
-- Add an adapter composition boundary so feature components do not import seed files directly.
-- Document how a future HTTP/RPC adapter will replace the in-memory adapter.
+- Regenerate `package.json` and `pnpm-lock.yaml` together; never leave them inconsistent.
 
 ### Batch 9B — Inventory and product server-state migration
 
-- Add typed Inventory and Product query-key factories.
 - Add colocated list, detail and media query options.
 - Move Inventory list/detail reads from the global Control Room client store to TanStack Query.
 - Keep URL filter and presentation state outside the query cache while including data-affecting filter values in query keys.
@@ -188,7 +207,7 @@ Every optimistic mutation must implement:
 - Add browser checks for loading, error, empty, stale and background-refetch states.
 - Document production adapter requirements, authentication context, SSR/hydration choices and unresolved backend contracts.
 
-## Suggested structure
+## Structure
 
 ```text
 src/app/admin/
@@ -198,10 +217,7 @@ src/lib/control-room/data/
   repositories.ts
   repository-context.tsx
   in-memory/
-    inventory-repository.ts
-    sales-repository.ts
-    customer-repository.ts
-    settings-repository.ts
+    control-room-repositories.ts
 
 src/features/control-room/inventory/data/
   inventory-keys.ts
