@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
-import { feedItems, naira } from "@/lib/catalogue";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -13,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { feedItems, naira } from "@/lib/catalogue";
 
 const held = feedItems.filter((item) => item.state === "resYou");
 
@@ -36,12 +36,12 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
         </span>
       </SheetTrigger>
       <SheetContent
-        side="right"
         className={
           compact
             ? "w-full max-w-full gap-0 bg-card p-0"
             : "w-full gap-0 bg-card p-0 sm:max-w-[440px]"
         }
+        side="right"
       >
         <SheetHeader className="border-b border-border p-5">
           <SheetTitle className="font-serif text-[22px] font-normal">
@@ -55,7 +55,7 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
         <div className="flex flex-1 flex-col gap-4 p-5">
           {held.length ? (
             held.map((item) => (
-              <div key={item.id} className="flex gap-3">
+              <div className="flex gap-3" key={item.id}>
                 <div className="size-[74px] rounded-[11px] bg-muted" />
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="text-[14px] font-medium">{item.name}</div>
@@ -77,7 +77,7 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
                 <ShoppingBag className="text-muted-foreground" />
               </div>
               <div className="font-serif text-[22px]">Nothing reserved yet</div>
-              <p className="max-w-[260px] text-[13px] leading-[1.55] text-[#8A887E]">
+              <p className="max-w-[260px] text-[13px] leading-[1.55] text-muted-foreground">
                 Every piece is one-of-one. Reserve one and we&apos;ll hold it
                 here so no one else can take it while you decide.
               </p>
@@ -90,7 +90,10 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
             <span className="font-semibold">{naira(total)}</span>
           </div>
           <Separator className="mb-4" />
-          <Button className="h-[46px] w-full rounded-full text-[14px]" render={<Link href="/checkout" />}>
+          <Button
+            className="h-[46px] w-full rounded-full text-[14px]"
+            render={<Link href="/checkout" />}
+          >
             Checkout now
           </Button>
         </div>
