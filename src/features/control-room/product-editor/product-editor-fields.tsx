@@ -79,6 +79,7 @@ type EditorNumberFieldProps = {
   description?: string;
   placeholder?: string;
   min?: number;
+  max?: number;
   step?: number;
 };
 
@@ -88,6 +89,7 @@ export function EditorNumberField({
   description,
   placeholder,
   min = 0,
+  max,
   step = 1,
 }: EditorNumberFieldProps) {
   const {
@@ -108,6 +110,7 @@ export function EditorNumberField({
         className="h-11 tabular-nums"
         id={name}
         inputMode="decimal"
+        max={max}
         min={min}
         placeholder={placeholder}
         step={step}
@@ -161,6 +164,7 @@ type EditorSelectFieldProps = {
   label: string;
   description?: string;
   options: ReadonlyArray<readonly [string, string]>;
+  emptyLabel?: string;
 };
 
 export function EditorSelectField({
@@ -168,12 +172,14 @@ export function EditorSelectField({
   label,
   description,
   options,
+  emptyLabel,
 }: EditorSelectFieldProps) {
   const {
     control,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
   const error = getProductEditorFieldError(errors, name);
+  const emptyValue = "__none__";
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -184,14 +190,19 @@ export function EditorSelectField({
         name={name}
         render={({ field }) => (
           <Select
-            onValueChange={(value) => field.onChange(value ?? "")}
-            value={String(field.value ?? "")}
+            onValueChange={(value) =>
+              field.onChange(value === emptyValue ? "" : value ?? "")
+            }
+            value={String(field.value || (emptyLabel ? emptyValue : ""))}
           >
             <SelectTrigger aria-invalid={Boolean(error)} className="h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
+                {emptyLabel ? (
+                  <SelectItem value={emptyValue}>{emptyLabel}</SelectItem>
+                ) : null}
                 {options.map(([value, optionLabel]) => (
                   <SelectItem key={value} value={value}>
                     {optionLabel}
