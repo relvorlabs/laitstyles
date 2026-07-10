@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
   ChevronLeft,
@@ -31,6 +31,8 @@ type ProductMediaViewerProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+type CopyFeedback = "copied" | "error" | null;
+
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
 const ZOOM_STEP = 0.25;
@@ -43,12 +45,37 @@ export function ProductMediaViewer({
   onOpenChange,
 }: ProductMediaViewerProps) {
   const orderedMedia = useMemo(
-    () => media.toSorted((left, right) => left.position - right.position),
+    () => [...media].sort((left, right) => left.position - right.position),
     [media],
   );
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoom, setZoom] = useState(MIN_ZOOM);
-  const [copied, setCopied] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null);
+
+  const resetMediaState = useCallback(() => {
+    setZoom(MIN_ZOOM);
+    setCopyFeedback(null);
+  }, []);
+
+  const showPrevious = useCallback(() => {
+    setActiveIndex((current) =>
+      current <= 0 ? orderedMedia.length - 1 : current - 1,
+    );
+    resetMediaState();
+  }, [orderedMedia.length, resetMediaState]);
+
+  const showNext = useCallback(() => {
+    setActiveIndex((current) =>
+      current >= orderedMedia.length - 1 ? 0 : current + 1,
+    );
+    resetMediaState();
+  }, [orderedMedia.length, resetMediaState]);
+
+  const changeZoom = useCallback((delta: number) => {
+    setZoom((current) =>
+      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, current + delta)),
+    );
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -56,9 +83,8 @@ export function ProductMediaViewer({
       (item) => item.id === initialMediaId,
     );
     setActiveIndex(requestedIndex >= 0 ? requestedIndex : 0);
-    setZoom(MIN_ZOOM);
-    setCopied(false);
-  }, [initialMediaId, open, orderedMedia]);
+    resetMediaState();
+  }, [initialMediaId, open, orderedMedia, resetMediaState]);
 
   useEffect(() => {
     if (!open || orderedMedia.length < 1) return;
@@ -81,47 +107,25 @@ export function ProductMediaViewer({
       }
       if (event.key === "0") {
         event.preventDefault();
-        setZoom(MIN_ZOOM);
+        resetMediaState();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  }, [changeZoom, open, orderedMedia.length, resetMediaState, showNext, showPrevious]);
 
   const activeMedia = orderedMedia[activeIndex] ?? null;
   const hasMultiple = orderedMedia.length > 1;
-
-  function showPrevious() {
-    setActiveIndex((current) =>
-      current <= 0 ? orderedMedia.length - 1 : current - 1,
-    );
-    setZoom(MIN_ZOOM);
-    setCopied(false);
-  }
-
-  function showNext() {
-    setActiveIndex((current) =>
-      current >= orderedMedia.length - 1 ? 0 : current + 1,
-    );
-    setZoom(MIN_ZOOM);
-    setCopied(false);
-  }
-
-  function changeZoom(delta: number) {
-    setZoom((current) =>
-      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, current + delta)),
-    );
-  }
 
   async function copyImageLink() {
     if (!activeMedia) return;
     try {
       const absoluteUrl = new URL(activeMedia.url, window.location.origin).href;
       await navigator.clipboard.writeText(absoluteUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      setCopyFeedback("copied");
+      window.setTimeout(() => setCopyFeedback(null), 1800);
     } catch {
-      setCopied(false);
+      setCopyFeedback("error");
     }
   }
 
@@ -149,9 +153,12 @@ export function ProductMediaViewer({
                   data-media-stage
                 >
                   <div
-                    className="relative h-full min-h-[320px] w-full origin-center transition-transform duration-200 motion-reduce:transition-none"
+                    className="relative min-h-full min-w-full transition-[width,height] duration-200 motion-reduce:transition-none"
                     data-media-zoom={zoom.toFixed(2)}
-                    style={{ transform: `scale(${zoom})` }}
+                    style={{
+                      height: `${zoom * 100}%`,
+                      width: `${zoom * 100}%`,
+                    }}
                   >
                     <Image
                       alt={activeMedia.alt}
@@ -217,7 +224,7 @@ export function ProductMediaViewer({
                   </Button>
                   <Button
                     aria-label="Reset zoom"
-                    onClick={() => setZoom(MIN_ZOOM)}
+                    onClick={resetMediaState}
                     size="icon"
                     type="button"
                     variant="ghost"
@@ -240,8 +247,7 @@ export function ProductMediaViewer({
                       key={item.id}
                       onClick={() => {
                         setActiveIndex(index);
-                        setZoom(MIN_ZOOM);
-                        setCopied(false);
+                        resetMediaState();
                       }}
                       type="button"
                     >
@@ -278,13 +284,21 @@ export function ProductMediaViewer({
                     type="button"
                     variant="outline"
                   >
-                    {copied ? (
+                    {copyFeedback === "copied" ? (
                       <Check aria-hidden="true" />
                     ) : (
                       <Copy aria-hidden="true" />
                     )}
-                    {copied ? "Link copied" : "Copy image link"}
+                    {copyFeedback === "copied" ? "Link copied" : "Copy image link"}
                   </Button>
+                  {copyFeedback === "error" ? (
+                    <p
+                      className="col-span-2 text-xs leading-5 text-destructive lg:col-span-1"
+                      role="alert"
+                    >
+                      The image link could not be copied. Open the original image and copy its address instead.
+                    </p>
+                  ) : null}
                 </div>
               </aside>
             </div>
