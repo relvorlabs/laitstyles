@@ -34,7 +34,9 @@ export function SettingsNavigation({
           Settings section
         </label>
         <Select
-          onValueChange={(value) => onChange((value ?? "identity") as SettingsSection)}
+          onValueChange={(value) =>
+            onChange((value ?? "identity") as SettingsSection)
+          }
           value={activeSection}
         >
           <SelectTrigger
@@ -99,7 +101,7 @@ export function SettingsNavigation({
           })}
         </nav>
         <div className="mx-3 mt-2 border-t border-border pt-4 text-[11px] leading-5 text-muted-foreground">
-          Changes remain in this browser session and reset after refresh.
+          Changes remain until the page is refreshed.
         </div>
       </Card>
     </>
