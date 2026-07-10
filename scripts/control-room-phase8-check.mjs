@@ -158,17 +158,19 @@ async function runOverview(browser) {
   });
   await desktop.close();
 
-  for (const viewport of [
+  for (const target of [
     { width: 768, height: 1024, label: "768x1024" },
     { width: 375, height: 812, label: "375x812" },
   ]) {
-    const context = await browser.newContext({ viewport });
+    const context = await browser.newContext({
+      viewport: { width: target.width, height: target.height },
+    });
     const mobilePage = await context.newPage();
-    watchPage(mobilePage, `phase 8 Overview ${viewport.label}`);
+    watchPage(mobilePage, `phase 8 Overview ${target.label}`);
     await mobilePage.goto(`${baseUrl}/admin`, { waitUntil: "networkidle" });
-    await expectNoHorizontalOverflow(mobilePage, `Overview ${viewport.label}`);
+    await expectNoHorizontalOverflow(mobilePage, `Overview ${target.label}`);
     await mobilePage.screenshot({
-      path: path.join(screenshotDir, `phase8-overview-${viewport.label}.png`),
+      path: path.join(screenshotDir, `phase8-overview-${target.label}.png`),
       fullPage: true,
     });
     await context.close();
