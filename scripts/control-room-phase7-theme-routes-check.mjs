@@ -13,7 +13,11 @@ const routes = [
     href: "/admin",
     heading: "See the store clearly before deciding what to do next.",
   },
-  { slug: "inventory", href: "/admin/inventory", heading: "Inventory" },
+  {
+    slug: "inventory",
+    href: "/admin/inventory",
+    heading: "See every piece, unit and variant as one catalogue truth.",
+  },
   { slug: "orders", href: "/admin/orders", heading: "Orders" },
   { slug: "holds", href: "/admin/holds", heading: "Holds" },
   { slug: "returns", href: "/admin/returns", heading: "Returns" },
@@ -144,7 +148,7 @@ async function runThemeMatrix(browser, theme) {
     localStorage.setItem("laitstyle-theme", preference);
   }, theme);
   const page = await context.newPage();
-  recordPageFailures(page, `phase 7 ${theme} route matrix`);
+  recordPageFailures(page, `${theme} route matrix`);
 
   for (const route of routes) {
     await page.goto(`${baseUrl}${route.href}`, {
@@ -182,7 +186,7 @@ async function runThemeMatrix(browser, theme) {
     await page.screenshot({
       path: path.join(
         screenshotDir,
-        `phase7-${route.slug}-${theme}-1280x800.png`,
+        `${route.slug}-${theme}-1280x800.png`,
       ),
       fullPage: true,
     });
@@ -201,4 +205,4 @@ try {
 
 if (failures.length) throw new Error(failures.join("\n"));
 
-console.log("Phase 7 light and dark Admin route matrix passed.");
+console.log("Light and dark Admin route matrix passed.");
