@@ -1,7 +1,5 @@
 import { Card } from "@/components/ui/card";
-import {
-  settingsSections,
-} from "@/features/control-room/settings/settings-config";
+import { settingsSections } from "@/features/control-room/settings/settings-config";
 import type { SettingsSection } from "@/lib/control-room/types";
 
 export function SettingsStatusStrip({
@@ -19,7 +17,10 @@ export function SettingsStatusStrip({
 
   return (
     <Card className="grid gap-4 p-4 sm:grid-cols-3 sm:p-5">
-      <StatusItem label="Current section" value={active?.label ?? "Store identity"} />
+      <StatusItem
+        label="Current section"
+        value={active?.label ?? "Store identity"}
+      />
       <StatusItem
         label="Form state"
         value={dirty ? "Unsaved changes" : "All changes saved"}
@@ -46,5 +47,6 @@ function formatUpdatedAt(value: string) {
     month: "short",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "Africa/Lagos",
   }).format(new Date(value));
 }
