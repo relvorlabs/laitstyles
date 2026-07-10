@@ -48,6 +48,9 @@ export function useControlRoom() {
     () => ({
       state,
       saveProduct: store.saveProduct,
+      createCatalogueTaxonomy: store.createCatalogueTaxonomy,
+      renameCatalogueTaxonomy: store.renameCatalogueTaxonomy,
+      deleteCatalogueTaxonomy: store.deleteCatalogueTaxonomy,
       transitionIntake: store.transitionIntake,
       transitionOrder: store.transitionOrder,
       extendHold: store.extendHold,
