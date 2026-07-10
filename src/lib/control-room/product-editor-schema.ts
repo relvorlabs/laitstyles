@@ -18,7 +18,7 @@ const publishMeasurementSchema = measurementSchema.extend({
 
 const mediaSchema = z.object({
   id: z.string().min(1),
-  url: z.string().min(1),
+  url: z.string().trim().min(1, "Enter an image URL or choose a file."),
   alt: z.string(),
   kind: z.enum(["cover", "detail", "defect"]),
   position: z.number().int().nonnegative(),
@@ -97,7 +97,7 @@ export const productEditorDraftSchema = z.discriminatedUnion(
 
 const identitySchema = z.object({
   name: z.string().trim().min(2, "Enter a product name."),
-  category: z.string().trim().min(1, "Choose or enter a category."),
+  category: z.string().trim().min(1, "Choose a category."),
   brand: z.string().trim().min(1, "Enter a brand or use Unlabelled."),
   description: z
     .string()
@@ -106,22 +106,46 @@ const identitySchema = z.object({
   internalReference: z
     .string()
     .trim()
-    .min(3, "Enter an internal reference with at least 3 characters."),
+    .min(3, "Enter or generate an internal reference with at least 3 characters."),
 });
 
 const imagesSchema = z
-  .object({ media: z.array(mediaSchema).min(1, "Add at least one image preview.") })
+  .object({
+    media: z
+      .array(mediaSchema)
+      .min(1, "Add at least one product image.")
+      .max(12, "Keep each product within 12 images."),
+  })
   .superRefine(({ media }, context) => {
     const coverCount = media.filter((item) => item.kind === "cover").length;
     if (coverCount !== 1) {
       context.addIssue({
         code: "custom",
         path: ["media"],
-        message: "Choose exactly one cover image.",
+        message: "Choose exactly one featured cover image.",
       });
     }
 
+    const urls = new Set<string>();
     for (const [index, item] of media.entries()) {
+      const url = item.url.trim();
+      if (!isValidMediaUrl(url, item.source)) {
+        context.addIssue({
+          code: "custom",
+          path: ["media", index, "url"],
+          message: "Use a valid image URL or choose the local file again.",
+        });
+      }
+      const duplicateKey = url.toLocaleLowerCase("en-NG");
+      if (urls.has(duplicateKey)) {
+        context.addIssue({
+          code: "custom",
+          path: ["media", index, "url"],
+          message: "This image is already included.",
+        });
+      }
+      urls.add(duplicateKey);
+
       if (!item.alt.trim()) {
         context.addIssue({
           code: "custom",
@@ -167,7 +191,7 @@ const variantStockSchema = z
         .array(
           variantSchema.extend({
             label: z.string().trim().min(1, "Enter a variant label."),
-            sku: z.string().trim().min(3, "Enter a variant SKU."),
+            sku: z.string().trim().min(3, "Enter or generate a variant SKU."),
           }),
         )
         .min(1, "Add at least one variant."),
@@ -205,12 +229,22 @@ const stockSchema = z.discriminatedUnion("inventoryMode", [
   variantStockSchema,
 ]);
 
-const pricingSchema = z.object({
-  sellingPrice: z.number().positive("Enter a selling price above zero."),
-  referencePrice: z.number().positive().nullable(),
-  cost: z.number().nonnegative("Cost cannot be negative."),
-  lowStockThreshold: z.number().int().nonnegative(),
-});
+const pricingSchema = z
+  .object({
+    sellingPrice: z.number().positive("Enter a selling price above zero."),
+    referencePrice: z.number().positive().nullable(),
+    cost: z.number().nonnegative("Unit cost cannot be negative.").nullable(),
+    lowStockThreshold: z.number().int().nonnegative(),
+  })
+  .superRefine(({ sellingPrice, referencePrice }, context) => {
+    if (referencePrice !== null && referencePrice <= sellingPrice) {
+      context.addIssue({
+        code: "custom",
+        path: ["referencePrice"],
+        message: "Compare-at price must be higher than the selling price.",
+      });
+    }
+  });
 
 const fulfilmentSchema = z.object({
   fulfilment: z.object({
@@ -276,4 +310,18 @@ export function validateProductForSchedule(
   }
 
   return issues;
+}
+
+function isValidMediaUrl(
+  value: string,
+  source: ProductEditorValues["media"][number]["source"],
+) {
+  if (source === "local-preview") return value.startsWith("blob:");
+  if (value.startsWith("/")) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
