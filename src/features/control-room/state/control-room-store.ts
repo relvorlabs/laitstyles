@@ -22,6 +22,13 @@ import {
 import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
 import { applyOrderTransition } from "@/lib/control-room/order-actions";
 import {
+  applyArchiveProduct,
+  applyDeleteProduct,
+  applyRestoreProduct,
+  type ProductLifecycleActionError,
+  type ProductLifecycleActionSuccess,
+} from "@/lib/control-room/product-lifecycle-actions";
+import {
   applyIntakeTransition,
   applyProductEditorAction,
   createInitialIntakeRecords,
@@ -60,12 +67,14 @@ type ProductActionResult = Result<
   ProductEditorActionSuccess,
   ProductEditorActionError
 >;
-
+type ProductLifecycleResult = Result<
+  ProductLifecycleActionSuccess,
+  ProductLifecycleActionError
+>;
 type IntakeActionResult = Result<
   IntakeTransitionSuccess,
   ProductEditorActionError
 >;
-
 type OrderActionResult = Result<OrderTransitionSuccess, SalesActionError>;
 type HoldResult = Result<HoldActionSuccess, SalesActionError>;
 type OfflineSaleResult = Result<OfflineSaleSuccess, SalesActionError>;
@@ -90,6 +99,9 @@ export type ControlRoomStore = {
     values: ProductEditorValues,
     intent: ProductEditorIntent,
   ) => ProductActionResult;
+  archiveProduct: (productId: string) => ProductLifecycleResult;
+  restoreProduct: (productId: string) => ProductLifecycleResult;
+  deleteProduct: (productId: string) => ProductLifecycleResult;
   createCatalogueTaxonomy: (input: CatalogueTaxonomyInput) => CatalogueTaxonomyResult;
   renameCatalogueTaxonomy: (
     taxonomyId: string,
@@ -150,6 +162,15 @@ export function createControlRoomStore(
       return commitAction(
         applyProductEditorAction(state, values, intent, getNow()),
       );
+    },
+    archiveProduct(productId) {
+      return commitAction(applyArchiveProduct(state, productId, getNow()));
+    },
+    restoreProduct(productId) {
+      return commitAction(applyRestoreProduct(state, productId, getNow()));
+    },
+    deleteProduct(productId) {
+      return commitAction(applyDeleteProduct(state, productId, getNow()));
     },
     createCatalogueTaxonomy(input) {
       return commitAction(applyCreateCatalogueTaxonomy(state, input, getNow()));
