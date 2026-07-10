@@ -79,7 +79,7 @@ export function ProductTypeStep({
               className={cn(
                 "group flex min-h-[220px] flex-col rounded-[18px] border bg-card p-5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
-                  ? "border-primary shadow-[0_16px_40px_rgba(27,26,23,.10)]"
+                  ? "border-primary shadow-laitstyle"
                   : "border-border hover:border-foreground/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
               )}
               key={type.value}
