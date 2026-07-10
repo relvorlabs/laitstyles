@@ -10,6 +10,7 @@ import { AttentionQueue } from "@/features/control-room/overview/attention-queue
 import { ContinueWorking } from "@/features/control-room/overview/continue-working";
 import { FulfilmentLane } from "@/features/control-room/overview/fulfilment-lane";
 import { InventoryWatch } from "@/features/control-room/overview/inventory-watch";
+import { OpenOrdersPreview } from "@/features/control-room/overview/open-orders-preview";
 import { SalesPulse } from "@/features/control-room/overview/sales-pulse";
 import { TodayStrip } from "@/features/control-room/overview/today-strip";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
@@ -22,17 +23,17 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
   const reportingLabel = formatReportingDate(state.reportingDate);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Owner operations · {reportingLabel}
           </p>
-          <h1 className="mt-3 max-w-[860px] text-balance font-serif text-[40px] font-medium leading-[.98] sm:text-[54px] lg:text-[62px]">
-            See the store clearly before deciding what to do next.
+          <h1 className="mt-3 max-w-[820px] text-balance font-serif text-[38px] font-medium leading-[1.01] sm:text-[48px] lg:text-[54px]">
+            See what needs judgment, what is moving and what can wait.
           </h1>
-          <p className="mt-5 max-w-[720px] text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
-            Revenue, inventory, holds and delivery exceptions are joined into one daily operating view—not separate reports to reconcile.
+          <p className="mt-4 max-w-[700px] text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
+            One operating view for store health, customer promises and the next decisions—not a wall of repeated dashboard cards.
           </p>
         </div>
 
@@ -51,8 +52,7 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
           <Link
             className={buttonVariants({
               size: "lg",
-              className:
-                "h-11 rounded-full px-4 !text-primary-foreground",
+              className: "h-11 rounded-full px-4",
             })}
             href="/"
           >
@@ -65,27 +65,41 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
 
       <TodayStrip reportingLabel={reportingLabel} snapshot={snapshot} />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(380px,.92fr)] xl:items-start">
-        <AttentionQueue items={snapshot.attention} />
-        <ContinueWorking task={snapshot.continueTask} />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,.55fr)] xl:items-start">
+        <div className="order-1 xl:col-start-1 xl:row-start-1">
+          <AttentionQueue items={snapshot.attention} />
+        </div>
+
+        <div className="order-2 xl:col-start-2 xl:row-start-1">
+          <ContinueWorking task={snapshot.continueTask} />
+        </div>
+
+        <div className="order-3 xl:col-start-1 xl:row-start-2">
+          <OpenOrdersPreview state={state} />
+        </div>
+
+        <div className="order-4 xl:col-start-2 xl:row-start-2">
+          <FulfilmentLane items={snapshot.fulfilment} />
+        </div>
+
+        <div className="order-5 xl:col-start-1 xl:row-start-3">
+          <SalesPulse points={state.salesPulse} />
+        </div>
+
+        <div className="order-6 xl:col-start-1 xl:row-start-4">
+          <InventoryWatch
+            lowStock={snapshot.lowStockProducts}
+            unpublished={snapshot.unpublishedProducts}
+          />
+        </div>
+
+        <div className="order-7 xl:col-start-2 xl:row-span-2 xl:row-start-3">
+          <ActivityStream
+            activities={snapshot.recentActivities}
+            asOf={state.asOf}
+          />
+        </div>
       </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(420px,.95fr)]">
-        <SalesPulse points={state.salesPulse} />
-        <FulfilmentLane items={snapshot.fulfilment} />
-      </div>
-
-      <InventoryWatch
-        lowStock={snapshot.lowStockProducts}
-        unpublished={snapshot.unpublishedProducts}
-      />
-
-      <section>
-        <ActivityStream
-          activities={snapshot.recentActivities}
-          asOf={state.asOf}
-        />
-      </section>
     </div>
   );
 }
