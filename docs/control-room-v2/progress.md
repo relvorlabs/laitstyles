@@ -2,15 +2,15 @@
 
 ## Current score
 
-**Phase 6 of 7 started — Batch 6A settings domain and validation**
+**Phase 6 of 7 implemented — consolidated acceptance blocked**
 
-Phase 6 began under the user’s explicit override. Phase 4 remains implemented but unaccepted, and Phase 5 remains implemented but unaccepted, because both required private-repository workflows continue to fail before checkout with zero steps and no logs. The override permits Phase 6 work; it does not mark either earlier phase as passing.
+Phase 6 was completed under the user’s explicit override. Phase 4, Phase 5 and Phase 6 remain implemented but unaccepted because both required private-repository workflows continue to fail before checkout with zero steps and no logs. No blocked check is represented as passing.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 6 Batch 6A in progress; repository verification environment blocked |
+| Status | Phase 6 implementation complete; consolidated verification blocked |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft |
 | Source specification | `docs/control-room-v2/spec.md` |
@@ -24,9 +24,9 @@ Phase 6 began under the user’s explicit override. Phase 4 remains implemented 
 | Accepted Batch 4A run | `29044424035` |
 | Accepted Batch 4B head | `2dd8442898703354d34e292361e0f5f70064ebdc` |
 | Accepted Batch 4B run | `29046530809` |
-| Unresolved earlier gates | 4F and 5D consolidated acceptance |
-| Active batch | 6A — settings domain and validation |
-| Next batch | 6B remains gated behind Batch 6A review and executable checks unless explicitly overridden |
+| Unresolved gates | 4F, 5D and 6E consolidated acceptance |
+| Active gate | 6E — consolidated Phase 6 acceptance |
+| Next phase | Phase 7 remains locked until executable checks pass or the user explicitly overrides the gate |
 
 ## Completed and accepted phases
 
@@ -216,11 +216,11 @@ Accepted evidence:
 
 ## Phase 6 — Store Settings
 
-### Batch 6A — settings domain and validation — active
+### Batch 6A — settings domain and validation — implemented
 
 - [x] Phase 6 product and execution plan
 - [x] One typed store-settings record across all sections
-- [x] Deterministic prototype defaults
+- [x] Deterministic defaults
 - [x] Store identity validation
 - [x] Selling-preference validation and numeric form normalization
 - [x] Delivery-zone and pickup validation
@@ -228,62 +228,83 @@ Accepted evidence:
 - [x] Notification preference domain
 - [x] Truthful team-member and owner boundary
 - [x] One atomic shared-store settings save action
-- [x] Subscriber, state and invalid-save tests added
-- [x] Settings route and navigation remain hidden
-- [ ] ESLint
-- [ ] TypeScript
-- [ ] Focused and full Vitest suites
-- [ ] Production build
-- [ ] React Doctor changed-scope review
+- [x] Subscriber, state and invalid-save tests
 
-### Batch 6B — responsive Settings route and shell — locked
+### Batch 6B — responsive Settings route and shell — implemented
 
-- [ ] `/admin/settings`
-- [ ] Desktop section navigation
-- [ ] Mobile settings navigation
-- [ ] Useful default, loading and error states
-- [ ] Unsaved-state summary
-- [ ] Store navigation exposed only after route completion
+- [x] `/admin/settings`
+- [x] Desktop settings rail
+- [x] Mobile section selector
+- [x] URL-backed section state
+- [x] Default, loading and error states
+- [x] Current-section, dirty-state and last-changed summary
+- [x] Store → Settings navigation exposed after route completion
 
-### Batch 6C — identity, selling and delivery forms — locked
+### Batch 6C — identity, selling and delivery forms — implemented
 
-- [ ] Store identity form and preview
-- [ ] Selling preferences form
-- [ ] Delivery zones and pickup locations
-- [ ] React Hook Form integration
-- [ ] Dirty-state protection and contextual save feedback
+- [x] Store identity form and live storefront preview
+- [x] Selling preferences form
+- [x] Dynamic delivery zones and pickup locations
+- [x] Checkout-choice preview
+- [x] One persistent React Hook Form record across sections
+- [x] Dirty-value preservation and before-unload protection
+- [x] Discard confirmation and contextual save feedback
 
-### Batch 6D — payments, notifications and team boundary — locked
+### Batch 6D — payments, notifications and team boundary — implemented
 
-- [ ] Payments form
-- [ ] Notifications form
-- [ ] Team roles and responsibility boundary
-- [ ] Shared-store subscriber verification
+- [x] Accepted payment methods and bank-transfer instructions
+- [x] Pay-on-delivery deposit and refund preference
+- [x] Selling/Payments pay-on-delivery synchronization
+- [x] Notification preference controls and attention summary
+- [x] Team roles, responsibility map and unsent-invite boundary
+- [x] At-least-one-owner validation
+- [x] Atomic shared-store save and subscriber update
 
-### Batch 6E — consolidated acceptance — locked
+### Batch 6E — consolidated acceptance — blocked
 
-- [ ] Scope and PR diff audit
-- [ ] Latest Web Interface Guidelines review
-- [ ] ESLint, TypeScript, tests and production build
-- [ ] React Doctor changed-scope review
-- [ ] Required browser viewport matrix
-- [ ] Settings validation, dirty-state, save and navigation interactions
-- [ ] Screenshot review
-- [ ] Tracker and PR updated
+- [x] Scope and changed-file responsibility audit
+- [x] Business-language and truthful-boundary audit
+- [x] Focused settings URL test
+- [x] Existing schema and shared-store tests retained
+- [x] Browser validation, URL navigation, dirty-state, save and team checks encoded
+- [x] Required screenshots encoded at 375 × 812, 768 × 1024 and 1280 × 800
+- [x] Horizontal-overflow assertions encoded
+- [x] Mobile sticky-save geometry assertion encoded
+- [ ] ESLint executed on final implementation head
+- [ ] TypeScript executed on final implementation head
+- [ ] Full Vitest suite executed on final implementation head
+- [ ] Production build executed on final implementation head
+- [ ] React Doctor executed on final implementation head
+- [ ] Browser interactions executed on final implementation head
+- [ ] Screenshot review completed
+- [ ] Phase 6 marked accepted
+
+## Phase 6 implementation invariants
+
+- [x] One typed record owns every Settings section value
+- [x] Section changes do not discard unsaved values
+- [x] Pay on delivery cannot drift between Selling and Payments through the UI
+- [x] Delivery, payment and owner minimums are validated before save
+- [x] Dynamic rows preserve business IDs separately from render keys
+- [x] Save updates store identity, settings, activity and subscribers atomically
+- [x] Refresh restores deterministic defaults
+- [x] Team records do not claim sign-in, invitation delivery or enforced access
+- [x] User-visible copy avoids API, webhook, database, cache and provider-configuration language
+- [x] Mobile uses a section selector rather than compressing the desktop rail
 
 ## Verification blocker
 
-After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. Each job fails before checkout, exposes no log URL or artifacts, and reruns behave the same way. The dedicated Phase 5 record preserves the final implementation evidence and missing checks.
+After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. Each job fails before checkout, exposes no job log URL or artifacts, and reruns behave the same way. This is an execution-environment condition rather than an application result.
 
-Phase 6 started only because the user explicitly overrode the earlier phase gate. No blocked Phase 4 or Phase 5 check is represented as passing.
+Phase 6 was fully implemented only because the user explicitly overrode the earlier phase and batch gates. No blocked Phase 4, Phase 5 or Phase 6 check is represented as passing.
 
 ## Loaded implementation contract
 
 - [x] Reloaded specification, implementation plan, tracker and `AGENTS.md`
-- [x] Loaded process, product, UI/UX, frontend, Web Interface Guidelines, Next.js, React, composition, shadcn, TypeScript, error-handling, Playwright, React Doctor and PR skills
-- [x] Searched for `brainstorming`; no current skill was found and no replacement was invented
-- [x] Re-fetched and applied the latest Web Interface Guidelines
+- [x] Applied the existing process, product, UI/UX, frontend, Web Interface Guidelines, Next.js, React, composition, shadcn, TypeScript, error-handling, Playwright, React Doctor and PR contracts
+- [x] Used existing Base UI/shadcn primitives and HugeIcons navigation conventions
+- [x] Preserved truthful session-only boundaries
 
 ## Next action
 
-Review Batch 6A and run its static and focused checks in an executable environment. Do not expose `/admin/settings` or open Batch 6B until the foundation passes, unless the user explicitly overrides that batch gate.
+Restore or provide an executable repository validation environment, then run the consolidated Phase 4, Phase 5 and Phase 6 gates. Do not mark the PR ready for review or start Phase 7 without a passing gate or another explicit user override.
