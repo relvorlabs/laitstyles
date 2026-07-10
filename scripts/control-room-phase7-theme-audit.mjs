@@ -4,13 +4,8 @@ import process from "node:process";
 
 const root = process.cwd();
 const targets = [
-  "src/app/layout.tsx",
-  "src/app/admin",
-  "src/components/brand",
-  "src/components/layout",
-  "src/components/theme",
-  "src/components/ui/dialog.tsx",
-  "src/components/ui/sheet.tsx",
+  "src/app",
+  "src/components",
   "src/features/control-room",
 ];
 
@@ -23,6 +18,11 @@ const checks = [
       `(?:bg|text|border|ring|outline|fill|stroke|from|via|to|shadow)-\\[[^\\]\\n]*${rawColour}[^\\]\\n]*\\]`,
       "g",
     ),
+  },
+  {
+    label: "raw named neutral colour",
+    pattern:
+      /(?:bg|text|border|ring|outline|fill|stroke|from|via|to)-(?:black|white|gray|grey|slate|zinc|neutral|stone)(?:\/[\d.]+)?\b/g,
   },
   {
     label: "raw inline colour style",
@@ -61,12 +61,12 @@ for (const absolutePath of files) {
 
 if (failures.length) {
   throw new Error(
-    `Phase 7 theme audit found raw colour literals in theme-critical source files:\n${failures.join("\n")}`,
+    `Phase 7 theme audit found non-token colours in application source:\n${failures.join("\n")}`,
   );
 }
 
 console.log(
-  `Phase 7 theme audit passed for ${files.length} Control Room and shared chrome source files.`,
+  `Phase 7 theme audit passed for ${files.length} application and shared component source files.`,
 );
 
 async function collectFiles(targetPath, output) {
