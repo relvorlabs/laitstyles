@@ -59,9 +59,9 @@ export function HoldDetailSheet({
   hold: ControlRoomHold | null;
   feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onExtend: (holdId: string, minutes: number) => boolean;
-  onRelease: (holdId: string) => boolean;
-  onConvert: (input: ConvertHoldInput) => boolean;
+  onExtend: (holdId: string, minutes: number) => string | null;
+  onRelease: (holdId: string) => string | null;
+  onConvert: (input: ConvertHoldInput) => string | null;
 }) {
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [conversionOpen, setConversionOpen] = useState(false);
@@ -251,9 +251,9 @@ export function HoldDetailSheet({
         key={`${hold.id}-${conversionOpen ? "open" : "closed"}`}
         onOpenChange={setConversionOpen}
         onSubmit={(input) => {
-          const converted = onConvert(input);
-          if (converted) setConversionOpen(false);
-          return converted;
+          const actionError = onConvert(input);
+          if (!actionError) setConversionOpen(false);
+          return actionError;
         }}
         open={conversionOpen}
         productName={item.productName}
