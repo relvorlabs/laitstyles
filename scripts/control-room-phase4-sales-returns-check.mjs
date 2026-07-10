@@ -38,7 +38,7 @@ async function runConnectedDesktopFlow(browser) {
     .filter({ hasText: "Record an offline sale" });
   await expectVisible(dialog, "Record Sale dialog did not open.");
   await expectVisible(
-    dialog.getByText("Botanical Jeans", { exact: true }),
+    dialog.getByLabel("Product"),
     "Default sellable product was not shown.",
   );
 
@@ -88,13 +88,13 @@ async function runConnectedDesktopFlow(browser) {
     .filter({ hasText: "Start a customer return" });
   await expectVisible(dialog, "Create Return dialog did not open.");
   await expectVisible(
-    dialog.getByText("Botanical Jeans", { exact: false }),
+    dialog.getByLabel("Product"),
     "The new offline sale was not eligible for return.",
   );
   await dialog.getByLabel("Reason").fill("Fit did not work");
   await dialog.getByRole("button", { name: "Open return" }).click();
 
-  let sheet = page.getByRole("dialog").first();
+  const sheet = page.getByRole("dialog").first();
   await expectVisible(sheet, "Return detail did not open after creation.");
   await expectVisible(
     sheet.getByText("Requested", { exact: true }).first(),
