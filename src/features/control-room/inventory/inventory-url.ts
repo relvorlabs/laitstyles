@@ -3,10 +3,14 @@ import type {
   InventoryQuery,
 } from "@/lib/control-room/types";
 
-type InventoryUrlState = {
+export const defaultInventoryPageSize = 15;
+
+export type InventoryUrlState = {
   query: InventoryQuery;
   presentation: InventoryPresentation;
   productId: string | null;
+  page: number;
+  pageSize: number;
 };
 
 export function buildInventoryHref(
@@ -26,6 +30,10 @@ export function buildInventoryHref(
   if (query.sort !== "updated-desc") params.set("sort", query.sort);
   if (state.presentation !== "grid") {
     params.set("presentation", state.presentation);
+  }
+  if (state.page > 1) params.set("page", String(state.page));
+  if (state.pageSize !== defaultInventoryPageSize) {
+    params.set("pageSize", String(state.pageSize));
   }
   if (state.productId) params.set("product", state.productId);
 
