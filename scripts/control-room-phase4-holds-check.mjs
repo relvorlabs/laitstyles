@@ -47,13 +47,13 @@ async function runDesktop(browser) {
     "The full Holds result count was not visible.",
   );
 
-  await page.getByLabel("Search holds").fill("roqeebah sage");
+  await page.getByLabel("Search holds").fill("guest canvas");
   await expectVisible(
     page.getByText(/1 hold in this view/),
     "Hold search did not reduce the result set.",
   );
   await expectVisible(
-    page.getByRole("button", { name: "Open hold-sage" }),
+    page.getByRole("button", { name: "Open hold-tote" }),
     "Expected searched hold was not visible.",
   );
   await page.getByLabel("Search holds").fill("");
@@ -72,7 +72,7 @@ async function runDesktop(browser) {
   });
   await closeSheet(page);
 
-  await page.getByRole("button", { name: "Open hold-sage" }).click();
+  await page.getByRole("button", { name: "Open hold-tote" }).click();
   sheet = page.getByRole("dialog").first();
   await sheet.getByRole("button", { name: "Release hold" }).click();
   const confirmation = page.getByRole("alertdialog");
@@ -91,7 +91,7 @@ async function runDesktop(browser) {
   await sheet.getByRole("button", { name: "Release hold" }).click();
   await confirmation.getByRole("button", { name: "Release stock" }).click();
   await expectVisible(
-    page.getByText(/Roqeebah Bello's hold was released/),
+    page.getByText(/Guest shopper's hold was released/),
     "Confirmed hold release feedback did not appear.",
   );
   await expectVisible(
@@ -116,7 +116,7 @@ async function runDesktop(browser) {
   );
   await conversionDialog.getByRole("button", { name: "Create order" }).click();
   await expectVisible(
-    page.getByText(/Chioma Eze's hold was converted to order/),
+    page.getByText(/Tomi Adeyemi's hold was converted to order/),
     "Hold conversion success feedback did not appear.",
   );
   await expectVisible(
