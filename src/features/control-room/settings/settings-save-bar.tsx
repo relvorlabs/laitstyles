@@ -57,6 +57,7 @@ export function SettingsSaveBar({
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button
+            className="h-11"
             disabled={!dirty || submitting}
             onClick={() => onDiscardOpenChange(true)}
             type="button"
@@ -64,7 +65,11 @@ export function SettingsSaveBar({
           >
             Discard changes
           </Button>
-          <Button disabled={!dirty || submitting} type="submit">
+          <Button
+            className="h-11"
+            disabled={!dirty || submitting}
+            type="submit"
+          >
             {submitting ? "Saving…" : "Save store settings"}
           </Button>
         </div>
