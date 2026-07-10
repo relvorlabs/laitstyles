@@ -14,13 +14,17 @@ import type {
 } from "@/lib/control-room/sales-types";
 
 export type {
+  AddCustomerNoteInput,
   ControlRoomCustomer,
+  CustomerActionError,
+  CustomerActionErrorCode,
   CustomerAddress,
   CustomerAttentionReason,
   CustomerContactPreference,
   CustomerDeliveryHistoryItem,
   CustomerMetrics,
   CustomerNote,
+  CustomerNoteActionSuccess,
   CustomerPreferences,
   CustomerProductRelationship,
   CustomerRelationshipProfile,
