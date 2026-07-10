@@ -15,14 +15,29 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import type { CatalogueTaxonomyKind } from "@/lib/control-room/types";
 
+type TaxonomyRenameEvent = {
+  kind: CatalogueTaxonomyKind;
+  previousName: string;
+  nextName: string;
+};
+
+type TaxonomyDeleteEvent = {
+  kind: CatalogueTaxonomyKind;
+  name: string;
+};
+
 export function CatalogueTaxonomyManager({
   className,
   initialKind = "category",
   triggerLabel = "Manage categories",
+  onRename,
+  onDelete,
 }: {
   className?: string;
   initialKind?: CatalogueTaxonomyKind;
   triggerLabel?: string;
+  onRename?: (event: TaxonomyRenameEvent) => void;
+  onDelete?: (event: TaxonomyDeleteEvent) => void;
 }) {
   const {
     state,
@@ -58,10 +73,18 @@ export function CatalogueTaxonomyManager({
 
   function saveRename() {
     if (!editingId) return;
+    const currentItem = items.find((item) => item.id === editingId);
     const result = renameCatalogueTaxonomy(editingId, editingName);
     if (!result.ok) {
       setFeedback(result.error.message);
       return;
+    }
+    if (currentItem && result.value.item) {
+      onRename?.({
+        kind: currentItem.kind,
+        previousName: currentItem.name,
+        nextName: result.value.item.name,
+      });
     }
     setEditingId(null);
     setEditingName("");
@@ -74,11 +97,15 @@ export function CatalogueTaxonomyManager({
       setFeedback("Select Delete again to confirm. Used groups cannot be deleted.");
       return;
     }
+    const currentItem = items.find((item) => item.id === id);
     const result = deleteCatalogueTaxonomy(id);
     setConfirmDeleteId(null);
     if (!result.ok) {
       setFeedback(result.error.message);
       return;
+    }
+    if (currentItem) {
+      onDelete?.({ kind: currentItem.kind, name: currentItem.name });
     }
     setFeedback(result.value.message);
   }
@@ -88,6 +115,17 @@ export function CatalogueTaxonomyManager({
     setEditingId(null);
     setConfirmDeleteId(null);
     setFeedback(null);
+  }
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setEditingId(null);
+      setEditingName("");
+      setConfirmDeleteId(null);
+      setFeedback(null);
+      setNewName("");
+    }
   }
 
   return (
@@ -104,12 +142,12 @@ export function CatalogueTaxonomyManager({
         <Tags aria-hidden="true" className="size-4" />
         {triggerLabel}
       </Button>
-      <Dialog onOpenChange={setOpen} open={open}>
+      <Dialog onOpenChange={changeOpen} open={open}>
         <DialogContent className="max-h-[min(88dvh,760px)] overflow-hidden sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">Catalogue groups</DialogTitle>
             <DialogDescription>
-              Categories organise product types. Collections group products for a season, edit or campaign. Renaming updates connected products; deleting is blocked while a group is in use.
+              Categories organise product types. Collections group products for a season, edit or campaign. Renaming updates connected products and the active editor selection; deleting is blocked while a group is in use.
             </DialogDescription>
           </DialogHeader>
 
@@ -167,8 +205,14 @@ export function CatalogueTaxonomyManager({
                             className="h-10"
                             onChange={(event) => setEditingName(event.target.value)}
                             onKeyDown={(event) => {
-                              if (event.key === "Enter") saveRename();
-                              if (event.key === "Escape") setEditingId(null);
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                saveRename();
+                              }
+                              if (event.key === "Escape") {
+                                setEditingId(null);
+                                setEditingName("");
+                              }
                             }}
                             value={editingName}
                           />
@@ -184,8 +228,20 @@ export function CatalogueTaxonomyManager({
 
                       {editing ? (
                         <>
-                          <Button onClick={saveRename} size="sm" type="button">Save</Button>
-                          <Button onClick={() => setEditingId(null)} size="sm" type="button" variant="ghost">Cancel</Button>
+                          <Button disabled={!editingName.trim()} onClick={saveRename} size="sm" type="button">
+                            Save
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setEditingId(null);
+                              setEditingName("");
+                            }}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            Cancel
+                          </Button>
                         </>
                       ) : (
                         <>
@@ -195,6 +251,7 @@ export function CatalogueTaxonomyManager({
                             onClick={() => {
                               setEditingId(item.id);
                               setEditingName(item.name);
+                              setConfirmDeleteId(null);
                               setFeedback(null);
                             }}
                             size="icon"
