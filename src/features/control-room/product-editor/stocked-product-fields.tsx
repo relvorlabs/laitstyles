@@ -16,9 +16,11 @@ export function StockedProductFields() {
     control,
     name: ["productId", "stocked.quantity"],
   });
-  const existing = state.products.find(
-    (product) => product.id === productId && product.inventoryMode === "stocked",
+  const existingProduct = state.products.find(
+    (product) => product.id === productId,
   );
+  const existing =
+    existingProduct?.inventoryMode === "stocked" ? existingProduct : undefined;
   const committed = existing
     ? existing.stock.reserved +
       existing.stock.sold +
