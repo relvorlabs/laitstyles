@@ -45,7 +45,7 @@ export function applySaveStoreSettings(
           kind: "settings",
           title: "Store settings updated",
           detail:
-            "Store identity, selling, delivery, payment, notification and team preferences were saved for this prototype session.",
+            "Store identity, selling, delivery, payment, notification and team preferences were updated.",
           occurredAt: now,
         },
         ...state.activities,
@@ -53,7 +53,7 @@ export function applySaveStoreSettings(
     },
     action: {
       settings,
-      message: "Store settings were saved for this prototype session.",
+      message: "Store settings were saved until this page is refreshed.",
     },
   });
 }
