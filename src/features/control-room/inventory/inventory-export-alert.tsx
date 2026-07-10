@@ -22,11 +22,11 @@ export function InventoryExportAlert({
   return (
     <Alert
       aria-live="polite"
-      className="border-[#C9D1B8] bg-[#E7EBDD] text-[#4A5540]"
+      className="border-success/35 bg-success/10 text-foreground"
     >
-      <ControlRoomIcon icon={CheckmarkCircle02Icon} size={18} />
+      <ControlRoomIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
       <AlertTitle>Inventory export created</AlertTitle>
-      <AlertDescription className="text-[#59644A]">
+      <AlertDescription className="text-muted-foreground">
         {count} selected product{count === 1 ? "" : "s"} were exported as a CSV file.
       </AlertDescription>
       <AlertAction>
