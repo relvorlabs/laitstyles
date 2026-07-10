@@ -78,18 +78,6 @@ export function useTheme() {
   return context;
 }
 
-export const themeBootScript = `
-(function () {
-  try {
-    var preference = localStorage.getItem('${STORAGE_KEY}') || 'system';
-    var dark = preference === 'dark' || (preference === 'system' && matchMedia('${DARK_QUERY}').matches);
-    var root = document.documentElement;
-    root.classList.toggle('dark', dark);
-    root.dataset.theme = dark ? 'dark' : 'light';
-    root.style.colorScheme = dark ? 'dark' : 'light';
-  } catch (_) {}
-})();`;
-
 function isThemePreference(value: string | null): value is ThemePreference {
   return value === "light" || value === "dark" || value === "system";
 }
