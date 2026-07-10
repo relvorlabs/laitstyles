@@ -35,7 +35,7 @@ export function SalesPulse({ points }: SalesPulseProps) {
               Revenue has two storefronts.
             </span>
           </span>
-          <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-secondary text-[#4A5540]">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
             <ControlRoomIcon icon={ChartIncreaseIcon} size={20} />
           </span>
         </CardTitle>
@@ -49,7 +49,7 @@ export function SalesPulse({ points }: SalesPulseProps) {
           <Badge className="bg-primary text-primary-foreground">
             Online {formatCompactNaira(onlineTotal)}
           </Badge>
-          <Badge className="bg-[#E7EBDD] text-[#4A5540]" variant="secondary">
+          <Badge className="bg-accent text-accent-foreground" variant="secondary">
             Offline {formatCompactNaira(offlineTotal)}
           </Badge>
         </div>
