@@ -26,6 +26,7 @@ export function PickupLocationList() {
   const pickups = useFieldArray({
     control,
     name: "delivery.pickupLocations",
+    keyName: "fieldKey",
   });
   const pickupLocations = useWatch({
     control,
@@ -42,6 +43,7 @@ export function PickupLocationList() {
           </p>
         </div>
         <Button
+          className="h-11"
           onClick={() =>
             pickups.append({
               id: `pickup-location-${crypto.randomUUID()}`,
@@ -65,7 +67,7 @@ export function PickupLocationList() {
             const base = `delivery.pickupLocations.${index}` as const;
             const current = pickupLocations?.[index];
             return (
-              <Card className="gap-5 p-4 sm:p-5" key={pickup.id}>
+              <Card className="gap-5 p-4 sm:p-5" key={pickup.fieldKey}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-medium">
