@@ -195,7 +195,11 @@ export function EditorSelectField({
             }
             value={String(field.value || (emptyLabel ? emptyValue : ""))}
           >
-            <SelectTrigger aria-invalid={Boolean(error)} className="h-11 w-full">
+            <SelectTrigger
+              aria-label={label}
+              aria-invalid={Boolean(error)}
+              className="h-11 w-full"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
