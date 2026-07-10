@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useState } from "react";
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,6 +39,7 @@ import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
 } from "@/features/control-room/holds/hold-selectors";
+import type { HoldActionFeedback } from "@/features/control-room/holds/holds-workspace";
 import type {
   ControlRoomHold,
   ControlRoomState,
@@ -43,6 +49,7 @@ import type {
 export function HoldDetailSheet({
   state,
   hold,
+  feedback,
   onOpenChange,
   onExtend,
   onRelease,
@@ -50,10 +57,11 @@ export function HoldDetailSheet({
 }: {
   state: ControlRoomState;
   hold: ControlRoomHold | null;
+  feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onExtend: (holdId: string, minutes: number) => void;
-  onRelease: (holdId: string) => void;
-  onConvert: (input: ConvertHoldInput) => void;
+  onExtend: (holdId: string, minutes: number) => boolean;
+  onRelease: (holdId: string) => boolean;
+  onConvert: (input: ConvertHoldInput) => boolean;
 }) {
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [conversionOpen, setConversionOpen] = useState(false);
@@ -91,6 +99,16 @@ export function HoldDetailSheet({
           </SheetHeader>
 
           <div className="space-y-6 p-4 sm:p-6">
+            {feedback ? (
+              <Alert
+                aria-live="polite"
+                variant={feedback.tone === "error" ? "destructive" : "default"}
+              >
+                <AlertTitle>{feedback.title}</AlertTitle>
+                <AlertDescription>{feedback.message}</AlertDescription>
+              </Alert>
+            ) : null}
+
             <section className="grid gap-5 sm:grid-cols-[150px_minmax(0,1fr)]" aria-labelledby="hold-summary-title">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-secondary">
                 <Image
@@ -233,8 +251,9 @@ export function HoldDetailSheet({
         key={`${hold.id}-${conversionOpen ? "open" : "closed"}`}
         onOpenChange={setConversionOpen}
         onSubmit={(input) => {
-          onConvert(input);
-          setConversionOpen(false);
+          const converted = onConvert(input);
+          if (converted) setConversionOpen(false);
+          return converted;
         }}
         open={conversionOpen}
         productName={item.productName}
