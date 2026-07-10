@@ -34,7 +34,7 @@ export function ControlRoomTopbar({
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl">
-      <div className="flex min-h-[72px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
+      <div className="flex min-h-[76px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <Button
           aria-label="Open Control Room navigation"
           className="size-11 rounded-full lg:hidden"
@@ -56,13 +56,23 @@ export function ControlRoomTopbar({
         </div>
 
         <button
-          className="hidden min-h-11 min-w-[240px] items-center gap-3 rounded-full border border-border bg-card px-4 text-left text-[13px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground xl:flex"
+          aria-label="Search products, orders, customers and store tasks"
+          className="group hidden min-h-12 min-w-[300px] items-center gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
           onClick={onOpenSearch}
           type="button"
         >
-          <ControlRoomIcon icon={Search01Icon} size={17} />
-          <span className="flex-1">Search the Control Room</span>
-          <kbd className="rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-selected text-surface-selected-foreground">
+            <ControlRoomIcon icon={Search01Icon} size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Search everything
+            </span>
+            <span className="mt-0.5 block truncate text-[12.5px] font-medium text-foreground">
+              Products, orders, customers and tasks
+            </span>
+          </span>
+          <kbd className="rounded-lg border border-border bg-surface-sunken px-2 py-1 font-mono text-[10px] text-muted-foreground">
             ⌘ K
           </kbd>
         </button>
