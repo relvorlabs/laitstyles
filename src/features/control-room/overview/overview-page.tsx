@@ -30,7 +30,7 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
             Owner operations · {reportingLabel}
           </p>
           <h1 className="mt-3 max-w-[820px] text-balance font-serif text-[38px] font-medium leading-[1.01] sm:text-[48px] lg:text-[54px]">
-            See what needs judgment, what is moving and what can wait.
+            See the store clearly before deciding what to do next.
           </h1>
           <p className="mt-4 max-w-[700px] text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
             One operating view for store health, customer promises and the next decisions—not a wall of repeated dashboard cards.
