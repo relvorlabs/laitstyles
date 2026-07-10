@@ -60,6 +60,13 @@ const customersItem: ControlRoomNavigationItem = {
   description: "Relationships, spend, follow-up and delivery context.",
 };
 
+const settingsItem: ControlRoomNavigationItem = {
+  label: "Settings",
+  href: "/admin/settings",
+  icon: Store01Icon,
+  description: "Store identity, selling, delivery, payments and team preferences.",
+};
+
 export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "Control room",
@@ -76,6 +83,10 @@ export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "People",
     items: [customersItem],
+  },
+  {
+    label: "Store",
+    items: [settingsItem],
   },
 ];
 
