@@ -2,7 +2,7 @@
 
 ## Current score
 
-**Phase 9 implemented — codebase structure review, Biome migration and Supabase readiness are verified except React Doctor timeout**
+**Phase 10 in progress — Supabase Auth, Google OAuth and organization permissions**
 
 The user explicitly requested that Supabase Auth, Google OAuth, organization roles/permissions, codebase structure fixes and Supabase database/schema setup happen before TanStack Query. The previous TanStack Phase 9 repository/key work remains on the branch as paused preliminary foundation and must be reconciled in Phase 12.
 
@@ -12,8 +12,8 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 
 | Field                                          | Value                                                                                                 |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Status                                         | Phase 9 implemented; executable gate passed except React Doctor timeout                                  |
-| Active implementation phase                    | Phase 9 — Codebase Structure Review and Supabase Readiness                                            |
+| Status                                         | Phase 10 in progress; Phase 9 dirty sidebar change committed and React Doctor timeout remains recorded |
+| Active implementation phase                    | Phase 10 — Supabase Auth, Google OAuth and Organization Permissions                                  |
 | Compact Inventory gallery head                 | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c`                                                            |
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
@@ -223,12 +223,15 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 
 ## Phase 10 — Supabase Auth, Google OAuth and Organization Permissions
 
-- [ ] Supabase SSR browser/server/proxy clients
-- [ ] Google OAuth callback and auth error routes
-- [ ] Staff owner/manager/operator roles and capability contract
-- [ ] Consumer storefront account boundaries
-- [ ] Route/action guards and permission-restricted UI states
-- [ ] Auth smoke tests and full executable gate
+- [x] Supabase SSR browser/server/proxy clients wired through root `proxy.ts`
+- [x] Google OAuth callback, auth error route and sign-in/sign-out flows
+- [x] Staff owner/manager/operator roles and capability contract
+- [x] Consumer storefront account boundary for `/account`
+- [x] Control Room route guard and permission-restricted UI state
+- [x] Deterministic permission and redirect tests added
+- [x] Local route smoke: `/auth/sign-in?next=/admin` returned 200, signed-out `/admin` redirected to `/auth/sign-in?next=/admin`, missing-code `/auth/callback` redirected to `/auth/error`
+- [ ] Local Google OAuth browser smoke test
+- [ ] Full executable gate
 
 ## Phase 11 — Supabase Database, Storage, RLS and Generated Types
 
@@ -257,4 +260,4 @@ PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behi
 
 ## Next action
 
-Review the Phase 9 diff, decide whether to accept the React Doctor timeout as an environment blocker, then begin Phase 10 Supabase Auth only after that gate decision. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
+Continue Phase 10 verification: run Biome, TypeScript, Vitest, production build, React Doctor and a local auth smoke check. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.

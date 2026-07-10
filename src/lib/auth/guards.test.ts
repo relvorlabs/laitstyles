@@ -51,6 +51,21 @@ describe("auth guards", () => {
     ).toEqual({ ok: false, reason: "inactive-membership" });
   });
 
+  it("rejects access when membership data cannot be verified", () => {
+    expect(
+      requireStoreCapability(
+        {
+          authorizationError: "relation does not exist",
+          authorizationLoaded: false,
+          profileId: "profile_2",
+          storeMemberships: [],
+        },
+        "store_laitstyle",
+        "sales:record",
+      ),
+    ).toEqual({ ok: false, reason: "membership-unavailable" });
+  });
+
   it("rejects capabilities outside the active role", () => {
     expect(requireStoreCapability(activeManager, "store_laitstyle", "team:manage")).toEqual({
       ok: false,

@@ -3,6 +3,7 @@
 import {
   Add01Icon,
   ArrowUpRight01Icon,
+  Logout03Icon,
   Menu01Icon,
   Notification03Icon,
   Search01Icon,
@@ -89,6 +90,19 @@ export function ControlRoomTopbar({
         </Button>
 
         <ThemeToggle className="hidden sm:inline-flex" />
+
+        <form action="/auth/sign-out" className="hidden sm:block" method="post">
+          <input name="next" type="hidden" value="/auth/sign-in?next=/admin" />
+          <Button
+            aria-label="Sign out of Control Room"
+            className="size-11 rounded-full"
+            size="icon-lg"
+            type="submit"
+            variant="outline"
+          >
+            <ControlRoomIcon icon={Logout03Icon} size={18} />
+          </Button>
+        </form>
 
         <Link
           aria-label="Go to items needing attention"

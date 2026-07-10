@@ -56,8 +56,9 @@ export function TeamSection() {
       <div className="rounded-xl border border-border bg-muted/30 p-4">
         <p className="text-sm font-medium">Responsibility guide</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Use this section to document who is expected to handle store work. Adding someone here
-          does not create a sign-in or send an invitation.
+          Use this section to document who is expected to handle store work. Phase 10 enforces
+          access from Supabase store memberships; invitation sending and editable membership records
+          land with the Phase 11 schema.
         </p>
       </div>
 
@@ -184,10 +185,10 @@ export function TeamSection() {
 
 function TeamBoundaryPreview({ members }: { members: TeamMemberBoundary[] }) {
   const roleCounts = members.reduce<Record<TeamRole, number>>(
-    (counts, member) => ({
-      ...counts,
-      [member.role]: counts[member.role] + 1,
-    }),
+    (counts, member) => {
+      counts[member.role] += 1;
+      return counts;
+    },
     { owner: 0, manager: 0, operations: 0 },
   );
 
@@ -216,8 +217,8 @@ function TeamBoundaryPreview({ members }: { members: TeamMemberBoundary[] }) {
         ))}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        This map helps the operator communicate ownership. Staff sign-in and access control are not
-        managed here.
+        This map helps the operator communicate ownership. Actual staff access is checked from the
+        Supabase membership records before Control Room data is shown.
       </p>
     </Card>
   );

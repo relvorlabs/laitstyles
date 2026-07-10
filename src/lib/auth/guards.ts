@@ -12,6 +12,8 @@ export type AuthPrincipal = {
   profileId: string | null;
   storeMemberships: readonly StoreMembership[];
   consumerCustomerIds?: readonly string[];
+  authorizationLoaded?: boolean;
+  authorizationError?: string;
 };
 
 export type StoreGuardResult =
@@ -29,6 +31,10 @@ export function requireStoreCapability(
 ): StoreGuardResult {
   if (!principal.profileId) {
     return { ok: false, reason: "signed-out" };
+  }
+
+  if (principal.authorizationLoaded === false) {
+    return { ok: false, reason: "membership-unavailable" };
   }
 
   const membership = getStoreMembership(principal, storeId);

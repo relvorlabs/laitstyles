@@ -444,3 +444,39 @@ For assets:
 - Next image configuration is generated from one shared asset allowlist.
 - Control Room raw color drift is checked against semantic theme-token usage in changed UI files.
 - A static Vitest boundary test guards accidental client imports of server-only modules.
+
+## Decision 008 — Phase 10 Supabase Auth activation
+
+**Date:** 2026-07-10
+**Status:** Implemented for Phase 10; database/RLS enforcement remains Phase 11
+**Decision owner:** Control Room V2 implementation
+**Review trigger:** Starting Phase 11 migrations, changing auth provider, or adding multi-store switching
+
+### Context
+
+Phase 10 activates real Supabase Auth behavior before Control Room data moves to Supabase tables.
+The app needs staff and consumer sessions, Google OAuth with PKCE, server-side cookie handling and
+store-scoped role checks without exposing service-role credentials or trusting user metadata.
+
+### Decision
+
+Use the Phase 9 Supabase SSR clients and activate them through root `src/proxy.ts`.
+
+- Auth callback route: `src/app/auth/callback/route.ts`
+- Sign-in UI and actions: `src/app/auth/sign-in/page.tsx` and `src/app/auth/actions.ts`
+- Sign-out route: `src/app/auth/sign-out/route.ts`
+- Request-bound auth helpers: `src/lib/auth/server/*`
+- Control Room route guard: `src/app/admin/layout.tsx`
+- Consumer account guard: `src/app/account/layout.tsx`
+
+Server identity checks use `getClaims()` with `getUser()` fallback, never `getSession()` for
+authorization. Store access resolves from `profiles`, `store_memberships` and customer linkage
+contracts, while Phase 11 remains responsible for migrations, generated types and RLS policies.
+
+### Consequences
+
+- Signed-out Control Room requests redirect to `/auth/sign-in?next=/admin`.
+- Signed-in users without an active membership or capability see a permission-restricted state.
+- Consumers can reach `/account` only after Supabase Auth establishes a session.
+- Google OAuth is wired through Supabase PKCE callback, but provider-console credentials and full
+  database membership rows must exist before a complete end-to-end staff login can be accepted.

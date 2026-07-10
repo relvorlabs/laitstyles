@@ -2,9 +2,10 @@
 
 ## Status
 
-**Planned.**
+**In progress.**
 
-Phase 10 starts only after Phase 9 confirms the codebase structure and auth/data boundaries are ready.
+Phase 10 started after the user explicitly approved moving past the Phase 9 React Doctor timeout
+blocker.
 
 ## Goal
 
