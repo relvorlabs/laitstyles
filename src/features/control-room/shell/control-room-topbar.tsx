@@ -78,7 +78,7 @@ export function ControlRoomTopbar({
           <ControlRoomIcon icon={Search01Icon} size={18} />
         </Button>
 
-        <ThemeToggle />
+        <ThemeToggle className="hidden sm:inline-flex" />
 
         <Link
           aria-label="Go to items needing attention"
