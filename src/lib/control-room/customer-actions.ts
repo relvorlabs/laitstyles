@@ -1,10 +1,10 @@
 import type {
   AddCustomerNoteInput,
-  ControlRoomState,
   CustomerActionError,
   CustomerNote,
   CustomerNoteActionSuccess,
-} from "@/lib/control-room/types";
+} from "@/lib/control-room/customer-types";
+import type { ControlRoomState } from "@/lib/control-room/types";
 import { err, ok, type Result } from "@/lib/control-room/result";
 
 export type CustomerNoteStateResult = {
