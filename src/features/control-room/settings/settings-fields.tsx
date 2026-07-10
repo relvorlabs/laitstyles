@@ -109,7 +109,9 @@ export function SettingsNumberField({
             setValueAs: (value) => (value === "" ? Number.NaN : Number(value)),
           })}
           aria-invalid={Boolean(error)}
-          className="h-11 tabular-nums"
+          className={
+            suffix ? "h-11 pr-20 tabular-nums" : "h-11 tabular-nums"
+          }
           id={fieldId(name)}
           inputMode="decimal"
           max={max}
