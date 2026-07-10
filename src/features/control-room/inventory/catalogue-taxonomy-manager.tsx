@@ -15,29 +15,31 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import type { CatalogueTaxonomyKind } from "@/lib/control-room/types";
 
+type TaxonomyValueEvent = {
+  kind: CatalogueTaxonomyKind;
+  name: string;
+};
+
 type TaxonomyRenameEvent = {
   kind: CatalogueTaxonomyKind;
   previousName: string;
   nextName: string;
 };
 
-type TaxonomyDeleteEvent = {
-  kind: CatalogueTaxonomyKind;
-  name: string;
-};
-
 export function CatalogueTaxonomyManager({
   className,
   initialKind = "category",
   triggerLabel = "Manage categories",
+  onCreate,
   onRename,
   onDelete,
 }: {
   className?: string;
   initialKind?: CatalogueTaxonomyKind;
   triggerLabel?: string;
+  onCreate?: (event: TaxonomyValueEvent) => void;
   onRename?: (event: TaxonomyRenameEvent) => void;
-  onDelete?: (event: TaxonomyDeleteEvent) => void;
+  onDelete?: (event: TaxonomyValueEvent) => void;
 }) {
   const {
     state,
@@ -66,6 +68,12 @@ export function CatalogueTaxonomyManager({
     if (!result.ok) {
       setFeedback(result.error.message);
       return;
+    }
+    if (result.value.item) {
+      onCreate?.({
+        kind: result.value.item.kind,
+        name: result.value.item.name,
+      });
     }
     setNewName("");
     setFeedback(result.value.message);
@@ -147,7 +155,7 @@ export function CatalogueTaxonomyManager({
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">Catalogue groups</DialogTitle>
             <DialogDescription>
-              Categories organise product types. Collections group products for a season, edit or campaign. Renaming updates connected products and the active editor selection; deleting is blocked while a group is in use.
+              Categories organise product types. Collections group products for a season, edit or campaign. Creating or renaming a group updates the active product form; deleting is blocked while a group is in use.
             </DialogDescription>
           </DialogHeader>
 
