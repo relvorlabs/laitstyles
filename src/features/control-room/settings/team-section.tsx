@@ -136,9 +136,9 @@ export function TeamSection() {
                 />
                 <SettingsTextField
                   description="Read-only prototype state for this team record."
-                  disabled
                   label="Team status"
                   name={`${base}.status` as FieldPath<SaveStoreSettingsInput>}
+                  readOnly
                 />
                 <div className="sm:col-span-2">
                   <SettingsTextareaField
@@ -153,7 +153,7 @@ export function TeamSection() {
 
               {soleOwner ? (
                 <p className="text-xs leading-5 text-muted-foreground">
-                  This record cannot be removed or changed away from Owner unless another owner remains in the team.
+                  This record cannot be removed unless another owner remains in the team.
                 </p>
               ) : null}
             </Card>
