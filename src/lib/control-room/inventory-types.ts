@@ -51,7 +51,7 @@ export type ProductBase = {
   media: ProductMedia[];
   price: number;
   referencePrice: number | null;
-  cost: number;
+  cost: number | null;
   lifecycle: ProductLifecycle;
   publication: PublicationState;
   channels: CatalogueChannel[];
