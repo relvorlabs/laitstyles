@@ -14,10 +14,11 @@ export function CustomerProductsPanel({
   state: ControlRoomState;
   relationships: CustomerProductRelationship[];
 }) {
+  const productById = new Map(
+    state.products.map((product) => [product.id, product]),
+  );
   const items = relationships.flatMap((relationship) => {
-    const product = state.products.find(
-      (entry) => entry.id === relationship.productId,
-    );
+    const product = productById.get(relationship.productId);
     return product ? [{ product, relationship }] : [];
   });
 
