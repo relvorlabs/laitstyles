@@ -12,7 +12,10 @@ import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 export function StoreIdentitySection() {
   const { control } = useFormContext<SaveStoreSettingsInput>();
-  const identity = useWatch({ control, name: "identity" }) as SaveStoreSettingsInput["identity"];
+  const identity = useWatch({
+    control,
+    name: "identity",
+  }) as SaveStoreSettingsInput["identity"];
 
   return (
     <SettingsSectionFrame
@@ -54,7 +57,7 @@ export function StoreIdentitySection() {
         />
         <SettingsTextField
           autoComplete="tel"
-          description="Used only as visible store contact information in this prototype."
+          description="Shown with the store contact details customers can use."
           label="WhatsApp number"
           name="identity.whatsappNumber"
           placeholder="+234…"
@@ -73,11 +76,10 @@ export function StoreIdentitySection() {
           type="url"
         />
         <SettingsTextField
-          description="Use a local preview path or a complete image address. Upload storage is not connected."
-          label="Logo preview reference"
+          description="Use a known image address for the preview. Direct logo upload is not available yet."
+          label="Logo image"
           name="identity.logoPreviewUrl"
           placeholder="/logo.svg"
-          type="url"
         />
       </div>
     </SettingsSectionFrame>
@@ -109,7 +111,7 @@ function StorefrontIdentityPreview({
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Storefront preview
           </p>
-          <Badge variant="outline">Live form values</Badge>
+          <Badge variant="outline">Updates as you type</Badge>
         </div>
       </div>
       <div className="p-5">
@@ -138,7 +140,7 @@ function StorefrontIdentityPreview({
           <p className="mt-1 break-words text-xs leading-5">{contact}</p>
         </div>
         <p className="mt-4 break-all text-[10px] leading-4 text-muted-foreground">
-          Logo reference: {identity?.logoPreviewUrl || "Not set"}
+          Logo image: {identity?.logoPreviewUrl || "Not set"}
         </p>
       </div>
     </Card>
