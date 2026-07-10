@@ -63,8 +63,8 @@ async function runDesktop(browser) {
   await expectVisible(sheet, "Hold detail did not open.");
   await sheet.getByRole("button", { name: "+15 min" }).click();
   await expectVisible(
-    page.getByText("Amara Okafor's hold was extended by 15 minutes."),
-    "Hold extension feedback did not appear.",
+    sheet.getByText("Amara Okafor's hold was extended by 15 minutes."),
+    "Hold extension feedback was not visible inside the active detail sheet.",
   );
   await page.screenshot({
     path: path.join(screenshotDir, "phase4-holds-extended-1280x800.png"),
@@ -91,8 +91,8 @@ async function runDesktop(browser) {
   await sheet.getByRole("button", { name: "Release hold" }).click();
   await confirmation.getByRole("button", { name: "Release stock" }).click();
   await expectVisible(
-    page.getByText(/Guest shopper's hold was released/),
-    "Confirmed hold release feedback did not appear.",
+    sheet.getByText(/Guest shopper's hold was released/),
+    "Confirmed hold release feedback was not visible inside the active detail sheet.",
   );
   await expectVisible(
     sheet.getByText("Released", { exact: true }).first(),
@@ -116,8 +116,8 @@ async function runDesktop(browser) {
   );
   await conversionDialog.getByRole("button", { name: "Create order" }).click();
   await expectVisible(
-    page.getByText(/Tomi Adeyemi's hold was converted to order/),
-    "Hold conversion success feedback did not appear.",
+    sheet.getByText(/Tomi Adeyemi's hold was converted to order/),
+    "Hold conversion success feedback was not visible inside the active detail sheet.",
   );
   await expectVisible(
     sheet.getByText("Converted", { exact: true }).first(),
