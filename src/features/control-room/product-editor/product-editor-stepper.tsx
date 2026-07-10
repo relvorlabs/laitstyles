@@ -62,7 +62,7 @@ export function ProductEditorStepper({
                       active
                         ? "border-primary-foreground/35 bg-primary-foreground/10"
                         : complete
-                          ? "border-[#9CAB83] bg-[#E7EBDD] text-[#4A5540]"
+                          ? "border-brand-sage/45 bg-accent text-accent-foreground"
                           : "border-border bg-card",
                     )}
                   >
