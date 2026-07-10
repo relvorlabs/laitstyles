@@ -105,7 +105,10 @@ async function runCatalogueFlow(browser) {
   const descriptions = editor.getByRole("textbox", { name: "Image description" });
   await descriptions.nth(0).fill("Front view of the relaxed denim jeans");
   await descriptions.nth(1).fill("Laitstyle brand detail for the product record");
-  await editor.getByRole("button", { name: "Set as featured cover" }).click();
+  await editor
+    .getByRole("button", { name: "Set as featured cover" })
+    .nth(1)
+    .click();
   const featuredCount = await editor.getByText("Featured cover", { exact: true }).count();
   if (featuredCount !== 1) {
     throw new Error(`Expected exactly one featured cover, received ${featuredCount}.`);
