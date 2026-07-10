@@ -1,46 +1,71 @@
 # Laitstyle Control Room V2 — Phased Implementation Plan
 
-**Source of truth:** `docs/control-room-v2/spec.md`  
+**Source of truth:** `docs/control-room-v2/spec.md` plus the active phase plan  
 **Working branch:** `feat/control-room-v2`  
-**PR mode:** Draft until the final phase is verified  
-**Execution rule:** Do not begin a later phase until the current phase satisfies every required gate.
+**PR mode:** Draft until the final phase is verified and the branch is mergeable  
+**Execution rule:** Do not begin a later phase until the current phase satisfies every required gate unless the user explicitly overrides that gate.
 
 ## 1. Planning decisions
 
 ### 1.1 One PR, multiple verified batches
 
-The revamp will be implemented in one dedicated draft pull request so that design and architecture decisions remain reviewable in one place. Each phase is a separate batch with:
+The revamp is implemented in one dedicated draft pull request so design and architecture decisions remain reviewable in one place. Each phase has:
 
-- A narrow scope
-- Focused commits
-- Its own acceptance checklist
-- Required repository checks
-- An updated tracker and PR summary
+- a narrow scope
+- focused commits
+- its own acceptance checklist
+- required repository checks
+- an updated tracker and PR summary
 
-A phase must not mix unrelated work from later phases.
+A phase must not mix unrelated work from a later phase.
 
 ### 1.2 Replace the monolith progressively
 
-The existing `src/app/admin/[[...section]]/page.tsx` combines routing, seed data, domain types, timers, dialogs, page sections and mutations in one client file. It will be replaced through route-level pages and feature folders.
+The original `src/app/admin/[[...section]]/page.tsx` combined routing, seed data, domain types, timers, dialogs, page sections and mutations in one client file. It has been replaced with route-level pages and focused feature folders.
 
-The old catch-all route remains only until the new shell and first route are functional. It must not be expanded during the revamp.
+The legacy file on `main` may be inspected as a design and information-architecture reference in Phase 8, but it must not be restored, expanded or copied back as a monolith.
 
 ### 1.3 No fake backend architecture
 
-The current repository has no production Control Room data service. Early phases use typed seed data behind selectors and a single action/reducer boundary. The implementation must not introduce API routes, caching infrastructure or TanStack Query merely to simulate a backend.
+The current repository has no production Control Room data service.
 
-### 1.4 TanStack decision
+- Phases 0–8 use typed deterministic records behind explicit domain boundaries.
+- Do not create API routes whose only purpose is to wrap local seed arrays.
+- Do not add random latency, random failures, fake background jobs or production persistence claims.
+- Phase 9 is an explicit exception to the earlier TanStack deferral: it may introduce a Promise-based in-memory repository adapter solely to prove a replaceable server-state boundary.
+- The in-memory adapter must remain truthful, deterministic and session-only.
+- A future HTTP/RPC adapter must be replaceable without rewriting feature components or query keys.
 
-No TanStack package or dedicated TanStack skill exists in the current repository/controller index.
+### 1.4 TanStack decisions
 
-- Evaluate `@tanstack/react-table` in Phase 2 only.
-- Add it only if the operational inventory table genuinely benefits from its sorting, filtering, row selection and column visibility model.
-- Do not introduce TanStack Query until real asynchronous server state exists.
-- Record any dependency addition in the phase notes and PR body.
+No dedicated TanStack Query skill exists in the current `agent-controller` index. Do not invent one. Use the current official TanStack Query React documentation and the repository’s Next.js, React, TypeScript and testing contracts.
+
+#### TanStack Table
+
+- `@tanstack/react-table` was evaluated during Phase 2 only.
+- It should be introduced only if the operational table needs sorting, filtering, selection or column infrastructure that would otherwise become meaningful custom code.
+- This decision is separate from TanStack Query.
+
+#### TanStack Query
+
+Phase 9 is approved to add a future-ready server-state layer even before a production backend exists, under these conditions:
+
+- query data is backed by typed repository interfaces
+- the development adapter is deterministic and Promise-based
+- server-like records are removed from duplicate global client state as each domain migrates
+- query keys model resource identity and all data-affecting inputs
+- query functions and options are colocated by domain
+- writes use exact cache reconciliation or targeted invalidation
+- optimistic updates are limited to reversible, low-conflict actions with snapshot and rollback
+- stock-, payment- and ownership-sensitive actions remain pessimistic until concurrency safety is proven
+- loading, error, empty, stale and background-refetch states are explicit
+- no fake API, persistence or network guarantee is claimed
+
+Every dependency addition must be recorded in the active phase notes, architecture decisions and PR body.
 
 ### 1.5 Component boundaries
 
-Pages compose features. Features own presentation and interaction. Domain data and selectors remain outside React page files.
+Pages compose features. Features own presentation and interaction. Domain data, repository contracts, selectors and actions remain outside React page files.
 
 Target structure:
 
@@ -51,19 +76,22 @@ src/app/admin/
   loading.tsx
   error.tsx
   inventory/page.tsx
-  collections/page.tsx
   orders/page.tsx
   holds/page.tsx
   returns/page.tsx
   customers/page.tsx
   settings/page.tsx
+  query-provider.tsx                 # Phase 9
 
 src/features/control-room/
   shell/
   overview/
   inventory/
   product-editor/
-  sales/
+  orders/
+  holds/
+  returns/
+  record-sale/
   customers/
   settings/
   shared/
@@ -72,45 +100,50 @@ src/lib/control-room/
   types.ts
   seed.ts
   selectors.ts
-  actions.ts
   result.ts
+  data/                              # Phase 9 repository contracts/adapters
 ```
 
 Routes are created only in the phase that completes their useful default, empty, loading and error states.
 
 ## 2. Required workflow for every phase
 
-Before coding:
+### Before coding
 
 1. Reload `docs/control-room-v2/spec.md`.
 2. Reload this implementation plan.
-3. Read the current `AGENTS.md` rules.
-4. Inspect the latest changed files and current PR feedback.
-5. Activate the relevant skills listed in `AGENTS.md`.
-6. State the exact phase scope and exclusions in the phase tracker.
+3. Reload the active phase plan.
+4. Read the current `AGENTS.md` rules.
+5. Inspect the latest changed files, current PR state and upstream divergence.
+6. Load `using-superpowers` first and then every relevant current skill from `relvorlabs/agent-controller`.
+7. Fetch current official documentation for dependencies whose API may have changed.
+8. State the exact scope and exclusions in `progress.md`.
 
-During coding:
+### During coding
 
 1. Keep route files small and compositional.
-2. Split domain types, seed data, selectors and actions from UI components.
+2. Split domain types, repositories, selectors and actions from UI components.
 3. Use existing shadcn components before custom overlays or controls.
-4. Use HugeIcons in rebuilt Control Room components.
-5. Include default, empty, loading, error and success states required by the phase.
-6. Do not expose navigation or actions for unfinished later phases.
-7. Do not add random timers, fake status mutation or misleading integration claims.
+4. Respect Base UI composition requirements such as keeping group labels/items inside their group context.
+5. Use the repository icon convention in rebuilt Control Room components.
+6. Include default, empty, loading, error and success states required by the phase.
+7. Do not expose unfinished later-phase navigation or actions.
+8. Do not add random timers, fake mutations or misleading integration claims.
+9. Preserve session-only truth until a production adapter exists.
 
-Before completing the phase:
+### Before completing the phase
 
-1. Review changed files against the latest Web Interface Guidelines.
+1. Review changed UI files against the latest Web Interface Guidelines.
 2. Verify keyboard, labels, focus, contrast and responsive composition.
 3. Run ESLint.
 4. Run `tsc --noEmit`.
-5. Run available tests.
+5. Run the full Vitest suite.
 6. Run the production build.
-7. Run React Doctor against the diff and resolve changed-scope errors.
-8. Perform browser validation at 375 × 812, 768 × 1024 and 1280 × 800 when browser tooling is available.
-9. Update `progress.md` and the PR body.
-10. Stop. Do not begin the next phase in the same uncontrolled batch.
+7. Run React Doctor against the changed scope and resolve findings.
+8. Perform browser validation at 375 × 812, 768 × 1024 and 1280 × 800 plus phase-specific targets.
+9. Generate and visually review screenshots for UI phases.
+10. Update `progress.md`, architecture decisions and the PR body.
+11. Stop. Do not begin the next phase in the same uncontrolled batch.
 
 ## 3. Phase 0 — Discovery, specification and execution contract
 
@@ -123,8 +156,8 @@ Create the product specification, phased plan, agent rules and draft PR before U
 - `docs/control-room-v2/spec.md`
 - `docs/control-room-v2/implementation-plan.md`
 - `docs/control-room-v2/progress.md`
-- Updated `AGENTS.md`
-- Dedicated draft PR from `feat/control-room-v2` to `main`
+- updated `AGENTS.md`
+- dedicated draft PR from `feat/control-room-v2` to `main`
 
 ### Acceptance criteria
 
@@ -132,33 +165,27 @@ Create the product specification, phased plan, agent rules and draft PR before U
 - Inventory supports unique, stocked and variant products in the locked specification.
 - Intake, offline sales and sidebar responsibilities are unambiguous.
 - Every phase has a clear boundary and completion gate.
-- Required skills and tool-use honesty are recorded in `AGENTS.md`.
+- Required skills and tool-use honesty are recorded.
 - No Control Room UI implementation is included in Phase 0.
-
-### Gate
-
-Phase 0 is complete only after all documents are committed, re-read from the branch, and the draft PR is open.
 
 ## 4. Phase 1 — Control Room foundation, shell and Overview
 
 ### Goal
 
-Replace the generic admin shell and deliver the complete Overview command centre without exposing unfinished destinations.
+Replace the generic Admin shell and deliver the first complete Overview command centre without exposing unfinished destinations.
 
 ### In scope
 
-- Route-based `src/app/admin/layout.tsx`
-- New Control Room desktop sidebar and mobile navigation sheet
-- Top command bar with working search boundary and only implemented actions
-- Shared page header and responsive content frame
-- Typed core domain foundation in `src/lib/control-room/`
-- Seed data and selectors required by Overview
-- Active-store Overview
-- New-store/onboarding Overview state
+- route-based Admin shell
+- desktop sidebar and adaptive mobile navigation
+- top command bar and working search boundary
+- shared page frame
+- typed core domain foundation
+- active-store and new-store Overview
 - Overview loading, empty and error states
-- Remove Overview responsibility from the catch-all page
+- removal of Overview responsibility from the catch-all page
 
-### Overview modules
+### Initial Overview modules
 
 - Today strip
 - Attention queue
@@ -167,44 +194,16 @@ Replace the generic admin shell and deliver the complete Overview command centre
 - Inventory watch
 - Continue working
 - Activity stream
-- Working quick actions only
-
-### Out of scope
-
-- Inventory editing
-- Product wizard
-- Order mutation
-- Hold mutation
-- Offline-sale recording
-- Customer detail
-- Settings forms
-- Collections and Returns routes
-
-### Architecture batch
-
-```text
-src/app/admin/layout.tsx
-src/app/admin/page.tsx
-src/app/admin/loading.tsx
-src/app/admin/error.tsx
-src/features/control-room/shell/*
-src/features/control-room/overview/*
-src/features/control-room/shared/*
-src/lib/control-room/types.ts
-src/lib/control-room/seed.ts
-src/lib/control-room/selectors.ts
-src/lib/control-room/result.ts
-```
+- working quick actions
 
 ### Acceptance criteria
 
 - Overview answers the daily operational questions from the specification.
-- Desktop is a command centre, not a grid of generic KPI cards.
-- Tablet composition remains useful without the desktop sidebar width.
-- Mobile prioritises attention, quick actions and compact product/order cards.
-- New-store state does not show meaningless zero charts.
-- Navigation contains only Overview plus implemented safe exits such as storefront preview.
-- No giant client page replaces the old giant client page.
+- Desktop behaves as a command centre rather than a uniform KPI grid.
+- Tablet remains useful without desktop sidebar width.
+- Mobile prioritises attention and focused actions.
+- New-store state avoids meaningless zero charts.
+- No giant client page replaces the legacy monolith.
 - Phase checks and responsive validation pass.
 
 ## 5. Phase 2 — Inventory domain and responsive workspace
@@ -215,127 +214,82 @@ Deliver the inventory operating model and browsing/management workspace for uniq
 
 ### In scope
 
-- Full discriminated inventory product types
-- Inventory quantity invariants and selectors
-- Stock movement seed model
+- discriminated product types and quantity invariants
+- stock movement model
 - Inventory route
-- Saved views and filters
-- Search and sorting
-- Visual grid
-- Operational table
-- Mobile inventory cards
-- Product detail sheet with read-only operational tabs
-- Bulk selection and safe non-destructive actions
-- Collections route if it can be completed in this phase without weakening Inventory
-- Loading, empty, error and success feedback
-
-### TanStack checkpoint
-
-Before implementing the table:
-
-1. List required table behaviour.
-2. Compare existing shadcn Table plus local state with `@tanstack/react-table`.
-3. Introduce TanStack Table only if it removes meaningful custom infrastructure.
-4. Record the decision in `docs/control-room-v2/decisions.md`.
-
-### Out of scope
-
-- Add/edit product wizard
-- Media uploads
-- Persisted backend stock mutations
-- Order and hold management
+- saved views, filters, search and sorting
+- visual grid, operational table and mobile cards
+- product detail with read-only operational tabs
+- bulk selection and safe non-destructive actions
+- loading, empty, error and success feedback
 
 ### Acceptance criteria
 
-- Botanical Jeans can be represented as 50 received, 29 available, 3 reserved and 18 sold.
+- Botanical Jeans can represent 50 received, 29 available, 3 reserved and 18 sold.
 - Unique pieces remain quantity-one records.
-- Variant products expose meaningful per-variant availability.
-- Grid, table and mobile cards represent the same inventory truth.
-- Product detail shows stock, media, pricing, orders, holds, movements, reviews and activity boundaries without fake data integrations.
-- No horizontal desktop table is forced onto mobile.
+- Variant products expose per-variant availability.
+- Grid, table and mobile cards represent the same truth.
+- Product detail exposes connected records without fake integrations.
+- No desktop table is compressed onto mobile.
 - Phase checks pass.
 
 ## 6. Phase 3 — Add-product wizard and Intake queue
 
 ### Goal
 
-Deliver a complete product-creation workflow and make Intake a real stage of Inventory rather than a duplicate page.
+Deliver product creation and make Intake a real Inventory workflow rather than a duplicate page.
 
 ### In scope
 
-- Product-editor feature folder
-- Responsive Dialog/Drawer wizard
-- React Hook Form and Zod schema
-- Seven specification steps
-- Unique, stocked and variant field branches
-- Draft preservation while open
-- Back/next navigation
-- Step validation and final validation summary
-- Unsaved-change confirmation
-- Save-draft prototype action through the shared action boundary
-- Publish prototype action when requirements are satisfied
-- Inventory Intake saved view
-- Intake stages and stage transitions
-- Product edit boundary for existing records
-- Success, validation and recoverable error feedback
-
-### Out of scope
-
-- Real file upload/storage
-- Real backend persistence
-- AI extraction claims
-- Sales operations
+- focused product-editor feature
+- responsive dialog/drawer workflow
+- React Hook Form and Zod validation
+- unique, stocked and variant branches
+- draft preservation and back/next navigation
+- step and final validation
+- dirty-close confirmation
+- draft, publish and schedule prototype actions
+- Intake saved view and stage transitions
+- existing-product editing
+- success and recoverable error feedback
 
 ### Acceptance criteria
 
-- Product mode changes the stock step without leaving irrelevant hidden values.
-- The operator can move backward without losing valid data.
-- Required errors appear beside fields.
-- Draft and publish are visibly different actions.
-- Intake moves the same record through stages; it never duplicates the product.
-- Closing dirty work requires confirmation.
-- Keyboard and mobile drawer behaviour pass.
-- Phase checks pass.
+- Product mode changes the stock step without retaining irrelevant hidden values.
+- Back navigation preserves valid data.
+- Errors appear beside the affected fields.
+- Draft and publication actions are visibly different.
+- Intake moves one record rather than duplicating products.
+- Dirty close requires confirmation.
+- Keyboard and mobile behavior pass.
 
-## 7. Phase 4 — Sales workspace: Orders, Holds, Offline Sales and Returns
+## 7. Phase 4 — Sales workspace: Orders, Holds, Record Sale and Returns
 
 ### Goal
 
-Connect the full sales-operating model so online orders, holds, offline sales and returns affect the same inventory truth.
+Connect online orders, holds, offline sales and returns to the same inventory truth.
 
 ### In scope
 
-- Orders route and status views
-- Order detail sheet
-- Order timeline and permitted status transitions
-- Holds route and risk views
-- Extend, release and convert-hold prototype actions
-- Global Record Sale dialog
-- Product/variant selection
-- Quantity and stock validation
-- Channel, customer and payment capture
-- Connected offline-sale action that updates inventory, revenue, customer and activity records
-- Returns route and return/refund states
-- Typed Result errors for invalid transitions and insufficient stock
-- Loading, empty, error and confirmation states
-
-### Out of scope
-
-- Real payment capture
-- Courier integration
-- Messaging integration
-- Production refunds
+- Orders route, detail, timeline and valid transitions
+- Holds route, risk views, extension, release and conversion
+- global Record Sale workflow
+- product/variant selection and quantity validation
+- channel, customer, payment and notes capture
+- connected offline-sale action
+- Returns route and refund/disposition states
+- typed expected failures
+- loading, empty, error and confirmation states
 
 ### Acceptance criteria
 
 - Unique-item sale prevents a second sale.
-- Stocked and variant sales decrement only the selected quantity.
+- Stocked and variant sales affect only the selected quantity.
 - Holds reserve quantities correctly.
-- Offline sale creates a sales record rather than only changing product status.
-- Revenue selectors include online and offline channels.
-- Invalid transitions produce understandable recoverable errors.
+- Offline sale creates a real connected sales record.
+- Revenue includes online and offline channels.
+- Invalid transitions return recoverable business errors.
 - Destructive actions require confirmation.
-- Phase checks pass.
 
 ## 8. Phase 5 — Customers workspace
 
@@ -345,30 +299,22 @@ Deliver an operational customer view connected to orders, holds, products, addre
 
 ### In scope
 
-- Customer route
-- Search, segments and attention filters
-- Responsive customer list/cards
-- Customer detail sheet/workspace
-- Summary metrics
-- Timeline
-- Purchased, held, saved and reviewed products
-- Addresses and delivery history
-- Internal notes prototype boundary
-- Loading, empty and error states
-
-### Out of scope
-
-- Marketing automation
-- Messaging integration
-- Enterprise CRM pipelines
-- Loyalty programme
+- Customers route
+- search, segments and attention views
+- responsive list/cards
+- detail workspace
+- relationship metrics and timeline
+- purchased, held, saved and reviewed products
+- addresses and delivery history
+- internal notes prototype boundary
+- loading, empty and error states
 
 ### Acceptance criteria
 
-- Customer totals are derived from connected records rather than duplicated seed numbers.
-- Offline purchases appear in customer history.
+- Customer totals derive from connected records.
+- Offline purchases appear in history.
 - Holds and returns appear in the timeline.
-- Mobile detail remains navigable and does not become an oversized desktop sheet.
+- Mobile detail remains focused and navigable.
 - Phase checks pass.
 
 ## 9. Phase 6 — Store Settings
@@ -385,83 +331,164 @@ Deliver a polished, non-technical store-configuration experience.
 - Delivery
 - Payments
 - Notifications
-- Team boundary
-- Visual previews where useful
+- truthful Team boundary
+- useful previews
 - React Hook Form/Zod validation
-- Dirty-state and saved-state feedback
-- Mobile settings navigation
-- Loading, error and success states
-
-### Out of scope
-
-- Provider API setup
-- Webhooks
-- Database/admin infrastructure
-- Real staff authentication and permission enforcement
+- dirty and saved-state feedback
+- mobile settings navigation
 
 ### Acceptance criteria
 
-- All labels describe business outcomes.
-- No technical implementation terminology is visible.
+- Labels describe business outcomes.
+- No technical infrastructure terminology appears in operator-facing copy.
 - Save feedback is explicit and contextual.
-- Settings sections are visually distinct without becoming separate generic pages.
+- Sections remain visually distinct without becoming unrelated generic pages.
 - Phase checks pass.
 
-## 10. Phase 7 — Integration hardening, visual QA and legacy removal
+## 10. Phase 7 — Brand integration, themes, media and legacy hardening
 
 ### Goal
 
-Finish the revamp as one coherent system and remove superseded admin code.
+Integrate the approved Laitstyle identity, add token-driven Light/Dark/System support, improve Inventory media behavior and remove superseded Admin implementation.
 
 ### In scope
 
-- Remove `src/app/admin/[[...section]]/page.tsx` after route parity is complete
-- Resolve duplicate types, seed records and unused components
-- Verify navigation and deep links
-- Verify every required state
-- Full Web Interface Guidelines audit
-- Full responsive browser pass
-- Keyboard and focus pass
-- React Doctor diff and repository review
-- Performance and bundle review
-- PR screenshots and final description
-- Update documentation and decisions
+- approved woven L/S symbol and favicon
+- Ink/Bone/Sage semantic tokens
+- root theme preference and pre-hydration application
+- public and Control Room theme controls
+- raw-colour audit in scoped files
+- denser Inventory grid and shared media viewer
+- route/deep-link verification
+- removal of the legacy catch-all route from the feature branch
+- browser and screenshot coverage encoded
 
 ### Acceptance criteria
 
-- No dead Control Room route or action.
-- No old catch-all admin implementation remains.
-- No new Control Room feature file has become a replacement monolith.
-- All routes pass the required viewports and interaction flows.
-- ESLint, TypeScript, tests and production build pass.
-- React Doctor changed-scope errors are resolved.
-- The PR is ready for review rather than draft only after all gates are complete.
+- Approved identity appears in public and Control Room chrome.
+- Theme preference persists.
+- Images and product-record navigation are separate actions.
+- No old catch-all Admin implementation remains on the feature branch.
+- Required executable and visual checks pass before acceptance.
 
-## 11. Phase tracker format
+### Current status
+
+Implementation is present, but executable acceptance and upstream merge integration remain blocked. See `docs/control-room-v2/phase7-plan.md` and `docs/control-room-v2/phase7-blocker.md`.
+
+## 11. Phase 8 — Fashion-grade visual system, shell and Overview correction
+
+### Goal
+
+Correct the implemented Control Room so it feels like a premium editorial fashion-operations studio while remaining clear, responsive and operationally useful.
+
+### Locked plan
+
+See `docs/control-room-v2/phase8-plan.md`.
+
+### Core scope
+
+- fix the Base UI theme-menu group-context crash
+- redesign semantic light/dark surface hierarchy and primary/selected states
+- remove remaining scoped hardcoded colours and manual dark patches
+- fix sidebar short-height overflow and active-state readability
+- redesign the top search trigger and command menu around real operational records
+- audit and rebalance Overview responsibilities
+- intelligently incorporate the useful queue/orders/right-rail structure from `main` without restoring its monolith or obsolete assumptions
+- replace fixed Inventory column counts with a minimum useful card-width model
+- redesign Inventory card image presence, typography, height and hierarchy
+- add distinct table-thumbnail media preview
+- perform full light/dark responsive and visual acceptance
+
+### Explicit exclusions
+
+- TanStack Query or server-state migration
+- real backend, persistence, authentication or API routes
+- restoration of the legacy catch-all page
+- public storefront body redesign
+
+### Acceptance criteria
+
+- Theme switching works without the Base UI context error.
+- Light and dark have deliberate, accessible surface hierarchies.
+- Selected sidebar content remains readable in all supported conditions.
+- Sidebar content is reachable at short viewport heights.
+- Command search includes useful records and actions.
+- Overview modules have unique responsibilities and stronger desktop/tablet/mobile hierarchy.
+- Inventory cards retain a professional minimum width and image presence.
+- Table media preview and product-record navigation remain separate.
+- Full executable and visual gates pass.
+
+## 12. Phase 9 — TanStack Query server-state foundation
+
+### Goal
+
+Create a replaceable, tested TanStack Query v5 server-state boundary without pretending that the current in-memory prototype is a production backend.
+
+### Locked plan
+
+See `docs/control-room-v2/phase9-plan.md`.
+
+### Core scope
+
+- install `@tanstack/react-query`
+- add the official Query ESLint plugin
+- create one stable Control Room QueryClient provider
+- define typed domain repositories and deterministic Promise-based in-memory adapters
+- define query-key factories for Overview, Inventory, Products, Orders, Holds, Returns, Customers and Settings
+- colocate query functions/options and mutations by domain
+- migrate server-like records out of duplicate global client state
+- preserve URL, overlay, form, theme and other ephemeral UI state outside the query cache
+- add targeted invalidation, exact cache reconciliation and safe optimistic rollback
+- represent initial loading, error, empty, stale and background-refetch states
+- document future HTTP/RPC, authentication, concurrency and hydration requirements
+
+### Explicit exclusions
+
+- production backend, database or API
+- fake API routes around seed data
+- artificial latency or random failures
+- persisted/offline/realtime query infrastructure
+- optimistic completion of unsafe stock/payment/ownership operations
+
+### Acceptance criteria
+
+- QueryClient lifecycle is stable.
+- Keys are typed, serialisable and complete.
+- Data functions are colocated with domain repositories.
+- Migrated server-like data is not duplicated in global client state.
+- Loading/error/empty/stale/refetch states are distinct.
+- Invalidations are targeted.
+- Optimistic writes have cancellation, snapshot, rollback and reconciliation.
+- Stock-sensitive writes remain safe and pessimistic unless proven otherwise.
+- Full Phase 4–9 regression passes.
+
+## 13. Phase tracker format
 
 `progress.md` must record:
 
 | Field | Meaning |
 | --- | --- |
 | Current phase | The only phase allowed to receive feature code |
-| Status | Not started, in progress, blocked or complete |
+| Status | Not started, planned, in progress, blocked or complete |
 | Scope | Exact files/features allowed in the batch |
 | Exclusions | Later-phase work that must not enter the batch |
-| Acceptance | Checklist copied from this plan |
-| Verification | Commands and browser evidence |
-| Decisions | Links to architecture/design decisions |
-| Blockers | Missing tools, data or integration boundaries |
+| Acceptance | Checklist copied or linked from the active plan |
+| Verification | Commands, browser evidence and screenshots |
+| Decisions | Architecture and design decision links |
+| Blockers | Missing tools, data, execution or integration boundaries |
 
-## 12. Stop conditions
+## 14. Stop conditions
 
 Stop implementation and keep the current phase open when:
 
-- A required check fails.
-- A responsive layout is visibly broken.
-- A workflow has a dead button or incomplete success/error path.
-- The phase requires unapproved backend or dependency work.
-- The implementation begins duplicating records across features.
-- The active change would expose a later-phase navigation destination.
-- A feature file is accumulating unrelated responsibilities.
+- a required check fails or never executes
+- a responsive layout is visibly broken
+- a workflow has a dead button or incomplete feedback path
+- the phase requires unapproved backend or dependency work
+- records begin duplicating across providers, reducers and query caches
+- later-phase navigation or architecture enters the active phase
+- a feature file accumulates unrelated responsibilities
+- a Base UI/shadcn primitive is composed against the wrong API
+- a merge strategy would discard upstream work
 
-The correct response is to resolve or document the blocker inside the current phase, not to move ahead and leave unfinished work behind.
+The correct response is to resolve or document the blocker inside the current phase, not to move ahead and represent unfinished work as accepted.
