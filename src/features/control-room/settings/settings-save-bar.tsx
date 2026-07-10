@@ -39,7 +39,8 @@ export function SettingsSaveBar({
       <Card className="sticky bottom-3 z-30 mt-6 gap-4 border-border/80 bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div aria-live="polite" className="min-w-0">
           <p className="text-sm font-medium">
-            {feedback?.title ?? (dirty ? "Unsaved store changes" : "Store settings are up to date")}
+            {feedback?.title ??
+              (dirty ? "Unsaved store changes" : "Store settings are up to date")}
           </p>
           <p
             className={
@@ -50,8 +51,8 @@ export function SettingsSaveBar({
           >
             {feedback?.message ??
               (dirty
-                ? "Save once to apply every changed section to this prototype session."
-                : "Changes are stored only for this browser session and reset after refresh.")}
+                ? "Save once to apply every changed section."
+                : "Saved changes remain until the page is refreshed.")}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
@@ -74,7 +75,7 @@ export function SettingsSaveBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard all unsaved settings?</AlertDialogTitle>
             <AlertDialogDescription>
-              Every change made across Store identity, Selling, Delivery, Payments, Notifications and Team will return to the last saved session values.
+              Every change made across Store identity, Selling, Delivery, Payments, Notifications and Team will return to the last saved values.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
