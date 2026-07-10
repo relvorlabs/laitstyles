@@ -27,21 +27,21 @@ export function CustomerDeliveryPanel({
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {addresses.map((address) => (
               <article
-                className="rounded-[16px] border border-border bg-card p-4"
+                className="min-w-0 rounded-[16px] border border-border bg-card p-4"
                 key={address.id}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold">{address.label}</h3>
+                  <h3 className="break-words text-sm font-semibold">{address.label}</h3>
                   {address.isDefault ? <Badge variant="secondary">Default</Badge> : null}
                 </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                <p className="mt-3 break-words text-sm leading-6 text-muted-foreground">
                   {address.line1}
                   {address.line2 ? <><br />{address.line2}</> : null}
                   <br />
                   {address.city}, {address.state}
                 </p>
                 {address.deliveryNotes ? (
-                  <p className="mt-3 rounded-[12px] bg-secondary/65 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+                  <p className="mt-3 break-words rounded-[12px] bg-secondary/65 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
                     {address.deliveryNotes}
                   </p>
                 ) : null}
@@ -70,13 +70,13 @@ export function CustomerDeliveryPanel({
           <div className="mt-5 flex flex-col gap-3">
             {profile.deliveryHistory.map((delivery) => (
               <Link
-                className="flex flex-wrap items-start justify-between gap-4 rounded-[16px] border border-border bg-card p-4 transition-colors hover:bg-secondary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-w-0 flex-wrap items-start justify-between gap-4 rounded-[16px] border border-border bg-card p-4 transition-colors hover:bg-secondary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={`/admin/orders?order=${encodeURIComponent(delivery.orderId)}`}
                 key={delivery.orderId}
               >
-                <div className="min-w-0">
-                  <h3 className="text-sm font-semibold">{delivery.orderId}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <h3 className="break-words text-sm font-semibold">{delivery.orderId}</h3>
+                  <p className="mt-1 break-words text-sm text-muted-foreground">
                     {delivery.address?.line1 ?? delivery.city}
                   </p>
                   <p className="mt-1 text-[10.5px] text-muted-foreground">
