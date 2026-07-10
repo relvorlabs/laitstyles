@@ -43,6 +43,30 @@ async function runCatalogueFlow(browser) {
     throw new Error(`Inventory grid expected 5 columns, received ${columns}.`);
   }
 
+  const cardGeometry = await page.locator("[data-inventory-card]").first().evaluate((element) => {
+    const image = element.firstElementChild;
+    return {
+      cardHeight: Math.round(element.getBoundingClientRect().height),
+      cardWidth: Math.round(element.getBoundingClientRect().width),
+      imageHeight: Math.round(image?.getBoundingClientRect().height ?? 0),
+    };
+  });
+  if (cardGeometry.cardHeight > 290) {
+    throw new Error(
+      `Inventory gallery card is too tall: ${JSON.stringify(cardGeometry)}.`,
+    );
+  }
+  if (cardGeometry.imageHeight / cardGeometry.cardWidth > 0.8) {
+    throw new Error(
+      `Inventory gallery image remains too portrait-heavy: ${JSON.stringify(cardGeometry)}.`,
+    );
+  }
+
+  await page.screenshot({
+    path: path.join(screenshotDir, "inventory-compact-gallery-1440x900.png"),
+    fullPage: false,
+  });
+
   await page.getByRole("button", { name: "Manage catalogue groups" }).click();
   const manager = page.getByRole("dialog").last();
   await expectVisible(manager, "Catalogue group manager did not open.");
@@ -204,4 +228,4 @@ try {
 
 if (failures.length) throw new Error(failures.join("\n"));
 
-console.log("Inventory catalogue CRUD, editor and pagination checks passed.");
+console.log("Inventory catalogue CRUD, gallery geometry, editor and pagination checks passed.");
