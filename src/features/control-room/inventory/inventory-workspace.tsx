@@ -229,7 +229,7 @@ export function InventoryWorkspace({
               <InventoryGrid
                 className={
                   presentation === "table"
-                    ? "grid gap-3 md:grid-cols-2"
+                    ? "grid gap-5 md:grid-cols-2"
                     : undefined
                 }
                 items={items}
@@ -243,6 +243,7 @@ export function InventoryWorkspace({
               <InventoryTable
                 items={items}
                 onOpen={openProduct}
+                onOpenMedia={openProductMedia}
                 onSelectedChange={setProductSelected}
                 onSelectVisible={selectVisible}
                 selectedIds={selectedIds}
