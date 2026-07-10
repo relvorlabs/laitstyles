@@ -4,26 +4,30 @@ import type { InventoryListItem } from "@/lib/control-room/types";
 
 export function ProductPricingPanel({ item }: { item: InventoryListItem }) {
   const { product } = item;
-  const margin = product.price > 0 ? product.price - product.cost : 0;
+  const hasUnitCost = product.cost !== null;
+  const margin =
+    hasUnitCost && product.price > 0 ? product.price - product.cost : null;
   const marginRate =
-    product.price > 0 ? Math.round((margin / product.price) * 100) : 0;
+    margin !== null && product.price > 0
+      ? Math.round((margin / product.price) * 100)
+      : null;
   const prices = [
     [
       "Selling price",
       product.price > 0 ? formatNaira(product.price) : "Not set",
     ],
-    ["Acquisition cost", formatNaira(product.cost)],
+    ["Unit cost", hasUnitCost ? formatNaira(product.cost) : "Not recorded"],
     [
-      "Reference price",
+      "Compare-at price",
       product.referencePrice
         ? formatNaira(product.referencePrice)
         : "Not recorded",
     ],
     [
       "Gross margin",
-      product.price > 0
+      margin !== null && marginRate !== null
         ? `${formatNaira(margin)} · ${marginRate}%`
-        : "Available after pricing",
+        : "Add unit cost",
     ],
   ] as const;
 
