@@ -31,11 +31,11 @@ import {
   getEligibleReturnOrders,
   getEligibleReturnQuantity,
 } from "@/features/control-room/returns/return-selectors";
+import { formatNaira } from "@/lib/control-room/formatters";
 import type {
   ControlRoomState,
   CreateReturnInput,
 } from "@/lib/control-room/types";
-import { formatNaira } from "@/lib/control-room/formatters";
 
 export function CreateReturnDialog({
   state,
@@ -56,8 +56,10 @@ export function CreateReturnDialog({
       (line) => getEligibleReturnQuantity(state, order, line.id) > 0,
     ) ?? [];
   const [orderLineId, setOrderLineId] = useState(eligibleLines[0]?.id ?? "");
-  const line = eligibleLines.find((entry) => entry.id === orderLineId) ?? eligibleLines[0];
-  const eligible = order && line ? getEligibleReturnQuantity(state, order, line.id) : 0;
+  const line =
+    eligibleLines.find((entry) => entry.id === orderLineId) ?? eligibleLines[0];
+  const eligible =
+    order && line ? getEligibleReturnQuantity(state, order, line.id) : 0;
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -77,7 +79,9 @@ export function CreateReturnDialog({
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!order || !line) {
-      setError("Choose a delivered order line that is still eligible for return.");
+      setError(
+        "Choose a delivered order line that is still eligible for return.",
+      );
       return;
     }
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > eligible) {
@@ -109,7 +113,7 @@ export function CreateReturnDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[min(94dvh,760px)] overflow-y-auto max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:max-w-[680px]">
+      <DialogContent className="max-h-[min(94dvh,760px)] overflow-y-auto overscroll-contain max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:pb-[env(safe-area-inset-bottom)] sm:max-w-[680px]">
         <DialogHeader>
           <DialogTitle className="font-serif text-[28px] font-medium">
             Start a customer return
@@ -124,10 +128,15 @@ export function CreateReturnDialog({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="return-order">Delivered order</FieldLabel>
-                <Select onValueChange={(value) => value && changeOrder(value)} value={order?.id ?? ""}>
+                <Select
+                  onValueChange={(value) => value && changeOrder(value)}
+                  value={order?.id ?? ""}
+                >
                   <SelectTrigger className="h-12 w-full" id="return-order">
                     <span className="flex-1 truncate text-left">
-                      {order ? `${order.id} · ${formatNaira(order.total)}` : "Choose an order"}
+                      {order
+                        ? `${order.id} · ${formatNaira(order.total)}`
+                        : "Choose an order"}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
@@ -135,7 +144,8 @@ export function CreateReturnDialog({
                       <SelectLabel>Eligible delivered orders</SelectLabel>
                       {orders.map((entry) => (
                         <SelectItem key={entry.id} value={entry.id}>
-                          {entry.id} · {entry.deliveryCity} · {formatNaira(entry.total)}
+                          {entry.id} · {entry.deliveryCity} ·{" "}
+                          {formatNaira(entry.total)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -156,7 +166,9 @@ export function CreateReturnDialog({
                   value={line?.id ?? ""}
                 >
                   <SelectTrigger className="h-12 w-full" id="return-line">
-                    <span className="flex-1 truncate text-left">{productLabel}</span>
+                    <span className="flex-1 truncate text-left">
+                      {productLabel}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -167,7 +179,15 @@ export function CreateReturnDialog({
                         );
                         return (
                           <SelectItem key={entry.id} value={entry.id}>
-                            {entryProduct?.name ?? "Product"} · {getEligibleReturnQuantity(state, order!, entry.id)} eligible
+                            {entryProduct?.name ?? "Product"} ·{" "}
+                            {order
+                              ? getEligibleReturnQuantity(
+                                  state,
+                                  order,
+                                  entry.id,
+                                )
+                              : 0}{" "}
+                            eligible
                           </SelectItem>
                         );
                       })}
@@ -179,22 +199,30 @@ export function CreateReturnDialog({
               <Field>
                 <FieldLabel htmlFor="return-quantity">Quantity</FieldLabel>
                 <Input
+                  autoComplete="off"
                   id="return-quantity"
+                  inputMode="numeric"
                   max={Math.max(eligible, 1)}
                   min={1}
+                  name="return-quantity"
                   onChange={(event) => setQuantity(Number(event.target.value))}
                   type="number"
                   value={quantity}
                 />
-                <FieldDescription>{eligible} still eligible on this order line</FieldDescription>
+                <FieldDescription>
+                  {eligible} still eligible on this order line
+                </FieldDescription>
               </Field>
 
               <Field data-invalid={Boolean(error && !reason.trim())}>
                 <FieldLabel htmlFor="return-reason">Reason</FieldLabel>
                 <Input
+                  aria-invalid={Boolean(error && !reason.trim())}
+                  autoComplete="off"
                   id="return-reason"
+                  name="return-reason"
                   onChange={(event) => setReason(event.target.value)}
-                  placeholder="e.g. Fit was not right"
+                  placeholder="e.g. Fit was not right…"
                   value={reason}
                 />
               </Field>
@@ -202,7 +230,9 @@ export function CreateReturnDialog({
               <Field>
                 <FieldLabel htmlFor="return-note">Internal note</FieldLabel>
                 <Textarea
+                  autoComplete="off"
                   id="return-note"
+                  name="return-note"
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="Condition expected, collection arrangement, or customer context…"
                   value={note}
