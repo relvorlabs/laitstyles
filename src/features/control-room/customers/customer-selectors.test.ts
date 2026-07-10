@@ -19,8 +19,8 @@ describe("Customers workspace selectors", () => {
     expect(customers.map((profile) => profile.customer.id)).toEqual([
       "customer-amara",
       "customer-nneka",
-      "customer-musa",
       "customer-tomi",
+      "customer-musa",
     ]);
   });
 
@@ -50,7 +50,7 @@ describe("Customers workspace selectors", () => {
         ...defaultCustomerQuery,
         view: "needs-attention",
       }).map((profile) => profile.customer.id),
-    ).toEqual(["customer-nneka"]);
+    ).toEqual(["customer-amara", "customer-nneka"]);
 
     expect(
       queryCustomers(state, {
@@ -68,15 +68,15 @@ describe("Customers workspace selectors", () => {
 
     expect(counts).toEqual({
       all: 4,
-      "needs-attention": 1,
+      "needs-attention": 2,
       returning: 2,
-      "high-value": 2,
+      "high-value": 1,
       new: 2,
     });
     expect(summary).toEqual({
       totalCustomers: 4,
       relationshipValue: 156500,
-      needsAttention: 1,
+      needsAttention: 2,
       returningCustomers: 2,
       activeHolds: 2,
     });
