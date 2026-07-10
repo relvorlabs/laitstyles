@@ -1,3 +1,4 @@
+import type { ControlRoomCustomer } from "@/lib/control-room/customer-types";
 import type {
   InventoryProduct,
   ProductReview,
@@ -11,6 +12,23 @@ import type {
   CurrencyCode,
   FulfilmentStatus,
 } from "@/lib/control-room/sales-types";
+
+export type {
+  ControlRoomCustomer,
+  CustomerAddress,
+  CustomerAttentionReason,
+  CustomerContactPreference,
+  CustomerDeliveryHistoryItem,
+  CustomerMetrics,
+  CustomerNote,
+  CustomerPreferences,
+  CustomerProductRelationship,
+  CustomerRelationshipProfile,
+  CustomerSegment,
+  CustomerTimelineEvent,
+  CustomerTimelineKind,
+  CustomerType,
+} from "@/lib/control-room/customer-types";
 
 export type {
   CatalogueChannel,
@@ -101,14 +119,6 @@ export type {
   SalesActionErrorCode,
   SalesChannel,
 } from "@/lib/control-room/sales-types";
-
-export type ControlRoomCustomer = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-};
 
 export type ActivityKind =
   | "order"
