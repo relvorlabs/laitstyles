@@ -22,6 +22,8 @@ import {
   applyReturnTransition,
 } from "@/lib/control-room/return-actions";
 import type { Result } from "@/lib/control-room/result";
+import { applySaveStoreSettings } from "@/lib/control-room/settings-actions";
+import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
 import type {
   ControlRoomState,
   ConvertHoldInput,
@@ -40,6 +42,9 @@ import type {
   ReturnActionSuccess,
   ReturnStatus,
   SalesActionError,
+  SaveStoreSettingsInput,
+  StoreSettingsActionError,
+  StoreSettingsActionSuccess,
 } from "@/lib/control-room/types";
 
 type ProductActionResult = Result<
@@ -59,6 +64,10 @@ type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
 type CustomerNoteResult = Result<
   CustomerNoteActionSuccess,
   CustomerActionError
+>;
+type StoreSettingsResult = Result<
+  StoreSettingsActionSuccess,
+  StoreSettingsActionError
 >;
 
 export type ControlRoomStore = {
@@ -86,6 +95,7 @@ export type ControlRoomStore = {
     nextStatus: ReturnStatus,
   ) => ReturnResult;
   addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
+  saveStoreSettings: (input: SaveStoreSettingsInput) => StoreSettingsResult;
   resetPrototypeState: () => void;
 };
 
@@ -157,6 +167,9 @@ export function createControlRoomStore(
     addCustomerNote(input) {
       return commitAction(applyAddCustomerNote(state, input, getNow()));
     },
+    saveStoreSettings(input) {
+      return commitAction(applySaveStoreSettings(state, input, getNow()));
+    },
     resetPrototypeState() {
       emit(normalizedInitialState);
     },
@@ -170,6 +183,8 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
   return {
     ...initialState,
     customers: hydrateCustomerProfiles(initialState.customers),
+    settings:
+      initialState.settings ?? createDefaultStoreSettings(initialState.asOf),
     intake: createInitialIntakeRecords(
       initialState.products,
       initialState.intake,
