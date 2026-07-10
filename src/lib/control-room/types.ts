@@ -12,6 +12,7 @@ import type {
   CurrencyCode,
   FulfilmentStatus,
 } from "@/lib/control-room/sales-types";
+import type { StoreSettings } from "@/lib/control-room/settings-types";
 
 export type {
   AddCustomerNoteInput,
@@ -124,6 +125,29 @@ export type {
   SalesChannel,
 } from "@/lib/control-room/sales-types";
 
+export type {
+  AcceptedPaymentMethod,
+  DeliverySettings,
+  DeliveryZoneSettings,
+  NotificationSettings,
+  PaymentSettings,
+  PickupLocationSettings,
+  RefundPreference,
+  SaveStoreSettingsInput,
+  SellingPreferencesSettings,
+  SettingsSection,
+  SettingsValidationIssue,
+  StoreIdentitySettings,
+  StoreSettings,
+  StoreSettingsActionError,
+  StoreSettingsActionErrorCode,
+  StoreSettingsActionSuccess,
+  TeamMemberBoundary,
+  TeamMemberStatus,
+  TeamRole,
+  TeamSettings,
+} from "@/lib/control-room/settings-types";
+
 export type ActivityKind =
   | "order"
   | "hold"
@@ -132,7 +156,8 @@ export type ActivityKind =
   | "customer"
   | "draft"
   | "sale"
-  | "return";
+  | "return"
+  | "settings";
 
 export type ControlRoomActivity = {
   id: string;
@@ -173,6 +198,7 @@ export type ControlRoomState = {
   holds: ControlRoomHold[];
   returns?: ControlRoomReturn[];
   customers: ControlRoomCustomer[];
+  settings?: StoreSettings;
   activities: ControlRoomActivity[];
   stockMovements: StockMovement[];
   reviews: ProductReview[];
