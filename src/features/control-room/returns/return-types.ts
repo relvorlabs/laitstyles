@@ -36,3 +36,9 @@ export type ReturnWorkspaceSummary = {
   inspecting: number;
   refundValue: number;
 };
+
+export type ReturnActionFeedback = {
+  tone: "success" | "error";
+  title: string;
+  message: string;
+};
