@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
 import { returnStatusLabels } from "@/features/control-room/returns/return-labels";
 import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
+import type { ReturnActionFeedback } from "@/features/control-room/returns/return-types";
 import type {
   ControlRoomReturn,
   ControlRoomState,
@@ -41,13 +47,15 @@ const confirmationStatuses = new Set<ReturnStatus>([
 export function ReturnDetailSheet({
   state,
   returnRecord,
+  feedback,
   onOpenChange,
   onTransition,
 }: {
   state: ControlRoomState;
   returnRecord: ControlRoomReturn | null;
+  feedback: ReturnActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onTransition: (returnId: string, status: ReturnStatus) => void;
+  onTransition: (returnId: string, status: ReturnStatus) => string | null;
 }) {
   const [pendingStatus, setPendingStatus] = useState<ReturnStatus | null>(null);
 
@@ -92,6 +100,16 @@ export function ReturnDetailSheet({
           </SheetHeader>
 
           <div className="flex flex-col gap-6 p-4 sm:p-6">
+            {feedback ? (
+              <Alert
+                aria-live="polite"
+                variant={feedback.tone === "error" ? "destructive" : "default"}
+              >
+                <AlertTitle>{feedback.title}</AlertTitle>
+                <AlertDescription>{feedback.message}</AlertDescription>
+              </Alert>
+            ) : null}
+
             <section aria-labelledby="return-summary-title">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
