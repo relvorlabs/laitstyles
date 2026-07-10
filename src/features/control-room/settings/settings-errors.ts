@@ -14,16 +14,7 @@ export function getSettingsFieldError(
     current = (current as Record<string, unknown>)[segment];
   }
 
-  if (
-    current &&
-    typeof current === "object" &&
-    "message" in current &&
-    typeof current.message === "string"
-  ) {
-    return current.message;
-  }
-
-  return undefined;
+  return findDirectMessage(current) ?? findDirectMessage(getRootError(current));
 }
 
 export function countSettingsSectionErrors(
@@ -44,17 +35,35 @@ export function getFirstSettingsErrorSection(
     "notifications",
     "team",
   ];
-  return sections.find((section) => countSettingsSectionErrors(errors, section) > 0) ?? null;
+  return (
+    sections.find(
+      (section) => countSettingsSectionErrors(errors, section) > 0,
+    ) ?? null
+  );
+}
+
+function findDirectMessage(value: unknown) {
+  if (
+    value &&
+    typeof value === "object" &&
+    "message" in value &&
+    typeof value.message === "string"
+  ) {
+    return value.message;
+  }
+  return undefined;
+}
+
+function getRootError(value: unknown) {
+  if (value && typeof value === "object" && "root" in value) {
+    return value.root;
+  }
+  return undefined;
 }
 
 function countMessages(value: unknown): number {
   if (!value || typeof value !== "object") return 0;
-  if (
-    "message" in value &&
-    typeof (value as { message?: unknown }).message === "string"
-  ) {
-    return 1;
-  }
+  if (findDirectMessage(value)) return 1;
   return Object.values(value).reduce(
     (total, item) => total + countMessages(item),
     0,
