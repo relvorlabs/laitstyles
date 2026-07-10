@@ -24,6 +24,20 @@ async function expectVisible(locator, message) {
   });
 }
 
+async function expectInViewport(locator, message) {
+  await expectVisible(locator, message);
+  const inViewport = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < window.innerHeight &&
+      rect.left < window.innerWidth
+    );
+  });
+  if (!inViewport) throw new Error(message);
+}
+
 async function runConnectedDesktopFlow(browser) {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -63,11 +77,14 @@ async function runConnectedDesktopFlow(browser) {
   });
   await dialog.getByRole("button", { name: "Confirm sale" }).click();
 
-  const success = page.getByText(
-    /Offline sale LS-\d+ was recorded for Amara Okafor\./,
+  const success = page
+    .getByRole("alert")
+    .filter({ hasText: /Offline sale LS-\d+ was recorded for Amara Okafor\./ });
+  await expectInViewport(
+    success,
+    "Record Sale success feedback was not in the active viewport.",
   );
-  await expectVisible(success, "Record Sale success feedback did not appear.");
-  await page.getByRole("link", { name: "Open order" }).click();
+  await success.getByRole("link", { name: "Open order" }).click();
   await expectVisible(
     page.getByRole("heading", { name: "Orders", exact: true }),
     "Record Sale did not open the generated order in Orders.",
@@ -93,9 +110,9 @@ async function runConnectedDesktopFlow(browser) {
   );
 
   await dialog.getByRole("button", { name: "Open return" }).click();
-  await expectVisible(
+  await expectInViewport(
     dialog.getByText("Enter the reason for the return."),
-    "Create Return validation was not visible inside the active dialog.",
+    "Create Return validation was not in the active dialog viewport.",
   );
   await dialog.getByLabel("Reason").fill("Fit did not work");
   await dialog.getByRole("button", { name: "Open return" }).click();
@@ -106,9 +123,11 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Requested", { exact: true }).first(),
     "New return did not start in Requested state.",
   );
-  await expectVisible(
-    sheet.getByText(/Return .* was opened for LS-\d+\./),
-    "Return creation feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet
+      .getByRole("alert")
+      .filter({ hasText: /Return .* was opened for LS-\d+\./ }),
+    "Return creation feedback was not in the active detail viewport.",
   );
 
   await sheet.getByRole("button", { name: "Approved" }).click();
@@ -116,9 +135,9 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Approved", { exact: true }).first(),
     "Return did not move to Approved.",
   );
-  await expectVisible(
-    sheet.getByText(/moved to approved\./i),
-    "Approved feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet.getByRole("alert").filter({ hasText: /moved to approved\./i }),
+    "Approved feedback was not in the active detail viewport.",
   );
 
   await sheet.getByRole("button", { name: "Received" }).click();
@@ -126,9 +145,9 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Received", { exact: true }).first(),
     "Return did not move to Received.",
   );
-  await expectVisible(
-    sheet.getByText(/moved to received\./i),
-    "Received feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet.getByRole("alert").filter({ hasText: /moved to received\./i }),
+    "Received feedback was not in the active detail viewport.",
   );
 
   await sheet.getByRole("button", { name: "Inspecting" }).click();
@@ -136,9 +155,9 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Inspecting", { exact: true }).first(),
     "Return did not move to Inspecting.",
   );
-  await expectVisible(
-    sheet.getByText(/moved to inspecting\./i),
-    "Inspecting feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet.getByRole("alert").filter({ hasText: /moved to inspecting\./i }),
+    "Inspecting feedback was not in the active detail viewport.",
   );
 
   await sheet.getByRole("button", { name: "Restocked" }).click();
@@ -146,9 +165,9 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Restocked", { exact: true }).first(),
     "Return did not move to Restocked.",
   );
-  await expectVisible(
-    sheet.getByText(/moved to restocked\./i),
-    "Restocked feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet.getByRole("alert").filter({ hasText: /moved to restocked\./i }),
+    "Restocked feedback was not in the active detail viewport.",
   );
   await page.screenshot({
     path: path.join(screenshotDir, "phase4-return-restocked-1280x800.png"),
