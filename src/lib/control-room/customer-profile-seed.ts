@@ -1,6 +1,6 @@
 import type { ControlRoomCustomer } from "@/lib/control-room/customer-types";
 
-const customerProfileSeed = {
+const customerProfileSeed: Record<string, Partial<ControlRoomCustomer>> = {
   "customer-amara": {
     type: "individual",
     createdAt: "2026-05-18T09:30:00+01:00",
@@ -103,7 +103,7 @@ const customerProfileSeed = {
     savedProductIds: [],
     notes: [],
   },
-} satisfies Record<string, Partial<ControlRoomCustomer>>;
+};
 
 export function hydrateCustomerProfiles(
   customers: ControlRoomCustomer[],
