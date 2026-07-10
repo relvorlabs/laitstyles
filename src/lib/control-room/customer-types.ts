@@ -1,4 +1,7 @@
-import type { DeliveryAddress } from "@/lib/control-room/sales-types";
+import type {
+  DeliveryAddress,
+  OrderStatus,
+} from "@/lib/control-room/sales-types";
 
 export type CustomerType = "individual" | "stylist" | "reseller" | "walk-in";
 
@@ -102,7 +105,7 @@ export type CustomerDeliveryHistoryItem = {
   occurredAt: string;
   city: string;
   address: DeliveryAddress | null;
-  status: string;
+  status: OrderStatus;
 };
 
 export type CustomerRelationshipProfile = {
