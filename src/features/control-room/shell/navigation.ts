@@ -39,6 +39,20 @@ const ordersItem: ControlRoomNavigationItem = {
   description: "Payment, fulfilment and delivery operations.",
 };
 
+const holdsItem: ControlRoomNavigationItem = {
+  label: "Holds",
+  href: "/admin/holds",
+  icon: Store01Icon,
+  description: "Reservations, release risk and conversion work.",
+};
+
+const returnsItem: ControlRoomNavigationItem = {
+  label: "Returns",
+  href: "/admin/returns",
+  icon: ArrowUpRight01Icon,
+  description: "Requests, inspection, refund state and stock disposition.",
+};
+
 export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   {
     label: "Control room",
@@ -50,7 +64,7 @@ export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   },
   {
     label: "Sales",
-    items: [ordersItem],
+    items: [ordersItem, holdsItem, returnsItem],
   },
 ];
 
