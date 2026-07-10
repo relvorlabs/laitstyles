@@ -171,8 +171,10 @@ function getProductDependencies(state: ControlRoomState, productId: string) {
   return dependencies;
 }
 
-function productNotFound(productId: string) {
-  return err<ProductLifecycleActionSuccess, ProductLifecycleActionError>({
+function productNotFound(
+  productId: string,
+): Result<never, ProductLifecycleActionError> {
+  return err({
     code: "product-not-found",
     productId,
     message: "The selected product could not be found.",
