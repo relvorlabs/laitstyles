@@ -44,12 +44,18 @@ export function CustomersWorkspace({
     () => getCustomerRelationshipProfiles(state),
     [state],
   );
-  const profiles = useMemo(() => queryCustomers(state, query), [query, state]);
+  const profiles = useMemo(
+    () => queryCustomers(state, query, allProfiles),
+    [allProfiles, query, state],
+  );
   const counts = useMemo(
     () => getCustomerSavedViewCounts(allProfiles),
     [allProfiles],
   );
-  const summary = useMemo(() => getCustomerWorkspaceSummary(state), [state]);
+  const summary = useMemo(
+    () => getCustomerWorkspaceSummary(state, allProfiles),
+    [allProfiles, state],
+  );
   const openProfile =
     allProfiles.find((profile) => profile.customer.id === openCustomerId) ?? null;
 
