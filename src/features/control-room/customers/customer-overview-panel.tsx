@@ -70,24 +70,30 @@ export function CustomerOverviewPanel({
         </h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="rounded-[16px] border border-border bg-card p-4 text-sm leading-6">
-            <p className="font-semibold text-foreground">{customer.email || "No email captured"}</p>
-            <p className="text-muted-foreground">{customer.phone || "No phone captured"}</p>
-            <p className="text-muted-foreground">{customer.city || "No city captured"}</p>
+            <p className="break-words font-semibold text-foreground">
+              {customer.email || "No email captured"}
+            </p>
+            <p className="break-words text-muted-foreground">
+              {customer.phone || "No phone captured"}
+            </p>
+            <p className="break-words text-muted-foreground">
+              {customer.city || "No city captured"}
+            </p>
           </div>
           <div className="rounded-[16px] border border-border bg-card p-4 text-sm leading-6 text-muted-foreground">
-            <p>
+            <p className="break-words">
               Preferred contact: {preferences?.contact.replaceAll("-", " ") ?? "Not recorded"}
             </p>
-            <p>
+            <p className="break-words">
               Sizes: {preferences?.sizes.length ? preferences.sizes.join(", ") : "Not recorded"}
             </p>
-            <p>
+            <p className="break-words">
               Colours: {preferences?.colours.length ? preferences.colours.join(", ") : "Not recorded"}
             </p>
           </div>
         </div>
         {preferences?.deliveryNotes ? (
-          <p className="mt-4 rounded-[14px] bg-secondary/65 px-4 py-3 text-sm leading-6 text-muted-foreground">
+          <p className="mt-4 break-words rounded-[14px] bg-secondary/65 px-4 py-3 text-sm leading-6 text-muted-foreground">
             {preferences.deliveryNotes}
           </p>
         ) : null}
@@ -113,7 +119,9 @@ export function CustomerOverviewPanel({
                   className="rounded-[16px] border border-border bg-card p-4"
                   key={note.id}
                 >
-                  <p className="text-sm leading-6 text-foreground">{note.body}</p>
+                  <p className="break-words text-sm leading-6 text-foreground">
+                    {note.body}
+                  </p>
                   <p className="mt-3 text-[10.5px] text-muted-foreground">
                     {note.author} · {formatCustomerDateTime(note.createdAt)}
                   </p>
