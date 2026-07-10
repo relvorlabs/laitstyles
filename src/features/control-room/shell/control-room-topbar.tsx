@@ -7,9 +7,11 @@ import {
   Menu01Icon,
   Notification03Icon,
   Search01Icon,
+  Store01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
+import { useRecordSaleController } from "@/features/control-room/record-sale/record-sale-controller";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { getControlRoomPage } from "@/features/control-room/shell/navigation";
 
@@ -26,11 +28,12 @@ export function ControlRoomTopbar({
 }: ControlRoomTopbarProps) {
   const page = getControlRoomPage(pathname);
   const { openNewProduct } = useProductEditorController();
+  const { openRecordSale } = useRecordSaleController();
   const attentionHref = pathname === "/admin" ? "#attention" : "/admin#attention";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl">
-      <div className="flex min-h-[72px] items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-[72px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <Button
           aria-label="Open Control Room navigation"
           className="size-11 rounded-full lg:hidden"
@@ -101,12 +104,25 @@ export function ControlRoomTopbar({
 
         <Button
           aria-label="Add product"
-          className="h-11 rounded-full px-4 sm:px-5"
+          className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-4"
           onClick={openNewProduct}
+          size="icon-lg"
           type="button"
+          variant="outline"
         >
           <ControlRoomIcon icon={Add01Icon} size={17} />
           <span className="hidden sm:inline">Add product</span>
+        </Button>
+
+        <Button
+          aria-label="Record sale"
+          className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-5"
+          onClick={openRecordSale}
+          size="icon-lg"
+          type="button"
+        >
+          <ControlRoomIcon icon={Store01Icon} size={17} />
+          <span className="hidden sm:inline">Record sale</span>
         </Button>
       </div>
     </header>
