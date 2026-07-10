@@ -40,7 +40,7 @@ describe("SKU generation", () => {
       [first],
     );
 
-    expect(first).toBe("LS-VAR-ADI-JEA-DENI-IIMMI");
+    expect(first).toBe("LS-VAR-ADI-JEA-DENI-IMMI");
     expect(second).toBe(`${first}-2`);
   });
 });
