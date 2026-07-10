@@ -102,6 +102,7 @@ export function HoldDetailSheet({
             {feedback ? (
               <Alert
                 aria-live="polite"
+                className="sticky top-0 z-10 bg-card shadow-sm"
                 variant={feedback.tone === "error" ? "destructive" : "default"}
               >
                 <AlertTitle>{feedback.title}</AlertTitle>
