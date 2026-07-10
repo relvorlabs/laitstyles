@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Sans, Inter, Newsreader } from "next/font/google";
+import { Geist_Mono, Instrument_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
-import {
-  ThemeProvider,
-  themeBootScript,
-} from "@/components/theme/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { themeBootScript } from "@/components/theme/theme-script";
 import { cn } from "@/lib/utils";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -50,7 +46,6 @@ export default function RootLayout({
         instrumentSans.variable,
         newsreader.variable,
         geistMono.variable,
-        inter.variable,
       )}
       lang="en"
       suppressHydrationWarning
