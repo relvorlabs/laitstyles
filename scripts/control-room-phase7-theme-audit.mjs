@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 
 const root = process.cwd();
+const themePath = path.join(root, "src/app/globals.css");
 const targets = [
   "src/app/layout.tsx",
   "src/app/admin",
@@ -11,6 +12,43 @@ const targets = [
   "src/components/theme",
   "src/components/ui",
   "src/features/control-room",
+];
+
+const requiredRoleTokens = [
+  "--surface-canvas",
+  "--surface-canvas-foreground",
+  "--surface-panel",
+  "--surface-panel-foreground",
+  "--surface-raised",
+  "--surface-raised-foreground",
+  "--surface-sunken",
+  "--surface-sunken-foreground",
+  "--surface-interactive",
+  "--surface-interactive-hover",
+  "--surface-interactive-foreground",
+  "--surface-selected",
+  "--surface-selected-foreground",
+  "--surface-selected-muted",
+  "--surface-inverse",
+  "--surface-inverse-foreground",
+  "--action-primary",
+  "--action-primary-foreground",
+  "--action-secondary",
+  "--action-secondary-foreground",
+  "--control",
+  "--control-hover",
+  "--control-foreground",
+  "--border-subtle",
+  "--border-strong",
+  "--focus",
+  "--destructive-surface",
+  "--destructive-surface-foreground",
+  "--success-surface",
+  "--success-surface-foreground",
+  "--warning-surface",
+  "--warning-surface-foreground",
+  "--sidebar-selected",
+  "--sidebar-selected-foreground",
 ];
 
 const rawColour =
@@ -39,6 +77,11 @@ const checks = [
     label: "raw SVG colour literal",
     pattern: /(?:fill|stroke|stopColor)=["']#[0-9a-fA-F]{3,8}["']/g,
   },
+  {
+    label: "manual dark-mode colour patch",
+    pattern:
+      /dark:[^\s"']*(?:bg|text|border|ring|outline|fill|stroke|from|via|to|shadow)-[^\s"']+/g,
+  },
 ];
 
 const files = [];
@@ -63,14 +106,25 @@ for (const absolutePath of files) {
   }
 }
 
+const themeSource = await readFile(themePath, "utf8");
+for (const token of requiredRoleTokens) {
+  const declaration = new RegExp(`^\\s*${escapeRegExp(token)}\\s*:`, "gm");
+  const occurrences = themeSource.match(declaration)?.length ?? 0;
+  if (occurrences < 2) {
+    failures.push(
+      `src/app/globals.css missing paired light/dark declarations for ${token} (found ${occurrences})`,
+    );
+  }
+}
+
 if (failures.length) {
   throw new Error(
-    `Phase 7 theme audit found non-token colours in scoped application source:\n${failures.join("\n")}`,
+    `Phase 8A theme audit found role-system violations:\n${failures.join("\n")}`,
   );
 }
 
 console.log(
-  `Phase 7 theme audit passed for ${files.length} scoped application source files.`,
+  `Phase 8A theme audit passed for ${files.length} scoped application source files and ${requiredRoleTokens.length} paired role tokens.`,
 );
 
 async function collectFiles(targetPath, output) {
@@ -92,4 +146,8 @@ async function collectFiles(targetPath, output) {
     if (entry.isDirectory()) await collectFiles(childPath, output);
     else if (/\.(?:ts|tsx|js|jsx)$/.test(entry.name)) output.push(childPath);
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
