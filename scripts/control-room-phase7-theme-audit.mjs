@@ -5,20 +5,14 @@ import process from "node:process";
 const root = process.cwd();
 const targets = [
   "src/app/layout.tsx",
+  "src/app/admin",
   "src/components/brand",
   "src/components/layout",
   "src/components/theme",
   "src/components/ui/dialog.tsx",
   "src/components/ui/sheet.tsx",
-  "src/features/control-room/shell",
-  "src/features/control-room/inventory",
-  "src/features/control-room/product-editor/product-editor-controller.tsx",
-  "src/features/control-room/record-sale/record-sale-controller.tsx",
+  "src/features/control-room",
 ];
-
-const ignoredPaths = new Set([
-  "src/components/brand/laitstyle-symbol.tsx",
-]);
 
 const rawColour =
   "(?:#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\()";
@@ -51,7 +45,6 @@ for (const target of targets) {
 const failures = [];
 for (const absolutePath of files) {
   const relativePath = path.relative(root, absolutePath).split(path.sep).join("/");
-  if (ignoredPaths.has(relativePath)) continue;
   const source = await readFile(absolutePath, "utf8");
   const lines = source.split("\n");
 
@@ -73,7 +66,7 @@ if (failures.length) {
 }
 
 console.log(
-  `Phase 7 theme audit passed for ${files.length} theme-critical source files.`,
+  `Phase 7 theme audit passed for ${files.length} Control Room and shared chrome source files.`,
 );
 
 async function collectFiles(targetPath, output) {
