@@ -56,7 +56,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
         <div className="grid gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:px-10 lg:py-12">
           <div>
             <Badge
-              className="border-white/[0.14] bg-white/[0.08] text-[#D9E1C9]"
+              className="border-primary-foreground/15 bg-primary-foreground/8 text-brand-sage-soft"
               variant="outline"
             >
               New {state.storeName} workspace
@@ -64,7 +64,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
             <h1 className="mt-5 max-w-[690px] text-balance font-serif text-[40px] font-medium leading-[.98] sm:text-[54px]">
               Set up the shop in the order a real store needs it.
             </h1>
-            <p className="mt-5 max-w-[620px] text-[14px] leading-6 text-white/[0.72] sm:text-[15px]">
+            <p className="mt-5 max-w-[620px] text-[14px] leading-6 text-primary-foreground/72 sm:text-[15px]">
               Start with products, delivery and how customers can pay. Sales charts and fulfilment queues appear only after the store has activity worth managing.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -72,7 +72,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                 className={buttonVariants({
                   size: "lg",
                   className:
-                    "h-11 rounded-full bg-[#D9E1C9] px-5 text-primary hover:bg-[#C9D5B3]",
+                    "h-11 rounded-full bg-accent px-5 text-accent-foreground hover:bg-accent/85",
                 })}
                 href="/"
               >
@@ -84,7 +84,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                   variant: "outline",
                   size: "lg",
                   className:
-                    "h-11 rounded-full border-white/[0.22] px-5 text-white hover:bg-white/[0.08] hover:text-white",
+                    "h-11 rounded-full border-primary-foreground/25 px-5 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
                 })}
                 href="/admin"
               >
@@ -93,22 +93,22 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
             </div>
           </div>
 
-          <div className="rounded-[18px] border border-white/[0.14] bg-white/[0.07] p-5 sm:p-6">
+          <div className="rounded-[18px] border border-primary-foreground/15 bg-primary-foreground/8 p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/[0.64]">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/64">
                 Store readiness
               </span>
               <span className="font-serif text-[28px] tabular-nums">
                 {readiness}%
               </span>
             </div>
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-foreground/10">
               <div
-                className="h-full rounded-full bg-[#AFC48A]"
+                className="h-full rounded-full bg-brand-sage-soft"
                 style={{ width: `${readiness}%` }}
               />
             </div>
-            <p className="mt-4 text-[12.5px] leading-5 text-white/[0.68]">
+            <p className="mt-4 text-[12.5px] leading-5 text-primary-foreground/68">
               The store identity exists. Products, delivery and selling preferences still need owner decisions.
             </p>
           </div>
@@ -131,7 +131,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                 className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 px-5 py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4 sm:px-6"
                 key={step.title}
               >
-                <span className="grid size-11 place-items-center rounded-[13px] bg-secondary text-[#4A5540]">
+                <span className="grid size-11 place-items-center rounded-[13px] bg-accent text-accent-foreground">
                   <ControlRoomIcon icon={step.icon} size={20} />
                 </span>
                 <div className="min-w-0">
@@ -150,21 +150,21 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#E7EBDD] ring-[#C9D1B8]">
+        <Card className="border-brand-sage/35 bg-accent/45 ring-brand-sage/25">
           <Empty className="min-h-[320px] border-0 p-5">
             <EmptyHeader>
-              <EmptyMedia className="grid size-14 place-items-center rounded-full bg-card text-[#4A5540] ring-1 ring-foreground/10">
+              <EmptyMedia className="grid size-14 place-items-center rounded-full bg-card text-accent-foreground ring-1 ring-foreground/10">
                 <ControlRoomIcon icon={CheckmarkCircle02Icon} size={24} />
               </EmptyMedia>
               <EmptyTitle className="font-serif text-[25px] font-medium">
                 No empty analytics theatre
               </EmptyTitle>
-              <EmptyDescription className="text-[#59644A]">
+              <EmptyDescription className="text-muted-foreground">
                 Revenue, stock warnings and delivery queues appear when there is real operating data to show.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Badge className="bg-card text-[#4A5540]" variant="secondary">
+              <Badge className="bg-card text-foreground" variant="secondary">
                 Calm by default
               </Badge>
             </EmptyContent>
