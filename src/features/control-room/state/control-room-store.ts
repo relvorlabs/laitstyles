@@ -1,3 +1,10 @@
+import { applyAddCustomerNote } from "@/lib/control-room/customer-actions";
+import { hydrateCustomerProfiles } from "@/lib/control-room/customer-profile-seed";
+import type {
+  AddCustomerNoteInput,
+  CustomerActionError,
+  CustomerNoteActionSuccess,
+} from "@/lib/control-room/customer-types";
 import {
   applyHoldConversion,
   applyHoldExtension,
@@ -49,6 +56,10 @@ type OrderActionResult = Result<OrderTransitionSuccess, SalesActionError>;
 type HoldResult = Result<HoldActionSuccess, SalesActionError>;
 type OfflineSaleResult = Result<OfflineSaleSuccess, SalesActionError>;
 type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
+type CustomerNoteResult = Result<
+  CustomerNoteActionSuccess,
+  CustomerActionError
+>;
 
 export type ControlRoomStore = {
   getSnapshot: () => ControlRoomState;
@@ -74,6 +85,7 @@ export type ControlRoomStore = {
     returnId: string,
     nextStatus: ReturnStatus,
   ) => ReturnResult;
+  addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
   resetPrototypeState: () => void;
 };
 
@@ -142,6 +154,9 @@ export function createControlRoomStore(
         applyReturnTransition(state, returnId, nextStatus, getNow()),
       );
     },
+    addCustomerNote(input) {
+      return commitAction(applyAddCustomerNote(state, input, getNow()));
+    },
     resetPrototypeState() {
       emit(normalizedInitialState);
     },
@@ -154,6 +169,7 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
 
   return {
     ...initialState,
+    customers: hydrateCustomerProfiles(initialState.customers),
     intake: createInitialIntakeRecords(
       initialState.products,
       initialState.intake,
