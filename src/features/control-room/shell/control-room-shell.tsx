@@ -41,7 +41,7 @@ export function ControlRoomShell({
             </a>
 
             <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
-              <aside className="sticky top-0 hidden h-dvh lg:block">
+              <aside className="sticky top-0 hidden h-dvh min-h-0 overflow-hidden lg:block">
                 <ControlRoomSidebar pathname={pathname} />
               </aside>
 
@@ -59,7 +59,7 @@ export function ControlRoomShell({
 
             <Sheet onOpenChange={setNavigationOpen} open={navigationOpen}>
               <SheetContent
-                className="w-[min(88vw,360px)] gap-0 overscroll-contain border-r-0 bg-sidebar p-0 text-sidebar-foreground"
+                className="h-dvh w-[min(88vw,360px)] gap-0 overflow-hidden overscroll-contain border-r-0 bg-sidebar p-0 text-sidebar-foreground"
                 side="left"
               >
                 <SheetHeader className="sr-only">
