@@ -2,21 +2,19 @@
 
 ## Current score
 
-**Phase 8 implementation complete — executable and visual acceptance blocked**
+**Phase 8 implementation complete through Batch 8F — executable and visual acceptance blocked**
 
-The user explicitly authorised full end-to-end Phase 8 implementation. Batches 8A–8D are implemented and Batch 8E coverage is encoded in the workflow.
+The user extended Phase 8 with a focused Inventory catalogue-hardening batch after the first end-to-end visual-system implementation. Batches 8A–8F are implemented and consolidated coverage is encoded.
 
-This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. The private-repository executable gate still creates no usable final-head run, and PR #4 remains non-mergeable because the feature branch is behind and diverged from `main`.
-
-No blocked check, screenshot review or merge condition is represented as passing.
+This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 8 implementation complete; executable and visual acceptance blocked |
-| Active implementation phase | Phase 8 — Visual System, Shell and Overview Correction |
-| Phase 8 application head | `df3b6c988d7b8843f033b0fc5ddd52473830d2d8` |
+| Status | Phase 8 implemented through 8F; executable and visual validation blocked |
+| Active implementation phase | Phase 8 — Visual System, Shell, Overview and Inventory Correction |
+| Phase 8 application head | `943424f606c5a22eabaff68b832bb6cf4a87376f` |
 | Queued phase | Phase 9 — TanStack Query Server-State Foundation |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft, currently non-mergeable |
@@ -27,8 +25,8 @@ No blocked check, screenshot review or merge condition is represented as passing
 | Phase 9 plan | `docs/control-room-v2/phase9-plan.md` |
 | Accepted Batch 4A head/run | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035` |
 | Accepted Batch 4B head/run | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809` |
-| Unresolved executable gates | 4F, 5D, 6E, 7E and 8E |
-| Merge integration | Feature branch remains 31 commits behind `main`; reconcile through reviewed conflict resolution |
+| Unresolved executable gates | 4F, 5D, 6E, 7E and Phase 8 acceptance |
+| Merge integration | Feature branch remains behind and diverged from `main`; reconcile through reviewed conflict resolution |
 | Review readiness | Blocked |
 
 ## Completed and accepted foundation
@@ -55,7 +53,7 @@ No blocked check, screenshot review or merge condition is represented as passing
 - [x] Quantity invariants and connected selectors
 - [x] Saved views, search, filters and sorting
 - [x] Grid, desktop table and mobile cards
-- [x] Deep-linkable product detail and CSV export
+- [x] Deep-linkable detail and CSV export
 - [x] Responsive browser matrix and React Doctor 100/100
 
 Final Phase 2 verification: run `29021779448` on `b5ad5c64a906cef216a6b8e441893d095b09e4ff`.
@@ -96,8 +94,7 @@ Accepted head/run: `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`.
 - [x] Record Sale workflow
 - [x] Returns workspace and disposition
 - [x] Browser and responsive coverage encoded
-- [ ] Consolidated executable verification
-- [ ] Screenshot review
+- [ ] Consolidated executable verification and screenshot review
 - [ ] Phase 4 accepted
 
 ### Phase 5 — Customers
@@ -120,7 +117,7 @@ Evidence: `docs/control-room-v2/phase5-blocker.md`.
 
 Evidence: `docs/control-room-v2/phase6-blocker.md`.
 
-### Phase 7 — Brand, themes, Inventory density and media
+### Phase 7 — Brand, themes and media
 
 - [x] Approved woven L/S identity
 - [x] Theme controller and first semantic token system
@@ -133,15 +130,13 @@ Evidence: `docs/control-room-v2/phase6-blocker.md`.
 
 Evidence: `docs/control-room-v2/phase7-blocker.md`.
 
-## Phase 8 — Visual System, Shell and Overview Correction
+## Phase 8 — Visual System, Shell, Overview and Inventory Correction
 
 ### Batch 8A — theme role and token correction — implemented
 
-- [x] Scoped raw-colour and manual dark-patch inventory
 - [x] Paired Light/Dark semantic role matrix
 - [x] Canvas, panel, raised, sunken, interactive, selected and inverse roles
-- [x] Primary and secondary action correction
-- [x] Control, border, focus and functional-state roles
+- [x] Action, control, border, focus and functional-state correction
 - [x] Three-level elevation scale
 - [x] Shared primitive migration
 - [x] Sage-led sidebar selection
@@ -152,53 +147,89 @@ Implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
 ### Batch 8B — theme control, sidebar and command surface — implemented
 
 - [x] Base UI group composition corrected
-- [x] Light, Dark and System runtime regression encoded
-- [x] Desktop, top-bar and mobile theme-control parity retained
+- [x] Light, Dark and System behavior retained
 - [x] Fixed header/footer plus internal sidebar scroll region
-- [x] Short-height sidebar acceptance at 800px, 700px and 600px encoded
-- [x] Selected icon, label and description contrast corrected
-- [x] Forced-colour and focus boundaries added
-- [x] Editorial command trigger
-- [x] Live products, orders, customers, holds, Settings and destinations in command results
+- [x] Short-height sidebar checks encoded
+- [x] Selected navigation and forced-colour boundaries
+- [x] Editorial command trigger and live-record results
 - [x] Keyboard shortcut and empty state retained
 
 ### Batch 8C — Overview information architecture — implemented
 
 - [x] Module responsibility matrix
-- [x] Compact daily strip retained for current state only
-- [x] Attention queue retained as primary owner-judgment surface
-- [x] Connected open-orders preview with product and customer context
-- [x] Continue Working, fulfilment and activity positioned as supporting rail content
-- [x] Sales Pulse limited to historical trend responsibility
-- [x] Inventory Watch limited to actionable exceptions
+- [x] Compact daily strip and primary attention queue
+- [x] Connected open-orders preview
+- [x] Supporting Continue Working, fulfilment and activity rail
+- [x] Sales Pulse and Inventory Watch given unique responsibilities
 - [x] Tablet/mobile task-priority composition
-- [x] Stronger hierarchy from `main` reused without restoring its monolith or obsolete inventory assumptions
+- [x] Useful hierarchy from `main` reused without restoring its monolith
 
 Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 ### Batch 8D — Inventory presentation and table media — implemented
 
-- [x] Adaptive `auto-fill` grid with 220px minimum useful card width
-- [x] Four useful cards at the 1280px/sidebar target
-- [x] Six columns only when sufficient width remains
-- [x] Stronger product image, title, price and stock hierarchy
-- [x] Consistent minimum height and aligned footer rhythm
-- [x] Separate image-preview and record actions
-- [x] Accessible table-thumbnail media trigger
-- [x] Shared viewer retained for grid, table, mobile and detail media
+- [x] Separate grid-image, table-image and product-record actions
+- [x] Shared viewer available from table thumbnails
+- [x] Stronger image, title, price and stock hierarchy
+- [x] Equal-row card behavior
 
 ### Batch 8E — consolidated acceptance — encoded, not executed
 
 - [x] Theme-role source audit wired
-- [x] Light, Dark and System menu regression encoded
-- [x] Runtime and console-error capture encoded
+- [x] Theme-menu, runtime and console checks encoded
 - [x] Sidebar short-height checks encoded
 - [x] Live-record command search encoded
 - [x] Light/Dark Admin route matrix retained
-- [x] Overview hierarchy, responsive overflow and screenshots encoded
-- [x] Inventory card width, image height and equal-row assertions encoded
-- [x] Table media versus record navigation encoded
+- [x] Overview hierarchy and responsive screenshots encoded
+- [x] Inventory geometry and media checks encoded
 - [x] Consolidated Phase 4–8 browser workflow wired
+
+### Batch 8F — Inventory catalogue hardening — implemented
+
+#### Grid and pagination
+
+- [x] Five-column desktop grid
+- [x] Shorter `5/6` image ratio and compact card body
+- [x] Aligned card footers and equal-row behavior
+- [x] Shared grid/table/mobile pagination
+- [x] 10, 15, 25 and 50 item page sizes
+- [x] URL-backed page and page-size state
+- [x] Filter changes reset to page one
+
+#### Categories and collections
+
+- [x] Managed taxonomy hydrated from existing products
+- [x] Category and collection dropdowns in product forms
+- [x] Create and rename actions
+- [x] Rename cascades to connected products
+- [x] Delete blocked while in use
+- [x] Category and collection filters retain managed values
+
+#### SKU and stock
+
+- [x] Collision-aware product SKU/reference generator
+- [x] Per-variant SKU generator
+- [x] Unique piece, interchangeable stocked product and variant semantics clarified
+- [x] Total received and available-stock previews
+- [x] Committed stock cannot be silently reduced
+
+#### Images and pricing
+
+- [x] Up to 12 images
+- [x] Multiple file and URL addition
+- [x] Live preview, URL edit, remove and reorder
+- [x] Exactly one featured cover
+- [x] Image description, duplicate and URL validation
+- [x] Unit cost and Compare-at price terminology
+- [x] Discount percentage calculator
+- [x] Margin and loss warnings
+
+#### Product lifecycle and tests
+
+- [x] Archive and restore actions
+- [x] Protected permanent deletion
+- [x] Taxonomy, SKU, lifecycle and editor edge-case unit tests
+- [x] Browser flow for CRUD, dropdowns, SKU, images, stock, pricing, filtering and pagination
 - [ ] ESLint executed on final Phase 8 head
 - [ ] TypeScript executed on final Phase 8 head
 - [ ] Vitest executed on final Phase 8 head
@@ -230,10 +261,10 @@ Exact evidence: `docs/control-room-v2/phase8-blocker.md`.
 
 ## Verification and integration blockers
 
-GitHub returned no workflow run and no combined commit status for the final Phase 8 application head. The available container also could not resolve `github.com`, so no local worktree could be cloned for execution. This is an environment limitation, not a passing or failing application result.
+GitHub has not returned a usable workflow run or combined commit status for the final Phase 8 Inventory catalogue head. The current environment also has no usable repository worktree for local execution. This is an environment limitation, not a passing or failing application result.
 
-PR #4 also remains non-mergeable because the feature branch is behind and diverged from `main`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
+PR #4 remains non-mergeable because the feature branch is behind and diverged from `main`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Restore an executable validation environment, run the consolidated Phase 4–8 gate and review generated screenshots. Do not mark Phase 8 accepted or start Phase 9 without a new explicit override while this gate remains unresolved. Keep PR #4 draft and non-review-ready.
+Restore executable validation, run the consolidated Phase 4–8 gate and review generated screenshots. Do not mark Phase 8 accepted or start Phase 9 without a new explicit override while this gate remains unresolved. Keep PR #4 draft and non-review-ready.
