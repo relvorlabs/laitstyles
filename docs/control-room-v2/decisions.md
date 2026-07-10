@@ -15,33 +15,32 @@ Phase 2 requires three presentations of the same inventory truth:
 2. A compact operational table for desktop comparison and bulk selection
 3. Mobile operational cards that do not compress the desktop table
 
-The storefront currently treats products as visual pieces first. Product cards lead with photography, name, category, size, condition, price and availability state. The Control Room expands that truth to support unique pieces, stocked products and variant products, while retaining product recognition and the editorial Laitstyle character.
+The storefront treats products as visual pieces first. Product cards lead with photography, name, category, size, condition, price and availability state. The Control Room expands that truth to support unique pieces, stocked products and variant products, while retaining product recognition and the editorial Laitstyle character.
 
-The repository currently has:
+The repository at the Phase 2 decision point had:
 
-- A small typed local inventory seed
-- No asynchronous inventory service
-- No server-side pagination
-- No user-configurable columns
-- No table grouping or aggregation requirement
-- No row virtualization requirement
-- An existing shadcn `Table` primitive
-- No TanStack dependency
+- a small typed local inventory seed
+- no asynchronous inventory service
+- no server-side pagination
+- no user-configurable columns
+- no table grouping or aggregation requirement
+- no row virtualization requirement
+- an existing shadcn `Table` primitive
+- no TanStack dependency
 
 ### Required Phase 2 behaviour
 
 The Inventory workspace needs:
 
-- Search across product name, archive number, SKU, category, brand and variants
-- Saved views such as All, Live, Drafts, Intake, Low stock, Out of stock, Held, Sold, Unpublished and Needs attention
-- Product-mode, stock-status, category, collection and channel filters
-- Sorting by recently updated, stock, sales, price and name
-- Grid/table presentation switching on desktop and tablet
-- Mobile cards instead of the desktop table
-- Row selection
-- Select-all for the currently visible filtered set
-- Safe non-destructive bulk actions such as export and clear selection
-- Responsive column reduction controlled by the design, not by user-configurable column visibility
+- search across product name, archive number, SKU, category, brand and variants
+- saved operational views
+- product-mode, stock-status, category, collection and channel filters
+- sorting by recently updated, stock, sales, price and name
+- grid/table presentation switching on desktop and tablet
+- mobile cards instead of the desktop table
+- row selection and select-all for the visible result set
+- safe non-destructive bulk actions
+- responsive column reduction controlled by the design
 
 ### Options considered
 
@@ -49,39 +48,35 @@ The Inventory workspace needs:
 
 Advantages:
 
-- Built-in sorting and row-selection state
-- Flexible column definitions
-- Useful future path for pagination, grouping and column visibility
+- built-in sorting and row-selection state
+- flexible column definitions
+- future path for pagination, grouping and column visibility
 
-Costs in the current phase:
+Costs in Phase 2:
 
-- Introduces a new row-model abstraction for only one of three presentations
-- Risks making the table the source of truth while the grid and mobile cards need the same independent result set
-- Adds dependency and adapter code without server pagination, grouping, resizing, virtualization or dynamic columns
-- Encourages table-specific filter state that could drift from the visual grid and mobile cards
-- Increases implementation and review surface for a local typed prototype
+- introduces a new row-model abstraction for only one of three presentations
+- risks making the table the source of truth while grid and mobile need the same result set
+- adds dependency and adapter code without server pagination, grouping, resizing, virtualization or dynamic columns
+- encourages table-specific filters that could drift from the other presentations
 
 #### Option B — Existing shadcn Table plus shared typed selectors
 
 Advantages:
 
-- One inventory query state feeds grid, table and mobile cards
-- Product-mode invariants remain in the domain layer rather than column definitions
-- Keeps the visual grid primary and the table appropriately secondary
-- Uses the existing project component system
-- Supports the required fixed sorting, filters and selection without general-purpose table infrastructure
-- Avoids a dependency that cannot yet demonstrate proportional value
+- one Inventory query state feeds grid, table and mobile cards
+- product-mode invariants remain in the domain layer
+- keeps the visual grid primary and the table secondary
+- uses the existing component system
+- supports the required fixed sorting, filters and selection without general-purpose table infrastructure
 
 Costs:
 
-- Sorting and selection helpers must be implemented locally
-- Future server pagination or dynamic columns may justify migration
+- sorting and selection helpers are local
+- future server pagination or dynamic columns may justify migration
 
 ### Decision
 
 Use the existing shadcn `Table` with a shared typed Inventory query and selector pipeline. Do **not** add `@tanstack/react-table` or TanStack Query in Phase 2.
-
-The implementation will use:
 
 ```text
 Inventory query state
@@ -95,46 +90,13 @@ Grid      Table     Mobile cards
 
 The table is a desktop operational lens, not the inventory domain model and not the primary product experience.
 
-### Column strategy
-
-Phase 2 uses a fixed operational column set:
-
-- Selection
-- Product
-- Mode
-- Availability
-- Reserved
-- Sold
-- Price
-- Visibility/status
-- Updated
-- Row action
-
-Tablet hides lower-priority columns through responsive composition. Mobile does not render the table.
-
-User-configurable column visibility is intentionally deferred because the operator has one store context and a stable set of high-value fields. Adding a column-management interface now would be generic admin complexity rather than a demonstrated Laitstyle need.
-
-### Bulk-action strategy
-
-Phase 2 implements only actions that are truthful without persistence:
-
-- Export selected records
-- Clear selection
-- Open a selected product when exactly one record is selected
-
-Publish, unpublish, archive and collection assignment remain visible as future domain capabilities in the specification but are not exposed as working controls until a connected action boundary is implemented. No dead buttons or fake persistence are permitted.
-
-### Add-product action
-
-The specification calls for a persistent Add product action, but the complete product wizard belongs to Phase 3. Phase 2 will not expose a dead Add product button. The action enters the Inventory header only when the Phase 3 dialog/drawer is fully implemented.
-
 ### Consequences
 
 - Phase 2 adds no package dependency.
-- Filtering, sorting and saved-view logic belongs in `src/lib/control-room/inventory-selectors.ts`.
+- Filtering, sorting and saved-view logic belongs in typed selectors.
 - Selection remains presentation state inside the Inventory client boundary.
 - Grid, table and mobile cards consume the same result array.
-- The decision must be revisited when real inventory APIs introduce server pagination or when the visible dataset requires virtualization.
+- Revisit `@tanstack/react-table` when server pagination, grouping, dynamic columns or virtualization create proportional value.
 
 ## Decision 002 — Phase 7 brand, theme and Inventory media architecture
 
@@ -145,9 +107,9 @@ The specification calls for a persistent Add product action, but the complete pr
 
 ### Context
 
-Phase 7 adds the approved Laitstyle Concept Option 3 identity and must support both light and dark operation without maintaining separate component palettes. The Inventory visual grid also needs to become denser and more professional while gaining a useful image-viewing workflow.
+Phase 7 adds the approved Laitstyle Concept Option 3 identity and supports both light and dark operation without maintaining separate component palettes. Inventory also gains a dedicated image-viewing workflow.
 
-The approved visual direction uses:
+The approved direction uses:
 
 - a woven L/S mark
 - Ink as the primary high-contrast colour
@@ -155,31 +117,29 @@ The approved visual direction uses:
 - Sage as the brand accent
 - calm, premium and modern presentation
 
-The repository already had light and dark CSS variables, but no mounted theme controller, no persistent mode choice, and several component-level colour literals. Inventory images also opened the product record rather than a dedicated media experience.
-
 ### Decision
 
-Use a single semantic token system and one root theme controller.
+Use one semantic token system and one root theme controller.
 
-- The root provider owns `light`, `dark` and `system` preference.
-- Preference is stored locally for this prototype and applied before hydration.
-- The shadcn-composed theme menu appears in public and Control Room chrome.
-- Components consume semantic tokens such as `background`, `foreground`, `card`, `accent`, `success`, `warning`, `sidebar` and brand tokens.
-- Brand path geometry remains fixed; only token-driven rendering changes between modes.
-- Phase 7 theme-critical source files are guarded by a raw-colour audit.
+- The provider owns `light`, `dark` and `system` preference.
+- Preference is stored locally for the prototype and applied before hydration.
+- Theme controls appear in public and Control Room chrome.
+- Components consume semantic tokens rather than separate theme component trees.
+- Brand path geometry remains fixed; token-driven rendering changes by theme.
+- Theme-critical source is guarded by a raw-colour audit.
 
-Do not add a separate dark-mode component tree and do not introduce `next-themes` solely to wrap the current local prototype.
+Do not introduce a separate dark-mode component tree and do not add `next-themes` solely to wrap the local prototype.
 
-### Inventory density decision
+### Initial Inventory density decision
 
-The Inventory grid remains CSS-grid based and responsive:
+Phase 7 initially set:
 
-- mobile uses task-focused list cards
-- tablet uses three visual columns
-- standard desktop at 1280px uses five columns
-- wide desktop at 1720px and above uses six columns
+- mobile task-focused list cards
+- tablet three visual columns
+- standard desktop at 1280px five columns
+- wide desktop at 1720px six columns
 
-Cards are recomposed for the denser width rather than simply shrinking the previous four-column design.
+This fixed desktop count is superseded by Decision 003 after visual review showed that the 280px Control Room sidebar leaves the five-column cards too narrow at a 1280px viewport.
 
 ### Media interaction decision
 
@@ -187,15 +147,169 @@ Product images and product records are separate actions.
 
 - Clicking an image opens a shared media dialog.
 - Clicking the product title or explicit `Open record` action opens product detail.
-- The media dialog supports thumbnails, previous/next navigation, keyboard navigation, zoom, reset, open-original and copy-link feedback.
-- The same viewer is reused in the grid, mobile list and product Media tab.
-- The viewer is non-destructive and does not claim upload, crop, delete or backend persistence.
+- The dialog supports thumbnails, previous/next, keyboard navigation, zoom, reset, open-original and copy-link feedback.
+- The same viewer is reused in grid, mobile list and product Media tab.
+- The viewer is non-destructive and does not imply upload, crop, deletion or backend persistence.
 
 ### Consequences
 
-- Public and Control Room chrome share the approved Laitstyle symbol.
-- Dark mode changes Ink/Bone contrast through tokens rather than SVG mutation.
-- Shared dialog and sheet backdrops consume an overlay token.
-- Inventory density and media behaviour are covered by browser assertions.
-- Production theme persistence may later move from local storage to an authenticated profile without changing component contracts.
-- Production media editing will require a separate action boundary and is not implied by the Phase 7 viewer.
+- Public and Control Room chrome share the approved symbol.
+- Dark mode changes contrast through tokens rather than SVG mutation.
+- Shared overlays consume a semantic overlay token.
+- Production theme persistence may later move to an authenticated profile without changing component contracts.
+- Production media editing requires a separate action boundary.
+
+## Decision 003 — Phase 8 fashion-grade visual hierarchy and adaptive Inventory density
+
+**Date:** 2026-07-10  
+**Status:** Planned; implementation not started  
+**Decision owner:** User-approved Phase 8 extension  
+**Review trigger:** Phase 8 visual QA, material change to sidebar width, a new Admin shell, or a product-card redesign
+
+### Context
+
+A code and design audit confirmed that Phase 7’s token introduction did not yet produce a coherent fashion-grade system:
+
+- the theme menu crashes because a Base UI group label is outside its required group context
+- dark mode promotes Bone to generic primary and selected surfaces, producing bright cards and weak hierarchy
+- sidebar content has no internal vertical scroll boundary
+- selected navigation can bury nested icon or descriptive content
+- command search is primarily a static destination list
+- Overview modules have overlapping responsibilities and excessive vertical stacking
+- the fixed five-column Inventory rule makes cards too narrow beside the 280px sidebar
+- table thumbnails are not a separate media-preview action
+
+The legacy Overview on `main` contains a useful primary queue, open-orders section and supporting right rail, but its implementation is a monolith with raw colours and old one-of-one assumptions.
+
+### Decision
+
+Phase 8 is a system correction rather than another theme repaint.
+
+#### Theme roles
+
+Define paired Light and Dark roles for:
+
+- canvas
+- sunken workspace
+- standard panel
+- raised panel
+- interactive surface
+- selected navigation
+- primary and secondary actions
+- input/search surface
+- inverse content
+- focus
+- functional success, warning and destructive pairs
+
+Ink, Bone and Sage remain the brand foundation, but no single colour is used indiscriminately as canvas, card, selected state and primary action.
+
+#### Sidebar and command surface
+
+- Split the sidebar into fixed and internally scrollable regions with `min-h-0` and `overflow-y-auto`.
+- Keep active icon, label and description readable in both themes.
+- Reduce competing promotional/support cards in the sidebar.
+- Redesign command search around actual products, orders, customers, holds, settings sections and recent actions.
+
+#### Overview
+
+Use the stronger information hierarchy from `main` without copying its implementation:
+
+- compact daily strip
+- primary owner-judgment queue
+- useful recent/open-orders preview
+- supporting desktop rail for continue-work, hold clock, fulfilment exceptions and concise activity
+- Sales Pulse and Inventory Watch only where each has a unique job
+
+#### Inventory density
+
+Replace fixed viewport column counts with a minimum useful card width measured inside the actual content container.
+
+Expected direction:
+
+- mobile uses task-focused cards
+- tablet adapts to available width
+- a 1280px viewport with the desktop sidebar should normally show about four useful cards, not five compressed cards
+- larger desktops may show five
+- six appears only when every card retains the approved minimum width and image presence
+
+The acceptance contract must assert minimum card width and image height rather than only counting columns.
+
+### Consequences
+
+- Decision 003 supersedes Decision 002’s fixed five-at-1280 rule.
+- The legacy `main` page remains reference-only and is not restored.
+- Theme completion requires computed-style and screenshot review, not only token presence.
+- Table media preview becomes a separate action from record navigation.
+- Phase 8 must pass short-height sidebar and full Light/Dark route tests.
+
+## Decision 004 — Phase 9 TanStack Query server-state foundation without a production backend
+
+**Date:** 2026-07-10  
+**Status:** Planned; implementation not started  
+**Decision owner:** User-approved Phase 9 extension  
+**Review trigger:** A production API/RPC contract, authentication/tenant context, SSR prefetch, realtime synchronization, offline support, or stock-concurrency implementation
+
+### Context
+
+The original architecture deferred TanStack Query until a real asynchronous backend existed. The user has now explicitly approved a preparatory server-state layer so the application can adopt stable query keys, invalidation rules and async boundaries before production integration.
+
+The risk is creating fake infrastructure: API routes that wrap local arrays, random latency, duplicated query/provider state or optimistic stock writes that imply concurrency safety.
+
+### Decision
+
+Introduce TanStack Query v5 in Phase 9 through a truthful repository boundary.
+
+#### Packages
+
+- `@tanstack/react-query`
+- `@tanstack/eslint-plugin-query`
+- Devtools only when development-only and excluded from production; otherwise omit
+
+#### Repository boundary
+
+- Define typed domain repositories.
+- Use deterministic Promise-based in-memory adapters backed by existing typed records.
+- Do not add artificial latency, random failures or fake API routes.
+- Feature components depend on query options/hooks, not seed arrays.
+- A future HTTP/RPC adapter must replace the in-memory adapter without changing feature contracts.
+
+#### Query ownership
+
+TanStack Query owns migrated server-like resources. Local state continues to own dialogs, tabs, forms, unsaved values, selection, theme preference and other ephemeral UI state.
+
+Do not duplicate query records in the global Control Room provider.
+
+#### Keys and colocation
+
+- One typed key factory per domain.
+- List keys include all data-affecting filters, sorts, views and pagination inputs.
+- Detail keys use stable business IDs.
+- Query functions/options and mutations are colocated by domain.
+- Key factories are the only source for cache writes and invalidation.
+
+#### Mutations
+
+Use, in order of preference:
+
+1. exact cache reconciliation from an authoritative mutation result
+2. targeted invalidation
+3. optimistic update only for reversible low-conflict actions
+
+Every optimistic update requires cancellation, snapshot, rollback and settlement reconciliation.
+
+Sales, payment, fulfilment, stock release, returns, refunds and unique-item ownership remain pessimistic until concurrency safety is proven.
+
+#### Next.js boundary
+
+- Use one stable browser QueryClient.
+- Use a fresh per-request server QueryClient if hydration is later introduced.
+- Do not use Server Actions as query functions.
+- Do not convert entire routes into Client Components solely for query access.
+
+### Consequences
+
+- The earlier blanket TanStack deferral is superseded only for Phase 9.
+- Phase 9 does not create production persistence.
+- Migrated server-like records must be removed from duplicate global client state.
+- Loading, error, empty, stale and background-refetch states become explicit product states.
+- A production handoff must document endpoint, authentication, concurrency, stale-time and invalidation requirements.
