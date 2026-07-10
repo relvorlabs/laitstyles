@@ -1,4 +1,5 @@
 import { InventoryWorkspace } from "@/features/control-room/inventory/inventory-workspace";
+import { defaultInventoryPageSize } from "@/features/control-room/inventory/inventory-url";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -26,6 +27,8 @@ type InventoryPageProps = {
     channel?: string | string[];
     sort?: string | string[];
     presentation?: string | string[];
+    page?: string | string[];
+    pageSize?: string | string[];
     product?: string | string[];
   }>;
 };
@@ -60,6 +63,7 @@ const sortValues = new Set<InventorySortKey>(
 const facets = getInventoryFacetOptions(activeControlRoomSeed.products);
 const categoryValues = new Set(facets.categories);
 const collectionValues = new Set(facets.collections);
+const pageSizeValues = new Set([10, 15, 25, 50]);
 
 export default async function InventoryPage({
   searchParams,
@@ -79,10 +83,18 @@ export default async function InventoryPage({
   )
     ? requestedProduct ?? null
     : null;
+  const requestedPage = Number(first(params.page));
+  const requestedPageSize = Number(first(params.pageSize));
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = pageSizeValues.has(requestedPageSize)
+    ? requestedPageSize
+    : defaultInventoryPageSize;
 
   return (
     <InventoryWorkspace
       initialOpenProductId={productId}
+      initialPage={page}
+      initialPageSize={pageSize}
       initialPresentation={presentation}
       initialQuery={{
         ...defaultInventoryQuery,
