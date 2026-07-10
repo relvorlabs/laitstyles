@@ -9,10 +9,10 @@ import type { OrderStatus, PaymentStatus } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
 
 const toneClasses = {
-  active: "border-[#CBD2BA] bg-[#E7EBDD] text-[#4A5540]",
-  success: "border-[#B9D8C0] bg-[#E7F4EA] text-[#356141]",
-  warning: "border-[#E3D3A0] bg-[#F8F0D7] text-[#745D17]",
-  danger: "border-[#E3B6AE] bg-[#F8E5E1] text-[#8A3F34]",
+  active: "border-brand-sage/40 bg-accent text-accent-foreground",
+  success: "border-success/35 bg-success/12 text-foreground",
+  warning: "border-warning/40 bg-warning/18 text-warning-foreground",
+  danger: "border-destructive/35 bg-destructive/12 text-destructive",
   closed: "border-border bg-secondary text-muted-foreground",
 };
 
