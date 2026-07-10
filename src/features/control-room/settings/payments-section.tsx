@@ -30,12 +30,12 @@ const paymentMethods: ReadonlyArray<{
   {
     value: "bank-transfer",
     label: "Bank transfer",
-    description: "The store verifies receipt before confirming payment.",
+    description: "The store checks receipt before confirming payment.",
   },
   {
     value: "card",
     label: "Card",
-    description: "Presented as an accepted method without a live processor connection.",
+    description: "Shown as a store payment choice; card collection is handled separately.",
   },
   {
     value: "cash",
@@ -67,7 +67,10 @@ export function PaymentsSection() {
     setValue,
     formState: { errors },
   } = useFormContext<SaveStoreSettingsInput>();
-  const payments = useWatch({ control, name: "payments" }) as SaveStoreSettingsInput["payments"];
+  const payments = useWatch({
+    control,
+    name: "payments",
+  }) as SaveStoreSettingsInput["payments"];
   const acceptedMethodsError = getSettingsFieldError(
     errors,
     "payments.acceptedMethods",
@@ -160,7 +163,7 @@ export function PaymentsSection() {
           description={
             payOnDelivery
               ? "The portion collected before dispatch for pay-on-delivery orders."
-              : "This value is retained but only applies when pay on delivery is offered."
+              : "This value applies only when pay on delivery is offered."
           }
           label="Pay-on-delivery deposit"
           max={100}
@@ -171,7 +174,7 @@ export function PaymentsSection() {
       </div>
 
       <div className="rounded-xl border border-border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground">
-        These preferences describe store policy only. Card processing, bank verification, deposits and refunds are not executed by this prototype.
+        These choices describe store policy only. The store still handles collection, payment checks, deposits and refunds outside this page.
       </div>
     </SettingsSectionFrame>
   );
@@ -204,7 +207,9 @@ function PaymentsPreview({
           </Badge>
         ))}
         {!active.length ? (
-          <p className="text-xs text-destructive">Choose at least one payment method.</p>
+          <p className="text-xs text-destructive">
+            Choose at least one payment method.
+          </p>
         ) : null}
       </div>
       <div className="rounded-xl border border-border p-3">
