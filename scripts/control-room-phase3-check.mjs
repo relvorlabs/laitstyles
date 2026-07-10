@@ -24,6 +24,11 @@ async function expectVisible(locator, message) {
   });
 }
 
+async function chooseSelect(page, dialog, label, option) {
+  await dialog.getByRole("combobox", { name: label }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+
 async function runDesktop(browser) {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -33,7 +38,7 @@ async function runDesktop(browser) {
 
   await page.goto(`${baseUrl}/admin/inventory`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Add product" }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog").last();
   await expectVisible(dialog, "Add product dialog did not open on desktop.");
   await page.screenshot({
     path: path.join(screenshotDir, "phase3-editor-type-1280x800.png"),
@@ -48,9 +53,9 @@ async function runDesktop(browser) {
     .getByRole("textbox", { name: "Product name" })
     .fill(productName);
   await dialog
-    .getByRole("textbox", { name: "Internal reference" })
+    .getByRole("textbox", { name: /Internal reference \/ SKU seed/ })
     .fill("LS-P3-BROWSER");
-  await dialog.getByRole("textbox", { name: "Category" }).fill("Shirts");
+  await chooseSelect(page, dialog, "Category", "Shirts");
   await dialog
     .getByRole("textbox", { name: "Brand or label" })
     .fill("Laitstyle Studio");
@@ -123,13 +128,8 @@ async function runDesktop(browser) {
     page.getByText("pricing review", { exact: true }).first(),
     "Intake did not move to the adjacent pricing-review stage.",
   );
-  await page.screenshot({
-    path: path.join(screenshotDir, "phase3-intake-after-1280x800.png"),
-    fullPage: true,
-  });
-
   await page.getByRole("button", { name: /Continue product/ }).click();
-  const existingDialog = page.getByRole("dialog");
+  const existingDialog = page.getByRole("dialog").last();
   await expectVisible(
     existingDialog,
     "Existing Intake product did not open in the editor.",
@@ -153,7 +153,7 @@ async function runMobile(browser) {
 
   await page.goto(`${baseUrl}/admin/inventory`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Add product" }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.getByRole("dialog").last();
   await expectVisible(dialog, "Add product dialog did not open on mobile.");
 
   const box = await dialog.boundingBox();
@@ -167,19 +167,19 @@ async function runMobile(browser) {
     throw new Error(`Mobile editor is not full viewport: ${JSON.stringify(box)}`);
   }
 
-  await page.screenshot({
-    path: path.join(screenshotDir, "phase3-editor-type-375x812.png"),
-    fullPage: false,
-  });
   await dialog
     .getByRole("button", { name: /Product with variants/ })
     .click();
   await dialog.getByRole("button", { name: "Continue" }).click();
+  await expectVisible(
+    dialog.getByRole("combobox", { name: "Category" }),
+    "Managed category dropdown was not visible on mobile.",
+  );
+
   await page.screenshot({
     path: path.join(screenshotDir, "phase3-editor-identity-375x812.png"),
     fullPage: false,
   });
-
   await context.close();
 }
 
