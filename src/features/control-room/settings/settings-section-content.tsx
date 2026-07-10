@@ -1,0 +1,24 @@
+import { DeliverySection } from "@/features/control-room/settings/delivery-section";
+import { NotificationsSection } from "@/features/control-room/settings/notifications-section";
+import { PaymentsSection } from "@/features/control-room/settings/payments-section";
+import { SellingPreferencesSection } from "@/features/control-room/settings/selling-preferences-section";
+import { StoreIdentitySection } from "@/features/control-room/settings/store-identity-section";
+import { TeamSection } from "@/features/control-room/settings/team-section";
+import type { SettingsSection } from "@/lib/control-room/types";
+
+export function SettingsSectionContent({ section }: { section: SettingsSection }) {
+  switch (section) {
+    case "identity":
+      return <StoreIdentitySection />;
+    case "selling":
+      return <SellingPreferencesSection />;
+    case "delivery":
+      return <DeliverySection />;
+    case "payments":
+      return <PaymentsSection />;
+    case "notifications":
+      return <NotificationsSection />;
+    case "team":
+      return <TeamSection />;
+  }
+}
