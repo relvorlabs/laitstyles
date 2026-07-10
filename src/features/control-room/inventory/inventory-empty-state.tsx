@@ -20,7 +20,7 @@ export function InventoryEmptyState({
   return (
     <Empty className="min-h-[420px] border border-dashed border-border bg-card">
       <EmptyHeader>
-        <EmptyMedia className="grid size-14 place-items-center rounded-full bg-secondary text-[#4A5540]">
+        <EmptyMedia className="grid size-14 place-items-center rounded-full bg-accent text-accent-foreground">
           <ControlRoomIcon
             icon={hasProducts ? Search01Icon : PackageIcon}
             size={24}
