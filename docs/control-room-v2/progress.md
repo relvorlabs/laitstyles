@@ -2,9 +2,9 @@
 
 ## Current score
 
-**Phase 8 implementation complete through Batch 8F — executable and visual acceptance blocked**
+**Phase 9 Batch 9A started — repository boundary and first query keys implemented; TanStack package and QueryClient installation pending**
 
-The user extended Phase 8 with a focused Inventory catalogue-hardening batch after the first end-to-end visual-system implementation. Batches 8A–8F are implemented and consolidated coverage is encoded.
+The user explicitly overrode the blocked Phase 8 acceptance gate after requesting one final Inventory gallery-card correction. The five-column Inventory cards are now compact image-led tiles rather than tall catalogue cards, and Phase 9 has begun.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
@@ -12,21 +12,21 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 8 implemented through 8F; executable and visual validation blocked |
-| Active implementation phase | Phase 8 — Visual System, Shell, Overview and Inventory Correction |
-| Phase 8 application head | `a9055d65bc205511a220949cff055e662782b5d1` |
-| Queued phase | Phase 9 — TanStack Query Server-State Foundation |
+| Status | Phase 9 Batch 9A started; repository boundary implemented, package/provider step pending |
+| Active implementation phase | Phase 9 — TanStack Query Server-State Foundation |
+| Compact Inventory gallery head | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c` |
+| Phase 9 repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f` |
+| Latest Phase 9 documentation head | `e8e7d94141b0410517bd69746001df6be7388e76` |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft, currently non-mergeable |
 | Phase 8 plan | `docs/control-room-v2/phase8-plan.md` |
-| Theme audit | `docs/control-room-v2/phase8-theme-audit.md` |
-| Overview audit | `docs/control-room-v2/phase8-overview-audit.md` |
 | Phase 8 blocker | `docs/control-room-v2/phase8-blocker.md` |
 | Phase 9 plan | `docs/control-room-v2/phase9-plan.md` |
+| Phase 9 adapter handoff | `docs/control-room-v2/phase9-adapter-boundary.md` |
 | Accepted Batch 4A head/run | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035` |
 | Accepted Batch 4B head/run | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809` |
-| Unresolved executable gates | 4F, 5D, 6E, 7E and Phase 8 acceptance |
-| Merge integration | Branch is 689 commits ahead and 31 behind `main`; reviewed conflict resolution required |
+| Unresolved executable gates | 4F, 5D, 6E, 7E, Phase 8 and Phase 9 foundation verification |
+| Merge integration | Branch is 703 commits ahead and 31 behind `main`; reviewed conflict resolution required |
 | Review readiness | Blocked |
 
 ## Completed and accepted foundation
@@ -120,7 +120,7 @@ Evidence: `docs/control-room-v2/phase6-blocker.md`.
 ### Phase 7 — Brand, themes and media
 
 - [x] Approved woven L/S identity
-- [x] Theme controller and first semantic token system
+- [x] Theme controller and semantic token system
 - [x] Shared media viewer
 - [x] Initial theme/media browser coverage
 - [ ] Final executable gate and screenshot review
@@ -132,138 +132,93 @@ Evidence: `docs/control-room-v2/phase7-blocker.md`.
 
 ## Phase 8 — Visual System, Shell, Overview and Inventory Correction
 
-### Batch 8A — theme role and token correction — implemented
+### Batches 8A–8E — implemented
 
-- [x] Paired Light/Dark semantic role matrix
-- [x] Canvas, panel, raised, sunken, interactive, selected and inverse roles
-- [x] Action, control, border, focus and functional-state correction
-- [x] Three-level elevation scale
-- [x] Shared primitive migration
-- [x] Sage-led sidebar selection
-- [x] Static source guard upgraded
-
-### Batch 8B — theme control, sidebar and command surface — implemented
-
-- [x] Base UI group composition corrected
-- [x] Light, Dark and System behavior retained
-- [x] Fixed header/footer plus internal sidebar scroll region
-- [x] Short-height sidebar checks encoded
-- [x] Selected navigation and forced-colour boundaries
-- [x] Editorial command trigger and live-record results
-- [x] Keyboard shortcut and empty state retained
-
-### Batch 8C — Overview information architecture — implemented
-
-- [x] Module responsibility matrix
-- [x] Compact daily strip and primary attention queue
-- [x] Connected open-orders preview
-- [x] Supporting Continue Working, fulfilment and activity rail
-- [x] Sales Pulse and Inventory Watch given unique responsibilities
-- [x] Tablet/mobile task-priority composition
-
-### Batch 8D — Inventory presentation and table media — implemented
-
-- [x] Separate grid-image, table-image and product-record actions
-- [x] Shared viewer available from table thumbnails
-- [x] Stronger image, title, price and stock hierarchy
-- [x] Equal-row card behavior
-
-### Batch 8E — consolidated acceptance — encoded, not executed
-
-- [x] Theme-role source audit wired
-- [x] Theme-menu, runtime and console checks encoded
-- [x] Sidebar short-height checks encoded
-- [x] Live-record command search encoded
-- [x] Light/Dark Admin route matrix retained
-- [x] Overview hierarchy and responsive screenshots encoded
-- [x] Inventory geometry and media checks encoded
-- [x] Consolidated Phase 4–8 browser workflow wired
+- [x] Paired Light/Dark semantic role matrix and shared primitive migration
+- [x] Base UI theme-menu composition corrected
+- [x] Fixed sidebar regions and internal vertical scrolling
+- [x] Record-aware command search
+- [x] Overview responsibility and hierarchy correction
+- [x] Separate Inventory image-preview and product-record actions
+- [x] Light/Dark route matrix and consolidated browser coverage encoded
 
 ### Batch 8F — Inventory catalogue hardening — implemented
 
-#### Grid and pagination
-
 - [x] Five-column desktop grid
-- [x] Shorter `5/6` image ratio and compact card body
-- [x] Aligned card footers and equal-row behavior
-- [x] Shared grid/table/mobile pagination
-- [x] 10, 15, 25 and 50 item page sizes
-- [x] URL-backed page and page-size state
-- [x] Filter changes reset to page one
-- [x] Presentation-neutral Items-per-page labeling
+- [x] Shared grid/table/mobile pagination with 10, 15, 25 and 50 page sizes
+- [x] Managed Category and Collection dropdown CRUD
+- [x] Active-editor taxonomy synchronization
+- [x] Collision-aware product and readable variant SKU generation
+- [x] Unique-piece, interchangeable-stock and variant-stock semantics
+- [x] Up to 12 images with file/URL CRUD and one featured cover
+- [x] Optional Unit cost, Compare-at price and discount calculation
+- [x] Safe archive, restore and protected permanent deletion
 
-#### Categories and collections
+### Final gallery-card correction — implemented, not executed
 
-- [x] Managed taxonomy hydrated from existing products
-- [x] Category and collection dropdowns in product forms
-- [x] Create, rename and protected delete actions
-- [x] Newly created groups auto-selected in the active product form
-- [x] Selected group renames synchronised into the active product form
-- [x] Rename cascades to connected products and updates their timestamps
-- [x] Category and collection filters retain managed values
-
-#### SKU and stock
-
-- [x] Collision-aware product SKU/reference generator
-- [x] Readable per-variant SKU generator
-- [x] Unique piece, interchangeable stocked product and variant semantics clarified
-- [x] Total received and available-stock previews
-- [x] Committed stock cannot be silently reduced
-
-#### Images and pricing
-
-- [x] Up to 12 images
-- [x] Multiple file and URL addition
-- [x] Live preview, URL edit, remove and reorder
-- [x] Exactly one featured cover
-- [x] Case-insensitive duplicate, description and URL validation
-- [x] Safe multi-file limit handling and object-URL cleanup
-- [x] Unit cost and Compare-at price terminology across editor, review and detail
-- [x] Unknown unit cost remains null while real zero remains zero
-- [x] Discount percentage calculator
-- [x] Margin and loss warnings
-
-#### Product lifecycle and tests
-
-- [x] Archive and restore actions
-- [x] Protected permanent deletion
-- [x] Taxonomy, SKU, lifecycle, optional-cost and editor edge-case unit tests
-- [x] Browser flow for CRUD, active-editor taxonomy sync, SKU, images, stock, pricing, filtering and pagination
-- [ ] ESLint executed on final Phase 8 head
-- [ ] TypeScript executed on final Phase 8 head
-- [ ] Vitest executed on final Phase 8 head
-- [ ] Theme audit executed on final Phase 8 head
-- [ ] Production build executed on final Phase 8 head
-- [ ] React Doctor executed on final Phase 8 head
-- [ ] Browser scripts executed on final Phase 8 head
-- [ ] Screenshot review completed
+- [x] Retained five cards per desktop row
+- [x] Replaced the tall `5/6` catalogue-card image with a `4/3` gallery image
+- [x] Removed the descriptor row, three-column stock block and separate footer
+- [x] Reduced the card body to product identity, price, availability and one record action
+- [x] Preserved media preview, selection, health status and inventory alerts
+- [x] Added a browser geometry contract requiring card height at or below 290px at `1440×900`
+- [x] Added an image-ratio assertion and compact-gallery screenshot
+- [ ] Gallery geometry script executed
+- [ ] Gallery screenshot reviewed
 - [ ] Phase 8 accepted
 
-Exact evidence: `docs/control-room-v2/phase8-blocker.md`.
+Exact evidence remains in `docs/control-room-v2/phase8-blocker.md`.
 
 ## Phase 9 — TanStack Query Server-State Foundation
 
-### Planning complete; implementation not started
+### Batch 9A — started under explicit override
 
-- [x] Official TanStack Query documentation locked as source of truth
-- [x] Deterministic Promise-based in-memory adapter boundary approved
-- [x] Fake API routes, latency and random failures prohibited
-- [x] Server-state versus ephemeral UI ownership defined
-- [x] Domain query-key, invalidation and optimistic rollback requirements defined
-- [ ] Packages, provider and repositories
-- [ ] Domain migrations
-- [ ] Mutation hooks and invalidation matrix
+#### Repository boundary — implemented
+
+- [x] Typed asynchronous repository interfaces for Inventory, Orders, Holds, Returns, Customers, Settings and Overview
+- [x] Deterministic in-memory adapter over the live `ControlRoomStore`
+- [x] Repository calls read `store.getSnapshot()` at call time rather than storing a second record snapshot
+- [x] Returned values are structured clones so consumers cannot mutate the store by reference
+- [x] Stable repository provider mounted at the Control Room boundary
+- [x] No fake API routes, artificial latency, random errors or persistence claims
+- [x] Repository tests for clone isolation, live reads after writes, Overview consistency and missing records
+- [x] Production adapter replacement handoff started
+
+#### Query-key foundation — implemented
+
+- [x] Typed `inventoryKeys` factory
+- [x] Typed `productKeys` factory
+- [x] Inventory list keys include normalized search, saved view, filters, sorting, page and page size
+- [x] Product detail and media keys use stable business IDs
+- [x] Key-stability and input-separation tests
+
+#### TanStack runtime foundation — pending
+
+- [ ] Add `@tanstack/react-query` through pnpm
+- [ ] Add `@tanstack/eslint-plugin-query`
+- [ ] Regenerate `package.json` and `pnpm-lock.yaml` together
+- [ ] Configure TanStack Query flat ESLint rules
+- [ ] Mount one stable browser `QueryClient`
+- [ ] Define default stale time, garbage collection, retry and refetch policy
+- [ ] Add Inventory query options and begin read migration
+
+The package files were not edited independently because doing so without a regenerated pnpm lockfile would break `pnpm install --frozen-lockfile`.
+
+### Batches 9B–9E — not started
+
+- [ ] Inventory and product query migration
+- [ ] Orders, Holds, Returns, Customers, Settings and Overview migration
+- [ ] Targeted invalidation and safe optimistic mutations
 - [ ] Loading, error, empty, stale and background-refetch experience
-- [ ] Production integration handoff
-- [ ] Full Phase 4–9 regression
+- [ ] Full Phase 4–9 regression and production handoff
 - [ ] Phase 9 accepted
 
 ## Verification and integration blockers
 
-GitHub returned no workflow run and no combined commit status for application head `a9055d65bc205511a220949cff055e662782b5d1`. The current environment also has no usable repository worktree for local execution. This is an environment limitation, not a passing or failing application result.
+No executable evidence has been returned for the compact Inventory gallery or the Phase 9 foundation. Lint, TypeScript, Vitest, build, React Doctor and browser checks are not represented as passing.
 
-PR #4 remains non-mergeable. The branch is 689 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
+PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Restore executable validation, run the consolidated Phase 4–8 gate and review generated screenshots. Do not mark Phase 8 accepted or start Phase 9 without a new explicit override while this gate remains unresolved. Keep PR #4 draft and non-review-ready.
+Regenerate the TanStack dependencies and pnpm lockfile together in an executable worktree, add the stable QueryClient and ESLint integration, then implement colocated Inventory query options over the repository boundary. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
