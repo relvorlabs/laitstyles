@@ -25,7 +25,7 @@ describe("SKU generation", () => {
     ).toBe("LS-STK-ADI-JEA-ARDJ-3");
   });
 
-  it("creates separate SKUs for variant option combinations", () => {
+  it("creates readable separate SKUs for variant option combinations", () => {
     const first = generateVariantSku(
       "LS-VAR-ADI-JEA-DENI",
       "Indigo / M",
@@ -40,7 +40,18 @@ describe("SKU generation", () => {
       [first],
     );
 
-    expect(first).toBe("LS-VAR-ADI-JEA-DENI-IMMI");
+    expect(first).toBe("LS-VAR-ADI-JEA-DENI-IND-M");
     expect(second).toBe(`${first}-2`);
+  });
+
+  it("falls back to a label code when size and colour are not used", () => {
+    expect(
+      generateVariantSku(
+        "LS-VAR-BAG",
+        "Large strap",
+        "",
+        "",
+      ),
+    ).toBe("LS-VAR-BAG-LS");
   });
 });
