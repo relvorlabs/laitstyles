@@ -40,12 +40,12 @@ export function SettingsTextField({
   placeholder,
   autoComplete = "off",
   type = "text",
-  disabled = false,
+  readOnly = false,
 }: BaseFieldProps & {
   placeholder?: string;
   autoComplete?: string;
   type?: "text" | "email" | "tel" | "url";
-  disabled?: boolean;
+  readOnly?: boolean;
 }) {
   const {
     register,
@@ -66,10 +66,10 @@ export function SettingsTextField({
         aria-describedby={[descriptionId, errorId].filter(Boolean).join(" ")}
         aria-invalid={Boolean(error)}
         autoComplete={autoComplete}
-        className="h-11"
-        disabled={disabled}
+        className="h-11 read-only:bg-muted/50 read-only:text-muted-foreground"
         id={fieldId(name)}
         placeholder={placeholder}
+        readOnly={readOnly}
         type={type}
       />
       <FieldError id={errorId}>{error}</FieldError>
@@ -221,7 +221,7 @@ export function SettingsCheckboxField({
       name={name}
       render={({ field }) => (
         <Field
-          className="rounded-xl border border-border p-4 transition-colors has-[[data-checked]]:border-primary/40 has-[[data-checked]]:bg-primary/5"
+          className="rounded-xl border border-border p-4 transition-colors"
           orientation="horizontal"
         >
           <Checkbox
