@@ -215,6 +215,7 @@ export function InventoryWorkspace({
             <InventoryMobileList
               items={items}
               onOpen={openProduct}
+              onOpenMedia={openProductMedia}
               onSelectedChange={setProductSelected}
               selectedIds={selectedIds}
             />
