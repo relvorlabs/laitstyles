@@ -2,15 +2,15 @@
 
 ## Status
 
-**Phase 6 started by explicit user override.**
+**Phase 6 implementation complete — consolidated acceptance blocked.**
 
-Phase 5 is implemented but not accepted because both required GitHub Actions workflows still fail before checkout with zero steps and no logs. The override permits Phase 6 work; it does not mark Phase 4 or Phase 5 as passing.
+Phase 6 was completed under the user’s explicit override while Phase 4 and Phase 5 remained implemented but unaccepted. Both required private-repository workflows still fail before checkout with zero steps and no logs. The override permits implementation; it does not mark any blocked phase or check as passing.
 
 ## Goal
 
 Deliver a polished store-configuration experience that lets a non-technical Laitstyle operator understand and change store behaviour using plain business language.
 
-Settings should feel like one coherent operating surface with distinct sections, not six unrelated generic forms. Every section must explain the customer or store outcome of a choice and preserve truthful prototype boundaries.
+Settings is one coherent operating surface with distinct sections rather than six unrelated generic forms. Every section explains the customer or store outcome of a choice and preserves truthful boundaries.
 
 ## Locked scope
 
@@ -23,16 +23,16 @@ Settings should feel like one coherent operating surface with distinct sections,
 - Delivery zones, pickup locations, rates and estimated times
 - Accepted payment methods, bank-transfer instructions, pay-on-delivery deposit and refund preference
 - Order, hold, stock, payment and delivery notification preferences
-- Team member, role and permission boundary without production authentication claims
+- Team member, role and responsibility boundary without staff-access claims
 - React Hook Form and Zod validation
 - Dirty-state protection, explicit save feedback and session-only shared-store updates
 - Default, loading, error, validation, success and truthful restricted states
-- Responsive verification at 375 × 812, 768 × 1024 and 1280 × 800
+- Responsive coverage at 375 × 812, 768 × 1024 and 1280 × 800
 
 ### Out of scope
 
-- Payment-provider API setup
-- Courier-provider API setup
+- Payment-provider setup
+- Courier-provider setup
 - Webhooks or event subscriptions
 - Production file upload or logo storage
 - Database/admin infrastructure
@@ -43,63 +43,88 @@ Settings should feel like one coherent operating surface with distinct sections,
 
 - Labels describe business outcomes, not implementation details.
 - Do not expose API keys, webhooks, cache, database, provider configuration or sync terminology.
-- Configuration uses one typed store-settings record; sections must not maintain independent canonical values.
-- Save actions are session-only and must say so.
+- Configuration uses one typed store-settings record; sections do not maintain independent canonical values.
+- Save actions remain session-only and say so.
 - Visual previews are read-only demonstrations of current form values.
-- Team controls may demonstrate roles and boundaries, but cannot claim real access enforcement.
-- Settings navigation remains hidden until the useful route, loading, error and mobile states exist.
+- Team controls document roles and responsibilities but do not claim real access enforcement.
+- Settings navigation is exposed only after the useful route, loading, error and mobile states exist.
 
 ## Batches
 
-### Batch 6A — settings domain and validation — active
+### Batch 6A — settings domain and validation — implemented
 
-- Define the typed store-settings model
-- Define deterministic prototype defaults
-- Add Zod schemas and section-level validation helpers
-- Add safe normalization for values captured from HTML controls
-- Add focused tests for valid defaults and invalid business inputs
-- Add one typed save-result boundary without exposing the route
+- [x] Typed store-settings model
+- [x] Deterministic defaults
+- [x] Focused Zod section schemas and full-record validation
+- [x] Safe numeric normalization for form controls
+- [x] Focused valid-default and invalid-business-input tests
+- [x] One typed save-result boundary through the shared Control Room store
+- [x] Subscriber, state and invalid-save regression tests
 
-### Batch 6B — Settings route and responsive shell
+### Batch 6B — Settings route and responsive shell — implemented
 
-- Add `/admin/settings`, loading and error boundaries
-- Add desktop side navigation and mobile section navigation
-- Add section overview and unsaved-state summary
-- Expose Store → Settings navigation only after route states are complete
+- [x] `/admin/settings`, loading and error boundaries
+- [x] Desktop settings rail
+- [x] Mobile section selector
+- [x] URL-backed section state
+- [x] Current-section, dirty-state and last-changed summary
+- [x] Store → Settings navigation exposed after route completion
 
-### Batch 6C — identity, selling and delivery forms
+### Batch 6C — identity, selling and delivery forms — implemented
 
-- Store identity form and storefront preview
-- Selling preferences form with business-language helper text
-- Delivery zones and pickup locations with validation
-- Dirty-close/section-switch protection and contextual save feedback
+- [x] Store identity form and live storefront preview
+- [x] Selling preferences with business-language helper text
+- [x] Delivery zones and pickup locations with dynamic rows
+- [x] Live checkout-choice preview
+- [x] Dirty-value preservation across section changes
+- [x] Before-unload protection and discard confirmation
+- [x] Contextual save feedback
 
-### Batch 6D — payments, notifications and team boundary
+### Batch 6D — payments, notifications and team boundary — implemented
 
-- Payment method and instruction form
-- Notification preference controls
-- Team member, role and permission boundary with explicit prototype limits
-- Shared-store update verification
+- [x] Accepted payment methods, instructions, deposit and refund preference
+- [x] Pay-on-delivery synchronization across Selling and Payments
+- [x] Notification preference controls and attention summary
+- [x] Team roles, responsibility map and unsent-invite boundary
+- [x] At-least-one-owner validation
+- [x] Atomic shared-store update and visible saved state
 
-### Batch 6E — consolidated acceptance
+### Batch 6E — consolidated acceptance — coverage encoded, execution blocked
 
-- ESLint
-- TypeScript
-- Full Vitest suite
-- Production build
-- React Doctor changed-scope review
-- Latest Web Interface Guidelines review
-- Required browser viewport matrix
-- Settings validation, save, dirty-state and navigation interactions
-- Screenshot review
-- Tracker and PR update
+- [x] Scope and changed-file responsibility audit
+- [x] Business-language and truthful-boundary audit
+- [x] Focused settings URL test
+- [x] Existing settings schema and shared-action tests retained
+- [x] Browser validation, navigation, dirty-state, save and team checks encoded
+- [x] Required screenshots encoded at 375 × 812, 768 × 1024 and 1280 × 800
+- [x] Horizontal-overflow assertions encoded
+- [x] Mobile sticky-save geometry assertion encoded
+- [ ] ESLint executed on final implementation head
+- [ ] TypeScript executed on final implementation head
+- [ ] Full Vitest suite executed on final implementation head
+- [ ] Production build executed on final implementation head
+- [ ] React Doctor executed on final implementation head
+- [ ] Browser interactions executed on final implementation head
+- [ ] Screenshot review completed
+- [ ] Phase 6 marked accepted
 
-## Batch 6A acceptance criteria
+## Acceptance criteria status
 
-- One settings type owns all section values.
-- Prototype defaults satisfy the full Zod schema.
-- Invalid store contact details, hold duration, stock threshold, delivery rates, estimated times and deposit percentages produce understandable field errors.
-- At least one delivery option and one payment method remain enabled.
-- Team data cannot imply production authentication or enforced permissions.
-- No unfinished Settings route or sidebar item is exposed.
-- Required checks pass when an executable validation environment is available.
+- [x] All labels describe store or customer outcomes.
+- [x] No API, webhook, cache, database or provider-configuration language is visible in the Settings interface.
+- [x] Save feedback is explicit, contextual and truthful about refresh behaviour.
+- [x] Settings sections remain visually distinct inside one coherent workspace.
+- [x] One settings record owns every section value.
+- [x] Invalid contact, selling, delivery, payment and team inputs receive recoverable errors.
+- [x] At least one delivery option, payment method and store owner remain required.
+- [x] Desktop, tablet and mobile coverage is encoded.
+- [ ] Complete executable phase checks pass.
+
+## Gate decision
+
+- Phase 6 implementation complete: **Yes**
+- Phase 6 accepted: **No**
+- Pull request ready for review: **No**
+- Phase 7 permitted by normal gate: **No**
+
+Phase 7 remains locked until an executable environment runs the consolidated checks successfully or the user explicitly overrides the gate again.
