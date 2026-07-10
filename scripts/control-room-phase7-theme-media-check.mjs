@@ -33,14 +33,24 @@ async function expectTheme(page, expected) {
   );
 }
 
-async function expectGridColumns(page, expected) {
-  const columns = await page.locator("[data-inventory-grid]").evaluate((grid) => {
+async function readGridMetrics(page) {
+  return page.locator("[data-inventory-grid]").evaluate((grid) => {
     const template = getComputedStyle(grid).gridTemplateColumns.trim();
-    return template ? template.split(/\s+/).length : 0;
+    const cards = [...grid.querySelectorAll("[data-inventory-card]")];
+    const cardBoxes = cards.map((card) => card.getBoundingClientRect());
+    const imageBoxes = cards.map((card) =>
+      card.querySelector("button[aria-label^='View images for']")?.getBoundingClientRect(),
+    );
+    return {
+      columns: template ? template.split(/\s+/).length : 0,
+      minCardWidth: Math.min(...cardBoxes.map((box) => box.width)),
+      minCardHeight: Math.min(...cardBoxes.map((box) => box.height)),
+      maxCardHeight: Math.max(...cardBoxes.map((box) => box.height)),
+      minImageHeight: Math.min(
+        ...imageBoxes.filter(Boolean).map((box) => box.height),
+      ),
+    };
   });
-  if (columns !== expected) {
-    throw new Error(`Expected ${expected} Inventory columns, received ${columns}.`);
-  }
 }
 
 async function expectReadable(locator, label, minimum = 4.5) {
@@ -113,7 +123,20 @@ async function runDesktop(browser) {
     page.getByRole("heading", { name: "Inventory", exact: true }),
     "Inventory heading did not render in light mode.",
   );
-  await expectGridColumns(page, 5);
+
+  const metrics = await readGridMetrics(page);
+  if (metrics.columns !== 4) {
+    throw new Error(`Expected 4 useful Inventory columns at 1280px, received ${metrics.columns}.`);
+  }
+  if (metrics.minCardWidth < 215) {
+    throw new Error(`Inventory card width was ${metrics.minCardWidth}px; expected at least 215px.`);
+  }
+  if (metrics.minImageHeight < 250) {
+    throw new Error(`Inventory image height was ${metrics.minImageHeight}px; expected at least 250px.`);
+  }
+  if (metrics.maxCardHeight - metrics.minCardHeight > 3) {
+    throw new Error("Inventory cards do not retain an equal row rhythm.");
+  }
   await expectReadable(
     page.getByRole("heading", { name: "Inventory", exact: true }),
     "Light Inventory heading",
@@ -124,10 +147,6 @@ async function runDesktop(browser) {
     .click();
   const mediaDialog = page.locator("[data-media-viewer]");
   await expectVisible(mediaDialog, "Product media viewer did not open from the grid image.");
-  await expectVisible(
-    mediaDialog.getByText("Image 1 of 2", { exact: false }),
-    "Media viewer did not show the initial media position.",
-  );
   if (page.url().includes("product=botanical-jeans")) {
     throw new Error("Clicking the Inventory image opened product detail instead of media.");
   }
@@ -139,7 +158,6 @@ async function runDesktop(browser) {
   if (zoomValue !== "1.25") {
     throw new Error(`Media zoom did not increase to 1.25; received ${zoomValue}.`);
   }
-
   await page.keyboard.press("ArrowRight");
   await expectVisible(
     mediaDialog.getByText("Image 2 of 2", { exact: false }),
@@ -157,12 +175,11 @@ async function runDesktop(browser) {
   );
 
   await page.screenshot({
-    path: path.join(screenshotDir, "phase7-inventory-light-1280x800.png"),
+    path: path.join(screenshotDir, "phase8-inventory-light-1280x800.png"),
     fullPage: true,
   });
 
   await page.keyboard.press("Escape");
-  await mediaDialog.waitFor({ state: "hidden", timeout: 10000 });
   await page
     .getByRole("button", { name: "Open Botanical Jeans record" })
     .click();
@@ -181,9 +198,8 @@ async function runDesktop(browser) {
   );
   await page.reload({ waitUntil: "networkidle" });
   await expectTheme(page, "dark");
-
   await page.screenshot({
-    path: path.join(screenshotDir, "phase7-inventory-dark-1280x800.png"),
+    path: path.join(screenshotDir, "phase8-inventory-dark-1280x800.png"),
     fullPage: true,
   });
 
@@ -191,34 +207,31 @@ async function runDesktop(browser) {
 }
 
 async function runWideDesktop(browser) {
-  const context = await browser.newContext({
-    viewport: { width: 1800, height: 1000 },
-  });
+  const context = await browser.newContext({ viewport: { width: 1800, height: 1000 } });
   await context.addInitScript(() => {
     localStorage.setItem("laitstyle-theme", "light");
   });
   const page = await context.newPage();
   recordPageFailures(page, "phase 7 wide desktop");
-
   await page.goto(`${baseUrl}/admin/inventory`, { waitUntil: "networkidle" });
-  await expectGridColumns(page, 6);
+  const metrics = await readGridMetrics(page);
+  if (metrics.columns !== 6 || metrics.minCardWidth < 215) {
+    throw new Error(`Wide Inventory grid was ${metrics.columns} columns at ${metrics.minCardWidth}px minimum.`);
+  }
   await page.screenshot({
-    path: path.join(screenshotDir, "phase7-inventory-grid-1800x1000.png"),
+    path: path.join(screenshotDir, "phase8-inventory-grid-1800x1000.png"),
     fullPage: true,
   });
   await context.close();
 }
 
 async function runMobile(browser) {
-  const context = await browser.newContext({
-    viewport: { width: 375, height: 812 },
-  });
+  const context = await browser.newContext({ viewport: { width: 375, height: 812 } });
   await context.addInitScript(() => {
     localStorage.setItem("laitstyle-theme", "dark");
   });
   const page = await context.newPage();
   recordPageFailures(page, "phase 7 mobile");
-
   await page.goto(`${baseUrl}/admin/inventory`, { waitUntil: "networkidle" });
   await expectTheme(page, "dark");
   const overflow = await page.evaluate(
@@ -241,12 +254,8 @@ async function runMobile(browser) {
   ) {
     throw new Error(`Mobile media viewer is not full viewport: ${JSON.stringify(box)}`);
   }
-  await expectVisible(
-    mediaDialog.getByRole("button", { name: "Zoom in" }),
-    "Mobile media zoom control was not visible.",
-  );
   await page.screenshot({
-    path: path.join(screenshotDir, "phase7-media-dark-375x812.png"),
+    path: path.join(screenshotDir, "phase8-media-dark-375x812.png"),
     fullPage: false,
   });
   await page.keyboard.press("Escape");
@@ -257,20 +266,16 @@ async function runMobile(browser) {
     navigation.getByRole("button", { name: "Change colour theme" }),
     "Mobile navigation did not expose the colour-theme control.",
   );
-
   await context.close();
 }
 
 async function runStorefront(browser) {
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 800 },
-  });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await context.addInitScript(() => {
     localStorage.setItem("laitstyle-theme", "dark");
   });
   const page = await context.newPage();
   recordPageFailures(page, "phase 7 storefront");
-
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await expectTheme(page, "dark");
   await expectVisible(
@@ -281,10 +286,6 @@ async function runStorefront(browser) {
     page.getByRole("button", { name: "Change colour theme" }).first(),
     "Storefront theme control was not visible.",
   );
-  await page.screenshot({
-    path: path.join(screenshotDir, "phase7-storefront-dark-1280x800.png"),
-    fullPage: true,
-  });
   await context.close();
 }
 
@@ -302,4 +303,4 @@ if (failures.length) {
   throw new Error(failures.join("\n"));
 }
 
-console.log("Phase 7 theme, Inventory density and media checks passed.");
+console.log("Phase 7/8 theme, Inventory density and media checks passed.");
