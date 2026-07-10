@@ -30,7 +30,10 @@ export function InventorySummaryStrip({ summary }: { summary: InventorySummary }
     },
     {
       label: "Needs attention",
-      value: summary.lowStockProducts + summary.outOfStockProducts + summary.intakeProducts,
+      value:
+        summary.lowStockProducts +
+        summary.outOfStockProducts +
+        summary.intakeProducts,
       detail: `${summary.lowStockProducts} low · ${summary.outOfStockProducts} out · ${summary.intakeProducts} intake`,
       icon: Alert02Icon,
     },
@@ -44,7 +47,7 @@ export function InventorySummaryStrip({ summary }: { summary: InventorySummary }
             className="flex min-h-[118px] items-center gap-4 border-b border-border px-5 py-5 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 sm:[&:nth-child(3)]:border-b-0 xl:border-b-0 xl:[&:nth-child(2)]:border-r xl:[&:nth-child(4)]:border-r-0"
             key={metric.label}
           >
-            <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-secondary text-[#4A5540]">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
               <ControlRoomIcon icon={metric.icon} size={20} />
             </span>
             <div className="min-w-0">
