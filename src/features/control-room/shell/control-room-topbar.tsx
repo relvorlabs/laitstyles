@@ -94,7 +94,8 @@ export function ControlRoomTopbar({
           className={buttonVariants({
             variant: "outline",
             size: "lg",
-            className: "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
+            className:
+              "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
           })}
           href="/"
         >
@@ -106,7 +107,6 @@ export function ControlRoomTopbar({
           aria-label="Add product"
           className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-4"
           onClick={openNewProduct}
-          size="icon-lg"
           type="button"
           variant="outline"
         >
@@ -118,7 +118,6 @@ export function ControlRoomTopbar({
           aria-label="Record sale"
           className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-5"
           onClick={openRecordSale}
-          size="icon-lg"
           type="button"
         >
           <ControlRoomIcon icon={Store01Icon} size={17} />
