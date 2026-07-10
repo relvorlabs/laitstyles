@@ -2,67 +2,60 @@
 
 ## Current score
 
-**Phase 8A implementation complete — executable and visual acceptance blocked**
+**Phase 8 implementation complete — executable and visual acceptance blocked**
 
-The user explicitly extended the Control Room programme with:
+The user explicitly authorised full end-to-end Phase 8 implementation. Batches 8A–8D are implemented and Batch 8E coverage is encoded in the workflow.
 
-- Phase 8 — fashion-grade visual system, shell, Overview and Inventory correction
-- Phase 9 — TanStack Query server-state foundation
+This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. The private-repository executable gate still creates no usable final-head run, and PR #4 remains non-mergeable because the feature branch is behind and diverged from `main`.
 
-Phase 8A has now established the paired light/dark role system, migrated high-risk shared primitives away from local dark-mode colour patches, corrected the sidebar selected-state palette and upgraded the static source guard.
-
-This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. The private-repository executable gate remains unavailable, and PR #4 remains non-mergeable because the feature branch is behind and diverged from `main`.
-
-No blocked check, visual review or merge condition is represented as passing.
+No blocked check, screenshot review or merge condition is represented as passing.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 8A implementation complete; executable and visual validation blocked |
+| Status | Phase 8 implementation complete; executable and visual acceptance blocked |
 | Active implementation phase | Phase 8 — Visual System, Shell and Overview Correction |
-| Active batch | 8A — theme role and token correction |
-| Next batch | 8B — theme control, sidebar structure and command surface |
+| Phase 8 application head | `df3b6c988d7b8843f033b0fc5ddd52473830d2d8` |
 | Queued phase | Phase 9 — TanStack Query Server-State Foundation |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft, currently non-mergeable |
-| Phase 8A application head | `6f5d24ae33b3946ef44f150d7acab16e48607e3c` |
-| Phase 8 audit | `docs/control-room-v2/phase8-theme-audit.md` |
 | Phase 8 plan | `docs/control-room-v2/phase8-plan.md` |
+| Theme audit | `docs/control-room-v2/phase8-theme-audit.md` |
+| Overview audit | `docs/control-room-v2/phase8-overview-audit.md` |
+| Phase 8 blocker | `docs/control-room-v2/phase8-blocker.md` |
 | Phase 9 plan | `docs/control-room-v2/phase9-plan.md` |
-| Architecture decisions | `docs/control-room-v2/decisions.md` |
 | Accepted Batch 4A head/run | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035` |
 | Accepted Batch 4B head/run | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809` |
-| Unresolved executable gates | 4F, 5D, 6E, 7E and 8A verification |
-| Merge integration | Feature branch remains 31 commits behind `main`; reconcile with reviewed conflict resolution |
+| Unresolved executable gates | 4F, 5D, 6E, 7E and 8E |
+| Merge integration | Feature branch remains 31 commits behind `main`; reconcile through reviewed conflict resolution |
 | Review readiness | Blocked |
 
 ## Completed and accepted foundation
 
-### Phase 0 — Discovery, specification and execution contract
+### Phase 0 — execution contract
 
 - [x] Product and UX specification
 - [x] Gated implementation plan and progress tracker
-- [x] Durable `AGENTS.md` skill, architecture and verification contract
+- [x] Durable `AGENTS.md` architecture and verification rules
 - [x] Dedicated branch and draft pull request
 
-### Phase 1 — Control Room foundation, shell and Overview
+### Phase 1 — shell and first Overview
 
 - [x] Route-level Admin shell and adaptive navigation
 - [x] Active-store and new-store Overview states
-- [x] Connected operational selectors and deterministic records
+- [x] Connected operational selectors
 - [x] Loading and error boundaries
-- [x] Legacy Admin catch-all monolith removed from the feature branch
+- [x] Legacy Admin catch-all removed from the feature branch
 - [x] Phase 1 verification gate
 
-### Phase 2 — Inventory domain and responsive workspace
+### Phase 2 — Inventory foundation
 
 - [x] Unique, stocked and variant inventory model
-- [x] Quantity invariants and cross-record validation
+- [x] Quantity invariants and connected selectors
 - [x] Saved views, search, filters and sorting
 - [x] Grid, desktop table and mobile cards
-- [x] Deep-linkable product detail
-- [x] CSV export and selection feedback
+- [x] Deep-linkable product detail and CSV export
 - [x] Responsive browser matrix and React Doctor 100/100
 
 Final Phase 2 verification: run `29021779448` on `b5ad5c64a906cef216a6b8e441893d095b09e4ff`.
@@ -71,7 +64,6 @@ Final Phase 2 verification: run `29021779448` on `b5ad5c64a906cef216a6b8e441893d
 
 - [x] Seven-step unique, stocked and variant editor
 - [x] React Hook Form and Zod validation
-- [x] Back/Next preservation and dirty-close confirmation
 - [x] Draft, publish, schedule and editing flows
 - [x] Connected Intake queue and live Inventory updates
 - [x] Full-viewport mobile editor
@@ -79,16 +71,15 @@ Final Phase 2 verification: run `29021779448` on `b5ad5c64a906cef216a6b8e441893d
 
 Final Phase 3 verification: run `29035766157` on `ba05d413d62154f1b41a415e5d31003bdf2c20f1`.
 
-### Phase 4A — Sales domain — accepted
+### Phase 4A — Sales domain
 
 - [x] Atomic reserve, release, sale, cancellation and return helpers
-- [x] Typed order, hold, sale and return actions
-- [x] Cross-domain inventory/revenue/customer/activity updates
+- [x] Cross-domain inventory, revenue, customer and activity updates
 - [x] Tests and React Doctor 100/100
 
 Accepted head/run: `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035`.
 
-### Phase 4B — Orders workspace — accepted
+### Phase 4B — Orders workspace
 
 - [x] Responsive Orders route and detail
 - [x] Search, saved views, filters and sorting
@@ -97,13 +88,13 @@ Accepted head/run: `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035`.
 
 Accepted head/run: `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`.
 
-## Implemented but unaccepted phases
+## Implemented but unaccepted earlier phases
 
-### Phase 4C–4F — Holds, Record Sale, Returns and consolidated acceptance
+### Phase 4C–4F
 
-- [x] Holds workspace and actions implemented
-- [x] Record Sale workflow implemented
-- [x] Returns workspace and disposition implemented
+- [x] Holds workspace and actions
+- [x] Record Sale workflow
+- [x] Returns workspace and disposition
 - [x] Browser and responsive coverage encoded
 - [ ] Consolidated executable verification
 - [ ] Screenshot review
@@ -111,144 +102,127 @@ Accepted head/run: `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`.
 
 ### Phase 5 — Customers
 
-- [x] Connected customer metrics, segments and attention reasons
-- [x] Responsive Customers workspace
-- [x] Detail, timeline, products, delivery and notes
+- [x] Connected metrics, segments and attention reasons
+- [x] Responsive list, detail, timeline, products, delivery and notes
 - [x] Tests and browser coverage encoded
-- [ ] Executable lint, TypeScript, tests, build, React Doctor and browser gate
-- [ ] Screenshot review
+- [ ] Final executable gate and screenshot review
 - [ ] Phase 5 accepted
 
-Exact evidence: `docs/control-room-v2/phase5-blocker.md`.
+Evidence: `docs/control-room-v2/phase5-blocker.md`.
 
 ### Phase 6 — Store Settings
 
-- [x] One typed settings record
 - [x] Identity, Selling, Delivery, Payments, Notifications and Team
-- [x] URL-backed sections and dirty-state protection
-- [x] Validation, atomic save and browser coverage encoded
-- [ ] Executable lint, TypeScript, tests, build, React Doctor and browser gate
-- [ ] Screenshot review
+- [x] URL-backed sections, validation, dirty protection and atomic save
+- [x] Browser coverage encoded
+- [ ] Final executable gate and screenshot review
 - [ ] Phase 6 accepted
 
-Exact evidence: `docs/control-room-v2/phase6-blocker.md`.
+Evidence: `docs/control-room-v2/phase6-blocker.md`.
 
 ### Phase 7 — Brand, themes, Inventory density and media
 
-- [x] Approved woven L/S identity added
-- [x] Theme-aware brand rendering
-- [x] Light, Dark and System controller
-- [x] Initial semantic token system
-- [x] Shared Inventory media viewer
-- [x] Legacy catch-all route confirmed absent on the feature branch
-- [x] Theme/media browser coverage encoded
-- [ ] Final-head executable checks
-- [ ] Screenshot review
+- [x] Approved woven L/S identity
+- [x] Theme controller and first semantic token system
+- [x] Shared media viewer
+- [x] Initial theme/media browser coverage
+- [ ] Final executable gate and screenshot review
 - [ ] Upstream `main` integrated safely
 - [ ] Pull request mergeable
 - [ ] Phase 7 accepted
 
-Exact evidence: `docs/control-room-v2/phase7-blocker.md`.
+Evidence: `docs/control-room-v2/phase7-blocker.md`.
 
 ## Phase 8 — Visual System, Shell and Overview Correction
 
-### Planning audit — complete
+### Batch 8A — theme role and token correction — implemented
 
-- [x] Rewritten implementation brief
-- [x] Verified Base UI theme-menu context error
-- [x] Verified sidebar short-height overflow risk
-- [x] Verified selected-navigation colour conflict
-- [x] Verified dark primary hierarchy creates bright surfaces
-- [x] Verified command menu is primarily static navigation
-- [x] Compared current Overview with the stronger queue/orders/right-rail hierarchy on `main`
-- [x] Rejected restoration of the legacy monolith and one-of-one-only assumptions
-- [x] Verified fixed five-column Inventory is too narrow beside the sidebar
-- [x] Verified table thumbnail is not a separate media-preview action
-
-### Batch 8A — theme role and token correction — implemented, acceptance blocked
-
-- [x] Scoped colour and manual dark-patch inventory
+- [x] Scoped raw-colour and manual dark-patch inventory
 - [x] Paired Light/Dark semantic role matrix
 - [x] Canvas, panel, raised, sunken, interactive, selected and inverse roles
 - [x] Primary and secondary action correction
-- [x] Control, border and focus roles
-- [x] Functional success, warning and destructive surface pairs
-- [x] Three-level elevation/shadow scale
-- [x] Shared button, badge, input, textarea, select, checkbox, toggle, tabs, dropdown, input-group, field and card migration
-- [x] Sidebar selected-state palette correction
-- [x] Static source guard upgraded for paired roles and manual `dark:` colour utilities
-- [ ] Static audit executed on final Phase 8A head
-- [ ] TypeScript executed on final Phase 8A head
-- [ ] Production build executed on final Phase 8A head
-- [ ] Browser contrast/elevation review
-- [ ] Light/dark screenshot review
-- [ ] Batch 8A accepted
+- [x] Control, border, focus and functional-state roles
+- [x] Three-level elevation scale
+- [x] Shared primitive migration
+- [x] Sage-led sidebar selection
+- [x] Static source guard upgraded
 
-Exact implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
+Implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
 
-### Batch 8B — theme control, sidebar and command surface — not started
+### Batch 8B — theme control, sidebar and command surface — implemented
 
-- [ ] Correct Base UI group composition
-- [ ] Theme-menu runtime regression test
-- [ ] Desktop/mobile theme-control parity
-- [ ] Scroll-safe sidebar regions
-- [ ] Accessible selected navigation interaction states
-- [ ] Fashion-grade command trigger and palette
-- [ ] Real product/order/customer/hold/settings search results
+- [x] Base UI group composition corrected
+- [x] Light, Dark and System runtime regression encoded
+- [x] Desktop, top-bar and mobile theme-control parity retained
+- [x] Fixed header/footer plus internal sidebar scroll region
+- [x] Short-height sidebar acceptance at 800px, 700px and 600px encoded
+- [x] Selected icon, label and description contrast corrected
+- [x] Forced-colour and focus boundaries added
+- [x] Editorial command trigger
+- [x] Live products, orders, customers, holds, Settings and destinations in command results
+- [x] Keyboard shortcut and empty state retained
 
-### Batch 8C — Overview information architecture — not started
+### Batch 8C — Overview information architecture — implemented
 
-- [ ] Module responsibility matrix
-- [ ] Remove or merge duplicate summary/activity roles
-- [ ] Primary owner-judgment queue
-- [ ] Recent/open-orders preview
-- [ ] Supporting desktop rail
-- [ ] Sales Pulse and Inventory Watch retain unique responsibilities
-- [ ] Task-priority tablet/mobile composition
+- [x] Module responsibility matrix
+- [x] Compact daily strip retained for current state only
+- [x] Attention queue retained as primary owner-judgment surface
+- [x] Connected open-orders preview with product and customer context
+- [x] Continue Working, fulfilment and activity positioned as supporting rail content
+- [x] Sales Pulse limited to historical trend responsibility
+- [x] Inventory Watch limited to actionable exceptions
+- [x] Tablet/mobile task-priority composition
+- [x] Stronger hierarchy from `main` reused without restoring its monolith or obsolete inventory assumptions
 
-### Batch 8D — Inventory presentation and table media — not started
+Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
-- [ ] Minimum useful card-width rule
-- [ ] Four useful cards at the 1280px/sidebar target unless measured space supports more
-- [ ] Product-image and typography redesign
-- [ ] Consistent card height and footer rhythm
-- [ ] Dedicated table-thumbnail media trigger
-- [ ] Separate media and product-record actions
+### Batch 8D — Inventory presentation and table media — implemented
 
-### Batch 8E — consolidated acceptance — not started
+- [x] Adaptive `auto-fill` grid with 220px minimum useful card width
+- [x] Four useful cards at the 1280px/sidebar target
+- [x] Six columns only when sufficient width remains
+- [x] Stronger product image, title, price and stock hierarchy
+- [x] Consistent minimum height and aligned footer rhythm
+- [x] Separate image-preview and record actions
+- [x] Accessible table-thumbnail media trigger
+- [x] Shared viewer retained for grid, table, mobile and detail media
 
-- [ ] Token and hardcoded-colour audit
-- [ ] Theme menu opens without console/runtime error
-- [ ] Sidebar short-height checks at 800px, 700px and 600px
-- [ ] Light/Dark route matrix
-- [ ] Command search keyboard and record checks
-- [ ] Overview responsive screenshots and review
-- [ ] Inventory card-width/image-height/equal-row assertions
-- [ ] Table media interaction checks
-- [ ] ESLint, TypeScript, Vitest, build and React Doctor
-- [ ] Consolidated Phase 4–8 browser regression
+### Batch 8E — consolidated acceptance — encoded, not executed
+
+- [x] Theme-role source audit wired
+- [x] Light, Dark and System menu regression encoded
+- [x] Runtime and console-error capture encoded
+- [x] Sidebar short-height checks encoded
+- [x] Live-record command search encoded
+- [x] Light/Dark Admin route matrix retained
+- [x] Overview hierarchy, responsive overflow and screenshots encoded
+- [x] Inventory card width, image height and equal-row assertions encoded
+- [x] Table media versus record navigation encoded
+- [x] Consolidated Phase 4–8 browser workflow wired
+- [ ] ESLint executed on final Phase 8 head
+- [ ] TypeScript executed on final Phase 8 head
+- [ ] Vitest executed on final Phase 8 head
+- [ ] Theme audit executed on final Phase 8 head
+- [ ] Production build executed on final Phase 8 head
+- [ ] React Doctor executed on final Phase 8 head
+- [ ] Browser scripts executed on final Phase 8 head
+- [ ] Screenshot review completed
 - [ ] Phase 8 accepted
+
+Exact evidence: `docs/control-room-v2/phase8-blocker.md`.
 
 ## Phase 9 — TanStack Query Server-State Foundation
 
-### Planning — complete
+### Planning complete; implementation not started
 
-- [x] Rewritten server-state implementation brief
-- [x] Confirmed no dedicated TanStack Query skill exists in `agent-controller`
-- [x] Locked official TanStack Query documentation as the package source of truth
-- [x] Approved deterministic Promise-based in-memory adapter boundary
-- [x] Prohibited fake API routes, artificial latency and random failures
-- [x] Defined server-state versus ephemeral UI-state ownership
-- [x] Defined domain query-key factory requirements
-- [x] Defined mutation invalidation and optimistic rollback rules
-- [x] Defined Next.js QueryClient and hydration boundaries
-
-### Implementation — queued after Phase 8
-
+- [x] Official TanStack Query documentation locked as source of truth
+- [x] Deterministic Promise-based in-memory adapter boundary approved
+- [x] Fake API routes, latency and random failures prohibited
+- [x] Server-state versus ephemeral UI ownership defined
+- [x] Domain query-key, invalidation and optimistic rollback requirements defined
 - [ ] Packages, provider and repositories
-- [ ] Inventory and Product migration
-- [ ] Sales, Customers, Settings and Overview migration
-- [ ] Mutation invalidation and optimistic rollback
+- [ ] Domain migrations
+- [ ] Mutation hooks and invalidation matrix
 - [ ] Loading, error, empty, stale and background-refetch experience
 - [ ] Production integration handoff
 - [ ] Full Phase 4–9 regression
@@ -256,23 +230,10 @@ Exact implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
 
 ## Verification and integration blockers
 
-After the last successful Orders acceptance run, GitHub Actions began creating private-repository jobs with zero steps or no associated run. Jobs expose no usable logs or artifacts. This remains an execution-environment condition rather than an application result.
+GitHub returned no workflow run and no combined commit status for the final Phase 8 application head. The available container also could not resolve `github.com`, so no local worktree could be cloned for execution. This is an environment limitation, not a passing or failing application result.
 
-Separately, PR #4 reports `mergeable: false`. The feature branch remains behind and diverged from `main`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable because it could discard upstream work.
-
-Phase 8A was implemented under the user’s explicit instruction to start Phase 8. Its implementation does not waive any earlier gate.
-
-## Loaded Phase 8A contract
-
-- [x] `using-superpowers`
-- [x] `product-designer`
-- [x] `ui-ux-pro-max`
-- [x] `frontend-design`
-- [x] `shadcn`
-- [x] `next-best-practices`
-- [x] `vercel-react-best-practices`
-- [x] current branch theme, primitives, sidebar and workflow audited
+PR #4 also remains non-mergeable because the feature branch is behind and diverged from `main`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Run the final Phase 8A static, TypeScript, build and browser checks when an executable environment is available. Do not mark 8A accepted without those results. Phase 8B is the next implementation batch; Phase 9 remains locked until Phase 8 passes its gate or the user explicitly overrides it again.
+Restore an executable validation environment, run the consolidated Phase 4–8 gate and review generated screenshots. Do not mark Phase 8 accepted or start Phase 9 without a new explicit override while this gate remains unresolved. Keep PR #4 draft and non-review-ready.
