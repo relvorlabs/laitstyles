@@ -77,9 +77,9 @@ export function ProductReviewStep({
           </div>
         </Alert>
       ) : (
-        <Alert className="border-[#CBD2BA] bg-[#E7EBDD] text-[#4A5540]">
+        <Alert className="border-success/35 bg-success/10 text-foreground">
           <AlertTitle>Ready for a publication action</AlertTitle>
-          <AlertDescription className="text-[#59644A]">
+          <AlertDescription className="text-muted-foreground">
             No blocking validation issue remains in the current form values.
           </AlertDescription>
         </Alert>
