@@ -44,6 +44,7 @@ The workspace must feel like a fashion-store relationship ledger, not a generic 
 - Holds and returns appear automatically when their records reference the customer.
 - Stable profile information may live on the customer: customer type, saved addresses, contact/delivery preferences, saved product IDs and internal notes.
 - Failed payments, delivery exceptions, open returns and risky active holds create explicit attention reasons; status is never conveyed by colour alone.
+- Prototype segment rules are deterministic and selector-owned: `returning` means at least 2 connected orders, `new` means fewer than 2, and `high-value` means at least ₦50,000 net paid spend. A customer may belong to more than one segment.
 - Internal notes are prototype session state only and must say so in the interface.
 - The Customers destination remains hidden until its useful default, empty, loading and error states are implemented.
 
