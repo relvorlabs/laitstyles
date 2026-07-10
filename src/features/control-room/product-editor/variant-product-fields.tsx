@@ -31,6 +31,7 @@ export function VariantProductFields() {
   } = useFormContext<ProductEditorValues>();
   const watchedVariants = useWatch({ control, name: "variant.variants" }) ?? [];
   const baseReference = useWatch({ control, name: "internalReference" });
+  const referenceSeed = baseReference ?? "";
   const { fields, append, remove } = useFieldArray({
     control,
     name: "variant.variants",
@@ -65,7 +66,7 @@ export function VariantProductFields() {
     setValue(
       `variant.variants.${index}.sku`,
       generateVariantSku(
-        baseReference,
+        referenceSeed,
         variant.label,
         variant.size,
         variant.colour,
@@ -80,7 +81,7 @@ export function VariantProductFields() {
     const generated: string[] = [];
     variants.forEach((variant, index) => {
       const sku = generateVariantSku(
-        baseReference,
+        referenceSeed,
         variant.label,
         variant.size,
         variant.colour,
@@ -140,7 +141,7 @@ export function VariantProductFields() {
           <div className="flex flex-wrap gap-2">
             <Button
               className="h-10 rounded-full px-4"
-              disabled={!baseReference.trim()}
+              disabled={!referenceSeed.trim()}
               onClick={generateAllSkus}
               type="button"
               variant="outline"
@@ -219,7 +220,7 @@ export function VariantProductFields() {
                     />
                     <Button
                       className="h-9 rounded-full"
-                      disabled={!baseReference.trim()}
+                      disabled={!referenceSeed.trim()}
                       onClick={() => generateSkuFor(index)}
                       size="sm"
                       type="button"
