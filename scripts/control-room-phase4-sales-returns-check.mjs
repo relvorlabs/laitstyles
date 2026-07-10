@@ -91,6 +91,12 @@ async function runConnectedDesktopFlow(browser) {
     dialog.getByLabel("Product"),
     "The new offline sale was not eligible for return.",
   );
+
+  await dialog.getByRole("button", { name: "Open return" }).click();
+  await expectVisible(
+    dialog.getByText("Enter the reason for the return."),
+    "Create Return validation was not visible inside the active dialog.",
+  );
   await dialog.getByLabel("Reason").fill("Fit did not work");
   await dialog.getByRole("button", { name: "Open return" }).click();
 
@@ -100,26 +106,49 @@ async function runConnectedDesktopFlow(browser) {
     sheet.getByText("Requested", { exact: true }).first(),
     "New return did not start in Requested state.",
   );
+  await expectVisible(
+    sheet.getByText(/Return .* was opened for LS-\d+\./),
+    "Return creation feedback was not visible inside the active detail sheet.",
+  );
 
   await sheet.getByRole("button", { name: "Approved" }).click();
   await expectVisible(
     sheet.getByText("Approved", { exact: true }).first(),
     "Return did not move to Approved.",
   );
+  await expectVisible(
+    sheet.getByText(/moved to approved\./i),
+    "Approved feedback was not visible inside the active detail sheet.",
+  );
+
   await sheet.getByRole("button", { name: "Received" }).click();
   await expectVisible(
     sheet.getByText("Received", { exact: true }).first(),
     "Return did not move to Received.",
   );
+  await expectVisible(
+    sheet.getByText(/moved to received\./i),
+    "Received feedback was not visible inside the active detail sheet.",
+  );
+
   await sheet.getByRole("button", { name: "Inspecting" }).click();
   await expectVisible(
     sheet.getByText("Inspecting", { exact: true }).first(),
     "Return did not move to Inspecting.",
   );
+  await expectVisible(
+    sheet.getByText(/moved to inspecting\./i),
+    "Inspecting feedback was not visible inside the active detail sheet.",
+  );
+
   await sheet.getByRole("button", { name: "Restocked" }).click();
   await expectVisible(
     sheet.getByText("Restocked", { exact: true }).first(),
     "Return did not move to Restocked.",
+  );
+  await expectVisible(
+    sheet.getByText(/moved to restocked\./i),
+    "Restocked feedback was not visible inside the active detail sheet.",
   );
   await page.screenshot({
     path: path.join(screenshotDir, "phase4-return-restocked-1280x800.png"),
