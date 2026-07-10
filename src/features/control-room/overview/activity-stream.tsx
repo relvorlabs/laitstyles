@@ -43,7 +43,7 @@ export function ActivityStream({
                 className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-5 py-4 sm:px-6"
                 key={activity.id}
               >
-                <span className="grid size-9 place-items-center rounded-[11px] bg-secondary text-[#4A5540]">
+                <span className="grid size-9 place-items-center rounded-[11px] bg-accent text-accent-foreground">
                   <ControlRoomIcon icon={activityIcon(activity.kind)} size={17} />
                 </span>
                 <div className="min-w-0">
