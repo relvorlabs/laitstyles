@@ -118,6 +118,14 @@ export function ProductIdentityStep() {
             <CatalogueTaxonomyManager
               className="h-9 rounded-full"
               initialKind="category"
+              onCreate={({ kind, name: createdName }) => {
+                if (kind === "category") {
+                  setValue("category", createdName, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
               onDelete={({ name: deletedName }) => {
                 if (currentCategory === deletedName) {
                   setValue("category", "", {
@@ -155,6 +163,14 @@ export function ProductIdentityStep() {
           <CatalogueTaxonomyManager
             className="h-9 rounded-full"
             initialKind="collection"
+            onCreate={({ kind, name: createdName }) => {
+              if (kind === "collection") {
+                setValue("collection", createdName, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }
+            }}
             onDelete={({ name: deletedName }) => {
               if (currentCollection === deletedName) {
                 setValue("collection", "", {
