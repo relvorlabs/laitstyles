@@ -46,11 +46,12 @@ export function ProductImagesStep() {
     const existing = getValues("media");
     if (existing.length >= MAX_IMAGES) {
       setFeedback(`A product can have up to ${MAX_IMAGES} images.`);
-      return;
+      return false;
     }
-    if (existing.some((item) => item.url.trim() === url.trim())) {
+    const duplicateKey = normaliseUrl(url);
+    if (existing.some((item) => normaliseUrl(item.url) === duplicateKey)) {
       setFeedback("That image is already in this product record.");
-      return;
+      return false;
     }
     append({
       id: `media-${crypto.randomUUID()}`,
@@ -63,16 +64,39 @@ export function ProductImagesStep() {
       source,
     });
     setFeedback("Image added. Add a description and choose the featured cover.");
+    return true;
   }
 
   function addFiles(files: FileList | null) {
     if (!files?.length) return;
+    let added = 0;
+    let rejected = 0;
+
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) {
-        setFeedback(`${file.name} is not an image.`);
+        rejected += 1;
         continue;
       }
-      appendPreview(URL.createObjectURL(file), "local-preview");
+      if (getValues("media").length >= MAX_IMAGES) {
+        rejected += 1;
+        continue;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      if (appendPreview(objectUrl, "local-preview")) {
+        added += 1;
+      } else {
+        URL.revokeObjectURL(objectUrl);
+        rejected += 1;
+      }
+    }
+
+    if (rejected > 0) {
+      setFeedback(
+        `${added} image${added === 1 ? "" : "s"} added. ${rejected} file${rejected === 1 ? " was" : "s were"} skipped because they were invalid, duplicated or above the ${MAX_IMAGES}-image limit.`,
+      );
+    } else if (added > 1) {
+      setFeedback(`${added} images added. Add descriptions and choose the featured cover.`);
     }
   }
 
@@ -86,8 +110,9 @@ export function ProductImagesStep() {
       setFeedback("Enter a complete http or https image URL.");
       return;
     }
-    appendPreview(value, "url");
-    setImageUrl("");
+    if (appendPreview(value, "url")) {
+      setImageUrl("");
+    }
   }
 
   function setCover(index: number) {
@@ -156,7 +181,10 @@ export function ProductImagesStep() {
             className="h-11 file:mr-3"
             id="product-image-files"
             multiple
-            onChange={(event) => addFiles(event.target.files)}
+            onChange={(event) => {
+              addFiles(event.target.files);
+              event.currentTarget.value = "";
+            }}
             type="file"
           />
         </Field>
@@ -356,4 +384,8 @@ export function ProductImagesStep() {
       )}
     </section>
   );
+}
+
+function normaliseUrl(value: string) {
+  return value.trim().toLocaleLowerCase("en-NG");
 }
