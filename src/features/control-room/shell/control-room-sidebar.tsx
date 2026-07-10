@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   ControlRoomIcon,
   type ControlRoomIconData,
@@ -76,6 +77,20 @@ export function ControlRoomSidebar({
         </nav>
 
         <div className="mt-auto flex flex-col gap-5 pt-8">
+          <div className="flex items-center justify-between gap-3 rounded-[16px] border border-sidebar-border bg-sidebar-accent/70 p-3.5">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/68">
+                Appearance
+              </p>
+              <p className="mt-1 text-[11px] leading-4 text-sidebar-foreground/58">
+                Light, dark or device setting
+              </p>
+            </div>
+            <ThemeToggle
+              className="border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            />
+          </div>
+
           <div className="rounded-[18px] border border-sidebar-border bg-sidebar-accent/70 p-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/64">
