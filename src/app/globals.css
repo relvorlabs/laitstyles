@@ -5,112 +5,200 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Brand ingredients stay stable. Application components consume role tokens below. */
   --brand-ink: oklch(0.205 0.012 72);
   --brand-ink-soft: oklch(0.31 0.014 72);
   --brand-bone: oklch(0.973 0.009 88);
   --brand-bone-strong: oklch(0.94 0.012 88);
   --brand-sage: oklch(0.59 0.07 120);
-  --brand-sage-strong: oklch(0.48 0.075 120);
+  --brand-sage-strong: oklch(0.47 0.075 120);
   --brand-sage-soft: oklch(0.86 0.075 116);
 
-  --background: var(--brand-bone);
-  --foreground: var(--brand-ink);
-  --card: oklch(0.992 0.004 88);
-  --card-foreground: var(--brand-ink);
-  --popover: oklch(0.995 0.003 88);
-  --popover-foreground: var(--brand-ink);
-  --primary: var(--brand-ink);
-  --primary-foreground: var(--brand-bone);
-  --secondary: oklch(0.934 0.025 113);
-  --secondary-foreground: var(--brand-ink);
-  --muted: oklch(0.943 0.009 88);
-  --muted-foreground: oklch(0.48 0.02 80);
-  --accent: oklch(0.895 0.047 116);
-  --accent-foreground: oklch(0.29 0.045 116);
-  --destructive: oklch(0.58 0.205 28);
+  /* Fashion-operating surface roles — light. */
+  --surface-canvas: var(--brand-bone);
+  --surface-canvas-foreground: var(--brand-ink);
+  --surface-panel: oklch(0.986 0.006 88);
+  --surface-panel-foreground: var(--brand-ink);
+  --surface-raised: oklch(0.997 0.003 88);
+  --surface-raised-foreground: var(--brand-ink);
+  --surface-sunken: oklch(0.936 0.013 88);
+  --surface-sunken-foreground: var(--brand-ink);
+  --surface-interactive: oklch(0.958 0.014 101);
+  --surface-interactive-hover: oklch(0.925 0.028 113);
+  --surface-interactive-foreground: var(--brand-ink);
+  --surface-selected: oklch(0.86 0.072 116);
+  --surface-selected-foreground: oklch(0.245 0.04 116);
+  --surface-selected-muted: oklch(0.925 0.035 116);
+  --surface-inverse: var(--brand-ink);
+  --surface-inverse-foreground: var(--brand-bone);
+
+  /* Action and control roles. */
+  --action-primary: var(--brand-ink);
+  --action-primary-foreground: var(--brand-bone);
+  --action-secondary: oklch(0.92 0.03 114);
+  --action-secondary-foreground: var(--brand-ink);
+  --control: oklch(0.992 0.004 88);
+  --control-hover: oklch(0.952 0.017 101);
+  --control-foreground: var(--brand-ink);
+  --border-subtle: oklch(0.86 0.018 88);
+  --border-strong: oklch(0.76 0.025 88);
+  --focus: var(--brand-sage-strong);
+
+  /* Functional roles remain distinct from the Sage brand accent. */
+  --destructive: oklch(0.56 0.195 28);
   --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.54 0.11 145);
+  --destructive-surface: oklch(0.95 0.025 25);
+  --destructive-surface-foreground: oklch(0.47 0.17 28);
+  --success: oklch(0.52 0.11 145);
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.69 0.13 78);
+  --success-surface: oklch(0.925 0.04 145);
+  --success-surface-foreground: oklch(0.35 0.09 145);
+  --warning: oklch(0.67 0.13 78);
   --warning-foreground: oklch(0.25 0.04 65);
-  --border: oklch(0.86 0.018 88);
-  --input: oklch(0.84 0.019 88);
-  --ring: var(--brand-sage-strong);
-  --chip-bg: oklch(0.925 0.035 116);
-  --chip-border: oklch(0.78 0.045 116);
+  --warning-surface: oklch(0.94 0.04 82);
+  --warning-surface-foreground: oklch(0.42 0.09 75);
+
+  /* shadcn role compatibility. */
+  --background: var(--surface-canvas);
+  --foreground: var(--surface-canvas-foreground);
+  --card: var(--surface-panel);
+  --card-foreground: var(--surface-panel-foreground);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--surface-raised-foreground);
+  --primary: var(--action-primary);
+  --primary-foreground: var(--action-primary-foreground);
+  --secondary: var(--action-secondary);
+  --secondary-foreground: var(--action-secondary-foreground);
+  --muted: var(--surface-sunken);
+  --muted-foreground: oklch(0.46 0.02 80);
+  --accent: var(--surface-selected);
+  --accent-foreground: var(--surface-selected-foreground);
+  --border: var(--border-subtle);
+  --input: var(--border-strong);
+  --ring: var(--focus);
+  --chip-bg: var(--surface-selected-muted);
+  --chip-border: oklch(0.77 0.045 116);
   --star: oklch(0.72 0.13 83);
   --radius: 0.625rem;
+
   --chart-1: var(--brand-sage-strong);
-  --chart-2: oklch(0.7 0.09 100);
+  --chart-2: oklch(0.68 0.09 100);
   --chart-3: oklch(0.47 0.04 74);
-  --chart-4: oklch(0.78 0.05 120);
+  --chart-4: oklch(0.76 0.05 120);
   --chart-5: oklch(0.37 0.035 105);
-  --sidebar: var(--brand-ink);
+
+  /* The sidebar is deliberately inverse in both themes. Selection is Sage, never white. */
+  --sidebar: oklch(0.18 0.014 72);
   --sidebar-foreground: var(--brand-bone);
-  --sidebar-primary: var(--brand-bone);
-  --sidebar-primary-foreground: var(--brand-ink);
-  --sidebar-accent: oklch(0.29 0.018 72);
+  --sidebar-primary: oklch(0.72 0.08 118);
+  --sidebar-primary-foreground: oklch(0.16 0.02 72);
+  --sidebar-accent: oklch(0.27 0.022 104);
   --sidebar-accent-foreground: var(--brand-bone);
   --sidebar-border: oklch(1 0 0 / 14%);
   --sidebar-ring: var(--brand-sage-soft);
-  --surface-raised: oklch(0.988 0.005 88);
-  --surface-sunken: oklch(0.928 0.012 88);
+  --sidebar-selected: var(--sidebar-primary);
+  --sidebar-selected-foreground: var(--sidebar-primary-foreground);
+
   --overlay: oklch(0.15 0.01 72 / 56%);
+  --shadow-color-soft: oklch(0.18 0.015 72 / 8%);
   --shadow-color: oklch(0.18 0.015 72 / 14%);
+  --shadow-color-strong: oklch(0.18 0.015 72 / 22%);
 }
 
 .dark {
+  /* Brand ingredients remain Ink, Bone and Sage; role assignment changes. */
   --brand-ink: oklch(0.17 0.012 72);
-  --brand-ink-soft: oklch(0.74 0.012 88);
+  --brand-ink-soft: oklch(0.31 0.014 72);
   --brand-bone: oklch(0.95 0.01 88);
   --brand-bone-strong: oklch(0.91 0.013 88);
   --brand-sage: oklch(0.67 0.075 120);
-  --brand-sage-strong: oklch(0.75 0.08 118);
+  --brand-sage-strong: oklch(0.74 0.08 118);
   --brand-sage-soft: oklch(0.79 0.07 116);
 
-  --background: oklch(0.16 0.012 72);
-  --foreground: var(--brand-bone);
-  --card: oklch(0.205 0.014 72);
-  --card-foreground: var(--brand-bone);
-  --popover: oklch(0.215 0.014 72);
-  --popover-foreground: var(--brand-bone);
-  --primary: var(--brand-bone);
-  --primary-foreground: var(--brand-ink);
-  --secondary: oklch(0.255 0.022 105);
-  --secondary-foreground: var(--brand-bone);
-  --muted: oklch(0.235 0.013 72);
-  --muted-foreground: oklch(0.73 0.018 88);
-  --accent: oklch(0.35 0.055 119);
-  --accent-foreground: oklch(0.96 0.01 88);
-  --destructive: oklch(0.68 0.19 24);
-  --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.68 0.12 145);
-  --success-foreground: oklch(0.16 0.02 145);
-  --warning: oklch(0.76 0.12 82);
+  /* Fashion-operating surface roles — dark. */
+  --surface-canvas: oklch(0.145 0.012 72);
+  --surface-canvas-foreground: var(--brand-bone);
+  --surface-panel: oklch(0.185 0.014 72);
+  --surface-panel-foreground: var(--brand-bone);
+  --surface-raised: oklch(0.225 0.016 78);
+  --surface-raised-foreground: var(--brand-bone);
+  --surface-sunken: oklch(0.115 0.01 72);
+  --surface-sunken-foreground: var(--brand-bone);
+  --surface-interactive: oklch(0.235 0.022 100);
+  --surface-interactive-hover: oklch(0.28 0.032 110);
+  --surface-interactive-foreground: var(--brand-bone);
+  --surface-selected: oklch(0.31 0.055 119);
+  --surface-selected-foreground: var(--brand-bone);
+  --surface-selected-muted: oklch(0.26 0.035 116);
+  --surface-inverse: var(--brand-bone);
+  --surface-inverse-foreground: var(--brand-ink);
+
+  --action-primary: var(--brand-sage-strong);
+  --action-primary-foreground: oklch(0.14 0.015 72);
+  --action-secondary: oklch(0.26 0.03 112);
+  --action-secondary-foreground: var(--brand-bone);
+  --control: oklch(0.205 0.016 78);
+  --control-hover: oklch(0.25 0.024 102);
+  --control-foreground: var(--brand-bone);
+  --border-subtle: oklch(0.95 0.01 88 / 13%);
+  --border-strong: oklch(0.95 0.01 88 / 24%);
+  --focus: var(--brand-sage-soft);
+
+  --destructive: oklch(0.72 0.17 28);
+  --destructive-foreground: oklch(0.15 0.02 28);
+  --destructive-surface: oklch(0.28 0.055 25);
+  --destructive-surface-foreground: oklch(0.84 0.11 25);
+  --success: oklch(0.7 0.11 145);
+  --success-foreground: oklch(0.15 0.02 145);
+  --success-surface: oklch(0.25 0.04 145);
+  --success-surface-foreground: oklch(0.82 0.08 145);
+  --warning: oklch(0.78 0.12 82);
   --warning-foreground: oklch(0.18 0.03 70);
-  --border: oklch(0.95 0.01 88 / 14%);
-  --input: oklch(0.95 0.01 88 / 19%);
-  --ring: var(--brand-sage-soft);
-  --chip-bg: oklch(0.3 0.04 118);
+  --warning-surface: oklch(0.28 0.045 82);
+  --warning-surface-foreground: oklch(0.86 0.09 82);
+
+  --background: var(--surface-canvas);
+  --foreground: var(--surface-canvas-foreground);
+  --card: var(--surface-panel);
+  --card-foreground: var(--surface-panel-foreground);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--surface-raised-foreground);
+  --primary: var(--action-primary);
+  --primary-foreground: var(--action-primary-foreground);
+  --secondary: var(--action-secondary);
+  --secondary-foreground: var(--action-secondary-foreground);
+  --muted: var(--surface-sunken);
+  --muted-foreground: oklch(0.73 0.018 88);
+  --accent: var(--surface-selected);
+  --accent-foreground: var(--surface-selected-foreground);
+  --border: var(--border-subtle);
+  --input: var(--border-strong);
+  --ring: var(--focus);
+  --chip-bg: var(--surface-selected-muted);
   --chip-border: oklch(0.58 0.06 118);
   --star: oklch(0.78 0.12 83);
+
   --chart-1: var(--brand-sage-soft);
   --chart-2: oklch(0.72 0.08 100);
   --chart-3: oklch(0.82 0.03 88);
   --chart-4: oklch(0.57 0.06 120);
   --chart-5: oklch(0.66 0.035 105);
-  --sidebar: oklch(0.13 0.012 72);
+
+  --sidebar: oklch(0.105 0.012 72);
   --sidebar-foreground: var(--brand-bone);
-  --sidebar-primary: var(--brand-bone);
-  --sidebar-primary-foreground: var(--brand-ink);
-  --sidebar-accent: oklch(0.245 0.02 110);
+  --sidebar-primary: oklch(0.7 0.075 118);
+  --sidebar-primary-foreground: oklch(0.13 0.02 72);
+  --sidebar-accent: oklch(0.21 0.024 108);
   --sidebar-accent-foreground: var(--brand-bone);
   --sidebar-border: oklch(0.95 0.01 88 / 13%);
   --sidebar-ring: var(--brand-sage-soft);
-  --surface-raised: oklch(0.22 0.014 72);
-  --surface-sunken: oklch(0.135 0.01 72);
+  --sidebar-selected: var(--sidebar-primary);
+  --sidebar-selected-foreground: var(--sidebar-primary-foreground);
+
   --overlay: oklch(0.06 0.006 72 / 72%);
-  --shadow-color: oklch(0.04 0.006 72 / 45%);
+  --shadow-color-soft: oklch(0.04 0.006 72 / 20%);
+  --shadow-color: oklch(0.04 0.006 72 / 38%);
+  --shadow-color-strong: oklch(0.04 0.006 72 / 58%);
 }
 
 @theme inline {
@@ -130,13 +218,24 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-surface: var(--destructive-surface);
+  --color-destructive-surface-foreground: var(--destructive-surface-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-surface: var(--success-surface);
+  --color-success-surface-foreground: var(--success-surface-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-surface-foreground: var(--warning-surface-foreground);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-control: var(--control);
+  --color-control-hover: var(--control-hover);
+  --color-control-foreground: var(--control-foreground);
   --color-chip-bg: var(--chip-bg);
   --color-chip-border: var(--chip-border);
   --color-star: var(--star);
@@ -145,8 +244,20 @@
   --color-brand-sage: var(--brand-sage);
   --color-brand-sage-strong: var(--brand-sage-strong);
   --color-brand-sage-soft: var(--brand-sage-soft);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-panel-foreground: var(--surface-panel-foreground);
   --color-surface-raised: var(--surface-raised);
+  --color-surface-raised-foreground: var(--surface-raised-foreground);
   --color-surface-sunken: var(--surface-sunken);
+  --color-surface-sunken-foreground: var(--surface-sunken-foreground);
+  --color-surface-interactive: var(--surface-interactive);
+  --color-surface-interactive-hover: var(--surface-interactive-hover);
+  --color-surface-interactive-foreground: var(--surface-interactive-foreground);
+  --color-surface-selected: var(--surface-selected);
+  --color-surface-selected-foreground: var(--surface-selected-foreground);
+  --color-surface-selected-muted: var(--surface-selected-muted);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-foreground: var(--surface-inverse-foreground);
   --color-overlay: var(--overlay);
   --font-sans: var(--font-instrument-sans);
   --font-serif: var(--font-newsreader);
@@ -159,7 +270,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --shadow-laitstyle: 0 30px 80px var(--shadow-color);
+  --shadow-laitstyle-sm: 0 10px 30px var(--shadow-color-soft);
+  --shadow-laitstyle: 0 24px 64px var(--shadow-color);
+  --shadow-laitstyle-lg: 0 36px 96px var(--shadow-color-strong);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -168,6 +281,8 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-sidebar-selected: var(--sidebar-selected);
+  --color-sidebar-selected-foreground: var(--sidebar-selected-foreground);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -196,14 +311,14 @@
 }
 
 ::selection {
-  background: var(--brand-sage-soft);
-  color: var(--brand-ink);
+  background: var(--surface-selected);
+  color: var(--surface-selected-foreground);
 }
 
 input::placeholder,
 textarea::placeholder {
   color: var(--muted-foreground);
-  opacity: 0.78;
+  opacity: 0.82;
 }
 
 body {
