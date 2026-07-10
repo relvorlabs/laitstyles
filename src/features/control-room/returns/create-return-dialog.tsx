@@ -37,6 +37,11 @@ import type {
   CreateReturnInput,
 } from "@/lib/control-room/types";
 
+type ReturnFormError = {
+  field: "selection" | "quantity" | "reason" | "form";
+  message: string;
+};
+
 export function CreateReturnDialog({
   state,
   open,
@@ -46,7 +51,7 @@ export function CreateReturnDialog({
   state: ControlRoomState;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (input: CreateReturnInput) => void;
+  onSubmit: (input: CreateReturnInput) => string | null;
 }) {
   const orders = useMemo(() => getEligibleReturnOrders(state), [state]);
   const [orderId, setOrderId] = useState(orders[0]?.id ?? "");
@@ -63,7 +68,7 @@ export function CreateReturnDialog({
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ReturnFormError | null>(null);
 
   function changeOrder(nextOrderId: string) {
     const nextOrder = orders.find((entry) => entry.id === nextOrderId);
@@ -79,27 +84,34 @@ export function CreateReturnDialog({
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!order || !line) {
-      setError(
-        "Choose a delivered order line that is still eligible for return.",
-      );
+      setError({
+        field: "selection",
+        message:
+          "Choose a delivered order line that is still eligible for return.",
+      });
       return;
     }
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > eligible) {
-      setError(`Choose a return quantity between 1 and ${eligible}.`);
+      setError({
+        field: "quantity",
+        message: `Choose a return quantity between 1 and ${eligible}.`,
+      });
       return;
     }
     if (!reason.trim()) {
-      setError("Enter the reason for the return.");
+      setError({ field: "reason", message: "Enter the reason for the return." });
       return;
     }
 
-    setError(null);
-    onSubmit({
+    const actionError = onSubmit({
       orderId: order.id,
       reason: reason.trim(),
       note: note.trim(),
       lines: [{ orderLineId: line.id, quantity }],
     });
+    setError(
+      actionError ? { field: "form", message: actionError } : null,
+    );
   }
 
   const product = line
@@ -126,13 +138,17 @@ export function CreateReturnDialog({
         {orders.length ? (
           <form className="flex flex-col gap-5" onSubmit={submit}>
             <FieldGroup>
-              <Field>
+              <Field data-invalid={error?.field === "selection"}>
                 <FieldLabel htmlFor="return-order">Delivered order</FieldLabel>
                 <Select
                   onValueChange={(value) => value && changeOrder(value)}
                   value={order?.id ?? ""}
                 >
-                  <SelectTrigger className="h-12 w-full" id="return-order">
+                  <SelectTrigger
+                    aria-invalid={error?.field === "selection"}
+                    className="h-12 w-full"
+                    id="return-order"
+                  >
                     <span className="flex-1 truncate text-left">
                       {order
                         ? `${order.id} · ${formatNaira(order.total)}`
@@ -153,7 +169,7 @@ export function CreateReturnDialog({
                 </Select>
               </Field>
 
-              <Field>
+              <Field data-invalid={error?.field === "selection"}>
                 <FieldLabel htmlFor="return-line">Product</FieldLabel>
                 <Select
                   onValueChange={(value) => {
@@ -165,7 +181,11 @@ export function CreateReturnDialog({
                   }}
                   value={line?.id ?? ""}
                 >
-                  <SelectTrigger className="h-12 w-full" id="return-line">
+                  <SelectTrigger
+                    aria-invalid={error?.field === "selection"}
+                    className="h-12 w-full"
+                    id="return-line"
+                  >
                     <span className="flex-1 truncate text-left">
                       {productLabel}
                     </span>
@@ -196,16 +216,20 @@ export function CreateReturnDialog({
                 </Select>
               </Field>
 
-              <Field>
+              <Field data-invalid={error?.field === "quantity"}>
                 <FieldLabel htmlFor="return-quantity">Quantity</FieldLabel>
                 <Input
+                  aria-invalid={error?.field === "quantity"}
                   autoComplete="off"
                   id="return-quantity"
                   inputMode="numeric"
                   max={Math.max(eligible, 1)}
                   min={1}
                   name="return-quantity"
-                  onChange={(event) => setQuantity(Number(event.target.value))}
+                  onChange={(event) => {
+                    setQuantity(Number(event.target.value));
+                    setError(null);
+                  }}
                   type="number"
                   value={quantity}
                 />
@@ -214,14 +238,17 @@ export function CreateReturnDialog({
                 </FieldDescription>
               </Field>
 
-              <Field data-invalid={Boolean(error && !reason.trim())}>
+              <Field data-invalid={error?.field === "reason"}>
                 <FieldLabel htmlFor="return-reason">Reason</FieldLabel>
                 <Input
-                  aria-invalid={Boolean(error && !reason.trim())}
+                  aria-invalid={error?.field === "reason"}
                   autoComplete="off"
                   id="return-reason"
                   name="return-reason"
-                  onChange={(event) => setReason(event.target.value)}
+                  onChange={(event) => {
+                    setReason(event.target.value);
+                    setError(null);
+                  }}
                   placeholder="e.g. Fit was not right…"
                   value={reason}
                 />
@@ -233,14 +260,17 @@ export function CreateReturnDialog({
                   autoComplete="off"
                   id="return-note"
                   name="return-note"
-                  onChange={(event) => setNote(event.target.value)}
+                  onChange={(event) => {
+                    setNote(event.target.value);
+                    setError(null);
+                  }}
                   placeholder="Condition expected, collection arrangement, or customer context…"
                   value={note}
                 />
               </Field>
             </FieldGroup>
 
-            <FieldError>{error}</FieldError>
+            <FieldError aria-live="polite">{error?.message}</FieldError>
 
             <DialogFooter className="mx-0 mb-0 px-0 pb-[max(0rem,env(safe-area-inset-bottom))]">
               <Button
