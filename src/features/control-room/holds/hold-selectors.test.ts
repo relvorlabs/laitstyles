@@ -7,51 +7,68 @@ import {
   toHoldWorkspaceItem,
 } from "@/features/control-room/holds/hold-selectors";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import type { ControlRoomState } from "@/lib/control-room/types";
+
+const holdsState: ControlRoomState = {
+  ...activeControlRoomSeed,
+  holds: activeControlRoomSeed.holds.map((hold) => {
+    if (hold.id === "hold-tank") {
+      return { ...hold, source: "whatsapp" as const };
+    }
+    if (hold.id === "hold-tote") {
+      return {
+        ...hold,
+        customerLabel: "Roqeebah Bello",
+        source: "admin" as const,
+        paymentProgress: "failed" as const,
+      };
+    }
+    return hold;
+  }),
+};
 
 describe("Holds workspace selectors", () => {
   it("sorts holds by release time by default", () => {
     expect(
-      queryHolds(activeControlRoomSeed, defaultHoldQuery).map(
-        (hold) => hold.id,
-      ),
-    ).toEqual(["hold-botanical", "hold-tank", "hold-sage"]);
+      queryHolds(holdsState, defaultHoldQuery).map((hold) => hold.id),
+    ).toEqual(["hold-botanical", "hold-tank", "hold-tote"]);
   });
 
   it("derives expiring and payment-risk views from the session clock", () => {
     expect(
-      queryHolds(activeControlRoomSeed, {
+      queryHolds(holdsState, {
         ...defaultHoldQuery,
         view: "expiring",
       }).map((hold) => hold.id),
     ).toEqual(["hold-botanical"]);
 
     expect(
-      queryHolds(activeControlRoomSeed, {
+      queryHolds(holdsState, {
         ...defaultHoldQuery,
         view: "payment-risk",
       }).map((hold) => hold.id),
-    ).toEqual(["hold-sage"]);
+    ).toEqual(["hold-tote"]);
   });
 
   it("searches customer and product context and filters assisted sources", () => {
     expect(
-      queryHolds(activeControlRoomSeed, {
+      queryHolds(holdsState, {
         ...defaultHoldQuery,
-        search: "roqeebah sage",
+        search: "roqeebah canvas",
       }).map((hold) => hold.id),
-    ).toEqual(["hold-sage"]);
+    ).toEqual(["hold-tote"]);
 
     expect(
-      queryHolds(activeControlRoomSeed, {
+      queryHolds(holdsState, {
         ...defaultHoldQuery,
         source: "assisted",
       }).map((hold) => hold.id),
-    ).toEqual(["hold-tank", "hold-sage"]);
+    ).toEqual(["hold-tank", "hold-tote"]);
   });
 
   it("reports connected summary and saved-view counts", () => {
-    const counts = getHoldSavedViewCounts(activeControlRoomSeed);
-    const summary = getHoldWorkspaceSummary(activeControlRoomSeed);
+    const counts = getHoldSavedViewCounts(holdsState);
+    const summary = getHoldWorkspaceSummary(holdsState);
 
     expect(counts).toEqual({
       all: 3,
@@ -71,12 +88,10 @@ describe("Holds workspace selectors", () => {
   });
 
   it("preserves exact variant context for variant holds", () => {
-    const hold = activeControlRoomSeed.holds.find(
-      (entry) => entry.id === "hold-tank",
-    );
+    const hold = holdsState.holds.find((entry) => entry.id === "hold-tank");
     if (!hold) throw new Error("Missing hold fixture");
 
-    expect(toHoldWorkspaceItem(activeControlRoomSeed, hold)).toMatchObject({
+    expect(toHoldWorkspaceItem(holdsState, hold)).toMatchObject({
       productName: "Ribbed Studio Tank",
       variantLabel: "Cream / S",
       productReference: "LS-RST-CRM-S",
