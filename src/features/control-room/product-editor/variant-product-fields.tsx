@@ -1,7 +1,9 @@
 "use client";
 
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useMemo } from "react";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   FieldDescription,
@@ -15,13 +17,20 @@ import {
   type EditorFieldName,
 } from "@/features/control-room/product-editor/product-editor-fields";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { useControlRoom } from "@/features/control-room/state/control-room-provider";
+import { generateVariantSku } from "@/lib/control-room/sku";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
 export function VariantProductFields() {
+  const { state } = useControlRoom();
   const {
     control,
+    getValues,
+    setValue,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
+  const watchedVariants = useWatch({ control, name: "variant.variants" }) ?? [];
+  const baseReference = useWatch({ control, name: "internalReference" });
   const { fields, append, remove } = useFieldArray({
     control,
     name: "variant.variants",
@@ -31,22 +40,79 @@ export function VariantProductFields() {
     errors,
     "variant.variants",
   );
+  const totalReceived = watchedVariants.reduce(
+    (total, variant) => total + (Number(variant.quantity) || 0),
+    0,
+  );
+  const externalSkus = useMemo(
+    () =>
+      state.products.flatMap((product) => {
+        if (product.inventoryMode === "unique") return [product.archiveNumber];
+        if (product.inventoryMode === "stocked") return [product.sku];
+        return product.variants.map((variant) => variant.sku);
+      }),
+    [state.products],
+  );
+
+  function generateSkuFor(index: number) {
+    const variants = getValues("variant.variants");
+    const variant = variants[index];
+    if (!variant) return;
+    const otherSkus = variants
+      .filter((_, itemIndex) => itemIndex !== index)
+      .map((item) => item.sku)
+      .filter(Boolean);
+    setValue(
+      `variant.variants.${index}.sku`,
+      generateVariantSku(
+        baseReference,
+        variant.label,
+        variant.size,
+        variant.colour,
+        [...externalSkus, ...otherSkus],
+      ),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
+  function generateAllSkus() {
+    const variants = getValues("variant.variants");
+    const generated: string[] = [];
+    variants.forEach((variant, index) => {
+      const sku = generateVariantSku(
+        baseReference,
+        variant.label,
+        variant.size,
+        variant.colour,
+        [...externalSkus, ...generated],
+      );
+      generated.push(sku);
+      setValue(`variant.variants.${index}.sku`, sku, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    });
+  }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[16px] border border-border bg-secondary/45 p-4">
-        <p className="text-[12.5px] font-semibold">
-          Each row owns its stock.
-        </p>
-        <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-          A product can show nine units overall while one size is nearly gone. Variant-level quantities keep that risk visible.
-        </p>
+      <div className="grid gap-3 rounded-[16px] border border-border bg-surface-sunken p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div>
+          <p className="text-[12.5px] font-semibold">Each sellable option owns its SKU and stock.</p>
+          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
+            Use variants when size, colour or another option needs a separate quantity. The catalogue product can show {totalReceived} units overall while every row remains independently sellable.
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card px-4 py-3 text-right">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Total received</p>
+          <p className="mt-1 font-serif text-2xl font-medium tabular-nums">{totalReceived}</p>
+        </div>
       </div>
 
       <div>
         <FieldLabel>Option names</FieldLabel>
         <FieldDescription>
-          Name the choices used to distinguish variants. Two options are enough for this prototype.
+          Name the choices used to distinguish variants. Two options cover most fashion products.
         </FieldDescription>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <EditorTextField
@@ -67,37 +133,50 @@ export function VariantProductFields() {
           <div>
             <FieldLabel>Variant rows</FieldLabel>
             <FieldDescription>
-              Add one row per sellable option combination.
+              Add one row per sellable option combination. Every row requires a unique SKU before publishing.
             </FieldDescription>
             <FieldError>{variantsError}</FieldError>
           </div>
-          <Button
-            className="h-10 rounded-full px-4"
-            onClick={() =>
-              append({
-                id: `variant-${crypto.randomUUID()}`,
-                label: "",
-                sku: "",
-                size: "",
-                colour: "",
-                imageUrl: "",
-                price: null,
-                cost: null,
-                quantity: 1,
-              })
-            }
-            type="button"
-            variant="outline"
-          >
-            <ControlRoomIcon icon={Add01Icon} size={16} />
-            Add variant
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="h-10 rounded-full px-4"
+              disabled={!baseReference.trim()}
+              onClick={generateAllSkus}
+              type="button"
+              variant="outline"
+            >
+              <Sparkles aria-hidden="true" className="size-4" />
+              Generate all SKUs
+            </Button>
+            <Button
+              className="h-10 rounded-full px-4"
+              onClick={() =>
+                append({
+                  id: `variant-${crypto.randomUUID()}`,
+                  label: "",
+                  sku: "",
+                  size: "",
+                  colour: "",
+                  imageUrl: "",
+                  price: null,
+                  cost: null,
+                  quantity: 1,
+                })
+              }
+              type="button"
+              variant="outline"
+            >
+              <ControlRoomIcon icon={Add01Icon} size={16} />
+              Add variant
+            </Button>
+          </div>
         </div>
 
         <div className="mt-4 flex flex-col gap-4">
           {fields.map((field, index) => {
             const name = (suffix: string) =>
               `variant.variants.${index}.${suffix}` as EditorFieldName;
+            const current = watchedVariants[index] ?? field;
 
             return (
               <article
@@ -110,12 +189,12 @@ export function VariantProductFields() {
                       Variant {index + 1}
                     </p>
                     <p className="mt-1 text-[13px] font-semibold">
-                      {field.label || "Unnamed option combination"}
+                      {current.label || "Unnamed option combination"}
                     </p>
                   </div>
                   <Button
                     aria-label={`Remove variant ${index + 1}`}
-                    className="size-9 rounded-full"
+                    className="size-10 rounded-full"
                     disabled={fields.length === 1}
                     onClick={() => remove(index)}
                     size="icon"
@@ -132,12 +211,26 @@ export function VariantProductFields() {
                     name={name("label")}
                     placeholder="Cream / M"
                   />
-                  <EditorTextField
-                    label="Variant SKU"
-                    name={name("sku")}
-                    placeholder="LS-RST-CRM-M"
-                  />
+                  <div className="space-y-2">
+                    <EditorTextField
+                      label="Variant SKU"
+                      name={name("sku")}
+                      placeholder="LS-VAR-ADI-JEA-CRM-M"
+                    />
+                    <Button
+                      className="h-9 rounded-full"
+                      disabled={!baseReference.trim()}
+                      onClick={() => generateSkuFor(index)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Sparkles aria-hidden="true" className="size-4" />
+                      Generate SKU
+                    </Button>
+                  </div>
                   <EditorNumberField
+                    description="Units received for this exact option combination."
                     label="Total received"
                     min={0}
                     name={name("quantity")}
@@ -154,20 +247,21 @@ export function VariantProductFields() {
                     placeholder="Cream"
                   />
                   <EditorTextField
+                    description="Optional. Use a product image URL specific to this option."
                     label="Variant image URL"
                     name={name("imageUrl")}
-                    placeholder="Optional"
+                    placeholder="https://…"
                   />
                   <EditorNumberField
                     description="Leave blank to use the product selling price."
-                    label="Variant price"
+                    label="Variant selling price"
                     min={0}
                     name={name("price")}
                     placeholder="Optional"
                   />
                   <EditorNumberField
-                    description="Leave blank to use the product acquisition cost."
-                    label="Variant cost"
+                    description="Leave blank to use the product unit cost."
+                    label="Variant unit cost"
                     min={0}
                     name={name("cost")}
                     placeholder="Optional"
@@ -180,7 +274,7 @@ export function VariantProductFields() {
       </div>
 
       <EditorNumberField
-        description="A variant product enters Low stock when any available variant reaches this number."
+        description="The product enters Low stock when any available variant reaches this number."
         label="Per-variant low-stock threshold"
         min={0}
         name="lowStockThreshold"
