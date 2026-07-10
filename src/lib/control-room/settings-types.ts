@@ -50,17 +50,9 @@ export type DeliverySettings = {
   pickupLocations: PickupLocationSettings[];
 };
 
-export type AcceptedPaymentMethod =
-  | "bank-transfer"
-  | "card"
-  | "cash"
-  | "pos"
-  | "pay-on-delivery";
+export type AcceptedPaymentMethod = "bank-transfer" | "card" | "cash" | "pos" | "pay-on-delivery";
 
-export type RefundPreference =
-  | "original-method"
-  | "bank-transfer"
-  | "store-credit";
+export type RefundPreference = "original-method" | "bank-transfer" | "store-credit";
 
 export type PaymentSettings = {
   acceptedMethods: AcceptedPaymentMethod[];
@@ -111,9 +103,7 @@ export type SettingsValidationIssue = {
   section: SettingsSection;
 };
 
-export type StoreSettingsActionErrorCode =
-  | "invalid-settings"
-  | "settings-not-available";
+export type StoreSettingsActionErrorCode = "invalid-settings" | "settings-not-available";
 
 export type StoreSettingsActionError = {
   code: StoreSettingsActionErrorCode;

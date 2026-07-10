@@ -1,8 +1,8 @@
 "use client";
 
+import { Expand } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { Expand } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductMediaViewer } from "@/features/control-room/inventory/product-media-viewer";
 import type { InventoryListItem } from "@/lib/control-room/types";

@@ -1,12 +1,6 @@
 import { ChartIncreaseIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatCompactNaira } from "@/lib/control-room/formatters";
 import type { SalesPulsePoint } from "@/lib/control-room/types";
@@ -16,10 +10,7 @@ type SalesPulseProps = {
 };
 
 export function SalesPulse({ points }: SalesPulseProps) {
-  const maximum = Math.max(
-    ...points.map((point) => point.online + point.offline),
-    1,
-  );
+  const maximum = Math.max(...points.map((point) => point.online + point.offline), 1);
   const onlineTotal = points.reduce((total, point) => total + point.online, 0);
   const offlineTotal = points.reduce((total, point) => total + point.offline, 0);
 
@@ -67,10 +58,7 @@ export function SalesPulse({ points }: SalesPulseProps) {
                 const total = point.online + point.offline;
 
                 return (
-                  <div
-                    className="group flex h-full min-w-0 flex-col justify-end"
-                    key={point.date}
-                  >
+                  <div className="group flex h-full min-w-0 flex-col justify-end" key={point.date}>
                     <div className="mb-2 hidden text-center text-[9px] font-semibold tabular-nums text-muted-foreground group-hover:block sm:text-[10px]">
                       {formatCompactNaira(total)}
                     </div>

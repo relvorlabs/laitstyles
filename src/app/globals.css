@@ -291,23 +291,42 @@
 }
 
 @keyframes leemPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 @keyframes leemHook {
-  from { transform: rotate(-3deg); }
-  to { transform: rotate(3deg); }
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
 }
 
 @keyframes leemRise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes leemShimmer {
-  0% { background-position: -320px 0; }
-  100% { background-position: 320px 0; }
+  0% {
+    background-position: -320px 0;
+  }
+  100% {
+    background-position: 320px 0;
+  }
 }
 
 ::selection {

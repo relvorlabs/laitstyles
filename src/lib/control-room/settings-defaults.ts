@@ -1,13 +1,9 @@
-import type {
-  SaveStoreSettingsInput,
-  StoreSettings,
-} from "@/lib/control-room/settings-types";
+import type { SaveStoreSettingsInput, StoreSettings } from "@/lib/control-room/settings-types";
 
 export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
   identity: {
     storeName: "Laitstyle",
-    description:
-      "A considered fashion store for one-of-one finds and small-batch wardrobe pieces.",
+    description: "A considered fashion store for one-of-one finds and small-batch wardrobe pieces.",
     contactEmail: "hello@laitstyle.example",
     contactPhone: "+234 800 000 0000",
     whatsappNumber: "+234 800 000 0000",

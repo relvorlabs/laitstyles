@@ -1,19 +1,15 @@
-import type {
-  ControlRoomState,
-  CustomerTimelineEvent,
-  OrderStatus,
-} from "@/lib/control-room/types";
 import {
   getCustomerHolds,
   getCustomerOrders,
   getCustomerReturns,
 } from "@/lib/control-room/customer-metrics";
+import type {
+  ControlRoomState,
+  CustomerTimelineEvent,
+  OrderStatus,
+} from "@/lib/control-room/types";
 
-const deliveryStatuses = new Set<OrderStatus>([
-  "dispatched",
-  "out-for-delivery",
-  "delivered",
-]);
+const deliveryStatuses = new Set<OrderStatus>(["dispatched", "out-for-delivery", "delivered"]);
 
 export function getCustomerTimeline(
   state: ControlRoomState,
@@ -22,18 +18,13 @@ export function getCustomerTimeline(
   const events: CustomerTimelineEvent[] = [];
 
   for (const order of getCustomerOrders(state, customerId)) {
-    const unitCount = order.lines.reduce(
-      (total, line) => total + line.quantity,
-      0,
-    );
+    const unitCount = order.lines.reduce((total, line) => total + line.quantity, 0);
     events.push({
       id: `customer-order-${order.id}`,
       kind: "order",
       occurredAt: order.placedAt,
       title:
-        order.source === "offline-sale"
-          ? `Offline sale ${order.id}`
-          : `Order ${order.id} placed`,
+        order.source === "offline-sale" ? `Offline sale ${order.id}` : `Order ${order.id} placed`,
       detail: `${unitCount} unit${unitCount === 1 ? "" : "s"} · ${order.channel.replaceAll("-", " ")} · ${order.paymentStatus.replaceAll("-", " ")}`,
       orderId: order.id,
     });
@@ -52,9 +43,7 @@ export function getCustomerTimeline(
     for (const timelineEvent of order.timeline ?? []) {
       events.push({
         id: `customer-order-event-${timelineEvent.id}`,
-        kind: deliveryStatuses.has(timelineEvent.status)
-          ? "delivery"
-          : "order",
+        kind: deliveryStatuses.has(timelineEvent.status) ? "delivery" : "order",
         occurredAt: timelineEvent.occurredAt,
         title: `Order ${timelineEvent.status.replaceAll("-", " ")}`,
         detail: timelineEvent.note,

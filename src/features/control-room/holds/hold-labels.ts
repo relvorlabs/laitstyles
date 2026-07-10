@@ -1,3 +1,4 @@
+import type { HoldWorkspaceRisk } from "@/features/control-room/holds/hold-types";
 import type {
   HoldSource,
   HoldStage,
@@ -5,7 +6,6 @@ import type {
   PaymentMethod,
   PaymentStatus,
 } from "@/lib/control-room/types";
-import type { HoldWorkspaceRisk } from "@/features/control-room/holds/hold-types";
 
 const holdDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",

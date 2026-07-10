@@ -20,49 +20,33 @@ export function createInMemoryControlRoomRepositories(
     inventory: {
       listProducts: () => read((state) => state.products),
       getProduct: (productId) =>
-        read(
-          (state) =>
-            state.products.find((product) => product.id === productId) ?? null,
-        ),
+        read((state) => state.products.find((product) => product.id === productId) ?? null),
       listTaxonomy: () => read((state) => state.catalogueTaxonomy ?? []),
       listStockMovements: (productId) =>
         read((state) =>
           productId
-            ? state.stockMovements.filter(
-                (movement) => movement.productId === productId,
-              )
+            ? state.stockMovements.filter((movement) => movement.productId === productId)
             : state.stockMovements,
         ),
     },
     orders: {
       listOrders: () => read((state) => state.orders),
       getOrder: (orderId) =>
-        read(
-          (state) => state.orders.find((order) => order.id === orderId) ?? null,
-        ),
+        read((state) => state.orders.find((order) => order.id === orderId) ?? null),
     },
     holds: {
       listHolds: () => read((state) => state.holds),
-      getHold: (holdId) =>
-        read((state) => state.holds.find((hold) => hold.id === holdId) ?? null),
+      getHold: (holdId) => read((state) => state.holds.find((hold) => hold.id === holdId) ?? null),
     },
     returns: {
       listReturns: () => read((state) => state.returns ?? []),
       getReturn: (returnId) =>
-        read(
-          (state) =>
-            (state.returns ?? []).find((record) => record.id === returnId) ??
-            null,
-        ),
+        read((state) => (state.returns ?? []).find((record) => record.id === returnId) ?? null),
     },
     customers: {
       listCustomers: () => read((state) => state.customers),
       getCustomer: (customerId) =>
-        read(
-          (state) =>
-            state.customers.find((customer) => customer.id === customerId) ??
-            null,
-        ),
+        read((state) => state.customers.find((customer) => customer.id === customerId) ?? null),
     },
     settings: {
       getSettings: () => read((state) => state.settings ?? null),
@@ -75,7 +59,7 @@ export function createInMemoryControlRoomRepositories(
           asOf: state.asOf,
           salesPulse: state.salesPulse,
           openOrders: state.orders.filter(
-            (order) => !closedOrderStatuses.has(order.status),
+            (order) => !closedOrderStatuses.has(order.fulfilmentStatus),
           ),
         })),
     },

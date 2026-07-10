@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 
-export function HoldsEmptyState({
-  hasHolds,
-  onReset,
-}: {
-  hasHolds: boolean;
-  onReset: () => void;
-}) {
+export function HoldsEmptyState({ hasHolds, onReset }: { hasHolds: boolean; onReset: () => void }) {
   return (
     <Card className="items-center px-6 py-16 text-center">
       <span className="grid size-14 place-items-center rounded-full bg-secondary text-muted-foreground">

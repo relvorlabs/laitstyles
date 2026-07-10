@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  use,
-  useCallback,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
-import {
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ProductEditorDialog } from "@/features/control-room/product-editor/product-editor-dialog";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
@@ -25,14 +13,9 @@ type ProductEditorControllerValue = {
   openExistingProduct: (productId: string) => void;
 };
 
-const ProductEditorControllerContext =
-  createContext<ProductEditorControllerValue | null>(null);
+const ProductEditorControllerContext = createContext<ProductEditorControllerValue | null>(null);
 
-export function ProductEditorControllerProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function ProductEditorControllerProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
   const [result, setResult] = useState<ProductEditorActionSuccess | null>(null);
@@ -68,14 +51,11 @@ export function ProductEditorControllerProvider({
           aria-live="polite"
           className="fixed bottom-4 right-4 z-[80] w-[min(92vw,420px)] border-success/35 bg-card text-card-foreground shadow-xl"
         >
-          <ControlRoomIcon
-            className="text-success"
-            icon={CheckmarkCircle02Icon}
-            size={18}
-          />
+          <ControlRoomIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Catalogue views now use this session-only product record. Refreshing resets the prototype.
+            Catalogue views now use this session-only product record. Refreshing resets the
+            prototype.
           </AlertDescription>
           <AlertAction>
             <Button

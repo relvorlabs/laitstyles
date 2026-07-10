@@ -2,22 +2,18 @@
 
 import {
   Controller,
+  type FieldPath,
   useFieldArray,
   useFormContext,
   useWatch,
-  type FieldPath,
 } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@/components/ui/field";
-import {
-  SettingsTextField,
   SettingsTextareaField,
+  SettingsTextField,
 } from "@/features/control-room/settings/settings-fields";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
@@ -122,9 +118,7 @@ export function PickupLocationList() {
                       <Checkbox
                         aria-label={`Offer ${current?.name || `pickup location ${index + 1}`}`}
                         checked={Boolean(field.value)}
-                        onCheckedChange={(checked) =>
-                          field.onChange(Boolean(checked))
-                        }
+                        onCheckedChange={(checked) => field.onChange(Boolean(checked))}
                       />
                       <div>
                         <FieldLabel>Offer pickup here</FieldLabel>

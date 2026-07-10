@@ -4,8 +4,8 @@ import type {
   CustomerNote,
   CustomerNoteActionSuccess,
 } from "@/lib/control-room/customer-types";
-import type { ControlRoomState } from "@/lib/control-room/types";
 import { err, ok, type Result } from "@/lib/control-room/result";
+import type { ControlRoomState } from "@/lib/control-room/types";
 
 export type CustomerNoteStateResult = {
   state: ControlRoomState;
@@ -18,9 +18,7 @@ export function applyAddCustomerNote(
   now: string,
   idFactory: (prefix: string) => string = createActionId,
 ): Result<CustomerNoteStateResult, CustomerActionError> {
-  const customer = state.customers.find(
-    (entry) => entry.id === input.customerId,
-  );
+  const customer = state.customers.find((entry) => entry.id === input.customerId);
   if (!customer) {
     return err({
       code: "customer-not-found",
@@ -54,9 +52,7 @@ export function applyAddCustomerNote(
     author: "Store owner",
   };
   const customers = state.customers.map((entry) =>
-    entry.id === customer.id
-      ? { ...entry, notes: [note, ...(entry.notes ?? [])] }
-      : entry,
+    entry.id === customer.id ? { ...entry, notes: [note, ...(entry.notes ?? [])] } : entry,
   );
   const message = `Internal note saved for ${customer.name}.`;
 

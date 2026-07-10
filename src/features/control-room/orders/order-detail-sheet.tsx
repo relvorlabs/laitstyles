@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -9,25 +10,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import {
   channelLabels,
   formatOrderDate,
   paymentStatusLabels,
 } from "@/features/control-room/orders/order-labels";
+import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
 } from "@/features/control-room/orders/order-status-badge";
 import { OrderTimeline } from "@/features/control-room/orders/order-timeline";
 import { OrderTransitionControls } from "@/features/control-room/orders/order-transition-controls";
-import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import { formatNaira } from "@/lib/control-room/formatters";
-import type {
-  ControlRoomOrder,
-  ControlRoomState,
-  OrderStatus,
-} from "@/lib/control-room/types";
+import type { ControlRoomOrder, ControlRoomState, OrderStatus } from "@/lib/control-room/types";
 
 export function OrderDetailSheet({
   state,
@@ -125,9 +121,7 @@ export function OrderDetailSheet({
             </div>
             <div className="mt-4 grid gap-3">
               {order.lines.map((line) => {
-                const product = state.products.find(
-                  (entry) => entry.id === line.productId,
-                );
+                const product = state.products.find((entry) => entry.id === line.productId);
                 const variant =
                   product?.inventoryMode === "variant"
                     ? product.variants.find((entry) => entry.id === line.variantId)
@@ -136,9 +130,7 @@ export function OrderDetailSheet({
                   <Card key={line.id} className="gap-0 py-0">
                     <CardContent className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                       <div>
-                        <p className="text-[13px] font-semibold">
-                          {product?.name ?? "Product"}
-                        </p>
+                        <p className="text-[13px] font-semibold">{product?.name ?? "Product"}</p>
                         <p className="mt-1 text-[10.5px] text-muted-foreground">
                           {variant?.label ?? product?.category ?? "Catalogue item"}
                           {line.stockState ? ` · ${line.stockState} stock` : ""}
@@ -160,7 +152,10 @@ export function OrderDetailSheet({
           </section>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <section className="rounded-[16px] border border-border bg-card p-4" aria-labelledby="payment-boundary-title">
+            <section
+              className="rounded-[16px] border border-border bg-card p-4"
+              aria-labelledby="payment-boundary-title"
+            >
               <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                 Payment boundary
               </p>
@@ -168,11 +163,15 @@ export function OrderDetailSheet({
                 {paymentStatusLabels[order.paymentStatus]}
               </h2>
               <p className="mt-3 text-[11.5px] leading-5 text-muted-foreground">
-                Method: {order.paymentMethod?.replaceAll("-", " ") ?? "Not captured"}. Status changes here update only the session prototype; no gateway or bank is contacted.
+                Method: {order.paymentMethod?.replaceAll("-", " ") ?? "Not captured"}. Status
+                changes here update only the session prototype; no gateway or bank is contacted.
               </p>
             </section>
 
-            <section className="rounded-[16px] border border-border bg-card p-4" aria-labelledby="delivery-boundary-title">
+            <section
+              className="rounded-[16px] border border-border bg-card p-4"
+              aria-labelledby="delivery-boundary-title"
+            >
               <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                 Delivery boundary
               </p>
@@ -195,8 +194,10 @@ export function OrderDetailSheet({
               <div className="rounded-[16px] border border-border bg-card p-4 text-[11.5px] leading-5">
                 <p className="font-semibold text-foreground">{item.customerName}</p>
                 <p className="mt-2 text-muted-foreground">
-                  {customer?.email || "No email captured"}<br />
-                  {customer?.phone || "No phone captured"}<br />
+                  {customer?.email || "No email captured"}
+                  <br />
+                  {customer?.phone || "No phone captured"}
+                  <br />
                   {customer?.city || order.deliveryCity || "No city captured"}
                 </p>
               </div>

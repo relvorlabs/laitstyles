@@ -14,11 +14,13 @@ export function CustomersHeader() {
           Customers
         </h1>
         <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-muted-foreground">
-          See who is buying, what needs follow-up, and the complete store history behind each relationship.
+          See who is buying, what needs follow-up, and the complete store history behind each
+          relationship.
         </p>
       </div>
       <p className="max-w-sm text-pretty text-xs leading-5 text-muted-foreground md:text-right">
-        Spend, orders, holds, returns and reviews are derived from the same connected Control Room records.
+        Spend, orders, holds, returns and reviews are derived from the same connected Control Room
+        records.
       </p>
     </header>
   );

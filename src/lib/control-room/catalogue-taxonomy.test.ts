@@ -31,17 +31,13 @@ describe("Catalogue taxonomy management", () => {
     const deleted = store.deleteCatalogueTaxonomy(created.value.item.id);
     expect(deleted.ok).toBe(true);
     expect(
-      store
-        .getSnapshot()
-        .catalogueTaxonomy?.some((item) => item.id === created.value.item?.id),
+      store.getSnapshot().catalogueTaxonomy?.some((item) => item.id === created.value.item?.id),
     ).toBe(false);
   });
 
   it("renames a category across connected products, timestamps them and blocks deletion while used", () => {
     const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const current = store
-      .getSnapshot()
-      .catalogueTaxonomy?.find((item) => item.kind === "category");
+    const current = store.getSnapshot().catalogueTaxonomy?.find((item) => item.kind === "category");
     if (!current) throw new Error("Expected a seeded category");
 
     const connectedBefore = store
@@ -65,9 +61,7 @@ describe("Catalogue taxonomy management", () => {
 
   it("rejects duplicate names without changing the store", () => {
     const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const current = store
-      .getSnapshot()
-      .catalogueTaxonomy?.find((item) => item.kind === "category");
+    const current = store.getSnapshot().catalogueTaxonomy?.find((item) => item.kind === "category");
     if (!current) throw new Error("Expected a seeded category");
     const before = store.getSnapshot().catalogueTaxonomy?.length;
 

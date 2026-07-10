@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  PackageIcon,
-  Search01Icon,
-  Settings01Icon,
-} from "@hugeicons/core-free-icons";
+import { PackageIcon, Search01Icon, Settings01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Sheet,
   SheetContent,
@@ -76,11 +68,7 @@ export function InventoryControls({
         </InputGroup>
 
         <div className="hidden min-w-0 flex-1 items-center gap-2 lg:flex">
-          <InventoryFilterFields
-            facets={facets}
-            onQueryChange={onQueryChange}
-            query={query}
-          />
+          <InventoryFilterFields facets={facets} onQueryChange={onQueryChange} query={query} />
         </div>
 
         <div className="flex items-center justify-between gap-2">
@@ -97,10 +85,7 @@ export function InventoryControls({
               <ControlRoomIcon icon={Settings01Icon} size={17} />
               Filters
             </SheetTrigger>
-            <SheetContent
-              className="w-[min(92vw,420px)] overscroll-contain"
-              side="right"
-            >
+            <SheetContent className="w-[min(92vw,420px)] overscroll-contain" side="right">
               <SheetHeader>
                 <SheetTitle>Filter Inventory</SheetTitle>
                 <SheetDescription>
@@ -167,9 +152,7 @@ export function InventoryControls({
 
       <div className="flex items-center justify-between gap-3 text-[11.5px] text-muted-foreground">
         <span>
-          <strong className="font-semibold text-foreground tabular-nums">
-            {resultCount}
-          </strong>{" "}
+          <strong className="font-semibold text-foreground tabular-nums">{resultCount}</strong>{" "}
           product{resultCount === 1 ? "" : "s"} in this view
         </span>
         <span className="hidden items-center gap-2 sm:inline-flex">

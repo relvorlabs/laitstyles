@@ -1,12 +1,8 @@
 "use client";
 
-import { useFormContext, useWatch } from "react-hook-form";
 import { AlertCircleIcon } from "@hugeicons/core-free-icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { useFormContext, useWatch } from "react-hook-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditorTextField } from "@/features/control-room/product-editor/product-editor-fields";
@@ -47,7 +43,8 @@ export function ProductReviewStep({
           Review the product before choosing its next state.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          Save draft accepts incomplete work. Publish now and Schedule require every blocking field to be valid.
+          Save draft accepts incomplete work. Publish now and Schedule require every blocking field
+          to be valid.
         </p>
       </div>
 
@@ -57,9 +54,7 @@ export function ProductReviewStep({
           <AlertTitle>
             {issues.length} blocking requirement{issues.length === 1 ? "" : "s"}
           </AlertTitle>
-          <AlertDescription>
-            Resolve these items before publishing or scheduling.
-          </AlertDescription>
+          <AlertDescription>Resolve these items before publishing or scheduling.</AlertDescription>
           <div className="col-start-2 mt-3 flex flex-col gap-2">
             {issues.slice(0, 8).map((issue) => (
               <button
@@ -68,9 +63,7 @@ export function ProductReviewStep({
                 onClick={() => onStepChange(issue.step)}
                 type="button"
               >
-                <span className="font-semibold">
-                  {getProductEditorStepLabel(issue.step)}:
-                </span>{" "}
+                <span className="font-semibold">{getProductEditorStepLabel(issue.step)}:</span>{" "}
                 {issue.message}
               </button>
             ))}
@@ -117,19 +110,11 @@ export function ProductReviewStep({
         <ReviewCard
           label="Selling channels"
           value={`${values.channels.length} selected`}
-          supporting={
-            values.channels.length
-              ? values.channels.join(" · ")
-              : "No channel selected"
-          }
+          supporting={values.channels.length ? values.channels.join(" · ") : "No channel selected"}
         />
         <ReviewCard
           label="Fulfilment"
-          value={
-            values.fulfilment.pickupAvailable
-              ? "Pickup available"
-              : "Delivery only"
-          }
+          value={values.fulfilment.pickupAvailable ? "Pickup available" : "Delivery only"}
           supporting={
             values.fulfilment.weightKg
               ? `${values.fulfilment.weightKg} kg estimated packed weight`
@@ -143,7 +128,8 @@ export function ProductReviewStep({
           <div>
             <h3 className="text-[13px] font-semibold">Schedule publication</h3>
             <p className="mt-1 max-w-[560px] text-[11.5px] leading-5 text-muted-foreground">
-              This records a scheduled state in the current browser session. It does not create a real background publishing job.
+              This records a scheduled state in the current browser session. It does not create a
+              real background publishing job.
             </p>
           </div>
           <Badge variant="outline">Prototype only</Badge>
@@ -162,7 +148,8 @@ export function ProductReviewStep({
           ⓘ
         </span>
         <p className="text-[11.5px] leading-5 text-muted-foreground">
-          Drafts, published products and Intake changes in this prototype are session-only. Refreshing the page restores the deterministic seed catalogue.
+          Drafts, published products and Intake changes in this prototype are session-only.
+          Refreshing the page restores the deterministic seed catalogue.
         </p>
       </div>
     </section>
@@ -184,12 +171,8 @@ function ReviewCard({
         <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
           {label}
         </p>
-        <p className="mt-2 break-words font-serif text-[23px] font-medium leading-tight">
-          {value}
-        </p>
-        <p className="mt-2 break-words text-[11px] leading-5 text-muted-foreground">
-          {supporting}
-        </p>
+        <p className="mt-2 break-words font-serif text-[23px] font-medium leading-tight">{value}</p>
+        <p className="mt-2 break-words text-[11px] leading-5 text-muted-foreground">{supporting}</p>
       </CardContent>
     </Card>
   );
@@ -198,10 +181,7 @@ function ReviewCard({
 function getReceivedQuantity(values: ProductEditorValues) {
   if (values.inventoryMode === "unique") return 1;
   if (values.inventoryMode === "stocked") return values.stocked.quantity;
-  return values.variant.variants.reduce(
-    (total, variant) => total + variant.quantity,
-    0,
-  );
+  return values.variant.variants.reduce((total, variant) => total + variant.quantity, 0);
 }
 
 function modeLabel(mode: ProductEditorValues["inventoryMode"]) {

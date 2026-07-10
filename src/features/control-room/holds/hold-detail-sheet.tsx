@@ -2,11 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -26,7 +23,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { HoldConversionDialog } from "@/features/control-room/holds/hold-conversion-dialog";
 import {
   formatHoldDate,
@@ -40,11 +36,7 @@ import {
   toHoldWorkspaceItem,
 } from "@/features/control-room/holds/hold-selectors";
 import type { HoldActionFeedback } from "@/features/control-room/holds/holds-workspace";
-import type {
-  ControlRoomHold,
-  ControlRoomState,
-  ConvertHoldInput,
-} from "@/lib/control-room/types";
+import type { ControlRoomHold, ControlRoomState, ConvertHoldInput } from "@/lib/control-room/types";
 
 export function HoldDetailSheet({
   state,
@@ -110,7 +102,10 @@ export function HoldDetailSheet({
               </Alert>
             ) : null}
 
-            <section className="grid gap-5 sm:grid-cols-[150px_minmax(0,1fr)]" aria-labelledby="hold-summary-title">
+            <section
+              className="grid gap-5 sm:grid-cols-[150px_minmax(0,1fr)]"
+              aria-labelledby="hold-summary-title"
+            >
               <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-secondary">
                 <Image
                   alt={item.imageAlt}
@@ -125,7 +120,10 @@ export function HoldDetailSheet({
                   Reservation summary
                 </h2>
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <Metric label="Release countdown" value={formatHoldCountdown(item.secondsRemaining)} />
+                  <Metric
+                    label="Release countdown"
+                    value={formatHoldCountdown(item.secondsRemaining)}
+                  />
                   <Metric label="Quantity" value={String(hold.quantity)} />
                   <Metric label="Reference" value={item.productReference} />
                   <Metric label="Status" value={holdStatusLabels[item.status]} />
@@ -188,7 +186,8 @@ export function HoldDetailSheet({
                 </div>
               ) : (
                 <p className="mt-4 rounded-[14px] bg-secondary/65 px-4 py-3 text-[11.5px] leading-5 text-muted-foreground">
-                  This hold is no longer active. Its customer and stock history remain available for audit.
+                  This hold is no longer active. Its customer and stock history remain available for
+                  audit.
                 </p>
               )}
             </section>
@@ -201,14 +200,18 @@ export function HoldDetailSheet({
                 <div className="rounded-[16px] border border-border bg-card p-4 text-[11.5px] leading-5">
                   <p className="font-semibold text-foreground">{item.customerName}</p>
                   <p className="mt-2 text-muted-foreground">
-                    {customer?.email || "No email captured"}<br />
-                    {customer?.phone || "No phone captured"}<br />
+                    {customer?.email || "No email captured"}
+                    <br />
+                    {customer?.phone || "No phone captured"}
+                    <br />
                     {customer?.city || "No city captured"}
                   </p>
                 </div>
                 <div className="rounded-[16px] border border-border bg-card p-4 text-[11.5px] leading-5 text-muted-foreground">
-                  Started {formatHoldDate(hold.startedAt)}<br />
-                  Releases {formatHoldDate(hold.expiresAt)}<br />
+                  Started {formatHoldDate(hold.startedAt)}
+                  <br />
+                  Releases {formatHoldDate(hold.expiresAt)}
+                  <br />
                   Payment {hold.paymentProgress?.replaceAll("-", " ") ?? "not started"}
                 </div>
               </div>
@@ -227,7 +230,9 @@ export function HoldDetailSheet({
           <AlertDialogHeader>
             <AlertDialogTitle>Release this hold?</AlertDialogTitle>
             <AlertDialogDescription>
-              {hold.quantity} reserved unit{hold.quantity === 1 ? "" : "s"} will return to available inventory. This cannot be undone within the current session except by resetting the prototype.
+              {hold.quantity} reserved unit{hold.quantity === 1 ? "" : "s"} will return to available
+              inventory. This cannot be undone within the current session except by resetting the
+              prototype.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

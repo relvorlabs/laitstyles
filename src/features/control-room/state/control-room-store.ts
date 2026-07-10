@@ -2,10 +2,10 @@ import {
   applyCreateCatalogueTaxonomy,
   applyDeleteCatalogueTaxonomy,
   applyRenameCatalogueTaxonomy,
-  hydrateCatalogueTaxonomy,
   type CatalogueTaxonomyActionError,
   type CatalogueTaxonomyActionSuccess,
   type CatalogueTaxonomyInput,
+  hydrateCatalogueTaxonomy,
 } from "@/lib/control-room/catalogue-taxonomy";
 import { applyAddCustomerNote } from "@/lib/control-room/customer-actions";
 import { hydrateCustomerProfiles } from "@/lib/control-room/customer-profile-seed";
@@ -22,22 +22,19 @@ import {
 import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
 import { applyOrderTransition } from "@/lib/control-room/order-actions";
 import {
+  applyIntakeTransition,
+  applyProductEditorAction,
+  createInitialIntakeRecords,
+} from "@/lib/control-room/product-editor-actions";
+import {
   applyArchiveProduct,
   applyDeleteProduct,
   applyRestoreProduct,
   type ProductLifecycleActionError,
   type ProductLifecycleActionSuccess,
 } from "@/lib/control-room/product-lifecycle-actions";
-import {
-  applyIntakeTransition,
-  applyProductEditorAction,
-  createInitialIntakeRecords,
-} from "@/lib/control-room/product-editor-actions";
-import {
-  applyCreateReturn,
-  applyReturnTransition,
-} from "@/lib/control-room/return-actions";
 import type { Result } from "@/lib/control-room/result";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
 import { applySaveStoreSettings } from "@/lib/control-room/settings-actions";
 import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
 import type {
@@ -63,68 +60,35 @@ import type {
   StoreSettingsActionSuccess,
 } from "@/lib/control-room/types";
 
-type ProductActionResult = Result<
-  ProductEditorActionSuccess,
-  ProductEditorActionError
->;
-type ProductLifecycleResult = Result<
-  ProductLifecycleActionSuccess,
-  ProductLifecycleActionError
->;
-type IntakeActionResult = Result<
-  IntakeTransitionSuccess,
-  ProductEditorActionError
->;
+type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
+type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
+type IntakeActionResult = Result<IntakeTransitionSuccess, ProductEditorActionError>;
 type OrderActionResult = Result<OrderTransitionSuccess, SalesActionError>;
 type HoldResult = Result<HoldActionSuccess, SalesActionError>;
 type OfflineSaleResult = Result<OfflineSaleSuccess, SalesActionError>;
 type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
-type CustomerNoteResult = Result<
-  CustomerNoteActionSuccess,
-  CustomerActionError
->;
-type StoreSettingsResult = Result<
-  StoreSettingsActionSuccess,
-  StoreSettingsActionError
->;
-type CatalogueTaxonomyResult = Result<
-  CatalogueTaxonomyActionSuccess,
-  CatalogueTaxonomyActionError
->;
+type CustomerNoteResult = Result<CustomerNoteActionSuccess, CustomerActionError>;
+type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
+type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
 
 export type ControlRoomStore = {
   getSnapshot: () => ControlRoomState;
   subscribe: (listener: () => void) => () => void;
-  saveProduct: (
-    values: ProductEditorValues,
-    intent: ProductEditorIntent,
-  ) => ProductActionResult;
+  saveProduct: (values: ProductEditorValues, intent: ProductEditorIntent) => ProductActionResult;
   archiveProduct: (productId: string) => ProductLifecycleResult;
   restoreProduct: (productId: string) => ProductLifecycleResult;
   deleteProduct: (productId: string) => ProductLifecycleResult;
   createCatalogueTaxonomy: (input: CatalogueTaxonomyInput) => CatalogueTaxonomyResult;
-  renameCatalogueTaxonomy: (
-    taxonomyId: string,
-    name: string,
-  ) => CatalogueTaxonomyResult;
+  renameCatalogueTaxonomy: (taxonomyId: string, name: string) => CatalogueTaxonomyResult;
   deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
-  transitionIntake: (
-    productId: string,
-    nextStage: IntakeStage,
-  ) => IntakeActionResult;
-  transitionOrder: (
-    orderId: string,
-    nextStatus: OrderStatus,
-  ) => OrderActionResult;
+  transitionIntake: (productId: string, nextStage: IntakeStage) => IntakeActionResult;
+  transitionOrder: (orderId: string, nextStatus: OrderStatus) => OrderActionResult;
   extendHold: (holdId: string, minutes: number) => HoldResult;
   releaseHold: (holdId: string) => HoldResult;
   convertHold: (input: ConvertHoldInput) => HoldResult;
   recordOfflineSale: (input: OfflineSaleInput) => OfflineSaleResult;
   createReturn: (input: CreateReturnInput) => ReturnResult;
-  transitionReturn: (
-    returnId: string,
-    nextStatus: ReturnStatus,
-  ) => ReturnResult;
+  transitionReturn: (returnId: string, nextStatus: ReturnStatus) => ReturnResult;
   addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
   saveStoreSettings: (input: SaveStoreSettingsInput) => StoreSettingsResult;
   resetPrototypeState: () => void;
@@ -159,9 +123,7 @@ export function createControlRoomStore(
       return () => listeners.delete(listener);
     },
     saveProduct(values, intent) {
-      return commitAction(
-        applyProductEditorAction(state, values, intent, getNow()),
-      );
+      return commitAction(applyProductEditorAction(state, values, intent, getNow()));
     },
     archiveProduct(productId) {
       return commitAction(applyArchiveProduct(state, productId, getNow()));
@@ -176,29 +138,19 @@ export function createControlRoomStore(
       return commitAction(applyCreateCatalogueTaxonomy(state, input, getNow()));
     },
     renameCatalogueTaxonomy(taxonomyId, name) {
-      return commitAction(
-        applyRenameCatalogueTaxonomy(state, taxonomyId, name, getNow()),
-      );
+      return commitAction(applyRenameCatalogueTaxonomy(state, taxonomyId, name, getNow()));
     },
     deleteCatalogueTaxonomy(taxonomyId) {
-      return commitAction(
-        applyDeleteCatalogueTaxonomy(state, taxonomyId, getNow()),
-      );
+      return commitAction(applyDeleteCatalogueTaxonomy(state, taxonomyId, getNow()));
     },
     transitionIntake(productId, nextStage) {
-      return commitAction(
-        applyIntakeTransition(state, productId, nextStage, getNow()),
-      );
+      return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
     },
     transitionOrder(orderId, nextStatus) {
-      return commitAction(
-        applyOrderTransition(state, orderId, nextStatus, getNow()),
-      );
+      return commitAction(applyOrderTransition(state, orderId, nextStatus, getNow()));
     },
     extendHold(holdId, minutes) {
-      return commitAction(
-        applyHoldExtension(state, holdId, minutes, getNow()),
-      );
+      return commitAction(applyHoldExtension(state, holdId, minutes, getNow()));
     },
     releaseHold(holdId) {
       return commitAction(applyHoldRelease(state, holdId, getNow()));
@@ -213,9 +165,7 @@ export function createControlRoomStore(
       return commitAction(applyCreateReturn(state, input, getNow()));
     },
     transitionReturn(returnId, nextStatus) {
-      return commitAction(
-        applyReturnTransition(state, returnId, nextStatus, getNow()),
-      );
+      return commitAction(applyReturnTransition(state, returnId, nextStatus, getNow()));
     },
     addCustomerNote(input) {
       return commitAction(applyAddCustomerNote(state, input, getNow()));
@@ -242,8 +192,7 @@ function normalizeState(initialState: ControlRoomState): ControlRoomState {
       idFactory,
     ),
     customers: hydrateCustomerProfiles(initialState.customers),
-    settings:
-      initialState.settings ?? createDefaultStoreSettings(initialState.asOf),
+    settings: initialState.settings ?? createDefaultStoreSettings(initialState.asOf),
     intake: createInitialIntakeRecords(
       initialState.products,
       initialState.intake,
@@ -258,6 +207,5 @@ function createSessionClock(anchor: string) {
   const anchorTime = Date.parse(anchor);
   const startedAt = Date.now();
 
-  return () =>
-    new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
+  return () => new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }

@@ -42,24 +42,17 @@ export function ProductSummaryPanel({ item }: { item: InventoryListItem }) {
           <CardHeader>
             <div className="flex flex-wrap items-center gap-2">
               <InventoryStatusBadge health={item.health} />
-              <Badge variant="outline">
-                {inventoryModeLabels[product.inventoryMode]}
-              </Badge>
+              <Badge variant="outline">{inventoryModeLabels[product.inventoryMode]}</Badge>
             </div>
             <CardTitle className="font-serif text-[28px] font-medium leading-tight">
               {product.name}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <p className="text-[13px] leading-6 text-muted-foreground">
-              {product.description}
-            </p>
+            <p className="text-[13px] leading-6 text-muted-foreground">{product.description}</p>
             <dl className="grid gap-3 text-[12px] sm:grid-cols-2">
               {details.map(([label, value]) => (
-                <div
-                  className="min-w-0 rounded-[12px] bg-secondary/60 p-3"
-                  key={label}
-                >
+                <div className="min-w-0 rounded-[12px] bg-secondary/60 p-3" key={label}>
                   <dt className="text-[9.5px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
                     {label}
                   </dt>

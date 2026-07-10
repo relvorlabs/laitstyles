@@ -1,12 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { useMemo, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { OrderControls } from "@/features/control-room/orders/order-controls";
 import { OrderDetailSheet } from "@/features/control-room/orders/order-detail-sheet";
@@ -37,9 +33,7 @@ export function OrdersWorkspace({
   const pathname = usePathname();
   const { state, transitionOrder } = useControlRoom();
   const [query, setQuery] = useState(initialQuery);
-  const [openOrderId, setOpenOrderId] = useState<string | null>(
-    initialOpenOrderId,
-  );
+  const [openOrderId, setOpenOrderId] = useState<string | null>(initialOpenOrderId);
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error";
     title: string;
@@ -47,13 +41,9 @@ export function OrdersWorkspace({
   } | null>(null);
 
   const orders = useMemo(() => queryOrders(state, query), [query, state]);
-  const counts = useMemo(
-    () => getOrderSavedViewCounts(state.orders),
-    [state.orders],
-  );
+  const counts = useMemo(() => getOrderSavedViewCounts(state.orders), [state.orders]);
   const summary = useMemo(() => getOrderWorkspaceSummary(state), [state]);
-  const openOrder =
-    state.orders.find((order) => order.id === openOrderId) ?? null;
+  const openOrder = state.orders.find((order) => order.id === openOrderId) ?? null;
 
   function replaceUrl(nextQuery = query, nextOrderId = openOrderId) {
     window.history.replaceState(
@@ -128,10 +118,7 @@ export function OrdersWorkspace({
       </Card>
 
       {feedback ? (
-        <Alert
-          aria-live="polite"
-          variant={feedback.tone === "error" ? "destructive" : "default"}
-        >
+        <Alert aria-live="polite" variant={feedback.tone === "error" ? "destructive" : "default"}>
           <AlertTitle>{feedback.title}</AlertTitle>
           <AlertDescription>{feedback.message}</AlertDescription>
         </Alert>
@@ -139,22 +126,11 @@ export function OrdersWorkspace({
 
       {orders.length ? (
         <>
-          <OrdersMobileList
-            onOpen={openOrderRecord}
-            orders={orders}
-            state={state}
-          />
-          <OrdersTable
-            onOpen={openOrderRecord}
-            orders={orders}
-            state={state}
-          />
+          <OrdersMobileList onOpen={openOrderRecord} orders={orders} state={state} />
+          <OrdersTable onOpen={openOrderRecord} orders={orders} state={state} />
         </>
       ) : (
-        <OrdersEmptyState
-          hasOrders={state.orders.length > 0}
-          onReset={resetQuery}
-        />
+        <OrdersEmptyState hasOrders={state.orders.length > 0} onReset={resetQuery} />
       )}
 
       <OrderDetailSheet

@@ -1,4 +1,118 @@
-# Laitstyle Control Room V2 — Phase 9 TanStack Query Server-State Foundation
+# Laitstyle Control Room V2 — Phase 9 Codebase Structure Review and Supabase Readiness
+
+## Active status
+
+**Planned — this phase replaces the earlier TanStack Query Phase 9.**
+
+The previous TanStack Query repository/key work remains on the branch as paused preliminary foundation. It is not the active next phase anymore. TanStack Query resumes in Phase 12, after Supabase Auth, organization permissions, database schema, storage and RLS are implemented.
+
+Phase 9 is now the structure and readiness phase that makes the codebase safe to wire to Supabase without mixing concerns or contradicting the existing Control Room boundaries.
+
+## Goal
+
+Perform a meticulous review of the live codebase and apply only the structural fixes needed before Supabase auth and database implementation.
+
+This phase must answer:
+
+- Where do browser/server Supabase clients belong?
+- Where do staff roles, consumer permissions and server guards belong?
+- Which current Control Room modules own domain logic versus presentation?
+- Which prototype boundaries must stay explicit until real Supabase data exists?
+- Which existing files should be split or moved before auth/data wiring?
+- How should the partially started TanStack repository/key work be paused and later reconciled into Phase 12?
+
+## Required source review
+
+Read before changing implementation files:
+
+1. `AGENTS.md`
+2. `docs/control-room-v2/spec.md`
+3. `docs/control-room-v2/implementation-plan.md`
+4. `docs/control-room-v2/progress.md`
+5. `docs/control-room-v2/phase9-plan.md`
+6. `docs/control-room-v2/supabase-schema-plan.md`
+7. package and framework configuration: `package.json`, `pnpm-lock.yaml`, `next.config.ts`, `tsconfig.json`, `components.json`
+8. existing domain modules under `src/lib/control-room/`
+9. existing UI modules under `src/features/control-room/`
+10. current Supabase client placeholders under `src/lib/client.ts`, `src/lib/server.ts` and `src/lib/middleware.ts`
+
+## In scope
+
+- Audit and document the current route, feature, domain and repository boundaries.
+- Create or normalize folders for `src/lib/supabase/`, `src/lib/auth/` and future Supabase-backed Control Room adapters.
+- Keep Supabase browser/server/proxy client placement aligned with official Supabase SSR guidance.
+- Define where role/capability constants, permission checks and route/action guards will live.
+- Identify narrow file splits for oversized or mixed-responsibility modules if they block auth/data work.
+- Update docs that still describe TanStack Query as Phase 9.
+- Preserve existing Phase 9 repository/key work as paused Phase 12 groundwork.
+- Add tests only for structural helpers introduced in this phase.
+
+## Out of scope
+
+- Implementing login UI, Google OAuth callback behavior or protected routes.
+- Creating Supabase migrations or RLS policies.
+- Adding TanStack Query packages, QueryClient provider or query hooks.
+- Reworking the visual system beyond necessary permission/structure boundaries.
+- Wrapping seed data in fake API routes.
+- Broad refactors unrelated to Supabase readiness.
+
+## Target folder direction
+
+```text
+src/lib/supabase/
+  browser.ts
+  server.ts
+  proxy.ts
+  types.ts
+
+src/lib/auth/
+  roles.ts
+  permissions.ts
+  guards.ts
+  auth-errors.ts
+
+src/lib/control-room/data/
+  repositories.ts
+  repository-context.tsx
+  in-memory/
+  supabase/              # introduced only when Phase 11/12 needs it
+
+supabase/
+  migrations/
+  seed.sql
+```
+
+The exact files should be created only when used. Empty architecture folders are acceptable only when the next phase needs a stable destination and the files contain useful contracts or documentation.
+
+## Acceptance criteria
+
+- Active docs and AGENTS instructions agree that Supabase/auth/schema work comes before TanStack Query.
+- Browser/server Supabase client destinations are clear and do not expose secret keys.
+- Role and permission contracts have a single planned ownership location.
+- The current Control Room domains are mapped to future Supabase table groups.
+- Any applied file/folder changes are narrow, tested where executable and do not change user-facing behavior.
+- The old TanStack Phase 9 content is marked as paused or moved to Phase 12.
+- `progress.md` identifies Phase 9 as the current active phase only if the user proceeds with implementation.
+
+## Verification
+
+Run the full phase gate if implementation files change:
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm exec vitest run --passWithNoTests
+pnpm build
+pnpm dlx react-doctor@latest . --verbose --diff
+```
+
+If this phase edits docs only, review the diff for cross-reference consistency and explicitly state that executable checks were not necessary.
+
+---
+
+## Archived TanStack Query notes — not active Phase 9
+
+The notes below are preserved from the earlier Phase 9 plan. They are not the active next phase. Reconcile them into `docs/control-room-v2/phase12-plan.md` before resuming TanStack Query.
 
 ## Status
 
@@ -154,7 +268,7 @@ Implemented:
 Pending:
 
 - Add `@tanstack/react-query` using the repository's pnpm package manager.
-- Add `@tanstack/eslint-plugin-query` and configure the applicable recommended rules.
+- Review TanStack Query's current lint recommendations. Because Phase 9 moved the repository to Biome, only add `@tanstack/eslint-plugin-query` as a narrow compatibility check if Phase 12 accepts a query-specific ESLint runner.
 - Add React Query Devtools only when it is development-only and does not enter the production bundle; otherwise leave it out.
 - Create a stable browser `QueryClient` provider at the narrow Control Room application boundary.
 - Ensure a fresh per-request QueryClient is used if server prefetch or hydration is introduced.

@@ -1,7 +1,4 @@
-import type {
-  InventoryPresentation,
-  InventoryQuery,
-} from "@/lib/control-room/types";
+import type { InventoryPresentation, InventoryQuery } from "@/lib/control-room/types";
 
 export const defaultInventoryPageSize = 15;
 
@@ -13,10 +10,7 @@ export type InventoryUrlState = {
   pageSize: number;
 };
 
-export function buildInventoryHref(
-  pathname: string,
-  state: InventoryUrlState,
-) {
+export function buildInventoryHref(pathname: string, state: InventoryUrlState) {
   const params = new URLSearchParams();
   const { query } = state;
 

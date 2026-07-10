@@ -11,13 +11,10 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { returnStatusLabels } from "@/features/control-room/returns/return-labels";
 import { returnStatuses } from "@/features/control-room/returns/return-selectors";
-import type {
-  ReturnQuery,
-  ReturnSortKey,
-} from "@/features/control-room/returns/return-types";
+import type { ReturnQuery, ReturnSortKey } from "@/features/control-room/returns/return-types";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 
 const sortLabels: Record<ReturnSortKey, string> = {
   "updated-desc": "Recently updated",
@@ -36,9 +33,7 @@ export function ReturnControls({
   onQueryChange: (patch: Partial<ReturnQuery>) => void;
   onReset: () => void;
 }) {
-  const filtered = Boolean(
-    query.search || query.status !== "all" || query.sort !== "updated-desc",
-  );
+  const filtered = Boolean(query.search || query.status !== "all" || query.sort !== "updated-desc");
 
   return (
     <div className="flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center">
@@ -60,19 +55,13 @@ export function ReturnControls({
       <div className="grid grid-cols-2 gap-2 sm:flex">
         <Select
           onValueChange={(value) =>
-            value &&
-            onQueryChange({ status: value as ReturnQuery["status"] })
+            value && onQueryChange({ status: value as ReturnQuery["status"] })
           }
           value={query.status}
         >
-          <SelectTrigger
-            aria-label="Filter return status"
-            className="h-11 min-w-0 sm:w-[190px]"
-          >
+          <SelectTrigger aria-label="Filter return status" className="h-11 min-w-0 sm:w-[190px]">
             <span className="flex-1 truncate text-left">
-              {query.status === "all"
-                ? "All statuses"
-                : returnStatusLabels[query.status]}
+              {query.status === "all" ? "All statuses" : returnStatusLabels[query.status]}
             </span>
           </SelectTrigger>
           <SelectContent>
@@ -89,18 +78,11 @@ export function ReturnControls({
         </Select>
 
         <Select
-          onValueChange={(value) =>
-            value && onQueryChange({ sort: value as ReturnSortKey })
-          }
+          onValueChange={(value) => value && onQueryChange({ sort: value as ReturnSortKey })}
           value={query.sort}
         >
-          <SelectTrigger
-            aria-label="Sort returns"
-            className="h-11 min-w-0 sm:w-[190px]"
-          >
-            <span className="flex-1 truncate text-left">
-              {sortLabels[query.sort]}
-            </span>
+          <SelectTrigger aria-label="Sort returns" className="h-11 min-w-0 sm:w-[190px]">
+            <span className="flex-1 truncate text-left">{sortLabels[query.sort]}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -120,12 +102,7 @@ export function ReturnControls({
           {resultCount} return{resultCount === 1 ? "" : "s"} in this view
         </p>
         {filtered ? (
-          <Button
-            className="h-9 rounded-full px-3"
-            onClick={onReset}
-            type="button"
-            variant="ghost"
-          >
+          <Button className="h-9 rounded-full px-3" onClick={onReset} type="button" variant="ghost">
             Reset
           </Button>
         ) : null}

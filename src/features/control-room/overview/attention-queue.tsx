@@ -1,24 +1,15 @@
-import Link from "next/link";
 import {
   Alert02Icon,
   ArrowRight01Icon,
   Clock01Icon,
   PackageIcon,
 } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { SectionHeading } from "@/features/control-room/shared/section-heading";
-import type {
-  AttentionItem,
-  AttentionTone,
-} from "@/lib/control-room/types";
+import type { AttentionItem, AttentionTone } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
 
 type AttentionQueueProps = {
@@ -59,9 +50,7 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
         <CardHeader className="border-b border-border px-5 py-4 sm:px-6">
           <CardTitle className="flex items-center justify-between gap-3 text-[13px]">
             <span>Priority queue</span>
-            <Badge variant={items.length ? "secondary" : "outline"}>
-              {items.length} open
-            </Badge>
+            <Badge variant={items.length ? "secondary" : "outline"}>{items.length} open</Badge>
           </CardTitle>
           <CardDescription className="text-[12px]">
             Sorted by operational risk, not by when the record was created.
@@ -79,11 +68,10 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
               <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
                 <ControlRoomIcon icon={PackageIcon} size={21} />
               </span>
-              <h3 className="mt-4 font-serif text-[24px] font-medium">
-                The queue is clear.
-              </h3>
+              <h3 className="mt-4 font-serif text-[24px] font-medium">The queue is clear.</h3>
               <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-5 text-muted-foreground">
-                Payments, holds, delivery exceptions and stock warnings will appear here when they need attention.
+                Payments, holds, delivery exceptions and stock warnings will appear here when they
+                need attention.
               </p>
             </div>
           )}
@@ -95,12 +83,11 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
 
 function AttentionRow({ item }: { item: AttentionItem }) {
   const tone = toneStyles[item.tone];
-  const icon =
-    item.eyebrow.toLowerCase().includes("hold")
-      ? Clock01Icon
-      : item.eyebrow.toLowerCase().includes("stock")
-        ? PackageIcon
-        : Alert02Icon;
+  const icon = item.eyebrow.toLowerCase().includes("hold")
+    ? Clock01Icon
+    : item.eyebrow.toLowerCase().includes("stock")
+      ? PackageIcon
+      : Alert02Icon;
 
   return (
     <Link

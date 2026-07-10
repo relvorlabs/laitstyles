@@ -10,20 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { holdSourceLabels, holdStageLabels } from "@/features/control-room/holds/hold-labels";
+import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
 import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
 } from "@/features/control-room/holds/hold-selectors";
-import {
-  holdSourceLabels,
-  holdStageLabels,
-} from "@/features/control-room/holds/hold-labels";
-import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type {
-  ControlRoomHold,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
 
 export function HoldsTable({
   state,

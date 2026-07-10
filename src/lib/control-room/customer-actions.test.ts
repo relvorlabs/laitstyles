@@ -15,9 +15,7 @@ describe("Customer note actions", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const customer = store
-      .getSnapshot()
-      .customers.find((entry) => entry.id === "customer-amara");
+    const customer = store.getSnapshot().customers.find((entry) => entry.id === "customer-amara");
     expect(customer?.notes?.[0]).toMatchObject({
       body: "Prefers the longer inseam when both cuts are available.",
       createdAt: now,

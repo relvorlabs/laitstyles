@@ -1,9 +1,5 @@
+import { ArrowRight01Icon, Search01Icon, Store01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import {
-  ArrowRight01Icon,
-  Search01Icon,
-  Store01Icon,
-} from "@hugeicons/core-free-icons";
 import { buttonVariants } from "@/components/ui/button";
 import { ActivityStream } from "@/features/control-room/overview/activity-stream";
 import { AttentionQueue } from "@/features/control-room/overview/attention-queue";
@@ -33,7 +29,8 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
             See the store clearly before deciding what to do next.
           </h1>
           <p className="mt-4 max-w-[700px] text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
-            One operating view for store health, customer promises and the next decisions—not a wall of repeated dashboard cards.
+            One operating view for store health, customer promises and the next decisions—not a wall
+            of repeated dashboard cards.
           </p>
         </div>
 
@@ -94,10 +91,7 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
         </div>
 
         <div className="order-7 xl:col-start-2 xl:row-span-2 xl:row-start-3">
-          <ActivityStream
-            activities={snapshot.recentActivities}
-            asOf={state.asOf}
-          />
+          <ActivityStream activities={snapshot.recentActivities} asOf={state.asOf} />
         </div>
       </div>
     </div>

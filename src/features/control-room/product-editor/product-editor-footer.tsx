@@ -60,20 +60,12 @@ export function ProductEditorFooter({
               >
                 Schedule
               </Button>
-              <Button
-                className="h-11 rounded-full px-6"
-                onClick={onPublish}
-                type="button"
-              >
+              <Button className="h-11 rounded-full px-6" onClick={onPublish} type="button">
                 Publish now
               </Button>
             </>
           ) : (
-            <Button
-              className="h-11 rounded-full px-6"
-              onClick={onNext}
-              type="button"
-            >
+            <Button className="h-11 rounded-full px-6" onClick={onNext} type="button">
               Continue
             </Button>
           )}

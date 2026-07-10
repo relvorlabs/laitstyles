@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -25,24 +22,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
 import { returnStatusLabels } from "@/features/control-room/returns/return-labels";
 import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
+import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
 import type { ReturnActionFeedback } from "@/features/control-room/returns/return-types";
-import type {
-  ControlRoomReturn,
-  ControlRoomState,
-  ReturnStatus,
-} from "@/lib/control-room/types";
 import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
 import { getPermittedReturnTransitions } from "@/lib/control-room/sales-selectors";
+import type { ControlRoomReturn, ControlRoomState, ReturnStatus } from "@/lib/control-room/types";
 
-const confirmationStatuses = new Set<ReturnStatus>([
-  "refunded",
-  "damaged",
-  "rejected",
-]);
+const confirmationStatuses = new Set<ReturnStatus>(["refunded", "damaged", "rejected"]);
 
 export function ReturnDetailSheet({
   state,
@@ -66,13 +54,14 @@ export function ReturnDetailSheet({
   const item = toReturnWorkspaceItem(state, returnRecord);
   const order = state.orders.find((entry) => entry.id === returnRecord.orderId);
   const permitted = getPermittedReturnTransitions(returnRecord.status);
+  const returnId = returnRecord.id;
 
   function requestTransition(status: ReturnStatus) {
     if (confirmationStatuses.has(status)) {
       setPendingStatus(status);
       return;
     }
-    onTransition(returnRecord.id, status);
+    onTransition(returnId, status);
   }
 
   return (
@@ -92,7 +81,8 @@ export function ReturnDetailSheet({
                   Customer return
                 </SheetTitle>
                 <SheetDescription className="mt-2">
-                  {item.customerName} · {item.quantity} unit{item.quantity === 1 ? "" : "s"}
+                  {item.customerName} · {item.quantity} unit
+                  {item.quantity === 1 ? "" : "s"}
                 </SheetDescription>
               </div>
               <ReturnStatusBadge status={returnRecord.status} />
@@ -117,7 +107,10 @@ export function ReturnDetailSheet({
                   <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                     Return value
                   </p>
-                  <h2 className="mt-2 font-serif text-[34px] font-medium tabular-nums" id="return-summary-title">
+                  <h2
+                    className="mt-2 font-serif text-[34px] font-medium tabular-nums"
+                    id="return-summary-title"
+                  >
                     {formatNaira(returnRecord.refundAmount)}
                   </h2>
                 </div>
@@ -172,8 +165,10 @@ export function ReturnDetailSheet({
                   <p className="mt-2 text-sm leading-6">{returnRecord.reason}</p>
                 </div>
                 <div className="rounded-[16px] border border-border bg-card p-4 text-sm leading-6 text-muted-foreground">
-                  Requested {formatRelativeTime(state.asOf, returnRecord.requestedAt)}<br />
-                  Order total {formatNaira(order?.total ?? 0)}<br />
+                  Requested {formatRelativeTime(state.asOf, returnRecord.requestedAt)}
+                  <br />
+                  Order total {formatNaira(order?.total ?? 0)}
+                  <br />
                   Payment {order?.paymentStatus.replaceAll("-", " ") ?? "Unavailable"}
                 </div>
               </div>
@@ -201,7 +196,9 @@ export function ReturnDetailSheet({
                       key={status}
                       onClick={() => requestTransition(status)}
                       type="button"
-                      variant={index === 0 && !confirmationStatuses.has(status) ? "default" : "outline"}
+                      variant={
+                        index === 0 && !confirmationStatuses.has(status) ? "default" : "outline"
+                      }
                     >
                       {returnStatusLabels[status]}
                     </Button>
@@ -213,7 +210,9 @@ export function ReturnDetailSheet({
                 </p>
               )}
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                “Refund recorded” changes only the prototype record; it does not send money. Restock and damage actions move the exact returned quantity into the selected inventory bucket.
+                “Refund recorded” changes only the prototype record; it does not send money. Restock
+                and damage actions move the exact returned quantity into the selected inventory
+                bucket.
               </p>
             </section>
           </div>
@@ -229,7 +228,8 @@ export function ReturnDetailSheet({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Confirm {pendingStatus ? returnStatusLabels[pendingStatus].toLowerCase() : "return action"}?
+              Confirm{" "}
+              {pendingStatus ? returnStatusLabels[pendingStatus].toLowerCase() : "return action"}?
             </AlertDialogTitle>
             <AlertDialogDescription>
               {getConfirmationDescription(pendingStatus, returnRecord)}
@@ -239,10 +239,14 @@ export function ReturnDetailSheet({
             <AlertDialogCancel>Keep current status</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (pendingStatus) onTransition(returnRecord.id, pendingStatus);
+                if (pendingStatus) onTransition(returnId, pendingStatus);
                 setPendingStatus(null);
               }}
-              variant={pendingStatus === "damaged" || pendingStatus === "rejected" ? "destructive" : "default"}
+              variant={
+                pendingStatus === "damaged" || pendingStatus === "rejected"
+                  ? "destructive"
+                  : "default"
+              }
             >
               Confirm action
             </AlertDialogAction>
@@ -266,10 +270,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function getConfirmationDescription(
-  status: ReturnStatus | null,
-  record: ControlRoomReturn,
-) {
+function getConfirmationDescription(status: ReturnStatus | null, record: ControlRoomReturn) {
   if (status === "refunded") {
     return `${formatNaira(record.refundAmount)} will be marked as refunded in the prototype. No payment provider or bank transfer is triggered.`;
   }

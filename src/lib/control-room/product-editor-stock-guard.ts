@@ -11,10 +11,7 @@ export function validateCommittedStockEdit(
   if (!existingProduct) return [];
 
   const totalCommitted = getProductCommittedQuantity(existingProduct);
-  if (
-    existingProduct.inventoryMode !== values.inventoryMode &&
-    totalCommitted > 0
-  ) {
+  if (existingProduct.inventoryMode !== values.inventoryMode && totalCommitted > 0) {
     return [
       {
         path: "inventoryMode",
@@ -25,10 +22,7 @@ export function validateCommittedStockEdit(
     ];
   }
 
-  if (
-    existingProduct.inventoryMode === "stocked" &&
-    values.inventoryMode === "stocked"
-  ) {
+  if (existingProduct.inventoryMode === "stocked" && values.inventoryMode === "stocked") {
     const committed = getCommittedQuantity(existingProduct.stock);
     return values.stocked.quantity < committed
       ? [
@@ -41,10 +35,7 @@ export function validateCommittedStockEdit(
       : [];
   }
 
-  if (
-    existingProduct.inventoryMode === "unique" &&
-    values.inventoryMode === "unique"
-  ) {
+  if (existingProduct.inventoryMode === "unique" && values.inventoryMode === "unique") {
     const committed = getCommittedQuantity(existingProduct.stock);
     return committed > 1
       ? [
@@ -58,15 +49,9 @@ export function validateCommittedStockEdit(
       : [];
   }
 
-  if (
-    existingProduct.inventoryMode === "variant" &&
-    values.inventoryMode === "variant"
-  ) {
+  if (existingProduct.inventoryMode === "variant" && values.inventoryMode === "variant") {
     const editorVariantById = new Map(
-      values.variant.variants.map((variant, index) => [
-        variant.id,
-        { variant, index },
-      ]),
+      values.variant.variants.map((variant, index) => [variant.id, { variant, index }]),
     );
     const issues: ProductEditorIssue[] = [];
 

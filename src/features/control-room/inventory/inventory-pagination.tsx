@@ -39,8 +39,11 @@ export function InventoryPagination({
     >
       <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
         <span aria-live="polite">
-          Showing <strong className="font-semibold text-foreground">{firstItem}–{lastItem}</strong> of{" "}
-          <strong className="font-semibold text-foreground">{totalItems}</strong>
+          Showing{" "}
+          <strong className="font-semibold text-foreground">
+            {firstItem}–{lastItem}
+          </strong>{" "}
+          of <strong className="font-semibold text-foreground">{totalItems}</strong>
         </span>
         <div className="flex items-center gap-2">
           <span className="text-xs">Items per page</span>

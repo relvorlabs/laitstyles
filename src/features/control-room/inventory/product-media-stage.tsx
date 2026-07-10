@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { ProductMedia } from "@/lib/control-room/types";
 

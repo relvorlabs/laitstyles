@@ -1,12 +1,6 @@
 import { TruckDeliveryIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { FulfilmentLaneItem } from "@/lib/control-room/types";
 

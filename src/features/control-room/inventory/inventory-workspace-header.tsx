@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CatalogueTaxonomyManager } from "@/features/control-room/inventory/catalogue-taxonomy-manager";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
@@ -15,7 +15,8 @@ export function InventoryWorkspaceHeader() {
           See every piece, unit and variant as one catalogue truth.
         </h1>
         <p className="mt-4 max-w-[760px] text-[14px] leading-6 text-muted-foreground">
-          Product imagery leads the workspace, while stock, managed categories, collections, holds, visibility and sales stay close enough for daily decisions.
+          Product imagery leads the workspace, while stock, managed categories, collections, holds,
+          visibility and sales stay close enough for daily decisions.
         </p>
       </div>
       <div className="flex flex-wrap gap-2 xl:justify-end">

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { Expand } from "lucide-react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Expand } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,9 +41,7 @@ export function InventoryTable({
   onOpen,
   onOpenMedia,
 }: InventoryTableProps) {
-  const visibleSelected = items.filter((item) =>
-    selectedIds.has(item.product.id),
-  ).length;
+  const visibleSelected = items.filter((item) => selectedIds.has(item.product.id)).length;
   const allSelected = items.length > 0 && visibleSelected === items.length;
   const partiallySelected = visibleSelected > 0 && !allSelected;
 
@@ -63,9 +61,7 @@ export function InventoryTable({
             <TableHead className="min-w-[300px]">Product</TableHead>
             <TableHead className="hidden xl:table-cell">Mode</TableHead>
             <TableHead className="text-right">Available</TableHead>
-            <TableHead className="hidden text-right xl:table-cell">
-              Reserved
-            </TableHead>
+            <TableHead className="hidden text-right xl:table-cell">Reserved</TableHead>
             <TableHead className="hidden text-right xl:table-cell">Sold</TableHead>
             <TableHead className="text-right">Price</TableHead>
             <TableHead>Status & visibility</TableHead>
@@ -80,10 +76,7 @@ export function InventoryTable({
             const selected = selectedIds.has(item.product.id);
 
             return (
-              <TableRow
-                data-state={selected ? "selected" : undefined}
-                key={item.product.id}
-              >
+              <TableRow data-state={selected ? "selected" : undefined} key={item.product.id}>
                 <TableCell className="px-4">
                   <Checkbox
                     aria-label={`Select ${item.product.name}`}
@@ -98,9 +91,7 @@ export function InventoryTable({
                     <button
                       aria-label={`Preview images for ${item.product.name}`}
                       className="group/media relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded-[10px] bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() =>
-                        onOpenMedia(item.product.id, item.coverImage.id)
-                      }
+                      onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                       type="button"
                     >
                       <Image
@@ -141,17 +132,13 @@ export function InventoryTable({
                   {item.stock.sold}
                 </TableCell>
                 <TableCell className="text-right font-semibold tabular-nums">
-                  {item.product.price > 0
-                    ? formatNaira(item.product.price)
-                    : "Needs price"}
+                  {item.product.price > 0 ? formatNaira(item.product.price) : "Needs price"}
                 </TableCell>
                 <TableCell>
                   <div className="flex max-w-[220px] flex-wrap items-center gap-1.5">
                     <InventoryStatusBadge health={item.health} />
                     <Badge variant="outline">
-                      {item.product.publication === "published"
-                        ? "Published"
-                        : "Not published"}
+                      {item.product.publication === "published" ? "Published" : "Not published"}
                     </Badge>
                     {item.product.channels.slice(0, 1).map((channel) => (
                       <Badge key={channel} variant="secondary">
@@ -159,9 +146,7 @@ export function InventoryTable({
                       </Badge>
                     ))}
                     {item.product.channels.length > 1 ? (
-                      <Badge variant="outline">
-                        +{item.product.channels.length - 1}
-                      </Badge>
+                      <Badge variant="outline">+{item.product.channels.length - 1}</Badge>
                     ) : null}
                   </div>
                 </TableCell>

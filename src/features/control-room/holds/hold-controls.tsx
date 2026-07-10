@@ -2,11 +2,7 @@
 
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -42,11 +38,9 @@ export function HoldControls({
     query.source !== "all" ||
     query.stage !== "all" ||
     query.sort !== "expiry-asc";
-  const stageLabel =
-    query.stage === "all" ? "All stages" : holdStageLabels[query.stage];
+  const stageLabel = query.stage === "all" ? "All stages" : holdStageLabels[query.stage];
   const sortLabel =
-    holdSortOptions.find((option) => option.value === query.sort)?.label ??
-    "Releasing soonest";
+    holdSortOptions.find((option) => option.value === query.sort)?.label ?? "Releasing soonest";
 
   return (
     <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
@@ -73,9 +67,7 @@ export function HoldControls({
           value={query.source}
         >
           <SelectTrigger aria-label="Filter holds by source" className="h-11 w-full">
-            <span className="flex-1 truncate text-left">
-              {sourceLabels[query.source]}
-            </span>
+            <span className="flex-1 truncate text-left">{sourceLabels[query.source]}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -132,18 +124,11 @@ export function HoldControls({
 
       <div className="flex min-h-8 items-center justify-between gap-3 text-[11.5px] text-muted-foreground">
         <span>
-          <strong className="font-semibold text-foreground tabular-nums">
-            {resultCount}
-          </strong>{" "}
-          hold{resultCount === 1 ? "" : "s"} in this view
+          <strong className="font-semibold text-foreground tabular-nums">{resultCount}</strong> hold
+          {resultCount === 1 ? "" : "s"} in this view
         </span>
         {hasFilters ? (
-          <Button
-            className="h-8 rounded-full px-3"
-            onClick={onReset}
-            type="button"
-            variant="ghost"
-          >
+          <Button className="h-8 rounded-full px-3" onClick={onReset} type="button" variant="ghost">
             Reset filters
           </Button>
         ) : null}

@@ -6,11 +6,7 @@ import {
 } from "@/features/control-room/customers/customer-labels";
 import type { CustomerTimelineEvent } from "@/lib/control-room/customer-types";
 
-export function CustomerTimelinePanel({
-  events,
-}: {
-  events: CustomerTimelineEvent[];
-}) {
+export function CustomerTimelinePanel({ events }: { events: CustomerTimelineEvent[] }) {
   if (!events.length) {
     return (
       <p className="rounded-[16px] border border-dashed border-border p-5 text-sm leading-6 text-muted-foreground">
@@ -36,9 +32,7 @@ export function CustomerTimelinePanel({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">
-                    {customerTimelineLabels[event.kind]}
-                  </Badge>
+                  <Badge variant="outline">{customerTimelineLabels[event.kind]}</Badge>
                   <span className="text-[10.5px] text-muted-foreground">
                     {formatCustomerDateTime(event.occurredAt)}
                   </span>

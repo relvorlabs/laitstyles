@@ -16,11 +16,8 @@ export function StockedProductFields() {
     control,
     name: ["productId", "stocked.quantity"],
   });
-  const existingProduct = state.products.find(
-    (product) => product.id === productId,
-  );
-  const existing =
-    existingProduct?.inventoryMode === "stocked" ? existingProduct : undefined;
+  const existingProduct = state.products.find((product) => product.id === productId);
+  const existing = existingProduct?.inventoryMode === "stocked" ? existingProduct : undefined;
   const committed = existing
     ? existing.stock.reserved +
       existing.stock.sold +
@@ -36,7 +33,8 @@ export function StockedProductFields() {
         <div>
           <p className="text-[12.5px] font-semibold">One catalogue SKU, one shared stock count.</p>
           <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-            Use this for 50 matching Adidas jeans or any product whose units are interchangeable. If size or colour needs a different quantity, use variants instead.
+            Use this for 50 matching Adidas jeans or any product whose units are interchangeable. If
+            size or colour needs a different quantity, use variants instead.
           </p>
         </div>
         <div className="grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card px-2 py-3 text-center">
@@ -47,7 +45,8 @@ export function StockedProductFields() {
 
       {committed > totalReceived ? (
         <p className="rounded-xl border border-warning/40 bg-warning-surface p-4 text-sm text-warning-surface-foreground">
-          {committed} units are already reserved, sold, returned or damaged. Total received cannot be reduced below committed stock without a separate stock adjustment.
+          {committed} units are already reserved, sold, returned or damaged. Total received cannot
+          be reduced below committed stock without a separate stock adjustment.
         </p>
       ) : null}
 
@@ -58,11 +57,7 @@ export function StockedProductFields() {
             name="stocked.sizeLabel"
             placeholder="Relaxed M/L or One size"
           />
-          <EditorTextField
-            label="Colour"
-            name="stocked.colour"
-            placeholder="Indigo"
-          />
+          <EditorTextField label="Colour" name="stocked.colour" placeholder="Indigo" />
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
@@ -90,7 +85,9 @@ function StockFigure({ label, value }: { label: string; value: number }) {
   return (
     <div className="min-w-[112px] px-3">
       <p className="font-serif text-2xl font-medium tabular-nums">{value}</p>
-      <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+        {label}
+      </p>
     </div>
   );
 }

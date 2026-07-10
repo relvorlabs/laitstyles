@@ -29,9 +29,11 @@ const holdsState: ControlRoomState = {
 
 describe("Holds workspace selectors", () => {
   it("sorts holds by release time by default", () => {
-    expect(
-      queryHolds(holdsState, defaultHoldQuery).map((hold) => hold.id),
-    ).toEqual(["hold-botanical", "hold-tank", "hold-tote"]);
+    expect(queryHolds(holdsState, defaultHoldQuery).map((hold) => hold.id)).toEqual([
+      "hold-botanical",
+      "hold-tank",
+      "hold-tote",
+    ]);
   });
 
   it("derives expiring and payment-risk views from the session clock", () => {

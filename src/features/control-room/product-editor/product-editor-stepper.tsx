@@ -68,9 +68,7 @@ export function ProductEditorStepper({
                   >
                     {complete ? "✓" : index + 1}
                   </span>
-                  <span className="text-[12px] font-semibold">
-                    {productEditorStepLabels[step]}
-                  </span>
+                  <span className="text-[12px] font-semibold">{productEditorStepLabels[step]}</span>
                 </button>
               </li>
             );

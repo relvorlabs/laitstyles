@@ -7,12 +7,7 @@ type SectionHeadingProps = {
   action?: ReactNode;
 };
 
-export function SectionHeading({
-  eyebrow,
-  title,
-  description,
-  action,
-}: SectionHeadingProps) {
+export function SectionHeading({ eyebrow, title, description, action }: SectionHeadingProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">

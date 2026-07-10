@@ -1,7 +1,4 @@
-import type {
-  InventoryMode,
-  InventoryProduct,
-} from "@/lib/control-room/inventory-types";
+import type { InventoryMode, InventoryProduct } from "@/lib/control-room/inventory-types";
 import type {
   ProductEditorBase,
   ProductEditorValues,
@@ -69,9 +66,7 @@ export function changeProductEditorMode(
   return withMode(base, mode);
 }
 
-export function createProductEditorValues(
-  product: InventoryProduct,
-): ProductEditorValues {
+export function createProductEditorValues(product: InventoryProduct): ProductEditorValues {
   const base: ProductEditorBase = {
     productId: product.id,
     inventoryMode: product.inventoryMode,
@@ -142,10 +137,7 @@ export function createProductEditorValues(
   };
 }
 
-function withMode(
-  base: ProductEditorBase,
-  mode: InventoryMode,
-): ProductEditorValues {
+function withMode(base: ProductEditorBase, mode: InventoryMode): ProductEditorValues {
   if (mode === "unique") {
     return {
       ...base,

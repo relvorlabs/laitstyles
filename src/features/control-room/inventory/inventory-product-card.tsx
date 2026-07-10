@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowUpRight, Expand } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,9 +74,7 @@ export function InventoryProductCard({
             <p className="truncate text-[8.5px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
               {product.category} · {item.reference}
             </p>
-            <h3 className="mt-0.5 truncate text-[13px] font-semibold leading-5">
-              {product.name}
-            </h3>
+            <h3 className="mt-0.5 truncate text-[13px] font-semibold leading-5">{product.name}</h3>
           </button>
           <Button
             aria-label={`Open ${product.name} record`}

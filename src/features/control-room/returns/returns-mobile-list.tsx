@@ -3,14 +3,11 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
 import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
-import type {
-  ControlRoomReturn,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
+import type { ControlRoomReturn, ControlRoomState } from "@/lib/control-room/types";
 
 export function ReturnsMobileList({
   state,
@@ -36,9 +33,7 @@ export function ReturnsMobileList({
                   <h2 className="mt-2 truncate font-serif text-[23px] font-medium">
                     {item.productNames[0] ?? "Returned product"}
                   </h2>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {item.customerName}
-                  </p>
+                  <p className="mt-1 truncate text-sm text-muted-foreground">{item.customerName}</p>
                 </div>
                 <ReturnStatusBadge status={record.status} />
               </div>

@@ -9,10 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inventorySortOptions } from "@/lib/control-room/inventory-selectors";
-import type {
-  InventoryFacetOptions,
-  InventoryQuery,
-} from "@/lib/control-room/types";
+import type { InventoryFacetOptions, InventoryQuery } from "@/lib/control-room/types";
 
 type InventoryFilterFieldsProps = {
   query: InventoryQuery;
@@ -34,9 +31,7 @@ export function InventoryFilterFields({
       <FilterSelect
         className={triggerClassName}
         label="Product mode"
-        onChange={(value) =>
-          onQueryChange({ mode: value as InventoryQuery["mode"] })
-        }
+        onChange={(value) => onQueryChange({ mode: value as InventoryQuery["mode"] })}
         options={[
           ["all", "All modes"],
           ["unique", "Unique pieces"],
@@ -48,9 +43,7 @@ export function InventoryFilterFields({
       <FilterSelect
         className={triggerClassName}
         label="Stock status"
-        onChange={(value) =>
-          onQueryChange({ stock: value as InventoryQuery["stock"] })
-        }
+        onChange={(value) => onQueryChange({ stock: value as InventoryQuery["stock"] })}
         options={[
           ["all", "All stock"],
           ["healthy", "Available"],
@@ -84,9 +77,7 @@ export function InventoryFilterFields({
       <FilterSelect
         className={triggerClassName}
         label="Channel"
-        onChange={(value) =>
-          onQueryChange({ channel: value as InventoryQuery["channel"] })
-        }
+        onChange={(value) => onQueryChange({ channel: value as InventoryQuery["channel"] })}
         options={[
           ["all", "All channels"],
           ["storefront", "Storefront"],
@@ -99,12 +90,8 @@ export function InventoryFilterFields({
       <FilterSelect
         className={triggerClassName}
         label="Sort"
-        onChange={(value) =>
-          onQueryChange({ sort: value as InventoryQuery["sort"] })
-        }
-        options={inventorySortOptions.map(
-          (option) => [option.value, option.label] as const,
-        )}
+        onChange={(value) => onQueryChange({ sort: value as InventoryQuery["sort"] })}
+        options={inventorySortOptions.map((option) => [option.value, option.label] as const)}
         value={query.sort}
       />
     </>
@@ -119,13 +106,7 @@ type FilterSelectProps = {
   onChange: (value: string) => void;
 };
 
-function FilterSelect({
-  label,
-  value,
-  className,
-  options,
-  onChange,
-}: FilterSelectProps) {
+function FilterSelect({ label, value, className, options, onChange }: FilterSelectProps) {
   return (
     <Select onValueChange={(next) => onChange(next ?? "all")} value={value}>
       <SelectTrigger aria-label={label} className={className}>

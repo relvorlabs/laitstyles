@@ -10,11 +10,7 @@ type InventorySavedViewsProps = {
   onChange: (view: InventorySavedView) => void;
 };
 
-export function InventorySavedViews({
-  value,
-  counts,
-  onChange,
-}: InventorySavedViewsProps) {
+export function InventorySavedViews({ value, counts, onChange }: InventorySavedViewsProps) {
   return (
     <div
       aria-label="Inventory saved views"
@@ -44,9 +40,7 @@ export function InventorySavedViews({
               >
                 {counts[view.value]}
               </span>
-              {active ? (
-                <span className="absolute inset-x-2 bottom-0 h-0.5 bg-primary" />
-              ) : null}
+              {active ? <span className="absolute inset-x-2 bottom-0 h-0.5 bg-primary" /> : null}
             </button>
           );
         })}

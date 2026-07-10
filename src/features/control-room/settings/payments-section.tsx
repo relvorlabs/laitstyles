@@ -4,23 +4,15 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
 import {
   SettingsNumberField,
   SettingsSelectField,
   SettingsTextareaField,
 } from "@/features/control-room/settings/settings-fields";
-import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
 import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
-import type {
-  AcceptedPaymentMethod,
-  SaveStoreSettingsInput,
-} from "@/lib/control-room/types";
+import type { AcceptedPaymentMethod, SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 const paymentMethods: ReadonlyArray<{
   value: AcceptedPaymentMethod;
@@ -71,10 +63,7 @@ export function PaymentsSection() {
     control,
     name: "payments",
   }) as SaveStoreSettingsInput["payments"];
-  const acceptedMethodsError = getSettingsFieldError(
-    errors,
-    "payments.acceptedMethods",
-  );
+  const acceptedMethodsError = getSettingsFieldError(errors, "payments.acceptedMethods");
 
   function togglePaymentMethod(method: AcceptedPaymentMethod, enabled: boolean) {
     const current = getValues("payments.acceptedMethods");
@@ -96,10 +85,7 @@ export function PaymentsSection() {
   const payOnDelivery = payments?.acceptedMethods?.includes("pay-on-delivery");
 
   return (
-    <SettingsSectionFrame
-      aside={<PaymentsPreview payments={payments} />}
-      section="payments"
-    >
+    <SettingsSectionFrame aside={<PaymentsPreview payments={payments} />} section="payments">
       <div>
         <h3 className="text-base font-semibold">Accepted payment methods</h3>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -112,20 +98,13 @@ export function PaymentsSection() {
               key={method.value}
               name="payments.acceptedMethods"
               render={({ field }) => {
-                const checked = (field.value as AcceptedPaymentMethod[]).includes(
-                  method.value,
-                );
+                const checked = (field.value as AcceptedPaymentMethod[]).includes(method.value);
                 return (
-                  <Field
-                    className="rounded-xl border border-border p-4"
-                    orientation="horizontal"
-                  >
+                  <Field className="rounded-xl border border-border p-4" orientation="horizontal">
                     <Checkbox
                       aria-label={`Accept ${method.label}`}
                       checked={checked}
-                      onCheckedChange={(value) =>
-                        togglePaymentMethod(method.value, Boolean(value))
-                      }
+                      onCheckedChange={(value) => togglePaymentMethod(method.value, Boolean(value))}
                     />
                     <div className="min-w-0 flex-1">
                       <FieldLabel>{method.label}</FieldLabel>
@@ -174,17 +153,14 @@ export function PaymentsSection() {
       </div>
 
       <div className="rounded-xl border border-border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground">
-        These choices describe store policy only. The store still handles collection, payment checks, deposits and refunds outside this page.
+        These choices describe store policy only. The store still handles collection, payment
+        checks, deposits and refunds outside this page.
       </div>
     </SettingsSectionFrame>
   );
 }
 
-function PaymentsPreview({
-  payments,
-}: {
-  payments: SaveStoreSettingsInput["payments"];
-}) {
+function PaymentsPreview({ payments }: { payments: SaveStoreSettingsInput["payments"] }) {
   const active = paymentMethods.filter((method) =>
     payments?.acceptedMethods?.includes(method.value),
   );
@@ -207,9 +183,7 @@ function PaymentsPreview({
           </Badge>
         ))}
         {!active.length ? (
-          <p className="text-xs text-destructive">
-            Choose at least one payment method.
-          </p>
+          <p className="text-xs text-destructive">Choose at least one payment method.</p>
         ) : null}
       </div>
       <div className="rounded-xl border border-border p-3">

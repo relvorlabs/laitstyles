@@ -1,4 +1,3 @@
-import { CustomersWorkspace } from "@/features/control-room/customers/customers-workspace";
 import {
   customerSavedViews,
   customerSortOptions,
@@ -9,6 +8,7 @@ import type {
   CustomerSortKey,
   CustomerTypeFilter,
 } from "@/features/control-room/customers/customer-types";
+import { CustomersWorkspace } from "@/features/control-room/customers/customers-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 type CustomersPageProps = {
@@ -21,9 +21,7 @@ type CustomersPageProps = {
   }>;
 };
 
-const viewValues = new Set<CustomerSavedView>(
-  customerSavedViews.map((view) => view.value),
-);
+const viewValues = new Set<CustomerSavedView>(customerSavedViews.map((view) => view.value));
 const typeValues = new Set<CustomerTypeFilter>([
   "all",
   "individual",
@@ -31,19 +29,15 @@ const typeValues = new Set<CustomerTypeFilter>([
   "reseller",
   "walk-in",
 ]);
-const sortValues = new Set<CustomerSortKey>(
-  customerSortOptions.map((option) => option.value),
-);
+const sortValues = new Set<CustomerSortKey>(customerSortOptions.map((option) => option.value));
 
-export default async function CustomersPage({
-  searchParams,
-}: CustomersPageProps) {
+export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const params = await searchParams;
   const requestedCustomer = first(params.customer);
   const initialOpenCustomerId = activeControlRoomSeed.customers.some(
     (customer) => customer.id === requestedCustomer,
   )
-    ? requestedCustomer ?? null
+    ? (requestedCustomer ?? null)
     : null;
 
   return (

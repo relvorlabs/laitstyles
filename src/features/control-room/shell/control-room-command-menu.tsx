@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import {
   ArrowUpRight01Icon,
   ChartIncreaseIcon,
@@ -10,6 +8,8 @@ import {
   Search01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
+import { useRouter } from "next/navigation";
+import { useEffect, useEffectEvent, useMemo } from "react";
 import {
   Command,
   CommandDialog,
@@ -21,8 +21,8 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { settingsSections } from "@/features/control-room/settings/settings-config";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
 
@@ -65,22 +65,14 @@ const inventoryTargets = [
   },
 ] as const;
 
-const terminalOrderStatuses = new Set([
-  "delivered",
-  "cancelled",
-  "refunded",
-  "returned",
-]);
+const terminalOrderStatuses = new Set(["delivered", "cancelled", "refunded", "returned"]);
 
 type ControlRoomCommandMenuProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function ControlRoomCommandMenu({
-  open,
-  onOpenChange,
-}: ControlRoomCommandMenuProps) {
+export function ControlRoomCommandMenu({ open, onOpenChange }: ControlRoomCommandMenuProps) {
   const router = useRouter();
   const { state } = useControlRoom();
   const toggleOpen = useEffectEvent(() => onOpenChange(!open));
@@ -88,23 +80,20 @@ export function ControlRoomCommandMenu({
   const records = useMemo(() => {
     const products = state.products
       .toSorted(
-        (left, right) =>
-          new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+        (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
       )
       .slice(0, 7);
     const orders = state.orders
       .filter((order) => !terminalOrderStatuses.has(order.fulfilmentStatus))
       .toSorted(
-        (left, right) =>
-          new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime(),
+        (left, right) => new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime(),
       )
       .slice(0, 6);
     const customers = state.customers.slice(0, 6);
     const holds = state.holds
       .filter((hold) => !hold.status || hold.status === "active")
       .toSorted(
-        (left, right) =>
-          new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime(),
+        (left, right) => new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime(),
       )
       .slice(0, 5);
 
@@ -281,9 +270,7 @@ function CommandRecord({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">{label}</span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-          {detail}
-        </span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{detail}</span>
       </span>
     </CommandItem>
   );

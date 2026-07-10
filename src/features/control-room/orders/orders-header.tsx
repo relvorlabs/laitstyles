@@ -14,8 +14,8 @@ export function OrdersHeader() {
           Orders
         </h1>
         <p className="mt-4 max-w-[680px] text-[13px] leading-6 text-muted-foreground sm:text-[14px]">
-          Move paid work through fulfilment, keep payment exceptions visible,
-          and preserve one connected stock and revenue record.
+          Move paid work through fulfilment, keep payment exceptions visible, and preserve one
+          connected stock and revenue record.
         </p>
       </div>
 

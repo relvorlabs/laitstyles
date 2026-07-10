@@ -39,8 +39,7 @@ export function SettingsSaveBar({
       <Card className="sticky bottom-3 z-30 mt-6 gap-4 border-border/80 bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div aria-live="polite" className="min-w-0">
           <p className="text-sm font-medium">
-            {feedback?.title ??
-              (dirty ? "Unsaved store changes" : "Store settings are up to date")}
+            {feedback?.title ?? (dirty ? "Unsaved store changes" : "Store settings are up to date")}
           </p>
           <p
             className={
@@ -65,11 +64,7 @@ export function SettingsSaveBar({
           >
             Discard changes
           </Button>
-          <Button
-            className="h-11"
-            disabled={!dirty || submitting}
-            type="submit"
-          >
+          <Button className="h-11" disabled={!dirty || submitting} type="submit">
             {submitting ? "Saving…" : "Save store settings"}
           </Button>
         </div>
@@ -80,7 +75,8 @@ export function SettingsSaveBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard all unsaved settings?</AlertDialogTitle>
             <AlertDialogDescription>
-              Every change made across Store identity, Selling, Delivery, Payments, Notifications and Team will return to the last saved values.
+              Every change made across Store identity, Selling, Delivery, Payments, Notifications
+              and Team will return to the last saved values.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,8 +1,5 @@
 import { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
-import type {
-  InventoryCounts,
-  InventoryProduct,
-} from "@/lib/control-room/inventory-types";
+import type { InventoryCounts, InventoryProduct } from "@/lib/control-room/inventory-types";
 import { err, ok, type Result } from "@/lib/control-room/result";
 import type { SalesActionError } from "@/lib/control-room/sales-types";
 
@@ -105,9 +102,7 @@ function updateProductStock(
       });
     }
 
-    const variant = product.variants.find(
-      (item) => item.id === mutation.variantId,
-    );
+    const variant = product.variants.find((item) => item.id === mutation.variantId);
     if (!variant) {
       return err({
         code: "variant-not-found",

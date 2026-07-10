@@ -1,7 +1,4 @@
-import type {
-  InventoryCounts,
-  InventoryProduct,
-} from "@/lib/control-room/inventory-types";
+import type { InventoryCounts, InventoryProduct } from "@/lib/control-room/inventory-types";
 import type { InventoryValidationIssue } from "@/lib/control-room/inventory-validation-types";
 import { err, ok, type Result } from "@/lib/control-room/result";
 
@@ -10,10 +7,7 @@ export function validateInventoryProduct(
 ): Result<InventoryProduct, InventoryValidationIssue[]> {
   const issues: InventoryValidationIssue[] = [];
 
-  if (
-    !Number.isInteger(product.lowStockThreshold) ||
-    product.lowStockThreshold < 0
-  ) {
+  if (!Number.isInteger(product.lowStockThreshold) || product.lowStockThreshold < 0) {
     issues.push({
       path: "lowStockThreshold",
       code: "invalid-threshold",
@@ -21,11 +15,8 @@ export function validateInventoryProduct(
     });
   }
 
-  const coverCount = product.media.filter(
-    (item) => item.kind === "cover",
-  ).length;
-  const requiresCover =
-    product.lifecycle !== "draft" && product.lifecycle !== "intake";
+  const coverCount = product.media.filter((item) => item.kind === "cover").length;
+  const requiresCover = product.lifecycle !== "draft" && product.lifecycle !== "intake";
 
   if (requiresCover && coverCount === 0) {
     issues.push({
@@ -73,9 +64,7 @@ export function validateInventoryProduct(
       }
       variantSkus.add(normalizedSku);
 
-      issues.push(
-        ...validateCounts(variant.stock, `variants.${index}.stock`),
-      );
+      issues.push(...validateCounts(variant.stock, `variants.${index}.stock`));
     }
   } else {
     issues.push(...validateCounts(product.stock, "stock"));
@@ -103,14 +92,9 @@ export function validateInventoryProduct(
   return issues.length ? err(issues) : ok(product);
 }
 
-function validateCounts(
-  counts: InventoryCounts,
-  path: string,
-): InventoryValidationIssue[] {
+function validateCounts(counts: InventoryCounts, path: string): InventoryValidationIssue[] {
   const issues: InventoryValidationIssue[] = [];
-  const entries = Object.entries(counts) as Array<
-    [keyof InventoryCounts, number]
-  >;
+  const entries = Object.entries(counts) as Array<[keyof InventoryCounts, number]>;
 
   for (const [key, value] of entries) {
     if (!Number.isInteger(value)) {
@@ -130,18 +114,13 @@ function validateCounts(
   }
 
   const allocated =
-    counts.available +
-    counts.reserved +
-    counts.sold +
-    counts.returned +
-    counts.damaged;
+    counts.available + counts.reserved + counts.sold + counts.returned + counts.damaged;
 
   if (allocated !== counts.totalReceived) {
     issues.push({
       path,
       code: "stock-total-mismatch",
-      message:
-        "Received stock must equal available, reserved, sold, returned and damaged units.",
+      message: "Received stock must equal available, reserved, sold, returned and damaged units.",
     });
   }
 

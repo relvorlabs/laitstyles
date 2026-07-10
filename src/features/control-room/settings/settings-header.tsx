@@ -14,11 +14,13 @@ export function SettingsHeader() {
           Settings
         </h1>
         <p className="mt-3 max-w-2xl text-pretty text-sm leading-6 text-muted-foreground">
-          Shape how the store appears, sells, delivers, accepts payment and shares responsibility in clear business language.
+          Shape how the store appears, sells, delivers, accepts payment and shares responsibility in
+          clear business language.
         </p>
       </div>
       <p className="max-w-sm text-pretty text-xs leading-5 text-muted-foreground md:text-right">
-        Changes remain until the page is refreshed. Payment collection, delivery booking and staff sign-in are not connected here.
+        Changes remain until the page is refreshed. Payment collection, delivery booking and staff
+        sign-in are not connected here.
       </p>
     </header>
   );

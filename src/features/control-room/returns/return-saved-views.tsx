@@ -27,9 +27,7 @@ export function ReturnSavedViews({
             variant={value === view.value ? "secondary" : "ghost"}
           >
             {view.label}
-            <span className="tabular-nums text-muted-foreground">
-              {counts[view.value]}
-            </span>
+            <span className="tabular-nums text-muted-foreground">{counts[view.value]}</span>
           </Button>
         ))}
       </div>

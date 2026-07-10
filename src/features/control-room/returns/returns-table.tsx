@@ -10,14 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
 import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
-import type {
-  ControlRoomReturn,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
+import type { ControlRoomReturn, ControlRoomState } from "@/lib/control-room/types";
 
 export function ReturnsTable({
   state,
@@ -39,7 +36,9 @@ export function ReturnsTable({
             <TableHead className="w-[13%] text-center">Quantity</TableHead>
             <TableHead className="w-[13%]">Value</TableHead>
             <TableHead className="w-[11%]">Status</TableHead>
-            <TableHead className="w-[3%]"><span className="sr-only">Actions</span></TableHead>
+            <TableHead className="w-[3%]">
+              <span className="sr-only">Actions</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,9 +67,15 @@ export function ReturnsTable({
                   </span>
                 </TableCell>
                 <TableCell className="truncate text-[12px]">{item.customerName}</TableCell>
-                <TableCell className="text-center font-semibold tabular-nums">{item.quantity}</TableCell>
-                <TableCell className="font-medium tabular-nums">{formatNaira(record.refundAmount)}</TableCell>
-                <TableCell><ReturnStatusBadge status={record.status} /></TableCell>
+                <TableCell className="text-center font-semibold tabular-nums">
+                  {item.quantity}
+                </TableCell>
+                <TableCell className="font-medium tabular-nums">
+                  {formatNaira(record.refundAmount)}
+                </TableCell>
+                <TableCell>
+                  <ReturnStatusBadge status={record.status} />
+                </TableCell>
                 <TableCell className="px-1 text-right">
                   <Button
                     aria-label={`Open ${record.id}`}

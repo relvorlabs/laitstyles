@@ -24,9 +24,7 @@ export function BrandMark({
       <span
         className={cn(
           "font-semibold uppercase leading-none",
-          compact
-            ? "text-[13px] tracking-[0.24em]"
-            : "text-[15px] tracking-[0.28em]",
+          compact ? "text-[13px] tracking-[0.24em]" : "text-[15px] tracking-[0.28em]",
         )}
       >
         Laitstyle

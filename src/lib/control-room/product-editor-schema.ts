@@ -50,9 +50,7 @@ const baseDraftShape = {
   referencePrice: z.number().nonnegative().nullable(),
   cost: z.number().nonnegative().nullable(),
   lowStockThreshold: z.number().int().nonnegative(),
-  channels: z.array(
-    z.enum(["storefront", "physical-store", "whatsapp", "instagram"]),
-  ),
+  channels: z.array(z.enum(["storefront", "physical-store", "whatsapp", "instagram"])),
   fulfilment: z.object({
     weightKg: z.number().positive().nullable(),
     pickupAvailable: z.boolean(),
@@ -62,47 +60,41 @@ const baseDraftShape = {
   scheduledAt: z.string(),
 };
 
-export const productEditorDraftSchema = z.discriminatedUnion(
-  "inventoryMode",
-  [
-    z.object({
-      ...baseDraftShape,
-      inventoryMode: z.literal("unique"),
-      unique: z.object({
-        condition: z.enum(["Excellent", "Good", "Fair"]),
-        size: z.string(),
-        colour: z.string(),
-        measurements: z.array(measurementSchema),
-      }),
+export const productEditorDraftSchema = z.discriminatedUnion("inventoryMode", [
+  z.object({
+    ...baseDraftShape,
+    inventoryMode: z.literal("unique"),
+    unique: z.object({
+      condition: z.enum(["Excellent", "Good", "Fair"]),
+      size: z.string(),
+      colour: z.string(),
+      measurements: z.array(measurementSchema),
     }),
-    z.object({
-      ...baseDraftShape,
-      inventoryMode: z.literal("stocked"),
-      stocked: z.object({
-        sizeLabel: z.string(),
-        colour: z.string(),
-        quantity: z.number().int().nonnegative(),
-      }),
+  }),
+  z.object({
+    ...baseDraftShape,
+    inventoryMode: z.literal("stocked"),
+    stocked: z.object({
+      sizeLabel: z.string(),
+      colour: z.string(),
+      quantity: z.number().int().nonnegative(),
     }),
-    z.object({
-      ...baseDraftShape,
-      inventoryMode: z.literal("variant"),
-      variant: z.object({
-        optionNames: z.array(z.string()),
-        variants: z.array(variantSchema),
-      }),
+  }),
+  z.object({
+    ...baseDraftShape,
+    inventoryMode: z.literal("variant"),
+    variant: z.object({
+      optionNames: z.array(z.string()),
+      variants: z.array(variantSchema),
     }),
-  ],
-);
+  }),
+]);
 
 const identitySchema = z.object({
   name: z.string().trim().min(2, "Enter a product name."),
   category: z.string().trim().min(1, "Choose a category."),
   brand: z.string().trim().min(1, "Enter a brand or use Unlabelled."),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Add a description with at least 20 characters."),
+  description: z.string().trim().min(20, "Add a description with at least 20 characters."),
   internalReference: z
     .string()
     .trim()
@@ -173,10 +165,7 @@ const stockedStockSchema = z.object({
   stocked: z.object({
     sizeLabel: z.string().trim().min(1, "Enter the product size or fit."),
     colour: z.string().trim().min(1, "Enter the product colour."),
-    quantity: z
-      .number()
-      .int()
-      .min(1, "Received quantity must be at least one."),
+    quantity: z.number().int().min(1, "Received quantity must be at least one."),
   }),
 });
 
@@ -184,9 +173,7 @@ const variantStockSchema = z
   .object({
     inventoryMode: z.literal("variant"),
     variant: z.object({
-      optionNames: z
-        .array(z.string().trim().min(1))
-        .min(1, "Add at least one option name."),
+      optionNames: z.array(z.string().trim().min(1)).min(1, "Add at least one option name."),
       variants: z
         .array(
           variantSchema.extend({
@@ -281,23 +268,13 @@ export function validateProductEditorStep(
   }));
 }
 
-export function validateProductForPublish(
-  values: ProductEditorValues,
-): ProductEditorIssue[] {
-  const steps: ProductEditorStep[] = [
-    "identity",
-    "images",
-    "stock",
-    "pricing",
-    "fulfilment",
-  ];
+export function validateProductForPublish(values: ProductEditorValues): ProductEditorIssue[] {
+  const steps: ProductEditorStep[] = ["identity", "images", "stock", "pricing", "fulfilment"];
 
   return steps.flatMap((step) => validateProductEditorStep(values, step));
 }
 
-export function validateProductForSchedule(
-  values: ProductEditorValues,
-): ProductEditorIssue[] {
+export function validateProductForSchedule(values: ProductEditorValues): ProductEditorIssue[] {
   const issues = validateProductForPublish(values);
   const scheduledAt = Date.parse(values.scheduledAt);
 
@@ -312,10 +289,7 @@ export function validateProductForSchedule(
   return issues;
 }
 
-function isValidMediaUrl(
-  value: string,
-  source: ProductEditorValues["media"][number]["source"],
-) {
+function isValidMediaUrl(value: string, source: ProductEditorValues["media"][number]["source"]) {
   if (source === "local-preview") return value.startsWith("blob:");
   if (value.startsWith("/")) return true;
   try {

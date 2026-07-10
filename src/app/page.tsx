@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import {
   AlertTriangle,
   Clock,
@@ -14,16 +11,9 @@ import {
   Timer,
   Truck,
 } from "lucide-react";
-import {
-  categories,
-  feedItems,
-  feedPool,
-  journal,
-  naira,
-  Product,
-  reducedItems,
-} from "@/lib/catalogue";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +28,16 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  categories,
+  feedItems,
+  feedPool,
+  journal,
+  naira,
+  type Product,
+  reducedItems,
+} from "@/lib/catalogue";
+import { cn } from "@/lib/utils";
 
 type FeedState = "default" | "loading" | "error" | "empty";
 
@@ -107,7 +107,8 @@ function ProductCard({
         "overflow-hidden rounded-[14px] border bg-card p-0",
         product.state === "resYou" && "border-[1.5px] border-accent",
         product.state === "resOthers" && "border-[#EAE8E0] bg-[#F4F3EF]",
-        justDropped && "animate-[leemRise_.45s_cubic-bezier(.33,1,.68,1)] shadow-[0_0_0_2px_var(--accent),0_18px_40px_rgba(124,140,99,.20)]",
+        justDropped &&
+          "animate-[leemRise_.45s_cubic-bezier(.33,1,.68,1)] shadow-[0_0_0_2px_var(--accent),0_18px_40px_rgba(124,140,99,.20)]",
       )}
     >
       <div className="relative flex aspect-[1/1.12] items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#ECEBE5,#DFE0D8)]">
@@ -179,9 +180,7 @@ function ProductCard({
                 <span className="text-[12px] text-[#A7A59B] line-through">
                   {naira(product.original)}
                 </span>
-                <span className="text-[11.5px] font-semibold text-accent">
-                  -{discount}%
-                </span>
+                <span className="text-[11.5px] font-semibold text-accent">-{discount}%</span>
               </>
             ) : null}
           </div>
@@ -229,7 +228,10 @@ function ProductCard({
             {notified ? "We'll let you know" : "Notify me if it frees up"}
           </Button>
         ) : product.state === "sold" ? (
-          <Button variant="outline" className="h-[42px] w-full rounded-full text-[13px] font-medium">
+          <Button
+            variant="outline"
+            className="h-[42px] w-full rounded-full text-[13px] font-medium"
+          >
             Find something similar
           </Button>
         ) : (
@@ -270,8 +272,7 @@ function ErrorFeed({ onRetry }: { onRetry: () => void }) {
       </div>
       <div className="font-serif text-[24px]">Couldn&apos;t load the latest drops</div>
       <AlertDescription className="max-w-[340px] text-[13.5px] leading-[1.55] text-[#8A887E]">
-        The live rail lost connection. Your held pieces are safe — nothing was
-        released.
+        The live rail lost connection. Your held pieces are safe — nothing was released.
       </AlertDescription>
       <Button className="mt-1 h-[46px] rounded-full px-6 text-[14px] font-medium" onClick={onRetry}>
         <RefreshCw data-icon="inline-start" />
@@ -292,8 +293,8 @@ function EmptyFeed({ nextDrop }: { nextDrop: number }) {
           The first drop lands soon
         </EmptyTitle>
         <EmptyDescription className="max-w-[360px] text-[13.5px] leading-[1.6] text-muted-foreground">
-          We&apos;re grading and photographing the opening rail right now. Every
-          piece is one-of-one — be first in line when it goes live.
+          We&apos;re grading and photographing the opening rail right now. Every piece is one-of-one
+          — be first in line when it goes live.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
@@ -357,7 +358,11 @@ export default function Home() {
           if (target) {
             next = next.map((item) =>
               item.id === target.id
-                ? { ...item, state: "resOthers" as const, minutes: 5 + Math.floor(Math.random() * 5) }
+                ? {
+                    ...item,
+                    state: "resOthers" as const,
+                    minutes: 5 + Math.floor(Math.random() * 5),
+                  }
                 : item,
             );
           }
@@ -383,15 +388,17 @@ export default function Home() {
         if (current <= 1) {
           const src = feedPool[poolIdxRef.current % feedPool.length];
           poolIdxRef.current += 1;
-          setItems((currentItems) => [
-            {
-              ...src,
-              id: `${src.id}-${tick}`,
-              state: tick % 2 ? ("lastone" as const) : ("available" as const),
-              dropped: 0,
-            },
-            ...currentItems,
-          ].slice(0, 12));
+          setItems((currentItems) =>
+            [
+              {
+                ...src,
+                id: `${src.id}-${tick}`,
+                state: tick % 2 ? ("lastone" as const) : ("available" as const),
+                dropped: 0,
+              },
+              ...currentItems,
+            ].slice(0, 12),
+          );
           return 210 + Math.floor(Math.random() * 150);
         }
         return current - 1;
@@ -402,9 +409,7 @@ export default function Home() {
   }, [feedState]);
 
   const held = items.filter((item) => item.state === "resYou");
-  const soonest = held.length
-    ? Math.min(...held.map((item) => item.secondsLeft ?? 0))
-    : 0;
+  const soonest = held.length ? Math.min(...held.map((item) => item.secondsLeft ?? 0)) : 0;
 
   function reserve(id: string) {
     setHoldsDismissed(false);
@@ -437,15 +442,17 @@ export default function Home() {
               <em className="font-normal">Now it&apos;s yours.</em>
             </h1>
             <p className="mb-[26px] max-w-[440px] text-[15px] leading-[1.65] text-muted-foreground">
-              A living rail of one-of-one pieces — hand-picked, cleaned, and
-              graded. Every item is the only one. When it&apos;s gone, it&apos;s
-              gone for good.
+              A living rail of one-of-one pieces — hand-picked, cleaned, and graded. Every item is
+              the only one. When it&apos;s gone, it&apos;s gone for good.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button className="h-[52px] rounded-full px-[30px] text-[14.5px] font-semibold">
                 Shop the drop
               </Button>
-              <Button variant="outline" className="h-[52px] rounded-full px-[26px] text-[14.5px] font-medium">
+              <Button
+                variant="outline"
+                className="h-[52px] rounded-full px-[26px] text-[14.5px] font-medium"
+              >
                 How reserving works
               </Button>
             </div>
@@ -559,12 +566,17 @@ export default function Home() {
                     onNotify={() => setNotified((current) => ({ ...current, [product.id]: true }))}
                     onRelease={() => release(product.id)}
                     onReserve={() => reserve(product.id)}
-                    onWish={() => setWished((current) => ({ ...current, [product.id]: !current[product.id] }))}
+                    onWish={() =>
+                      setWished((current) => ({ ...current, [product.id]: !current[product.id] }))
+                    }
                   />
                 ))}
               </div>
               <div className="mt-[26px] flex justify-center">
-                <Button variant="outline" className="h-12 rounded-full px-[30px] text-[14px] font-medium">
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-full px-[30px] text-[14px] font-medium"
+                >
                   Load more pieces
                 </Button>
               </div>
@@ -579,9 +591,7 @@ export default function Home() {
         </section>
 
         <section className="px-1 py-11">
-          <h2 className="mb-[18px] font-serif text-[26px] font-medium">
-            Shop by category
-          </h2>
+          <h2 className="mb-[18px] font-serif text-[26px] font-medium">Shop by category</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
             {categories.map((category) => (
               <Link
@@ -589,7 +599,13 @@ export default function Home() {
                 key={category.name}
                 className="relative flex aspect-[3/4] items-end overflow-hidden rounded-[14px] bg-[linear-gradient(150deg,#6B7360,#474E3F)] p-4"
               >
-                <Image src={category.image} alt={category.name} fill sizes="20vw" className="object-cover" />
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  fill
+                  sizes="20vw"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_45%,rgba(0,0,0,.5))]" />
                 <div className="relative text-white">
                   <div className="font-serif text-[20px]">{category.name}</div>
@@ -617,7 +633,10 @@ export default function Home() {
                 <Link
                   href="#"
                   key={label}
-                  className={cn("inline-flex items-center gap-[7px] rounded-full border px-3.5 py-2 text-[13px]", classes)}
+                  className={cn(
+                    "inline-flex items-center gap-[7px] rounded-full border px-3.5 py-2 text-[13px]",
+                    classes,
+                  )}
                 >
                   <span className={cn("size-2 rounded-full", dot)} />
                   {label}
@@ -646,9 +665,8 @@ export default function Home() {
               How reserving works
             </div>
             <p className="m-0 text-[12.5px] leading-[1.6] text-muted-foreground">
-              Add a piece to your cart to place a <strong>15 min</strong> hold.
-              No one else can buy it while you decide. Don&apos;t check out in
-              time and it quietly returns to the rail.
+              Add a piece to your cart to place a <strong>15 min</strong> hold. No one else can buy
+              it while you decide. Don&apos;t check out in time and it quietly returns to the rail.
             </p>
           </div>
         </section>
@@ -656,7 +674,10 @@ export default function Home() {
         <section className="px-1 py-11">
           <div className="mb-[18px] flex items-center justify-between">
             <h2 className="font-serif text-[26px] font-medium">Recently reduced</h2>
-            <Link href="#" className="text-[13px] text-muted-foreground underline underline-offset-2">
+            <Link
+              href="#"
+              className="text-[13px] text-muted-foreground underline underline-offset-2"
+            >
               See all
             </Link>
           </div>
@@ -664,7 +685,13 @@ export default function Home() {
             {reducedItems.map((item) => (
               <div key={item.name}>
                 <div className="relative aspect-[1/1.1] overflow-hidden rounded-[12px] bg-[linear-gradient(160deg,#ECEBE5,#DFE0D8)]">
-                  <Image src={item.image} alt={item.name} fill sizes="20vw" className="object-cover" />
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    sizes="20vw"
+                    className="object-cover"
+                  />
                   <Badge className="absolute left-3 top-3 rounded-full border border-chip-border bg-chip-bg px-2.5 py-1 text-[11px] font-semibold text-accent">
                     {item.discount}
                   </Badge>
@@ -684,7 +711,10 @@ export default function Home() {
         <section id="journal" className="px-1 py-11">
           <div className="mb-[18px] flex items-center justify-between">
             <h2 className="font-serif text-[26px] font-medium">From the Journal</h2>
-            <Link href="#" className="text-[13px] text-muted-foreground underline underline-offset-2">
+            <Link
+              href="#"
+              className="text-[13px] text-muted-foreground underline underline-offset-2"
+            >
               All stories
             </Link>
           </div>
@@ -692,15 +722,19 @@ export default function Home() {
             {journal.map((item) => (
               <Link href="#" key={item.title} className="block">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-[14px] bg-[linear-gradient(150deg,#5A6152,#3E463A)]">
-                  <Image src={item.image} alt={item.title} fill sizes="33vw" className="object-cover" />
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    sizes="33vw"
+                    className="object-cover"
+                  />
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_45%,rgba(0,0,0,.55))]" />
                   <div className="absolute bottom-4 left-[18px] right-[18px] text-white">
                     <div className="mb-1.5 text-[10.5px] uppercase tracking-[.16em] text-white/78">
                       {item.kicker}
                     </div>
-                    <div className="font-serif text-[20px] leading-[1.15]">
-                      {item.title}
-                    </div>
+                    <div className="font-serif text-[20px] leading-[1.15]">{item.title}</div>
                   </div>
                 </div>
               </Link>
@@ -728,8 +762,8 @@ export default function Home() {
           <div className="flex w-full max-w-[720px] items-center gap-3.5 rounded-full bg-[#20261C] py-2.5 pl-5 pr-3 text-white shadow-[0_20px_50px_rgba(0,0,0,.28)]">
             <span className="size-2 shrink-0 animate-[leemPulse_1.6s_ease-in-out_infinite] rounded-full bg-[#B8CE8E]" />
             <span className="min-w-0 flex-1 text-[13px] leading-[1.4]">
-              You&apos;re holding {held.length === 1 ? "1 piece" : `${held.length} pieces`} — checkout in{" "}
-              <strong className="tabular-nums">{fmt(soonest)}</strong> before{" "}
+              You&apos;re holding {held.length === 1 ? "1 piece" : `${held.length} pieces`} —
+              checkout in <strong className="tabular-nums">{fmt(soonest)}</strong> before{" "}
               {held.length === 1 ? "it releases" : "they release"}.
             </span>
             <Button className="h-[38px] shrink-0 rounded-full bg-white px-5 text-[13px] font-semibold text-primary hover:bg-white/90">

@@ -12,8 +12,7 @@ import type {
   StockMovement,
 } from "@/lib/control-room/types";
 
-const driveImage = (id: string) =>
-  `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+const driveImage = (id: string) => `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
 
 const stock = (
   totalReceived: number,
@@ -77,8 +76,7 @@ const products: InventoryProduct[] = [
     slug: "botanical-jeans",
     inventoryMode: "stocked",
     name: "Botanical Jeans",
-    description:
-      "A straight-leg denim study with botanical linework and a softly washed finish.",
+    description: "A straight-leg denim study with botanical linework and a softly washed finish.",
     category: "Denim",
     collection: "Botanical Study",
     brand: "Laitstyle Studio",
@@ -145,8 +143,7 @@ const products: InventoryProduct[] = [
     slug: "ribbed-studio-tank",
     inventoryMode: "variant",
     name: "Ribbed Studio Tank",
-    description:
-      "A close ribbed tank designed as a quiet base layer in cream and ink.",
+    description: "A close ribbed tank designed as a quiet base layer in cream and ink.",
     category: "Tops",
     collection: "Daily Form",
     brand: "Laitstyle Studio",
@@ -208,8 +205,7 @@ const products: InventoryProduct[] = [
     slug: "canvas-carry-tote",
     inventoryMode: "stocked",
     name: "Canvas Carry Tote",
-    description:
-      "A structured everyday tote in hard-wearing khaki canvas with reinforced handles.",
+    description: "A structured everyday tote in hard-wearing khaki canvas with reinforced handles.",
     category: "Accessories",
     collection: "Carry Study",
     brand: "Wovn",
@@ -239,8 +235,7 @@ const products: InventoryProduct[] = [
     slug: "ivory-linen-wrap-skirt",
     inventoryMode: "unique",
     name: "Ivory Linen Wrap Skirt",
-    description:
-      "A single linen wrap skirt awaiting final measurements and pricing review.",
+    description: "A single linen wrap skirt awaiting final measurements and pricing review.",
     category: "Skirts",
     collection: "Intake Queue",
     brand: "Unlabelled",
@@ -376,8 +371,7 @@ const products: InventoryProduct[] = [
     slug: "herringbone-wool-scarf",
     inventoryMode: "unique",
     name: "Herringbone Wool Scarf",
-    description:
-      "A single grey wool scarf with a quiet herringbone weave, saved as a draft.",
+    description: "A single grey wool scarf with a quiet herringbone weave, saved as a draft.",
     category: "Accessories",
     collection: "Harmattan Notes",
     brand: "Wovn",

@@ -51,6 +51,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static theme bootstrap prevents light/dark hydration flash and contains no user input. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="flex min-h-full flex-col">

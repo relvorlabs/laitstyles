@@ -1,15 +1,3 @@
-import {
-  getHoldRisk,
-  isHoldActive,
-} from "@/lib/control-room/sales-selectors";
-import {
-  getProductCover,
-  getProductReference,
-} from "@/lib/control-room/inventory-selectors";
-import type {
-  ControlRoomHold,
-  ControlRoomState,
-} from "@/lib/control-room/types";
 import type {
   HoldQuery,
   HoldSavedView,
@@ -17,6 +5,9 @@ import type {
   HoldWorkspaceRisk,
   HoldWorkspaceSummary,
 } from "@/features/control-room/holds/hold-types";
+import { getProductCover, getProductReference } from "@/lib/control-room/inventory-selectors";
+import { getHoldRisk, isHoldActive } from "@/lib/control-room/sales-selectors";
+import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
 
 export const defaultHoldQuery: HoldQuery = {
   view: "all",
@@ -64,10 +55,7 @@ export const holdSortOptions: Array<{
   { value: "quantity-desc", label: "Highest quantity" },
 ];
 
-export function queryHolds(
-  state: ControlRoomState,
-  query: HoldQuery,
-): ControlRoomHold[] {
+export function queryHolds(state: ControlRoomState, query: HoldQuery): ControlRoomHold[] {
   const normalizedSearch = normalize(query.search);
 
   return state.holds
@@ -83,27 +71,21 @@ export function queryHolds(
     .toSorted((left, right) => compareHolds(left, right, query.sort));
 }
 
-export function getHoldSavedViewCounts(
-  state: ControlRoomState,
-): Record<HoldSavedView, number> {
+export function getHoldSavedViewCounts(state: ControlRoomState): Record<HoldSavedView, number> {
   return Object.fromEntries(
     holdSavedViews.map((view) => [
       view.value,
-      state.holds.filter((hold) => matchesSavedView(state, hold, view.value))
-        .length,
+      state.holds.filter((hold) => matchesSavedView(state, hold, view.value)).length,
     ]),
   ) as Record<HoldSavedView, number>;
 }
 
-export function getHoldWorkspaceSummary(
-  state: ControlRoomState,
-): HoldWorkspaceSummary {
+export function getHoldWorkspaceSummary(state: ControlRoomState): HoldWorkspaceSummary {
   const items = state.holds.map((hold) => toHoldWorkspaceItem(state, hold));
 
   return {
     totalHolds: items.length,
-    activeHolds: state.holds.filter((hold) => isHoldActive(hold, state.asOf))
-      .length,
+    activeHolds: state.holds.filter((hold) => isHoldActive(hold, state.asOf)).length,
     expiringHolds: items.filter((item) => item.risk === "expiring").length,
     paymentRisk: items.filter((item) => item.risk === "payment-risk").length,
     expiredHolds: items.filter((item) => item.risk === "expired").length,
@@ -189,10 +171,7 @@ export function formatHoldCountdown(seconds: number) {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
-function getOperationalRisk(
-  state: ControlRoomState,
-  hold: ControlRoomHold,
-): HoldWorkspaceRisk {
+function getOperationalRisk(state: ControlRoomState, hold: ControlRoomHold): HoldWorkspaceRisk {
   const status = hold.status ?? "active";
   if (status === "released") return "released";
   if (status === "converted") return "converted";
@@ -201,19 +180,10 @@ function getOperationalRisk(
 }
 
 function getSecondsRemaining(asOf: string, expiresAt: string) {
-  return Math.max(
-    0,
-    Math.floor(
-      (new Date(expiresAt).getTime() - new Date(asOf).getTime()) / 1000,
-    ),
-  );
+  return Math.max(0, Math.floor((new Date(expiresAt).getTime() - new Date(asOf).getTime()) / 1000));
 }
 
-function matchesSearch(
-  state: ControlRoomState,
-  hold: ControlRoomHold,
-  normalizedSearch: string,
-) {
+function matchesSearch(state: ControlRoomState, hold: ControlRoomHold, normalizedSearch: string) {
   if (!normalizedSearch) return true;
   const item = toHoldWorkspaceItem(state, hold);
   const searchable = normalize(
@@ -229,16 +199,10 @@ function matchesSearch(
     ].join(" "),
   );
 
-  return normalizedSearch
-    .split(/\s+/)
-    .every((token) => searchable.includes(token));
+  return normalizedSearch.split(/\s+/).every((token) => searchable.includes(token));
 }
 
-function compareHolds(
-  left: ControlRoomHold,
-  right: ControlRoomHold,
-  sort: HoldQuery["sort"],
-) {
+function compareHolds(left: ControlRoomHold, right: ControlRoomHold, sort: HoldQuery["sort"]) {
   switch (sort) {
     case "expiry-asc":
       return new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime();

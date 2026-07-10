@@ -90,9 +90,7 @@ describe("inventory dataset", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.map((issue) => issue.code)).toContain(
-        "unique-quantity",
-      );
+      expect(result.error.map((issue) => issue.code)).toContain("unique-quantity");
     }
   });
 
@@ -100,8 +98,7 @@ describe("inventory dataset", () => {
     const products = structuredClone(activeControlRoomSeed.products);
     const duplicate = products.find(
       (product): product is UniqueProduct =>
-        product.id === "nature-utility-vest" &&
-        product.inventoryMode === "unique",
+        product.id === "nature-utility-vest" && product.inventoryMode === "unique",
     );
     if (!duplicate) throw new Error("Missing duplicate-reference fixture");
     duplicate.archiveNumber = "LS-0042";
@@ -140,9 +137,7 @@ describe("inventory query pipeline", () => {
       search: "LS-RST-INK-L",
     });
 
-    expect(results.map((item) => item.product.id)).toEqual([
-      "ribbed-studio-tank",
-    ]);
+    expect(results.map((item) => item.product.id)).toEqual(["ribbed-studio-tank"]);
   });
 
   it("keeps low-stock, sold and out-of-stock saved views distinct", () => {
@@ -164,12 +159,8 @@ describe("inventory query pipeline", () => {
       "canvas-carry-tote",
       "verdant-cargo-trousers",
     ]);
-    expect(sold.map((item) => item.product.id)).toEqual([
-      "bloom-belted-coat",
-    ]);
-    expect(outOfStock.map((item) => item.product.id)).toEqual([
-      "washed-denim-overshirt",
-    ]);
+    expect(sold.map((item) => item.product.id)).toEqual(["bloom-belted-coat"]);
+    expect(outOfStock.map((item) => item.product.id)).toEqual(["washed-denim-overshirt"]);
   });
 
   it("applies mode, category and price sorting to one ordered result", () => {
@@ -200,9 +191,7 @@ describe("inventory query pipeline", () => {
   });
 
   it("does not mutate source products while querying", () => {
-    const products: InventoryProduct[] = structuredClone(
-      activeControlRoomSeed.products,
-    );
+    const products: InventoryProduct[] = structuredClone(activeControlRoomSeed.products);
     const before = JSON.stringify(products);
 
     queryInventory(products, {

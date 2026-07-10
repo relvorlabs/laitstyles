@@ -9,9 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <ControlRoomShell initialState={activeControlRoomSeed}>
-      {children}
-    </ControlRoomShell>
-  );
+  return <ControlRoomShell initialState={activeControlRoomSeed}>{children}</ControlRoomShell>;
 }

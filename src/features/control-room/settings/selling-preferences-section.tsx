@@ -4,11 +4,7 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   SettingsNumberField,
   SettingsSelectField,
@@ -24,8 +20,7 @@ const productModeOptions = [
 ] as const;
 
 export function SellingPreferencesSection() {
-  const { control, getValues, setValue } =
-    useFormContext<SaveStoreSettingsInput>();
+  const { control, getValues, setValue } = useFormContext<SaveStoreSettingsInput>();
   const selling = useWatch({ control, name: "selling" }) as SaveStoreSettingsInput["selling"];
 
   function changePayOnDelivery(enabled: boolean) {
@@ -44,10 +39,7 @@ export function SellingPreferencesSection() {
   }
 
   return (
-    <SettingsSectionFrame
-      aside={<SellingPreview selling={selling} />}
-      section="selling"
-    >
+    <SettingsSectionFrame aside={<SellingPreview selling={selling} />} section="selling">
       <div className="grid gap-5 sm:grid-cols-2">
         <SettingsTextField
           description="Prices and reporting remain in Nigerian naira for this product scope."
@@ -83,10 +75,7 @@ export function SellingPreferencesSection() {
         control={control}
         name="selling.payOnDeliveryEnabled"
         render={({ field }) => (
-          <Field
-            className="rounded-xl border border-border p-4 sm:p-5"
-            orientation="horizontal"
-          >
+          <Field className="rounded-xl border border-border p-4 sm:p-5" orientation="horizontal">
             <Checkbox
               aria-label="Offer pay on delivery"
               checked={Boolean(field.value)}
@@ -95,7 +84,8 @@ export function SellingPreferencesSection() {
             <div className="min-w-0 flex-1">
               <FieldLabel>Offer pay on delivery</FieldLabel>
               <FieldDescription className="mt-1 leading-5">
-                When enabled, Pay on delivery is also added to accepted payment methods so both settings remain consistent.
+                When enabled, Pay on delivery is also added to accepted payment methods so both
+                settings remain consistent.
               </FieldDescription>
             </div>
           </Field>
@@ -105,11 +95,7 @@ export function SellingPreferencesSection() {
   );
 }
 
-function SellingPreview({
-  selling,
-}: {
-  selling: SaveStoreSettingsInput["selling"];
-}) {
+function SellingPreview({ selling }: { selling: SaveStoreSettingsInput["selling"] }) {
   const modeLabel =
     productModeOptions.find(([value]) => value === selling?.defaultProductMode)?.[1] ??
     "Unique piece";
@@ -124,10 +110,7 @@ function SellingPreview({
       </div>
       <div className="grid gap-3">
         <PreviewRow label="New product starts as" value={modeLabel} />
-        <PreviewRow
-          label="Customer hold"
-          value={`${selling?.holdDurationMinutes ?? 0} minutes`}
-        />
+        <PreviewRow label="Customer hold" value={`${selling?.holdDurationMinutes ?? 0} minutes`} />
         <PreviewRow
           label="Low-stock attention"
           value={`${selling?.lowStockThreshold ?? 0} units or fewer`}
@@ -138,7 +121,8 @@ function SellingPreview({
         />
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        These are starting preferences. Product and order workflows can still capture more specific information where needed.
+        These are starting preferences. Product and order workflows can still capture more specific
+        information where needed.
       </p>
     </Card>
   );

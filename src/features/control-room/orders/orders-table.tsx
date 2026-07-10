@@ -12,17 +12,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { channelLabels } from "@/features/control-room/orders/order-labels";
+import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
 } from "@/features/control-room/orders/order-status-badge";
-import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatNaira } from "@/lib/control-room/formatters";
-import type {
-  ControlRoomOrder,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import type { ControlRoomOrder, ControlRoomState } from "@/lib/control-room/types";
 
 export function OrdersTable({
   state,
@@ -60,9 +57,7 @@ export function OrdersTable({
                     onClick={() => onOpen(order.id)}
                     type="button"
                   >
-                    <span className="block truncate text-[13px] font-semibold">
-                      {order.id}
-                    </span>
+                    <span className="block truncate text-[13px] font-semibold">{order.id}</span>
                     <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
                       {channelLabels[order.channel]}
                     </span>
@@ -98,9 +93,7 @@ export function OrdersTable({
                 <TableCell className="overflow-hidden">
                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                     <OrderStatusBadge status={order.fulfilmentStatus} />
-                    {item.needsAttention ? (
-                      <Badge variant="destructive">Attention</Badge>
-                    ) : null}
+                    {item.needsAttention ? <Badge variant="destructive">Attention</Badge> : null}
                   </div>
                 </TableCell>
                 <TableCell className="px-1 text-right">

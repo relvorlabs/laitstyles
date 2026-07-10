@@ -1,21 +1,16 @@
 "use client";
 
-import {
-  useFieldArray,
-  useFormContext,
-  useWatch,
-  type FieldPath,
-} from "react-hook-form";
+import { type FieldPath, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
+import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
 import {
   SettingsSelectField,
-  SettingsTextField,
   SettingsTextareaField,
+  SettingsTextField,
 } from "@/features/control-room/settings/settings-fields";
-import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
 import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
 import type {
   SaveStoreSettingsInput,
@@ -51,8 +46,7 @@ export function TeamSection() {
     name: "team",
   }) as SaveStoreSettingsInput["team"];
   const teamError = getSettingsFieldError(errors, "team.members");
-  const ownerCount =
-    team?.members?.filter((member) => member.role === "owner").length ?? 0;
+  const ownerCount = team?.members?.filter((member) => member.role === "owner").length ?? 0;
 
   return (
     <SettingsSectionFrame
@@ -62,7 +56,8 @@ export function TeamSection() {
       <div className="rounded-xl border border-border bg-muted/30 p-4">
         <p className="text-sm font-medium">Responsibility guide</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Use this section to document who is expected to handle store work. Adding someone here does not create a sign-in or send an invitation.
+          Use this section to document who is expected to handle store work. Adding someone here
+          does not create a sign-in or send an invitation.
         </p>
       </div>
 
@@ -102,9 +97,7 @@ export function TeamSection() {
           return (
             <Card className="gap-5 p-4 sm:p-5" key={member.fieldKey}>
               <input
-                {...register(
-                  `${base}.status` as FieldPath<SaveStoreSettingsInput>,
-                )}
+                {...register(`${base}.status` as FieldPath<SaveStoreSettingsInput>)}
                 type="hidden"
               />
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -113,11 +106,7 @@ export function TeamSection() {
                     <p className="truncate text-sm font-medium">
                       {current.name || `Team member ${index + 1}`}
                     </p>
-                    <Badge
-                      variant={
-                        current.status === "active" ? "secondary" : "outline"
-                      }
-                    >
+                    <Badge variant={current.status === "active" ? "secondary" : "outline"}>
                       {statusLabel}
                     </Badge>
                   </div>
@@ -222,14 +211,13 @@ function TeamBoundaryPreview({ members }: { members: TeamMemberBoundary[] }) {
                 {roleDescriptions[role]}
               </p>
             </div>
-            <span className="ml-3 text-sm font-semibold tabular-nums">
-              {roleCounts[role]}
-            </span>
+            <span className="ml-3 text-sm font-semibold tabular-nums">{roleCounts[role]}</span>
           </div>
         ))}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        This map helps the operator communicate ownership. Staff sign-in and access control are not managed here.
+        This map helps the operator communicate ownership. Staff sign-in and access control are not
+        managed here.
       </p>
     </Card>
   );

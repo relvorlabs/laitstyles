@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  Controller,
-  useFormContext,
-  type FieldPath,
-} from "react-hook-form";
+import { Controller, type FieldPath, useFormContext } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -58,9 +49,7 @@ export function SettingsTextField({
   return (
     <Field data-invalid={Boolean(error)}>
       <FieldLabel htmlFor={fieldId(name)}>{label}</FieldLabel>
-      {description ? (
-        <FieldDescription id={descriptionId}>{description}</FieldDescription>
-      ) : null}
+      {description ? <FieldDescription id={descriptionId}>{description}</FieldDescription> : null}
       <Input
         {...register(name)}
         aria-describedby={[descriptionId, errorId].filter(Boolean).join(" ")}
@@ -109,9 +98,7 @@ export function SettingsNumberField({
             setValueAs: (value) => (value === "" ? Number.NaN : Number(value)),
           })}
           aria-invalid={Boolean(error)}
-          className={
-            suffix ? "h-11 pr-20 tabular-nums" : "h-11 tabular-nums"
-          }
+          className={suffix ? "h-11 pr-20 tabular-nums" : "h-11 tabular-nums"}
           id={fieldId(name)}
           inputMode="decimal"
           max={max}
@@ -210,11 +197,7 @@ export function SettingsSelectField({
   );
 }
 
-export function SettingsCheckboxField({
-  name,
-  label,
-  description,
-}: BaseFieldProps) {
+export function SettingsCheckboxField({ name, label, description }: BaseFieldProps) {
   const { control } = useFormContext<SaveStoreSettingsInput>();
 
   return (
@@ -234,9 +217,7 @@ export function SettingsCheckboxField({
           <div className="min-w-0 flex-1">
             <FieldLabel>{label}</FieldLabel>
             {description ? (
-              <FieldDescription className="mt-1 leading-5">
-                {description}
-              </FieldDescription>
+              <FieldDescription className="mt-1 leading-5">{description}</FieldDescription>
             ) : null}
           </div>
         </Field>

@@ -45,9 +45,7 @@ describe("draft media validation", () => {
 
     expect(validation.ok).toBe(false);
     if (!validation.ok) {
-      expect(validation.error.map((issue) => issue.code)).toContain(
-        "missing-cover",
-      );
+      expect(validation.error.map((issue) => issue.code)).toContain("missing-cover");
     }
   });
 });

@@ -608,22 +608,102 @@ State demonstrations must not appear as development controls in the production-f
 - Long inventories should be prepared for pagination or virtualization; do not implement virtualization before the data volume requires it
 - Avoid unnecessary context subscriptions and page-wide client rendering
 
-## 21. Non-goals for this PR
+## 21. Authentication, organization and permission direction
 
-- Real authentication and staff permissions
-- Production database persistence
+The next implementation phases introduce real Supabase-backed identity and authorization before TanStack Query owns server-state reads.
+
+### 21.1 Identity surfaces
+
+Laitstyle needs two authenticated surfaces:
+
+1. **Control Room staff** — owner, managers and operators working inside a store organization.
+2. **Storefront consumers** — shoppers who browse, save, hold, order, review and manage their own account history.
+
+Staff and consumers may share one Supabase Auth identity, but permissions come from store-scoped database records, not from user-editable metadata.
+
+### 21.2 Staff roles
+
+The staff role model is store-scoped:
+
+- **Owner / CEO** — owns the organization and store. Can manage all Control Room data, team membership, roles, settings, destructive product actions, exports and future billing boundaries.
+- **Manager** — can manage day-to-day catalogue, orders, holds, returns, customers and most store settings. Cannot transfer ownership, remove the owner, change owner-only permissions or perform final destructive account/store actions.
+- **Operator / sales staff** — can process daily operations such as record sale, update fulfilment, manage holds, view assigned customer context and update non-destructive stock workflow states. Cannot manage team permissions, high-risk settings, exports or destructive product/store actions.
+
+Permissions must be represented as named capabilities so UI gating, server checks and RLS policies can agree without duplicating hand-written role logic in every component.
+
+### 21.3 Consumer role
+
+Consumers can:
+
+- manage their own profile, contact preferences and addresses
+- view their own orders, holds, returns, saved products and reviews
+- create storefront checkout, hold and review records that belong to their profile
+- read published storefront catalogue data according to publication and channel visibility rules
+
+Consumers must not see Control Room routes, staff-only customer notes, internal activity, cost/margin data, stock movement internals, unpublished products or staff settings.
+
+### 21.4 Auth implementation requirements
+
+- Use Supabase Auth with server-side cookie handling for Next.js.
+- Support Google OAuth through Supabase Auth with the PKCE callback route.
+- Add a dedicated auth callback and auth error route before protecting staff or consumer screens.
+- Use `getClaims()` or `getUser()` appropriately on the server. Do not trust `getSession()` for authorization decisions.
+- Keep the service role key out of browser code.
+- Do not store authorization decisions in `raw_user_meta_data`.
+- Keep team membership, store roles and permissions in database tables protected by RLS.
+- Add a permission-restricted state to Control Room pages and actions when auth is active.
+- Add consumer account states for signed-out, signed-in and permission-denied storefront flows.
+
+## 22. Supabase data model direction
+
+The Supabase schema must map to the current Control Room domains instead of creating a parallel vocabulary.
+
+### 22.1 Required database domains
+
+- Identity: profiles, organizations, stores, store memberships, invitations, role capabilities and audit events
+- Catalogue: products, product variants, media, measurements, categories, collections and channel visibility
+- Inventory: stock levels, stock movements, intake records and lifecycle/publication state
+- Sales: carts or checkout sessions where needed, holds, orders, order lines, payment events, fulfilment events and offline sales
+- Returns: return requests, return lines, dispositions and refund tracking
+- Customers: customer profiles, addresses, preferences, notes, saved products and relationship history
+- Reviews: product reviews linked to the consumer/customer and product
+- Settings: store identity, selling preferences, delivery zones, pickup locations, payment preferences and notification preferences
+- Storage: product media and store brand assets
+
+### 22.2 RLS and access rules
+
+- Enable RLS on every table in exposed schemas.
+- Use explicit `TO anon` and `TO authenticated` policy targets.
+- Public storefront policies may expose only published storefront-visible catalogue records.
+- Consumer policies must restrict rows to the authenticated consumer/customer relationship.
+- Staff policies must require active store membership and the needed role or capability.
+- Owner-only operations must remain owner-only in database policies and server-side mutation checks.
+- Policy predicates must use indexed `store_id`, `organization_id`, `profile_id`, `customer_id` and stable business IDs where relevant.
+- Views exposed to browser clients must use `security_invoker = true` on supported Postgres versions or remain outside exposed schemas.
+
+### 22.3 Migration and generated types
+
+- Create migrations through the Supabase CLI migration workflow.
+- Do not hand-invent migration timestamps.
+- Add local seed data only when it is deterministic and clearly marked as development data.
+- Generate TypeScript database types after migrations are applied.
+- Align repository adapters with generated database types before moving UI reads to TanStack Query.
+
+See `docs/control-room-v2/supabase-schema-plan.md` for the table and policy blueprint.
+
+## 23. Non-goals before the Supabase phases
+
 - Payment-provider integration
 - Courier integration
-- File upload storage
 - Messaging integration
 - Full analytics warehouse
 - Accounting or tax platform
 - Supplier/vendor management
 - Multi-store or warehouse management
 
-The UI may define clear integration boundaries for these, but must not represent them as complete.
+The UI may define clear integration boundaries for these, but must not represent them as complete before their dedicated phase. Real authentication, staff permissions, database persistence and file storage become in-scope only in the Supabase phases and remain incomplete until those phase gates pass.
 
-## 22. Definition of done for each implementation phase
+## 24. Definition of done for each implementation phase
 
 A phase is complete only when:
 
@@ -638,7 +718,7 @@ A phase is complete only when:
 9. React Doctor is run and changed-scope errors are resolved.
 10. The phase tracker and PR description are updated before the next phase begins.
 
-## 23. Final success criteria
+## 25. Final success criteria
 
 Control Room V2 is successful when a store operator can understand daily priorities, manage both unique and multi-unit inventory, complete core sales operations and configure the store without needing to understand the application’s technical architecture.
 

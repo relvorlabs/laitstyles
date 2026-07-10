@@ -40,8 +40,7 @@ export function convertEditorValuesToProduct(
     id,
     slug: createSlug(values.name || `draft-${values.inventoryMode}`),
     name: values.name.trim() || `Untitled ${modeLabel(values.inventoryMode)}`,
-    description:
-      values.description.trim() || "Draft product awaiting complete details.",
+    description: values.description.trim() || "Draft product awaiting complete details.",
     category: values.category.trim() || "Uncategorised",
     collection: values.collection.trim() || null,
     brand: values.brand.trim() || "Unlabelled",
@@ -53,11 +52,9 @@ export function convertEditorValuesToProduct(
     lifecycle,
     publication,
     channels: values.channels,
-    lowStockThreshold:
-      values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
+    lowStockThreshold: values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
     fulfilment: values.fulfilment,
-    scheduledAt:
-      options.intent === "schedule" ? values.scheduledAt : undefined,
+    scheduledAt: options.intent === "schedule" ? values.scheduledAt : undefined,
     createdAt,
     updatedAt: options.now,
   } as const;
@@ -71,10 +68,7 @@ export function convertEditorValuesToProduct(
       size: values.unique.size.trim() || "Not recorded",
       colour: values.unique.colour.trim() || "Not recorded",
       measurements: values.unique.measurements
-        .filter(
-          (measurement) =>
-            measurement.label.trim() || measurement.value.trim(),
-        )
+        .filter((measurement) => measurement.label.trim() || measurement.value.trim())
         .map(({ label, value }) => ({
           label: label.trim() || "Measurement",
           value: value.trim() || "Not recorded",
@@ -90,35 +84,24 @@ export function convertEditorValuesToProduct(
       sku: values.internalReference.trim() || "Pending",
       sizeLabel: values.stocked.sizeLabel.trim() || "Not recorded",
       colour: values.stocked.colour.trim() || "Not recorded",
-      stock: preserveOrCreateStock(
-        options.existingProduct,
-        values.stocked.quantity,
-      ),
+      stock: preserveOrCreateStock(options.existingProduct, values.stocked.quantity),
     };
   }
 
   return {
     ...base,
     inventoryMode: "variant",
-    optionNames: values.variant.optionNames
-      .map((option) => option.trim())
-      .filter(Boolean),
+    optionNames: values.variant.optionNames.map((option) => option.trim()).filter(Boolean),
     variants: values.variant.variants.map((variant, index) => ({
       id: variant.id || idFactory("variant"),
       label: variant.label.trim() || `Variant ${index + 1}`,
-      sku:
-        variant.sku.trim() ||
-        `${values.internalReference.trim() || "PENDING"}-${index + 1}`,
+      sku: variant.sku.trim() || `${values.internalReference.trim() || "PENDING"}-${index + 1}`,
       size: variant.size.trim() || null,
       colour: variant.colour.trim() || null,
       imageUrl: variant.imageUrl.trim() || null,
       price: variant.price,
       cost: variant.cost,
-      stock: preserveVariantStock(
-        options.existingProduct,
-        variant.id,
-        variant.quantity,
-      ),
+      stock: preserveVariantStock(options.existingProduct, variant.id, variant.quantity),
     })),
   };
 }
@@ -160,9 +143,7 @@ function preserveVariantStock(
   totalReceived: number,
 ): InventoryCounts {
   if (existingProduct?.inventoryMode === "variant") {
-    const existingVariant = existingProduct.variants.find(
-      (variant) => variant.id === variantId,
-    );
+    const existingVariant = existingProduct.variants.find((variant) => variant.id === variantId);
     if (existingVariant) {
       const committed =
         existingVariant.stock.reserved +

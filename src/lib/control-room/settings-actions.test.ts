@@ -75,9 +75,7 @@ describe("Store settings action", () => {
     expect(result.error).toEqual(
       expect.objectContaining({
         code: "invalid-settings",
-        issues: expect.arrayContaining([
-          expect.objectContaining({ section: "payments" }),
-        ]),
+        issues: expect.arrayContaining([expect.objectContaining({ section: "payments" })]),
       }),
     );
     expect(listener).not.toHaveBeenCalled();

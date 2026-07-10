@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,13 +22,7 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
   return (
     <Sheet>
       <SheetTrigger
-        render={
-          <button
-            aria-label="Cart"
-            className="relative flex p-1"
-            type="button"
-          />
-        }
+        render={<button aria-label="Cart" className="relative flex p-1" type="button" />}
       >
         <ShoppingBag />
         <span className="absolute -right-1.5 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-primary px-1 text-[10.5px] font-semibold text-primary-foreground">
@@ -44,12 +38,9 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
         side="right"
       >
         <SheetHeader className="border-b border-border p-5">
-          <SheetTitle className="font-serif text-[22px] font-normal">
-            Reserved rail
-          </SheetTitle>
+          <SheetTitle className="font-serif text-[22px] font-normal">Reserved rail</SheetTitle>
           <SheetDescription>
-            {held.length} {held.length === 1 ? "piece" : "pieces"} held for 15
-            minutes.
+            {held.length} {held.length === 1 ? "piece" : "pieces"} held for 15 minutes.
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-1 flex-col gap-4 p-5">
@@ -62,10 +53,11 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
                   <div className="text-[12.5px] text-muted-foreground">
                     Size {item.size} · {item.color} · {item.condition}
                   </div>
-                  <div className="text-[13.5px] font-semibold">
-                    {naira(item.price)}
-                  </div>
-                  <button className="self-start text-[12px] text-muted-foreground underline underline-offset-2">
+                  <div className="text-[13.5px] font-semibold">{naira(item.price)}</div>
+                  <button
+                    className="self-start text-[12px] text-muted-foreground underline underline-offset-2"
+                    type="button"
+                  >
                     Release hold
                   </button>
                 </div>
@@ -78,8 +70,8 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
               </div>
               <div className="font-serif text-[22px]">Nothing reserved yet</div>
               <p className="max-w-[260px] text-[13px] leading-[1.55] text-muted-foreground">
-                Every piece is one-of-one. Reserve one and we&apos;ll hold it
-                here so no one else can take it while you decide.
+                Every piece is one-of-one. Reserve one and we&apos;ll hold it here so no one else
+                can take it while you decide.
               </p>
             </div>
           )}

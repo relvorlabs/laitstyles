@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 import type { ControlRoomStore } from "@/features/control-room/state/control-room-store";
 import { createInMemoryControlRoomRepositories } from "@/lib/control-room/data/in-memory/control-room-repositories";
 import type { ControlRoomRepositories } from "@/lib/control-room/data/repositories";
 
-const ControlRoomRepositoryContext =
-  createContext<ControlRoomRepositories | null>(null);
+const ControlRoomRepositoryContext = createContext<ControlRoomRepositories | null>(null);
 
 export function ControlRoomRepositoryProvider({
   children,
@@ -20,9 +14,7 @@ export function ControlRoomRepositoryProvider({
   children: ReactNode;
   store: ControlRoomStore;
 }) {
-  const [repositories] = useState(() =>
-    createInMemoryControlRoomRepositories(store),
-  );
+  const [repositories] = useState(() => createInMemoryControlRoomRepositories(store));
 
   return (
     <ControlRoomRepositoryContext.Provider value={repositories}>
@@ -34,9 +26,7 @@ export function ControlRoomRepositoryProvider({
 export function useControlRoomRepositories() {
   const repositories = useContext(ControlRoomRepositoryContext);
   if (!repositories) {
-    throw new Error(
-      "useControlRoomRepositories must be used inside ControlRoomRepositoryProvider",
-    );
+    throw new Error("useControlRoomRepositories must be used inside ControlRoomRepositoryProvider");
   }
   return repositories;
 }

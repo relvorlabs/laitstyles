@@ -25,8 +25,7 @@ export function OrderTransitionControls({
   order: ControlRoomOrder;
   onTransition: (status: OrderStatus) => void;
 }) {
-  const [pendingDestructive, setPendingDestructive] =
-    useState<OrderStatus | null>(null);
+  const [pendingDestructive, setPendingDestructive] = useState<OrderStatus | null>(null);
   const transitions = getPermittedOrderTransitions(order.fulfilmentStatus);
 
   if (!transitions.length) {
@@ -87,9 +86,7 @@ export function OrderTransitionControls({
               }}
               variant="destructive"
             >
-              {pendingDestructive === "cancelled"
-                ? "Cancel order"
-                : "Record refund"}
+              {pendingDestructive === "cancelled" ? "Cancel order" : "Record refund"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

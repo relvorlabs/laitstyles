@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { type ReactNode, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -64,9 +64,7 @@ export function ControlRoomShell({
               >
                 <SheetHeader className="sr-only">
                   <SheetTitle>Control Room navigation</SheetTitle>
-                  <SheetDescription>
-                    Move around the Laitstyle owner workspace.
-                  </SheetDescription>
+                  <SheetDescription>Move around the Laitstyle owner workspace.</SheetDescription>
                 </SheetHeader>
                 <ControlRoomSidebar
                   compact
@@ -76,10 +74,7 @@ export function ControlRoomShell({
               </SheetContent>
             </Sheet>
 
-            <ControlRoomCommandMenu
-              onOpenChange={setSearchOpen}
-              open={searchOpen}
-            />
+            <ControlRoomCommandMenu onOpenChange={setSearchOpen} open={searchOpen} />
           </div>
         </RecordSaleControllerProvider>
       </ProductEditorControllerProvider>

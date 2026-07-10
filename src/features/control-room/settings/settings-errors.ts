@@ -1,8 +1,5 @@
 import type { FieldErrors, FieldPath } from "react-hook-form";
-import type {
-  SaveStoreSettingsInput,
-  SettingsSection,
-} from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput, SettingsSection } from "@/lib/control-room/types";
 
 export function getSettingsFieldError(
   errors: FieldErrors<SaveStoreSettingsInput>,
@@ -35,11 +32,7 @@ export function getFirstSettingsErrorSection(
     "notifications",
     "team",
   ];
-  return (
-    sections.find(
-      (section) => countSettingsSectionErrors(errors, section) > 0,
-    ) ?? null
-  );
+  return sections.find((section) => countSettingsSectionErrors(errors, section) > 0) ?? null;
 }
 
 function findDirectMessage(value: unknown) {
@@ -64,8 +57,5 @@ function getRootError(value: unknown) {
 function countMessages(value: unknown): number {
   if (!value || typeof value !== "object") return 0;
   if (findDirectMessage(value)) return 1;
-  return Object.values(value).reduce(
-    (total, item) => total + countMessages(item),
-    0,
-  );
+  return Object.values(value).reduce((total, item) => total + countMessages(item), 0);
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   ArrowRight01Icon,
   CheckmarkCircle02Icon,
@@ -6,15 +5,10 @@ import {
   Settings01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Empty,
   EmptyContent,
@@ -65,7 +59,8 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
               Set up the shop in the order a real store needs it.
             </h1>
             <p className="mt-5 max-w-[620px] text-[14px] leading-6 text-primary-foreground/72 sm:text-[15px]">
-              Start with products, delivery and how customers can pay. Sales charts and fulfilment queues appear only after the store has activity worth managing.
+              Start with products, delivery and how customers can pay. Sales charts and fulfilment
+              queues appear only after the store has activity worth managing.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -98,9 +93,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/64">
                 Store readiness
               </span>
-              <span className="font-serif text-[28px] tabular-nums">
-                {readiness}%
-              </span>
+              <span className="font-serif text-[28px] tabular-nums">{readiness}%</span>
             </div>
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-foreground/10">
               <div
@@ -109,7 +102,8 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
               />
             </div>
             <p className="mt-4 text-[12.5px] leading-5 text-primary-foreground/68">
-              The store identity exists. Products, delivery and selling preferences still need owner decisions.
+              The store identity exists. Products, delivery and selling preferences still need owner
+              decisions.
             </p>
           </div>
         </div>
@@ -138,9 +132,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                   <div className="text-[13.5px] font-semibold">
                     {index + 1}. {step.title}
                   </div>
-                  <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
-                    {step.detail}
-                  </p>
+                  <p className="mt-1 text-[12px] leading-5 text-muted-foreground">{step.detail}</p>
                 </div>
                 <Badge className="col-start-2 mt-1 sm:col-start-auto sm:mt-0" variant="outline">
                   {step.phase}
@@ -160,7 +152,8 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                 No empty analytics theatre
               </EmptyTitle>
               <EmptyDescription className="text-muted-foreground">
-                Revenue, stock warnings and delivery queues appear when there is real operating data to show.
+                Revenue, stock warnings and delivery queues appear when there is real operating data
+                to show.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>

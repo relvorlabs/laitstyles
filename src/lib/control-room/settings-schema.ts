@@ -32,9 +32,7 @@ export const storeSettingsInputSchema = z
     team: teamSettingsSchema,
   })
   .superRefine((settings, context) => {
-    const payOnDeliveryAccepted = settings.payments.acceptedMethods.includes(
-      "pay-on-delivery",
-    );
+    const payOnDeliveryAccepted = settings.payments.acceptedMethods.includes("pay-on-delivery");
     if (settings.selling.payOnDeliveryEnabled !== payOnDeliveryAccepted) {
       context.addIssue({
         code: "custom",
@@ -56,9 +54,7 @@ const settingsSectionSchemas = {
 
 export function parseStoreSettingsInput(
   value: unknown,
-):
-  | { ok: true; value: SaveStoreSettingsInput }
-  | { ok: false; issues: SettingsValidationIssue[] } {
+): { ok: true; value: SaveStoreSettingsInput } | { ok: false; issues: SettingsValidationIssue[] } {
   const result = storeSettingsInputSchema.safeParse(value);
   if (result.success) return { ok: true, value: result.data };
 

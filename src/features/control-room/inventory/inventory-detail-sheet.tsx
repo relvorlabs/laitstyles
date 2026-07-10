@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Edit02Icon } from "@hugeicons/core-free-icons";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductMediaPanel } from "@/features/control-room/inventory/inventory-detail-media";
-import { InventoryProductLifecycleActions } from "@/features/control-room/inventory/inventory-product-lifecycle-actions";
 import { ProductPricingPanel } from "@/features/control-room/inventory/inventory-detail-pricing";
 import {
   ProductActivityPanel,
@@ -32,11 +31,9 @@ import {
 } from "@/features/control-room/inventory/inventory-detail-records";
 import { ProductStockPanel } from "@/features/control-room/inventory/inventory-detail-stock";
 import { ProductSummaryPanel } from "@/features/control-room/inventory/inventory-detail-summary";
+import { InventoryProductLifecycleActions } from "@/features/control-room/inventory/inventory-product-lifecycle-actions";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type {
-  ControlRoomState,
-  InventoryListItem,
-} from "@/lib/control-room/types";
+import type { ControlRoomState, InventoryListItem } from "@/lib/control-room/types";
 
 type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
@@ -69,29 +66,22 @@ export function InventoryDetailSheet({
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
   const productId = item?.product.id ?? null;
   const orders = productId
-    ? state.orders.filter((order) =>
-        order.lines.some((line) => line.productId === productId),
-      )
+    ? state.orders.filter((order) => order.lines.some((line) => line.productId === productId))
     : [];
-  const holds = productId
-    ? state.holds.filter((hold) => hold.productId === productId)
-    : [];
+  const holds = productId ? state.holds.filter((hold) => hold.productId === productId) : [];
   const movements = productId
     ? state.stockMovements
         .filter((movement) => movement.productId === productId)
         .toSorted(
           (left, right) =>
-            new Date(right.occurredAt).getTime() -
-            new Date(left.occurredAt).getTime(),
+            new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
         )
     : [];
   const reviews = productId
     ? state.reviews
         .filter((review) => review.productId === productId)
         .toSorted(
-          (left, right) =>
-            new Date(right.createdAt).getTime() -
-            new Date(left.createdAt).getTime(),
+          (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
         )
     : [];
   const activities = productId
@@ -99,8 +89,7 @@ export function InventoryDetailSheet({
         .filter((activity) => activity.productId === productId)
         .toSorted(
           (left, right) =>
-            new Date(right.occurredAt).getTime() -
-            new Date(left.occurredAt).getTime(),
+            new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
         )
     : [];
 
@@ -176,11 +165,7 @@ export function InventoryDetailSheet({
                   variant="line"
                 >
                   {detailTabs.map(([value, label]) => (
-                    <TabsTrigger
-                      className="px-3 text-[11.5px]"
-                      key={value}
-                      value={value}
-                    >
+                    <TabsTrigger className="px-3 text-[11.5px]" key={value} value={value}>
                       {label}
                     </TabsTrigger>
                   ))}

@@ -24,8 +24,8 @@ export function Footer() {
               Be part of what&apos;s next
             </div>
             <div className="mb-[18px] max-w-[360px] text-[13px] leading-[1.5] text-brand-bone/80">
-              Get first access to new one-of-one drops and restyle stories,
-              shaped around conscious fashion.
+              Get first access to new one-of-one drops and restyle stories, shaped around conscious
+              fashion.
             </div>
             <div className="flex max-w-[400px] gap-2">
               <Input

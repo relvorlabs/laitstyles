@@ -1,24 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { holdSourceLabels, holdStageLabels } from "@/features/control-room/holds/hold-labels";
+import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
 import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
 } from "@/features/control-room/holds/hold-selectors";
-import {
-  holdSourceLabels,
-  holdStageLabels,
-} from "@/features/control-room/holds/hold-labels";
-import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type {
-  ControlRoomHold,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
 
 export function HoldsMobileList({
   state,
@@ -63,11 +57,10 @@ export function HoldsMobileList({
                     {item.variantLabel ?? item.productReference}
                   </p>
                 </button>
-                <p className="mt-3 truncate text-[11.5px] font-semibold">
-                  {item.customerName}
-                </p>
+                <p className="mt-3 truncate text-[11.5px] font-semibold">{item.customerName}</p>
                 <p className="mt-1 text-[10.5px] text-muted-foreground">
-                  {holdSourceLabels[hold.source]} · {hold.quantity} unit{hold.quantity === 1 ? "" : "s"}
+                  {holdSourceLabels[hold.source]} · {hold.quantity} unit
+                  {hold.quantity === 1 ? "" : "s"}
                 </p>
               </div>
             </div>

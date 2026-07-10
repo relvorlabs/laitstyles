@@ -20,20 +20,14 @@ export const inventoryKeys = {
     ] as const,
   taxonomy: () => [...inventoryKeys.all, "taxonomy"] as const,
   stockMovements: (productId?: string) =>
-    [
-      ...inventoryKeys.all,
-      "stock-movements",
-      productId?.trim() || "all",
-    ] as const,
+    [...inventoryKeys.all, "stock-movements", productId?.trim() || "all"] as const,
 };
 
 export const productKeys = {
   all: ["products"] as const,
   details: () => [...productKeys.all, "detail"] as const,
-  detail: (productId: string) =>
-    [...productKeys.details(), productId.trim()] as const,
-  media: (productId: string) =>
-    [...productKeys.detail(productId), "media"] as const,
+  detail: (productId: string) => [...productKeys.details(), productId.trim()] as const,
+  media: (productId: string) => [...productKeys.detail(productId), "media"] as const,
 };
 
 function normaliseInventoryQuery(query: InventoryQuery): InventoryQuery {

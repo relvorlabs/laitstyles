@@ -13,8 +13,8 @@ import {
   CustomerTypeBadge,
 } from "@/features/control-room/customers/customer-status-badges";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
 import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
+import { formatNaira } from "@/lib/control-room/formatters";
 
 export function CustomersMobileList({
   profiles,
@@ -44,7 +44,8 @@ export function CustomersMobileList({
                       {customer.name}
                     </span>
                     <span className="mt-1.5 block truncate text-[10.5px] text-muted-foreground">
-                      {customer.city || "No city captured"} · {customer.email || customer.phone || "No contact"}
+                      {customer.city || "No city captured"} ·{" "}
+                      {customer.email || customer.phone || "No contact"}
                     </span>
                   </span>
                 </button>
@@ -54,22 +55,13 @@ export function CustomersMobileList({
 
             <div className="flex flex-col gap-4 p-4">
               <div className="grid grid-cols-2 gap-3">
-                <Metric
-                  label="Lifetime spend"
-                  value={formatNaira(profile.metrics.lifetimeSpend)}
-                />
-                <Metric
-                  label="Orders"
-                  value={String(profile.metrics.orderCount)}
-                />
+                <Metric label="Lifetime spend" value={formatNaira(profile.metrics.lifetimeSpend)} />
+                <Metric label="Orders" value={String(profile.metrics.orderCount)} />
                 <Metric
                   label="Last purchase"
                   value={formatCustomerDate(profile.metrics.lastPurchaseAt)}
                 />
-                <Metric
-                  label="Active holds"
-                  value={String(profile.metrics.activeHoldCount)}
-                />
+                <Metric label="Active holds" value={String(profile.metrics.activeHoldCount)} />
               </div>
 
               <CustomerSegmentBadges segments={profile.segments} />
@@ -83,7 +75,8 @@ export function CustomersMobileList({
 
               <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
                 <p className="text-[10.5px] leading-4 text-muted-foreground">
-                  {profile.products.length} connected product relationship{profile.products.length === 1 ? "" : "s"}
+                  {profile.products.length} connected product relationship
+                  {profile.products.length === 1 ? "" : "s"}
                 </p>
                 <Button
                   aria-label={`Open ${customer.name}`}

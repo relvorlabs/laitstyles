@@ -4,20 +4,11 @@ import type {
   CustomerType,
 } from "@/lib/control-room/customer-types";
 
-export type CustomerSavedView =
-  | "all"
-  | "needs-attention"
-  | "returning"
-  | "high-value"
-  | "new";
+export type CustomerSavedView = "all" | "needs-attention" | "returning" | "high-value" | "new";
 
 export type CustomerTypeFilter = "all" | CustomerType;
 
-export type CustomerSortKey =
-  | "spend-desc"
-  | "recent-desc"
-  | "orders-desc"
-  | "name-asc";
+export type CustomerSortKey = "spend-desc" | "recent-desc" | "orders-desc" | "name-asc";
 
 export type CustomerQuery = {
   search: string;
@@ -40,11 +31,7 @@ export type CustomerActionFeedback = {
   message: string;
 };
 
-export type CustomerDetailTab =
-  | "overview"
-  | "timeline"
-  | "products"
-  | "delivery";
+export type CustomerDetailTab = "overview" | "timeline" | "products" | "delivery";
 
 export type CustomerSavedViewDefinition = {
   value: CustomerSavedView;

@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  Controller,
-  useFormContext,
-  type FieldPath,
-} from "react-hook-form";
+import { Controller, type FieldPath, useFormContext } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -55,9 +46,7 @@ export function EditorTextField({
   return (
     <Field data-invalid={Boolean(error)}>
       <FieldLabel htmlFor={name}>{label}</FieldLabel>
-      {description ? (
-        <FieldDescription id={descriptionId}>{description}</FieldDescription>
-      ) : null}
+      {description ? <FieldDescription id={descriptionId}>{description}</FieldDescription> : null}
       <Input
         {...register(name)}
         aria-describedby={[descriptionId, errorId].filter(Boolean).join(" ")}
@@ -190,23 +179,15 @@ export function EditorSelectField({
         name={name}
         render={({ field }) => (
           <Select
-            onValueChange={(value) =>
-              field.onChange(value === emptyValue ? "" : value ?? "")
-            }
+            onValueChange={(value) => field.onChange(value === emptyValue ? "" : (value ?? ""))}
             value={String(field.value || (emptyLabel ? emptyValue : ""))}
           >
-            <SelectTrigger
-              aria-label={label}
-              aria-invalid={Boolean(error)}
-              className="h-11 w-full"
-            >
+            <SelectTrigger aria-label={label} aria-invalid={Boolean(error)} className="h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {emptyLabel ? (
-                  <SelectItem value={emptyValue}>{emptyLabel}</SelectItem>
-                ) : null}
+                {emptyLabel ? <SelectItem value={emptyValue}>{emptyLabel}</SelectItem> : null}
                 {options.map(([value, optionLabel]) => (
                   <SelectItem key={value} value={value}>
                     {optionLabel}
@@ -228,11 +209,7 @@ type EditorCheckboxFieldProps = {
   description?: string;
 };
 
-export function EditorCheckboxField({
-  name,
-  label,
-  description,
-}: EditorCheckboxFieldProps) {
+export function EditorCheckboxField({ name, label, description }: EditorCheckboxFieldProps) {
   const { control } = useFormContext<ProductEditorValues>();
 
   return (
@@ -248,9 +225,7 @@ export function EditorCheckboxField({
           />
           <div className="flex flex-col gap-1">
             <FieldLabel>{label}</FieldLabel>
-            {description ? (
-              <FieldDescription>{description}</FieldDescription>
-            ) : null}
+            {description ? <FieldDescription>{description}</FieldDescription> : null}
           </div>
         </Field>
       )}

@@ -78,14 +78,10 @@ describe("Store settings validation", () => {
     input.payments.acceptedMethods = [];
 
     expect(validateSettingsSection(input, "delivery")).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ section: "delivery" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ section: "delivery" })]),
     );
     expect(validateSettingsSection(input, "payments")).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ section: "payments" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ section: "payments" })]),
     );
   });
 

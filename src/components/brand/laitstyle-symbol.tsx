@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type SVGProps } from "react";
+import { type SVGProps, useId } from "react";
 import { cn } from "@/lib/utils";
 
 export type LaitstyleSymbolProps = SVGProps<SVGSVGElement> & {

@@ -3,18 +3,15 @@ import {
   createRecordSaleDefaults,
   getAvailableForSale,
   getSaleUnitPrice,
-  getSellableProducts,
   getSelectedSaleProduct,
+  getSellableProducts,
 } from "@/features/control-room/record-sale/record-sale-selectors";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 describe("Record Sale selectors", () => {
   it("starts from an available published product and existing customer", () => {
     const defaults = createRecordSaleDefaults(activeControlRoomSeed);
-    const product = getSelectedSaleProduct(
-      activeControlRoomSeed,
-      defaults.productId,
-    );
+    const product = getSelectedSaleProduct(activeControlRoomSeed, defaults.productId);
 
     expect(product).not.toBeNull();
     expect(defaults.quantity).toBe(1);
@@ -34,10 +31,7 @@ describe("Record Sale selectors", () => {
   });
 
   it("uses the selected variant availability and optional price", () => {
-    const product = getSelectedSaleProduct(
-      activeControlRoomSeed,
-      "ribbed-studio-tank",
-    );
+    const product = getSelectedSaleProduct(activeControlRoomSeed, "ribbed-studio-tank");
 
     expect(getAvailableForSale(product!, "tank-s-cream")).toBe(2);
     expect(getAvailableForSale(product!, "tank-l-ink")).toBe(1);

@@ -13,9 +13,7 @@ describe("Product lifecycle actions", () => {
     const result = store.archiveProduct("botanical-jeans");
 
     expect(result.ok).toBe(true);
-    const product = store
-      .getSnapshot()
-      .products.find((entry) => entry.id === "botanical-jeans");
+    const product = store.getSnapshot().products.find((entry) => entry.id === "botanical-jeans");
     expect(product).toEqual(
       expect.objectContaining({
         lifecycle: "archived",
@@ -33,11 +31,7 @@ describe("Product lifecycle actions", () => {
     const result = store.restoreProduct("botanical-jeans");
 
     expect(result.ok).toBe(true);
-    expect(
-      store
-        .getSnapshot()
-        .products.find((entry) => entry.id === "botanical-jeans"),
-    ).toEqual(
+    expect(store.getSnapshot().products.find((entry) => entry.id === "botanical-jeans")).toEqual(
       expect.objectContaining({
         lifecycle: "active",
         publication: "unpublished",
@@ -53,9 +47,7 @@ describe("Product lifecycle actions", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Connected product should not be deleted");
     expect(result.error.code).toBe("product-in-use");
-    expect(
-      store.getSnapshot().products.some((entry) => entry.id === "botanical-jeans"),
-    ).toBe(true);
+    expect(store.getSnapshot().products.some((entry) => entry.id === "botanical-jeans")).toBe(true);
   });
 
   it("permanently deletes an unused draft product", () => {
@@ -76,8 +68,6 @@ describe("Product lifecycle actions", () => {
     const deleted = store.deleteProduct(productId);
 
     expect(deleted.ok).toBe(true);
-    expect(store.getSnapshot().products.some((entry) => entry.id === productId)).toBe(
-      false,
-    );
+    expect(store.getSnapshot().products.some((entry) => entry.id === productId)).toBe(false);
   });
 });

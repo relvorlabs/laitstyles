@@ -1,5 +1,5 @@
-import { InventoryWorkspace } from "@/features/control-room/inventory/inventory-workspace";
 import { defaultInventoryPageSize } from "@/features/control-room/inventory/inventory-url";
+import { InventoryWorkspace } from "@/features/control-room/inventory/inventory-workspace";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -33,15 +33,8 @@ type InventoryPageProps = {
   }>;
 };
 
-const savedViewValues = new Set<InventorySavedView>(
-  inventorySavedViews.map((view) => view.value),
-);
-const modeValues = new Set<InventoryModeFilter>([
-  "all",
-  "unique",
-  "stocked",
-  "variant",
-]);
+const savedViewValues = new Set<InventorySavedView>(inventorySavedViews.map((view) => view.value));
+const modeValues = new Set<InventoryModeFilter>(["all", "unique", "stocked", "variant"]);
 const stockValues = new Set<InventoryStockFilter>([
   "all",
   "healthy",
@@ -57,17 +50,13 @@ const channelValues = new Set<CatalogueChannel | "all">([
   "whatsapp",
   "instagram",
 ]);
-const sortValues = new Set<InventorySortKey>(
-  inventorySortOptions.map((option) => option.value),
-);
+const sortValues = new Set<InventorySortKey>(inventorySortOptions.map((option) => option.value));
 const facets = getInventoryFacetOptions(activeControlRoomSeed.products);
 const categoryValues = new Set(facets.categories);
 const collectionValues = new Set(facets.collections);
 const pageSizeValues = new Set([10, 15, 25, 50]);
 
-export default async function InventoryPage({
-  searchParams,
-}: InventoryPageProps) {
+export default async function InventoryPage({ searchParams }: InventoryPageProps) {
   const params = await searchParams;
   const requestedView = first(params.view);
   const requestedPresentation = first(params.presentation);
@@ -76,12 +65,11 @@ export default async function InventoryPage({
   const requestedCollection = first(params.collection);
 
   const view = pick(requestedView, savedViewValues, "all");
-  const presentation: InventoryPresentation =
-    requestedPresentation === "table" ? "table" : "grid";
+  const presentation: InventoryPresentation = requestedPresentation === "table" ? "table" : "grid";
   const productId = activeControlRoomSeed.products.some(
     (product) => product.id === requestedProduct,
   )
-    ? requestedProduct ?? null
+    ? (requestedProduct ?? null)
     : null;
   const requestedPage = Number(first(params.page));
   const requestedPageSize = Number(first(params.pageSize));
@@ -103,9 +91,7 @@ export default async function InventoryPage({
         mode: pick(first(params.mode), modeValues, "all"),
         stock: pick(first(params.stock), stockValues, "all"),
         category:
-          requestedCategory && categoryValues.has(requestedCategory)
-            ? requestedCategory
-            : "all",
+          requestedCategory && categoryValues.has(requestedCategory) ? requestedCategory : "all",
         collection:
           requestedCollection && collectionValues.has(requestedCollection)
             ? requestedCollection

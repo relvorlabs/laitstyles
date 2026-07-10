@@ -1,4 +1,3 @@
-import { OrdersWorkspace } from "@/features/control-room/orders/orders-workspace";
 import {
   defaultOrderQuery,
   orderSavedViews,
@@ -10,6 +9,7 @@ import type {
   OrderSavedView,
   OrderSortKey,
 } from "@/features/control-room/orders/order-types";
+import { OrdersWorkspace } from "@/features/control-room/orders/orders-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 type OrdersPageProps = {
@@ -23,14 +23,8 @@ type OrdersPageProps = {
   }>;
 };
 
-const viewValues = new Set<OrderSavedView>(
-  orderSavedViews.map((view) => view.value),
-);
-const channelValues = new Set<OrderChannelFilter>([
-  "all",
-  "online",
-  "offline",
-]);
+const viewValues = new Set<OrderSavedView>(orderSavedViews.map((view) => view.value));
+const channelValues = new Set<OrderChannelFilter>(["all", "online", "offline"]);
 const paymentValues = new Set<OrderPaymentFilter>([
   "all",
   "pending",
@@ -39,9 +33,7 @@ const paymentValues = new Set<OrderPaymentFilter>([
   "failed",
   "refunded",
 ]);
-const sortValues = new Set<OrderSortKey>(
-  orderSortOptions.map((option) => option.value),
-);
+const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option.value));
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
@@ -49,7 +41,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const initialOpenOrderId = activeControlRoomSeed.orders.some(
     (order) => order.id === requestedOrder,
   )
-    ? requestedOrder ?? null
+    ? (requestedOrder ?? null)
     : null;
 
   return (

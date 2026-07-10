@@ -26,8 +26,7 @@ export function formatCompactNaira(value: number) {
 }
 
 export function formatRelativeTime(asOf: string, occurredAt: string) {
-  const difference =
-    new Date(asOf).getTime() - new Date(occurredAt).getTime();
+  const difference = new Date(asOf).getTime() - new Date(occurredAt).getTime();
   const minutes = Math.max(0, Math.floor(difference / 60_000));
 
   if (minutes < 1) return "Just now";

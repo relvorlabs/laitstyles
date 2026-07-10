@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
-  FormProvider,
-  useForm,
   type FieldErrors,
   type FieldPath,
+  FormProvider,
   type Resolver,
+  useForm,
 } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSections } from "@/features/control-room/settings/settings-config";
 import {
   countSettingsSectionErrors,
@@ -18,8 +18,8 @@ import {
 import { SettingsHeader } from "@/features/control-room/settings/settings-header";
 import { SettingsNavigation } from "@/features/control-room/settings/settings-navigation";
 import {
-  SettingsSaveBar,
   type SettingsFeedback,
+  SettingsSaveBar,
 } from "@/features/control-room/settings/settings-save-bar";
 import { SettingsSectionContent } from "@/features/control-room/settings/settings-section-content";
 import { SettingsStatusStrip } from "@/features/control-room/settings/settings-status-strip";
@@ -33,26 +33,18 @@ import type {
   StoreSettings,
 } from "@/lib/control-room/types";
 
-export function SettingsWorkspace({
-  initialSection,
-}: {
-  initialSection: SettingsSection;
-}) {
+export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {
   const pathname = usePathname();
   const { state, saveStoreSettings } = useControlRoom();
-  const persistedSettings =
-    state.settings ?? createDefaultStoreSettings(state.asOf);
-  const [activeSection, setActiveSection] =
-    useState<SettingsSection>(initialSection);
+  const persistedSettings = state.settings ?? createDefaultStoreSettings(state.asOf);
+  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [feedback, setFeedback] = useState<SettingsFeedback | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
   const methods = useForm<SaveStoreSettingsInput>({
     defaultValues: createSettingsInput(persistedSettings),
     mode: "onBlur",
     shouldUnregister: false,
-    resolver: zodResolver(
-      storeSettingsInputSchema,
-    ) as Resolver<SaveStoreSettingsInput>,
+    resolver: zodResolver(storeSettingsInputSchema) as Resolver<SaveStoreSettingsInput>,
   });
 
   const errorCounts = useMemo(
@@ -95,16 +87,10 @@ export function SettingsWorkspace({
 
   function changeSection(section: SettingsSection) {
     setActiveSection(section);
-    window.history.replaceState(
-      null,
-      "",
-      buildSettingsHref(pathname, section),
-    );
+    window.history.replaceState(null, "", buildSettingsHref(pathname, section));
   }
 
-  function applyIssues(
-    issues: Array<{ path: string; message: string; section: SettingsSection }>,
-  ) {
+  function applyIssues(issues: Array<{ path: string; message: string; section: SettingsSection }>) {
     for (const issue of issues) {
       methods.setError(issue.path as FieldPath<SaveStoreSettingsInput>, {
         type: "server",
@@ -143,8 +129,7 @@ export function SettingsWorkspace({
     setFeedback({
       tone: "error",
       title: "Review the highlighted settings",
-      message:
-        "At least one section contains information that is missing or inconsistent.",
+      message: "At least one section contains information that is missing or inconsistent.",
     });
   }
 

@@ -41,10 +41,7 @@ export function getPermittedOrderTransitions(status: OrderStatus) {
   return orderTransitionMap[status] as readonly OrderStatus[];
 }
 
-export function canTransitionOrder(
-  status: OrderStatus,
-  nextStatus: OrderStatus,
-) {
+export function canTransitionOrder(status: OrderStatus, nextStatus: OrderStatus) {
   return getPermittedOrderTransitions(status).includes(nextStatus);
 }
 
@@ -52,10 +49,7 @@ export function getPermittedReturnTransitions(status: ReturnStatus) {
   return returnTransitionMap[status] as readonly ReturnStatus[];
 }
 
-export function canTransitionReturn(
-  status: ReturnStatus,
-  nextStatus: ReturnStatus,
-) {
+export function canTransitionReturn(status: ReturnStatus, nextStatus: ReturnStatus) {
   return getPermittedReturnTransitions(status).includes(nextStatus);
 }
 
@@ -89,8 +83,7 @@ export function getHoldRisk(
 ): "stable" | "expiring" | "expired" | "payment-risk" {
   if ((hold.status ?? "active") !== "active") return "expired";
 
-  const remaining =
-    new Date(hold.expiresAt).getTime() - new Date(asOf).getTime();
+  const remaining = new Date(hold.expiresAt).getTime() - new Date(asOf).getTime();
   if (remaining <= 0) return "expired";
   if (hold.paymentProgress === "failed") return "payment-risk";
   if (remaining <= 5 * 60 * 1000) return "expiring";
@@ -133,10 +126,7 @@ export function getReturnedQuantityForOrderLine(
   let quantity = 0;
 
   for (const returnRecord of returns) {
-    if (
-      returnRecord.orderId !== orderId ||
-      returnRecord.status === "rejected"
-    ) {
+    if (returnRecord.orderId !== orderId || returnRecord.status === "rejected") {
       continue;
     }
 

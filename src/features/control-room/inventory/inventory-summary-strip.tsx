@@ -30,10 +30,7 @@ export function InventorySummaryStrip({ summary }: { summary: InventorySummary }
     },
     {
       label: "Needs attention",
-      value:
-        summary.lowStockProducts +
-        summary.outOfStockProducts +
-        summary.intakeProducts,
+      value: summary.lowStockProducts + summary.outOfStockProducts + summary.intakeProducts,
       detail: `${summary.lowStockProducts} low · ${summary.outOfStockProducts} out · ${summary.intakeProducts} intake`,
       icon: Alert02Icon,
     },

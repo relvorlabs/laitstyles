@@ -2,14 +2,8 @@
 
 import Image from "next/image";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -26,8 +20,8 @@ import {
 } from "@/features/control-room/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { getProductCover } from "@/lib/control-room/inventory-selectors";
 import { formatNaira } from "@/lib/control-room/formatters";
+import { getProductCover } from "@/lib/control-room/inventory-selectors";
 
 export function RecordSaleItemStep() {
   const { state } = useControlRoom();
@@ -51,11 +45,9 @@ export function RecordSaleItemStep() {
 
     methods.setValue("productId", nextProductId, { shouldDirty: true });
     methods.setValue("variantId", nextVariantId, { shouldDirty: true });
-    methods.setValue(
-      "unitPrice",
-      getSaleUnitPrice(nextProduct, nextVariantId),
-      { shouldDirty: true },
-    );
+    methods.setValue("unitPrice", getSaleUnitPrice(nextProduct, nextVariantId), {
+      shouldDirty: true,
+    });
     methods.setValue("quantity", 1, { shouldDirty: true });
     methods.clearErrors(["productId", "variantId", "quantity", "unitPrice"]);
   }
@@ -112,9 +104,7 @@ export function RecordSaleItemStep() {
             control={methods.control}
             name="variantId"
             render={({ field, fieldState }) => {
-              const selected = product.variants.find(
-                (variant) => variant.id === field.value,
-              );
+              const selected = product.variants.find((variant) => variant.id === field.value);
               return (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="record-sale-variant">Variant</FieldLabel>

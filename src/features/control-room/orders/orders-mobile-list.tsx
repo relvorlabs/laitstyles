@@ -4,21 +4,15 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  channelLabels,
-  formatOrderDate,
-} from "@/features/control-room/orders/order-labels";
+import { channelLabels, formatOrderDate } from "@/features/control-room/orders/order-labels";
+import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
 } from "@/features/control-room/orders/order-status-badge";
-import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatNaira } from "@/lib/control-room/formatters";
-import type {
-  ControlRoomOrder,
-  ControlRoomState,
-} from "@/lib/control-room/types";
+import type { ControlRoomOrder, ControlRoomState } from "@/lib/control-room/types";
 
 export function OrdersMobileList({
   state,
@@ -49,9 +43,7 @@ export function OrdersMobileList({
                     {order.id}
                   </h3>
                 </button>
-                {item.needsAttention ? (
-                  <Badge variant="destructive">Attention</Badge>
-                ) : null}
+                {item.needsAttention ? <Badge variant="destructive">Attention</Badge> : null}
               </div>
             </div>
 

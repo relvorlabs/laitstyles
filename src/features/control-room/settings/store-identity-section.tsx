@@ -5,8 +5,8 @@ import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
-  SettingsTextField,
   SettingsTextareaField,
+  SettingsTextField,
 } from "@/features/control-room/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
@@ -89,15 +89,10 @@ export function StoreIdentitySection() {
   );
 }
 
-function StorefrontIdentityPreview({
-  identity,
-}: {
-  identity: SaveStoreSettingsInput["identity"];
-}) {
+function StorefrontIdentityPreview({ identity }: { identity: SaveStoreSettingsInput["identity"] }) {
   const name = identity?.storeName?.trim() || "Your store";
   const description =
-    identity?.description?.trim() ||
-    "Your store description will appear here as customers browse.";
+    identity?.description?.trim() || "Your store description will appear here as customers browse.";
   const initial = name.slice(0, 1).toUpperCase();
   const usesApprovedMark = identity?.logoPreviewUrl === approvedLogoPath;
   const contact =
@@ -106,10 +101,7 @@ function StorefrontIdentityPreview({
     "Customer contact not added";
 
   return (
-    <Card
-      aria-label="Storefront identity preview"
-      className="overflow-hidden p-0"
-    >
+    <Card aria-label="Storefront identity preview" className="overflow-hidden p-0">
       <div className="border-b border-border bg-muted/40 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -122,11 +114,7 @@ function StorefrontIdentityPreview({
         <div className="flex items-center gap-3">
           <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground">
             {usesApprovedMark ? (
-              <LaitstyleSymbol
-                aria-hidden="true"
-                className="h-10 w-7"
-                focusable="false"
-              />
+              <LaitstyleSymbol aria-hidden="true" className="h-10 w-7" focusable="false" />
             ) : (
               <span className="font-serif text-xl">{initial}</span>
             )}
@@ -138,9 +126,7 @@ function StorefrontIdentityPreview({
             </p>
           </div>
         </div>
-        <p className="mt-5 line-clamp-5 text-sm leading-6 text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-5 line-clamp-5 text-sm leading-6 text-muted-foreground">{description}</p>
         <div className="mt-5 grid grid-cols-2 gap-2">
           <div className="aspect-[4/5] rounded-xl border border-border bg-muted/50" />
           <div className="aspect-[4/5] rounded-xl border border-border bg-muted/30" />

@@ -15,7 +15,9 @@ export function ReturnsEmptyState({
   return (
     <Empty className="rounded-[18px] border border-dashed border-border bg-card py-14">
       <EmptyHeader>
-        <EmptyTitle>{hasReturns ? "No returns match this view" : "No return records yet"}</EmptyTitle>
+        <EmptyTitle>
+          {hasReturns ? "No returns match this view" : "No return records yet"}
+        </EmptyTitle>
         <EmptyDescription>
           {hasReturns
             ? "Reset the search and filters to see the full return queue."

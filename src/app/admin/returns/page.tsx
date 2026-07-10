@@ -1,15 +1,12 @@
-import { ReturnsWorkspace } from "@/features/control-room/returns/returns-workspace";
 import {
   defaultReturnQuery,
   returnSavedViews,
   returnStatuses,
 } from "@/features/control-room/returns/return-selectors";
-import type {
-  ReturnSavedView,
-  ReturnSortKey,
-} from "@/features/control-room/returns/return-types";
-import type { ReturnStatus } from "@/lib/control-room/types";
+import type { ReturnSavedView, ReturnSortKey } from "@/features/control-room/returns/return-types";
+import { ReturnsWorkspace } from "@/features/control-room/returns/returns-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import type { ReturnStatus } from "@/lib/control-room/types";
 
 type ReturnsPageProps = {
   searchParams: Promise<{
@@ -21,15 +18,9 @@ type ReturnsPageProps = {
   }>;
 };
 
-const viewValues = new Set<ReturnSavedView>(
-  returnSavedViews.map((view) => view.value),
-);
+const viewValues = new Set<ReturnSavedView>(returnSavedViews.map((view) => view.value));
 const statusValues = new Set<ReturnStatus>(returnStatuses);
-const sortValues = new Set<ReturnSortKey>([
-  "updated-desc",
-  "requested-desc",
-  "value-desc",
-]);
+const sortValues = new Set<ReturnSortKey>(["updated-desc", "requested-desc", "value-desc"]);
 
 export default async function ReturnsPage({ searchParams }: ReturnsPageProps) {
   const params = await searchParams;
@@ -37,7 +28,7 @@ export default async function ReturnsPage({ searchParams }: ReturnsPageProps) {
   const initialOpenReturnId = (activeControlRoomSeed.returns ?? []).some(
     (record) => record.id === requestedReturn,
   )
-    ? requestedReturn ?? null
+    ? (requestedReturn ?? null)
     : null;
 
   return (

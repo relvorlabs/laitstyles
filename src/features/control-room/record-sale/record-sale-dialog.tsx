@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { FormProvider, useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { FormProvider, type Resolver, useForm } from "react-hook-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,11 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,21 +27,21 @@ import { RecordSaleItemStep } from "@/features/control-room/record-sale/record-s
 import { RecordSalePaymentStep } from "@/features/control-room/record-sale/record-sale-payment-step";
 import { RecordSaleReviewStep } from "@/features/control-room/record-sale/record-sale-review-step";
 import {
+  getRecordSaleStepFields,
+  recordSaleSchema,
+} from "@/features/control-room/record-sale/record-sale-schema";
+import {
   createRecordSaleDefaults,
   getAvailableForSale,
   getSelectedSaleProduct,
 } from "@/features/control-room/record-sale/record-sale-selectors";
-import {
-  getRecordSaleStepFields,
-  recordSaleSchema,
-} from "@/features/control-room/record-sale/record-sale-schema";
 import { RecordSaleStepper } from "@/features/control-room/record-sale/record-sale-stepper";
 import {
-  recordSaleSteps,
-  toOfflineSaleInput,
   type RecordSaleCompletion,
   type RecordSaleStep,
   type RecordSaleValues,
+  recordSaleSteps,
+  toOfflineSaleInput,
 } from "@/features/control-room/record-sale/record-sale-types";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 
@@ -230,19 +226,11 @@ function RecordSaleForm({
                   Back
                 </Button>
                 {activeStep === "review" ? (
-                  <Button
-                    className="h-11 rounded-full px-6"
-                    onClick={confirmSale}
-                    type="button"
-                  >
+                  <Button className="h-11 rounded-full px-6" onClick={confirmSale} type="button">
                     Confirm sale
                   </Button>
                 ) : (
-                  <Button
-                    className="h-11 rounded-full px-6"
-                    onClick={goNext}
-                    type="button"
-                  >
+                  <Button className="h-11 rounded-full px-6" onClick={goNext} type="button">
                     Continue
                   </Button>
                 )}
@@ -257,7 +245,8 @@ function RecordSaleForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard this unrecorded sale?</AlertDialogTitle>
             <AlertDialogDescription>
-              The selected product, customer and payment details will be lost. No stock has changed yet.
+              The selected product, customer and payment details will be lost. No stock has changed
+              yet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

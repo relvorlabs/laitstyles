@@ -1,8 +1,3 @@
-import type {
-  ControlRoomState,
-  InventoryProduct,
-  StockMovement,
-} from "@/lib/control-room/types";
 import {
   createInitialIntakeRecords,
   updateIntakeAfterEditorAction,
@@ -26,6 +21,7 @@ import type {
   ProductEditorValues,
 } from "@/lib/control-room/product-editor-types";
 import { err, ok, type Result } from "@/lib/control-room/result";
+import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/control-room/types";
 
 export type ProductEditorStateResult = {
   state: ControlRoomState;
@@ -93,10 +89,7 @@ export function applyProductEditorAction(
     });
   }
 
-  const committedStockIssues = validateCommittedStockEdit(
-    existingProduct,
-    values,
-  );
+  const committedStockIssues = validateCommittedStockEdit(existingProduct, values);
   if (committedStockIssues.length) {
     return err({
       code: "validation-failed",
@@ -173,10 +166,7 @@ function createInitialStockMovement(
 
   const quantity =
     product.inventoryMode === "variant"
-      ? product.variants.reduce(
-          (total, variant) => total + variant.stock.totalReceived,
-          0,
-        )
+      ? product.variants.reduce((total, variant) => total + variant.stock.totalReceived, 0)
       : product.stock.totalReceived;
 
   return {
@@ -191,10 +181,7 @@ function createInitialStockMovement(
   };
 }
 
-function findDuplicateReference(
-  products: InventoryProduct[],
-  values: ProductEditorValues,
-) {
+function findDuplicateReference(products: InventoryProduct[], values: ProductEditorValues) {
   const requested = getRequestedReferences(values);
   const existing = new Map<string, string>();
 
@@ -205,26 +192,17 @@ function findDuplicateReference(
     }
   }
 
-  return requested.find((reference) =>
-    existing.has(normalizeProductReference(reference)),
-  );
+  return requested.find((reference) => existing.has(normalizeProductReference(reference)));
 }
 
 function getRequestedReferences(values: ProductEditorValues) {
   if (values.inventoryMode === "variant") {
-    return values.variant.variants
-      .map((variant) => variant.sku.trim())
-      .filter(Boolean);
+    return values.variant.variants.map((variant) => variant.sku.trim()).filter(Boolean);
   }
-  return values.internalReference.trim()
-    ? [values.internalReference.trim()]
-    : [];
+  return values.internalReference.trim() ? [values.internalReference.trim()] : [];
 }
 
-function getEditorSuccessMessage(
-  product: InventoryProduct,
-  intent: ProductEditorIntent,
-) {
+function getEditorSuccessMessage(product: InventoryProduct, intent: ProductEditorIntent) {
   if (intent === "draft") return `${product.name} saved as a draft.`;
   if (intent === "schedule") {
     return `${product.name} scheduled for publication.`;

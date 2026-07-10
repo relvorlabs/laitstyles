@@ -2,11 +2,11 @@
 
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import {
-  recordSaleSteps,
   type RecordSaleStep,
+  recordSaleSteps,
 } from "@/features/control-room/record-sale/record-sale-types";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 
 const labels: Record<RecordSaleStep, string> = {
   item: "Item",
@@ -55,9 +55,7 @@ export function RecordSaleStepper({
                       index + 1
                     )}
                   </span>
-                  <span className="hidden truncate text-sm sm:inline">
-                    {labels[step]}
-                  </span>
+                  <span className="hidden truncate text-sm sm:inline">{labels[step]}</span>
                 </span>
               </Button>
             </li>

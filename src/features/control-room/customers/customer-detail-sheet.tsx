@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Sheet,
   SheetContent,
@@ -12,16 +8,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerDeliveryPanel } from "@/features/control-room/customers/customer-delivery-panel";
 import {
-  getCustomerInitials,
   customerTypeLabels,
+  getCustomerInitials,
 } from "@/features/control-room/customers/customer-labels";
 import { CustomerOverviewPanel } from "@/features/control-room/customers/customer-overview-panel";
 import { CustomerProductsPanel } from "@/features/control-room/customers/customer-products-panel";
@@ -119,10 +110,7 @@ export function CustomerDetailSheet({
               <CustomerTimelinePanel events={profile.timeline} />
             </TabsContent>
             <TabsContent className="pt-4" value="products">
-              <CustomerProductsPanel
-                relationships={profile.products}
-                state={state}
-              />
+              <CustomerProductsPanel relationships={profile.products} state={state} />
             </TabsContent>
             <TabsContent className="pt-4" value="delivery">
               <CustomerDeliveryPanel profile={profile} />

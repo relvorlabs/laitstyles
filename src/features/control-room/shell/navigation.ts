@@ -90,9 +90,7 @@ export const controlRoomNavigationGroups: ControlRoomNavigationGroup[] = [
   },
 ];
 
-export const controlRoomNavigation = controlRoomNavigationGroups.flatMap(
-  (group) => group.items,
-);
+export const controlRoomNavigation = controlRoomNavigationGroups.flatMap((group) => group.items);
 
 export const controlRoomExternalLinks: ControlRoomNavigationItem[] = [
   {

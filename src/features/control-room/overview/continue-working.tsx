@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowRight01Icon, PackageIcon } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -9,11 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress";
+import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { ContinueTask } from "@/lib/control-room/types";
 
@@ -22,9 +18,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
     return (
       <Card className="self-start">
         <CardHeader>
-          <CardTitle className="font-serif text-[27px] font-medium">
-            Nothing unfinished.
-          </CardTitle>
+          <CardTitle className="font-serif text-[27px] font-medium">Nothing unfinished.</CardTitle>
           <CardDescription>
             Drafts and interrupted operational work will return here.
           </CardDescription>

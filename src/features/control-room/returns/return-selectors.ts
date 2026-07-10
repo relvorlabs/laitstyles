@@ -1,16 +1,16 @@
 import type {
-  ControlRoomOrder,
-  ControlRoomReturn,
-  ControlRoomState,
-  ReturnStatus,
-} from "@/lib/control-room/types";
-import { getReturnedQuantityForOrderLine } from "@/lib/control-room/sales-selectors";
-import type {
   ReturnQuery,
   ReturnSavedView,
   ReturnWorkspaceItem,
   ReturnWorkspaceSummary,
 } from "@/features/control-room/returns/return-types";
+import { getReturnedQuantityForOrderLine } from "@/lib/control-room/sales-selectors";
+import type {
+  ControlRoomOrder,
+  ControlRoomReturn,
+  ControlRoomState,
+  ReturnStatus,
+} from "@/lib/control-room/types";
 
 export const defaultReturnQuery: ReturnQuery = {
   view: "all",
@@ -43,12 +43,7 @@ export const returnStatuses: ReturnStatus[] = [
   "closed",
 ];
 
-const resolvedStatuses = new Set<ReturnStatus>([
-  "restocked",
-  "damaged",
-  "rejected",
-  "closed",
-]);
+const resolvedStatuses = new Set<ReturnStatus>(["restocked", "damaged", "rejected", "closed"]);
 
 export function queryReturns(state: ControlRoomState, query: ReturnQuery) {
   const normalized = normalize(query.search);
@@ -64,20 +59,16 @@ export function getReturnSavedViewCounts(state: ControlRoomState) {
   return Object.fromEntries(
     returnSavedViews.map((view) => [
       view.value,
-      (state.returns ?? []).filter((record) => matchesView(record, view.value))
-        .length,
+      (state.returns ?? []).filter((record) => matchesView(record, view.value)).length,
     ]),
   ) as Record<ReturnSavedView, number>;
 }
 
-export function getReturnWorkspaceSummary(
-  state: ControlRoomState,
-): ReturnWorkspaceSummary {
+export function getReturnWorkspaceSummary(state: ControlRoomState): ReturnWorkspaceSummary {
   const records = state.returns ?? [];
   return {
     totalReturns: records.length,
-    openReturns: records.filter((record) => !resolvedStatuses.has(record.status))
-      .length,
+    openReturns: records.filter((record) => !resolvedStatuses.has(record.status)).length,
     awaitingItem: records.filter(
       (record) => record.status === "requested" || record.status === "approved",
     ).length,
@@ -95,9 +86,7 @@ export function toReturnWorkspaceItem(
   record: ControlRoomReturn,
 ): ReturnWorkspaceItem {
   const order = state.orders.find((entry) => entry.id === record.orderId);
-  const customer = state.customers.find(
-    (entry) => entry.id === record.customerId,
-  );
+  const customer = state.customers.find((entry) => entry.id === record.customerId);
   const productNames = record.lines.map((line) => {
     const product = state.products.find((entry) => entry.id === line.productId);
     if (!product) return "Missing product";
@@ -123,9 +112,7 @@ export function getEligibleReturnOrders(state: ControlRoomState) {
   return state.orders.filter(
     (order) =>
       order.fulfilmentStatus === "delivered" &&
-      order.lines.some(
-        (line) => getEligibleReturnQuantity(state, order, line.id) > 0,
-      ),
+      order.lines.some((line) => getEligibleReturnQuantity(state, order, line.id) > 0),
   );
 }
 
@@ -138,12 +125,7 @@ export function getEligibleReturnQuantity(
   if (!line) return 0;
   return Math.max(
     0,
-    line.quantity -
-      getReturnedQuantityForOrderLine(
-        state.returns ?? [],
-        order.id,
-        orderLineId,
-      ),
+    line.quantity - getReturnedQuantityForOrderLine(state.returns ?? [], order.id, orderLineId),
   );
 }
 
@@ -164,21 +146,11 @@ function matchesView(record: ControlRoomReturn, view: ReturnSavedView) {
   }
 }
 
-function matchesSearch(
-  state: ControlRoomState,
-  record: ControlRoomReturn,
-  normalized: string,
-) {
+function matchesSearch(state: ControlRoomState, record: ControlRoomReturn, normalized: string) {
   if (!normalized) return true;
   const item = toReturnWorkspaceItem(state, record);
   const searchable = normalize(
-    [
-      record.id,
-      record.orderId,
-      record.reason,
-      item.customerName,
-      ...item.productNames,
-    ].join(" "),
+    [record.id, record.orderId, record.reason, item.customerName, ...item.productNames].join(" "),
   );
   return normalized.split(/\s+/).every((token) => searchable.includes(token));
 }
@@ -192,10 +164,7 @@ function compareReturns(
     case "updated-desc":
       return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
     case "requested-desc":
-      return (
-        new Date(right.requestedAt).getTime() -
-        new Date(left.requestedAt).getTime()
-      );
+      return new Date(right.requestedAt).getTime() - new Date(left.requestedAt).getTime();
     case "value-desc":
       return right.refundAmount - left.refundAmount;
   }

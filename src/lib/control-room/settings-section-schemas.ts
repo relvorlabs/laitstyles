@@ -10,7 +10,7 @@ const optionalPhoneSchema = z.union([
   z
     .string()
     .trim()
-    .regex(/^\+?[0-9\s()\-]{7,24}$/, "Enter a valid phone number."),
+    .regex(/^\+?[0-9\s()-]{7,24}$/, "Enter a valid phone number."),
 ]);
 
 const optionalUrlSchema = z.union([
@@ -112,10 +112,7 @@ const pickupLocationSchema = z.object({
     .min(5, "Enter a useful pickup address.")
     .max(180, "Keep the pickup address within 180 characters."),
   city: z.string().trim().min(2, "Enter the pickup city."),
-  instructions: z
-    .string()
-    .trim()
-    .max(240, "Keep pickup instructions within 240 characters."),
+  instructions: z.string().trim().max(240, "Keep pickup instructions within 240 characters."),
   enabled: z.boolean(),
 });
 
@@ -149,11 +146,7 @@ export const paymentSettingsSchema = z.object({
     .number()
     .min(0, "Deposit percentage cannot be negative.")
     .max(100, "Deposit percentage cannot exceed 100%."),
-  refundPreference: z.enum([
-    "original-method",
-    "bank-transfer",
-    "store-credit",
-  ]),
+  refundPreference: z.enum(["original-method", "bank-transfer", "store-credit"]),
 });
 
 export const notificationSettingsSchema = z.object({

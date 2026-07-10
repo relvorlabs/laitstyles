@@ -5,11 +5,7 @@ import { formatCustomerDateTime } from "@/features/control-room/customers/custom
 import { orderStatusLabels } from "@/features/control-room/orders/order-labels";
 import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
 
-export function CustomerDeliveryPanel({
-  profile,
-}: {
-  profile: CustomerRelationshipProfile;
-}) {
+export function CustomerDeliveryPanel({ profile }: { profile: CustomerRelationshipProfile }) {
   const addresses = profile.customer.addresses ?? [];
 
   return (
@@ -36,7 +32,12 @@ export function CustomerDeliveryPanel({
                 </div>
                 <p className="mt-3 break-words text-sm leading-6 text-muted-foreground">
                   {address.line1}
-                  {address.line2 ? <><br />{address.line2}</> : null}
+                  {address.line2 ? (
+                    <>
+                      <br />
+                      {address.line2}
+                    </>
+                  ) : null}
                   <br />
                   {address.city}, {address.state}
                 </p>
@@ -62,7 +63,10 @@ export function CustomerDeliveryPanel({
           <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
             Connected orders
           </p>
-          <h2 className="mt-2 font-serif text-[26px] font-medium" id="customer-delivery-history-title">
+          <h2
+            className="mt-2 font-serif text-[26px] font-medium"
+            id="customer-delivery-history-title"
+          >
             Delivery history
           </h2>
         </div>

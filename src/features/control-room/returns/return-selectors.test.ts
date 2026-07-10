@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
 import {
   defaultReturnQuery,
   getEligibleReturnOrders,
@@ -9,6 +7,8 @@ import {
   getReturnWorkspaceSummary,
   queryReturns,
 } from "@/features/control-room/returns/return-selectors";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
+import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 const now = "2026-07-09T17:45:00+01:00";
 
@@ -37,9 +37,7 @@ describe("Returns workspace selectors", () => {
   it("offers only delivered order lines with remaining eligible quantity", () => {
     const orders = getEligibleReturnOrders(activeControlRoomSeed);
     expect(orders.map((order) => order.id)).toEqual(["LS-20472"]);
-    expect(
-      getEligibleReturnQuantity(activeControlRoomSeed, orders[0]!, "line-20472-1"),
-    ).toBe(1);
+    expect(getEligibleReturnQuantity(activeControlRoomSeed, orders[0]!, "line-20472-1")).toBe(1);
   });
 
   it("queries and summarizes connected return records", () => {

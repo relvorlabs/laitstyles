@@ -1,14 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  FormProvider,
-  useForm,
-  useWatch,
-  type FieldPath,
-  type Resolver,
-} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo, useState } from "react";
+import { type FieldPath, FormProvider, type Resolver, useForm, useWatch } from "react-hook-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,11 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -68,18 +58,14 @@ export function ProductEditorDialog({
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
   const { state } = useControlRoom();
-  const product = productId
-    ? state.products.find((item) => item.id === productId)
-    : undefined;
+  const product = productId ? state.products.find((item) => item.id === productId) : undefined;
 
   if (!open) return null;
 
   return (
     <ProductEditorForm
       initialValues={
-        product
-          ? createProductEditorValues(product)
-          : createEmptyProductEditorValues()
+        product ? createProductEditorValues(product) : createEmptyProductEditorValues()
       }
       key={product?.id ?? "new-product"}
       onCompleted={onCompleted}
@@ -114,10 +100,7 @@ function ProductEditorForm({
   const watchedValues = useWatch({
     control: methods.control,
   }) as ProductEditorValues;
-  const publishIssues = useMemo(
-    () => validateProductForPublish(watchedValues),
-    [watchedValues],
-  );
+  const publishIssues = useMemo(() => validateProductForPublish(watchedValues), [watchedValues]);
   const activeIndex = productEditorSteps.indexOf(activeStep);
   const editing = Boolean(initialValues.productId);
 
@@ -214,17 +197,13 @@ function ProductEditorForm({
   return (
     <>
       <Dialog onOpenChange={requestClose} open={open}>
-        <DialogContent
-          className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]"
-        >
+        <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]">
           <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {editing ? "Continue product" : "Add product"}
             </p>
             <DialogTitle className="font-serif text-[28px] font-medium leading-tight">
-              {editing
-                ? initialValues.name || "Untitled product"
-                : "Create a catalogue record"}
+              {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
             </DialogTitle>
             <DialogDescription>
               Seven guided steps · prototype changes stay in this browser session
@@ -279,7 +258,8 @@ function ProductEditorForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard unsaved product changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              Values entered in this editor will be lost. Save a draft instead when the work should remain in this session.
+              Values entered in this editor will be lost. Save a draft instead when the work should
+              remain in this session.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,17 +1,9 @@
 "use client";
 
+import { ArrowLeft01Icon, ArrowRight01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  Edit02Icon,
-} from "@hugeicons/core-free-icons";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,11 +15,7 @@ import {
   formatIntakeStage,
   getAdjacentIntakeStages,
 } from "@/lib/control-room/product-editor-actions";
-import type {
-  IntakeRecord,
-  IntakeStage,
-  InventoryListItem,
-} from "@/lib/control-room/types";
+import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/control-room/types";
 
 const stageOrder: IntakeStage[] = [
   "received",
@@ -38,11 +26,7 @@ const stageOrder: IntakeStage[] = [
   "published",
 ];
 
-export function InventoryIntakeQueue({
-  items,
-}: {
-  items: InventoryListItem[];
-}) {
+export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) {
   const { state, transitionIntake } = useControlRoom();
   const { openExistingProduct } = useProductEditorController();
   const [feedback, setFeedback] = useState<{
@@ -54,9 +38,7 @@ export function InventoryIntakeQueue({
     return (state.intake ?? [])
       .filter((record) => productIds.has(record.productId))
       .toSorted(
-        (left, right) =>
-          new Date(right.updatedAt).getTime() -
-          new Date(left.updatedAt).getTime(),
+        (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
       );
   }, [items, state.intake]);
   const itemByProductId = useMemo(
@@ -87,7 +69,8 @@ export function InventoryIntakeQueue({
             Intake queue
           </h2>
           <p className="mt-2 max-w-[680px] text-[12.5px] leading-5 text-muted-foreground">
-            Move each product one adjacent stage at a time. Continue product opens the same record in the seven-step editor; it never creates a duplicate.
+            Move each product one adjacent stage at a time. Continue product opens the same record
+            in the seven-step editor; it never creates a duplicate.
           </p>
         </div>
         <Badge variant="outline">
@@ -96,10 +79,7 @@ export function InventoryIntakeQueue({
       </div>
 
       {feedback ? (
-        <Alert
-          aria-live="polite"
-          variant={feedback.tone === "error" ? "destructive" : "default"}
-        >
+        <Alert aria-live="polite" variant={feedback.tone === "error" ? "destructive" : "default"}>
           <AlertTitle>
             {feedback.tone === "error" ? "Intake action failed" : "Intake updated"}
           </AlertTitle>
@@ -141,7 +121,9 @@ export function InventoryIntakeQueue({
                   </p>
                   <div className="mt-4 max-w-[520px]">
                     <div className="mb-2 flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      <span>Stage {stageIndex + 1} of {stageOrder.length}</span>
+                      <span>
+                        Stage {stageIndex + 1} of {stageOrder.length}
+                      </span>
                       <span>{formatIntakeStage(record.stage)}</span>
                     </div>
                     <Progress value={progress} />

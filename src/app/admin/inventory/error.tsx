@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Alert02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Empty,
@@ -25,16 +25,12 @@ export default function InventoryError({ reset }: { reset: () => void }) {
             Inventory could not be assembled.
           </EmptyTitle>
           <EmptyDescription className="max-w-[500px]">
-            Product records have not been changed. Retry the workspace or return to the daily Overview.
+            Product records have not been changed. Retry the workspace or return to the daily
+            Overview.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="mt-2 flex-row flex-wrap justify-center">
-          <Button
-            className="h-11 rounded-full px-5"
-            onClick={reset}
-            size="lg"
-            type="button"
-          >
+          <Button className="h-11 rounded-full px-5" onClick={reset} size="lg" type="button">
             Retry Inventory
           </Button>
           <Link

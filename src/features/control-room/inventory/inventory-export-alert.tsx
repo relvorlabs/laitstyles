@@ -1,12 +1,7 @@
 "use client";
 
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
-import {
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 
@@ -20,10 +15,7 @@ export function InventoryExportAlert({
   if (!count) return null;
 
   return (
-    <Alert
-      aria-live="polite"
-      className="border-success/35 bg-success/10 text-foreground"
-    >
+    <Alert aria-live="polite" className="border-success/35 bg-success/10 text-foreground">
       <ControlRoomIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
       <AlertTitle>Inventory export created</AlertTitle>
       <AlertDescription className="text-muted-foreground">

@@ -1,7 +1,4 @@
-import type {
-  PaymentStatus,
-  SalesChannel,
-} from "@/lib/control-room/types";
+import type { PaymentStatus, SalesChannel } from "@/lib/control-room/types";
 
 export type OrderSavedView =
   | "all"
@@ -13,11 +10,7 @@ export type OrderSavedView =
 
 export type OrderChannelFilter = "all" | "online" | "offline";
 export type OrderPaymentFilter = PaymentStatus | "all";
-export type OrderSortKey =
-  | "placed-desc"
-  | "placed-asc"
-  | "total-desc"
-  | "total-asc";
+export type OrderSortKey = "placed-desc" | "placed-asc" | "total-desc" | "total-asc";
 
 export type OrderQuery = {
   view: OrderSavedView;

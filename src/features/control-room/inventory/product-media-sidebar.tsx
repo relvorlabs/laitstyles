@@ -1,17 +1,10 @@
 "use client";
 
+import { Check, Copy, ExternalLink, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import Image from "next/image";
-import {
-  Check,
-  Copy,
-  ExternalLink,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { ProductMedia } from "@/lib/control-room/types";
+import { cn } from "@/lib/utils";
 
 type CopyFeedback = "copied" | "error" | null;
 
@@ -67,13 +60,7 @@ export function ProductMediaSidebar({
         >
           <ZoomIn aria-hidden="true" />
         </Button>
-        <Button
-          aria-label="Reset zoom"
-          onClick={onReset}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
+        <Button aria-label="Reset zoom" onClick={onReset} size="icon" type="button" variant="ghost">
           <RotateCcw aria-hidden="true" />
         </Button>
       </div>
@@ -120,25 +107,14 @@ export function ProductMediaSidebar({
           <ExternalLink aria-hidden="true" />
           Open original
         </a>
-        <Button
-          className="min-h-11"
-          onClick={onCopy}
-          type="button"
-          variant="outline"
-        >
-          {copyFeedback === "copied" ? (
-            <Check aria-hidden="true" />
-          ) : (
-            <Copy aria-hidden="true" />
-          )}
+        <Button className="min-h-11" onClick={onCopy} type="button" variant="outline">
+          {copyFeedback === "copied" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
           {copyFeedback === "copied" ? "Link copied" : "Copy image link"}
         </Button>
         {copyFeedback === "error" ? (
-          <p
-            className="col-span-2 text-xs leading-5 text-destructive lg:col-span-1"
-            role="alert"
-          >
-            The image link could not be copied. Open the original image and copy its address instead.
+          <p className="col-span-2 text-xs leading-5 text-destructive lg:col-span-1" role="alert">
+            The image link could not be copied. Open the original image and copy its address
+            instead.
           </p>
         ) : null}
       </div>

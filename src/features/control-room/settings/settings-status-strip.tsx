@@ -11,20 +11,12 @@ export function SettingsStatusStrip({
   dirty: boolean;
   updatedAt: string;
 }) {
-  const active = settingsSections.find(
-    (section) => section.value === activeSection,
-  );
+  const active = settingsSections.find((section) => section.value === activeSection);
 
   return (
     <Card className="grid gap-4 p-4 sm:grid-cols-3 sm:p-5">
-      <StatusItem
-        label="Current section"
-        value={active?.label ?? "Store identity"}
-      />
-      <StatusItem
-        label="Form state"
-        value={dirty ? "Unsaved changes" : "All changes saved"}
-      />
+      <StatusItem label="Current section" value={active?.label ?? "Store identity"} />
+      <StatusItem label="Form state" value={dirty ? "Unsaved changes" : "All changes saved"} />
       <StatusItem label="Last changed" value={formatUpdatedAt(updatedAt)} />
     </Card>
   );

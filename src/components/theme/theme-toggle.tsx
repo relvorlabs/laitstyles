@@ -1,6 +1,7 @@
 "use client";
 
 import { LaptopMinimal, Moon, Sun } from "lucide-react";
+import { type ThemePreference, useTheme } from "@/components/theme/theme-provider";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,10 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  useTheme,
-  type ThemePreference,
-} from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
 
 const themeOptions: ReadonlyArray<{
@@ -80,11 +77,7 @@ export function ThemeToggle({
         >
           {themeOptions.map((option) => {
             const OptionIcon =
-              option.value === "light"
-                ? Sun
-                : option.value === "dark"
-                  ? Moon
-                  : LaptopMinimal;
+              option.value === "light" ? Sun : option.value === "dark" ? Moon : LaptopMinimal;
             return (
               <DropdownMenuRadioItem
                 className="items-start gap-3 px-2.5 py-3"

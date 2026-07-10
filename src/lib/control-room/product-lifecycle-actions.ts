@@ -39,9 +39,7 @@ export function applyArchiveProduct(
     state: {
       ...state,
       asOf: now,
-      products: state.products.map((entry) =>
-        entry.id === productId ? nextProduct : entry,
-      ),
+      products: state.products.map((entry) => (entry.id === productId ? nextProduct : entry)),
       activities: [
         {
           id: idFactory("activity"),
@@ -82,9 +80,7 @@ export function applyRestoreProduct(
     state: {
       ...state,
       asOf: now,
-      products: state.products.map((entry) =>
-        entry.id === productId ? nextProduct : entry,
-      ),
+      products: state.products.map((entry) => (entry.id === productId ? nextProduct : entry)),
       activities: [
         {
           id: idFactory("activity"),
@@ -162,7 +158,11 @@ function getProductDependencies(state: ControlRoomState, productId: string) {
   if (state.reviews.some((review) => review.productId === productId)) {
     dependencies.push("reviews");
   }
-  if ((state.returns ?? []).some((record) => record.lines.some((line) => line.productId === productId))) {
+  if (
+    (state.returns ?? []).some((record) =>
+      record.lines.some((line) => line.productId === productId),
+    )
+  ) {
     dependencies.push("return history");
   }
   if (state.customers.some((customer) => customer.savedProductIds?.includes(productId))) {
@@ -171,9 +171,7 @@ function getProductDependencies(state: ControlRoomState, productId: string) {
   return dependencies;
 }
 
-function productNotFound(
-  productId: string,
-): Result<never, ProductLifecycleActionError> {
+function productNotFound(productId: string): Result<never, ProductLifecycleActionError> {
   return err({
     code: "product-not-found",
     productId,

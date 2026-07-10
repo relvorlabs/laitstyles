@@ -1,19 +1,10 @@
 import type { HoldSource, HoldStage, HoldStatus } from "@/lib/control-room/types";
 
-export type HoldSavedView =
-  | "all"
-  | "active"
-  | "expiring"
-  | "payment-risk"
-  | "expired";
+export type HoldSavedView = "all" | "active" | "expiring" | "payment-risk" | "expired";
 
 export type HoldSourceFilter = "all" | "storefront" | "assisted";
 export type HoldStageFilter = HoldStage | "all";
-export type HoldSortKey =
-  | "expiry-asc"
-  | "expiry-desc"
-  | "started-desc"
-  | "quantity-desc";
+export type HoldSortKey = "expiry-asc" | "expiry-desc" | "started-desc" | "quantity-desc";
 
 export type HoldQuery = {
   view: HoldSavedView;

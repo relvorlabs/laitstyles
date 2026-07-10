@@ -31,7 +31,5 @@ export function ProductEditorStepContent({
   if (activeStep === "pricing") return <ProductPricingStep />;
   if (activeStep === "fulfilment") return <ProductFulfilmentStep />;
 
-  return (
-    <ProductReviewStep issues={issues} onStepChange={onStepChange} />
-  );
+  return <ProductReviewStep issues={issues} onStepChange={onStepChange} />;
 }

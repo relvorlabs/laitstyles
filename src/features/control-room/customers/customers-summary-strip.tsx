@@ -1,12 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { formatNaira } from "@/lib/control-room/formatters";
 import type { CustomerWorkspaceSummary } from "@/features/control-room/customers/customer-types";
+import { formatNaira } from "@/lib/control-room/formatters";
 
-export function CustomersSummaryStrip({
-  summary,
-}: {
-  summary: CustomerWorkspaceSummary;
-}) {
+export function CustomersSummaryStrip({ summary }: { summary: CustomerWorkspaceSummary }) {
   const items = [
     {
       label: "Customer relationships",
@@ -49,9 +45,7 @@ export function CustomersSummaryStrip({
             <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {item.label}
             </p>
-            <p className="mt-1 text-[10.5px] text-muted-foreground">
-              {item.detail}
-            </p>
+            <p className="mt-1 text-[10.5px] text-muted-foreground">{item.detail}</p>
           </div>
         ))}
       </div>

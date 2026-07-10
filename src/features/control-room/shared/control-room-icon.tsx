@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps } from "react";
 
-export type ControlRoomIconData = ComponentProps<
-  typeof HugeiconsIcon
->["icon"];
+export type ControlRoomIconData = ComponentProps<typeof HugeiconsIcon>["icon"];
 
 type ControlRoomIconProps = {
   icon: ControlRoomIconData;

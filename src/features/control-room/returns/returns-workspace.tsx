@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CreateReturnDialog } from "@/features/control-room/returns/create-return-dialog";
 import { ReturnControls } from "@/features/control-room/returns/return-controls";
@@ -24,10 +24,7 @@ import { ReturnsSummaryStrip } from "@/features/control-room/returns/returns-sum
 import { ReturnsTable } from "@/features/control-room/returns/returns-table";
 import { buildReturnsHref } from "@/features/control-room/returns/returns-url";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type {
-  CreateReturnInput,
-  ReturnStatus,
-} from "@/lib/control-room/types";
+import type { CreateReturnInput, ReturnStatus } from "@/lib/control-room/types";
 
 export function ReturnsWorkspace({
   initialQuery,
@@ -39,17 +36,14 @@ export function ReturnsWorkspace({
   const pathname = usePathname();
   const { state, createReturn, transitionReturn } = useControlRoom();
   const [query, setQuery] = useState(initialQuery);
-  const [openReturnId, setOpenReturnId] = useState<string | null>(
-    initialOpenReturnId,
-  );
+  const [openReturnId, setOpenReturnId] = useState<string | null>(initialOpenReturnId);
   const [createOpen, setCreateOpen] = useState(false);
   const [feedback, setFeedback] = useState<ReturnActionFeedback | null>(null);
 
   const returns = useMemo(() => queryReturns(state, query), [query, state]);
   const counts = useMemo(() => getReturnSavedViewCounts(state), [state]);
   const summary = useMemo(() => getReturnWorkspaceSummary(state), [state]);
-  const openReturn =
-    (state.returns ?? []).find((record) => record.id === openReturnId) ?? null;
+  const openReturn = (state.returns ?? []).find((record) => record.id === openReturnId) ?? null;
 
   function replaceUrl(nextQuery = query, nextReturnId = openReturnId) {
     window.history.replaceState(
@@ -154,16 +148,8 @@ export function ReturnsWorkspace({
 
       {returns.length ? (
         <>
-          <ReturnsMobileList
-            onOpen={openReturnRecord}
-            returns={returns}
-            state={state}
-          />
-          <ReturnsTable
-            onOpen={openReturnRecord}
-            returns={returns}
-            state={state}
-          />
+          <ReturnsMobileList onOpen={openReturnRecord} returns={returns} state={state} />
+          <ReturnsTable onOpen={openReturnRecord} returns={returns} state={state} />
         </>
       ) : (
         <ReturnsEmptyState

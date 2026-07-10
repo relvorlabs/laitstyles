@@ -1,12 +1,7 @@
-import type {
-  ControlRoomState,
-  InventoryProduct,
-} from "@/lib/control-room/types";
 import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
+import type { ControlRoomState, InventoryProduct } from "@/lib/control-room/types";
 
-export function createRecordSaleDefaults(
-  state: ControlRoomState,
-): RecordSaleValues {
+export function createRecordSaleDefaults(state: ControlRoomState): RecordSaleValues {
   const firstProduct = getSellableProducts(state)[0];
   const firstVariant =
     firstProduct?.inventoryMode === "variant"
@@ -40,42 +35,24 @@ export function getSellableProducts(state: ControlRoomState) {
   );
 }
 
-export function getAvailableForSale(
-  product: InventoryProduct,
-  variantId?: string,
-) {
+export function getAvailableForSale(product: InventoryProduct, variantId?: string) {
   if (product.inventoryMode !== "variant") return product.stock.available;
   if (!variantId) {
-    return product.variants.reduce(
-      (total, variant) => total + variant.stock.available,
-      0,
-    );
+    return product.variants.reduce((total, variant) => total + variant.stock.available, 0);
   }
-  return (
-    product.variants.find((variant) => variant.id === variantId)?.stock.available ??
-    0
-  );
+  return product.variants.find((variant) => variant.id === variantId)?.stock.available ?? 0;
 }
 
-export function getSelectedSaleProduct(
-  state: ControlRoomState,
-  productId: string,
-) {
+export function getSelectedSaleProduct(state: ControlRoomState, productId: string) {
   return state.products.find((product) => product.id === productId) ?? null;
 }
 
-export function getSelectedSaleVariant(
-  product: InventoryProduct | null,
-  variantId: string,
-) {
+export function getSelectedSaleVariant(product: InventoryProduct | null, variantId: string) {
   if (!product || product.inventoryMode !== "variant") return null;
   return product.variants.find((variant) => variant.id === variantId) ?? null;
 }
 
-export function getSaleUnitPrice(
-  product: InventoryProduct | null,
-  variantId: string,
-) {
+export function getSaleUnitPrice(product: InventoryProduct | null, variantId: string) {
   if (!product) return 0;
   const variant = getSelectedSaleVariant(product, variantId);
   return variant?.price ?? product.price;

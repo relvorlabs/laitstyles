@@ -1,15 +1,11 @@
-import { getOrderNetRevenue } from "@/lib/control-room/sales-selectors";
-import type {
-  ControlRoomOrder,
-  ControlRoomState,
-  OrderStatus,
-} from "@/lib/control-room/types";
 import type {
   OrderQuery,
   OrderSavedView,
   OrderWorkspaceItem,
   OrderWorkspaceSummary,
 } from "@/features/control-room/orders/order-types";
+import { getOrderNetRevenue } from "@/lib/control-room/sales-selectors";
+import type { ControlRoomOrder, ControlRoomState, OrderStatus } from "@/lib/control-room/types";
 
 export const defaultOrderQuery: OrderQuery = {
   view: "all",
@@ -71,30 +67,18 @@ const fulfilmentStatuses = new Set<OrderStatus>([
   "out-for-delivery",
 ]);
 
-const closedStatuses = new Set<OrderStatus>([
-  "cancelled",
-  "refunded",
-  "returned",
-]);
+const closedStatuses = new Set<OrderStatus>(["cancelled", "refunded", "returned"]);
 
-export function queryOrders(
-  state: ControlRoomState,
-  query: OrderQuery,
-): ControlRoomOrder[] {
+export function queryOrders(state: ControlRoomState, query: OrderQuery): ControlRoomOrder[] {
   const normalizedSearch = normalize(query.search);
 
   return state.orders
     .filter((order) => matchesSavedView(order, query.view))
     .filter((order) => {
       if (query.channel === "all") return true;
-      return query.channel === "online"
-        ? order.channel === "online"
-        : order.channel !== "online";
+      return query.channel === "online" ? order.channel === "online" : order.channel !== "online";
     })
-    .filter(
-      (order) =>
-        query.payment === "all" || order.paymentStatus === query.payment,
-    )
+    .filter((order) => query.payment === "all" || order.paymentStatus === query.payment)
     .filter((order) => matchesSearch(state, order, normalizedSearch))
     .toSorted((left, right) => compareOrders(left, right, query.sort));
 }
@@ -110,26 +94,16 @@ export function getOrderSavedViewCounts(
   ) as Record<OrderSavedView, number>;
 }
 
-export function getOrderWorkspaceSummary(
-  state: ControlRoomState,
-): OrderWorkspaceSummary {
+export function getOrderWorkspaceSummary(state: ControlRoomState): OrderWorkspaceSummary {
   return {
     totalOrders: state.orders.length,
-    needsAttention: state.orders.filter((order) => Boolean(order.attention))
+    needsAttention: state.orders.filter((order) => Boolean(order.attention)).length,
+    pendingPayment: state.orders.filter((order) => order.fulfilmentStatus === "pending-payment")
       .length,
-    pendingPayment: state.orders.filter(
-      (order) => order.fulfilmentStatus === "pending-payment",
-    ).length,
-    inFulfilment: state.orders.filter((order) =>
-      fulfilmentStatuses.has(order.fulfilmentStatus),
-    ).length,
-    delivered: state.orders.filter(
-      (order) => order.fulfilmentStatus === "delivered",
-    ).length,
-    netRevenue: state.orders.reduce(
-      (total, order) => total + getOrderNetRevenue(order),
-      0,
-    ),
+    inFulfilment: state.orders.filter((order) => fulfilmentStatuses.has(order.fulfilmentStatus))
+      .length,
+    delivered: state.orders.filter((order) => order.fulfilmentStatus === "delivered").length,
+    netRevenue: state.orders.reduce((total, order) => total + getOrderNetRevenue(order), 0),
   };
 }
 
@@ -143,13 +117,10 @@ export function toOrderWorkspaceItem(
 
   return {
     orderId: order.id,
-    customerName:
-      customer?.name ?? order.customerLabel ?? "Guest customer",
+    customerName: customer?.name ?? order.customerLabel ?? "Guest customer",
     customerCity: customer?.city ?? order.deliveryCity,
     productNames: order.lines.map(
-      (line) =>
-        state.products.find((product) => product.id === line.productId)?.name ??
-        "Product",
+      (line) => state.products.find((product) => product.id === line.productId)?.name ?? "Product",
     ),
     unitCount: order.lines.reduce((total, line) => total + line.quantity, 0),
     netRevenue: getOrderNetRevenue(order),
@@ -158,10 +129,7 @@ export function toOrderWorkspaceItem(
   };
 }
 
-export function matchesSavedView(
-  order: ControlRoomOrder,
-  view: OrderSavedView,
-) {
+export function matchesSavedView(order: ControlRoomOrder, view: OrderSavedView) {
   switch (view) {
     case "all":
       return true;
@@ -178,11 +146,7 @@ export function matchesSavedView(
   }
 }
 
-function matchesSearch(
-  state: ControlRoomState,
-  order: ControlRoomOrder,
-  normalizedSearch: string,
-) {
+function matchesSearch(state: ControlRoomState, order: ControlRoomOrder, normalizedSearch: string) {
   if (!normalizedSearch) return true;
   const item = toOrderWorkspaceItem(state, order);
   const searchable = normalize(
@@ -198,16 +162,10 @@ function matchesSearch(
     ].join(" "),
   );
 
-  return normalizedSearch
-    .split(/\s+/)
-    .every((token) => searchable.includes(token));
+  return normalizedSearch.split(/\s+/).every((token) => searchable.includes(token));
 }
 
-function compareOrders(
-  left: ControlRoomOrder,
-  right: ControlRoomOrder,
-  sort: OrderQuery["sort"],
-) {
+function compareOrders(left: ControlRoomOrder, right: ControlRoomOrder, sort: OrderQuery["sort"]) {
   switch (sort) {
     case "placed-desc":
       return new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime();

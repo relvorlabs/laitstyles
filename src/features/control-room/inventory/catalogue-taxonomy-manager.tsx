@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,12 +41,8 @@ export function CatalogueTaxonomyManager({
   onRename?: (event: TaxonomyRenameEvent) => void;
   onDelete?: (event: TaxonomyValueEvent) => void;
 }) {
-  const {
-    state,
-    createCatalogueTaxonomy,
-    renameCatalogueTaxonomy,
-    deleteCatalogueTaxonomy,
-  } = useControlRoom();
+  const { state, createCatalogueTaxonomy, renameCatalogueTaxonomy, deleteCatalogueTaxonomy } =
+    useControlRoom();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<CatalogueTaxonomyKind>(initialKind);
   const [newName, setNewName] = useState("");
@@ -155,7 +151,9 @@ export function CatalogueTaxonomyManager({
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl">Catalogue groups</DialogTitle>
             <DialogDescription>
-              Categories organise product types. Collections group products for a season, edit or campaign. Creating or renaming a group updates the active product form; deleting is blocked while a group is in use.
+              Categories organise product types. Collections group products for a season, edit or
+              campaign. Creating or renaming a group updates the active product form; deleting is
+              blocked while a group is in use.
             </DialogDescription>
           </DialogHeader>
 
@@ -187,7 +185,10 @@ export function CatalogueTaxonomyManager({
           </div>
 
           {feedback ? (
-            <p aria-live="polite" className="rounded-xl border border-border bg-surface-interactive px-3 py-2 text-sm text-surface-interactive-foreground">
+            <p
+              aria-live="polite"
+              className="rounded-xl border border-border bg-surface-interactive px-3 py-2 text-sm text-surface-interactive-foreground"
+            >
               {feedback}
             </p>
           ) : null}
@@ -236,7 +237,12 @@ export function CatalogueTaxonomyManager({
 
                       {editing ? (
                         <>
-                          <Button disabled={!editingName.trim()} onClick={saveRename} size="sm" type="button">
+                          <Button
+                            disabled={!editingName.trim()}
+                            onClick={saveRename}
+                            size="sm"
+                            type="button"
+                          >
                             Save
                           </Button>
                           <Button

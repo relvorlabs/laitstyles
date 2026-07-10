@@ -1,14 +1,9 @@
 import type { NextConfig } from "next";
+import { getConfiguredAssetRemotePatterns } from "./src/lib/assets/remote-patterns";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "drive.google.com",
-        pathname: "/thumbnail",
-      },
-    ],
+    remotePatterns: getConfiguredAssetRemotePatterns(),
   },
 };
 

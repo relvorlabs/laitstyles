@@ -5,10 +5,7 @@ import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 describe("Control Room store subscriptions", () => {
   it("notifies Inventory subscribers and exposes a saved draft immediately", () => {
-    const store = createControlRoomStore(
-      activeControlRoomSeed,
-      () => "2026-07-09T16:00:00+01:00",
-    );
+    const store = createControlRoomStore(activeControlRoomSeed, () => "2026-07-09T16:00:00+01:00");
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
     const initialCount = store.getSnapshot().products.length;
@@ -42,16 +39,11 @@ describe("Control Room store subscriptions", () => {
   });
 
   it("notifies every workspace after a connected offline sale", () => {
-    const store = createControlRoomStore(
-      activeControlRoomSeed,
-      () => "2026-07-09T18:00:00+01:00",
-    );
+    const store = createControlRoomStore(activeControlRoomSeed, () => "2026-07-09T18:00:00+01:00");
     const listener = vi.fn();
     store.subscribe(listener);
     const before = store.getSnapshot();
-    const beforeProduct = before.products.find(
-      (product) => product.id === "botanical-jeans",
-    );
+    const beforeProduct = before.products.find((product) => product.id === "botanical-jeans");
     if (!beforeProduct || beforeProduct.inventoryMode !== "stocked") {
       throw new Error("Missing Botanical Jeans fixture");
     }
@@ -82,15 +74,11 @@ describe("Control Room store subscriptions", () => {
         total: 28000,
       }),
     );
-    const afterProduct = after.products.find(
-      (product) => product.id === "botanical-jeans",
-    );
+    const afterProduct = after.products.find((product) => product.id === "botanical-jeans");
     if (!afterProduct || afterProduct.inventoryMode !== "stocked") {
       throw new Error("Missing updated Botanical Jeans fixture");
     }
-    expect(afterProduct.stock.available).toBe(
-      beforeProduct.stock.available - 1,
-    );
+    expect(afterProduct.stock.available).toBe(beforeProduct.stock.available - 1);
     expect(afterProduct.stock.sold).toBe(beforeProduct.stock.sold + 1);
   });
 

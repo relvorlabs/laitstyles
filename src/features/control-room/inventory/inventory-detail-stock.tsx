@@ -11,7 +11,7 @@ import {
 import type { InventoryListItem } from "@/lib/control-room/types";
 
 export function ProductStockPanel({ item }: { item: InventoryListItem }) {
-  const { product, stock } = item;
+  const { product } = item;
 
   if (product.inventoryMode === "variant") {
     return (
@@ -60,13 +60,9 @@ export function ProductStockPanel({ item }: { item: InventoryListItem }) {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-[13px] font-semibold">{variant.label}</h3>
-                      <p className="mt-1 text-[10.5px] text-muted-foreground">
-                        {variant.sku}
-                      </p>
+                      <p className="mt-1 text-[10.5px] text-muted-foreground">{variant.sku}</p>
                     </div>
-                    <Badge variant="secondary">
-                      {variant.stock.available} available
-                    </Badge>
+                    <Badge variant="secondary">{variant.stock.available} available</Badge>
                   </div>
                   <div className="mt-3 grid grid-cols-3 gap-2 rounded-[12px] bg-secondary/60 p-3">
                     <MiniQuantity label="Received" value={variant.stock.totalReceived} />
@@ -111,10 +107,7 @@ export function ProductStockPanel({ item }: { item: InventoryListItem }) {
               <Reference label="SKU" value={product.sku} />
               <Reference label="Size" value={product.sizeLabel} />
               <Reference label="Colour" value={product.colour} />
-              <Reference
-                label="Low-stock threshold"
-                value={`${product.lowStockThreshold} units`}
-              />
+              <Reference label="Low-stock threshold" value={`${product.lowStockThreshold} units`} />
             </>
           )}
         </CardContent>
@@ -166,9 +159,7 @@ function Reference({ label, value }: { label: string; value: string }) {
 function MiniQuantity({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div className="font-serif text-[20px] font-medium leading-none tabular-nums">
-        {value}
-      </div>
+      <div className="font-serif text-[20px] font-medium leading-none tabular-nums">{value}</div>
       <div className="mt-1 text-[8.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </div>

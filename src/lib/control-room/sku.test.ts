@@ -26,32 +26,14 @@ describe("SKU generation", () => {
   });
 
   it("creates readable separate SKUs for variant option combinations", () => {
-    const first = generateVariantSku(
-      "LS-VAR-ADI-JEA-DENI",
-      "Indigo / M",
-      "M",
-      "Indigo",
-    );
-    const second = generateVariantSku(
-      "LS-VAR-ADI-JEA-DENI",
-      "Indigo / M",
-      "M",
-      "Indigo",
-      [first],
-    );
+    const first = generateVariantSku("LS-VAR-ADI-JEA-DENI", "Indigo / M", "M", "Indigo");
+    const second = generateVariantSku("LS-VAR-ADI-JEA-DENI", "Indigo / M", "M", "Indigo", [first]);
 
     expect(first).toBe("LS-VAR-ADI-JEA-DENI-IND-M");
     expect(second).toBe(`${first}-2`);
   });
 
   it("falls back to a label code when size and colour are not used", () => {
-    expect(
-      generateVariantSku(
-        "LS-VAR-BAG",
-        "Large strap",
-        "",
-        "",
-      ),
-    ).toBe("LS-VAR-BAG-LS");
+    expect(generateVariantSku("LS-VAR-BAG", "Large strap", "", "")).toBe("LS-VAR-BAG-LS");
   });
 });

@@ -1,12 +1,7 @@
 import { Children, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatInventoryDate } from "@/features/control-room/inventory/inventory-labels";
 import { formatNaira } from "@/lib/control-room/formatters";
 import type {
@@ -32,10 +27,7 @@ export function ProductOrdersPanel({
           .reduce((total, line) => total + line.quantity, 0);
         const productValue = order.lines
           .filter((line) => line.productId === productId)
-          .reduce(
-            (total, line) => total + line.quantity * line.unitPrice,
-            0,
-          );
+          .reduce((total, line) => total + line.quantity * line.unitPrice, 0);
 
         return (
           <RecordCard
@@ -69,11 +61,7 @@ export function ProductHoldsPanel({ holds }: { holds: ControlRoomHold[] }) {
   );
 }
 
-export function ProductMovementsPanel({
-  movements,
-}: {
-  movements: StockMovement[];
-}) {
+export function ProductMovementsPanel({ movements }: { movements: StockMovement[] }) {
   return (
     <RecordStack empty="No stock movement has been recorded for this product.">
       {movements.map((movement) => (
@@ -90,14 +78,9 @@ export function ProductMovementsPanel({
   );
 }
 
-export function ProductReturnsPanel({
-  movements,
-}: {
-  movements: StockMovement[];
-}) {
+export function ProductReturnsPanel({ movements }: { movements: StockMovement[] }) {
   const returns = movements.filter(
-    (movement) =>
-      movement.kind === "returned" || movement.kind === "damaged",
+    (movement) => movement.kind === "returned" || movement.kind === "damaged",
   );
 
   return (
@@ -134,9 +117,7 @@ export function ProductReviewsPanel({ reviews }: { reviews: ProductReview[] }) {
                 <Badge variant="outline">{review.status}</Badge>
               </div>
             </div>
-            <p className="text-[12.5px] leading-5 text-muted-foreground">
-              {review.body}
-            </p>
+            <p className="text-[12.5px] leading-5 text-muted-foreground">{review.body}</p>
           </CardContent>
         </Card>
       ))}
@@ -144,11 +125,7 @@ export function ProductReviewsPanel({ reviews }: { reviews: ProductReview[] }) {
   );
 }
 
-export function ProductActivityPanel({
-  activities,
-}: {
-  activities: ControlRoomActivity[];
-}) {
+export function ProductActivityPanel({ activities }: { activities: ControlRoomActivity[] }) {
   return (
     <RecordStack empty="No recent operational activity references this product.">
       {activities.map((activity) => (
@@ -165,13 +142,7 @@ export function ProductActivityPanel({
   );
 }
 
-function RecordStack({
-  children,
-  empty,
-}: {
-  children: ReactNode;
-  empty: string;
-}) {
+function RecordStack({ children, empty }: { children: ReactNode; empty: string }) {
   if (Children.count(children) === 0) {
     return (
       <Empty className="min-h-[280px] border border-dashed border-border bg-secondary/25">
@@ -207,9 +178,7 @@ function RecordCard({ title, detail, badge, meta, value }: RecordCardProps) {
               {badge}
             </Badge>
           </div>
-          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-            {detail}
-          </p>
+          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">{detail}</p>
         </div>
         <div className="sm:text-right">
           <div className="text-[12px] font-semibold">{value}</div>

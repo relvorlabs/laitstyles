@@ -2,10 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatCustomerDate } from "@/features/control-room/customers/customer-labels";
-import type {
-  ControlRoomState,
-  CustomerProductRelationship,
-} from "@/lib/control-room/types";
+import type { ControlRoomState, CustomerProductRelationship } from "@/lib/control-room/types";
 
 export function CustomerProductsPanel({
   state,
@@ -14,9 +11,7 @@ export function CustomerProductsPanel({
   state: ControlRoomState;
   relationships: CustomerProductRelationship[];
 }) {
-  const productById = new Map(
-    state.products.map((product) => [product.id, product]),
-  );
+  const productById = new Map(state.products.map((product) => [product.id, product]));
   const items = relationships.flatMap((relationship) => {
     const product = productById.get(relationship.productId);
     return product ? [{ product, relationship }] : [];
@@ -73,17 +68,11 @@ export function CustomerProductsPanel({
   );
 }
 
-function RelationshipBadges({
-  relationship,
-}: {
-  relationship: CustomerProductRelationship;
-}) {
+function RelationshipBadges({ relationship }: { relationship: CustomerProductRelationship }) {
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
       {relationship.purchasedQuantity > 0 ? (
-        <Badge variant="secondary">
-          Bought {relationship.purchasedQuantity}
-        </Badge>
+        <Badge variant="secondary">Bought {relationship.purchasedQuantity}</Badge>
       ) : null}
       {relationship.heldQuantity > 0 ? (
         <Badge variant="outline">Held {relationship.heldQuantity}</Badge>

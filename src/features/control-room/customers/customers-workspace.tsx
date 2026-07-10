@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CustomerControls } from "@/features/control-room/customers/customer-controls";
 import { CustomerDetailSheet } from "@/features/control-room/customers/customer-detail-sheet";
@@ -35,34 +35,22 @@ export function CustomersWorkspace({
   const pathname = usePathname();
   const { state, addCustomerNote } = useControlRoom();
   const [query, setQuery] = useState(initialQuery);
-  const [openCustomerId, setOpenCustomerId] = useState<string | null>(
-    initialOpenCustomerId,
-  );
+  const [openCustomerId, setOpenCustomerId] = useState<string | null>(initialOpenCustomerId);
   const [feedback, setFeedback] = useState<CustomerActionFeedback | null>(null);
 
-  const allProfiles = useMemo(
-    () => getCustomerRelationshipProfiles(state),
-    [state],
-  );
+  const allProfiles = useMemo(() => getCustomerRelationshipProfiles(state), [state]);
   const profiles = useMemo(
     () => queryCustomers(state, query, allProfiles),
     [allProfiles, query, state],
   );
-  const counts = useMemo(
-    () => getCustomerSavedViewCounts(allProfiles),
-    [allProfiles],
-  );
+  const counts = useMemo(() => getCustomerSavedViewCounts(allProfiles), [allProfiles]);
   const summary = useMemo(
     () => getCustomerWorkspaceSummary(state, allProfiles),
     [allProfiles, state],
   );
-  const openProfile =
-    allProfiles.find((profile) => profile.customer.id === openCustomerId) ?? null;
+  const openProfile = allProfiles.find((profile) => profile.customer.id === openCustomerId) ?? null;
 
-  function replaceUrl(
-    nextQuery = query,
-    nextCustomerId = openCustomerId,
-  ) {
+  function replaceUrl(nextQuery = query, nextCustomerId = openCustomerId) {
     window.history.replaceState(
       null,
       "",
@@ -142,10 +130,7 @@ export function CustomersWorkspace({
           <CustomersTable onOpen={openCustomer} profiles={profiles} />
         </>
       ) : (
-        <CustomersEmptyState
-          hasCustomers={state.customers.length > 0}
-          onReset={resetQuery}
-        />
+        <CustomersEmptyState hasCustomers={state.customers.length > 0} onReset={resetQuery} />
       )}
 
       <CustomerDetailSheet

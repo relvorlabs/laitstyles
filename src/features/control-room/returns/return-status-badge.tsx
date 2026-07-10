@@ -6,9 +6,5 @@ import {
 import type { ReturnStatus } from "@/lib/control-room/types";
 
 export function ReturnStatusBadge({ status }: { status: ReturnStatus }) {
-  return (
-    <Badge variant={getReturnStatusTone(status)}>
-      {returnStatusLabels[status]}
-    </Badge>
-  );
+  return <Badge variant={getReturnStatusTone(status)}>{returnStatusLabels[status]}</Badge>;
 }

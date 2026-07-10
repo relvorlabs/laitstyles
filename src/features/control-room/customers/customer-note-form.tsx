@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 
 export function CustomerNoteForm({
@@ -34,9 +29,7 @@ export function CustomerNoteForm({
   return (
     <form className="flex flex-col gap-3" onSubmit={submitNote}>
       <Field data-invalid={Boolean(error)}>
-        <FieldLabel htmlFor={`customer-note-${customerId}`}>
-          Add internal note
-        </FieldLabel>
+        <FieldLabel htmlFor={`customer-note-${customerId}`}>Add internal note</FieldLabel>
         <Textarea
           aria-invalid={Boolean(error)}
           autoComplete="off"
@@ -52,9 +45,7 @@ export function CustomerNoteForm({
           value={body}
         />
         <div className="flex items-start justify-between gap-3">
-          <FieldDescription>
-            Session-only. This note is not sent to the customer.
-          </FieldDescription>
+          <FieldDescription>Session-only. This note is not sent to the customer.</FieldDescription>
           <span className="shrink-0 text-[10.5px] text-muted-foreground tabular-nums">
             {body.length}/600
           </span>

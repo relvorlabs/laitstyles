@@ -1,18 +1,8 @@
 "use client";
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -36,10 +26,7 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
 
 const paymentMethods = Object.keys(paymentMethodLabels) as PaymentMethod[];
 
-const paymentStatusLabels: Record<
-  RecordSaleValues["paymentStatus"],
-  string
-> = {
+const paymentStatusLabels: Record<RecordSaleValues["paymentStatus"], string> = {
   paid: "Paid in full",
   deposit: "Deposit received",
   pending: "Payment pending",
@@ -64,13 +51,8 @@ export function RecordSalePaymentStep() {
           name="paymentStatus"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="record-sale-payment-status">
-                Payment status
-              </FieldLabel>
-              <Select
-                onValueChange={(value) => value && field.onChange(value)}
-                value={field.value}
-              >
+              <FieldLabel htmlFor="record-sale-payment-status">Payment status</FieldLabel>
+              <Select onValueChange={(value) => value && field.onChange(value)} value={field.value}>
                 <SelectTrigger
                   aria-invalid={fieldState.invalid}
                   className="h-12 w-full"
@@ -104,13 +86,8 @@ export function RecordSalePaymentStep() {
           name="paymentMethod"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="record-sale-payment-method">
-                Payment method
-              </FieldLabel>
-              <Select
-                onValueChange={(value) => value && field.onChange(value)}
-                value={field.value}
-              >
+              <FieldLabel htmlFor="record-sale-payment-method">Payment method</FieldLabel>
+              <Select onValueChange={(value) => value && field.onChange(value)} value={field.value}>
                 <SelectTrigger
                   aria-invalid={fieldState.invalid}
                   className="h-12 w-full"
@@ -145,16 +122,15 @@ export function RecordSalePaymentStep() {
           placeholder="Transfer reference, pickup arrangement, staff context, or other useful detail…"
           {...methods.register("notes")}
         />
-        <FieldDescription>
-          Notes are stored only in this prototype session.
-        </FieldDescription>
+        <FieldDescription>Notes are stored only in this prototype session.</FieldDescription>
         <FieldError errors={[methods.formState.errors.notes]} />
       </Field>
 
       <Alert>
         <AlertTitle>No payment provider is contacted</AlertTitle>
         <AlertDescription>
-          This records the operator’s stated payment status. It does not charge a card, confirm a transfer, or settle funds.
+          This records the operator’s stated payment status. It does not charge a card, confirm a
+          transfer, or settle funds.
         </AlertDescription>
       </Alert>
     </FieldGroup>

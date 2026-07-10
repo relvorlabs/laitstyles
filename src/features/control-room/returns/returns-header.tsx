@@ -13,7 +13,8 @@ export function ReturnsHeader({ onCreate }: { onCreate: () => void }) {
           Returns
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Track customer requests from approval through inspection, refund state and stock disposition.
+          Track customer requests from approval through inspection, refund state and stock
+          disposition.
         </p>
       </div>
       <Button className="h-11 rounded-full px-5" onClick={onCreate} type="button">

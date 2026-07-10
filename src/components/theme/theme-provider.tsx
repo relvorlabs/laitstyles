@@ -2,11 +2,12 @@
 
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
+  useSyncExternalStore,
 } from "react";
 
 export type ThemePreference = "light" | "dark" | "system";
@@ -25,23 +26,20 @@ const DARK_QUERY = "(prefers-color-scheme: dark)";
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [theme, setThemeState] = useState<ThemePreference>(getInitialThemePreference);
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isThemePreference(stored)) setThemeState(stored);
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    subscribeMounted,
+    getClientMountedSnapshot,
+    getServerMountedSnapshot,
+  );
 
   useEffect(() => {
     if (!mounted) return;
 
     const media = window.matchMedia(DARK_QUERY);
     const applyTheme = () => {
-      const nextResolved =
-        theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      const nextResolved = theme === "system" ? (media.matches ? "dark" : "light") : theme;
       const root = document.documentElement;
       root.classList.toggle("dark", nextResolved === "dark");
       root.dataset.theme = nextResolved;
@@ -80,4 +78,23 @@ export function useTheme() {
 
 function isThemePreference(value: string | null): value is ThemePreference {
   return value === "light" || value === "dark" || value === "system";
+}
+
+function getInitialThemePreference(): ThemePreference {
+  if (typeof window === "undefined") return "system";
+
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  return isThemePreference(stored) ? stored : "system";
+}
+
+function subscribeMounted() {
+  return () => {};
+}
+
+function getClientMountedSnapshot() {
+  return true;
+}
+
+function getServerMountedSnapshot() {
+  return false;
 }

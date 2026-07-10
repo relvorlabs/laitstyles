@@ -2,13 +2,7 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -32,9 +26,7 @@ const channelLabels: Record<Exclude<SalesChannel, "online">, string> = {
   other: "Other",
 };
 
-const channels = Object.keys(channelLabels) as Array<
-  Exclude<SalesChannel, "online">
->;
+const channels = Object.keys(channelLabels) as Array<Exclude<SalesChannel, "online">>;
 
 export function RecordSaleCustomerStep() {
   const { state } = useControlRoom();
@@ -66,18 +58,13 @@ export function RecordSaleCustomerStep() {
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor="record-sale-channel">Sale channel</FieldLabel>
-            <Select
-              onValueChange={(value) => value && field.onChange(value)}
-              value={field.value}
-            >
+            <Select onValueChange={(value) => value && field.onChange(value)} value={field.value}>
               <SelectTrigger
                 aria-invalid={fieldState.invalid}
                 className="h-12 w-full"
                 id="record-sale-channel"
               >
-                <span className="flex-1 truncate text-left">
-                  {channelLabels[channel]}
-                </span>
+                <span className="flex-1 truncate text-left">{channelLabels[channel]}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -127,10 +114,7 @@ export function RecordSaleCustomerStep() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="record-sale-customer">Customer</FieldLabel>
-              <Select
-                onValueChange={(value) => value && field.onChange(value)}
-                value={field.value}
-              >
+              <Select onValueChange={(value) => value && field.onChange(value)} value={field.value}>
                 <SelectTrigger
                   aria-invalid={fieldState.invalid}
                   className="h-12 w-full"

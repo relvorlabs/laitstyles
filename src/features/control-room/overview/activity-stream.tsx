@@ -4,19 +4,10 @@ import {
   ShoppingBag01Icon,
   TruckDeliveryIcon,
 } from "@hugeicons/core-free-icons";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatRelativeTime } from "@/lib/control-room/formatters";
-import type {
-  ActivityKind,
-  ControlRoomActivity,
-} from "@/lib/control-room/types";
+import type { ActivityKind, ControlRoomActivity } from "@/lib/control-room/types";
 
 export function ActivityStream({
   activities,
@@ -28,9 +19,7 @@ export function ActivityStream({
   return (
     <Card className="h-full gap-0 py-0">
       <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
-        <CardTitle className="font-serif text-[27px] font-medium">
-          What changed recently
-        </CardTitle>
+        <CardTitle className="font-serif text-[27px] font-medium">What changed recently</CardTitle>
         <CardDescription className="text-[12.5px] leading-5">
           A single timeline across stock, sales, holds and delivery.
         </CardDescription>

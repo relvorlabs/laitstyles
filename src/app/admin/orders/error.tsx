@@ -20,8 +20,7 @@ export default function OrdersError({
           The order workspace could not be loaded.
         </h1>
         <p className="mt-4 max-w-[620px] text-[12.5px] leading-6 text-muted-foreground">
-          {error.message ||
-            "The session order record encountered an unexpected error."}
+          {error.message || "The session order record encountered an unexpected error."}
         </p>
         <Button className="mt-6 h-11 rounded-full px-5" onClick={reset} type="button">
           Try again

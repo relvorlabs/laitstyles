@@ -2,19 +2,15 @@
 
 import {
   Controller,
+  type FieldPath,
   useFieldArray,
   useFormContext,
   useWatch,
-  type FieldPath,
 } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   SettingsNumberField,
   SettingsTextField,
@@ -65,9 +61,7 @@ export function DeliveryZoneList() {
         {zones.fields.map((zone, index) => {
           const base = `delivery.zones.${index}` as const;
           const current = delivery?.zones?.[index];
-          const canRemove =
-            zones.fields.length > 1 ||
-            Boolean(delivery?.pickupLocations?.length);
+          const canRemove = zones.fields.length > 1 || Boolean(delivery?.pickupLocations?.length);
           return (
             <Card className="gap-5 p-4 sm:p-5" key={zone.fieldKey}>
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -125,9 +119,7 @@ export function DeliveryZoneList() {
                     <Checkbox
                       aria-label={`Offer ${current?.name || `delivery zone ${index + 1}`}`}
                       checked={Boolean(field.value)}
-                      onCheckedChange={(checked) =>
-                        field.onChange(Boolean(checked))
-                      }
+                      onCheckedChange={(checked) => field.onChange(Boolean(checked))}
                     />
                     <div>
                       <FieldLabel>Offer this delivery option</FieldLabel>

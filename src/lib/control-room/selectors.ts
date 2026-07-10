@@ -16,22 +16,13 @@ import type {
 
 export { getProductStock } from "@/lib/control-room/inventory-selectors";
 
-export function getCustomerName(
-  state: ControlRoomState,
-  customerId: string | null,
-) {
+export function getCustomerName(state: ControlRoomState, customerId: string | null) {
   if (!customerId) return "Guest customer";
-  return (
-    state.customers.find((customer) => customer.id === customerId)?.name ??
-    "Customer"
-  );
+  return state.customers.find((customer) => customer.id === customerId)?.name ?? "Customer";
 }
 
 export function getProductName(state: ControlRoomState, productId: string) {
-  return (
-    state.products.find((product) => product.id === productId)?.name ??
-    "Product"
-  );
+  return state.products.find((product) => product.id === productId)?.name ?? "Product";
 }
 
 export function getActiveHolds(state: ControlRoomState) {
@@ -61,14 +52,10 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
         inventory.available <= product.lowStockThreshold
       );
     })
-    .toSorted(
-      (left, right) =>
-        getProductStock(left).available - getProductStock(right).available,
-    );
+    .toSorted((left, right) => getProductStock(left).available - getProductStock(right).available);
 
   const unpublishedProducts = state.products.filter(
-    (product) =>
-      product.publication !== "published" || product.lifecycle !== "active",
+    (product) => product.publication !== "published" || product.lifecycle !== "active",
   );
 
   return {
@@ -92,9 +79,7 @@ export function getOverviewSnapshot(state: ControlRoomState): OverviewSnapshot {
     unpublishedProducts,
     recentActivities: state.activities
       .toSorted(
-        (left, right) =>
-          new Date(right.occurredAt).getTime() -
-          new Date(left.occurredAt).getTime(),
+        (left, right) => new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
       )
       .slice(0, 5),
     continueTask: state.continueTasks[0],
@@ -149,9 +134,7 @@ function buildAttentionItems(
     }
   }
 
-  const deliveryException = state.orders.find(
-    (order) => order.attention === "delivery",
-  );
+  const deliveryException = state.orders.find((order) => order.attention === "delivery");
   if (deliveryException) {
     items.push({
       id: `attention-delivery-${deliveryException.id}`,

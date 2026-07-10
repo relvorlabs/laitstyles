@@ -12,9 +12,7 @@ export const recordSaleSchema = z
       .number()
       .int("Quantity must be a whole number.")
       .min(1, "Quantity must be at least one."),
-    unitPrice: z.coerce
-      .number()
-      .min(0, "Final selling price cannot be negative."),
+    unitPrice: z.coerce.number().min(0, "Final selling price cannot be negative."),
     channel: z.enum([
       "physical-store",
       "whatsapp",
@@ -30,14 +28,7 @@ export const recordSaleSchema = z
     customerEmail: z.string(),
     customerPhone: z.string(),
     customerCity: z.string(),
-    paymentMethod: z.enum([
-      "cash",
-      "bank-transfer",
-      "card",
-      "pos",
-      "pay-on-delivery",
-      "other",
-    ]),
+    paymentMethod: z.enum(["cash", "bank-transfer", "card", "pos", "pay-on-delivery", "other"]),
     paymentStatus: z.enum(["pending", "paid", "deposit"]),
     notes: z.string().max(500, "Keep notes under 500 characters."),
   })

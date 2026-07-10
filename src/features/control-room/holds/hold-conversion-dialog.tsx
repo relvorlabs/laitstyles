@@ -25,15 +25,13 @@ import {
   conversionPaymentLabels,
   paymentMethodLabels,
 } from "@/features/control-room/holds/hold-labels";
-import type {
-  ConvertHoldInput,
-  PaymentMethod,
-  PaymentStatus,
-} from "@/lib/control-room/types";
+import type { ConvertHoldInput, PaymentMethod, PaymentStatus } from "@/lib/control-room/types";
 
-const paymentStatuses: Array<
-  Extract<PaymentStatus, "pending" | "paid" | "deposit">
-> = ["pending", "paid", "deposit"];
+const paymentStatuses: Array<Extract<PaymentStatus, "pending" | "paid" | "deposit">> = [
+  "pending",
+  "paid",
+  "deposit",
+];
 
 const paymentMethods: PaymentMethod[] = [
   "bank-transfer",
@@ -61,11 +59,9 @@ export function HoldConversionDialog({
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: ConvertHoldInput) => string | null;
 }) {
-  const [paymentStatus, setPaymentStatus] = useState<
-    Extract<PaymentStatus, "pending" | "paid" | "deposit">
-  >("paid");
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("bank-transfer");
+  const [paymentStatus, setPaymentStatus] =
+    useState<Extract<PaymentStatus, "pending" | "paid" | "deposit">>("paid");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank-transfer");
   const [deliveryCity, setDeliveryCity] = useState(initialCity);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +91,8 @@ export function HoldConversionDialog({
             Convert hold to order
           </DialogTitle>
           <DialogDescription>
-            Transfer {productName} from {customerLabel}’s reservation into one connected order record. No payment provider is contacted.
+            Transfer {productName} from {customerLabel}’s reservation into one connected order
+            record. No payment provider is contacted.
           </DialogDescription>
         </DialogHeader>
 
@@ -107,10 +104,7 @@ export function HoldConversionDialog({
                 onValueChange={(value) => {
                   if (value) {
                     setPaymentStatus(
-                      value as Extract<
-                        PaymentStatus,
-                        "pending" | "paid" | "deposit"
-                      >,
+                      value as Extract<PaymentStatus, "pending" | "paid" | "deposit">,
                     );
                     setError(null);
                   }

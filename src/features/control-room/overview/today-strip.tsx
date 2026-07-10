@@ -4,13 +4,7 @@ import {
   ShoppingBag01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatCompactNaira, formatNaira } from "@/lib/control-room/formatters";
 import type { OverviewSnapshot } from "@/lib/control-room/types";
@@ -72,23 +66,13 @@ export function TodayStrip({ snapshot, reportingLabel }: TodayStripProps) {
                 label="Active holds"
                 value={String(snapshot.activeHolds)}
               />
-              <PulseMetric
-                icon={Store01Icon}
-                label="Offline share"
-                value={`${offlineShare}%`}
-              />
+              <PulseMetric icon={Store01Icon} label="Offline share" value={`${offlineShare}%`} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 overflow-hidden rounded-[16px] border border-primary-foreground/10 bg-primary-foreground/7">
-            <ChannelMetric
-              label="Online"
-              value={formatCompactNaira(snapshot.revenue.online)}
-            />
-            <ChannelMetric
-              label="Offline"
-              value={formatCompactNaira(snapshot.revenue.offline)}
-            />
+            <ChannelMetric label="Online" value={formatCompactNaira(snapshot.revenue.online)} />
+            <ChannelMetric label="Offline" value={formatCompactNaira(snapshot.revenue.offline)} />
           </div>
         </div>
       </CardContent>

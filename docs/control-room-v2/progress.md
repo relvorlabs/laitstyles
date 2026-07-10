@@ -2,32 +2,36 @@
 
 ## Current score
 
-**Phase 9 Batch 9A started — repository boundary and first query keys implemented; TanStack package and QueryClient installation pending**
+**Phase 9 implemented — codebase structure review, Biome migration and Supabase readiness are verified except React Doctor timeout**
 
-The user explicitly overrode the blocked Phase 8 acceptance gate after requesting one final Inventory gallery-card correction. The five-column Inventory cards are now compact image-led tiles rather than tall catalogue cards, and Phase 9 has begun.
+The user explicitly requested that Supabase Auth, Google OAuth, organization roles/permissions, codebase structure fixes and Supabase database/schema setup happen before TanStack Query. The previous TanStack Phase 9 repository/key work remains on the branch as paused preliminary foundation and must be reconciled in Phase 12.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
 ## Current phase
 
-| Field | Value |
-| --- | --- |
-| Status | Phase 9 Batch 9A started; repository boundary implemented, package/provider step pending |
-| Active implementation phase | Phase 9 — TanStack Query Server-State Foundation |
-| Compact Inventory gallery head | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c` |
-| Phase 9 repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f` |
-| Latest Phase 9 documentation head | `e8e7d94141b0410517bd69746001df6be7388e76` |
-| Branch | `feat/control-room-v2` |
-| Pull request | `#4` — draft, currently non-mergeable |
-| Phase 8 plan | `docs/control-room-v2/phase8-plan.md` |
-| Phase 8 blocker | `docs/control-room-v2/phase8-blocker.md` |
-| Phase 9 plan | `docs/control-room-v2/phase9-plan.md` |
-| Phase 9 adapter handoff | `docs/control-room-v2/phase9-adapter-boundary.md` |
-| Accepted Batch 4A head/run | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035` |
-| Accepted Batch 4B head/run | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809` |
-| Unresolved executable gates | 4F, 5D, 6E, 7E, Phase 8 and Phase 9 foundation verification |
-| Merge integration | Branch is 703 commits ahead and 31 behind `main`; reviewed conflict resolution required |
-| Review readiness | Blocked |
+| Field                                          | Value                                                                                                 |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Status                                         | Phase 9 implemented; executable gate passed except React Doctor timeout                                  |
+| Active implementation phase                    | Phase 9 — Codebase Structure Review and Supabase Readiness                                            |
+| Compact Inventory gallery head                 | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c`                                                            |
+| Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
+| Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
+| Branch                                         | `feat/control-room-v2`                                                                                |
+| Pull request                                   | `#4` — draft, currently non-mergeable                                                                 |
+| Phase 8 plan                                   | `docs/control-room-v2/phase8-plan.md`                                                                 |
+| Phase 8 blocker                                | `docs/control-room-v2/phase8-blocker.md`                                                              |
+| Phase 9 plan                                   | `docs/control-room-v2/phase9-plan.md`                                                                 |
+| Phase 10 plan                                  | `docs/control-room-v2/phase10-plan.md`                                                                |
+| Phase 11 plan                                  | `docs/control-room-v2/phase11-plan.md`                                                                |
+| Supabase schema plan                           | `docs/control-room-v2/supabase-schema-plan.md`                                                        |
+| Phase 12 plan                                  | `docs/control-room-v2/phase12-plan.md`                                                                |
+| Paused TanStack adapter handoff                | `docs/control-room-v2/phase9-adapter-boundary.md`                                                     |
+| Accepted Batch 4A head/run                     | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035`                                            |
+| Accepted Batch 4B head/run                     | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`                                            |
+| Unresolved executable gates                    | 4F, 5D, 6E, 7E, Phase 8, Phase 9 readiness implementation and paused TanStack foundation verification |
+| Merge integration                              | Branch is 703 commits ahead and 31 behind `main`; reviewed conflict resolution required               |
+| Review readiness                               | Blocked                                                                                               |
 
 ## Completed and accepted foundation
 
@@ -169,11 +173,43 @@ Evidence: `docs/control-room-v2/phase7-blocker.md`.
 
 Exact evidence remains in `docs/control-room-v2/phase8-blocker.md`.
 
-## Phase 9 — TanStack Query Server-State Foundation
+## Phase 9 — Codebase Structure Review and Supabase Readiness
 
-### Batch 9A — started under explicit override
+### Replanned scope — implemented, awaiting final verification
 
-#### Repository boundary — implemented
+- [x] Phase order changed so Supabase/auth/schema work comes before TanStack Query
+- [x] Phase 9 plan rewritten as codebase structure review and Supabase readiness
+- [x] Phase 10 Supabase Auth and organization permission plan added
+- [x] Phase 11 Supabase database/storage/RLS plan added
+- [x] Supabase schema blueprint added
+- [x] Phase 12 TanStack Query plan added
+- [x] Audit current route, feature, domain, repository, storefront and checkout boundaries
+- [x] Normalize `src/lib/supabase/` and `src/lib/auth/` destinations where needed
+- [x] Replace ESLint/Prettier tooling with Biome scripts and config
+- [x] Move client repository provider wiring into `src/features/control-room/data/`
+- [x] Add server/client import boundary test
+- [x] Add Cloudinary and Cloudflare asset provider boundaries for Supabase-backed media metadata
+- [x] Remove changed Control Room raw color usages in favor of theme tokens
+- [x] Identify narrow file/folder fixes needed before auth and database implementation
+- [x] Verify executable behavior through lint, TypeScript, Vitest and production build
+- [ ] Phase 9 accepted
+
+Evidence: `docs/control-room-v2/phase9-readiness-audit.md`.
+
+Verification returned:
+
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD lint` — passed with Biome; 49 warnings remain visible
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD exec tsc --noEmit`
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD exec vitest run --passWithNoTests` — 31 files and 127 tests passed
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD build` — Next.js 16.2.10 production build passed
+- [x] Earlier direct `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
+- [x] Earlier direct `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 30 files and 126 tests passed
+- [x] Changed-scope ESLint for earlier Phase 9 files before the Biome migration
+- [ ] React Doctor — `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out
+
+### Paused preliminary TanStack foundation
+
+This work was implemented before the replan and is preserved for Phase 12, not active Phase 9:
 
 - [x] Typed asynchronous repository interfaces for Inventory, Orders, Holds, Returns, Customers, Settings and Overview
 - [x] Deterministic in-memory adapter over the live `ControlRoomStore`
@@ -182,43 +218,43 @@ Exact evidence remains in `docs/control-room-v2/phase8-blocker.md`.
 - [x] Stable repository provider mounted at the Control Room boundary
 - [x] No fake API routes, artificial latency, random errors or persistence claims
 - [x] Repository tests for clone isolation, live reads after writes, Overview consistency and missing records
-- [x] Production adapter replacement handoff started
+- [x] Typed `inventoryKeys` and `productKeys` factories with stability tests
+- [ ] TanStack package/provider/runtime work deferred to Phase 12
 
-#### Query-key foundation — implemented
+## Phase 10 — Supabase Auth, Google OAuth and Organization Permissions
 
-- [x] Typed `inventoryKeys` factory
-- [x] Typed `productKeys` factory
-- [x] Inventory list keys include normalized search, saved view, filters, sorting, page and page size
-- [x] Product detail and media keys use stable business IDs
-- [x] Key-stability and input-separation tests
+- [ ] Supabase SSR browser/server/proxy clients
+- [ ] Google OAuth callback and auth error routes
+- [ ] Staff owner/manager/operator roles and capability contract
+- [ ] Consumer storefront account boundaries
+- [ ] Route/action guards and permission-restricted UI states
+- [ ] Auth smoke tests and full executable gate
 
-#### TanStack runtime foundation — pending
+## Phase 11 — Supabase Database, Storage, RLS and Generated Types
 
-- [ ] Add `@tanstack/react-query` through pnpm
-- [ ] Add `@tanstack/eslint-plugin-query`
-- [ ] Regenerate `package.json` and `pnpm-lock.yaml` together
-- [ ] Configure TanStack Query flat ESLint rules
-- [ ] Mount one stable browser `QueryClient`
-- [ ] Define default stale time, garbage collection, retry and refetch policy
-- [ ] Add Inventory query options and begin read migration
+- [ ] Supabase migration workflow initialized or repaired
+- [ ] Identity, catalogue, inventory, sales, returns, customers, reviews, settings, audit and storage schema
+- [ ] RLS policies for public storefront, consumers and staff roles
+- [ ] Storage buckets and storage policies
+- [ ] Deterministic development seed data
+- [ ] Generated database TypeScript types
+- [ ] Supabase advisors/RLS tests and full executable gate
 
-The package files were not edited independently because doing so without a regenerated pnpm lockfile would break `pnpm install --frozen-lockfile`.
+## Phase 12 — TanStack Query Server-State Foundation
 
-### Batches 9B–9E — not started
-
-- [ ] Inventory and product query migration
-- [ ] Orders, Holds, Returns, Customers, Settings and Overview migration
-- [ ] Targeted invalidation and safe optimistic mutations
-- [ ] Loading, error, empty, stale and background-refetch experience
-- [ ] Full Phase 4–9 regression and production handoff
-- [ ] Phase 9 accepted
+- [ ] Reconcile paused preliminary repository/key work
+- [ ] Add `@tanstack/react-query` through pnpm and decide whether TanStack's ESLint-only plugin warrants a narrow compatibility runner under the Biome baseline
+- [ ] Mount stable QueryClient
+- [ ] Migrate Supabase-backed domain reads/writes into query options and mutations
+- [ ] Add targeted invalidation, cache reconciliation and safe optimistic rollback
+- [ ] Full Phase 4–12 regression and production handoff
 
 ## Verification and integration blockers
 
-No executable evidence has been returned for the compact Inventory gallery or the Phase 9 foundation. Lint, TypeScript, Vitest, build, React Doctor and browser checks are not represented as passing.
+No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing.
 
 PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Regenerate the TanStack dependencies and pnpm lockfile together in an executable worktree, add the stable QueryClient and ESLint integration, then implement colocated Inventory query options over the repository boundary. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
+Review the Phase 9 diff, decide whether to accept the React Doctor timeout as an environment blocker, then begin Phase 10 Supabase Auth only after that gate decision. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.

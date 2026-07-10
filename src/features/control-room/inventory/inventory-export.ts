@@ -1,13 +1,8 @@
 import type { InventoryListItem } from "@/lib/control-room/types";
 
-export function downloadInventoryCsv(
-  items: InventoryListItem[],
-  reportingDate: string,
-) {
+export function downloadInventoryCsv(items: InventoryListItem[], reportingDate: string) {
   const csv = createInventoryCsv(items);
-  const url = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8" }),
-  );
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = `laitstyle-inventory-${reportingDate}.csv`;
@@ -47,9 +42,7 @@ export function createInventoryCsv(items: InventoryListItem[]) {
     ]),
   ];
 
-  return rows
-    .map((row) => row.map((value) => escapeCsv(String(value))).join(","))
-    .join("\n");
+  return rows.map((row) => row.map((value) => escapeCsv(String(value))).join(",")).join("\n");
 }
 
 function escapeCsv(value: string) {

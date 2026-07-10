@@ -1,13 +1,3 @@
-import type {
-  ControlRoomOrder,
-  ControlRoomReturn,
-  ControlRoomState,
-  CreateReturnInput,
-  ReturnActionSuccess,
-  ReturnStatus,
-  SalesActionError,
-  StockMovement,
-} from "@/lib/control-room/types";
 import { err, ok, type Result } from "@/lib/control-room/result";
 import {
   canTransitionReturn,
@@ -18,6 +8,16 @@ import {
   applySalesStockMutation,
   type SalesStockMutationKind,
 } from "@/lib/control-room/sales-stock";
+import type {
+  ControlRoomOrder,
+  ControlRoomReturn,
+  ControlRoomState,
+  CreateReturnInput,
+  ReturnActionSuccess,
+  ReturnStatus,
+  SalesActionError,
+  StockMovement,
+} from "@/lib/control-room/types";
 
 const physicallyReturnedStatuses = new Set<ReturnStatus>([
   "received",
@@ -71,9 +71,7 @@ export function applyCreateReturn(
   let refundAmount = 0;
 
   for (const [index, requestedLine] of input.lines.entries()) {
-    const orderLine = order.lines.find(
-      (line) => line.id === requestedLine.orderLineId,
-    );
+    const orderLine = order.lines.find((line) => line.id === requestedLine.orderLineId);
     if (!orderLine) {
       return err({
         code: "return-line-not-found",
@@ -181,9 +179,7 @@ export function applyReturnTransition(
   now: string,
   idFactory: (prefix: string) => string = createActionId,
 ): Result<ReturnActionStateResult, SalesActionError> {
-  const returnRecord = (state.returns ?? []).find(
-    (item) => item.id === returnId,
-  );
+  const returnRecord = (state.returns ?? []).find((item) => item.id === returnId);
   if (!returnRecord) {
     return err({
       code: "return-not-found",
@@ -200,9 +196,7 @@ export function applyReturnTransition(
     });
   }
 
-  const order = state.orders.find(
-    (item) => item.id === returnRecord.orderId,
-  );
+  const order = state.orders.find((item) => item.id === returnRecord.orderId);
   if (!order) {
     return err({
       code: "order-not-found",
@@ -277,9 +271,7 @@ export function applyReturnTransition(
       asOf: now,
       products,
       returns: nextReturns,
-      orders: state.orders.map((item) =>
-        item.id === order.id ? updatedOrder : item,
-      ),
+      orders: state.orders.map((item) => (item.id === order.id ? updatedOrder : item)),
       stockMovements: [...movements, ...state.stockMovements],
       activities: [
         {
@@ -298,9 +290,7 @@ export function applyReturnTransition(
   });
 }
 
-function getReturnStockMutation(
-  status: ReturnStatus,
-): SalesStockMutationKind | null {
+function getReturnStockMutation(status: ReturnStatus): SalesStockMutationKind | null {
   if (status === "received") return "return-sold";
   if (status === "restocked") return "restock-returned";
   if (status === "damaged") return "damage-returned";
@@ -318,10 +308,7 @@ function updateOrderForReturn(
   const physicallyReturnedByLine = new Map<string, number>();
 
   for (const returnRecord of returns) {
-    if (
-      returnRecord.orderId !== order.id ||
-      !physicallyReturnedStatuses.has(returnRecord.status)
-    ) {
+    if (returnRecord.orderId !== order.id || !physicallyReturnedStatuses.has(returnRecord.status)) {
       continue;
     }
     for (const line of returnRecord.lines) {
@@ -333,13 +320,11 @@ function updateOrderForReturn(
   }
 
   const isFullReturn = order.lines.every(
-    (orderLine) =>
-      (physicallyReturnedByLine.get(orderLine.id) ?? 0) >= orderLine.quantity,
+    (orderLine) => (physicallyReturnedByLine.get(orderLine.id) ?? 0) >= orderLine.quantity,
   );
   const refundedAmount = Math.min(
     order.total,
-    (order.refundedAmount ?? 0) +
-      (status === "refunded" ? currentReturn.refundAmount : 0),
+    (order.refundedAmount ?? 0) + (status === "refunded" ? currentReturn.refundAmount : 0),
   );
   const fullyRefunded = refundedAmount >= order.total;
 
@@ -348,8 +333,7 @@ function updateOrderForReturn(
     refundedAmount,
     paymentStatus: fullyRefunded ? "refunded" : order.paymentStatus,
     fulfilmentStatus: isFullReturn ? "returned" : order.fulfilmentStatus,
-    attention:
-      status === "closed" || status === "rejected" ? undefined : "return",
+    attention: status === "closed" || status === "rejected" ? undefined : "return",
     payments:
       status === "refunded"
         ? [
@@ -368,11 +352,7 @@ function updateOrderForReturn(
       ...(order.timeline ?? []),
       {
         id: idFactory("order-event"),
-        status: isFullReturn
-          ? "returned"
-          : fullyRefunded
-            ? "refunded"
-            : order.fulfilmentStatus,
+        status: isFullReturn ? "returned" : fullyRefunded ? "refunded" : order.fulfilmentStatus,
         occurredAt: now,
         actor: "Store owner",
         note: `Return ${currentReturn.id} moved to ${formatReturnStatus(status)}.`,

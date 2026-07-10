@@ -228,10 +228,7 @@ export type AttentionItem = {
 };
 
 export type FulfilmentLaneItem = {
-  status: Extract<
-    FulfilmentStatus,
-    "payment-confirmed" | "preparing" | "packed" | "dispatched"
-  >;
+  status: Extract<FulfilmentStatus, "payment-confirmed" | "preparing" | "packed" | "dispatched">;
   label: string;
   count: number;
 };

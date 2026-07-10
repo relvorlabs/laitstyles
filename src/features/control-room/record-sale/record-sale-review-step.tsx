@@ -21,8 +21,7 @@ export function RecordSaleReviewStep() {
     values.customerMode === "existing"
       ? state.customers.find((item) => item.id === values.customerId)
       : null;
-  const customerName =
-    customer?.name || values.customerName.trim() || "Walk-in customer";
+  const customerName = customer?.name || values.customerName.trim() || "Walk-in customer";
   const total = (Number(values.quantity) || 0) * (Number(values.unitPrice) || 0);
 
   return (
@@ -38,14 +37,10 @@ export function RecordSaleReviewStep() {
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {variant?.label ??
-                (product?.inventoryMode === "unique"
-                  ? "One-of-one piece"
-                  : "Standard stock")}
+                (product?.inventoryMode === "unique" ? "One-of-one piece" : "Standard stock")}
             </p>
           </div>
-          <Badge variant="secondary">
-            {values.paymentStatus.replaceAll("-", " ")}
-          </Badge>
+          <Badge variant="secondary">{values.paymentStatus.replaceAll("-", " ")}</Badge>
         </div>
 
         <Separator className="my-5" />
@@ -55,14 +50,8 @@ export function RecordSaleReviewStep() {
           <ReviewRow label="Price per unit" value={formatNaira(values.unitPrice || 0)} />
           <ReviewRow label="Channel" value={values.channel.replaceAll("-", " ")} />
           <ReviewRow label="Customer" value={customerName} />
-          <ReviewRow
-            label="Payment method"
-            value={values.paymentMethod.replaceAll("-", " ")}
-          />
-          <ReviewRow
-            label="Payment status"
-            value={values.paymentStatus.replaceAll("-", " ")}
-          />
+          <ReviewRow label="Payment method" value={values.paymentMethod.replaceAll("-", " ")} />
+          <ReviewRow label="Payment status" value={values.paymentStatus.replaceAll("-", " ")} />
         </dl>
 
         {values.notes.trim() ? (
@@ -83,7 +72,8 @@ export function RecordSaleReviewStep() {
           {formatNaira(total)}
         </p>
         <p className="mt-4 text-sm leading-6 text-primary-foreground/72">
-          Confirming creates one connected order, updates the selected stock bucket, records a movement and activity event, and updates paid revenue when applicable.
+          Confirming creates one connected order, updates the selected stock bucket, records a
+          movement and activity event, and updates paid revenue when applicable.
         </p>
       </aside>
     </div>

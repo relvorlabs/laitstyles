@@ -1,4 +1,3 @@
-import { HoldsWorkspace } from "@/features/control-room/holds/holds-workspace";
 import {
   defaultHoldQuery,
   holdSavedViews,
@@ -10,6 +9,7 @@ import type {
   HoldSourceFilter,
   HoldStageFilter,
 } from "@/features/control-room/holds/hold-types";
+import { HoldsWorkspace } from "@/features/control-room/holds/holds-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 type HoldsPageProps = {
@@ -23,32 +23,16 @@ type HoldsPageProps = {
   }>;
 };
 
-const viewValues = new Set<HoldSavedView>(
-  holdSavedViews.map((view) => view.value),
-);
-const sourceValues = new Set<HoldSourceFilter>([
-  "all",
-  "storefront",
-  "assisted",
-]);
-const stageValues = new Set<HoldStageFilter>([
-  "all",
-  "product",
-  "cart",
-  "checkout",
-  "payment",
-]);
-const sortValues = new Set<HoldSortKey>(
-  holdSortOptions.map((option) => option.value),
-);
+const viewValues = new Set<HoldSavedView>(holdSavedViews.map((view) => view.value));
+const sourceValues = new Set<HoldSourceFilter>(["all", "storefront", "assisted"]);
+const stageValues = new Set<HoldStageFilter>(["all", "product", "cart", "checkout", "payment"]);
+const sortValues = new Set<HoldSortKey>(holdSortOptions.map((option) => option.value));
 
 export default async function HoldsPage({ searchParams }: HoldsPageProps) {
   const params = await searchParams;
   const requestedHold = first(params.hold);
-  const initialOpenHoldId = activeControlRoomSeed.holds.some(
-    (hold) => hold.id === requestedHold,
-  )
-    ? requestedHold ?? null
+  const initialOpenHoldId = activeControlRoomSeed.holds.some((hold) => hold.id === requestedHold)
+    ? (requestedHold ?? null)
     : null;
 
   return (

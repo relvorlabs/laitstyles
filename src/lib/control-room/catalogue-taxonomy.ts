@@ -224,9 +224,7 @@ function renameProductTaxonomy(
 
 function countUsage(products: InventoryProduct[], item: CatalogueTaxonomyItem) {
   return products.filter((product) =>
-    item.kind === "category"
-      ? product.category === item.name
-      : product.collection === item.name,
+    item.kind === "category" ? product.category === item.name : product.collection === item.name,
   ).length;
 }
 
@@ -268,7 +266,9 @@ function normaliseName(value: string) {
 }
 
 function createSlug(value: string) {
-  return normaliseName(value).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return normaliseName(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function labelFor(kind: CatalogueTaxonomyKind) {

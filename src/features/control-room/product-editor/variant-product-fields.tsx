@@ -1,20 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Sparkles } from "lucide-react";
+import { useMemo } from "react";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
 import {
+  type EditorFieldName,
   EditorNumberField,
   EditorTextField,
-  type EditorFieldName,
 } from "@/features/control-room/product-editor/product-editor-fields";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
@@ -37,10 +33,7 @@ export function VariantProductFields() {
     name: "variant.variants",
     keyName: "fieldKey",
   });
-  const variantsError = getProductEditorFieldError(
-    errors,
-    "variant.variants",
-  );
+  const variantsError = getProductEditorFieldError(errors, "variant.variants");
   const totalReceived = watchedVariants.reduce(
     (total, variant) => total + (Number(variant.quantity) || 0),
     0,
@@ -65,13 +58,10 @@ export function VariantProductFields() {
       .filter(Boolean);
     setValue(
       `variant.variants.${index}.sku`,
-      generateVariantSku(
-        referenceSeed,
-        variant.label,
-        variant.size,
-        variant.colour,
-        [...externalSkus, ...otherSkus],
-      ),
+      generateVariantSku(referenceSeed, variant.label, variant.size, variant.colour, [
+        ...externalSkus,
+        ...otherSkus,
+      ]),
       { shouldDirty: true, shouldValidate: true },
     );
   }
@@ -80,13 +70,10 @@ export function VariantProductFields() {
     const variants = getValues("variant.variants");
     const generated: string[] = [];
     variants.forEach((variant, index) => {
-      const sku = generateVariantSku(
-        referenceSeed,
-        variant.label,
-        variant.size,
-        variant.colour,
-        [...externalSkus, ...generated],
-      );
+      const sku = generateVariantSku(referenceSeed, variant.label, variant.size, variant.colour, [
+        ...externalSkus,
+        ...generated,
+      ]);
       generated.push(sku);
       setValue(`variant.variants.${index}.sku`, sku, {
         shouldDirty: true,
@@ -99,13 +86,19 @@ export function VariantProductFields() {
     <div className="space-y-6">
       <div className="grid gap-3 rounded-[16px] border border-border bg-surface-sunken p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <div>
-          <p className="text-[12.5px] font-semibold">Each sellable option owns its SKU and stock.</p>
+          <p className="text-[12.5px] font-semibold">
+            Each sellable option owns its SKU and stock.
+          </p>
           <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-            Use variants when size, colour or another option needs a separate quantity. The catalogue product can show {totalReceived} units overall while every row remains independently sellable.
+            Use variants when size, colour or another option needs a separate quantity. The
+            catalogue product can show {totalReceived} units overall while every row remains
+            independently sellable.
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card px-4 py-3 text-right">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Total received</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Total received
+          </p>
           <p className="mt-1 font-serif text-2xl font-medium tabular-nums">{totalReceived}</p>
         </div>
       </div>
@@ -116,11 +109,7 @@ export function VariantProductFields() {
           Name the choices used to distinguish variants. Two options cover most fashion products.
         </FieldDescription>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <EditorTextField
-            label="First option"
-            name="variant.optionNames.0"
-            placeholder="Size"
-          />
+          <EditorTextField label="First option" name="variant.optionNames.0" placeholder="Size" />
           <EditorTextField
             label="Second option"
             name="variant.optionNames.1"
@@ -134,7 +123,8 @@ export function VariantProductFields() {
           <div>
             <FieldLabel>Variant rows</FieldLabel>
             <FieldDescription>
-              Add one row per sellable option combination. Every row requires a unique SKU before publishing.
+              Add one row per sellable option combination. Every row requires a unique SKU before
+              publishing.
             </FieldDescription>
             <FieldError>{variantsError}</FieldError>
           </div>
@@ -237,16 +227,8 @@ export function VariantProductFields() {
                     name={name("quantity")}
                     placeholder="10"
                   />
-                  <EditorTextField
-                    label="Size"
-                    name={name("size")}
-                    placeholder="M"
-                  />
-                  <EditorTextField
-                    label="Colour"
-                    name={name("colour")}
-                    placeholder="Cream"
-                  />
+                  <EditorTextField label="Size" name={name("size")} placeholder="M" />
+                  <EditorTextField label="Colour" name={name("colour")} placeholder="Cream" />
                   <EditorTextField
                     description="Optional. Use a product image URL specific to this option."
                     label="Variant image URL"

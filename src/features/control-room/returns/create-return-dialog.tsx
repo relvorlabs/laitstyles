@@ -10,13 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -32,10 +26,7 @@ import {
   getEligibleReturnQuantity,
 } from "@/features/control-room/returns/return-selectors";
 import { formatNaira } from "@/lib/control-room/formatters";
-import type {
-  ControlRoomState,
-  CreateReturnInput,
-} from "@/lib/control-room/types";
+import type { ControlRoomState, CreateReturnInput } from "@/lib/control-room/types";
 
 type ReturnFormError = {
   field: "selection" | "quantity" | "reason" | "form";
@@ -57,14 +48,10 @@ export function CreateReturnDialog({
   const [orderId, setOrderId] = useState(orders[0]?.id ?? "");
   const order = orders.find((entry) => entry.id === orderId) ?? orders[0];
   const eligibleLines =
-    order?.lines.filter(
-      (line) => getEligibleReturnQuantity(state, order, line.id) > 0,
-    ) ?? [];
+    order?.lines.filter((line) => getEligibleReturnQuantity(state, order, line.id) > 0) ?? [];
   const [orderLineId, setOrderLineId] = useState(eligibleLines[0]?.id ?? "");
-  const line =
-    eligibleLines.find((entry) => entry.id === orderLineId) ?? eligibleLines[0];
-  const eligible =
-    order && line ? getEligibleReturnQuantity(state, order, line.id) : 0;
+  const line = eligibleLines.find((entry) => entry.id === orderLineId) ?? eligibleLines[0];
+  const eligible = order && line ? getEligibleReturnQuantity(state, order, line.id) : 0;
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -86,8 +73,7 @@ export function CreateReturnDialog({
     if (!order || !line) {
       setError({
         field: "selection",
-        message:
-          "Choose a delivered order line that is still eligible for return.",
+        message: "Choose a delivered order line that is still eligible for return.",
       });
       return;
     }
@@ -109,14 +95,10 @@ export function CreateReturnDialog({
       note: note.trim(),
       lines: [{ orderLineId: line.id, quantity }],
     });
-    setError(
-      actionError ? { field: "form", message: actionError } : null,
-    );
+    setError(actionError ? { field: "form", message: actionError } : null);
   }
 
-  const product = line
-    ? state.products.find((entry) => entry.id === line.productId)
-    : null;
+  const product = line ? state.products.find((entry) => entry.id === line.productId) : null;
   const productLabel = product
     ? product.inventoryMode === "variant"
       ? `${product.name} · ${product.variants.find((entry) => entry.id === line?.variantId)?.label ?? "Variant"}`
@@ -131,7 +113,8 @@ export function CreateReturnDialog({
             Start a customer return
           </DialogTitle>
           <DialogDescription>
-            Only delivered, sold order lines with remaining eligible quantity appear. No payment provider is contacted.
+            Only delivered, sold order lines with remaining eligible quantity appear. No payment
+            provider is contacted.
           </DialogDescription>
         </DialogHeader>
 
@@ -150,9 +133,7 @@ export function CreateReturnDialog({
                     id="return-order"
                   >
                     <span className="flex-1 truncate text-left">
-                      {order
-                        ? `${order.id} · ${formatNaira(order.total)}`
-                        : "Choose an order"}
+                      {order ? `${order.id} · ${formatNaira(order.total)}` : "Choose an order"}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
@@ -160,8 +141,7 @@ export function CreateReturnDialog({
                       <SelectLabel>Eligible delivered orders</SelectLabel>
                       {orders.map((entry) => (
                         <SelectItem key={entry.id} value={entry.id}>
-                          {entry.id} · {entry.deliveryCity} ·{" "}
-                          {formatNaira(entry.total)}
+                          {entry.id} · {entry.deliveryCity} · {formatNaira(entry.total)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -186,9 +166,7 @@ export function CreateReturnDialog({
                     className="h-12 w-full"
                     id="return-line"
                   >
-                    <span className="flex-1 truncate text-left">
-                      {productLabel}
-                    </span>
+                    <span className="flex-1 truncate text-left">{productLabel}</span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -200,14 +178,7 @@ export function CreateReturnDialog({
                         return (
                           <SelectItem key={entry.id} value={entry.id}>
                             {entryProduct?.name ?? "Product"} ·{" "}
-                            {order
-                              ? getEligibleReturnQuantity(
-                                  state,
-                                  order,
-                                  entry.id,
-                                )
-                              : 0}{" "}
-                            eligible
+                            {order ? getEligibleReturnQuantity(state, order, entry.id) : 0} eligible
                           </SelectItem>
                         );
                       })}
@@ -233,9 +204,7 @@ export function CreateReturnDialog({
                   type="number"
                   value={quantity}
                 />
-                <FieldDescription>
-                  {eligible} still eligible on this order line
-                </FieldDescription>
+                <FieldDescription>{eligible} still eligible on this order line</FieldDescription>
               </Field>
 
               <Field data-invalid={error?.field === "reason"}>

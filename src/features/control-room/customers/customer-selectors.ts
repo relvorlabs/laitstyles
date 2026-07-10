@@ -1,15 +1,12 @@
 import type {
-  CustomerRelationshipProfile,
-  ControlRoomState,
-} from "@/lib/control-room/types";
-import { getCustomerRelationshipProfiles } from "@/lib/control-room/customer-selectors";
-import type {
   CustomerQuery,
   CustomerSavedView,
   CustomerSavedViewDefinition,
   CustomerSortKey,
   CustomerWorkspaceSummary,
 } from "@/features/control-room/customers/customer-types";
+import { getCustomerRelationshipProfiles } from "@/lib/control-room/customer-selectors";
+import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/control-room/types";
 
 export const customerSavedViews: CustomerSavedViewDefinition[] = [
   {
@@ -65,21 +62,13 @@ export function queryCustomers(
   query: CustomerQuery,
   profiles = getCustomerRelationshipProfiles(state),
 ): CustomerRelationshipProfile[] {
-  const productNames = new Map(
-    state.products.map((product) => [product.id, product.name]),
-  );
-  const searchTerms = query.search
-    .trim()
-    .toLocaleLowerCase("en-NG")
-    .split(/\s+/)
-    .filter(Boolean);
+  const productNames = new Map(state.products.map((product) => [product.id, product.name]));
+  const searchTerms = query.search.trim().toLocaleLowerCase("en-NG").split(/\s+/).filter(Boolean);
 
   return profiles
     .filter((profile) => matchesView(profile, query.view))
     .filter(
-      (profile) =>
-        query.type === "all" ||
-        (profile.customer.type ?? "individual") === query.type,
+      (profile) => query.type === "all" || (profile.customer.type ?? "individual") === query.type,
     )
     .filter((profile) => {
       if (!searchTerms.length) return true;
@@ -94,15 +83,10 @@ export function getCustomerSavedViewCounts(
 ): Record<CustomerSavedView, number> {
   return {
     all: profiles.length,
-    "needs-attention": profiles.filter((profile) =>
-      profile.segments.includes("needs-attention"),
-    ).length,
-    returning: profiles.filter((profile) =>
-      profile.segments.includes("returning"),
-    ).length,
-    "high-value": profiles.filter((profile) =>
-      profile.segments.includes("high-value"),
-    ).length,
+    "needs-attention": profiles.filter((profile) => profile.segments.includes("needs-attention"))
+      .length,
+    returning: profiles.filter((profile) => profile.segments.includes("returning")).length,
+    "high-value": profiles.filter((profile) => profile.segments.includes("high-value")).length,
     new: profiles.filter((profile) => profile.segments.includes("new")).length,
   };
 }
@@ -117,29 +101,17 @@ export function getCustomerWorkspaceSummary(
       (total, profile) => total + profile.metrics.lifetimeSpend,
       0,
     ),
-    needsAttention: profiles.filter((profile) => profile.attention.length > 0)
-      .length,
-    returningCustomers: profiles.filter((profile) =>
-      profile.segments.includes("returning"),
-    ).length,
-    activeHolds: profiles.reduce(
-      (total, profile) => total + profile.metrics.activeHoldCount,
-      0,
-    ),
+    needsAttention: profiles.filter((profile) => profile.attention.length > 0).length,
+    returningCustomers: profiles.filter((profile) => profile.segments.includes("returning")).length,
+    activeHolds: profiles.reduce((total, profile) => total + profile.metrics.activeHoldCount, 0),
   };
 }
 
-function matchesView(
-  profile: CustomerRelationshipProfile,
-  view: CustomerSavedView,
-) {
+function matchesView(profile: CustomerRelationshipProfile, view: CustomerSavedView) {
   return view === "all" || profile.segments.includes(view);
 }
 
-function buildSearchText(
-  profile: CustomerRelationshipProfile,
-  productNames: Map<string, string>,
-) {
+function buildSearchText(profile: CustomerRelationshipProfile, productNames: Map<string, string>) {
   const customer = profile.customer;
   const addresses = (customer.addresses ?? []).flatMap((address) => [
     address.label,

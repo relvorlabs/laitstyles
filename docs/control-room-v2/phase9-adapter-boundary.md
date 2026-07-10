@@ -1,10 +1,12 @@
-# Phase 9 Repository and Adapter Boundary
+# Paused TanStack Repository and Adapter Boundary
 
 ## Status
 
-**Batch 9A started under the user's explicit override.**
+**Paused preliminary foundation for Phase 12.**
 
-Phase 8 remains implemented but unaccepted. Starting Phase 9 does not reclassify any blocked Phase 4–8 check as passing.
+This file was created when TanStack Query was the planned Phase 9. The user has since moved Supabase Auth, organization permissions and Supabase schema work ahead of TanStack Query. Treat the repository boundary notes here as Phase 12 groundwork only.
+
+Phase 8 remains implemented but unaccepted. The earlier TanStack work does not reclassify any blocked Phase 4–8 check as passing.
 
 ## Implemented foundation
 
@@ -46,12 +48,12 @@ Feature components and query-key factories must depend on repository interfaces,
 
 ## Package and QueryClient boundary still pending
 
-`@tanstack/react-query` and `@tanstack/eslint-plugin-query` are not yet committed because this environment cannot safely regenerate the repository's pnpm lockfile. Editing `package.json` without a matching lockfile would deliberately break `pnpm install --frozen-lockfile`.
+`@tanstack/react-query` is not yet committed because TanStack runtime work is deferred to Phase 12. The earlier `@tanstack/eslint-plugin-query` note is also deferred because Phase 9 moved the repository to Biome; Phase 12 must decide whether to add a narrow query-specific ESLint compatibility runner or rely on Biome plus targeted query tests.
 
-The next Batch 9A step is therefore:
+The next TanStack step, now deferred to Phase 12, is therefore:
 
 1. regenerate `package.json` and `pnpm-lock.yaml` together using pnpm;
-2. add the TanStack ESLint flat-config rules;
+2. decide whether TanStack's ESLint-only plugin is worth a narrow compatibility runner in the Biome baseline;
 3. mount one stable browser `QueryClient` at the Control Room boundary;
 4. add intentional default stale, garbage-collection, retry and refetch policies;
 5. begin Inventory query-key and query-option migration.

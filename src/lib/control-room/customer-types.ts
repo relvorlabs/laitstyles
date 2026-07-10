@@ -1,15 +1,8 @@
-import type {
-  DeliveryAddress,
-  OrderStatus,
-} from "@/lib/control-room/sales-types";
+import type { DeliveryAddress, OrderStatus } from "@/lib/control-room/sales-types";
 
 export type CustomerType = "individual" | "stylist" | "reseller" | "walk-in";
 
-export type CustomerContactPreference =
-  | "whatsapp"
-  | "phone"
-  | "email"
-  | "none";
+export type CustomerContactPreference = "whatsapp" | "phone" | "email" | "none";
 
 export type CustomerAddress = DeliveryAddress & {
   id: string;
@@ -46,17 +39,9 @@ export type ControlRoomCustomer = {
   notes?: CustomerNote[];
 };
 
-export type CustomerAttentionReason =
-  | "payment"
-  | "delivery"
-  | "return"
-  | "hold";
+export type CustomerAttentionReason = "payment" | "delivery" | "return" | "hold";
 
-export type CustomerSegment =
-  | "new"
-  | "returning"
-  | "high-value"
-  | "needs-attention";
+export type CustomerSegment = "new" | "returning" | "high-value" | "needs-attention";
 
 export type CustomerMetrics = {
   lifetimeSpend: number;
@@ -123,10 +108,7 @@ export type AddCustomerNoteInput = {
   body: string;
 };
 
-export type CustomerActionErrorCode =
-  | "customer-not-found"
-  | "empty-note"
-  | "note-too-long";
+export type CustomerActionErrorCode = "customer-not-found" | "empty-note" | "note-too-long";
 
 export type CustomerActionError = {
   code: CustomerActionErrorCode;

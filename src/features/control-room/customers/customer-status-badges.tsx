@@ -15,18 +15,11 @@ export function CustomerTypeBadge({ type }: { type: CustomerType | undefined }) 
   return <Badge variant="outline">{customerTypeLabels[value]}</Badge>;
 }
 
-export function CustomerSegmentBadges({
-  segments,
-}: {
-  segments: CustomerSegment[];
-}) {
+export function CustomerSegmentBadges({ segments }: { segments: CustomerSegment[] }) {
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
       {segments.map((segment) => (
-        <Badge
-          key={segment}
-          variant={segment === "high-value" ? "secondary" : "outline"}
-        >
+        <Badge key={segment} variant={segment === "high-value" ? "secondary" : "outline"}>
           {customerSegmentLabels[segment]}
         </Badge>
       ))}
@@ -34,11 +27,7 @@ export function CustomerSegmentBadges({
   );
 }
 
-export function CustomerAttentionBadges({
-  attention,
-}: {
-  attention: CustomerAttentionReason[];
-}) {
+export function CustomerAttentionBadges({ attention }: { attention: CustomerAttentionReason[] }) {
   if (!attention.length) return null;
 
   return (

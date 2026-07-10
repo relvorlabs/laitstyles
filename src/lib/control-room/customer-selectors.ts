@@ -1,7 +1,3 @@
-import type {
-  ControlRoomState,
-  CustomerRelationshipProfile,
-} from "@/lib/control-room/types";
 import {
   getCustomerAttentionReasons,
   getCustomerMetrics,
@@ -12,6 +8,7 @@ import {
   getCustomerProductRelationships,
 } from "@/lib/control-room/customer-products";
 import { getCustomerTimeline } from "@/lib/control-room/customer-timeline";
+import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/control-room/types";
 
 export {
   getCustomerAttentionReasons,

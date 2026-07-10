@@ -34,9 +34,7 @@ export function SettingsNavigation({
           Settings section
         </label>
         <Select
-          onValueChange={(value) =>
-            onChange((value ?? "identity") as SettingsSection)
-          }
+          onValueChange={(value) => onChange((value ?? "identity") as SettingsSection)}
           value={activeSection}
         >
           <SelectTrigger
@@ -85,9 +83,7 @@ export function SettingsNavigation({
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {section.label}
-                  </span>
+                  <span className="block truncate text-sm font-medium">{section.label}</span>
                   <span className="mt-1 block text-wrap text-[11px] font-normal leading-4 text-muted-foreground">
                     {issues
                       ? `${issues} issue${issues === 1 ? "" : "s"} to review`

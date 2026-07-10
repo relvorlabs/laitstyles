@@ -1,11 +1,7 @@
 import { Card } from "@/components/ui/card";
 import type { HoldWorkspaceSummary } from "@/features/control-room/holds/hold-types";
 
-export function HoldsSummaryStrip({
-  summary,
-}: {
-  summary: HoldWorkspaceSummary;
-}) {
+export function HoldsSummaryStrip({ summary }: { summary: HoldWorkspaceSummary }) {
   const metrics = [
     { label: "Holds", value: String(summary.totalHolds) },
     { label: "Active", value: String(summary.activeHolds) },

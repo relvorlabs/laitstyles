@@ -1,3 +1,9 @@
+import { err, ok, type Result } from "@/lib/control-room/result";
+import { canTransitionOrder, inferOrderLineStockState } from "@/lib/control-room/sales-selectors";
+import {
+  applySalesStockMutation,
+  type SalesStockMutationKind,
+} from "@/lib/control-room/sales-stock";
 import type {
   ControlRoomOrder,
   ControlRoomState,
@@ -10,15 +16,6 @@ import type {
   StockMovement,
   StockMovementKind,
 } from "@/lib/control-room/types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import {
-  canTransitionOrder,
-  inferOrderLineStockState,
-} from "@/lib/control-room/sales-selectors";
-import {
-  applySalesStockMutation,
-  type SalesStockMutationKind,
-} from "@/lib/control-room/sales-stock";
 
 export type OrderTransitionStateResult = {
   state: ControlRoomState;
@@ -82,10 +79,7 @@ export function applyOrderTransition(
     });
   }
 
-  const nextPaymentStatus = getNextPaymentStatus(
-    order.paymentStatus,
-    nextStatus,
-  );
+  const nextPaymentStatus = getNextPaymentStatus(order.paymentStatus, nextStatus);
   const updatedOrder: ControlRoomOrder = {
     ...order,
     fulfilmentStatus: nextStatus,
@@ -110,9 +104,7 @@ export function applyOrderTransition(
       ...state,
       asOf: now,
       products,
-      orders: state.orders.map((item) =>
-        item.id === order.id ? updatedOrder : item,
-      ),
+      orders: state.orders.map((item) => (item.id === order.id ? updatedOrder : item)),
       stockMovements: [...movements, ...state.stockMovements],
       activities: [
         {
@@ -137,10 +129,7 @@ type PlannedOrderLine = {
   nextStockState: OrderLineStockState;
 };
 
-function buildOrderStockPlan(
-  order: ControlRoomOrder,
-  nextStatus: OrderStatus,
-): PlannedOrderLine[] {
+function buildOrderStockPlan(order: ControlRoomOrder, nextStatus: OrderStatus): PlannedOrderLine[] {
   return order.lines.map((line) => {
     const currentState = inferOrderLineStockState(order, line);
 
@@ -168,10 +157,7 @@ function buildOrderStockPlan(
       if (currentState === "reserved") {
         return { line, mutation: "release", nextStockState: "released" };
       }
-      if (
-        currentState === "sold" &&
-        order.fulfilmentStatus !== "delivered"
-      ) {
+      if (currentState === "sold" && order.fulfilmentStatus !== "delivered") {
         return { line, mutation: "restore-sold", nextStockState: "released" };
       }
       return { line, mutation: null, nextStockState: currentState };
@@ -191,9 +177,7 @@ function buildOrderStockPlan(
   });
 }
 
-function getMovementKind(
-  mutation: SalesStockMutationKind,
-): StockMovementKind {
+function getMovementKind(mutation: SalesStockMutationKind): StockMovementKind {
   switch (mutation) {
     case "reserve":
       return "reserved";
@@ -240,14 +224,8 @@ function getNextAttention(
   return undefined;
 }
 
-function getTransitionActivityDetail(
-  order: ControlRoomOrder,
-  nextStatus: OrderStatus,
-) {
-  const quantity = order.lines.reduce(
-    (total, line) => total + line.quantity,
-    0,
-  );
+function getTransitionActivityDetail(order: ControlRoomOrder, nextStatus: OrderStatus) {
+  const quantity = order.lines.reduce((total, line) => total + line.quantity, 0);
   return `${quantity} unit${quantity === 1 ? "" : "s"} · ${order.deliveryCity || "No delivery city"} · ${formatOrderStatus(nextStatus)}`;
 }
 

@@ -1,9 +1,6 @@
 import type { InventoryProduct } from "@/lib/control-room/inventory-types";
 
-export function replaceOrAppendProduct(
-  products: InventoryProduct[],
-  product: InventoryProduct,
-) {
+export function replaceOrAppendProduct(products: InventoryProduct[], product: InventoryProduct) {
   const index = products.findIndex((item) => item.id === product.id);
   if (index < 0) return [product, ...products];
 

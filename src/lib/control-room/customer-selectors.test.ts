@@ -12,14 +12,8 @@ import type { ControlRoomState } from "@/lib/control-room/types";
 
 describe("customer relationship selectors", () => {
   it("derives spend, orders and active holds from connected records", () => {
-    const metrics = getCustomerMetrics(
-      activeControlRoomSeed,
-      "customer-amara",
-    );
-    const profile = getCustomerRelationshipProfile(
-      activeControlRoomSeed,
-      "customer-amara",
-    );
+    const metrics = getCustomerMetrics(activeControlRoomSeed, "customer-amara");
+    const profile = getCustomerRelationshipProfile(activeControlRoomSeed, "customer-amara");
 
     expect(metrics).toMatchObject({
       lifetimeSpend: 72_000,
@@ -29,16 +23,14 @@ describe("customer relationship selectors", () => {
       activeHoldCount: 1,
       reviewCount: 1,
     });
-    expect(profile?.segments).toEqual(
-      expect.arrayContaining(["high-value", "returning"]),
-    );
+    expect(profile?.segments).toEqual(expect.arrayContaining(["high-value", "returning"]));
     expect(profile?.attention).toContain("hold");
   });
 
   it("derives payment and delivery attention without customer snapshot flags", () => {
-    expect(
-      getCustomerAttentionReasons(activeControlRoomSeed, "customer-nneka"),
-    ).toEqual(expect.arrayContaining(["payment", "delivery"]));
+    expect(getCustomerAttentionReasons(activeControlRoomSeed, "customer-nneka")).toEqual(
+      expect.arrayContaining(["payment", "delivery"]),
+    );
   });
 
   it("adds an offline sale to spend and timeline through the connected order", () => {
@@ -65,20 +57,12 @@ describe("customer relationship selectors", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const metrics = getCustomerMetrics(
-      result.value.state,
-      "customer-amara",
-    );
-    const timeline = getCustomerTimeline(
-      result.value.state,
-      "customer-amara",
-    );
+    const metrics = getCustomerMetrics(result.value.state, "customer-amara");
+    const timeline = getCustomerTimeline(result.value.state, "customer-amara");
 
     expect(metrics.lifetimeSpend).toBe(87_000);
     expect(metrics.orderCount).toBe(3);
-    expect(timeline.some((event) => event.title.startsWith("Offline sale LS-"))).toBe(
-      true,
-    );
+    expect(timeline.some((event) => event.title.startsWith("Offline sale LS-"))).toBe(true);
   });
 
   it("includes connected returns in metrics, attention and timeline", () => {
@@ -109,9 +93,7 @@ describe("customer relationship selectors", () => {
     };
 
     expect(getCustomerMetrics(state, "customer-amara").returnCount).toBe(1);
-    expect(getCustomerAttentionReasons(state, "customer-amara")).toContain(
-      "return",
-    );
+    expect(getCustomerAttentionReasons(state, "customer-amara")).toContain("return");
     expect(
       getCustomerTimeline(state, "customer-amara").some(
         (event) => event.returnId === "return-phase5",
@@ -130,10 +112,7 @@ describe("customer relationship selectors", () => {
     };
     const relationships = getCustomerProductRelationships(state, customer);
     const byProduct = new Map(
-      relationships.map((relationship) => [
-        relationship.productId,
-        relationship,
-      ]),
+      relationships.map((relationship) => [relationship.productId, relationship]),
     );
 
     expect(byProduct.get("botanical-jeans")).toMatchObject({

@@ -1,14 +1,11 @@
+import { getCustomerHolds, getCustomerOrders } from "@/lib/control-room/customer-metrics";
+import { getPaidOrders } from "@/lib/control-room/sales-selectors";
 import type {
   ControlRoomCustomer,
   ControlRoomState,
   CustomerDeliveryHistoryItem,
   CustomerProductRelationship,
 } from "@/lib/control-room/types";
-import {
-  getCustomerHolds,
-  getCustomerOrders,
-} from "@/lib/control-room/customer-metrics";
-import { getPaidOrders } from "@/lib/control-room/sales-selectors";
 
 export function getCustomerProductRelationships(
   state: ControlRoomState,
@@ -43,8 +40,7 @@ export function getCustomerProductRelationships(
   }
 
   for (const hold of getCustomerHolds(state, customer.id)) {
-    touch(hold.productId, hold.releasedAt ?? hold.startedAt).heldQuantity +=
-      hold.quantity;
+    touch(hold.productId, hold.releasedAt ?? hold.startedAt).heldQuantity += hold.quantity;
   }
 
   for (const productId of customer.savedProductIds ?? []) {
@@ -57,8 +53,7 @@ export function getCustomerProductRelationships(
   }
 
   return [...relationships.values()].toSorted(
-    (left, right) =>
-      Date.parse(right.lastInteractionAt) - Date.parse(left.lastInteractionAt),
+    (left, right) => Date.parse(right.lastInteractionAt) - Date.parse(left.lastInteractionAt),
   );
 }
 
@@ -74,8 +69,5 @@ export function getCustomerDeliveryHistory(
       address: order.deliveryAddress ?? null,
       status: order.fulfilmentStatus,
     }))
-    .toSorted(
-      (left, right) =>
-        Date.parse(right.occurredAt) - Date.parse(left.occurredAt),
-    );
+    .toSorted((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt));
 }

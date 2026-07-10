@@ -105,9 +105,7 @@ const customerProfileSeed: Record<string, Partial<ControlRoomCustomer>> = {
   },
 };
 
-export function hydrateCustomerProfiles(
-  customers: ControlRoomCustomer[],
-): ControlRoomCustomer[] {
+export function hydrateCustomerProfiles(customers: ControlRoomCustomer[]): ControlRoomCustomer[] {
   return customers.map((customer) => {
     const profile = customerProfileSeed[customer.id];
     if (!profile) {

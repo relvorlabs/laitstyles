@@ -1,3 +1,6 @@
+import { err, ok, type Result } from "@/lib/control-room/result";
+import { isHoldActive } from "@/lib/control-room/sales-selectors";
+import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
@@ -8,9 +11,6 @@ import type {
   SalesActionError,
   StockMovement,
 } from "@/lib/control-room/types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { isHoldActive } from "@/lib/control-room/sales-selectors";
-import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
 
 export type HoldActionStateResult = {
   state: ControlRoomState;
@@ -38,10 +38,7 @@ export function applyHoldExtension(
   }
 
   const hold = holdResult.value;
-  const baseTime = Math.max(
-    new Date(hold.expiresAt).getTime(),
-    new Date(now).getTime(),
-  );
+  const baseTime = Math.max(new Date(hold.expiresAt).getTime(), new Date(now).getTime());
   const updatedHold: ControlRoomHold = {
     ...hold,
     expiresAt: new Date(baseTime + minutes * 60 * 1000).toISOString(),
@@ -150,9 +147,7 @@ export function applyHoldConversion(
   }
 
   if (hold.customerId) {
-    const customerExists = state.customers.some(
-      (customer) => customer.id === hold.customerId,
-    );
+    const customerExists = state.customers.some((customer) => customer.id === hold.customerId);
     if (!customerExists) {
       return err({
         code: "customer-not-found",
@@ -253,9 +248,7 @@ export function applyHoldConversion(
       products: stockResult.value.products,
       holds: replaceHold(state.holds, updatedHold),
       orders: [order, ...state.orders],
-      stockMovements: movement
-        ? [movement, ...state.stockMovements]
-        : state.stockMovements,
+      stockMovements: movement ? [movement, ...state.stockMovements] : state.stockMovements,
       activities: [
         {
           id: idFactory("activity"),

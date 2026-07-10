@@ -1,0 +1,110 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "src/**/*",
+      "app/**/*",
+      "*.ts",
+      "*.tsx",
+      "*.mts",
+      "*.cts",
+      "*.js",
+      "*.jsx",
+      "*.mjs",
+      "*.cjs",
+      "*.json",
+      "!node_modules",
+      "!.next",
+      "!out",
+      "!build",
+      "!coverage",
+      "!next-env.d.ts",
+      "!pnpm-lock.yaml",
+      "!public/**/*.svg",
+      "!scripts/**/*",
+      "!docs/**/*"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "crlf",
+    "lineWidth": 100
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "noLabelWithoutControl": "warn",
+        "noStaticElementInteractions": "warn",
+        "noSvgWithoutTitle": "warn",
+        "useAriaPropsSupportedByRole": "warn",
+        "useKeyWithClickEvents": "warn",
+        "useSemanticElements": "warn"
+      },
+      "complexity": {
+        "noImportantStyles": "warn"
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "warn"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "warn",
+        "noConsole": {
+          "level": "warn",
+          "options": {
+            "allow": ["warn", "error"]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/**/*.mjs"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}

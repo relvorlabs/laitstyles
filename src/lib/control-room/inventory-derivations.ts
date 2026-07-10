@@ -53,9 +53,7 @@ export function getProductReference(product: InventoryProduct) {
   return `${product.variants.length} variants`;
 }
 
-export function getInventoryAttention(
-  product: InventoryProduct,
-): InventoryAttentionReason[] {
+export function getInventoryAttention(product: InventoryProduct): InventoryAttentionReason[] {
   const counts = getProductStock(product);
   const reasons: InventoryAttentionReason[] = [];
 
@@ -84,9 +82,7 @@ export function getInventoryHealth(product: InventoryProduct): InventoryHealth {
   return "healthy";
 }
 
-export function toInventoryListItem(
-  product: InventoryProduct,
-): InventoryListItem {
+export function toInventoryListItem(product: InventoryProduct): InventoryListItem {
   return {
     product,
     coverImage: getProductCover(product),
@@ -94,14 +90,11 @@ export function toInventoryListItem(
     stock: getProductStock(product),
     health: getInventoryHealth(product),
     attention: getInventoryAttention(product),
-    variantCount:
-      product.inventoryMode === "variant" ? product.variants.length : 0,
+    variantCount: product.inventoryMode === "variant" ? product.variants.length : 0,
   };
 }
 
-export function getInventorySummary(
-  products: InventoryProduct[],
-): InventorySummary {
+export function getInventorySummary(products: InventoryProduct[]): InventorySummary {
   const summary: InventorySummary = {
     totalProducts: 0,
     liveProducts: 0,
@@ -137,9 +130,7 @@ export function getInventorySummary(
   return summary;
 }
 
-export function getInventoryFacetOptions(
-  products: InventoryProduct[],
-): InventoryFacetOptions {
+export function getInventoryFacetOptions(products: InventoryProduct[]): InventoryFacetOptions {
   const categories = new Set<string>();
   const collections = new Set<string>();
 
@@ -149,12 +140,8 @@ export function getInventoryFacetOptions(
   }
 
   return {
-    categories: [...categories].toSorted((left, right) =>
-      left.localeCompare(right),
-    ),
-    collections: [...collections].toSorted((left, right) =>
-      left.localeCompare(right),
-    ),
+    categories: [...categories].toSorted((left, right) => left.localeCompare(right)),
+    collections: [...collections].toSorted((left, right) => left.localeCompare(right)),
   };
 }
 
@@ -162,10 +149,7 @@ export function isFullySold(counts: InventoryCounts) {
   return counts.totalReceived > 0 && counts.sold === counts.totalReceived;
 }
 
-export function isLowStock(
-  product: InventoryProduct,
-  counts = getProductStock(product),
-) {
+export function isLowStock(product: InventoryProduct, counts = getProductStock(product)) {
   if (product.inventoryMode === "unique" || product.lifecycle !== "active") {
     return false;
   }
@@ -173,20 +157,14 @@ export function isLowStock(
   if (product.inventoryMode === "variant") {
     return product.variants.some(
       (variant) =>
-        variant.stock.available > 0 &&
-        variant.stock.available <= product.lowStockThreshold,
+        variant.stock.available > 0 && variant.stock.available <= product.lowStockThreshold,
     );
   }
 
-  return (
-    counts.available > 0 && counts.available <= product.lowStockThreshold
-  );
+  return counts.available > 0 && counts.available <= product.lowStockThreshold;
 }
 
-export function isOutOfStock(
-  product: InventoryProduct,
-  counts = getProductStock(product),
-) {
+export function isOutOfStock(product: InventoryProduct, counts = getProductStock(product)) {
   return (
     product.inventoryMode !== "unique" &&
     product.lifecycle === "active" &&

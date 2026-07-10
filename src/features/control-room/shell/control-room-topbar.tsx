@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   Add01Icon,
   ArrowUpRight01Icon,
@@ -9,6 +8,7 @@ import {
   Search01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
@@ -107,8 +107,7 @@ export function ControlRoomTopbar({
           className={buttonVariants({
             variant: "outline",
             size: "lg",
-            className:
-              "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
+            className: "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
           })}
           href="/"
         >

@@ -2,17 +2,17 @@
 
 import {
   createContext,
+  type ReactNode,
   useContext,
   useMemo,
   useState,
   useSyncExternalStore,
-  type ReactNode,
 } from "react";
+import { ControlRoomRepositoryProvider } from "@/features/control-room/data/control-room-repository-context";
 import {
-  createControlRoomStore,
   type ControlRoomStore,
+  createControlRoomStore,
 } from "@/features/control-room/state/control-room-store";
-import { ControlRoomRepositoryProvider } from "@/lib/control-room/data/repository-context";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
 const ControlRoomContext = createContext<ControlRoomStore | null>(null);
@@ -28,9 +28,7 @@ export function ControlRoomProvider({
 
   return (
     <ControlRoomContext.Provider value={store}>
-      <ControlRoomRepositoryProvider store={store}>
-        {children}
-      </ControlRoomRepositoryProvider>
+      <ControlRoomRepositoryProvider store={store}>{children}</ControlRoomRepositoryProvider>
     </ControlRoomContext.Provider>
   );
 }
@@ -41,11 +39,7 @@ export function useControlRoom() {
     throw new Error("useControlRoom must be used inside ControlRoomProvider");
   }
 
-  const state = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getSnapshot,
-  );
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 
   return useMemo(
     () => ({

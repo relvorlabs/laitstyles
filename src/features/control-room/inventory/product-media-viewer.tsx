@@ -37,9 +37,17 @@ export function ProductMediaViewer({
     () => [...media].sort((left, right) => left.position - right.position),
     [media],
   );
-  const [activeIndex, setActiveIndex] = useState(0);
+  const initialIndex = useMemo(() => {
+    const requestedIndex = orderedMedia.findIndex((item) => item.id === initialMediaId);
+    return requestedIndex >= 0 ? requestedIndex : 0;
+  }, [initialMediaId, orderedMedia]);
+  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null);
+  const selectedIndex = selectedMediaId
+    ? orderedMedia.findIndex((item) => item.id === selectedMediaId)
+    : -1;
+  const activeIndex = selectedIndex >= 0 ? selectedIndex : initialIndex;
 
   const resetMediaState = useCallback(() => {
     setZoom(MIN_ZOOM);
@@ -47,33 +55,20 @@ export function ProductMediaViewer({
   }, []);
 
   const showPrevious = useCallback(() => {
-    setActiveIndex((current) =>
-      current <= 0 ? orderedMedia.length - 1 : current - 1,
-    );
+    const previousIndex = activeIndex <= 0 ? orderedMedia.length - 1 : activeIndex - 1;
+    setSelectedMediaId(orderedMedia[previousIndex]?.id ?? null);
     resetMediaState();
-  }, [orderedMedia.length, resetMediaState]);
+  }, [activeIndex, orderedMedia, resetMediaState]);
 
   const showNext = useCallback(() => {
-    setActiveIndex((current) =>
-      current >= orderedMedia.length - 1 ? 0 : current + 1,
-    );
+    const nextIndex = activeIndex >= orderedMedia.length - 1 ? 0 : activeIndex + 1;
+    setSelectedMediaId(orderedMedia[nextIndex]?.id ?? null);
     resetMediaState();
-  }, [orderedMedia.length, resetMediaState]);
+  }, [activeIndex, orderedMedia, resetMediaState]);
 
   const changeZoom = useCallback((delta: number) => {
-    setZoom((current) =>
-      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, current + delta)),
-    );
+    setZoom((current) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, current + delta)));
   }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const requestedIndex = orderedMedia.findIndex(
-      (item) => item.id === initialMediaId,
-    );
-    setActiveIndex(requestedIndex >= 0 ? requestedIndex : 0);
-    resetMediaState();
-  }, [initialMediaId, open, orderedMedia, resetMediaState]);
 
   useEffect(() => {
     if (!open || orderedMedia.length < 1) return;
@@ -118,7 +113,7 @@ export function ProductMediaViewer({
   }
 
   function chooseMedia(index: number) {
-    setActiveIndex(index);
+    setSelectedMediaId(orderedMedia[index]?.id ?? null);
     resetMediaState();
   }
 

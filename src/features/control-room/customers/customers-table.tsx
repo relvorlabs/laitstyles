@@ -20,8 +20,8 @@ import {
   CustomerTypeBadge,
 } from "@/features/control-room/customers/customer-status-badges";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
 import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
+import { formatNaira } from "@/lib/control-room/formatters";
 
 export function CustomersTable({
   profiles,
@@ -87,7 +87,8 @@ export function CustomersTable({
                 <TableCell className="text-right tabular-nums">
                   <span className="font-semibold">{profile.metrics.orderCount}</span>
                   <span className="mt-1 block text-[10px] text-muted-foreground">
-                    {profile.metrics.activeHoldCount} active hold{profile.metrics.activeHoldCount === 1 ? "" : "s"}
+                    {profile.metrics.activeHoldCount} active hold
+                    {profile.metrics.activeHoldCount === 1 ? "" : "s"}
                   </span>
                 </TableCell>
                 <TableCell className="overflow-hidden text-[11.5px]">
@@ -102,9 +103,7 @@ export function CustomersTable({
                   {profile.attention.length ? (
                     <CustomerAttentionBadges attention={profile.attention} />
                   ) : (
-                    <span className="text-[11px] text-muted-foreground">
-                      No active follow-up
-                    </span>
+                    <span className="text-[11px] text-muted-foreground">No active follow-up</span>
                   )}
                 </TableCell>
                 <TableCell className="px-1 text-right">

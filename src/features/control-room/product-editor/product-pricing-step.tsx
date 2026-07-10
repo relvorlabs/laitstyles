@@ -1,8 +1,8 @@
 "use client";
 
+import { Calculator } from "lucide-react";
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -61,17 +61,14 @@ export function ProductPricingStep() {
           Set the customer price without hiding the maths.
         </h2>
         <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-muted-foreground">
-          Selling price is what the customer pays. Unit cost is what one unit cost your store to obtain and is optional—it exists only to show gross margin. Compare-at price is the higher original or list price used to communicate a genuine discount.
+          Selling price is what the customer pays. Unit cost is what one unit cost your store to
+          obtain and is optional—it exists only to show gross margin. Compare-at price is the higher
+          original or list price used to communicate a genuine discount.
         </p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
-        <EditorNumberField
-          label="Selling price"
-          min={1}
-          name="sellingPrice"
-          placeholder="24500"
-        />
+        <EditorNumberField label="Selling price" min={1} name="sellingPrice" placeholder="24500" />
         <EditorNumberField
           description="Optional. What your store paid for one unit, including acquisition where useful. Customers never see it."
           label="Unit cost"
@@ -92,7 +89,8 @@ export function ProductPricingStep() {
         <Field>
           <FieldLabel htmlFor="desired-discount">Apply discount percentage</FieldLabel>
           <FieldDescription>
-            Enter a percentage to calculate the selling price from the compare-at price. Manual price edits remain allowed.
+            Enter a percentage to calculate the selling price from the compare-at price. Manual
+            price edits remain allowed.
           </FieldDescription>
           <Input
             className="h-11 tabular-nums"
@@ -119,16 +117,16 @@ export function ProductPricingStep() {
       </div>
 
       {feedback ? (
-        <p aria-live="polite" className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground">
+        <p
+          aria-live="polite"
+          className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground"
+        >
           {feedback}
         </p>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <PricingPreview
-          label="Selling price"
-          value={price > 0 ? formatNaira(price) : "Not set"}
-        />
+        <PricingPreview label="Selling price" value={price > 0 ? formatNaira(price) : "Not set"} />
         <PricingPreview
           label="Discount"
           value={actualDiscount > 0 ? `${actualDiscount}%` : "No discount"}
@@ -147,7 +145,8 @@ export function ProductPricingStep() {
 
       {compareAt !== null && compareAt <= price ? (
         <p className="rounded-[14px] border border-warning/40 bg-warning-surface p-4 text-[12px] leading-5 text-warning-surface-foreground">
-          Compare-at price must be higher than the selling price. Remove it when the product is not discounted.
+          Compare-at price must be higher than the selling price. Remove it when the product is not
+          discounted.
         </p>
       ) : null}
       {unitCost !== null && price > 0 && unitCost > price ? (
@@ -174,9 +173,7 @@ function PricingPreview({
         <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
           {label}
         </p>
-        <p className="mt-2 font-serif text-[24px] font-medium leading-none tabular-nums">
-          {value}
-        </p>
+        <p className="mt-2 font-serif text-[24px] font-medium leading-none tabular-nums">{value}</p>
       </CardContent>
     </Card>
   );

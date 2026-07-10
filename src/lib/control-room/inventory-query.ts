@@ -21,10 +21,7 @@ export function queryInventory(
     if (query.mode !== "all" && product.inventoryMode !== query.mode) continue;
     if (!matchesStockFilter(item, query.stock)) continue;
     if (query.category !== "all" && product.category !== query.category) continue;
-    if (
-      query.collection !== "all" &&
-      product.collection !== query.collection
-    ) {
+    if (query.collection !== "all" && product.collection !== query.collection) {
       continue;
     }
     if (query.channel !== "all" && !product.channels.includes(query.channel)) {
@@ -35,17 +32,16 @@ export function queryInventory(
     results.push(item);
   }
 
-  return results.toSorted((left, right) =>
-    compareInventory(left, right, query.sort),
-  );
+  return results.toSorted((left, right) => compareInventory(left, right, query.sort));
 }
 
 export function getInventoryViewCounts(
   products: InventoryProduct[],
 ): Record<InventorySavedView, number> {
-  const counts = Object.fromEntries(
-    inventorySavedViews.map((view) => [view.value, 0]),
-  ) as Record<InventorySavedView, number>;
+  const counts = Object.fromEntries(inventorySavedViews.map((view) => [view.value, 0])) as Record<
+    InventorySavedView,
+    number
+  >;
 
   for (const product of products) {
     const item = toInventoryListItem(product);
@@ -67,10 +63,7 @@ export function getActiveInventoryFilterCount(query: InventoryQuery) {
   ].filter(Boolean).length;
 }
 
-export function matchesSavedView(
-  item: InventoryListItem,
-  view: InventorySavedView,
-) {
+export function matchesSavedView(item: InventoryListItem, view: InventorySavedView) {
   const product = item.product;
 
   switch (view) {
@@ -101,10 +94,7 @@ export function matchesSavedView(
   }
 }
 
-function matchesStockFilter(
-  item: InventoryListItem,
-  filter: InventoryQuery["stock"],
-) {
+function matchesStockFilter(item: InventoryListItem, filter: InventoryQuery["stock"]) {
   if (filter === "all") return true;
   if (filter === "healthy") return item.health === "healthy";
   if (filter === "low-stock") return item.attention.includes("low-stock");
@@ -149,9 +139,7 @@ function matchesSearch(product: InventoryProduct, normalizedSearch: string) {
     ].join(" "),
   );
 
-  return normalizedSearch
-    .split(/\s+/)
-    .every((token) => searchable.includes(token));
+  return normalizedSearch.split(/\s+/).every((token) => searchable.includes(token));
 }
 
 function compareInventory(

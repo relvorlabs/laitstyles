@@ -1,5 +1,5 @@
-import type { InventoryProduct } from "@/lib/control-room/inventory-types";
 import { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
+import type { InventoryProduct } from "@/lib/control-room/inventory-types";
 import type {
   InventoryDataset,
   InventoryValidationIssue,
@@ -108,9 +108,7 @@ export function validateInventoryDataset(
 
 function getSellableReferences(product: InventoryProduct) {
   if (product.inventoryMode === "unique") {
-    return product.archiveNumber.toLowerCase() === "pending"
-      ? []
-      : [product.archiveNumber];
+    return product.archiveNumber.toLowerCase() === "pending" ? [] : [product.archiveNumber];
   }
   if (product.inventoryMode === "stocked") return [product.sku];
   return product.variants.map((variant) => variant.sku);
@@ -124,10 +122,7 @@ function collectDuplicate(
   values: Map<string, number>,
   value: string,
   index: number,
-  code: Extract<
-    InventoryValidationIssue["code"],
-    "duplicate-product-id" | "duplicate-slug"
-  >,
+  code: Extract<InventoryValidationIssue["code"], "duplicate-product-id" | "duplicate-slug">,
   message: string,
   path: string,
   issues: InventoryValidationIssue[],

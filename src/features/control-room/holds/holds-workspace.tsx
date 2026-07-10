@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { HoldControls } from "@/features/control-room/holds/hold-controls";
 import { HoldDetailSheet } from "@/features/control-room/holds/hold-detail-sheet";
@@ -38,9 +38,7 @@ export function HoldsWorkspace({
   const pathname = usePathname();
   const { state, extendHold, releaseHold, convertHold } = useControlRoom();
   const [query, setQuery] = useState(initialQuery);
-  const [openHoldId, setOpenHoldId] = useState<string | null>(
-    initialOpenHoldId,
-  );
+  const [openHoldId, setOpenHoldId] = useState<string | null>(initialOpenHoldId);
   const [feedback, setFeedback] = useState<HoldActionFeedback | null>(null);
 
   const holds = useMemo(() => queryHolds(state, query), [query, state]);
@@ -141,22 +139,11 @@ export function HoldsWorkspace({
 
       {holds.length ? (
         <>
-          <HoldsMobileList
-            holds={holds}
-            onOpen={openHoldRecord}
-            state={state}
-          />
-          <HoldsTable
-            holds={holds}
-            onOpen={openHoldRecord}
-            state={state}
-          />
+          <HoldsMobileList holds={holds} onOpen={openHoldRecord} state={state} />
+          <HoldsTable holds={holds} onOpen={openHoldRecord} state={state} />
         </>
       ) : (
-        <HoldsEmptyState
-          hasHolds={state.holds.length > 0}
-          onReset={resetQuery}
-        />
+        <HoldsEmptyState hasHolds={state.holds.length > 0} onReset={resetQuery} />
       )}
 
       <HoldDetailSheet

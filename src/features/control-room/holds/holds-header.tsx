@@ -14,7 +14,8 @@ export function HoldsHeader() {
           Holds
         </h1>
         <p className="mt-4 max-w-[680px] text-[13px] leading-6 text-muted-foreground sm:text-[14px]">
-          Watch reservations approaching release, resolve payment risk, and convert confirmed customers without creating duplicate stock records.
+          Watch reservations approaching release, resolve payment risk, and convert confirmed
+          customers without creating duplicate stock records.
         </p>
       </div>
       <Badge className="w-fit" variant="outline">

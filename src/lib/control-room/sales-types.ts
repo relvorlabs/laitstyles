@@ -10,20 +10,9 @@ export type SalesChannel =
   | "staff-assisted"
   | "other";
 
-export type PaymentStatus =
-  | "pending"
-  | "paid"
-  | "deposit"
-  | "failed"
-  | "refunded";
+export type PaymentStatus = "pending" | "paid" | "deposit" | "failed" | "refunded";
 
-export type PaymentMethod =
-  | "cash"
-  | "bank-transfer"
-  | "card"
-  | "pos"
-  | "pay-on-delivery"
-  | "other";
+export type PaymentMethod = "cash" | "bank-transfer" | "card" | "pos" | "pay-on-delivery" | "other";
 
 export type OrderStatus =
   | "pending-payment"
@@ -40,17 +29,9 @@ export type OrderStatus =
 
 export type FulfilmentStatus = OrderStatus;
 
-export type OrderSource =
-  | "online-order"
-  | "offline-sale"
-  | "hold-conversion";
+export type OrderSource = "online-order" | "offline-sale" | "hold-conversion";
 
-export type OrderLineStockState =
-  | "uncommitted"
-  | "reserved"
-  | "sold"
-  | "returned"
-  | "released";
+export type OrderLineStockState = "uncommitted" | "reserved" | "sold" | "returned" | "released";
 
 export type OrderLine = {
   id: string;
@@ -116,12 +97,7 @@ export type ControlRoomOrder = {
 
 export type HoldStage = "product" | "cart" | "checkout" | "payment";
 export type HoldStatus = "active" | "released" | "converted" | "expired";
-export type HoldSource =
-  | "storefront"
-  | "admin"
-  | "whatsapp"
-  | "instagram"
-  | "physical-store";
+export type HoldSource = "storefront" | "admin" | "whatsapp" | "instagram" | "physical-store";
 
 export type ControlRoomHold = {
   id: string;

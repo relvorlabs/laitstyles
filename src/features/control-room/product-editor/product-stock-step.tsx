@@ -23,7 +23,8 @@ export function ProductStockStep() {
           Record what can actually be sold.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          The fields below are specific to the product type chosen in step one. Stock commitments from an existing product are preserved during edits.
+          The fields below are specific to the product type chosen in step one. Stock commitments
+          from an existing product are preserved during edits.
         </p>
       </div>
 

@@ -13,11 +13,8 @@ import {
   validateProductEditorStep,
   validateProductForPublish,
 } from "@/lib/control-room/product-editor-schema";
-import type {
-  ControlRoomState,
-  ProductEditorValues,
-} from "@/lib/control-room/types";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import type { ControlRoomState, ProductEditorValues } from "@/lib/control-room/types";
 
 const now = "2026-07-09T14:00:00+01:00";
 
@@ -37,8 +34,7 @@ function createValidStockedValues(): ProductEditorValues {
     name: "Botanical Studio Shirt",
     category: "Shirts",
     brand: "Laitstyle Studio",
-    description:
-      "A softly structured botanical shirt prepared for the daily studio collection.",
+    description: "A softly structured botanical shirt prepared for the daily studio collection.",
     collection: "Daily Form",
     internalReference: "LS-BSS-GRN",
     media: [
@@ -105,9 +101,7 @@ describe("product editor validation", () => {
       ]),
     );
     expect(validateProductEditorStep(values, "images")).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: "media", step: "images" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ path: "media", step: "images" })]),
     );
     expect(validateProductForPublish(values).length).toBeGreaterThan(4);
   });
@@ -191,9 +185,7 @@ describe("product editor actions", () => {
   });
 
   it("keeps an Intake product in Intake when its edits are saved", () => {
-    const product = activeControlRoomSeed.products.find(
-      (item) => item.id === "ivory-wrap-skirt",
-    );
+    const product = activeControlRoomSeed.products.find((item) => item.id === "ivory-wrap-skirt");
     if (!product) throw new Error("Missing Intake fixture");
 
     const result = applyProductEditorAction(
@@ -207,9 +199,7 @@ describe("product editor actions", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.action.product.lifecycle).toBe("intake");
-    expect(
-      result.value.state.products.filter((item) => item.id === product.id),
-    ).toHaveLength(1);
+    expect(result.value.state.products.filter((item) => item.id === product.id)).toHaveLength(1);
   });
 });
 
@@ -267,13 +257,7 @@ describe("Intake transitions", () => {
       ),
     };
 
-    const result = applyIntakeTransition(
-      state,
-      "ivory-wrap-skirt",
-      "published",
-      now,
-      idFactory(),
-    );
+    const result = applyIntakeTransition(state, "ivory-wrap-skirt", "published", now, idFactory());
 
     expect(result).toEqual(
       expect.objectContaining({

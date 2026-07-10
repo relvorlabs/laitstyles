@@ -10,8 +10,7 @@ export function DeliveryPreview() {
   const { control } = useFormContext<SaveStoreSettingsInput>();
   const delivery = useWatch({ control, name: "delivery" }) as SaveStoreSettingsInput["delivery"];
   const activeZones = delivery?.zones?.filter((zone) => zone.enabled) ?? [];
-  const activePickups =
-    delivery?.pickupLocations?.filter((location) => location.enabled) ?? [];
+  const activePickups = delivery?.pickupLocations?.filter((location) => location.enabled) ?? [];
 
   return (
     <Card className="gap-4 p-5">

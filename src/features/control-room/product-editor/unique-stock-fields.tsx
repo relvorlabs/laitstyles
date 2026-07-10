@@ -1,14 +1,14 @@
 "use client";
 
-import { useFieldArray, useFormContext } from "react-hook-form";
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import {
   EditorSelectField,
   EditorTextField,
 } from "@/features/control-room/product-editor/product-editor-fields";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { ProductEditorValues } from "@/lib/control-room/types";
 
 export function UniqueStockFields() {
@@ -21,10 +21,11 @@ export function UniqueStockFields() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[16px] border border-[#CBD2BA] bg-[#E7EBDD] p-4 text-[#4A5540]">
+      <div className="rounded-[16px] border border-chip-border bg-surface-selected-muted p-4 text-surface-selected-foreground">
         <p className="text-[12.5px] font-semibold">Quantity is fixed at one.</p>
-        <p className="mt-1 text-[11.5px] leading-5 text-[#59644A]">
-          Holds, sales and returns will move this single physical piece between stock buckets; the editor cannot create duplicate units.
+        <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
+          Holds, sales and returns will move this single physical piece between stock buckets; the
+          editor cannot create duplicate units.
         </p>
       </div>
 
@@ -39,16 +40,8 @@ export function UniqueStockFields() {
               ["Fair", "Fair"],
             ]}
           />
-          <EditorTextField
-            label="Size"
-            name="unique.size"
-            placeholder="M, UK 12 or One size"
-          />
-          <EditorTextField
-            label="Colour"
-            name="unique.colour"
-            placeholder="Ivory"
-          />
+          <EditorTextField label="Size" name="unique.size" placeholder="M, UK 12 or One size" />
+          <EditorTextField label="Colour" name="unique.colour" placeholder="Ivory" />
         </div>
       </FieldGroup>
 
@@ -109,7 +102,8 @@ export function UniqueStockFields() {
           </div>
         ) : (
           <p className="mt-4 rounded-[14px] border border-dashed border-border bg-secondary/35 p-5 text-[12px] leading-5 text-muted-foreground">
-            No measurements recorded yet. The draft can still be saved, but complete measurements are strongly recommended before publishing.
+            No measurements recorded yet. The draft can still be saved, but complete measurements
+            are strongly recommended before publishing.
           </p>
         )}
       </div>

@@ -1,13 +1,7 @@
-import Image from "next/image";
 import { PackageIcon } from "@hugeicons/core-free-icons";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { SectionHeading } from "@/features/control-room/shared/section-heading";
 import { getProductStock } from "@/lib/control-room/selectors";
@@ -85,13 +79,7 @@ function ProductWatchRow({ product }: { product: InventoryProduct }) {
   return (
     <article className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-5">
       <div className="relative aspect-[4/5] w-16 overflow-hidden rounded-[10px] bg-secondary">
-        <Image
-          alt={product.name}
-          className="object-cover"
-          fill
-          sizes="64px"
-          src={product.image}
-        />
+        <Image alt={product.name} className="object-cover" fill sizes="64px" src={product.image} />
       </div>
       <div className="min-w-0">
         <h3 className="truncate text-[13.5px] font-semibold">{product.name}</h3>
@@ -106,9 +94,7 @@ function ProductWatchRow({ product }: { product: InventoryProduct }) {
         </div>
       </div>
       <div className="text-right">
-        <div className="font-serif text-[24px] font-medium tabular-nums">
-          {inventory.available}
-        </div>
+        <div className="font-serif text-[24px] font-medium tabular-nums">{inventory.available}</div>
         <div className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           left
         </div>
@@ -150,9 +136,7 @@ function InventoryClearState({ message }: { message: string }) {
       <span className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
         <ControlRoomIcon icon={PackageIcon} size={21} />
       </span>
-      <p className="mt-4 max-w-[320px] text-[13px] leading-5 text-muted-foreground">
-        {message}
-      </p>
+      <p className="mt-4 max-w-[320px] text-[13px] leading-5 text-muted-foreground">{message}</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { formatOrderDate, orderStatusLabels } from "@/features/control-room/orders/order-labels";
+import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { ControlRoomOrder } from "@/lib/control-room/types";
 
 export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
@@ -21,7 +21,7 @@ export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
       {timeline.toReversed().map((event, index) => (
         <li className="grid grid-cols-[28px_minmax(0,1fr)] gap-3" key={event.id}>
           <div className="flex flex-col items-center">
-            <span className="grid size-7 place-items-center rounded-full border border-[#CBD2BA] bg-[#E7EBDD] text-[#4A5540]">
+            <span className="grid size-7 place-items-center rounded-full border border-chip-border bg-surface-selected-muted text-surface-selected-foreground">
               <ControlRoomIcon icon={CheckmarkCircle02Icon} size={15} />
             </span>
             {index < timeline.length - 1 ? (

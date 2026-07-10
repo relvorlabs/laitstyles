@@ -17,15 +17,13 @@ export {
   isOutOfStock,
   toInventoryListItem,
 } from "@/lib/control-room/inventory-derivations";
-
+export { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
 export {
   getActiveInventoryFilterCount,
   getInventoryViewCounts,
   matchesSavedView,
   queryInventory,
 } from "@/lib/control-room/inventory-query";
-
-export { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
 export { validateInventoryDataset } from "@/lib/control-room/inventory-validation";
 export type {
   InventoryDataset,

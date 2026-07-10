@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
@@ -54,30 +54,19 @@ export function InventoryWorkspace({
   const { state } = useControlRoom();
   const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
-  const [presentation, setPresentation] =
-    useState<InventoryPresentation>(initialPresentation);
+  const [presentation, setPresentation] = useState<InventoryPresentation>(initialPresentation);
   const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const [openProductId, setOpenProductId] = useState<string | null>(
-    initialOpenProductId,
-  );
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [openProductId, setOpenProductId] = useState<string | null>(initialOpenProductId);
   const [openMedia, setOpenMedia] = useState<{
     productId: string;
     mediaId: string;
   } | null>(null);
   const [exportedCount, setExportedCount] = useState<number | null>(null);
 
-  const items = useMemo(
-    () => queryInventory(state.products, query),
-    [query, state.products],
-  );
-  const summary = useMemo(
-    () => getInventorySummary(state.products),
-    [state.products],
-  );
+  const items = useMemo(() => queryInventory(state.products, query), [query, state.products]);
+  const summary = useMemo(() => getInventorySummary(state.products), [state.products]);
   const facets = useMemo<InventoryFacetOptions>(() => {
     const productFacets = getInventoryFacetOptions(state.products);
     const taxonomy = state.catalogueTaxonomy ?? [];
@@ -93,24 +82,16 @@ export function InventoryWorkspace({
       ),
     };
   }, [state.catalogueTaxonomy, state.products]);
-  const viewCounts = useMemo(
-    () => getInventoryViewCounts(state.products),
-    [state.products],
-  );
-  const allItems = useMemo(
-    () => state.products.map(toInventoryListItem),
-    [state.products],
-  );
+  const viewCounts = useMemo(() => getInventoryViewCounts(state.products), [state.products]);
+  const allItems = useMemo(() => state.products.map(toInventoryListItem), [state.products]);
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(page, 1), totalPages);
   const pageItems = useMemo(
     () => items.slice((safePage - 1) * pageSize, safePage * pageSize),
     [items, pageSize, safePage],
   );
-  const openItem =
-    allItems.find((item) => item.product.id === openProductId) ?? null;
-  const mediaItem =
-    allItems.find((item) => item.product.id === openMedia?.productId) ?? null;
+  const openItem = allItems.find((item) => item.product.id === openProductId) ?? null;
+  const mediaItem = allItems.find((item) => item.product.id === openMedia?.productId) ?? null;
   const isIntake = query.view === "intake";
 
   function replaceUrl(
@@ -211,9 +192,7 @@ export function InventoryWorkspace({
   }
 
   function exportSelection() {
-    const selected = allItems.filter((item) =>
-      selectedIds.has(item.product.id),
-    );
+    const selected = allItems.filter((item) => selectedIds.has(item.product.id));
     if (!selected.length) return;
 
     downloadInventoryCsv(selected, state.reportingDate);
@@ -247,10 +226,7 @@ export function InventoryWorkspace({
         />
       </Card>
 
-      <InventoryExportAlert
-        count={exportedCount}
-        onDismiss={() => setExportedCount(null)}
-      />
+      <InventoryExportAlert count={exportedCount} onDismiss={() => setExportedCount(null)} />
 
       {items.length ? (
         isIntake ? (
@@ -265,18 +241,10 @@ export function InventoryWorkspace({
               selectedIds={selectedIds}
             />
             <div
-              className={
-                presentation === "grid"
-                  ? "hidden md:block"
-                  : "hidden md:block lg:hidden"
-              }
+              className={presentation === "grid" ? "hidden md:block" : "hidden md:block lg:hidden"}
             >
               <InventoryGrid
-                className={
-                  presentation === "table"
-                    ? "grid gap-4 md:grid-cols-2"
-                    : undefined
-                }
+                className={presentation === "table" ? "grid gap-4 md:grid-cols-2" : undefined}
                 items={pageItems}
                 onOpen={openProduct}
                 onOpenMedia={openProductMedia}
@@ -304,10 +272,7 @@ export function InventoryWorkspace({
           </>
         )
       ) : (
-        <InventoryEmptyState
-          hasProducts={state.products.length > 0}
-          onReset={resetQuery}
-        />
+        <InventoryEmptyState hasProducts={state.products.length > 0} onReset={resetQuery} />
       )}
 
       {!isIntake ? (

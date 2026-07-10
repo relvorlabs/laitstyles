@@ -1,15 +1,15 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { CatalogueTaxonomyManager } from "@/features/control-room/inventory/catalogue-taxonomy-manager";
 import {
   EditorSelectField,
-  EditorTextField,
   EditorTextareaField,
+  EditorTextField,
 } from "@/features/control-room/product-editor/product-editor-fields";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import { generateProductSku } from "@/lib/control-room/sku";
@@ -77,7 +77,8 @@ export function ProductIdentityStep() {
           Give the catalogue record a clear identity.
         </h2>
         <p className="mt-3 max-w-[680px] text-[13px] leading-6 text-muted-foreground">
-          Categories and collections are managed store-wide. The internal reference becomes the unique-piece reference, stocked-product SKU or variant SKU prefix.
+          Categories and collections are managed store-wide. The internal reference becomes the
+          unique-piece reference, stocked-product SKU or variant SKU prefix.
         </p>
       </div>
 
@@ -110,11 +111,7 @@ export function ProductIdentityStep() {
 
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2">
-            <EditorSelectField
-              label="Category"
-              name="category"
-              options={categories}
-            />
+            <EditorSelectField label="Category" name="category" options={categories} />
             <CatalogueTaxonomyManager
               className="h-9 rounded-full"
               initialKind="category"
@@ -145,11 +142,7 @@ export function ProductIdentityStep() {
               triggerLabel="Manage categories"
             />
           </div>
-          <EditorTextField
-            label="Brand or label"
-            name="brand"
-            placeholder="Adidas or Unlabelled"
-          />
+          <EditorTextField label="Brand or label" name="brand" placeholder="Adidas or Unlabelled" />
         </div>
 
         <div className="space-y-2">

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { Expand } from "lucide-react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Expand } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -39,9 +39,7 @@ export function InventoryMobileList({
               <button
                 aria-label={`View images for ${item.product.name}`}
                 className="group relative min-h-[150px] bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
-                onClick={() =>
-                  onOpenMedia(item.product.id, item.coverImage.id)
-                }
+                onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                 type="button"
               >
                 <Image
@@ -87,9 +85,7 @@ export function InventoryMobileList({
                 <div className="flex flex-wrap items-center gap-2">
                   <InventoryStatusBadge health={item.health} />
                   <Badge variant="outline">
-                    {item.product.price > 0
-                      ? formatNaira(item.product.price)
-                      : "Needs price"}
+                    {item.product.price > 0 ? formatNaira(item.product.price) : "Needs price"}
                   </Badge>
                 </div>
 
@@ -120,9 +116,7 @@ export function InventoryMobileList({
 function MobileStock({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div className="font-serif text-[20px] font-medium leading-none tabular-nums">
-        {value}
-      </div>
+      <div className="font-serif text-[20px] font-medium leading-none tabular-nums">{value}</div>
       <div className="mt-1 text-[8.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </div>

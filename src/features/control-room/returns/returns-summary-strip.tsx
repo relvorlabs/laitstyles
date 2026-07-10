@@ -2,11 +2,7 @@ import type { ReturnWorkspaceSummary } from "@/features/control-room/returns/ret
 import { formatCompactNaira } from "@/lib/control-room/formatters";
 import { cn } from "@/lib/utils";
 
-export function ReturnsSummaryStrip({
-  summary,
-}: {
-  summary: ReturnWorkspaceSummary;
-}) {
+export function ReturnsSummaryStrip({ summary }: { summary: ReturnWorkspaceSummary }) {
   const metrics = [
     ["Total", summary.totalReturns],
     ["Open", summary.openReturns],
@@ -30,9 +26,7 @@ export function ReturnsSummaryStrip({
           )}
           key={label}
         >
-          <p className="truncate font-serif text-[24px] font-medium tabular-nums">
-            {value}
-          </p>
+          <p className="truncate font-serif text-[24px] font-medium tabular-nums">{value}</p>
           <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             {label}
           </p>

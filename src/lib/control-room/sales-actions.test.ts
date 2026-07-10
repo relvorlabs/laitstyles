@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyHoldConversion,
-  applyHoldRelease,
-} from "@/lib/control-room/hold-actions";
+import { applyHoldConversion, applyHoldRelease } from "@/lib/control-room/hold-actions";
 import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
 import { applyOrderTransition } from "@/lib/control-room/order-actions";
-import {
-  applyCreateReturn,
-  applyReturnTransition,
-} from "@/lib/control-room/return-actions";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
 import { getRevenueByChannel } from "@/lib/control-room/sales-selectors";
 import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
@@ -156,20 +150,16 @@ describe("order transitions", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
+    expect(stockFor(productById(result.value.state, "botanical-jeans"))).toMatchObject({
+      available: 30,
+      sold: 17,
+    });
     expect(
-      stockFor(productById(result.value.state, "botanical-jeans")),
-    ).toMatchObject({ available: 30, sold: 17 });
-    expect(
-      stockFor(
-        productById(result.value.state, "ribbed-studio-tank"),
-        "tank-m-cream",
-      ),
+      stockFor(productById(result.value.state, "ribbed-studio-tank"), "tank-m-cream"),
     ).toMatchObject({ available: 7, sold: 2 });
-    expect(
-      result.value.action.order.lines.every(
-        (line) => line.stockState === "released",
-      ),
-    ).toBe(true);
+    expect(result.value.action.order.lines.every((line) => line.stockState === "released")).toBe(
+      true,
+    );
   });
 
   it("rejects skipped fulfilment transitions", () => {
@@ -218,19 +208,14 @@ describe("hold actions", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const after = stockFor(
-      productById(result.value.state, "ribbed-studio-tank"),
-      "tank-s-cream",
-    );
+    const after = stockFor(productById(result.value.state, "ribbed-studio-tank"), "tank-s-cream");
     expect(after).toMatchObject({ available: 2, reserved: 0, sold: 6 });
     expect(result.value.action.hold.status).toBe("converted");
     expect(result.value.action.order?.lines[0]?.stockState).toBe("sold");
   });
 
   it("keeps stock reserved when a hold becomes a pending-payment order", () => {
-    const before = stockFor(
-      productById(activeControlRoomSeed, "botanical-jeans"),
-    );
+    const before = stockFor(productById(activeControlRoomSeed, "botanical-jeans"));
     const result = applyHoldConversion(
       activeControlRoomSeed,
       {
@@ -246,9 +231,7 @@ describe("hold actions", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(
-      stockFor(productById(result.value.state, "botanical-jeans")),
-    ).toEqual(before);
+    expect(stockFor(productById(result.value.state, "botanical-jeans"))).toEqual(before);
     expect(result.value.action.order?.lines[0]?.stockState).toBe("reserved");
     expect(result.value.action.order?.fulfilmentStatus).toBe("pending-payment");
   });
@@ -375,9 +358,10 @@ describe("returns", () => {
     );
     expect(received.ok).toBe(true);
     if (!received.ok) return;
-    expect(
-      stockFor(productById(received.value.state, "botanical-jeans")),
-    ).toMatchObject({ sold: 17, returned: 1 });
+    expect(stockFor(productById(received.value.state, "botanical-jeans"))).toMatchObject({
+      sold: 17,
+      returned: 1,
+    });
 
     const inspecting = applyReturnTransition(
       received.value.state,
@@ -398,12 +382,12 @@ describe("returns", () => {
     );
     expect(restocked.ok).toBe(true);
     if (!restocked.ok) return;
-    expect(
-      stockFor(productById(restocked.value.state, "botanical-jeans")),
-    ).toMatchObject({ available: 30, sold: 17, returned: 0 });
-    expect(orderById(restocked.value.state, "LS-20472").fulfilmentStatus).toBe(
-      "returned",
-    );
+    expect(stockFor(productById(restocked.value.state, "botanical-jeans"))).toMatchObject({
+      available: 30,
+      sold: 17,
+      returned: 0,
+    });
+    expect(orderById(restocked.value.state, "LS-20472").fulfilmentStatus).toBe("returned");
   });
 
   it("prevents returns above the remaining eligible order quantity", () => {

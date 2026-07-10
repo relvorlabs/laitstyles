@@ -1,3 +1,5 @@
+import type { AssetProvider } from "@/lib/assets/types";
+
 export type InventoryCounts = {
   totalReceived: number;
   available: number;
@@ -11,17 +13,15 @@ export type ProductLifecycle = "draft" | "intake" | "active" | "archived";
 export type PublicationState = "published" | "unpublished" | "scheduled";
 export type InventoryMode = "unique" | "stocked" | "variant";
 
-export type CatalogueChannel =
-  | "storefront"
-  | "physical-store"
-  | "whatsapp"
-  | "instagram";
+export type CatalogueChannel = "storefront" | "physical-store" | "whatsapp" | "instagram";
 
 export type ProductMediaKind = "cover" | "detail" | "defect";
 
 export type ProductMedia = {
   id: string;
   url: string;
+  provider?: AssetProvider;
+  storageKey?: string;
   alt: string;
   kind: ProductMediaKind;
   position: number;

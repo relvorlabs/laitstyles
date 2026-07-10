@@ -1,17 +1,10 @@
 "use client";
 
-import { useWatch, useFormContext } from "react-hook-form";
-import {
-  Archive02Icon,
-  Layers01Icon,
-  PackageAddIcon,
-} from "@hugeicons/core-free-icons";
+import { Archive02Icon, Layers01Icon, PackageAddIcon } from "@hugeicons/core-free-icons";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type {
-  InventoryMode,
-  ProductEditorValues,
-} from "@/lib/control-room/types";
+import type { InventoryMode, ProductEditorValues } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
 
 const productTypes = [
@@ -19,8 +12,7 @@ const productTypes = [
     value: "unique" as const,
     label: "Unique piece",
     eyebrow: "One physical item",
-    description:
-      "For one-of-one thrift finds, archive pieces and individually graded garments.",
+    description: "For one-of-one thrift finds, archive pieces and individually graded garments.",
     example: "Nature Utility Vest",
     icon: Archive02Icon,
   },
@@ -28,8 +20,7 @@ const productTypes = [
     value: "stocked" as const,
     label: "Stocked product",
     eyebrow: "Multiple matching units",
-    description:
-      "For one product sold from a shared quantity without size or colour variants.",
+    description: "For one product sold from a shared quantity without size or colour variants.",
     example: "Botanical Jeans · 50 units",
     icon: PackageAddIcon,
   },
@@ -44,11 +35,7 @@ const productTypes = [
   },
 ];
 
-export function ProductTypeStep({
-  onModeChange,
-}: {
-  onModeChange: (mode: InventoryMode) => void;
-}) {
+export function ProductTypeStep({ onModeChange }: { onModeChange: (mode: InventoryMode) => void }) {
   const { control } = useFormContext<ProductEditorValues>();
   const mode = useWatch({ control, name: "inventoryMode" });
 
@@ -65,7 +52,8 @@ export function ProductTypeStep({
           How should stock behave for this product?
         </h2>
         <p className="mt-3 max-w-[680px] text-[13px] leading-6 text-muted-foreground">
-          This choice controls the Stock step. Changing it later keeps common product details but removes stock fields that no longer apply.
+          This choice controls the Stock step. Changing it later keeps common product details but
+          removes stock fields that no longer apply.
         </p>
       </div>
 
@@ -102,9 +90,7 @@ export function ProductTypeStep({
               <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 {type.eyebrow}
               </p>
-              <h3 className="mt-1 font-serif text-[24px] font-medium">
-                {type.label}
-              </h3>
+              <h3 className="mt-1 font-serif text-[24px] font-medium">{type.label}</h3>
               <p className="mt-3 text-[12.5px] leading-5 text-muted-foreground">
                 {type.description}
               </p>

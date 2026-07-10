@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Alert02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -30,7 +30,8 @@ export default function AdminOverviewError({
             The daily view could not be assembled.
           </EmptyTitle>
           <EmptyDescription className="max-w-[500px]">
-            Your store records have not been changed. Retry the Overview, or open the storefront while this workspace recovers.
+            Your store records have not been changed. Retry the Overview, or open the storefront
+            while this workspace recovers.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="mt-2 flex-row flex-wrap justify-center">

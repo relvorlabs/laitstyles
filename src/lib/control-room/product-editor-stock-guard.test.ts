@@ -81,10 +81,7 @@ describe("committed stock edit guard", () => {
 
   it("rejects changing the inventory model after units are committed", () => {
     const product = productById("botanical-jeans");
-    const values = changeProductEditorMode(
-      createProductEditorValues(product),
-      "unique",
-    );
+    const values = changeProductEditorMode(createProductEditorValues(product), "unique");
 
     const result = applyProductEditorAction(
       activeControlRoomSeed,
@@ -108,10 +105,7 @@ describe("committed stock edit guard", () => {
   it("rejects removing a variant that already has committed units", () => {
     const product = productById("ribbed-studio-tank");
     const values = createProductEditorValues(product);
-    if (
-      product.inventoryMode !== "variant" ||
-      values.inventoryMode !== "variant"
-    ) {
+    if (product.inventoryMode !== "variant" || values.inventoryMode !== "variant") {
       throw new Error("Ribbed Studio Tank must be a variant product");
     }
 

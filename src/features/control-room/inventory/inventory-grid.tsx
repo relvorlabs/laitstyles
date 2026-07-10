@@ -22,10 +22,7 @@ export function InventoryGrid({
 }: InventoryGridProps) {
   return (
     <div
-      className={
-        className ??
-        "grid grid-cols-2 items-stretch gap-3 md:grid-cols-3 xl:grid-cols-5"
-      }
+      className={className ?? "grid grid-cols-2 items-stretch gap-3 md:grid-cols-3 xl:grid-cols-5"}
       data-inventory-grid
     >
       {items.map((item) => (
@@ -34,9 +31,7 @@ export function InventoryGrid({
           key={item.product.id}
           onOpen={() => onOpen(item.product.id)}
           onOpenMedia={() => onOpenMedia(item.product.id, item.coverImage.id)}
-          onSelectedChange={(selected) =>
-            onSelectedChange(item.product.id, selected)
-          }
+          onSelectedChange={(selected) => onSelectedChange(item.product.id, selected)}
           selected={selectedIds.has(item.product.id)}
         />
       ))}

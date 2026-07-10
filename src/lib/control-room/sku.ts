@@ -31,10 +31,7 @@ export function generateVariantSku(
   existingReferences: string[] = [],
 ) {
   const base = normaliseSegment(baseReference) || "LS-VAR-PRODUCT";
-  const structuredSegments = [
-    compactCode(colour, 3),
-    compactCode(size, 4),
-  ].filter(Boolean);
+  const structuredSegments = [compactCode(colour, 3), compactCode(size, 4)].filter(Boolean);
   const optionCode = structuredSegments.length
     ? structuredSegments.join("-")
     : compactCode(label || "Option", 5) || "OPT";

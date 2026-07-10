@@ -31,9 +31,7 @@ describe("in-memory Control Room repositories", () => {
 
     const archived = store.archiveProduct(product.id);
     expect(archived.ok).toBe(true);
-    expect((await repositories.inventory.getProduct(product.id))?.lifecycle).toBe(
-      "archived",
-    );
+    expect((await repositories.inventory.getProduct(product.id))?.lifecycle).toBe("archived");
   });
 
   it("derives Overview data from the same current records", async () => {
@@ -43,9 +41,7 @@ describe("in-memory Control Room repositories", () => {
 
     expect(resource.snapshot).toEqual(getOverviewSnapshot(store.getSnapshot()));
     expect(resource.reportingDate).toBe(store.getSnapshot().reportingDate);
-    expect(resource.openOrders.every((order) => order.status !== "delivered")).toBe(
-      true,
-    );
+    expect(resource.openOrders.every((order) => order.fulfilmentStatus !== "delivered")).toBe(true);
   });
 
   it("returns null for missing detail records", async () => {

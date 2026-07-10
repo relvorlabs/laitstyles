@@ -54,6 +54,8 @@ Load the current versions of these skills before the phase where they apply.
 - `vercel-react-best-practices`
 - `vercel-composition-patterns`
 - `react-doctor`
+- `supabase-postgres-best-practices`
+- `supabase`
 
 ### Components, types and resilience
 
@@ -71,7 +73,7 @@ Load the current versions of these skills before the phase where they apply.
 
 - `web-artifacts-builder` is used for multi-component design thinking and anti-generic UI guidance. Do not initialize a separate Vite artifact inside this Next.js repository.
 - `next-cache-components` does not mean Cache Components must be enabled. Enable or use caching only when the active phase has a real freshness and invalidation requirement.
-- The controller has no dedicated TanStack/React Query skill under the searched names. Do not invent one. During Phase 9, use official TanStack Query React documentation plus the repository’s Next.js, React, TypeScript and testing contracts.
+- The controller has no dedicated TanStack/React Query skill under the searched names. Do not invent one. During Phase 12, use official TanStack Query React documentation plus the repository’s Next.js, React, TypeScript and testing contracts.
 - The shadcn MCP may be used for current registry search, component examples and audit checklists. Project aliases, Tailwind version and primitive base must still be confirmed from repository configuration.
 - Chrome DevTools MCP availability must be verified before relying on it. If it is unavailable, browser checks remain blocked rather than being represented as passing.
 - `react-doctor` is a completion check, not a substitute for lint, TypeScript, tests, build or browser validation.
@@ -104,7 +106,7 @@ Rules:
 
 - Route files compose features; they do not own seed data, repository implementations, domain models or large interaction state.
 - Keep domain types, deterministic records, selectors, typed actions and Result utilities under `src/lib/control-room/` until a domain-specific data boundary is introduced.
-- Phase 9 repository interfaces and adapters belong under a clear data boundary, not inside page components.
+- Phase 9 reviews and fixes codebase structure for Supabase readiness. Phase 10 owns Supabase Auth, Google OAuth and organization permissions. Phase 11 owns Supabase schema, storage, RLS and generated types. Phase 12 owns TanStack Query repository interfaces and adapters under a clear data boundary, not inside page components.
 - Keep feature components in focused folders such as `shell`, `overview`, `inventory`, `product-editor`, `orders`, `holds`, `returns`, `record-sale`, `customers` and `settings`.
 - Split a component when it accumulates unrelated responsibilities. Roughly 200–250 lines is a review signal, not permission to create arbitrary fragments.
 - Do not replace the old monolith with one universal dashboard, query or provider file.
@@ -145,7 +147,7 @@ The repository uses Next.js 16 and React 19.
 - Do not enable Cache Components or add `use cache` for static prototype seed data.
 - Use `next/image` with accurate `sizes` for product imagery.
 - Dynamically load heavy editors, charts or drawers only when the bundle benefit is real.
-- If Phase 9 adds Query hydration, use a per-request server QueryClient and a stable browser QueryClient. Do not reuse a server cache across requests.
+- If Phase 12 adds Query hydration, use a per-request server QueryClient and a stable browser QueryClient. Do not reuse a server cache across requests.
 - Do not use Server Actions as TanStack Query query functions. Future client queries require a browser-safe API/RPC adapter; Server Actions may be evaluated for mutations where appropriate.
 
 ## 7. shadcn, Base UI and design-system rules
@@ -195,7 +197,7 @@ Control Room rules:
 
 ## 9. TanStack Query rule
 
-TanStack Query is approved only for Phase 9 or a later explicit user-approved scope.
+TanStack Query is approved only for Phase 12 or a later explicit user-approved scope. Phase 9 through Phase 11 must complete the codebase readiness, Supabase Auth/Google OAuth, organization permissions, database schema, storage, RLS and generated type foundations before TanStack Query runtime work resumes.
 
 ### Packages
 

@@ -1,3 +1,9 @@
+import { err, ok, type Result } from "@/lib/control-room/result";
+import { isHoldActive } from "@/lib/control-room/sales-selectors";
+import {
+  applySalesStockMutation,
+  type SalesStockMutationKind,
+} from "@/lib/control-room/sales-stock";
 import type {
   ControlRoomCustomer,
   ControlRoomOrder,
@@ -7,12 +13,6 @@ import type {
   SalesActionError,
   StockMovement,
 } from "@/lib/control-room/types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { isHoldActive } from "@/lib/control-room/sales-selectors";
-import {
-  applySalesStockMutation,
-  type SalesStockMutationKind,
-} from "@/lib/control-room/sales-stock";
 
 export type OfflineSaleStateResult = {
   state: ControlRoomState;
@@ -74,12 +74,7 @@ export function applyOfflineSale(
       if (stockResult.error.code === "insufficient-available-stock") {
         return err({
           ...stockResult.error,
-          conflictingHoldIds: findConflictingHoldIds(
-            state,
-            line.productId,
-            line.variantId,
-            now,
-          ),
+          conflictingHoldIds: findConflictingHoldIds(state, line.productId, line.variantId, now),
         });
       }
       return stockResult;
@@ -111,8 +106,7 @@ export function applyOfflineSale(
   }
 
   const orderId = createOrderId(idFactory);
-  const fulfilmentStatus =
-    input.paymentStatus === "pending" ? "pending-payment" : "delivered";
+  const fulfilmentStatus = input.paymentStatus === "pending" ? "pending-payment" : "delivered";
   const order: ControlRoomOrder = {
     id: orderId,
     customerId: customerResult.value.customer.id,
@@ -194,16 +188,11 @@ function resolveSaleCustomer(
   state: ControlRoomState,
   input: OfflineSaleInput,
   idFactory: (prefix: string) => string,
-): Result<
-  { customer: ControlRoomCustomer; customers: ControlRoomCustomer[] },
-  SalesActionError
-> {
+): Result<{ customer: ControlRoomCustomer; customers: ControlRoomCustomer[] }, SalesActionError> {
   const customerInput = input.customer;
 
   if (customerInput.kind === "existing") {
-    const customer = state.customers.find(
-      (item) => item.id === customerInput.customerId,
-    );
+    const customer = state.customers.find((item) => item.id === customerInput.customerId);
     if (!customer) {
       return err({
         code: "customer-not-found",
@@ -233,9 +222,7 @@ function findConflictingHoldIds(
   return state.holds
     .filter(
       (hold) =>
-        isHoldActive(hold, now) &&
-        hold.productId === productId &&
-        hold.variantId === variantId,
+        isHoldActive(hold, now) && hold.productId === productId && hold.variantId === variantId,
     )
     .map((hold) => hold.id);
 }
@@ -249,9 +236,7 @@ function updateSalesPulse(
   if (paymentStatus === "pending") return points;
 
   return points.map((point) =>
-    point.date === reportingDate
-      ? { ...point, offline: point.offline + total }
-      : point,
+    point.date === reportingDate ? { ...point, offline: point.offline + total } : point,
   );
 }
 

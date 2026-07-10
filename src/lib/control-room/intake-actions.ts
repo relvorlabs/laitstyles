@@ -1,7 +1,3 @@
-import type {
-  ControlRoomState,
-  InventoryProduct,
-} from "@/lib/control-room/types";
 import { createProductEditorValues } from "@/lib/control-room/product-editor-defaults";
 import { validateProductForPublish } from "@/lib/control-room/product-editor-schema";
 import { replaceOrAppendProduct } from "@/lib/control-room/product-editor-state-utils";
@@ -13,6 +9,7 @@ import type {
   ProductEditorIntent,
 } from "@/lib/control-room/product-editor-types";
 import { err, ok, type Result } from "@/lib/control-room/result";
+import type { ControlRoomState, InventoryProduct } from "@/lib/control-room/types";
 
 export type IntakeStateResult = {
   state: ControlRoomState;
@@ -35,12 +32,7 @@ export function applyIntakeTransition(
   now: string,
   idFactory: (prefix: string) => string = createActionId,
 ): Result<IntakeStateResult, ProductEditorActionError> {
-  const intake = createInitialIntakeRecords(
-    state.products,
-    state.intake,
-    now,
-    idFactory,
-  );
+  const intake = createInitialIntakeRecords(state.products, state.intake, now, idFactory);
   const record = intake.find((item) => item.productId === productId);
   if (!record) {
     return err({
@@ -67,9 +59,7 @@ export function applyIntakeTransition(
   }
 
   if (nextStage === "published") {
-    const publishIssues = validateProductForPublish(
-      createProductEditorValues(product),
-    );
+    const publishIssues = validateProductForPublish(createProductEditorValues(product));
     if (publishIssues.length) {
       return err({
         code: "validation-failed",
@@ -97,16 +87,13 @@ export function applyIntakeTransition(
       ...state,
       asOf: now,
       products: replaceOrAppendProduct(state.products, updatedProduct),
-      intake: intake.map((item) =>
-        item.id === updatedRecord.id ? updatedRecord : item,
-      ),
+      intake: intake.map((item) => (item.id === updatedRecord.id ? updatedRecord : item)),
       activities: [
         {
           id: idFactory("activity"),
           kind: "inventory",
           title: message,
-          detail:
-            "The same catalogue record remains connected to its Intake history.",
+          detail: "The same catalogue record remains connected to its Intake history.",
           occurredAt: now,
           productId,
         },
@@ -127,9 +114,7 @@ export function createInitialIntakeRecords(
   now: string,
   idFactory: (prefix: string) => string = createActionId,
 ): IntakeRecord[] {
-  const records = new Map(
-    (existing ?? []).map((record) => [record.productId, record]),
-  );
+  const records = new Map((existing ?? []).map((record) => [record.productId, record]));
 
   for (const product of products) {
     if (product.lifecycle !== "intake" || records.has(product.id)) continue;

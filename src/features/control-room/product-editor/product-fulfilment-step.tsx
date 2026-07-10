@@ -15,31 +15,14 @@ import {
   EditorNumberField,
   EditorTextareaField,
 } from "@/features/control-room/product-editor/product-editor-fields";
-import type {
-  CatalogueChannel,
-  ProductEditorValues,
-} from "@/lib/control-room/types";
+import type { CatalogueChannel, ProductEditorValues } from "@/lib/control-room/types";
 
 const channels = [
   ["storefront", "Storefront", "Visible in the customer-facing catalogue."],
-  [
-    "physical-store",
-    "Physical store",
-    "Available for in-person assisted sales.",
-  ],
-  [
-    "whatsapp",
-    "WhatsApp",
-    "Can be shared and sold through WhatsApp conversations.",
-  ],
-  [
-    "instagram",
-    "Instagram",
-    "Can be surfaced through Instagram-assisted selling.",
-  ],
-] as const satisfies ReadonlyArray<
-  readonly [CatalogueChannel, string, string]
->;
+  ["physical-store", "Physical store", "Available for in-person assisted sales."],
+  ["whatsapp", "WhatsApp", "Can be shared and sold through WhatsApp conversations."],
+  ["instagram", "Instagram", "Can be surfaced through Instagram-assisted selling."],
+] as const satisfies ReadonlyArray<readonly [CatalogueChannel, string, string]>;
 
 export function ProductFulfilmentStep() {
   const { control } = useFormContext<ProductEditorValues>();
@@ -57,7 +40,8 @@ export function ProductFulfilmentStep() {
           Decide where it can sell and how it should travel.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          These settings guide the prototype workflow only. No courier or marketplace integration is being configured here.
+          These settings guide the prototype workflow only. No courier or marketplace integration is
+          being configured here.
         </p>
       </div>
 
@@ -94,9 +78,7 @@ export function ProductFulfilmentStep() {
                     />
                     <div className="flex flex-col gap-1">
                       <FieldTitle>{label}</FieldTitle>
-                      <FieldDescription id={descriptionId}>
-                        {description}
-                      </FieldDescription>
+                      <FieldDescription id={descriptionId}>{description}</FieldDescription>
                     </div>
                   </Field>
                 );

@@ -1,22 +1,17 @@
-/* eslint-disable @next/next/no-img-element -- Product previews can be blob URLs or arbitrary session-only URLs. */
 "use client";
 
-import { useState } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   Delete02Icon,
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
+import Image from "next/image";
+import { useState } from "react";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
@@ -57,9 +52,7 @@ export function ProductImagesStep() {
       id: `media-${crypto.randomUUID()}`,
       url,
       alt: "",
-      kind: existing.some((item) => item.kind === "cover")
-        ? "detail"
-        : "cover",
+      kind: existing.some((item) => item.kind === "cover") ? "detail" : "cover",
       position: existing.length,
       source,
     });
@@ -166,7 +159,8 @@ export function ProductImagesStep() {
           Build the product’s visual record.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          Add up to {MAX_IMAGES} images, edit remote URLs, reorder them, mark defects and choose one featured cover. Local files remain session-only previews until real storage is connected.
+          Add up to {MAX_IMAGES} images, edit remote URLs, reorder them, mark defects and choose one
+          featured cover. Local files remain session-only previews until real storage is connected.
         </p>
       </div>
 
@@ -223,7 +217,10 @@ export function ProductImagesStep() {
       </div>
 
       {feedback ? (
-        <p aria-live="polite" className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground">
+        <p
+          aria-live="polite"
+          className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground"
+        >
           {feedback}
         </p>
       ) : null}
@@ -231,7 +228,8 @@ export function ProductImagesStep() {
       <Field data-invalid={Boolean(mediaError)}>
         <FieldLabel>Product images</FieldLabel>
         <FieldDescription>
-          The featured cover leads grid cards and the storefront. Every image needs a useful description.
+          The featured cover leads grid cards and the storefront. Every image needs a useful
+          description.
         </FieldDescription>
         <FieldError>{mediaError}</FieldError>
       </Field>
@@ -241,14 +239,8 @@ export function ProductImagesStep() {
           {fields.map((field, index) => {
             const media = watchedMedia[index] ?? field;
             const kind = media.kind;
-            const altError = getProductEditorFieldError(
-              errors,
-              `media.${index}.alt`,
-            );
-            const urlError = getProductEditorFieldError(
-              errors,
-              `media.${index}.url`,
-            );
+            const altError = getProductEditorFieldError(errors, `media.${index}.alt`);
+            const urlError = getProductEditorFieldError(errors, `media.${index}.url`);
 
             return (
               <article
@@ -256,10 +248,13 @@ export function ProductImagesStep() {
                 key={field.fieldKey}
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-surface-sunken">
-                  <img
+                  <Image
                     alt={media.alt || "Product preview"}
-                    className="size-full object-cover"
+                    className="object-cover"
+                    fill
+                    sizes="(min-width: 768px) 50vw, 100vw"
                     src={media.url}
+                    unoptimized
                   />
                   <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
                     <Badge variant={kind === "cover" ? "default" : "secondary"}>
@@ -297,9 +292,7 @@ export function ProductImagesStep() {
                   </Field>
 
                   <Field data-invalid={Boolean(altError)}>
-                    <FieldLabel htmlFor={`media.${index}.alt`}>
-                      Image description
-                    </FieldLabel>
+                    <FieldLabel htmlFor={`media.${index}.alt`}>Image description</FieldLabel>
                     <Input
                       {...register(`media.${index}.alt`)}
                       aria-invalid={Boolean(altError)}
@@ -325,11 +318,9 @@ export function ProductImagesStep() {
                       className="rounded-full"
                       disabled={kind === "cover"}
                       onClick={() =>
-                        setValue(
-                          `media.${index}.kind`,
-                          kind === "defect" ? "detail" : "defect",
-                          { shouldDirty: true },
-                        )
+                        setValue(`media.${index}.kind`, kind === "defect" ? "detail" : "defect", {
+                          shouldDirty: true,
+                        })
                       }
                       size="sm"
                       type="button"
@@ -373,11 +364,10 @@ export function ProductImagesStep() {
             <span className="mx-auto grid size-12 place-items-center rounded-full bg-secondary">
               <ControlRoomIcon icon={ImageAdd01Icon} size={22} />
             </span>
-            <p className="mt-4 font-serif text-[22px] font-medium">
-              No product images yet
-            </p>
+            <p className="mt-4 font-serif text-[22px] font-medium">No product images yet</p>
             <p className="mt-2 max-w-[420px] text-[12.5px] leading-5 text-muted-foreground">
-              Drafts can be saved without images. Publishing requires one featured cover and useful descriptions.
+              Drafts can be saved without images. Publishing requires one featured cover and useful
+              descriptions.
             </p>
           </div>
         </div>

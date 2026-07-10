@@ -245,7 +245,7 @@ The acceptance contract must assert minimum card width and image height rather t
 ## Decision 004 — Phase 9 TanStack Query server-state foundation without a production backend
 
 **Date:** 2026-07-10  
-**Status:** Planned; implementation not started  
+**Status:** Superseded by Decision 005 for phase timing; technical constraints still apply in Phase 12
 **Decision owner:** User-approved Phase 9 extension  
 **Review trigger:** A production API/RPC contract, authentication/tenant context, SSR prefetch, realtime synchronization, offline support, or stock-concurrency implementation
 
@@ -257,7 +257,7 @@ The risk is creating fake infrastructure: API routes that wrap local arrays, ran
 
 ### Decision
 
-Introduce TanStack Query v5 in Phase 9 through a truthful repository boundary.
+The original Decision 004 introduced TanStack Query v5 in Phase 9 through a truthful repository boundary. Decision 005 now preserves the technical constraints below but moves TanStack runtime work to Phase 12.
 
 #### Packages
 
@@ -308,8 +308,139 @@ Sales, payment, fulfilment, stock release, returns, refunds and unique-item owne
 
 ### Consequences
 
-- The earlier blanket TanStack deferral is superseded only for Phase 9.
+- The earlier blanket TanStack deferral was initially superseded for Phase 9, but Decision 005 now defers TanStack runtime work until Phase 12.
 - Phase 9 does not create production persistence.
 - Migrated server-like records must be removed from duplicate global client state.
 - Loading, error, empty, stale and background-refetch states become explicit product states.
 - A production handoff must document endpoint, authentication, concurrency, stale-time and invalidation requirements.
+
+## Decision 005 — Supabase Auth and database before TanStack Query
+
+**Date:** 2026-07-10
+**Status:** Accepted for the next implementation sequence
+**Decision owner:** User-requested Supabase-first replan
+**Review trigger:** Production backend provider changes, a different auth provider, multi-store enterprise scope, or a user override to resume TanStack earlier
+
+### Context
+
+The user requested a full Supabase setup before TanStack Query:
+
+1. Supabase Auth and Google Auth for staff and storefront consumers.
+2. Organization-level roles and permissions for owner/CEO, manager and operator/sales staff.
+3. A meticulous codebase review and structural fixes before backend wiring.
+4. A complete Supabase table/storage/RLS plan for everything Control Room and storefront need.
+5. TanStack Query moved after those foundations.
+
+The branch already contains preliminary repository interfaces, in-memory adapters and initial query-key factories from the previous Phase 9 start. That work is useful, but it should not drive the next phase before authenticated Supabase resource ownership is clear.
+
+### Decision
+
+Reorder the remaining phases:
+
+- **Phase 9:** Codebase structure review and Supabase readiness.
+- **Phase 10:** Supabase Auth, Google OAuth, organization/store membership, staff roles and consumer auth.
+- **Phase 11:** Supabase database schema, storage, RLS policies, deterministic seed data and generated database types.
+- **Phase 12:** TanStack Query server-state foundation over the authenticated Supabase-backed resource contracts.
+
+Preserve the already-started TanStack repository/key work as paused preliminary Phase 12 foundation. Do not install TanStack packages, mount a QueryClient or migrate reads before Phases 10 and 11 are complete.
+
+### Auth and permission direction
+
+- Supabase Auth owns identity.
+- Application tables own authorization.
+- Staff permissions are store-scoped through memberships and role capabilities.
+- Consumers can own storefront account records but cannot access Control Room data.
+- Authorization decisions must not rely on user-editable metadata.
+- Server protection should use `getClaims()` or `getUser()` as appropriate; `getSession()` is not trusted for authorization.
+
+### Database direction
+
+The schema must map to existing Laitstyle domains:
+
+- profiles, organizations, stores, memberships, invitations, role capabilities and audit events
+- products, variants, media, categories, collections, channels and measurements
+- stock levels, stock movements and intake records
+- holds, orders, order lines, payment events, fulfilment events, returns and return lines
+- customers, addresses, notes, saved products and reviews
+- store settings, delivery zones, pickup locations and storage buckets
+
+RLS is required on exposed tables, with explicit public storefront, consumer-owned and staff membership policies.
+
+### Consequences
+
+- Docs and AGENTS instructions must no longer describe TanStack Query as the active Phase 9.
+- Supabase client/auth/permission folders are planned before query folders are expanded.
+- The in-memory repository adapter remains truthful prototype scaffolding until Supabase adapters exist.
+- Phase 12 query keys and mutations must include authenticated store/consumer context from Phases 10 and 11.
+
+## Decision 006 — Phase 9 Supabase readiness boundary
+
+**Date:** 2026-07-10
+**Status:** Implemented for Phase 9; auth activation remains Phase 10
+**Decision owner:** Control Room V2 implementation
+**Review trigger:** Starting Phase 10 auth routes, starting Phase 11 migrations, or replacing Supabase as the backend provider
+
+### Context
+
+The repository already had generated Supabase helper snippets at `src/lib/client.ts`, `src/lib/server.ts` and `src/lib/middleware.ts`. That placement was ambiguous and the middleware helper redirected signed-out users to an auth route that does not exist yet.
+
+Phase 9 needs readiness without user-facing auth behavior or backend claims.
+
+### Decision
+
+Normalize Supabase setup code into `src/lib/supabase/` and keep root-level compatibility re-exports for now.
+
+- Browser client: `src/lib/supabase/client.ts`
+- Server client: `src/lib/supabase/server.ts`
+- Proxy/session refresh helper: `src/lib/supabase/proxy.ts`
+- Public environment validation: `src/lib/supabase/env.ts`
+- Placeholder generated type destination: `src/lib/supabase/types.ts`
+
+Do not add root `src/proxy.ts`, redirects, auth pages or protected routes in Phase 9. The proxy helper only refreshes Supabase cookies through `getClaims()` when Phase 10 wires it into Next.js.
+
+Add pure role, capability and guard helpers under `src/lib/auth/` so staff owner, manager, operator and consumer boundaries are testable before database tables and RLS exist.
+
+### Consequences
+
+- Supabase public URL and publishable key are the only browser/server client inputs.
+- No service role key is introduced to the app runtime.
+- Store permissions are modeled as application authorization, not Supabase Auth metadata.
+- Phase 10 can activate auth behavior without moving files again.
+- Phase 11 can replace placeholder database types with generated Supabase types.
+
+## Decision 007 — Phase 9 Biome quality baseline and external asset boundary
+
+**Date:** 2026-07-10
+**Status:** Implemented for Phase 9
+**Decision owner:** User-requested tooling and security hardening
+**Review trigger:** Phase 12 TanStack lint requirements, production upload signing, a different asset provider, or a reintroduction of ESLint/Prettier
+
+### Context
+
+The user requested that Phase 9 migrate the codebase from ESLint/Prettier to Biome, improve folder separation, harden server/client boundaries and prepare Supabase assets to use Cloudinary and Cloudflare without leaking server credentials into the browser.
+
+### Decision
+
+Use Biome as the repository formatting and linting entrypoint:
+
+- `pnpm lint` runs `biome check .`
+- `pnpm format` runs `biome format --write .`
+- `pnpm check` runs `biome check --write .`
+- `pnpm verify` composes lint, typecheck, tests and build
+
+Remove the legacy ESLint and Prettier package/config surface from the active project. If Phase 12 still needs TanStack Query's ESLint-only plugin, it must be introduced as a narrow query-specific compatibility check and documented separately instead of silently restoring the old repo-wide ESLint baseline.
+
+For assets:
+
+- Supabase stores ownership, product links, RLS-protected metadata and audit trails.
+- Cloudinary and Cloudflare R2/Images own external image delivery.
+- Browser-safe provider types and image host allowlists live under `src/lib/assets/*`.
+- Server-only asset credentials and provider checks live under `src/server/assets/*`.
+- Upload signatures, R2 writes and storage policies remain Phase 11 work.
+
+### Consequences
+
+- Phase 9 avoids service-role or asset-write credentials in Client Components.
+- Next image configuration is generated from one shared asset allowlist.
+- Control Room raw color drift is checked against semantic theme-token usage in changed UI files.
+- A static Vitest boundary test guards accidental client imports of server-only modules.

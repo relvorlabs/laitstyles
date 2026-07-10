@@ -1,18 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { Heart, Menu, Search, UserRound } from "lucide-react";
+import Link from "next/link";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { CartSheet } from "@/components/layout/cart-sheet";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const nav = ["Shop New In", "Women", "Men", "Accessories", "Journal"];
 
@@ -32,13 +26,7 @@ export function Header() {
                     ? "text-[14px] font-medium"
                     : "text-[14px] text-muted-foreground"
                 }
-                href={
-                  item === "Shop New In"
-                    ? "/#justin"
-                    : item === "Journal"
-                      ? "/#journal"
-                      : "#"
-                }
+                href={item === "Shop New In" ? "/#justin" : item === "Journal" ? "/#journal" : "#"}
                 key={item}
               >
                 {item}
@@ -69,17 +57,10 @@ export function Header() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/92 backdrop-blur-[14px] md:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Sheet>
-            <SheetTrigger
-              render={
-                <button aria-label="Menu" className="flex p-1" type="button" />
-              }
-            >
+            <SheetTrigger render={<button aria-label="Menu" className="flex p-1" type="button" />}>
               <Menu />
             </SheetTrigger>
-            <SheetContent
-              className="w-[78%] max-w-[320px] gap-0 bg-card p-0"
-              side="left"
-            >
+            <SheetContent className="w-[78%] max-w-[320px] gap-0 bg-card p-0" side="left">
               <SheetHeader className="flex-row items-center justify-between border-b border-border p-4">
                 <SheetTitle>
                   <BrandMark compact />
@@ -90,11 +71,7 @@ export function Header() {
                   <Link
                     className="border-b border-secondary px-3.5 py-3.5 text-[16px] last:border-b-0"
                     href={
-                      item === "Shop New In"
-                        ? "/#justin"
-                        : item === "Journal"
-                          ? "/#journal"
-                          : "#"
+                      item === "Shop New In" ? "/#justin" : item === "Journal" ? "/#journal" : "#"
                     }
                     key={item}
                   >

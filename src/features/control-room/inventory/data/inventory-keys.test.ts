@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  inventoryKeys,
-  productKeys,
-} from "@/features/control-room/inventory/data/inventory-keys";
+import { inventoryKeys, productKeys } from "@/features/control-room/inventory/data/inventory-keys";
 import type { InventoryQuery } from "@/lib/control-room/types";
 
 const query: InventoryQuery = {
@@ -18,9 +15,7 @@ const query: InventoryQuery = {
 
 describe("Inventory query keys", () => {
   it("normalises equivalent list inputs into stable keys", () => {
-    expect(
-      inventoryKeys.list({ query, page: 1, pageSize: 10 }),
-    ).toEqual(
+    expect(inventoryKeys.list({ query, page: 1, pageSize: 10 })).toEqual(
       inventoryKeys.list({
         query: { ...query, search: "denim" },
         page: 1,
