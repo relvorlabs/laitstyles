@@ -9,6 +9,7 @@ import {
   Search01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
 import { useRecordSaleController } from "@/features/control-room/record-sale/record-sale-controller";
@@ -62,7 +63,7 @@ export function ControlRoomTopbar({
           <ControlRoomIcon icon={Search01Icon} size={17} />
           <span className="flex-1">Search the Control Room</span>
           <kbd className="rounded-md border border-border bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
-            ⌘ K
+            ⌘ K
           </kbd>
         </button>
 
@@ -76,6 +77,8 @@ export function ControlRoomTopbar({
         >
           <ControlRoomIcon icon={Search01Icon} size={18} />
         </Button>
+
+        <ThemeToggle />
 
         <Link
           aria-label="Go to items needing attention"
