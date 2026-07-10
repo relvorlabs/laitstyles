@@ -18,23 +18,31 @@ import type { ProductEditorValues } from "@/lib/control-room/types";
 export function ProductIdentityStep() {
   const { state } = useControlRoom();
   const { control, setValue } = useFormContext<ProductEditorValues>();
-  const [mode, name, brand, category] = useWatch({
+  const [mode, name, brand, category, collection] = useWatch({
     control,
-    name: ["inventoryMode", "name", "brand", "category"],
+    name: ["inventoryMode", "name", "brand", "category", "collection"],
   });
+  const currentCategory = category ?? "";
+  const currentCollection = collection ?? "";
   const categories = useMemo(
     () =>
-      (state.catalogueTaxonomy ?? [])
-        .filter((item) => item.kind === "category")
-        .map((item) => [item.name, item.name] as const),
-    [state.catalogueTaxonomy],
+      createOptions(
+        (state.catalogueTaxonomy ?? [])
+          .filter((item) => item.kind === "category")
+          .map((item) => item.name),
+        currentCategory,
+      ),
+    [currentCategory, state.catalogueTaxonomy],
   );
   const collections = useMemo(
     () =>
-      (state.catalogueTaxonomy ?? [])
-        .filter((item) => item.kind === "collection")
-        .map((item) => [item.name, item.name] as const),
-    [state.catalogueTaxonomy],
+      createOptions(
+        (state.catalogueTaxonomy ?? [])
+          .filter((item) => item.kind === "collection")
+          .map((item) => item.name),
+        currentCollection,
+      ),
+    [currentCollection, state.catalogueTaxonomy],
   );
 
   function generateReference() {
@@ -49,7 +57,7 @@ export function ProductIdentityStep() {
         mode: mode ?? "unique",
         name: name ?? "",
         brand: brand ?? "",
-        category: category ?? "",
+        category: currentCategory,
         existingReferences,
       }),
       { shouldDirty: true, shouldValidate: true },
@@ -110,6 +118,22 @@ export function ProductIdentityStep() {
             <CatalogueTaxonomyManager
               className="h-9 rounded-full"
               initialKind="category"
+              onDelete={({ name: deletedName }) => {
+                if (currentCategory === deletedName) {
+                  setValue("category", "", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
+              onRename={({ previousName, nextName }) => {
+                if (currentCategory === previousName) {
+                  setValue("category", nextName, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
               triggerLabel="Manage categories"
             />
           </div>
@@ -131,6 +155,22 @@ export function ProductIdentityStep() {
           <CatalogueTaxonomyManager
             className="h-9 rounded-full"
             initialKind="collection"
+            onDelete={({ name: deletedName }) => {
+              if (currentCollection === deletedName) {
+                setValue("collection", "", {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }
+            }}
+            onRename={({ previousName, nextName }) => {
+              if (currentCollection === previousName) {
+                setValue("collection", nextName, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }
+            }}
             triggerLabel="Manage collections"
           />
         </div>
@@ -145,4 +185,10 @@ export function ProductIdentityStep() {
       </FieldGroup>
     </section>
   );
+}
+
+function createOptions(values: string[], currentValue: string) {
+  return Array.from(new Set([...values, currentValue.trim()].filter(Boolean)))
+    .toSorted((left, right) => left.localeCompare(right, "en-NG"))
+    .map((item) => [item, item] as const);
 }
