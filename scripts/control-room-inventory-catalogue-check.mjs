@@ -83,6 +83,22 @@ async function runCatalogueFlow(browser) {
     editor.getByRole("combobox", { name: "Collection" }),
     "Acceptance Edit",
   );
+
+  await editor.getByRole("button", { name: "Manage categories" }).click();
+  const editorManager = page.getByRole("dialog").last();
+  await editorManager.getByRole("button", { name: "Rename Acceptance Denim" }).click();
+  await editorManager
+    .getByRole("textbox", { name: "Rename Acceptance Denim" })
+    .fill("Acceptance Denim Updated");
+  await editorManager.getByRole("button", { name: "Save", exact: true }).click();
+  await editorManager.getByRole("button", { name: "Close" }).click();
+  const selectedCategory = await editor
+    .getByRole("combobox", { name: "Category" })
+    .textContent();
+  if (!selectedCategory?.includes("Acceptance Denim Updated")) {
+    throw new Error("Renaming the selected category did not update the open product editor.");
+  }
+
   await editor.getByRole("button", { name: "Auto-generate reference" }).click();
   const generatedReference = await editor
     .getByRole("textbox", { name: /Internal reference \/ SKU seed/ })
@@ -149,7 +165,7 @@ async function runCatalogueFlow(browser) {
   await chooseOption(
     page,
     page.getByRole("combobox", { name: "Category" }),
-    "Acceptance Denim",
+    "Acceptance Denim Updated",
   );
   await expectVisible(
     page.getByText("Acceptance Adidas Jeans", { exact: true }).first(),
@@ -158,7 +174,7 @@ async function runCatalogueFlow(browser) {
 
   await chooseOption(
     page,
-    page.getByRole("combobox", { name: "Inventory rows per page" }),
+    page.getByRole("combobox", { name: "Inventory items per page" }),
     "10",
   );
   await page.waitForURL(/pageSize=10/);
