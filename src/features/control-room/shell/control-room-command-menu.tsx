@@ -133,7 +133,7 @@ export function ControlRoomCommandMenu({
                 onSelect={() => choose(item.target)}
                 value={`${item.label} ${item.detail}`}
               >
-                <span className="grid size-8 place-items-center rounded-[9px] bg-secondary text-[#4A5540]">
+                <span className="grid size-8 place-items-center rounded-[9px] bg-accent text-accent-foreground">
                   <ControlRoomIcon icon={PackageIcon} size={16} />
                 </span>
                 <span className="min-w-0 flex-1">
