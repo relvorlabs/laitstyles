@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Expand } from "lucide-react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ type InventoryMobileListProps = {
   selectedIds: Set<string>;
   onSelectedChange: (productId: string, selected: boolean) => void;
   onOpen: (productId: string) => void;
+  onOpenMedia: (productId: string, mediaId: string) => void;
 };
 
 export function InventoryMobileList({
@@ -24,6 +26,7 @@ export function InventoryMobileList({
   selectedIds,
   onSelectedChange,
   onOpen,
+  onOpenMedia,
 }: InventoryMobileListProps) {
   return (
     <div className="flex flex-col gap-3 md:hidden">
@@ -34,17 +37,23 @@ export function InventoryMobileList({
           <Card className="overflow-hidden py-0" key={item.product.id}>
             <div className="grid grid-cols-[96px_minmax(0,1fr)]">
               <button
-                className="relative min-h-[150px] bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
-                onClick={() => onOpen(item.product.id)}
+                aria-label={`View images for ${item.product.name}`}
+                className="group relative min-h-[150px] bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
+                onClick={() =>
+                  onOpenMedia(item.product.id, item.coverImage.id)
+                }
                 type="button"
               >
                 <Image
                   alt={item.coverImage.alt}
-                  className="object-cover"
+                  className="object-cover transition-transform group-hover:scale-[1.025] motion-reduce:transition-none"
                   fill
                   sizes="96px"
                   src={item.coverImage.url}
                 />
+                <span className="absolute bottom-2 left-1/2 inline-flex size-9 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-lg backdrop-blur">
+                  <Expand aria-hidden="true" className="size-4" />
+                </span>
               </button>
 
               <div className="flex min-w-0 flex-col gap-3 p-4">
@@ -69,7 +78,7 @@ export function InventoryMobileList({
                     <Checkbox
                       checked={selected}
                       onCheckedChange={(checked) =>
-                        onSelectedChange(item.product.id, checked)
+                        onSelectedChange(item.product.id, Boolean(checked))
                       }
                     />
                   </label>
@@ -96,7 +105,7 @@ export function InventoryMobileList({
                   type="button"
                   variant="outline"
                 >
-                  Open Product Record
+                  Open product record
                   <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
                 </Button>
               </div>
