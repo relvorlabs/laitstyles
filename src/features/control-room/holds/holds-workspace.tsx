@@ -97,7 +97,7 @@ export function HoldsWorkspace({
         title: "Hold action could not be completed",
         message: result.error.message,
       });
-      return false;
+      return result.error.message;
     }
 
     setFeedback({
@@ -105,7 +105,7 @@ export function HoldsWorkspace({
       title: successTitle,
       message: result.value.message,
     });
-    return true;
+    return null;
   }
 
   function extend(holdId: string, minutes: number) {
