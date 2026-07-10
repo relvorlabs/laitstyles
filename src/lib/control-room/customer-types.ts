@@ -117,3 +117,26 @@ export type CustomerRelationshipProfile = {
   products: CustomerProductRelationship[];
   deliveryHistory: CustomerDeliveryHistoryItem[];
 };
+
+export type AddCustomerNoteInput = {
+  customerId: string;
+  body: string;
+};
+
+export type CustomerActionErrorCode =
+  | "customer-not-found"
+  | "empty-note"
+  | "note-too-long";
+
+export type CustomerActionError = {
+  code: CustomerActionErrorCode;
+  message: string;
+  field?: "body";
+  customerId?: string;
+};
+
+export type CustomerNoteActionSuccess = {
+  customerId: string;
+  note: CustomerNote;
+  message: string;
+};
