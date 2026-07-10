@@ -20,16 +20,22 @@ const ignoredPaths = new Set([
   "src/components/brand/laitstyle-symbol.tsx",
 ]);
 
+const rawColour =
+  "(?:#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\()";
 const checks = [
   {
     label: "raw arbitrary Tailwind colour",
-    pattern:
-      /(?:bg|text|border|ring|outline|fill|stroke|from|via|to|shadow)-\[(?:#|rgb\(|rgba\(|hsl\(|hsla\(|oklch\(|oklab\(|lab\(|lch\()/g,
+    pattern: new RegExp(
+      `(?:bg|text|border|ring|outline|fill|stroke|from|via|to|shadow)-\\[[^\\]\\n]*${rawColour}[^\\]\\n]*\\]`,
+      "g",
+    ),
   },
   {
     label: "raw inline colour style",
-    pattern:
-      /(?:background|backgroundColor|borderColor|color|fill|stroke)\s*:\s*["'`](?:#|rgb\(|rgba\(|hsl\(|hsla\(|oklch\(|oklab\(|lab\(|lch\()/g,
+    pattern: new RegExp(
+      `(?:background|backgroundColor|borderColor|color|fill|stroke)\\s*:\\s*["'\\`]${rawColour}`,
+      "g",
+    ),
   },
   {
     label: "raw SVG colour literal",
