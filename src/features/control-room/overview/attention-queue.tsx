@@ -36,13 +36,13 @@ const toneStyles: Record<
   },
   warning: {
     badge: "secondary",
-    icon: "bg-[#F5EBD7] text-[#7A5A20]",
-    border: "border-l-[#B88A35]",
+    icon: "bg-warning/18 text-warning-foreground",
+    border: "border-l-warning",
   },
   info: {
     badge: "outline",
-    icon: "bg-secondary text-[#4A5540]",
-    border: "border-l-accent",
+    icon: "bg-accent text-accent-foreground",
+    border: "border-l-brand-sage",
   },
 };
 
@@ -76,7 +76,7 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
             </div>
           ) : (
             <div className="px-5 py-10 text-center sm:px-6">
-              <span className="mx-auto grid size-12 place-items-center rounded-full bg-secondary text-[#4A5540]">
+              <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
                 <ControlRoomIcon icon={PackageIcon} size={21} />
               </span>
               <h3 className="mt-4 font-serif text-[24px] font-medium">
