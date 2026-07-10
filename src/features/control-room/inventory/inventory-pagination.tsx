@@ -43,12 +43,12 @@ export function InventoryPagination({
           <strong className="font-semibold text-foreground">{totalItems}</strong>
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs">Rows per page</span>
+          <span className="text-xs">Items per page</span>
           <Select
             onValueChange={(value) => onPageSizeChange(Number(value ?? pageSize))}
             value={String(pageSize)}
           >
-            <SelectTrigger aria-label="Inventory rows per page" className="h-9 w-[76px]">
+            <SelectTrigger aria-label="Inventory items per page" className="h-9 w-[76px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
