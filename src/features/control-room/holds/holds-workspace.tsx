@@ -2,11 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { HoldControls } from "@/features/control-room/holds/hold-controls";
 import { HoldDetailSheet } from "@/features/control-room/holds/hold-detail-sheet";
@@ -27,6 +22,12 @@ import { buildHoldsHref } from "@/features/control-room/holds/holds-url";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import type { ConvertHoldInput } from "@/lib/control-room/types";
 
+export type HoldActionFeedback = {
+  tone: "success" | "error";
+  title: string;
+  message: string;
+};
+
 export function HoldsWorkspace({
   initialQuery,
   initialOpenHoldId,
@@ -40,11 +41,7 @@ export function HoldsWorkspace({
   const [openHoldId, setOpenHoldId] = useState<string | null>(
     initialOpenHoldId,
   );
-  const [feedback, setFeedback] = useState<{
-    tone: "success" | "error";
-    title: string;
-    message: string;
-  } | null>(null);
+  const [feedback, setFeedback] = useState<HoldActionFeedback | null>(null);
 
   const holds = useMemo(() => queryHolds(state, query), [query, state]);
   const counts = useMemo(() => getHoldSavedViewCounts(state), [state]);
@@ -83,6 +80,7 @@ export function HoldsWorkspace({
 
   function closeHoldRecord() {
     setOpenHoldId(null);
+    setFeedback(null);
     replaceUrl(query, null);
   }
 
@@ -99,7 +97,7 @@ export function HoldsWorkspace({
         title: "Hold action could not be completed",
         message: result.error.message,
       });
-      return;
+      return false;
     }
 
     setFeedback({
@@ -107,18 +105,19 @@ export function HoldsWorkspace({
       title: successTitle,
       message: result.value.message,
     });
+    return true;
   }
 
   function extend(holdId: string, minutes: number) {
-    showResult(extendHold(holdId, minutes), "Hold extended");
+    return showResult(extendHold(holdId, minutes), "Hold extended");
   }
 
   function release(holdId: string) {
-    showResult(releaseHold(holdId), "Hold released");
+    return showResult(releaseHold(holdId), "Hold released");
   }
 
   function convert(input: ConvertHoldInput) {
-    showResult(convertHold(input), "Order created from hold");
+    return showResult(convertHold(input), "Order created from hold");
   }
 
   return (
@@ -139,16 +138,6 @@ export function HoldsWorkspace({
           resultCount={holds.length}
         />
       </Card>
-
-      {feedback ? (
-        <Alert
-          aria-live="polite"
-          variant={feedback.tone === "error" ? "destructive" : "default"}
-        >
-          <AlertTitle>{feedback.title}</AlertTitle>
-          <AlertDescription>{feedback.message}</AlertDescription>
-        </Alert>
-      ) : null}
 
       {holds.length ? (
         <>
@@ -171,6 +160,7 @@ export function HoldsWorkspace({
       )}
 
       <HoldDetailSheet
+        feedback={feedback}
         hold={openHold}
         onConvert={convert}
         onExtend={extend}
