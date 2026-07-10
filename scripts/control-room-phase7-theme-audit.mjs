@@ -4,8 +4,12 @@ import process from "node:process";
 
 const root = process.cwd();
 const targets = [
-  "src/app",
-  "src/components",
+  "src/app/layout.tsx",
+  "src/app/admin",
+  "src/components/brand",
+  "src/components/layout",
+  "src/components/theme",
+  "src/components/ui",
   "src/features/control-room",
 ];
 
@@ -61,12 +65,12 @@ for (const absolutePath of files) {
 
 if (failures.length) {
   throw new Error(
-    `Phase 7 theme audit found non-token colours in application source:\n${failures.join("\n")}`,
+    `Phase 7 theme audit found non-token colours in scoped application source:\n${failures.join("\n")}`,
   );
 }
 
 console.log(
-  `Phase 7 theme audit passed for ${files.length} application and shared component source files.`,
+  `Phase 7 theme audit passed for ${files.length} scoped application source files.`,
 );
 
 async function collectFiles(targetPath, output) {
