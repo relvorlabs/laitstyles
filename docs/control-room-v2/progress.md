@@ -14,7 +14,7 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 | --- | --- |
 | Status | Phase 8 implemented through 8F; executable and visual validation blocked |
 | Active implementation phase | Phase 8 — Visual System, Shell, Overview and Inventory Correction |
-| Phase 8 application head | `943424f606c5a22eabaff68b832bb6cf4a87376f` |
+| Phase 8 application head | `a9055d65bc205511a220949cff055e662782b5d1` |
 | Queued phase | Phase 9 — TanStack Query Server-State Foundation |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft, currently non-mergeable |
@@ -26,7 +26,7 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 | Accepted Batch 4A head/run | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035` |
 | Accepted Batch 4B head/run | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809` |
 | Unresolved executable gates | 4F, 5D, 6E, 7E and Phase 8 acceptance |
-| Merge integration | Feature branch remains behind and diverged from `main`; reconcile through reviewed conflict resolution |
+| Merge integration | Branch is 689 commits ahead and 31 behind `main`; reviewed conflict resolution required |
 | Review readiness | Blocked |
 
 ## Completed and accepted foundation
@@ -142,8 +142,6 @@ Evidence: `docs/control-room-v2/phase7-blocker.md`.
 - [x] Sage-led sidebar selection
 - [x] Static source guard upgraded
 
-Implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
-
 ### Batch 8B — theme control, sidebar and command surface — implemented
 
 - [x] Base UI group composition corrected
@@ -162,9 +160,6 @@ Implementation record: `docs/control-room-v2/phase8-theme-audit.md`.
 - [x] Supporting Continue Working, fulfilment and activity rail
 - [x] Sales Pulse and Inventory Watch given unique responsibilities
 - [x] Tablet/mobile task-priority composition
-- [x] Useful hierarchy from `main` reused without restoring its monolith
-
-Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 ### Batch 8D — Inventory presentation and table media — implemented
 
@@ -195,20 +190,22 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - [x] 10, 15, 25 and 50 item page sizes
 - [x] URL-backed page and page-size state
 - [x] Filter changes reset to page one
+- [x] Presentation-neutral Items-per-page labeling
 
 #### Categories and collections
 
 - [x] Managed taxonomy hydrated from existing products
 - [x] Category and collection dropdowns in product forms
-- [x] Create and rename actions
-- [x] Rename cascades to connected products
-- [x] Delete blocked while in use
+- [x] Create, rename and protected delete actions
+- [x] Newly created groups auto-selected in the active product form
+- [x] Selected group renames synchronised into the active product form
+- [x] Rename cascades to connected products and updates their timestamps
 - [x] Category and collection filters retain managed values
 
 #### SKU and stock
 
 - [x] Collision-aware product SKU/reference generator
-- [x] Per-variant SKU generator
+- [x] Readable per-variant SKU generator
 - [x] Unique piece, interchangeable stocked product and variant semantics clarified
 - [x] Total received and available-stock previews
 - [x] Committed stock cannot be silently reduced
@@ -219,8 +216,10 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 - [x] Multiple file and URL addition
 - [x] Live preview, URL edit, remove and reorder
 - [x] Exactly one featured cover
-- [x] Image description, duplicate and URL validation
-- [x] Unit cost and Compare-at price terminology
+- [x] Case-insensitive duplicate, description and URL validation
+- [x] Safe multi-file limit handling and object-URL cleanup
+- [x] Unit cost and Compare-at price terminology across editor, review and detail
+- [x] Unknown unit cost remains null while real zero remains zero
 - [x] Discount percentage calculator
 - [x] Margin and loss warnings
 
@@ -228,8 +227,8 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 - [x] Archive and restore actions
 - [x] Protected permanent deletion
-- [x] Taxonomy, SKU, lifecycle and editor edge-case unit tests
-- [x] Browser flow for CRUD, dropdowns, SKU, images, stock, pricing, filtering and pagination
+- [x] Taxonomy, SKU, lifecycle, optional-cost and editor edge-case unit tests
+- [x] Browser flow for CRUD, active-editor taxonomy sync, SKU, images, stock, pricing, filtering and pagination
 - [ ] ESLint executed on final Phase 8 head
 - [ ] TypeScript executed on final Phase 8 head
 - [ ] Vitest executed on final Phase 8 head
@@ -261,9 +260,9 @@ Exact evidence: `docs/control-room-v2/phase8-blocker.md`.
 
 ## Verification and integration blockers
 
-GitHub has not returned a usable workflow run or combined commit status for the final Phase 8 Inventory catalogue head. The current environment also has no usable repository worktree for local execution. This is an environment limitation, not a passing or failing application result.
+GitHub returned no workflow run and no combined commit status for application head `a9055d65bc205511a220949cff055e662782b5d1`. The current environment also has no usable repository worktree for local execution. This is an environment limitation, not a passing or failing application result.
 
-PR #4 remains non-mergeable because the feature branch is behind and diverged from `main`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
+PR #4 remains non-mergeable. The branch is 689 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
