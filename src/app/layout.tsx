@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Sans, Newsreader, Inter } from "next/font/google";
+import { Geist_Mono, Instrument_Sans, Inter, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
-import "./globals.css";
+import {
+  ThemeProvider,
+  themeBootScript,
+} from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
+import "./globals.css";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -28,6 +32,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Laitstyle",
   description: "One-of-one second-hand pieces from Lagos.",
+  icons: {
+    icon: "/brand/laitstyle-symbol.svg",
+    shortcut: "/brand/laitstyle-symbol.svg",
+  },
 };
 
 export default function RootLayout({
@@ -37,11 +45,23 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      className={cn(
+        "h-full antialiased font-sans",
+        instrumentSans.variable,
+        newsreader.variable,
+        geistMono.variable,
+        inter.variable,
+      )}
       lang="en"
-      className={cn("h-full", "antialiased", instrumentSans.variable, newsreader.variable, geistMono.variable, "font-sans", inter.variable)}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="flex min-h-full flex-col">
-        <SiteChrome>{children}</SiteChrome>
+        <ThemeProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </ThemeProvider>
       </body>
     </html>
   );
