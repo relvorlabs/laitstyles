@@ -32,7 +32,7 @@ export function ControlRoomShell({
     <ControlRoomProvider initialState={initialState}>
       <ProductEditorControllerProvider>
         <RecordSaleControllerProvider>
-          <div className="min-h-dvh bg-[#ECEBE6] text-foreground">
+          <div className="min-h-dvh bg-background text-foreground">
             <a
               className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
               href="#control-room-main"
@@ -45,7 +45,7 @@ export function ControlRoomShell({
                 <ControlRoomSidebar pathname={pathname} />
               </aside>
 
-              <div className="min-w-0">
+              <div className="min-w-0 bg-background">
                 <ControlRoomTopbar
                   onOpenNavigation={() => setNavigationOpen(true)}
                   onOpenSearch={() => setSearchOpen(true)}
@@ -59,7 +59,7 @@ export function ControlRoomShell({
 
             <Sheet onOpenChange={setNavigationOpen} open={navigationOpen}>
               <SheetContent
-                className="w-[min(88vw,360px)] gap-0 overscroll-contain border-r-0 bg-primary p-0"
+                className="w-[min(88vw,360px)] gap-0 overscroll-contain border-r-0 bg-sidebar p-0 text-sidebar-foreground"
                 side="left"
               >
                 <SheetHeader className="sr-only">
