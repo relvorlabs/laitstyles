@@ -147,7 +147,7 @@ function UnpublishedRow({ product }: { product: InventoryProduct }) {
 function InventoryClearState({ message }: { message: string }) {
   return (
     <div className="flex min-h-[220px] flex-col items-center justify-center px-5 text-center">
-      <span className="grid size-12 place-items-center rounded-full bg-secondary text-[#4A5540]">
+      <span className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
         <ControlRoomIcon icon={PackageIcon} size={21} />
       </span>
       <p className="mt-4 max-w-[320px] text-[13px] leading-5 text-muted-foreground">
