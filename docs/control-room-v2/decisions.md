@@ -135,3 +135,67 @@ The specification calls for a persistent Add product action, but the complete pr
 - Selection remains presentation state inside the Inventory client boundary.
 - Grid, table and mobile cards consume the same result array.
 - The decision must be revisited when real inventory APIs introduce server pagination or when the visible dataset requires virtualization.
+
+## Decision 002 — Phase 7 brand, theme and Inventory media architecture
+
+**Date:** 2026-07-10  
+**Status:** Implemented under explicit Phase 7 override; executable acceptance pending  
+**Decision owner:** Control Room V2 implementation  
+**Review trigger:** Production brand-system export, server-persisted user preferences, production media management, or a redesign that changes the approved woven L/S geometry
+
+### Context
+
+Phase 7 adds the approved Laitstyle Concept Option 3 identity and must support both light and dark operation without maintaining separate component palettes. The Inventory visual grid also needs to become denser and more professional while gaining a useful image-viewing workflow.
+
+The approved visual direction uses:
+
+- a woven L/S mark
+- Ink as the primary high-contrast colour
+- Bone as the editorial surface colour
+- Sage as the brand accent
+- calm, premium and modern presentation
+
+The repository already had light and dark CSS variables, but no mounted theme controller, no persistent mode choice, and several component-level colour literals. Inventory images also opened the product record rather than a dedicated media experience.
+
+### Decision
+
+Use a single semantic token system and one root theme controller.
+
+- The root provider owns `light`, `dark` and `system` preference.
+- Preference is stored locally for this prototype and applied before hydration.
+- The shadcn-composed theme menu appears in public and Control Room chrome.
+- Components consume semantic tokens such as `background`, `foreground`, `card`, `accent`, `success`, `warning`, `sidebar` and brand tokens.
+- Brand path geometry remains fixed; only token-driven rendering changes between modes.
+- Phase 7 theme-critical source files are guarded by a raw-colour audit.
+
+Do not add a separate dark-mode component tree and do not introduce `next-themes` solely to wrap the current local prototype.
+
+### Inventory density decision
+
+The Inventory grid remains CSS-grid based and responsive:
+
+- mobile uses task-focused list cards
+- tablet uses three visual columns
+- standard desktop at 1280px uses five columns
+- wide desktop at 1720px and above uses six columns
+
+Cards are recomposed for the denser width rather than simply shrinking the previous four-column design.
+
+### Media interaction decision
+
+Product images and product records are separate actions.
+
+- Clicking an image opens a shared media dialog.
+- Clicking the product title or explicit `Open record` action opens product detail.
+- The media dialog supports thumbnails, previous/next navigation, keyboard navigation, zoom, reset, open-original and copy-link feedback.
+- The same viewer is reused in the grid, mobile list and product Media tab.
+- The viewer is non-destructive and does not claim upload, crop, delete or backend persistence.
+
+### Consequences
+
+- Public and Control Room chrome share the approved Laitstyle symbol.
+- Dark mode changes Ink/Bone contrast through tokens rather than SVG mutation.
+- Shared dialog and sheet backdrops consume an overlay token.
+- Inventory density and media behaviour are covered by browser assertions.
+- Production theme persistence may later move from local storage to an authenticated profile without changing component contracts.
+- Production media editing will require a separate action boundary and is not implied by the Phase 7 viewer.
