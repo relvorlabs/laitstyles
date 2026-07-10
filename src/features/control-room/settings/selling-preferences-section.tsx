@@ -51,9 +51,9 @@ export function SellingPreferencesSection() {
       <div className="grid gap-5 sm:grid-cols-2">
         <SettingsTextField
           description="Prices and reporting remain in Nigerian naira for this product scope."
-          disabled
           label="Store currency"
           name="selling.currency"
+          readOnly
         />
         <SettingsSelectField
           description="The starting stock setup when a new product is created."
