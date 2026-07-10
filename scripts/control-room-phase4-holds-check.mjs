@@ -24,6 +24,20 @@ async function expectVisible(locator, message) {
   });
 }
 
+async function expectInViewport(locator, message) {
+  await expectVisible(locator, message);
+  const inViewport = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < window.innerHeight &&
+      rect.left < window.innerWidth
+    );
+  });
+  if (!inViewport) throw new Error(message);
+}
+
 async function closeSheet(page) {
   const sheet = page.getByRole("dialog").first();
   await page.keyboard.press("Escape");
@@ -62,9 +76,11 @@ async function runDesktop(browser) {
   let sheet = page.getByRole("dialog").first();
   await expectVisible(sheet, "Hold detail did not open.");
   await sheet.getByRole("button", { name: "+15 min" }).click();
-  await expectVisible(
-    sheet.getByText("Amara Okafor's hold was extended by 15 minutes."),
-    "Hold extension feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet
+      .getByRole("alert")
+      .filter({ hasText: "Amara Okafor's hold was extended by 15 minutes." }),
+    "Hold extension feedback was not in the active detail viewport.",
   );
   await page.screenshot({
     path: path.join(screenshotDir, "phase4-holds-extended-1280x800.png"),
@@ -90,9 +106,11 @@ async function runDesktop(browser) {
   );
   await sheet.getByRole("button", { name: "Release hold" }).click();
   await confirmation.getByRole("button", { name: "Release stock" }).click();
-  await expectVisible(
-    sheet.getByText(/Guest shopper's hold was released/),
-    "Confirmed hold release feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet
+      .getByRole("alert")
+      .filter({ hasText: /Guest shopper's hold was released/ }),
+    "Confirmed hold release feedback was not in the active detail viewport.",
   );
   await expectVisible(
     sheet.getByText("Released", { exact: true }).first(),
@@ -115,9 +133,11 @@ async function runDesktop(browser) {
     "Hold conversion dialog did not open.",
   );
   await conversionDialog.getByRole("button", { name: "Create order" }).click();
-  await expectVisible(
-    sheet.getByText(/Tomi Adeyemi's hold was converted to order/),
-    "Hold conversion success feedback was not visible inside the active detail sheet.",
+  await expectInViewport(
+    sheet
+      .getByRole("alert")
+      .filter({ hasText: /Tomi Adeyemi's hold was converted to order/ }),
+    "Hold conversion success feedback was not in the active detail viewport.",
   );
   await expectVisible(
     sheet.getByText("Converted", { exact: true }).first(),
