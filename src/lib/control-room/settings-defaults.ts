@@ -13,7 +13,7 @@ export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
     whatsappNumber: "+234 800 000 0000",
     instagramHandle: "@laitstyle",
     websiteUrl: "https://laitstyle.example",
-    logoPreviewUrl: "/product-placeholder.svg",
+    logoPreviewUrl: "/brand/laitstyle-symbol.svg",
   },
   selling: {
     currency: "NGN",
