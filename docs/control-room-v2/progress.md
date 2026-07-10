@@ -2,29 +2,31 @@
 
 ## Current score
 
-**Phase 5 of 7 implemented — consolidated acceptance blocked**
+**Phase 6 of 7 started — Batch 6A settings domain and validation**
 
-Phase 5 was completed under the user’s explicit override. Phase 4 remains implemented but unaccepted, and Phase 5 cannot be accepted, because both required private-repository workflows continue to fail before checkout with zero steps and no logs.
+Phase 6 began under the user’s explicit override. Phase 4 remains implemented but unaccepted, and Phase 5 remains implemented but unaccepted, because both required private-repository workflows continue to fail before checkout with zero steps and no logs. The override permits Phase 6 work; it does not mark either earlier phase as passing.
 
 ## Current phase
 
 | Field | Value |
 | --- | --- |
-| Status | Phase 5 implementation complete; consolidated verification blocked |
+| Status | Phase 6 Batch 6A in progress; repository verification environment blocked |
 | Branch | `feat/control-room-v2` |
 | Pull request | `#4` — draft |
 | Source specification | `docs/control-room-v2/spec.md` |
 | Execution plan | `docs/control-room-v2/implementation-plan.md` |
 | Phase 4 plan | `docs/control-room-v2/phase4-plan.md` |
 | Phase 5 plan | `docs/control-room-v2/phase5-plan.md` |
+| Phase 5 blocker | `docs/control-room-v2/phase5-blocker.md` |
+| Phase 6 plan | `docs/control-room-v2/phase6-plan.md` |
 | Architecture decisions | `docs/control-room-v2/decisions.md` |
 | Accepted Batch 4A head | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` |
 | Accepted Batch 4A run | `29044424035` |
 | Accepted Batch 4B head | `2dd8442898703354d34e292361e0f5f70064ebdc` |
 | Accepted Batch 4B run | `29046530809` |
-| Unresolved earlier gate | 4F — consolidated Phase 4 acceptance |
-| Active gate | 5D — consolidated Phase 5 acceptance |
-| Next phase | Phase 6 remains locked until an executable verification environment is restored or explicitly overridden |
+| Unresolved earlier gates | 4F and 5D consolidated acceptance |
+| Active batch | 6A — settings domain and validation |
+| Next batch | 6B remains gated behind Batch 6A review and executable checks unless explicitly overridden |
 
 ## Completed and accepted phases
 
@@ -202,6 +204,7 @@ Accepted evidence:
 - [x] Phase 5 browser interaction script added
 - [x] Required route and detail screenshots encoded at 375 × 812, 768 × 1024 and 1280 × 800
 - [x] Exact mobile detail geometry and horizontal-overflow assertions encoded
+- [x] Dedicated blocker record with final-head run and job evidence
 - [ ] ESLint executed on final head
 - [ ] TypeScript executed on final head
 - [ ] Full Vitest suite executed on final head
@@ -211,23 +214,68 @@ Accepted evidence:
 - [ ] Screenshot review completed
 - [ ] Phase 5 marked accepted
 
-## Phase 5 implementation invariants
+## Phase 6 — Store Settings
 
-- [x] Customer totals derive from connected records rather than duplicated profile numbers
-- [x] Offline sales enter customer metrics and timeline through their connected order
-- [x] Holds and returns enter relationship history through `customerId`
-- [x] Payment, delivery, return and risky-hold context creates explainable attention reasons
-- [x] Customer profile data contains only stable relationship context
-- [x] Notes update subscribers through one typed shared-store action
-- [x] Notes remain session-only and never claim persistence or messaging
-- [x] Mobile detail is task-separated with tabs rather than a compressed desktop sheet
-- [x] No marketing automation, CRM pipeline, loyalty or messaging surface was introduced
+### Batch 6A — settings domain and validation — active
+
+- [x] Phase 6 product and execution plan
+- [x] One typed store-settings record across all sections
+- [x] Deterministic prototype defaults
+- [x] Store identity validation
+- [x] Selling-preference validation and numeric form normalization
+- [x] Delivery-zone and pickup validation
+- [x] Payment-method and pay-on-delivery consistency validation
+- [x] Notification preference domain
+- [x] Truthful team-member and owner boundary
+- [x] One atomic shared-store settings save action
+- [x] Subscriber, state and invalid-save tests added
+- [x] Settings route and navigation remain hidden
+- [ ] ESLint
+- [ ] TypeScript
+- [ ] Focused and full Vitest suites
+- [ ] Production build
+- [ ] React Doctor changed-scope review
+
+### Batch 6B — responsive Settings route and shell — locked
+
+- [ ] `/admin/settings`
+- [ ] Desktop section navigation
+- [ ] Mobile settings navigation
+- [ ] Useful default, loading and error states
+- [ ] Unsaved-state summary
+- [ ] Store navigation exposed only after route completion
+
+### Batch 6C — identity, selling and delivery forms — locked
+
+- [ ] Store identity form and preview
+- [ ] Selling preferences form
+- [ ] Delivery zones and pickup locations
+- [ ] React Hook Form integration
+- [ ] Dirty-state protection and contextual save feedback
+
+### Batch 6D — payments, notifications and team boundary — locked
+
+- [ ] Payments form
+- [ ] Notifications form
+- [ ] Team roles and responsibility boundary
+- [ ] Shared-store subscriber verification
+
+### Batch 6E — consolidated acceptance — locked
+
+- [ ] Scope and PR diff audit
+- [ ] Latest Web Interface Guidelines review
+- [ ] ESLint, TypeScript, tests and production build
+- [ ] React Doctor changed-scope review
+- [ ] Required browser viewport matrix
+- [ ] Settings validation, dirty-state, save and navigation interactions
+- [ ] Screenshot review
+- [ ] Tracker and PR updated
 
 ## Verification blocker
 
-After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. Each job fails before checkout, exposes no log URL or artifacts, and reruns behave the same way. This remains an external runner, billing or organization execution condition rather than an application result.
+After the last successful Orders acceptance run, GitHub Actions began creating both required private-repository jobs with zero steps. Each job fails before checkout, exposes no log URL or artifacts, and reruns behave the same way. The dedicated Phase 5 record preserves the final implementation evidence and missing checks.
 
-Phase 5 was fully implemented only because the user explicitly overrode the earlier phase and batch gates. No blocked check is represented as passing.
+Phase 6 started only because the user explicitly overrode the earlier phase gate. No blocked Phase 4 or Phase 5 check is represented as passing.
 
 ## Loaded implementation contract
 
@@ -238,4 +286,4 @@ Phase 5 was fully implemented only because the user explicitly overrode the earl
 
 ## Next action
 
-Restore or provide an executable repository validation environment, then run the consolidated Phase 4 and Phase 5 gates. Do not mark the PR ready for review or start Phase 6 without a passing gate or another explicit user override.
+Review Batch 6A and run its static and focused checks in an executable environment. Do not expose `/admin/settings` or open Batch 6B until the foundation passes, unless the user explicitly overrides that batch gate.
