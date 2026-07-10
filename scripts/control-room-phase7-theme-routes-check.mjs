@@ -163,17 +163,19 @@ async function runThemeMatrix(browser, theme) {
     await expectNoHorizontalOverflow(page, `${theme} ${route.slug}`);
 
     const primarySurface = page.locator("main [data-slot='card']").first();
-    if (await primarySurface.count()) {
-      const surfaceText = primarySurface
-        .locator("h2, h3, p, [data-slot='card-title']")
-        .filter({ visible: true })
-        .first();
-      if (await surfaceText.count()) {
+    if ((await primarySurface.count()) && (await primarySurface.isVisible())) {
+      const candidates = primarySurface.locator(
+        "h2, h3, p, [data-slot='card-title']",
+      );
+      for (let index = 0; index < (await candidates.count()); index += 1) {
+        const candidate = candidates.nth(index);
+        if (!(await candidate.isVisible())) continue;
         await expectReadable(
-          surfaceText,
+          candidate,
           `${theme} ${route.slug} primary card text`,
           3,
         );
+        break;
       }
     }
 
