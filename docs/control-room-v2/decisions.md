@@ -555,3 +555,61 @@ For assets:
   Phase 11 image upload path.
 - Fresh local migration apply, generated Supabase types and advisors remain blocked until Docker
   Desktop is available.
+
+## Decision 011 — Phase 12 foundation started under explicit override while Phase 11 stays blocked
+
+**Date:** 2026-07-11
+**Status:** Foundation scaffolded under direct user override; Phase 11 verification gates remain open
+**Decision owner:** Direct user instruction ("set up the next phase" → override Phase 12 timing)
+**Review trigger:** Phase 11 Docker/Supabase blockers clearing, the first domain read migrating onto the query boundary, SSR prefetch/hydration, or a Supabase-backed adapter replacing the in-memory adapter
+
+### Context
+
+Decision 005 sequenced TanStack Query strictly after Phases 10 and 11 and said: "Do not install
+TanStack packages, mount a QueryClient or migrate reads before Phases 10 and 11 are complete." Phase 11
+is code-complete but has hard blockers — Docker Desktop is unreachable from this shell, so migrations
+cannot apply, `supabase gen types --local` cannot run, and RLS/advisor checks cannot run.
+
+The user reviewed this state and explicitly chose to override the phase gate and begin Phase 12 setup
+now. Per `AGENTS.md` §3 an override may permit later-phase work but never reclassifies an earlier
+blocked gate as passing.
+
+### Decision
+
+Start the Phase 12 server-state foundation while keeping Phase 11 blockers visible and unresolved.
+
+Scope delivered in this setup step:
+
+- Install `@tanstack/react-query` (5.101.2) via pnpm.
+- Mount one stable browser QueryClient at the narrow Control Room boundary
+  (`src/app/admin/query-provider.tsx`), wrapped around the existing shell providers in
+  `control-room-shell.tsx`. Client is created with a lazy `useState` initializer so it is never
+  recreated across renders.
+- Promote the paused preliminary repository/key foundation (`repositories.ts`, the deterministic
+  in-memory adapter, the already-mounted `ControlRoomRepositoryProvider`, and `inventoryKeys`) to
+  active Phase 12 material.
+- Add typed domain query-key factories for Orders, Holds, Returns, Customers, Settings and Overview
+  alongside the existing Inventory/Products factories, with a stability test.
+
+### Explicit non-scope (deliberately not done)
+
+- No feature component read has been migrated onto the query boundary yet.
+- No Supabase-backed adapter is wired. Phase 12 query functions that must "run under the authenticated
+  store/consumer context" and read "through Supabase-backed repositories" cannot be built truthfully
+  until Phase 11 generated types and RLS exist. The in-memory adapter remains the only truthful,
+  deterministic prototype source until then.
+- No optimistic mutations, no Devtools, no SSR hydration.
+
+### ESLint plugin decision
+
+`@tanstack/eslint-plugin-query` is **not** added. Decision 007 made Biome the single lint entrypoint.
+The plugin is ESLint-only; per the plan it would only be introduced as a narrow query-specific
+compatibility runner once real query hooks exist and the team accepts a second linter. Deferred until
+the first domain migration lands.
+
+### Consequences
+
+- The QueryClient is live in the Control Room tree but currently owns no server-like data.
+- Phase 11 acceptance is unchanged and still blocked; this override does not represent it as passing.
+- Full Phase 12 acceptance (authenticated queries, invalidation matrix, optimistic rollback, Phase
+  4–12 regression) remains open and must be completed once Phase 11 unblocks.

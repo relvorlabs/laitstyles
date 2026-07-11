@@ -2,9 +2,11 @@
 
 ## Current score
 
-**Phase 11 in progress - Supabase schema, Cloudinary asset metadata and RLS**
+**Phase 12 foundation started under explicit override — Phase 11 remains blocked**
 
-The user explicitly requested Phase 11 start on 2026-07-11 even though Phase 10 still has documented browser OAuth and required React Doctor `--diff` blockers. Phase 11 must enforce CLI-only owner/admin bootstrap and Cloudinary-only image upload/storage metadata before TanStack Query resumes. The previous TanStack Phase 9 repository/key work remains on the branch as paused preliminary foundation and must be reconciled in Phase 12.
+On 2026-07-11 the user reviewed the Phase 11 Docker/Supabase blockers and explicitly chose to override the phase gate and begin the Phase 12 TanStack Query foundation now (Decision 011). This override changes sequencing only: Phase 11 (fresh migration apply, generated types, RLS/advisors) is still blocked on Docker Desktop and is **not** represented as passing. Phase 10 browser OAuth and the required React Doctor `--diff` blockers also remain recorded.
+
+The paused TanStack Phase 9 repository/key work is now promoted to active Phase 12 material. No feature read has been migrated and no Supabase-backed adapter is wired — the deterministic in-memory adapter remains the only truthful prototype source until Phase 11 unblocks.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
@@ -12,8 +14,8 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 
 | Field                                          | Value                                                                                                 |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Status                                         | Phase 11 in progress by direct user override; Phase 10 blockers remain recorded                        |
-| Active implementation phase                    | Phase 11 - Supabase Database, Cloudinary Asset Metadata and RLS                                        |
+| Status                                         | Phase 12 foundation started by direct user override; Phase 10 and Phase 11 blockers remain recorded    |
+| Active implementation phase                    | Phase 12 - TanStack Query server-state foundation (Phase 11 remains blocked, not accepted)             |
 | Compact Inventory gallery head                 | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c`                                                            |
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
@@ -267,12 +269,27 @@ Verification returned:
 
 ## Phase 12 — TanStack Query Server-State Foundation
 
-- [ ] Reconcile paused preliminary repository/key work
-- [ ] Add `@tanstack/react-query` through pnpm and decide whether TanStack's ESLint-only plugin warrants a narrow compatibility runner under the Biome baseline
-- [ ] Mount stable QueryClient
-- [ ] Migrate Supabase-backed domain reads/writes into query options and mutations
+Foundation started 2026-07-11 under Decision 011 override.
+
+- [x] Add `@tanstack/react-query` through pnpm (`5.101.2`); regenerated `pnpm-lock.yaml`
+- [x] Mount one stable browser QueryClient at the Control Room boundary (`src/app/admin/query-provider.tsx`, wrapped in `control-room-shell.tsx`)
+- [x] Promote paused preliminary repository/key foundation to active Phase 12 material (`repositories.ts`, in-memory adapter, mounted `ControlRoomRepositoryProvider`, `inventoryKeys`/`productKeys`)
+- [x] Add typed domain query-key factories for Orders, Holds, Returns, Customers, Settings and Overview with stability test
+- [x] Decide the `@tanstack/eslint-plugin-query` question: deferred — Biome remains the single lint entrypoint; the ESLint-only plugin is introduced only once real query hooks exist (Decision 011)
+- [ ] Migrate Supabase-backed domain reads/writes into query options and mutations — **blocked** on Phase 11 generated types and RLS (Docker unreachable); in-memory adapter remains prototype-only until then
 - [ ] Add targeted invalidation, cache reconciliation and safe optimistic rollback
+- [ ] Devtools (development-only, excluded from production) if/when warranted
 - [ ] Full Phase 4–12 regression and production handoff
+
+Foundation verification returned:
+
+- [x] `.\node_modules\.bin\biome.CMD check .` — 0 errors, 48 pre-existing warnings still visible
+- [x] `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
+- [x] `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 35 files and 139 tests passed
+- [x] `node .\node_modules\next\dist\bin\next build` — Next.js 16.2.10 production build passed (exit 0)
+- [x] React Doctor changed-scope fallback: `npx.cmd --yes react-doctor@latest . --verbose --scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` — no issues found
+- [ ] `npx.cmd --yes react-doctor@latest . --verbose --diff` — still not rerun; prior phases recorded this command timing out after 5 minutes
+- [ ] Browser/visual validation — not required for this non-visual provider/data scaffold; deferred to the first domain migration that touches UI states
 
 ## Verification and integration blockers
 
@@ -282,4 +299,6 @@ PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behi
 
 ## Next action
 
-Continue Phase 11 by starting Docker Desktop, applying the migration with `supabase db reset --local --no-seed`, generating database types with `supabase gen types typescript --local`, and running Supabase advisors/RLS tests. Keep Phase 10 blockers visible, keep the paused TanStack repository/key work for Phase 12, and keep PR #4 draft/non-review-ready until the blocked gates and branch divergence are resolved.
+The Phase 12 foundation (QueryClient boundary + domain key factories) is in place under the Decision 011 override, but Phase 12's data-layer body is **blocked on Phase 11**: query functions must read Supabase-backed contracts under authenticated store/consumer context, which require the Phase 11 migration to apply, `supabase gen types --local`, and RLS. So the true unblocking step is still Phase 11 — start Docker Desktop, apply the migration with `supabase db reset --local --no-seed`, generate database types, and run Supabase advisors/RLS tests. Only then migrate the first domain (Inventory) onto query options/mutations.
+
+Keep Phase 10 and Phase 11 blockers visible, do not represent them as passing, and keep PR #4 draft/non-review-ready until the blocked gates and the branch divergence are resolved.

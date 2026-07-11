@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
+import { ControlRoomQueryProvider } from "@/app/admin/query-provider";
 import {
   Sheet,
   SheetContent,
@@ -29,55 +30,57 @@ export function ControlRoomShell({
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <ControlRoomProvider initialState={initialState}>
-      <ProductEditorControllerProvider>
-        <RecordSaleControllerProvider>
-          <div className="min-h-dvh bg-background text-foreground">
-            <a
-              className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
-              href="#control-room-main"
-            >
-              Skip to Control Room content
-            </a>
-
-            <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
-              <aside className="sticky top-0 hidden h-dvh min-h-0 overflow-hidden lg:block">
-                <ControlRoomSidebar pathname={pathname} />
-              </aside>
-
-              <div className="min-w-0 bg-background">
-                <ControlRoomTopbar
-                  onOpenNavigation={() => setNavigationOpen(true)}
-                  onOpenSearch={() => setSearchOpen(true)}
-                  pathname={pathname}
-                />
-                <main id="control-room-main" tabIndex={-1}>
-                  {children}
-                </main>
-              </div>
-            </div>
-
-            <Sheet onOpenChange={setNavigationOpen} open={navigationOpen}>
-              <SheetContent
-                className="h-dvh w-[min(88vw,360px)] gap-0 overflow-hidden overscroll-contain border-r-0 bg-sidebar p-0 text-sidebar-foreground"
-                side="left"
+    <ControlRoomQueryProvider>
+      <ControlRoomProvider initialState={initialState}>
+        <ProductEditorControllerProvider>
+          <RecordSaleControllerProvider>
+            <div className="min-h-dvh bg-background text-foreground">
+              <a
+                className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
+                href="#control-room-main"
               >
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Control Room navigation</SheetTitle>
-                  <SheetDescription>Move around the Laitstyle owner workspace.</SheetDescription>
-                </SheetHeader>
-                <ControlRoomSidebar
-                  compact
-                  onNavigate={() => setNavigationOpen(false)}
-                  pathname={pathname}
-                />
-              </SheetContent>
-            </Sheet>
+                Skip to Control Room content
+              </a>
 
-            <ControlRoomCommandMenu onOpenChange={setSearchOpen} open={searchOpen} />
-          </div>
-        </RecordSaleControllerProvider>
-      </ProductEditorControllerProvider>
-    </ControlRoomProvider>
+              <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
+                <aside className="sticky top-0 hidden h-dvh min-h-0 overflow-hidden lg:block">
+                  <ControlRoomSidebar pathname={pathname} />
+                </aside>
+
+                <div className="min-w-0 bg-background">
+                  <ControlRoomTopbar
+                    onOpenNavigation={() => setNavigationOpen(true)}
+                    onOpenSearch={() => setSearchOpen(true)}
+                    pathname={pathname}
+                  />
+                  <main id="control-room-main" tabIndex={-1}>
+                    {children}
+                  </main>
+                </div>
+              </div>
+
+              <Sheet onOpenChange={setNavigationOpen} open={navigationOpen}>
+                <SheetContent
+                  className="h-dvh w-[min(88vw,360px)] gap-0 overflow-hidden overscroll-contain border-r-0 bg-sidebar p-0 text-sidebar-foreground"
+                  side="left"
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Control Room navigation</SheetTitle>
+                    <SheetDescription>Move around the Laitstyle owner workspace.</SheetDescription>
+                  </SheetHeader>
+                  <ControlRoomSidebar
+                    compact
+                    onNavigate={() => setNavigationOpen(false)}
+                    pathname={pathname}
+                  />
+                </SheetContent>
+              </Sheet>
+
+              <ControlRoomCommandMenu onOpenChange={setSearchOpen} open={searchOpen} />
+            </div>
+          </RecordSaleControllerProvider>
+        </ProductEditorControllerProvider>
+      </ControlRoomProvider>
+    </ControlRoomQueryProvider>
   );
 }

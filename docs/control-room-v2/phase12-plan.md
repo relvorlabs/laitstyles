@@ -2,9 +2,11 @@
 
 ## Status
 
-**Planned — deferred until after Phases 10 and 11.**
+**Foundation started 2026-07-11 under explicit user override (Decision 011). Data-layer body blocked on Phase 11.**
 
-Some repository interfaces, in-memory adapters and initial query-key factories were already started when TanStack Query was the old Phase 9. That work is paused. Phase 12 must reconcile it against the Supabase Auth, organization permission, database and RLS contracts created in Phases 10 and 11.
+The QueryClient boundary, the reconciled repository/key foundation, and all domain query-key factories are in place. The data-layer body (migrating reads/writes onto Supabase-backed query options and mutations) remains blocked because it depends on Phase 11 generated types and RLS, which are blocked on Docker Desktop. The in-memory adapter remains the only truthful prototype source until then. This override changes sequencing only and does not represent Phase 11 as accepted.
+
+Some repository interfaces, in-memory adapters and initial query-key factories were already started when TanStack Query was the old Phase 9. That work is now promoted to active Phase 12 material and must still be reconciled against the Supabase Auth, organization permission, database and RLS contracts from Phases 10 and 11 as each domain migrates.
 
 ## Goal
 
