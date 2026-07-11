@@ -2,9 +2,9 @@
 
 ## Current score
 
-**Phase 10 in progress — Supabase Auth, Google OAuth and organization permissions**
+**Phase 11 in progress - Supabase schema, Cloudinary asset metadata and RLS**
 
-The user explicitly requested that Supabase Auth, Google OAuth, organization roles/permissions, codebase structure fixes and Supabase database/schema setup happen before TanStack Query. The previous TanStack Phase 9 repository/key work remains on the branch as paused preliminary foundation and must be reconciled in Phase 12.
+The user explicitly requested Phase 11 start on 2026-07-11 even though Phase 10 still has documented browser OAuth and required React Doctor `--diff` blockers. Phase 11 must enforce CLI-only owner/admin bootstrap and Cloudinary-only image upload/storage metadata before TanStack Query resumes. The previous TanStack Phase 9 repository/key work remains on the branch as paused preliminary foundation and must be reconciled in Phase 12.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
@@ -12,8 +12,8 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 
 | Field                                          | Value                                                                                                 |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Status                                         | Phase 10 in progress; Phase 9 dirty sidebar change committed and React Doctor timeout remains recorded |
-| Active implementation phase                    | Phase 10 — Supabase Auth, Google OAuth and Organization Permissions                                  |
+| Status                                         | Phase 11 in progress by direct user override; Phase 10 blockers remain recorded                        |
+| Active implementation phase                    | Phase 11 - Supabase Database, Cloudinary Asset Metadata and RLS                                        |
 | Compact Inventory gallery head                 | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c`                                                            |
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
@@ -239,15 +239,31 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 - [ ] Local Google OAuth browser completion test — blocked until a browser automation driver or interactive Google account session is available
 - [ ] Full executable gate — blocked because the required `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out after 5 minutes, even though the current supported changed-scope fallback passed
 
-## Phase 11 — Supabase Database, Storage, RLS and Generated Types
+## Phase 11 — Supabase Database, Cloudinary Asset Metadata, RLS and Generated Types
 
-- [ ] Supabase migration workflow initialized or repaired
-- [ ] Identity, catalogue, inventory, sales, returns, customers, reviews, settings, audit and storage schema
-- [ ] RLS policies for public storefront, consumers and staff roles
-- [ ] Storage buckets and storage policies
-- [ ] Deterministic development seed data
-- [ ] Generated database TypeScript types
+- [x] Supabase migration workflow initialized with CLI-generated migration timestamp
+- [x] Identity, catalogue, inventory, sales, returns, customers, settings, audit and Cloudinary metadata schema drafted
+- [x] Owner/admin membership creation constrained to service-role CLI bootstrap through `created_by_cli`
+- [x] Cloudinary-only image metadata tables added; Supabase Storage image blobs, `storage.objects` and `bytea` image columns prohibited by schema guard test
+- [x] RLS policies drafted for public storefront, consumers and staff roles/capabilities
+- [x] Local Supabase Storage disabled in `supabase/config.toml`
+- [x] Schema-aligned interim database TypeScript type surface committed
+- [x] Regression test added for owner CLI-only and no Supabase image blob/storage regression
+- [ ] Migrations apply cleanly to a fresh local Supabase database — blocked because Docker Desktop is not reachable from this shell
+- [ ] Generated database TypeScript types from `supabase gen types --local` — blocked until local Supabase database can start
 - [ ] Supabase advisors/RLS tests and full executable gate
+
+Verification returned:
+
+- [x] `npx.cmd --yes supabase@latest init` — created `supabase/config.toml`
+- [x] `npx.cmd --yes supabase@latest migration new phase11_identity_cloudinary_assets` — created CLI-timestamped migration
+- [x] `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
+- [x] `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 33 files and 134 tests passed
+- [x] `node .\node_modules\next\dist\bin\next build` — passed after elevated permission cleared Windows ACL issues in generated `.next` trace artifacts
+- [x] `.\node_modules\.bin\biome.CMD check .` — passed with 48 existing warnings still visible
+- [x] `node -c scripts\bootstrap-owner.mjs`
+- [ ] `npx.cmd --yes supabase@latest db start` — blocked because Docker Desktop is not reachable from this shell
+- [ ] `npx.cmd --yes react-doctor@latest . --verbose --diff` — still not rerun successfully; Phase 10 recorded the command timing out after 5 minutes, and staged changed-scope fallback is required before commit
 
 ## Phase 12 — TanStack Query Server-State Foundation
 
@@ -260,10 +276,10 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 
 ## Verification and integration blockers
 
-No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain blocked.
+No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain blocked. Phase 11 local Supabase apply/advisors/type generation are blocked until Docker Desktop is reachable.
 
 PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Continue Phase 10 verification by completing an interactive Google OAuth browser round trip and resolving or replacing the required React Doctor `--diff` gate with the supported changed-scope command. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
+Continue Phase 11 by starting Docker Desktop, applying the migration with `supabase db reset --local --no-seed`, generating database types with `supabase gen types typescript --local`, and running Supabase advisors/RLS tests. Keep Phase 10 blockers visible, keep the paused TanStack repository/key work for Phase 12, and keep PR #4 draft/non-review-ready until the blocked gates and branch divergence are resolved.

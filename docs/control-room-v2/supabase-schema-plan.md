@@ -16,6 +16,10 @@ Do not treat this file as a migration. When Phase 11 starts, create migration fi
 - Staff access requires active store membership and role/capability checks.
 - Consumer access is limited to the authenticated consumer's own account records.
 - Authorization data must not live in user-editable metadata.
+- Owner/admin accounts and owner store memberships are created only through CLI bootstrap tooling
+  with service-role credentials. Browser routes, OAuth callbacks and public sign-up can create
+  consumer identities, but must not create owner memberships.
+- Supabase stores Cloudinary asset metadata only. Image binary/blob upload to Supabase is forbidden.
 
 ## Roles and permissions
 
@@ -63,6 +67,8 @@ Core columns:
 - `avatar_url text`
 - `created_at timestamptz`
 - `updated_at timestamptz`
+- `created_by_cli boolean not null default false`
+- check: owner memberships require `created_by_cli = true`
 
 RLS:
 
@@ -127,9 +133,11 @@ Indexes:
 
 RLS:
 
-- owner can manage memberships in their store
+- owner can manage manager/operator memberships in their store
 - manager can read active staff list where permitted
 - member can read their own membership
+- owner memberships are migration/service-role/CLI only; authenticated browser clients cannot insert
+  or update a row into the `owner` role
 - no consumer access
 
 ### `role_capabilities`
@@ -278,6 +286,33 @@ RLS:
 
 - mirrors product access
 
+### `cloudinary_assets`
+
+Core columns:
+
+- `id uuid primary key`
+- `store_id uuid references stores(id)`
+- `provider text check (provider = 'cloudinary')`
+- `resource_type text check (resource_type = 'image')`
+- `kind text check (kind in ('product-cover','product-detail','product-defect','store-logo','store-brand'))`
+- `public_id text not null`
+- `secure_url text not null`
+- `delivery_url text`
+- `format text`
+- `version bigint`
+- `width int`
+- `height int`
+- `bytes int`
+- `alt text not null`
+- `created_by_profile_id uuid references profiles(id)`
+- `created_at timestamptz`
+
+RLS:
+
+- public reads only when linked product/brand records are storefront-visible
+- staff writes require active store membership plus inventory/settings capability
+- stores Cloudinary metadata only; no `bytea`, `storage.buckets` or `storage.objects`
+
 ### `product_media`
 
 Core columns:
@@ -286,12 +321,8 @@ Core columns:
 - `store_id uuid references stores(id)`
 - `product_id uuid references products(id) on delete cascade`
 - `variant_id uuid references product_variants(id)`
-- `asset_provider text check (asset_provider in ('cloudinary','cloudflare-r2'))`
-- `storage_path text not null`
-- `public_url text`
-- `visibility text check (visibility in ('public','signed')) default 'public'`
-- `alt text not null`
-- `kind text check (kind in ('cover','detail','defect'))`
+- `asset_id uuid references cloudinary_assets(id)`
+- `kind text check (kind in ('product-cover','product-detail','product-defect'))`
 - `position int not null`
 - `created_at timestamptz`
 
@@ -307,9 +338,10 @@ RLS:
 
 Asset provider notes:
 
-- Supabase stores metadata, tenant ownership and RLS policy state for product media.
-- Cloudinary is the default image delivery provider for product imagery.
-- Cloudflare R2 or Cloudflare Images can serve as the durable public delivery layer.
+- Supabase stores metadata, tenant ownership and RLS policy state for product media only.
+- Cloudinary is the required image upload and delivery provider for product imagery in Phase 11.
+- Cloudflare may serve as a future CDN/proxy/delivery layer, but Phase 11 must not introduce
+  Supabase image blob storage or Cloudflare R2 writes as a replacement upload path.
 - Client code must not receive Cloudinary signing secrets, Cloudflare API tokens or Supabase service-role keys.
 - Phase 11 must add signed upload/write routes or edge functions before any production upload flow is enabled.
 
@@ -703,7 +735,8 @@ RLS:
 
 - Product cover, detail and defect imagery.
 - Supabase stores `product_media` rows and authorization metadata.
-- Cloudinary and Cloudflare R2/Images provide the binary asset delivery paths.
+- Cloudinary stores and delivers the binary image assets.
+- Supabase does not store image blobs, `bytea` image payloads or Storage object rows.
 - Staff writes require active store membership, inventory media capability and a server-issued upload/write authorization.
 - Public reads require parent product storefront visibility.
 
@@ -711,7 +744,8 @@ RLS:
 
 - Logos and store brand imagery.
 - Supabase stores metadata and storefront linkage.
-- Cloudinary and Cloudflare R2/Images provide the binary asset delivery paths.
+- Cloudinary stores and delivers the binary image assets.
+- Cloudflare can be evaluated later as CDN/proxy infrastructure, not as a Phase 11 image upload path.
 - Owner/manager writes only through server-issued upload/write authorization.
 - Public reads only for assets linked to active storefront identity.
 

@@ -9,6 +9,8 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "supabase:bootstrap-owner": "node scripts/bootstrap-owner.mjs",
+    "supabase:types": "npx --yes supabase@latest gen types typescript --local > src/lib/supabase/types.ts",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "test": "vitest run --passWithNoTests",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"

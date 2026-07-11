@@ -509,3 +509,49 @@ Email/password sign-in and sign-up remain Server Actions because they are form m
 - The sign-in UI no longer depends on a Server Action for a cross-site OAuth redirect.
 - The PKCE callback and Supabase SSR cookies remain the source of session truth.
 - Full Google account completion still requires an interactive browser session and configured provider credentials.
+
+## Decision 010 — Phase 11 CLI-only owner bootstrap and Cloudinary-only image metadata
+
+**Date:** 2026-07-11
+**Status:** Implemented as Phase 11 foundation; local Supabase apply/type generation blocked until Docker Desktop is reachable
+**Decision owner:** Direct user instruction
+**Review trigger:** Adding a production upload UI, changing asset provider, adding another owner lifecycle path, or enabling Supabase Storage
+
+### Context
+
+The user clarified that admin/owner accounts must only be created from CLI tooling and that Supabase
+must use Cloudinary for file uploads when needed. Supabase must never store uploaded images as blob
+payloads.
+
+### Decision
+
+Owner/admin bootstrap is implemented as `pnpm supabase:bootstrap-owner`, backed by
+`scripts/bootstrap-owner.mjs`. The script requires service-role credentials, creates or attaches the
+Supabase Auth user, upserts the profile, creates/links the organization and store, and writes the
+owner membership with `created_by_cli = true`.
+
+The Phase 11 migration enforces this at the database layer:
+
+- `store_memberships.role = 'owner'` requires `created_by_cli = true`.
+- Authenticated browser policies can add/update only manager/operator memberships.
+- Owner creation remains service-role/CLI only.
+
+For assets:
+
+- Supabase Storage is disabled in local config for this project.
+- The database stores `cloudinary_assets`, `product_media` and `store_brand_assets` metadata only.
+- `cloudinary_assets.provider` is constrained to `cloudinary`, and `resource_type` is constrained to
+  `image`.
+- The Phase 11 schema guard test rejects `storage.buckets`, `storage.objects` and `bytea` image
+  storage in the migration.
+
+### Consequences
+
+- Public sign-up and Google OAuth can create consumer identities, but cannot create owner access.
+- Service-role keys stay outside the app runtime and client bundle.
+- Future production uploads need a server-issued Cloudinary signature/write route before a UI can
+  persist asset metadata.
+- Cloudflare can still be evaluated later as CDN/proxy delivery infrastructure, but it is not a
+  Phase 11 image upload path.
+- Fresh local migration apply, generated Supabase types and advisors remain blocked until Docker
+  Desktop is available.
