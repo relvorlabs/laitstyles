@@ -14,6 +14,7 @@
     "prisma:generate": "prisma generate",
     "prisma:pull": "prisma db pull",
     "db:seed:storefront": "tsx scripts/seed/seed-storefront.ts",
+    "smoke:storefront": "NODE_OPTIONS=--conditions=react-server tsx scripts/checks/storefront-smoke.ts",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "test": "vitest run --passWithNoTests",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
@@ -55,6 +56,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "dotenv": "^17.4.2",
     "prisma": "^7.8.0",
+    "server-only": "^0.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5",
