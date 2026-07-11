@@ -1,4 +1,4 @@
-const LOCAL_BASE_URL = "https://laitstyle.local";
+const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
 
 export function getSafeNextPath(
   value: FormDataEntryValue | string | null | undefined,
@@ -12,8 +12,8 @@ export function getSafeNextPath(
   }
 
   try {
-    const url = new URL(trimmed, LOCAL_BASE_URL);
-    if (url.origin !== LOCAL_BASE_URL) return fallback;
+    const url = new URL(trimmed, LOCAL_AUTH_ORIGIN);
+    if (url.origin !== LOCAL_AUTH_ORIGIN) return fallback;
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return fallback;

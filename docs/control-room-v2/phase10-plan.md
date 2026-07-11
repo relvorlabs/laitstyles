@@ -76,6 +76,7 @@ Consumers cannot access Control Room routes, internal notes, staff activity, cos
 - Add auth role/capability contracts in `src/lib/auth/`.
 - Add a Next.js `proxy.ts` session refresh path using Supabase SSR cookies.
 - Add `src/app/auth/callback/route.ts` for OAuth code exchange.
+- Add `src/app/auth/google/route.ts` as the route-handler entry point for Google OAuth initiation so the flow is browser-native and directly smoke-testable outside React Server Action internals.
 - Add an auth error page/route.
 - Add sign-in and sign-out flows for staff and consumers.
 - Add server guards for Control Room route access.
@@ -103,3 +104,12 @@ Consumers cannot access Control Room routes, internal notes, staff activity, cos
 - Permission-restricted UI states are clear and accessible.
 - Service role and secret keys never appear in client bundles or `NEXT_PUBLIC_` variables.
 - Lint, TypeScript, Vitest, build, React Doctor and browser auth smoke checks pass.
+
+## Resume verification notes — 2026-07-11
+
+- `POST /auth/google` and `GET /auth/google?next=/admin` now return 303 redirects to Supabase OAuth with PKCE and a local `/auth/callback?next=/admin` return target.
+- `/auth/sign-in?next=/admin` returns 200 after a clean dev-server restart.
+- Signed-out `/admin` still redirects to `/auth/sign-in?next=/admin`.
+- `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm exec vitest run --passWithNoTests` and `pnpm build` passed.
+- Required React Doctor command `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out after 5 minutes. The supported changed-scope fallback with `--scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` passed with no issues.
+- Full browser OAuth completion remains blocked until browser automation or an interactive Google account session is available.

@@ -480,3 +480,32 @@ contracts, while Phase 11 remains responsible for migrations, generated types an
 - Consumers can reach `/account` only after Supabase Auth establishes a session.
 - Google OAuth is wired through Supabase PKCE callback, but provider-console credentials and full
   database membership rows must exist before a complete end-to-end staff login can be accepted.
+
+## Decision 009 — Route-handler Google OAuth entry point
+
+**Date:** 2026-07-11
+**Status:** Implemented for Phase 10 verification
+**Decision owner:** Control Room V2 implementation
+**Review trigger:** Adding another social provider, replacing Supabase Auth, or moving OAuth initiation behind a dedicated auth service
+
+### Context
+
+The first Phase 10 implementation initiated Google OAuth from a React Server Action on the sign-in page. That worked architecturally, but it made local smoke evidence depend on Next's internal Server Action transport rather than a stable browser route.
+
+### Decision
+
+Add `src/app/auth/google/route.ts` as the explicit OAuth initiation boundary and point the sign-in form at it with `method="post"`.
+
+- The route accepts a sanitized `next` target.
+- The route calls Supabase `signInWithOAuth({ provider: "google" })`.
+- The redirect target remains `/auth/callback?next=...`.
+- The route returns a 303 redirect to the Supabase OAuth authorize URL.
+
+Email/password sign-in and sign-up remain Server Actions because they are form mutations that complete inside the app.
+
+### Consequences
+
+- Google OAuth initiation is directly testable with HTTP and browser tools.
+- The sign-in UI no longer depends on a Server Action for a cross-site OAuth redirect.
+- The PKCE callback and Supabase SSR cookies remain the source of session truth.
+- Full Google account completion still requires an interactive browser session and configured provider credentials.

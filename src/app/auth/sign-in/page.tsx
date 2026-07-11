@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signInWithGoogle, signInWithPassword, signUpWithPassword } from "@/app/auth/actions";
+import { signInWithPassword, signUpWithPassword } from "@/app/auth/actions";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -76,7 +76,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                 <h2 className="mt-2 font-serif text-3xl font-medium">Continue securely</h2>
               </div>
 
-              <form action={signInWithGoogle}>
+              <form action="/auth/google" method="post">
                 <input name="next" type="hidden" value={next} />
                 <Button className="h-12 w-full rounded-full text-sm font-semibold" type="submit">
                   Continue with Google

@@ -230,8 +230,14 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 - [x] Control Room route guard and permission-restricted UI state
 - [x] Deterministic permission and redirect tests added
 - [x] Local route smoke: `/auth/sign-in?next=/admin` returned 200, signed-out `/admin` redirected to `/auth/sign-in?next=/admin`, missing-code `/auth/callback` redirected to `/auth/error`
-- [ ] Local Google OAuth browser smoke test
-- [ ] Full executable gate
+- [x] Google OAuth initiation smoke: `POST /auth/google` and `GET /auth/google?next=/admin` returned 303 redirects to Supabase OAuth with PKCE code challenge and `/auth/callback?next=/admin` redirect target
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD lint` — passed with Biome; 48 warnings remain visible in pre-existing files
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD exec tsc --noEmit`
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD exec vitest run --passWithNoTests` — 33 files and 134 tests passed
+- [x] `C:\Users\olaitan\AppData\Roaming\npm\pnpm.CMD build` — Next.js 16.2.10 production build passed and listed `/auth/google`, `/auth/callback`, `/auth/error`, `/auth/sign-in` and `/auth/sign-out`
+- [x] React Doctor changed-scope fallback: `npx.cmd --yes react-doctor@latest . --verbose --scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` — no issues found
+- [ ] Local Google OAuth browser completion test — blocked until a browser automation driver or interactive Google account session is available
+- [ ] Full executable gate — blocked because the required `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out after 5 minutes, even though the current supported changed-scope fallback passed
 
 ## Phase 11 — Supabase Database, Storage, RLS and Generated Types
 
@@ -254,10 +260,10 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 
 ## Verification and integration blockers
 
-No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing.
+No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain blocked.
 
 PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
 
 ## Next action
 
-Continue Phase 10 verification: run Biome, TypeScript, Vitest, production build, React Doctor and a local auth smoke check. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
+Continue Phase 10 verification by completing an interactive Google OAuth browser round trip and resolving or replacing the required React Doctor `--diff` gate with the supported changed-scope command. Keep the paused TanStack repository/key work for Phase 12. Keep PR #4 draft and non-review-ready until the blocked gates and branch divergence are resolved.
