@@ -1,93 +1,80 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { feedItems, naira } from "@/lib/catalogue";
+import { cn } from "@/lib/utils";
 
-const held = feedItems.filter((item) => item.state === "resYou");
-
+// Phase 2 shell: the cart trigger + sheet scaffold with a real empty state.
+// Live cart lines (server-truth holds) are wired in Phase 5 — no fake data here.
 export function CartSheet({ compact = false }: { compact?: boolean }) {
-  const total = held.reduce((sum, item) => sum + item.price, 0);
+  // Placeholder until Phase 5 wires server-truth holds.
+  const itemCount: number = 0;
 
   return (
     <Sheet>
       <SheetTrigger
-        render={<button aria-label="Cart" className="relative flex p-1" type="button" />}
+        render={
+          <button
+            aria-label={`Bag, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
+            className={cn(
+              "relative flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover",
+              compact && "size-10",
+            )}
+            type="button"
+          />
+        }
       >
-        <ShoppingBag />
-        <span className="absolute -right-1.5 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-primary px-1 text-[10.5px] font-semibold text-primary-foreground">
-          {held.length}
-        </span>
+        <HugeiconsIcon aria-hidden="true" icon={ShoppingBag03Icon} size={20} strokeWidth={1.6} />
+        {itemCount > 0 ? (
+          <span className="absolute -right-0.5 -top-0.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground tabular-nums">
+            {itemCount}
+          </span>
+        ) : null}
       </SheetTrigger>
       <SheetContent
-        className={
-          compact
-            ? "w-full max-w-full gap-0 bg-card p-0"
-            : "w-full gap-0 bg-card p-0 sm:max-w-[440px]"
-        }
+        className="flex w-full flex-col bg-background p-0 sm:max-w-[440px]"
         side="right"
       >
-        <SheetHeader className="border-b border-border p-5">
-          <SheetTitle className="font-serif text-[22px] font-normal">Reserved rail</SheetTitle>
-          <SheetDescription>
-            {held.length} {held.length === 1 ? "piece" : "pieces"} held for 15 minutes.
-          </SheetDescription>
+        <SheetHeader className="flex-row items-baseline gap-2 border-b border-border px-6 py-5">
+          <SheetTitle className="font-serif text-2xl italic">Your bag</SheetTitle>
+          <span className="text-sm text-muted-foreground tabular-nums">{itemCount}</span>
         </SheetHeader>
-        <div className="flex flex-1 flex-col gap-4 p-5">
-          {held.length ? (
-            held.map((item) => (
-              <div className="flex gap-3" key={item.id}>
-                <div className="size-[74px] rounded-[11px] bg-muted" />
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="text-[14px] font-medium">{item.name}</div>
-                  <div className="text-[12.5px] text-muted-foreground">
-                    Size {item.size} · {item.color} · {item.condition}
-                  </div>
-                  <div className="text-[13.5px] font-semibold">{naira(item.price)}</div>
-                  <button
-                    className="self-start text-[12px] text-muted-foreground underline underline-offset-2"
-                    type="button"
-                  >
-                    Release hold
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-              <div className="flex size-[66px] items-center justify-center rounded-full bg-muted">
-                <ShoppingBag className="text-muted-foreground" />
-              </div>
-              <div className="font-serif text-[22px]">Nothing reserved yet</div>
-              <p className="max-w-[260px] text-[13px] leading-[1.55] text-muted-foreground">
-                Every piece is one-of-one. Reserve one and we&apos;ll hold it here so no one else
-                can take it while you decide.
-              </p>
-            </div>
-          )}
-        </div>
-        <div className="mt-auto border-t border-border p-5">
-          <div className="mb-4 flex items-center justify-between text-[14px]">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span className="font-semibold">{naira(total)}</span>
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <span className="flex size-16 items-center justify-center rounded-full bg-surface-interactive text-surface-interactive-foreground">
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={ShoppingBag03Icon}
+              size={26}
+              strokeWidth={1.6}
+            />
+          </span>
+          <div>
+            <p className="font-serif text-xl">Your bag is empty</p>
+            <p className="mt-1 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
+              Every piece is one-of-one. When you reserve something, it&apos;s held here while you
+              decide.
+            </p>
           </div>
-          <Separator className="mb-4" />
-          <Button
-            className="h-[46px] w-full rounded-full text-[14px]"
-            render={<Link href="/checkout" />}
+          <SheetClose
+            render={
+              <Link
+                className={cn(buttonVariants({ size: "lg" }), "rounded-full px-7")}
+                href="/shop"
+              />
+            }
           >
-            Checkout now
-          </Button>
+            Shop the archive
+          </SheetClose>
         </div>
       </SheetContent>
     </Sheet>
