@@ -123,7 +123,7 @@ export default async function HomePage() {
             {categories.map((category) => (
               <Link
                 className="flex items-center justify-between rounded-[14px] border border-border bg-surface-panel px-5 py-6 transition-colors hover:bg-surface-interactive"
-                href="/shop"
+                href={`/shop/category/${category.slug}`}
                 key={category.id}
               >
                 <span className="font-serif text-[20px]">{category.name}</span>

@@ -92,6 +92,15 @@ async function ensureCategory(storeId: string, slug: string, name: string): Prom
   return category.id;
 }
 
+async function ensureCollection(storeId: string, slug: string, name: string): Promise<string> {
+  const collection = await prisma.catalogue_collections.upsert({
+    where: { store_id_slug: { store_id: storeId, slug } },
+    update: { name },
+    create: { store_id: storeId, name, slug },
+  });
+  return collection.id;
+}
+
 interface SeedProductInput {
   slug: string;
   name: string;
@@ -105,6 +114,7 @@ interface SeedProductInput {
   colour: string | null;
   archiveNumber: string | null;
   categoryId: string;
+  collectionId?: string;
   coverPublicId: string;
   stock: number;
   variants?: { label: string; size: string; price: string | null; stock: number }[];
@@ -127,6 +137,7 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
       colour: input.colour,
       archive_number: input.archiveNumber,
       category_id: input.categoryId,
+      collection_id: input.collectionId ?? null,
     },
     create: {
       store_id: storeId,
@@ -144,6 +155,7 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
       colour: input.colour,
       archive_number: input.archiveNumber,
       category_id: input.categoryId,
+      collection_id: input.collectionId ?? null,
     },
   });
 
@@ -229,6 +241,7 @@ async function main() {
   const storeId = await ensureStore();
   const outerwear = await ensureCategory(storeId, "outerwear", "Outerwear");
   const dresses = await ensureCategory(storeId, "dresses", "Dresses");
+  const editorsPicks = await ensureCollection(storeId, "editors-picks", "Editors' Picks");
 
   await seedProduct(storeId, {
     slug: "botanical-print-jacket",
@@ -243,6 +256,7 @@ async function main() {
     colour: "Ivory",
     archiveNumber: "0007",
     categoryId: outerwear,
+    collectionId: editorsPicks,
     coverPublicId: "sample",
     stock: 1,
   });
@@ -277,6 +291,7 @@ async function main() {
     colour: "Ivory",
     archiveNumber: null,
     categoryId: dresses,
+    collectionId: editorsPicks,
     coverPublicId: "sample",
     stock: 0,
     variants: [

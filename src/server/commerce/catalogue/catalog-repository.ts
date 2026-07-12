@@ -1,7 +1,12 @@
 import "server-only";
 
 import { type Prisma, prisma } from "@/lib/prisma";
-import type { ProductDetail, ProductSummary, TaxonomyWithCount } from "@/lib/storefront/types";
+import type {
+  ProductDetail,
+  ProductSummary,
+  TaxonomyRef,
+  TaxonomyWithCount,
+} from "@/lib/storefront/types";
 import {
   mapProductDetail,
   mapProductSummary,
@@ -15,30 +20,33 @@ export type CatalogueSort = "newest" | "price_asc" | "price_desc";
 
 export interface CatalogueQuery {
   search?: string;
+  categoryId?: string;
+  collectionId?: string;
   sort?: CatalogueSort;
   limit?: number;
   offset?: number;
 }
 
-// Compose the public-visibility predicate with an optional keyword filter using
-// AND, so the search OR never clobbers the visibility OR. Basic contains-search
+type CatalogueFilters = Pick<CatalogueQuery, "search" | "categoryId" | "collectionId">;
+
+// Compose the public-visibility predicate with optional filters using AND, so a
+// filter's OR (search) never clobbers the visibility OR. Basic contains-search
 // for now; Postgres FTS + pg_trgm is a documented later refinement (04 §8).
-function catalogueWhere(storeId: string, search?: string): Prisma.productsWhereInput {
-  const base = publishedProductWhere(storeId);
-  const term = search?.trim();
-  if (!term) return base;
-  return {
-    AND: [
-      base,
-      {
-        OR: [
-          { name: { contains: term, mode: "insensitive" } },
-          { brand: { contains: term, mode: "insensitive" } },
-          { description: { contains: term, mode: "insensitive" } },
-        ],
-      },
-    ],
-  };
+function catalogueWhere(storeId: string, filters: CatalogueFilters): Prisma.productsWhereInput {
+  const and: Prisma.productsWhereInput[] = [publishedProductWhere(storeId)];
+  const term = filters.search?.trim();
+  if (term) {
+    and.push({
+      OR: [
+        { name: { contains: term, mode: "insensitive" } },
+        { brand: { contains: term, mode: "insensitive" } },
+        { description: { contains: term, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (filters.categoryId) and.push({ category_id: filters.categoryId });
+  if (filters.collectionId) and.push({ collection_id: filters.collectionId });
+  return and.length === 1 ? and[0] : { AND: and };
 }
 
 function catalogueOrderBy(sort?: CatalogueSort): Prisma.productsOrderByWithRelationInput {
@@ -52,7 +60,7 @@ function catalogueOrderBy(sort?: CatalogueSort): Prisma.productsOrderByWithRelat
 export async function listPublishedProducts(query: CatalogueQuery = {}): Promise<ProductSummary[]> {
   const store = await getActiveStore();
   const rows = await prisma.products.findMany({
-    where: catalogueWhere(store.id, query.search),
+    where: catalogueWhere(store.id, query),
     include: productSummaryInclude,
     orderBy: catalogueOrderBy(query.sort),
     take: query.limit ?? 24,
@@ -61,11 +69,9 @@ export async function listPublishedProducts(query: CatalogueQuery = {}): Promise
   return rows.map(mapProductSummary);
 }
 
-export async function countPublishedProducts(
-  query: Pick<CatalogueQuery, "search"> = {},
-): Promise<number> {
+export async function countPublishedProducts(filters: CatalogueFilters = {}): Promise<number> {
   const store = await getActiveStore();
-  return prisma.products.count({ where: catalogueWhere(store.id, query.search) });
+  return prisma.products.count({ where: catalogueWhere(store.id, filters) });
 }
 
 export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
@@ -97,4 +103,20 @@ export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
     })),
   );
   return withCounts.filter((category) => category.productCount > 0);
+}
+
+export async function getStorefrontCategoryBySlug(slug: string): Promise<TaxonomyRef | null> {
+  const store = await getActiveStore();
+  return prisma.catalogue_categories.findFirst({
+    where: { store_id: store.id, slug },
+    select: { id: true, slug: true, name: true },
+  });
+}
+
+export async function getStorefrontCollectionBySlug(slug: string): Promise<TaxonomyRef | null> {
+  const store = await getActiveStore();
+  return prisma.catalogue_collections.findFirst({
+    where: { store_id: store.id, slug },
+    select: { id: true, slug: true, name: true },
+  });
 }
