@@ -1,7 +1,7 @@
 import "server-only";
 
 import { type Prisma, prisma } from "@/lib/prisma";
-import type { ProductDetail, ProductSummary } from "@/lib/storefront/types";
+import type { ProductDetail, ProductSummary, TaxonomyWithCount } from "@/lib/storefront/types";
 import {
   mapProductDetail,
   mapProductSummary,
@@ -75,4 +75,26 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
     include: productDetailInclude,
   });
   return row ? mapProductDetail(row) : null;
+}
+
+// Categories that contain at least one storefront-visible product, with a real
+// (never fabricated) count. Small catalogue → per-category count is fine.
+export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
+  const store = await getActiveStore();
+  const categories = await prisma.catalogue_categories.findMany({
+    where: { store_id: store.id },
+    orderBy: { position: "asc" },
+    select: { id: true, slug: true, name: true },
+  });
+  const withCounts = await Promise.all(
+    categories.map(async (category) => ({
+      id: category.id,
+      slug: category.slug,
+      name: category.name,
+      productCount: await prisma.products.count({
+        where: { AND: [publishedProductWhere(store.id), { category_id: category.id }] },
+      }),
+    })),
+  );
+  return withCounts.filter((category) => category.productCount > 0);
 }
