@@ -18,20 +18,29 @@ import { getActiveStore } from "@/server/commerce/store/active-store";
 
 export type CatalogueSort = "newest" | "price_asc" | "price_desc";
 
-export interface CatalogueQuery {
+export interface CatalogueFilters {
   search?: string;
   categoryId?: string;
   collectionId?: string;
+  conditions?: string[];
+  colours?: string[];
+  sizes?: string[];
+  /** Naira (matching the DB numeric units), inclusive bounds. */
+  priceMinNaira?: number;
+  priceMaxNaira?: number;
+}
+
+export interface CatalogueQuery extends CatalogueFilters {
   sort?: CatalogueSort;
   limit?: number;
   offset?: number;
 }
 
-type CatalogueFilters = Pick<CatalogueQuery, "search" | "categoryId" | "collectionId">;
-
 // Compose the public-visibility predicate with optional filters using AND, so a
-// filter's OR (search) never clobbers the visibility OR. Basic contains-search
-// for now; Postgres FTS + pg_trgm is a documented later refinement (04 §8).
+// filter's OR (search) never clobbers the visibility OR. Facet filters use IN /
+// range. Basic contains-search for now; Postgres FTS + pg_trgm is a documented
+// later refinement (04 §8). Size/colour facets are product-level; variant-level
+// facet filtering is a later refinement.
 function catalogueWhere(storeId: string, filters: CatalogueFilters): Prisma.productsWhereInput {
   const and: Prisma.productsWhereInput[] = [publishedProductWhere(storeId)];
   const term = filters.search?.trim();
@@ -46,6 +55,17 @@ function catalogueWhere(storeId: string, filters: CatalogueFilters): Prisma.prod
   }
   if (filters.categoryId) and.push({ category_id: filters.categoryId });
   if (filters.collectionId) and.push({ collection_id: filters.collectionId });
+  if (filters.conditions?.length) and.push({ condition: { in: filters.conditions } });
+  if (filters.colours?.length) and.push({ colour: { in: filters.colours } });
+  if (filters.sizes?.length) and.push({ size_label: { in: filters.sizes } });
+  if (filters.priceMinNaira !== undefined || filters.priceMaxNaira !== undefined) {
+    and.push({
+      price: {
+        ...(filters.priceMinNaira !== undefined ? { gte: filters.priceMinNaira } : {}),
+        ...(filters.priceMaxNaira !== undefined ? { lte: filters.priceMaxNaira } : {}),
+      },
+    });
+  }
   return and.length === 1 ? and[0] : { AND: and };
 }
 
@@ -119,4 +139,33 @@ export async function getStorefrontCollectionBySlug(slug: string): Promise<Taxon
     where: { store_id: store.id, slug },
     select: { id: true, slug: true, name: true },
   });
+}
+
+export interface StorefrontFacetOptions {
+  conditions: string[];
+  colours: string[];
+  sizes: string[];
+}
+
+// Available facet values among storefront-visible products (product-level).
+// Small catalogue → derive distinct values in one query.
+export async function getStorefrontFacets(): Promise<StorefrontFacetOptions> {
+  const store = await getActiveStore();
+  const rows = await prisma.products.findMany({
+    where: publishedProductWhere(store.id),
+    select: { condition: true, colour: true, size_label: true },
+  });
+  const conditions = new Set<string>();
+  const colours = new Set<string>();
+  const sizes = new Set<string>();
+  for (const row of rows) {
+    if (row.condition) conditions.add(row.condition);
+    if (row.colour) colours.add(row.colour);
+    if (row.size_label) sizes.add(row.size_label);
+  }
+  return {
+    conditions: [...conditions].sort(),
+    colours: [...colours].sort(),
+    sizes: [...sizes].sort(),
+  };
 }

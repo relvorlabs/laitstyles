@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CatalogueResults, parseSort } from "@/features/storefront/catalogue/catalogue-results";
+import { CatalogueResults } from "@/features/storefront/catalogue/catalogue-results";
+import { FacetPanel } from "@/features/storefront/catalogue/facet-panel";
 import {
+  activeFacetCount,
+  facetMutations,
+  hasActiveFacets,
+  PRICE_PRESETS,
+  parseFacets,
+  shopHref,
+} from "@/features/storefront/catalogue/facets";
+import { MobileFilters } from "@/features/storefront/catalogue/mobile-filters";
+import {
+  type CatalogueFilters,
   type CatalogueSort,
   countPublishedProducts,
+  getStorefrontFacets,
   listPublishedProducts,
 } from "@/server/commerce/catalogue/catalog-repository";
 
@@ -13,44 +25,62 @@ export const metadata: Metadata = {
     "Every piece is one-of-one — hand-picked, graded and photographed second-hand fashion.",
 };
 
-type ShopSearchParams = { q?: string | string[]; sort?: string | string[] };
-
-function firstValue(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<ShopSearchParams>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = await searchParams;
-  const search = firstValue(params.q)?.trim() || undefined;
-  const sort = parseSort(params.sort);
+  const facets = parseFacets(await searchParams);
+  const pricePreset = PRICE_PRESETS.find((preset) => preset.value === facets.price);
 
-  const [products, total] = await Promise.all([
-    listPublishedProducts({ search, sort, limit: 48 }),
-    countPublishedProducts({ search }),
+  const filters: CatalogueFilters = {
+    search: facets.q,
+    conditions: facets.conditions,
+    colours: facets.colours,
+    sizes: facets.sizes,
+    priceMinNaira: pricePreset?.minNaira,
+    priceMaxNaira: pricePreset?.maxNaira,
+  };
+
+  const [options, products, total] = await Promise.all([
+    getStorefrontFacets(),
+    listPublishedProducts({ ...filters, sort: facets.sort, limit: 48 }),
+    countPublishedProducts(filters),
   ]);
 
-  const hrefForSort = (value: CatalogueSort) => {
-    const qs = new URLSearchParams();
-    if (search) qs.set("q", search);
-    if (value !== "newest") qs.set("sort", value);
-    const query = qs.toString();
-    return query ? `/shop?${query}` : "/shop";
-  };
+  const hrefForSort = (value: CatalogueSort) => shopHref(facets, facetMutations.sort(value));
+
+  const chips: { label: string; href: string }[] = [
+    ...facets.conditions.map((value) => ({
+      label: value,
+      href: shopHref(facets, facetMutations.condition(value)),
+    })),
+    ...facets.sizes.map((value) => ({
+      label: `Size ${value}`,
+      href: shopHref(facets, facetMutations.size(value)),
+    })),
+    ...facets.colours.map((value) => ({
+      label: value,
+      href: shopHref(facets, facetMutations.colour(value)),
+    })),
+  ];
+  if (pricePreset) {
+    chips.push({
+      label: pricePreset.label,
+      href: shopHref(facets, facetMutations.price(pricePreset.value)),
+    });
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-16 max-sm:px-4">
       <div className="border-b border-border pb-6 pt-8">
         <p className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[0.2em] text-brand-sage-strong">
-          {search ? "Search results" : "The archive · every piece one-of-one"}
+          {facets.q ? "Search results" : "The archive · every piece one-of-one"}
         </p>
         <h1 className="font-serif text-[38px] font-medium leading-[1.05] tracking-[-0.015em] max-sm:text-[30px]">
-          {search ? (
+          {facets.q ? (
             <>
-              Results for <em className="italic">“{search}”</em>
+              Results for <em className="italic">“{facets.q}”</em>
             </>
           ) : (
             "Shop the archive"
@@ -61,28 +91,66 @@ export default async function ShopPage({
         </h1>
       </div>
 
-      <CatalogueResults
-        emptyAction={
-          search ? (
-            <Link
-              className="rounded-full bg-primary px-6 py-2.5 text-[13.5px] font-semibold text-primary-foreground"
-              href="/shop"
-            >
-              Browse everything
-            </Link>
-          ) : null
-        }
-        emptyBody={
-          search
-            ? "Every item is one-of-one, so a specific search can come up empty. Try broader words, or browse the full archive."
-            : "We're grading and photographing the opening rail right now. Every piece is one-of-one — check back shortly."
-        }
-        emptyTitle={search ? `No pieces match “${search}”` : "The first drop lands soon"}
-        hrefForSort={hrefForSort}
-        products={products}
-        sort={sort}
-        total={total}
-      />
+      <div className="grid grid-cols-[248px_1fr] items-start gap-8 pt-6 max-md:grid-cols-1 max-md:gap-0">
+        <aside className="sticky top-24 max-md:hidden">
+          <FacetPanel facets={facets} options={options} />
+        </aside>
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <MobileFilters activeCount={activeFacetCount(facets)}>
+              <FacetPanel facets={facets} options={options} />
+            </MobileFilters>
+            {hasActiveFacets(facets) ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {chips.map((chip) => (
+                  <Link
+                    className="inline-flex items-center gap-1.5 rounded-full border border-chip-border bg-chip-bg px-3 py-1.5 text-[12.5px] text-surface-selected-foreground"
+                    href={chip.href}
+                    key={chip.label}
+                    scroll={false}
+                  >
+                    {chip.label}
+                    <span aria-hidden="true">×</span>
+                  </Link>
+                ))}
+                <Link
+                  className="text-[12.5px] text-muted-foreground underline underline-offset-2"
+                  href={shopHref(facets, facetMutations.clearAll)}
+                  scroll={false}
+                >
+                  Clear all
+                </Link>
+              </div>
+            ) : null}
+          </div>
+
+          <CatalogueResults
+            emptyAction={
+              hasActiveFacets(facets) || facets.q ? (
+                <Link
+                  className="rounded-full bg-primary px-6 py-2.5 text-[13.5px] font-semibold text-primary-foreground"
+                  href="/shop"
+                >
+                  Clear filters
+                </Link>
+              ) : null
+            }
+            emptyBody={
+              facets.q
+                ? "Every item is one-of-one, so a specific search can come up empty. Try broader words, or browse the full archive."
+                : "No pieces match those filters. Every item is one-of-one, so narrow combinations can come up empty — try widening a filter."
+            }
+            emptyTitle={
+              facets.q ? `No pieces match “${facets.q}”` : "No pieces match those filters"
+            }
+            hrefForSort={hrefForSort}
+            products={products}
+            sort={facets.sort}
+            total={total}
+          />
+        </div>
+      </div>
     </main>
   );
 }
