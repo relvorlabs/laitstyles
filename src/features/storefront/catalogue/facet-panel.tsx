@@ -20,6 +20,19 @@ export function FacetPanel({
 }) {
   return (
     <div className="flex flex-col">
+      {options.brands.length ? (
+        <FacetGroup title="Brand">
+          {options.brands.map((value) => (
+            <FacetOption
+              active={facets.brands.includes(value)}
+              href={shopHref(facets, facetMutations.brand(value))}
+              key={value}
+              label={value}
+            />
+          ))}
+        </FacetGroup>
+      ) : null}
+
       {options.conditions.length ? (
         <FacetGroup title="Condition">
           {options.conditions.map((value) => (

@@ -21,6 +21,7 @@ export const PRICE_PRESETS: {
 export interface ActiveFacets {
   q?: string;
   sort: CatalogueSort;
+  brands: string[];
   conditions: string[];
   colours: string[];
   sizes: string[];
@@ -56,6 +57,7 @@ export function parseFacets(params: RawParams): ActiveFacets {
   return {
     q: firstValue(params.q)?.trim() || undefined,
     sort: parseSort(params.sort),
+    brands: parseList(params.brand),
     conditions: parseList(params.condition),
     colours: parseList(params.colour),
     sizes: parseList(params.size),
@@ -67,6 +69,7 @@ export function facetsToQuery(facets: ActiveFacets): string {
   const p = new URLSearchParams();
   if (facets.q) p.set("q", facets.q);
   if (facets.sort !== "newest") p.set("sort", facets.sort);
+  if (facets.brands.length) p.set("brand", facets.brands.join(","));
   if (facets.conditions.length) p.set("condition", facets.conditions.join(","));
   if (facets.colours.length) p.set("colour", facets.colours.join(","));
   if (facets.sizes.length) p.set("size", facets.sizes.join(","));
@@ -77,6 +80,7 @@ export function facetsToQuery(facets: ActiveFacets): string {
 function cloneFacets(facets: ActiveFacets): ActiveFacets {
   return {
     ...facets,
+    brands: [...facets.brands],
     conditions: [...facets.conditions],
     colours: [...facets.colours],
     sizes: [...facets.sizes],
@@ -96,6 +100,9 @@ function toggle(list: string[], value: string): string[] {
 }
 
 export const facetMutations = {
+  brand: (value: string) => (next: ActiveFacets) => {
+    next.brands = toggle(next.brands, value);
+  },
   condition: (value: string) => (next: ActiveFacets) => {
     next.conditions = toggle(next.conditions, value);
   },
@@ -112,6 +119,7 @@ export const facetMutations = {
     next.sort = value;
   },
   clearAll: (next: ActiveFacets) => {
+    next.brands = [];
     next.conditions = [];
     next.colours = [];
     next.sizes = [];
@@ -121,6 +129,7 @@ export const facetMutations = {
 
 export function hasActiveFacets(facets: ActiveFacets): boolean {
   return (
+    facets.brands.length > 0 ||
     facets.conditions.length > 0 ||
     facets.colours.length > 0 ||
     facets.sizes.length > 0 ||
@@ -130,6 +139,10 @@ export function hasActiveFacets(facets: ActiveFacets): boolean {
 
 export function activeFacetCount(facets: ActiveFacets): number {
   return (
-    facets.conditions.length + facets.colours.length + facets.sizes.length + (facets.price ? 1 : 0)
+    facets.brands.length +
+    facets.conditions.length +
+    facets.colours.length +
+    facets.sizes.length +
+    (facets.price ? 1 : 0)
   );
 }

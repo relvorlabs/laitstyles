@@ -35,6 +35,7 @@ export default async function ShopPage({
 
   const filters: CatalogueFilters = {
     search: facets.q,
+    brands: facets.brands,
     conditions: facets.conditions,
     colours: facets.colours,
     sizes: facets.sizes,
@@ -51,6 +52,10 @@ export default async function ShopPage({
   const hrefForSort = (value: CatalogueSort) => shopHref(facets, facetMutations.sort(value));
 
   const chips: { label: string; href: string }[] = [
+    ...facets.brands.map((value) => ({
+      label: value,
+      href: shopHref(facets, facetMutations.brand(value)),
+    })),
     ...facets.conditions.map((value) => ({
       label: value,
       href: shopHref(facets, facetMutations.condition(value)),

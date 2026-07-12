@@ -22,6 +22,7 @@ export interface CatalogueFilters {
   search?: string;
   categoryId?: string;
   collectionId?: string;
+  brands?: string[];
   conditions?: string[];
   colours?: string[];
   sizes?: string[];
@@ -55,6 +56,7 @@ function catalogueWhere(storeId: string, filters: CatalogueFilters): Prisma.prod
   }
   if (filters.categoryId) and.push({ category_id: filters.categoryId });
   if (filters.collectionId) and.push({ collection_id: filters.collectionId });
+  if (filters.brands?.length) and.push({ brand: { in: filters.brands } });
   if (filters.conditions?.length) and.push({ condition: { in: filters.conditions } });
   if (filters.colours?.length) and.push({ colour: { in: filters.colours } });
   if (filters.sizes?.length) and.push({ size_label: { in: filters.sizes } });
@@ -142,6 +144,7 @@ export async function getStorefrontCollectionBySlug(slug: string): Promise<Taxon
 }
 
 export interface StorefrontFacetOptions {
+  brands: string[];
   conditions: string[];
   colours: string[];
   sizes: string[];
@@ -153,17 +156,20 @@ export async function getStorefrontFacets(): Promise<StorefrontFacetOptions> {
   const store = await getActiveStore();
   const rows = await prisma.products.findMany({
     where: publishedProductWhere(store.id),
-    select: { condition: true, colour: true, size_label: true },
+    select: { brand: true, condition: true, colour: true, size_label: true },
   });
+  const brands = new Set<string>();
   const conditions = new Set<string>();
   const colours = new Set<string>();
   const sizes = new Set<string>();
   for (const row of rows) {
+    if (row.brand) brands.add(row.brand);
     if (row.condition) conditions.add(row.condition);
     if (row.colour) colours.add(row.colour);
     if (row.size_label) sizes.add(row.size_label);
   }
   return {
+    brands: [...brands].sort(),
     conditions: [...conditions].sort(),
     colours: [...colours].sort(),
     sizes: [...sizes].sort(),
