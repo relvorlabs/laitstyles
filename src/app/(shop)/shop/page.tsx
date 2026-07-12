@@ -75,7 +75,7 @@ export default async function ShopPage({
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-16 max-sm:px-4">
       <div className="border-b border-border pb-6 pt-8">
         <p className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[0.2em] text-brand-sage-strong">
-          {facets.q ? "Search results" : "The archive · every piece one-of-one"}
+          {facets.q ? "Search results" : "Curated premium pre-owned & vintage"}
         </p>
         <h1 className="font-serif text-[38px] font-medium leading-[1.05] tracking-[-0.015em] max-sm:text-[30px]">
           {facets.q ? (
@@ -83,7 +83,7 @@ export default async function ShopPage({
               Results for <em className="italic">“{facets.q}”</em>
             </>
           ) : (
-            "Shop the archive"
+            "Shop all"
           )}
           <span className="ml-3 align-middle text-[20px] font-normal text-muted-foreground tabular-nums">
             {total} {total === 1 ? "piece" : "pieces"}
@@ -138,8 +138,8 @@ export default async function ShopPage({
             }
             emptyBody={
               facets.q
-                ? "Every item is one-of-one, so a specific search can come up empty. Try broader words, or browse the full archive."
-                : "No pieces match those filters. Every item is one-of-one, so narrow combinations can come up empty — try widening a filter."
+                ? "No pieces match that search. Try broader words, or browse the full collection."
+                : "No pieces match those filters — try widening one, or browse everything."
             }
             emptyTitle={
               facets.q ? `No pieces match “${facets.q}”` : "No pieces match those filters"

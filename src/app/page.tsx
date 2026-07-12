@@ -16,18 +16,18 @@ export const metadata: Metadata = {
 const trust = [
   {
     n: "01",
-    title: "Every piece, the only one",
-    body: "Each item is a single second-hand piece — hand-picked, cleaned and authenticated. When it sells, it's gone for good.",
+    title: "Curated, never random",
+    body: "Every piece is individually selected, inspected and cleaned — poor-quality items are rejected. Boutique standards, not bale leftovers.",
   },
   {
     n: "02",
     title: "Honestly graded",
-    body: "Inspected against a clear condition scale, with any flaws photographed close and disclosed before you buy.",
+    body: "Inspected against a clear condition scale (A+, A, B+), with any flaws photographed close and disclosed before you buy.",
   },
   {
     n: "03",
-    title: "Held while you decide",
-    body: "Reserve a piece and it's held for you — no one else can take it while you check out. Delivered across Nigeria.",
+    title: "Delivered across Nigeria",
+    body: "Secure checkout and reliable delivery — the exact piece in the photos, cleaned, measured and ready to wear.",
   },
 ];
 
@@ -44,23 +44,23 @@ export default async function HomePage() {
       <section className="flex flex-wrap items-stretch gap-9 py-9 max-sm:gap-6">
         <div className="flex min-w-[300px] flex-1 basis-[440px] flex-col justify-center">
           <p className="mb-4 text-[11.5px] font-semibold uppercase tracking-[0.22em] text-brand-sage-strong">
-            Second-hand, first choice · Lagos
+            Curated premium pre-owned · Lagos
           </p>
           <h1 className="mb-4 font-serif text-[54px] font-medium leading-[1.02] tracking-[-0.02em] max-sm:text-[38px]">
-            Someone loved it first.
+            Premium fashion,
             <br />
-            <em className="font-normal italic">Now it&apos;s yours.</em>
+            <em className="font-normal italic">second time round.</em>
           </h1>
           <p className="mb-7 max-w-[440px] text-[15px] leading-[1.65] text-muted-foreground">
-            A living archive of one-of-one pieces — hand-picked, cleaned and graded. Every item is
-            the only one. When it&apos;s gone, it&apos;s gone for good.
+            Hand-picked pre-owned and vintage pieces — inspected, cleaned and honestly graded. Great
+            labels and everyday essentials, ready to wear, at a fraction of new.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
               className="flex h-[52px] items-center rounded-full bg-primary px-8 text-[14.5px] font-semibold text-primary-foreground transition-colors hover:bg-primary/86"
               href="/shop"
             >
-              Shop the archive
+              Shop new in
             </Link>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default async function HomePage() {
           <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
             <div>
               <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[0.2em] text-brand-sage-strong">
-                Just in · one-of-one
+                Just in · fresh drops
               </p>
               <h2 className="font-serif text-[32px] font-medium leading-none max-sm:text-[26px]">
                 New in

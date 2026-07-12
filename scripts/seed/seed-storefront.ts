@@ -239,65 +239,150 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
 
 async function main() {
   const storeId = await ensureStore();
-  const outerwear = await ensureCategory(storeId, "outerwear", "Outerwear");
-  const dresses = await ensureCategory(storeId, "dresses", "Dresses");
-  const editorsPicks = await ensureCollection(storeId, "editors-picks", "Editors' Picks");
 
+  // Dev only: clear the catalogue so re-seeds stay clean and brand-accurate.
+  await prisma.products.deleteMany({ where: { store_id: storeId } });
+
+  const jeans = await ensureCategory(storeId, "jeans-denim", "Jeans & Denim");
+  const shirts = await ensureCategory(storeId, "shirts", "Shirts");
+  const jackets = await ensureCategory(storeId, "jackets-coats", "Jackets & Coats");
+  const hoodies = await ensureCategory(storeId, "hoodies-sweats", "Hoodies & Sweats");
+  const dresses = await ensureCategory(storeId, "dresses", "Dresses");
+  const vintage = await ensureCollection(storeId, "vintage-edit", "The Vintage Edit");
+
+  // Laitstyle = curated premium pre-owned & vintage: mostly stocked, honestly
+  // graded (Like new = A+, Excellent = A, Good = B+); one-of-one only for
+  // genuinely limited pieces.
   await seedProduct(storeId, {
-    slug: "botanical-print-jacket",
-    name: "Botanical Print Jacket",
-    description: "A one-of-one ivory jacket, hand-picked for its vintage character.",
-    brand: "Aria",
-    mode: "unique",
-    price: "34000.00",
-    referencePrice: "42000.00",
+    slug: "levis-501-original-jeans",
+    name: "Levi's 501 Original Straight Jeans",
+    description:
+      "Premium Levi's 501 straight-leg denim in excellent pre-owned condition. Classic medium-blue wash, structured denim, five-pocket construction and minimal signs of wear. No stains, holes or damaged fastenings — individually inspected and ready to wear.",
+    brand: "Levi's",
+    mode: "stocked",
+    price: "18500.00",
+    referencePrice: "28000.00",
     condition: "Excellent",
-    sizeLabel: "S",
-    colour: "Ivory",
-    archiveNumber: "0007",
-    categoryId: outerwear,
-    collectionId: editorsPicks,
+    sizeLabel: "32",
+    colour: "Mid Blue",
+    archiveNumber: null,
+    categoryId: jeans,
     coverPublicId: "sample",
-    stock: 1,
+    stock: 4,
   });
 
   await seedProduct(storeId, {
-    slug: "everyday-linen-shirt",
-    name: "Everyday Linen Shirt",
-    description: "Softened linen shirt, honestly graded and cleaned.",
-    brand: "Basics",
+    slug: "nike-sportswear-hoodie",
+    name: "Nike Sportswear Club Hoodie",
+    description:
+      "Nike Sportswear pullover hoodie in like-new condition. Soft brushed-back fleece, ribbed cuffs and hem, embroidered swoosh. Barely worn — no pilling, fading or marks.",
+    brand: "Nike",
     mode: "stocked",
-    price: "13500.00",
-    referencePrice: "18000.00",
-    condition: "Good",
-    sizeLabel: "M",
-    colour: "Cream",
+    price: "16000.00",
+    referencePrice: "24000.00",
+    condition: "Like new",
+    sizeLabel: "L",
+    colour: "Black",
     archiveNumber: null,
-    categoryId: outerwear,
+    categoryId: hoodies,
     coverPublicId: "woman",
     stock: 6,
   });
 
   await seedProduct(storeId, {
-    slug: "daisy-field-dress",
-    name: "Daisy Field Dress",
-    description: "Floral day dress with a life before yours — available in three sizes.",
-    brand: "Bloom",
+    slug: "zara-wool-blend-blazer",
+    name: "Zara Wool-Blend Tailored Blazer",
+    description:
+      "Structured single-breasted blazer in a warm camel wool blend. Excellent pre-owned condition with clean lining and intact buttons. A versatile smart-casual layer.",
+    brand: "Zara",
+    mode: "stocked",
+    price: "21000.00",
+    referencePrice: "32000.00",
+    condition: "Excellent",
+    sizeLabel: "M",
+    colour: "Camel",
+    archiveNumber: null,
+    categoryId: jackets,
+    coverPublicId: "sample",
+    stock: 3,
+  });
+
+  await seedProduct(storeId, {
+    slug: "ralph-lauren-oxford-shirt",
+    name: "Ralph Lauren Cotton Oxford Shirt",
+    description:
+      "Classic Ralph Lauren button-down oxford in sky blue. Like-new condition, crisp collar and cuffs, signature embroidered pony. A wardrobe essential that pairs with everything.",
+    brand: "Ralph Lauren",
+    mode: "stocked",
+    price: "14500.00",
+    referencePrice: "22000.00",
+    condition: "Like new",
+    sizeLabel: "M",
+    colour: "Sky Blue",
+    archiveNumber: null,
+    categoryId: shirts,
+    coverPublicId: "woman",
+    stock: 5,
+  });
+
+  await seedProduct(storeId, {
+    slug: "champion-reverse-weave-sweatshirt",
+    name: "Champion Reverse Weave Sweatshirt",
+    description:
+      "Heavyweight Champion reverse-weave crewneck in heather grey. Good pre-owned condition with a soft, broken-in feel; very light fading disclosed. Structurally sound with the classic side gussets.",
+    brand: "Champion",
+    mode: "stocked",
+    price: "12500.00",
+    referencePrice: "19000.00",
+    condition: "Good",
+    sizeLabel: "L",
+    colour: "Grey",
+    archiveNumber: null,
+    categoryId: hoodies,
+    coverPublicId: "sample",
+    stock: 4,
+  });
+
+  await seedProduct(storeId, {
+    slug: "vintage-levis-denim-jacket",
+    name: "Vintage Levi's Trucker Denim Jacket",
+    description:
+      "A one-of-one vintage Levi's trucker jacket in a beautifully worn mid-blue wash. Excellent condition with genuine character — the fades are someone else's miles. When it sells, it's gone for good.",
+    brand: "Levi's",
+    mode: "unique",
+    price: "34000.00",
+    referencePrice: "48000.00",
+    condition: "Excellent",
+    sizeLabel: "M",
+    colour: "Mid Blue",
+    archiveNumber: "0042",
+    categoryId: jackets,
+    collectionId: vintage,
+    coverPublicId: "woman",
+    stock: 1,
+  });
+
+  await seedProduct(storeId, {
+    slug: "floral-midi-tea-dress",
+    name: "Floral Midi Tea Dress",
+    description:
+      "A pre-loved floral midi tea dress in excellent condition — light, breathable and easy to style. Available in three sizes.",
+    brand: "Mango",
     mode: "variant",
-    price: "26000.00",
-    referencePrice: "33000.00",
+    price: "17000.00",
+    referencePrice: "26000.00",
     condition: "Excellent",
     sizeLabel: null,
-    colour: "Ivory",
+    colour: "Floral",
     archiveNumber: null,
     categoryId: dresses,
-    collectionId: editorsPicks,
+    collectionId: vintage,
     coverPublicId: "sample",
     stock: 0,
     variants: [
       { label: "Small", size: "S", price: null, stock: 2 },
       { label: "Medium", size: "M", price: null, stock: 3 },
-      { label: "Large", size: "L", price: "27000.00", stock: 0 },
+      { label: "Large", size: "L", price: null, stock: 0 },
     ],
   });
 

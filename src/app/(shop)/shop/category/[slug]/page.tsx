@@ -53,7 +53,7 @@ export default async function CategoryPage({
       </nav>
       <div className="border-b border-border pb-6 pt-3">
         <p className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[0.2em] text-brand-sage-strong">
-          Category · every piece one-of-one
+          Category · curated pre-owned & vintage
         </p>
         <h1 className="font-serif text-[38px] font-medium leading-[1.05] tracking-[-0.015em] max-sm:text-[30px]">
           {category.name}

@@ -38,14 +38,14 @@ export function Footer() {
           <div className="absolute -right-3 top-8 size-28 rounded-full border border-brand-bone/10" />
           <div className="relative">
             <div className="mb-2 text-[12px] uppercase tracking-[.16em] text-brand-bone/72">
-              Second-hand, first choice
+              Curated premium pre-owned
             </div>
             <div className="mb-2.5 font-serif text-[30px] italic text-brand-bone">
-              Someone loved it first
+              Great fashion, second time round
             </div>
             <div className="mb-[18px] max-w-[360px] text-[13px] leading-[1.5] text-brand-bone/80">
-              A living archive of one-of-one pieces — hand-picked, graded and photographed. When one
-              sells, it&apos;s gone for good.
+              Hand-picked pre-owned and vintage — inspected, cleaned and honestly graded. Ready to
+              wear, at a fraction of new.
             </div>
             <Link
               className={cn(
@@ -54,7 +54,7 @@ export function Footer() {
               )}
               href="/shop"
             >
-              Shop the archive
+              Shop new in
             </Link>
           </div>
         </div>
