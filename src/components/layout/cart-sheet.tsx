@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 // Phase 2 shell: the cart trigger + sheet scaffold with a real empty state.
 // Live cart lines (server-truth holds) are wired in Phase 5 — no fake data here.
-export function CartSheet({ compact = false }: { compact?: boolean }) {
+export function CartSheet() {
   // Placeholder until Phase 5 wires server-truth holds.
   const itemCount: number = 0;
 
@@ -26,10 +26,7 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
         render={
           <button
             aria-label={`Bag, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
-            className={cn(
-              "relative flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover",
-              compact && "size-10",
-            )}
+            className="relative flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover"
             type="button"
           />
         }

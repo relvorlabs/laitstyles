@@ -31,7 +31,7 @@ const socials = [
 export function Footer() {
   return (
     <footer className="px-6 pb-10 pt-11">
-      <div className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
+      <div className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-4">
         {/* Editorial CTA (newsletter capture arrives in Phase 9). */}
         <div className="relative flex min-h-[280px] flex-col justify-end overflow-hidden rounded-[16px] border border-brand-sage/35 bg-brand-sage-strong p-8 text-brand-bone">
           <div className="absolute -right-12 -top-16 size-52 rounded-full border border-brand-bone/15" />

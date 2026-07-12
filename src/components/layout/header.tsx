@@ -58,7 +58,7 @@ function IconLink({ href, label, icon }: { href: string; label: string; icon: ty
   return (
     <Link
       aria-label={label}
-      className="flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover"
+      className="flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover"
       href={href}
     >
       <HugeiconsIcon aria-hidden="true" icon={icon} size={20} strokeWidth={1.6} />
@@ -139,7 +139,7 @@ export function Header() {
           <div className="flex items-center gap-1">
             <ThemeToggle className="size-10" />
             <IconLink href="/account" icon={UserIcon} label="Account" />
-            <CartSheet compact />
+            <CartSheet />
           </div>
         </div>
         <div className="px-4 pb-3">
