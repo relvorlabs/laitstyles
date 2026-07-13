@@ -27,7 +27,7 @@ handoff does not reclassify any phase acceptance blocker as passing.
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
 | Branch                                         | `surdma/control-room-v2-continuation`                                                                 |
-| Pull request                                   | Continuation draft PR pending creation; source conversation is merged PR `#4`                         |
+| Pull request                                   | `#6` — draft continuation; source conversation is merged PR `#4`                                      |
 | Phase 8 plan                                   | `docs/control-room-v2/phase8-plan.md`                                                                 |
 | Phase 8 blocker                                | `docs/control-room-v2/phase8-blocker.md`                                                              |
 | Phase 9 plan                                   | `docs/control-room-v2/phase9-plan.md`                                                                 |

@@ -3,7 +3,8 @@
 ## Purpose
 
 This document carries the working context from [PR #4](https://github.com/relvorlabs/laitstyles/pull/4)
-into the continuation PR created from merged `main`.
+into draft continuation [PR #6](https://github.com/relvorlabs/laitstyles/pull/6), created from merged
+`main`.
 
 GitHub does not support transferring an existing pull request's conversation timeline to another pull
 request. PR #4 therefore remains the immutable source conversation. This handoff indexes every PR #4
