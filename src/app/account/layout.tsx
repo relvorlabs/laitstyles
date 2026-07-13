@@ -6,7 +6,7 @@ export default async function AccountLayout({ children }: { children: ReactNode 
   const principal = await getServerAuthPrincipal();
 
   if (!principal.profileId) {
-    redirect("/auth/sign-in?next=/account");
+    redirect("/?auth=signin&next=/account");
   }
 
   return children;

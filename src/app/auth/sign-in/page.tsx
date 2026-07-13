@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signInWithPassword, signUpWithPassword } from "@/app/auth/actions";
+import { signInWithPassword } from "@/app/auth/actions";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,6 +25,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams;
   const next = getSafeNextPath(params.next, "/account");
   const surface = next.startsWith("/admin") ? "staff" : "consumer";
+
+  if (surface === "consumer") {
+    redirect(`/?auth=signin&next=${encodeURIComponent(next)}`);
+  }
 
   if (await isSignedIn()) {
     redirect(next);
@@ -117,30 +121,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                 </Button>
               </form>
 
-              <form
-                action={signUpWithPassword}
-                className="rounded-xl border border-border bg-muted/35 p-4"
-              >
-                <input name="next" type="hidden" value={next} />
-                <p className="text-sm font-semibold">New customer?</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Create a storefront account with email and password. Staff access still requires
-                  an active store membership.
-                </p>
-                <div className="mt-3 grid gap-3">
-                  <Input autoComplete="email" name="email" placeholder="Email" type="email" />
-                  <Input
-                    autoComplete="new-password"
-                    minLength={8}
-                    name="password"
-                    placeholder="Password"
-                    type="password"
-                  />
-                  <Button className="h-10 rounded-full" type="submit" variant="secondary">
-                    Create account
-                  </Button>
-                </div>
-              </form>
+              <p className="rounded-xl border border-border bg-muted/35 p-4 text-xs leading-5 text-muted-foreground">
+                This page is reserved for Control Room staff. Customer sign-in and account creation
+                happen in the storefront dialog.
+              </p>
             </div>
           </section>
         </div>

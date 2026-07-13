@@ -1,29 +1,13 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { themeBootScript } from "@/components/theme/theme-script";
+// The canonical typography is the card-lab home-lab set (Geist / Instrument Serif /
+// Geist Mono), loaded once here via next/font and exposed as --font-lab-* for the whole app.
+import { labFontClassName } from "@/features/storefront/home-lab/fonts";
+import { StorefrontExperienceProvider } from "@/features/storefront/shared/storefront-experience-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
-
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-});
-
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Laitstyle",
@@ -41,12 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={cn(
-        "h-full antialiased font-sans",
-        instrumentSans.variable,
-        newsreader.variable,
-        geistMono.variable,
-      )}
+      className={cn("h-full antialiased font-sans", labFontClassName)}
       lang="en"
       suppressHydrationWarning
     >
@@ -56,7 +35,9 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
-          <SiteChrome>{children}</SiteChrome>
+          <StorefrontExperienceProvider>
+            <SiteChrome>{children}</SiteChrome>
+          </StorefrontExperienceProvider>
         </ThemeProvider>
       </body>
     </html>

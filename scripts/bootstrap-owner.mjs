@@ -2,6 +2,7 @@
 import { parseArgs } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 
+process.loadEnvFile(".env.local");
 const { values } = parseArgs({
   options: {
     email: { type: "string" },
@@ -39,7 +40,6 @@ if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(storeSlug)) {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
-
 if (!supabaseUrl || !serviceRoleKey) {
   fail(
     "Set NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL plus SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY before bootstrapping an owner.",

@@ -2,10 +2,7 @@
 
 import {
   Briefcase,
-  Check,
   Clock,
-  Eye,
-  EyeOff,
   Heart,
   Home,
   LogOut,
@@ -22,7 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -51,7 +48,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -61,30 +57,16 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  type StorefrontAccountItem as AccountItem,
+  storefrontAccountSeedItems as seedItems,
+} from "@/features/storefront/shared/storefront-experience-data";
+import { useStorefront } from "@/features/storefront/home-lab/storefront-context";
+import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { cn } from "@/lib/utils";
 
 type AccountTab = "overview" | "orders" | "reservations" | "wishlist" | "addresses";
-type ItemState = "available" | "lastone" | "resYou" | "resOthers" | "sold";
-type AuthMode = "signin" | "signup";
-type AuthState = "default" | "signing-in" | "success";
 type AddressMode = "add" | "edit" | null;
-type ToastTone = "default" | "removed" | "notify" | "bag" | "sold";
-
-type AccountItem = {
-  id: string;
-  name: string;
-  cat: string;
-  size: string;
-  color: string;
-  cond: string;
-  priceNum: number;
-  origNum: number;
-  st: ItemState;
-  img: string;
-  removed?: boolean;
-  secondsLeft?: number;
-  mins?: number;
-};
 
 type Address = {
   id: string;
@@ -110,112 +92,6 @@ type AddressForm = {
   area: string;
   makeDefault: boolean;
 };
-
-const img = (id: string) => `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-
-const seedItems: AccountItem[] = [
-  [
-    "Botanical Print Jacket",
-    "Jackets",
-    "S",
-    "Ivory",
-    "Excellent",
-    34000,
-    42000,
-    "lastone",
-    "1mJxRFNyGo2xXT89oLeiuAGZtSvRlw0Jf",
-  ],
-  [
-    "Sage Field Vest",
-    "Jackets",
-    "M",
-    "Sage",
-    "Excellent",
-    28000,
-    35000,
-    "available",
-    "1T0XygfKzp92Id6ch09aTFcUyG8PbIG66",
-  ],
-  [
-    "Eco Shell Jacket",
-    "Jackets",
-    "M",
-    "Grey",
-    "Excellent",
-    31000,
-    39000,
-    "resYou",
-    "1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_",
-  ],
-  [
-    "Ivory Zip Jacket",
-    "Jackets",
-    "M",
-    "Cream",
-    "Good",
-    29000,
-    37000,
-    "resOthers",
-    "1PDPeY2i810fzrtHsOUIcbh569FWkkNep",
-  ],
-  [
-    "Bloom Belted Coat",
-    "Coats",
-    "L",
-    "Rust",
-    "Excellent",
-    45000,
-    58000,
-    "sold",
-    "1k3j8wbjDh_WYYrHykQo8HPGoLDuLYtpv",
-  ],
-  [
-    "Daisy Field Dress",
-    "Dresses",
-    "S",
-    "Ivory",
-    "Excellent",
-    26000,
-    33000,
-    "available",
-    "1dXXWxCEEg6ezYPsRCK6B1XxD5QpAiZfh",
-  ],
-  [
-    "Chunky Cable Sweater",
-    "Knitwear",
-    "M",
-    "Rust",
-    "Good",
-    23000,
-    29000,
-    "lastone",
-    "127OwSWR8AB6eyu9zzWjc_k7KW3cYa-Uw",
-  ],
-  [
-    "Linen Camp Shirt",
-    "Shirts",
-    "M",
-    "Cream",
-    "Excellent",
-    13500,
-    18000,
-    "available",
-    "1wyWEgY5Wazc7-chGSdz5IjlpvKAzXL80",
-  ],
-].map((row, index) => ({
-  id: `w${index}`,
-  name: row[0] as string,
-  cat: row[1] as string,
-  size: row[2] as string,
-  color: row[3] as string,
-  cond: row[4] as string,
-  priceNum: row[5] as number,
-  origNum: row[6] as number,
-  st: row[7] as ItemState,
-  img: img(row[8] as string),
-  secondsLeft: row[7] === "resYou" ? 742 - index * 7 : undefined,
-  mins: row[7] === "resOthers" ? 4 + (index % 4) : undefined,
-}));
 
 const seedAddresses: Address[] = [
   {
@@ -307,20 +183,20 @@ const blankAddress: AddressForm = {
 };
 
 export default function AccountPage() {
-  const [signedIn, setSignedIn] = useState(true);
+  const storefront = useStorefront();
+  const {
+    actions: {
+      openSignin,
+      openSignup,
+      revealHoldAlert,
+      showToast,
+      signOut: signOutGlobally,
+      updateItems,
+    },
+    state: { authReady, heldItems: held, holdCount, items, signedIn, soonestHoldSeconds: soonest },
+  } = useStorefrontExperience();
   const [tab, setTab] = useState<AccountTab>("overview");
-  const [items, setItems] = useState<AccountItem[]>(seedItems);
   const [addresses, setAddresses] = useState<Address[]>(seedAddresses);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<AuthMode>("signin");
-  const [authState, setAuthState] = useState<AuthState>("default");
-  const [authReveal, setAuthReveal] = useState(false);
-  const [remember, setRemember] = useState(true);
-  const [terms, setTerms] = useState(false);
-  const [authForm, setAuthForm] = useState({ first: "", last: "", email: "", password: "" });
-  const [authErrors, setAuthErrors] = useState<Record<string, string>>({});
-  const [showAuthErrors, setShowAuthErrors] = useState(false);
-  const [pendingTab, setPendingTab] = useState<AccountTab | null>(null);
   const [notified, setNotified] = useState<Record<string, boolean>>({});
   const [addressMode, setAddressMode] = useState<AddressMode>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -328,114 +204,39 @@ export default function AccountPage() {
   const [addressErrors, setAddressErrors] = useState<Record<string, string>>({});
   const [addressSaving, setAddressSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [holdsDismissed, setHoldsDismissed] = useState(false);
-  const [toast, setToast] = useState<{ tone: ToastTone; title: string; msg: string } | null>(null);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setItems((current) =>
-        current.map((item) => {
-          if (item.st !== "resYou") return item;
-          const next = (item.secondsLeft || 0) - 1;
-          return next <= 0
-            ? { ...item, st: "available", secondsLeft: undefined }
-            : { ...item, secondsLeft: next };
-        }),
-      );
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 4500);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
+  const setCartOpen = (open: boolean) =>
+    open ? storefront.open("cartDrawer") : storefront.closeAll();
 
   const active = items.filter((item) => !item.removed);
-  const held = active.filter((item) => item.st === "resYou");
-  const holdCount = held.length;
   const savedCount = active.length;
-  const soonest = held.length ? Math.min(...held.map((item) => item.secondsLeft || 0)) : 0;
   const dropCount = active.filter(
     (item) => item.origNum > item.priceNum && (item.st === "available" || item.st === "lastone"),
   ).length;
   const tabTitle = titleForTab(tab);
   const orders = useMemo(() => buildOrders(), []);
-  const cartTotal = held.reduce((sum, item) => sum + item.priceNum, 0);
-  const recItems = active
-    .filter(
-      (item) =>
-        (item.st === "available" || item.st === "lastone") &&
-        !held.some((heldItem) => heldItem.id === item.id),
-    )
-    .slice(0, 6);
-
   function go(nextTab: AccountTab) {
     if (!signedIn) {
-      setPendingTab(nextTab);
-      openSignin();
+      openSignin(() => {
+        setTab(nextTab);
+        window.scrollTo({ top: 0 });
+      });
       return;
     }
     setTab(nextTab);
     window.scrollTo({ top: 0 });
   }
 
-  function openSignin() {
-    setAuthMode("signin");
-    setAuthState("default");
-    setShowAuthErrors(false);
-    setAuthErrors({});
-    setAuthOpen(true);
-  }
-
-  function openSignup() {
-    setAuthMode("signup");
-    setAuthState("default");
-    setShowAuthErrors(false);
-    setAuthErrors({});
-    setAuthOpen(true);
-  }
-
-  function submitAuth() {
-    if (authState === "signing-in") return;
-    const errors = validateAuth(authMode, authForm, terms);
-    if (Object.keys(errors).length) {
-      setAuthErrors(errors);
-      setShowAuthErrors(true);
-      return;
-    }
-    // INTEGRATION: Replace this timer with real auth/session creation, OTP/social login, and profile hydration.
-    setAuthErrors({});
-    setShowAuthErrors(false);
-    setAuthState("signing-in");
-    window.setTimeout(() => setAuthState("success"), 1200);
-  }
-
-  function finishAuth() {
-    setSignedIn(true);
-    setAuthOpen(false);
-    setAuthState("default");
-    setTab(pendingTab || tab || "overview");
-    setPendingTab(null);
-  }
-
   function signOut() {
     // INTEGRATION: Replace local sign-out with session invalidation and cache cleanup.
-    setSignedIn(false);
-    setCartOpen(false);
+    signOutGlobally();
+    storefront.closeAll();
     setTab("overview");
-  }
-
-  function showToast(tone: ToastTone, title: string, msg: string) {
-    setToast({ tone, title, msg });
   }
 
   function unwish(id: string) {
     const item = items.find((candidate) => candidate.id === id);
     if (item) showToast("removed", "Removed from wishlist", `"${item.name}" is no longer saved.`);
-    setItems((current) =>
+    updateItems((current) =>
       current.map((candidate) =>
         candidate.id === id ? { ...candidate, removed: true } : candidate,
       ),
@@ -461,18 +262,21 @@ export default function AccountPage() {
         "Moved to your bag",
         `"${item.name}" is held for you — checkout within 15 minutes.`,
       );
-    setHoldsDismissed(false);
-    setItems((current) =>
+    revealHoldAlert();
+    updateItems((current) =>
       current.map((candidate) =>
         candidate.id === id ? { ...candidate, st: "resYou", secondsLeft: 15 * 60 } : candidate,
       ),
     );
+    storefront.addToCart(accountItemProductId(id));
+    storefront.open("cartDrawer");
   }
 
   function reserve(id: string) {
-    setHoldsDismissed(false);
-    setCartOpen(true);
-    setItems((current) =>
+    revealHoldAlert();
+    storefront.addToCart(accountItemProductId(id));
+    storefront.open("cartDrawer");
+    updateItems((current) =>
       current.map((candidate) =>
         candidate.id === id ? { ...candidate, st: "resYou", secondsLeft: 15 * 60 } : candidate,
       ),
@@ -480,7 +284,8 @@ export default function AccountPage() {
   }
 
   function release(id: string) {
-    setItems((current) =>
+    storefront.removeFromCart(accountItemProductId(id));
+    updateItems((current) =>
       current.map((candidate) =>
         candidate.id === id ? { ...candidate, st: "available", secondsLeft: undefined } : candidate,
       ),
@@ -582,63 +387,45 @@ export default function AccountPage() {
     setDeleteId(null);
   }
 
+  if (!authReady) {
+    return <main className="min-h-[60vh] bg-background" aria-label="Loading account" />;
+  }
+
   if (!signedIn) {
     return (
-      <>
-        <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-[60px] max-sm:px-4">
-          <Breadcrumb current="My account" />
-          <div className="flex flex-col items-center px-6 py-[70px] pb-10 text-center">
-            <div className="mb-[22px] flex size-[70px] items-center justify-center rounded-full border border-[#CFDCB4] bg-[#EAF0DE]">
-              <User className="size-[30px] text-[#5F7043]" strokeWidth={1.8} />
-            </div>
-            <div className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[.24em] text-accent">
-              Your account
-            </div>
-            <h1 className="m-0 mb-3 font-serif text-[34px] font-medium leading-[1.1]">
-              Sign in to see your rail
-            </h1>
-            <p className="m-0 mb-[26px] max-w-[400px] text-sm leading-[1.6] text-muted-foreground">
-              Holds, saved pieces and delivery addresses all live here. Sign in or create an account
-              to pick up where you left off.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2.5">
-              <Button
-                className="h-[50px] rounded-full px-7 text-[14.5px] font-semibold"
-                onClick={openSignin}
-              >
-                Sign in
-              </Button>
-              <Button
-                className="h-[50px] rounded-full border-[1.5px] border-primary bg-transparent px-7 text-[14.5px] font-medium text-primary hover:bg-transparent"
-                onClick={openSignup}
-                variant="outline"
-              >
-                Create account
-              </Button>
-            </div>
+      <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-[60px] max-sm:px-4">
+        <Breadcrumb current="My account" />
+        <div className="flex flex-col items-center px-6 py-[70px] pb-10 text-center">
+          <div className="mb-[22px] flex size-[70px] items-center justify-center rounded-full border border-[#CFDCB4] bg-[#EAF0DE]">
+            <User className="size-[30px] text-[#5F7043]" strokeWidth={1.8} />
           </div>
-        </main>
-        <AuthDialog
-          authErrors={authErrors}
-          authForm={authForm}
-          authMode={authMode}
-          authOpen={authOpen}
-          authReveal={authReveal}
-          authState={authState}
-          finishAuth={finishAuth}
-          remember={remember}
-          setAuthForm={setAuthForm}
-          setAuthMode={setAuthMode}
-          setAuthOpen={setAuthOpen}
-          setAuthReveal={setAuthReveal}
-          setAuthState={setAuthState}
-          setRemember={setRemember}
-          setTerms={setTerms}
-          showAuthErrors={showAuthErrors}
-          submitAuth={submitAuth}
-          terms={terms}
-        />
-      </>
+          <div className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[.24em] text-accent">
+            Your account
+          </div>
+          <h1 className="m-0 mb-3 font-serif text-[34px] font-medium leading-[1.1]">
+            Sign in to see your rail
+          </h1>
+          <p className="m-0 mb-[26px] max-w-[400px] text-sm leading-[1.6] text-muted-foreground">
+            Holds, saved pieces and delivery addresses all live here. Sign in or create an account
+            to pick up where you left off.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2.5">
+            <Button
+              className="h-[50px] rounded-full px-7 text-[14.5px] font-semibold"
+              onClick={() => openSignin()}
+            >
+              Sign in
+            </Button>
+            <Button
+              className="h-[50px] rounded-full border-[1.5px] border-primary bg-transparent px-7 text-[14.5px] font-medium text-primary hover:bg-transparent"
+              onClick={() => openSignup()}
+              variant="outline"
+            >
+              Create account
+            </Button>
+          </div>
+        </div>
+      </main>
     );
   }
 
@@ -977,56 +764,6 @@ export default function AccountPage() {
         </Tabs>
       </main>
 
-      {holdCount && !holdsDismissed ? (
-        <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 py-3">
-          <div className="flex w-full max-w-[720px] items-center gap-3.5 rounded-full bg-[#20261C] py-2.5 pl-5 pr-3 text-white shadow-[0_20px_50px_rgba(0,0,0,.28)]">
-            <span className="size-2 shrink-0 rounded-full bg-[#B8CE8E] animate-[leemPulse_1.6s_ease-in-out_infinite]" />
-            <span aria-live="polite" className="min-w-0 flex-1 text-[13px] leading-[1.4]">
-              You&apos;re holding {holdCount === 1 ? "1 piece" : `${holdCount} pieces`} — checkout
-              in <strong className="tabular-nums">{formatSeconds(soonest)}</strong> before{" "}
-              {holdCount === 1 ? "it releases" : "they release"}.
-            </span>
-            <Button
-              className="h-[38px] shrink-0 rounded-full bg-white px-5 text-[13px] font-semibold text-primary hover:bg-white"
-              onClick={() => setCartOpen(true)}
-            >
-              Checkout
-            </Button>
-            <button
-              aria-label="Dismiss"
-              className="flex shrink-0 p-1.5"
-              onClick={() => setHoldsDismissed(true)}
-              type="button"
-            >
-              <X className="size-[18px] text-white/70" />
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {toast ? <AccountToast toast={toast} dismiss={() => setToast(null)} /> : null}
-
-      <AuthDialog
-        authErrors={authErrors}
-        authForm={authForm}
-        authMode={authMode}
-        authOpen={authOpen}
-        authReveal={authReveal}
-        authState={authState}
-        finishAuth={finishAuth}
-        remember={remember}
-        setAuthForm={setAuthForm}
-        setAuthMode={setAuthMode}
-        setAuthOpen={setAuthOpen}
-        setAuthReveal={setAuthReveal}
-        setAuthState={setAuthState}
-        setRemember={setRemember}
-        setTerms={setTerms}
-        showAuthErrors={showAuthErrors}
-        submitAuth={submitAuth}
-        terms={terms}
-      />
-
       <AddressDialog
         addressErrors={addressErrors}
         addressForm={addressForm}
@@ -1065,15 +802,6 @@ export default function AccountPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AccountCartSheet
-        cartItems={held}
-        cartOpen={cartOpen}
-        cartTotal={cartTotal}
-        recItems={recItems}
-        release={release}
-        reserve={reserve}
-        setCartOpen={setCartOpen}
-      />
     </>
   );
 }
@@ -1541,298 +1269,6 @@ function EmptyPanel({
   return button ? body : body;
 }
 
-function AuthDialog(props: {
-  authErrors: Record<string, string>;
-  authForm: { first: string; last: string; email: string; password: string };
-  authMode: AuthMode;
-  authOpen: boolean;
-  authReveal: boolean;
-  authState: AuthState;
-  finishAuth: () => void;
-  remember: boolean;
-  setAuthForm: React.Dispatch<
-    React.SetStateAction<{ first: string; last: string; email: string; password: string }>
-  >;
-  setAuthMode: (mode: AuthMode) => void;
-  setAuthOpen: (open: boolean) => void;
-  setAuthReveal: (open: boolean) => void;
-  setAuthState: (state: AuthState) => void;
-  setRemember: (value: boolean) => void;
-  setTerms: (value: boolean) => void;
-  showAuthErrors: boolean;
-  submitAuth: () => void;
-  terms: boolean;
-}) {
-  const {
-    authErrors,
-    authForm,
-    authMode,
-    authOpen,
-    authReveal,
-    authState,
-    finishAuth,
-    remember,
-    setAuthForm,
-    setAuthMode,
-    setAuthOpen,
-    setAuthReveal,
-    setAuthState,
-    setRemember,
-    setTerms,
-    showAuthErrors,
-    submitAuth,
-    terms,
-  } = props;
-  const signup = authMode === "signup";
-  const busy = authState === "signing-in";
-  const err = (key: string) => (showAuthErrors ? authErrors[key] : undefined);
-  function setField(key: keyof typeof authForm, value: string) {
-    setAuthForm((current) => ({ ...current, [key]: value }));
-  }
-  return (
-    <Dialog
-      open={authOpen}
-      onOpenChange={(open) => {
-        setAuthOpen(open);
-        if (!open) setAuthState("default");
-      }}
-    >
-      <DialogContent
-        showCloseButton
-        className="max-h-[calc(100vh-64px)] max-w-[940px] grid-cols-1 gap-0 overflow-y-auto rounded-lg p-0 shadow-[0_30px_80px_rgba(0,0,0,.24)] md:grid-cols-[minmax(300px,1fr)_minmax(320px,1.2fr)]"
-      >
-        <DialogTitle className="sr-only">Sign in</DialogTitle>
-        <DialogDescription className="sr-only">Access your Laitstyle account.</DialogDescription>
-        <div className="relative hidden min-h-[540px] flex-col justify-end overflow-hidden bg-[linear-gradient(160deg,#5A6152,#3E463A)] p-9 text-white md:flex">
-          <Image
-            alt="One-of-one pieces"
-            className="object-cover opacity-90"
-            fill
-            sizes="420px"
-            src={img("1dXXWxCEEg6ezYPsRCK6B1XxD5QpAiZfh")}
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(30,36,27,.35)_0%,rgba(30,36,27,.82)_100%)]" />
-          <div className="relative">
-            <div className="mb-4 inline-flex items-center gap-2">
-              <span className="size-[7px] rounded-full bg-[#B8CE8E] animate-[leemPulse_1.8s_ease-in-out_infinite]" />
-              <span className="text-[11px] font-semibold uppercase tracking-[.2em] text-white/85">
-                Second-hand, first choice
-              </span>
-            </div>
-            <div className="mb-3.5 font-serif text-[30px] leading-[1.1]">
-              Your account keeps
-              <br />
-              <em className="font-normal">every find within reach.</em>
-            </div>
-            <div className="mt-5 flex flex-col gap-3 text-[13px] text-white/90">
-              <span>Track live holds &amp; reservation timers</span>
-              <span>Save pieces &amp; get freed-up alerts</span>
-              <span>Faster checkout on future drops</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex min-w-[300px] flex-col p-10 max-sm:p-6">
-          {authState === "success" ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-5 text-center">
-              <div className="mb-[22px] flex size-[76px] items-center justify-center rounded-full border border-[#CFDCB4] bg-[#EAF0DD] animate-[leemPop_.5s_cubic-bezier(.33,1,.68,1)]">
-                <Check className="size-[34px] text-[#5F7043]" strokeWidth={2.4} />
-              </div>
-              <div className="mb-2.5 text-[11.5px] font-semibold uppercase tracking-[.28em] text-accent">
-                Signed in
-              </div>
-              <h2 className="m-0 mb-2.5 font-serif text-[30px] font-medium leading-[1.15]">
-                You&apos;re in.
-              </h2>
-              <p className="mx-auto m-0 mb-[26px] max-w-[320px] text-sm leading-[1.6] text-muted-foreground">
-                Your holds, saved pieces and addresses are ready. Let&apos;s find the next
-                one-of-one.
-              </p>
-              <Button
-                className="h-[52px] w-full max-w-[300px] rounded-full px-[30px] text-[14.5px] font-semibold"
-                onClick={finishAuth}
-              >
-                Go to my account
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <h2 className="m-0 mb-1.5 font-serif text-[28px] font-medium leading-[1.1]">
-                {signup ? "Create your account" : "Welcome back"}
-              </h2>
-              <p className="m-0 mb-[22px] text-[13.5px] text-[#8A887E]">
-                {signup
-                  ? "Join Laitstyle to hold, save and track one-of-one pieces."
-                  : "Sign in to pick up your holds and saved finds."}
-              </p>
-              <div className="mb-6 flex gap-1 rounded-full border border-border bg-[#F2F1EC] p-1">
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    !signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
-                  onClick={() => setAuthMode("signin")}
-                  type="button"
-                >
-                  Sign in
-                </button>
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
-                  onClick={() => setAuthMode("signup")}
-                  type="button"
-                >
-                  Create account
-                </button>
-              </div>
-              <Button
-                className="mb-5 h-[50px] w-full rounded-full border-[1.5px] border-[#E0DED5] bg-card text-sm font-medium text-primary hover:bg-card"
-                onClick={() => {
-                  setAuthState("signing-in");
-                  window.setTimeout(() => setAuthState("success"), 1100);
-                }}
-                variant="outline"
-              >
-                Continue with Google
-              </Button>
-              <div className="mb-5 flex items-center gap-3">
-                <Separator className="flex-1" />
-                <span className="text-[11.5px] tracking-[.06em] text-[#A7A59B]">or use email</span>
-                <Separator className="flex-1" />
-              </div>
-              <FieldGroup className="gap-3">
-                {signup ? (
-                  <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                    <AccountField
-                      error={err("first")}
-                      label="First name"
-                      onChange={(value) => setField("first", value)}
-                      placeholder="First name"
-                      value={authForm.first}
-                    />
-                    <AccountField
-                      error={err("last")}
-                      label="Last name"
-                      onChange={(value) => setField("last", value)}
-                      placeholder="Last name"
-                      value={authForm.last}
-                    />
-                  </div>
-                ) : null}
-                <AccountField
-                  error={err("email")}
-                  label="Email"
-                  onChange={(value) => setField("email", value)}
-                  placeholder="Email"
-                  type="email"
-                  value={authForm.email}
-                />
-                <Field data-invalid={!!err("password")}>
-                  <div className="relative">
-                    <Input
-                      aria-invalid={!!err("password")}
-                      aria-label="Password"
-                      className={cn(
-                        "h-[52px] rounded-[9px] bg-card px-[15px] pr-11 text-sm focus-visible:border-primary focus-visible:ring-0",
-                        err("password") ? "border-[#D98B84]" : "border-input",
-                      )}
-                      onChange={(event) => setField("password", event.target.value)}
-                      placeholder="Password"
-                      type={authReveal ? "text" : "password"}
-                      value={authForm.password}
-                    />
-                    <button
-                      aria-label="Toggle password visibility"
-                      className="absolute right-3.5 top-[15px] flex text-[#8A887E]"
-                      onClick={() => setAuthReveal(!authReveal)}
-                      type="button"
-                    >
-                      {authReveal ? (
-                        <Eye className="size-[18px]" />
-                      ) : (
-                        <EyeOff className="size-[18px]" />
-                      )}
-                    </button>
-                  </div>
-                  <FieldError className="mt-1.5 text-xs">{err("password")}</FieldError>
-                </Field>
-              </FieldGroup>
-              {!signup ? (
-                <div className="mt-4 flex items-center justify-between gap-2.5">
-                  <Label className="cursor-pointer text-[13px] text-muted-foreground">
-                    <Checkbox
-                      checked={remember}
-                      onCheckedChange={(checked) => setRemember(checked === true)}
-                    />
-                    Keep me signed in
-                  </Label>
-                  <Link className="text-[13px] font-medium text-accent" href="#">
-                    Forgot password?
-                  </Link>
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <Label className="cursor-pointer items-start text-[12.5px] leading-[1.45] text-muted-foreground">
-                    <Checkbox
-                      aria-invalid={!!err("terms")}
-                      checked={terms}
-                      className="mt-px"
-                      onCheckedChange={(checked) => setTerms(checked === true)}
-                    />
-                    I agree to the{" "}
-                    <Link className="text-accent underline underline-offset-2" href="#">
-                      Terms
-                    </Link>{" "}
-                    and{" "}
-                    <Link className="text-accent underline underline-offset-2" href="#">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </Label>
-                  {err("terms") ? (
-                    <div className="mt-1.5 text-xs text-destructive">{err("terms")}</div>
-                  ) : null}
-                </div>
-              )}
-              <Button
-                className="mt-[22px] h-[54px] w-full rounded-full text-[15px] font-semibold"
-                disabled={busy}
-                onClick={submitAuth}
-              >
-                {busy ? (
-                  <span className="size-[18px] rounded-full border-[2.5px] border-white/40 border-t-white animate-spin" />
-                ) : null}
-                {busy
-                  ? signup
-                    ? "Creating account..."
-                    : "Signing in..."
-                  : signup
-                    ? "Create account"
-                    : "Sign in"}
-              </Button>
-              <div className="mt-4 text-center text-[13px] text-[#8A887E]">
-                {signup ? "Already have an account?" : "New to Laitstyle?"}{" "}
-                <button
-                  className="bg-transparent p-0 text-[13px] font-semibold text-accent"
-                  onClick={() => setAuthMode(signup ? "signin" : "signup")}
-                  type="button"
-                >
-                  {signup ? "Sign in" : "Create one"}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function AccountField({
   error,
   label,
@@ -2211,41 +1647,6 @@ function AccountCartSheet({
   );
 }
 
-function AccountToast({
-  dismiss,
-  toast,
-}: {
-  dismiss: () => void;
-  toast: { tone: ToastTone; title: string; msg: string };
-}) {
-  const error = toast.tone === "removed" || toast.tone === "sold";
-  return (
-    <Alert className="fixed bottom-20 right-4 z-[70] flex max-w-[344px] items-start gap-[11px] rounded-md border-border bg-card px-[15px] py-[13px] shadow-[0_20px_50px_rgba(0,0,0,.16)] animate-[leemToastIn_.3s_cubic-bezier(.33,1,.68,1)]">
-      <span
-        className={cn(
-          "mt-px flex size-6 shrink-0 items-center justify-center rounded-full",
-          error ? "bg-[#F6E9E4]" : "bg-[#E4EBD3]",
-        )}
-      >
-        {error ? (
-          <Trash2 className="size-3.5 text-[#B04A45]" />
-        ) : (
-          <Check className="size-3.5 text-[#5F7043]" />
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <AlertTitle className="mb-0.5 text-[13px] leading-[1.35]">{toast.title}</AlertTitle>
-        <AlertDescription className="text-[12.5px] leading-[1.45] text-muted-foreground">
-          {toast.msg}
-        </AlertDescription>
-      </div>
-      <button aria-label="Dismiss" className="flex shrink-0 p-0.5" onClick={dismiss} type="button">
-        <X className="size-4 text-[#9A988F]" />
-      </button>
-    </Alert>
-  );
-}
-
 function Breadcrumb({ current, tail }: { current: string; tail?: string }) {
   return (
     <div className="px-1 pb-2.5 pt-[18px] text-[12.5px] text-[#9A988F]">
@@ -2264,6 +1665,11 @@ function Breadcrumb({ current, tail }: { current: string; tail?: string }) {
   );
 }
 
+function accountItemProductId(accountItemId: string) {
+  const index = Number.parseInt(accountItemId.replace(/^w/, ""), 10);
+  return Number.isFinite(index) ? `p${index + 1}` : "p1";
+}
+
 function AddressIcon({ type }: { type: Address["type"] }) {
   if (type === "Home") return <Home className="size-[15px] text-accent" strokeWidth={1.9} />;
   if (type === "Work") return <Briefcase className="size-[15px] text-accent" strokeWidth={1.9} />;
@@ -2273,6 +1679,7 @@ function AddressIcon({ type }: { type: Address["type"] }) {
 function PhoneIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="14"
       height="14"
       viewBox="0 0 24 24"
@@ -2320,23 +1727,6 @@ function buildOrders() {
       thumbs: [{ img: seedItems[2].img, name: "d" }],
     },
   ];
-}
-
-function validateAuth(
-  mode: AuthMode,
-  form: { first: string; last: string; email: string; password: string },
-  terms: boolean,
-) {
-  const errors: Record<string, string> = {};
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim()))
-    errors.email = "Enter a valid email address";
-  if (form.password.length < 8) errors.password = "Password must be at least 8 characters";
-  if (mode === "signup") {
-    if (!form.first.trim()) errors.first = "Required";
-    if (!form.last.trim()) errors.last = "Required";
-    if (!terms) errors.terms = "Please accept the Terms to continue";
-  }
-  return errors;
 }
 
 function validateAddress(form: AddressForm) {

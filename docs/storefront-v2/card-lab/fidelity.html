@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Laitstyle — measured, checked and genuinely one-of-one fashion finds in Lagos.">
+  <title>Laitstyle — Found once. Worn your way.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --background:oklch(.967 .006 78);--surface:oklch(.985 .005 80);--surface-soft:oklch(.936 .012 77);
+      --surface-dark:oklch(.240 .012 45);--foreground:oklch(.190 .010 45);--muted:oklch(.505 .020 65);
+      --border:oklch(.850 .018 75);--accent:oklch(.470 .145 28);--accent-2:oklch(.730 .105 60);
+      --success:oklch(.500 .090 145);--warning:oklch(.680 .115 75);--danger:oklch(.525 .165 27);
+      --shadow:0 20px 70px color-mix(in oklch,var(--foreground) 13%,transparent);
+      --text-xs:clamp(.72rem,.68rem + .12vw,.78rem);--text-sm:clamp(.82rem,.78rem + .16vw,.92rem);
+      --text-base:clamp(.96rem,.9rem + .22vw,1.08rem);--text-lg:clamp(1.15rem,1rem + .5vw,1.5rem);
+      --text-xl:clamp(1.55rem,1.2rem + 1.2vw,2.4rem);--text-2xl:clamp(2.4rem,1.7rem + 2.8vw,5.5rem);
+      --text-hero:clamp(3.4rem,2.2rem + 5.7vw,9.4rem);
+      --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;
+      --space-7:3rem;--space-8:4.5rem;--space-9:7rem;--max:1560px;--ease:cubic-bezier(.33,1,.68,1);
+      --z-base:0;--z-sticky:20;--z-header:40;--z-menu:60;--z-overlay:80;--z-dialog:100;--z-toast:120;
+      --header-h:78px;
+    }
+    [data-theme="dark"]{
+      --background:oklch(.175 .010 45);--surface:oklch(.215 .012 45);--surface-soft:oklch(.255 .014 45);
+      --surface-dark:oklch(.120 .010 45);--foreground:oklch(.935 .008 78);--muted:oklch(.690 .020 70);
+      --border:oklch(.340 .017 48);--accent:oklch(.710 .125 42);--accent-2:oklch(.625 .090 70);
+      --success:oklch(.690 .090 145);--warning:oklch(.760 .110 78);--danger:oklch(.690 .150 27);
+      --shadow:0 24px 80px rgba(0,0,0,.44)
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--background);color:var(--foreground);font-family:"Geist",ui-sans-serif,sans-serif;font-size:var(--text-base);line-height:1.5;overflow-x:hidden}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;z-index:-1;background-image:repeating-linear-gradient(90deg,transparent 0 6px,color-mix(in oklch,var(--foreground) 2.5%,transparent) 7px),repeating-linear-gradient(0deg,transparent 0 6px,color-mix(in oklch,var(--foreground) 2%,transparent) 7px)}
+    body.overlay-open{overflow:hidden}
+    button,input,select{font:inherit;color:inherit}
+    button,a{touch-action:manipulation}
+    button{background:none;border:0;padding:0;cursor:pointer}
+    a{color:inherit}
+    img{display:block;width:100%;height:100%;object-fit:cover}
+    .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+    .skip{position:fixed;left:1rem;top:-5rem;z-index:999;background:var(--accent);color:var(--surface);padding:.85rem 1rem;text-decoration:none}
+    .skip:focus{top:1rem}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+    .shell{width:min(var(--max),calc(100% - clamp(1rem,3.4vw,4rem)));margin-inline:auto}
+    .mono,.eyebrow,.sku,.price,.section-no{font-family:"Geist Mono",monospace;font-variant-numeric:tabular-nums}
+    .eyebrow{font-size:var(--text-xs);letter-spacing:.1em;text-transform:uppercase}
+    .serif{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400}
+    .muted{color:var(--muted)}
+    .section{padding-block:clamp(4.8rem,8vw,9rem);border-top:1px solid var(--border)}
+    .section-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:1.5rem;margin-bottom:clamp(2rem,4vw,4rem)}
+    .section-head h2{margin:0;font-size:var(--text-2xl);line-height:.94;letter-spacing:-.04em;max-width:13ch;text-wrap:balance}
+    .section-no{font-size:var(--text-xs);align-self:start;padding-top:.5rem}
+    .text-link{display:inline-flex;align-items:center;gap:.5rem;min-height:44px;text-decoration-thickness:1px;text-underline-offset:5px;font-size:var(--text-sm)}
+    .btn{min-height:46px;padding:.8rem 1.05rem;border:1px solid var(--foreground);display:inline-flex;align-items:center;justify-content:center;gap:.6rem;text-decoration:none;font-size:var(--text-sm);font-weight:600;transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:var(--foreground);color:var(--background)}
+    .btn-accent{background:var(--accent);border-color:var(--accent);color:oklch(.98 .01 75)}
+    .btn-ghost{border-color:var(--border)}
+    .icon-btn{width:44px;height:44px;display:inline-grid;place-items:center;border:1px solid transparent;position:relative}
+    .icon-btn:hover{border-color:var(--border)}
+    .icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .badge-count{position:absolute;right:1px;top:1px;min-width:17px;height:17px;border-radius:50%;background:var(--accent);color:white;font:10px/17px "Geist Mono";text-align:center;padding-inline:4px}
+    .utility{min-height:34px;background:var(--surface-dark);color:oklch(.93 .01 80);display:flex;align-items:center;font-size:var(--text-xs);letter-spacing:.04em}
+    .utility-inner{display:flex;justify-content:space-between;align-items:center;gap:1rem;width:100%}
+    .utility-message{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .utility-controls{display:flex;align-items:center;gap:.4rem}
+    .utility-controls button{min-height:32px;padding-inline:.4rem;text-decoration:underline;text-underline-offset:3px;color:inherit}
+    .site-header{position:sticky;top:0;z-index:var(--z-header);background:color-mix(in oklch,var(--background) 94%,transparent);border-bottom:1px solid transparent;transition:transform .22s var(--ease),min-height .22s,background .22s,border-color .22s}
+    .site-header.compact{border-color:var(--border);--header-h:62px}
+    .site-header.hidden{transform:translateY(-102%)}
+    .header-inner{min-height:var(--header-h);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.5rem;transition:min-height .22s var(--ease)}
+    .brand{font-size:clamp(1.25rem,1rem + 1vw,2rem);font-weight:700;letter-spacing:-.06em;text-decoration:none}
+    .primary-nav{display:flex;align-items:center;gap:clamp(.8rem,1.8vw,1.8rem);justify-self:center}
+    .nav-link{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;font-size:var(--text-sm);position:relative}
+    .nav-link::after{content:"";position:absolute;left:0;right:100%;bottom:7px;height:1px;background:currentColor;transition:right .2s}
+    .nav-link:hover::after,.nav-link[aria-expanded="true"]::after{right:0}
+    .header-actions{justify-self:end;display:flex;align-items:center;gap:.1rem}
+    .mobile-only{display:none}
+    .mega{position:fixed;left:0;right:0;top:calc(34px + var(--header-h));z-index:var(--z-menu);background:var(--surface);border-block:1px solid var(--border);max-height:calc(100dvh - 120px);overflow:auto;display:none}
+    .mega.open{display:block;animation:menuIn .26s var(--ease)}
+    .mega-grid{display:grid;grid-template-columns:1.15fr .8fr .9fr;gap:3rem;padding-block:2.3rem}
+    .mega-links{columns:2;column-gap:2rem}
+    .mega-links a{display:block;break-inside:avoid;padding:.5rem 0;text-decoration:none;font-weight:600}
+    .mega-image{aspect-ratio:16/10;overflow:hidden}
+    .mega-note{padding:1.3rem;border-left:1px solid var(--border);align-self:stretch}
+    @keyframes menuIn{from{opacity:0;transform:translateY(-8px)}}
+    .hero{min-height:calc(100dvh - 112px);padding:clamp(1rem,2vw,2rem) 0 clamp(3rem,7vw,7rem);display:flex;align-items:stretch}
+    .hero-grid{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);gap:clamp(1.2rem,3vw,4rem);width:100%}
+    .hero-copy{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:clamp(1rem,4vw,4rem);position:relative}
+    .hero-copy h1{font-size:var(--text-hero);letter-spacing:-.072em;line-height:.76;margin:.7rem 0 1.6rem;max-width:7.5ch;text-wrap:balance}
+    .hero-copy h1 .serif{display:block;font-size:.72em;letter-spacing:-.035em;color:var(--accent)}
+    .hero-copy p{max-width:50ch;margin:0 0 1.5rem;color:var(--muted)}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:1.2rem}
+    .hero-note{font-size:var(--text-xs);letter-spacing:.06em;text-transform:uppercase}
+    .hero-visual{position:relative;min-height:640px;overflow:hidden;background:var(--surface-soft);isolation:isolate}
+    .hero-visual img{transition:transform .55s var(--ease),opacity .3s}
+    .hero-visual::after{content:"";position:absolute;inset:0;border:1px solid color-mix(in oklch,var(--background) 35%,transparent);pointer-events:none}
+    .image-index{position:absolute;left:1rem;bottom:1rem;background:var(--surface);padding:.45rem .65rem;font:var(--text-xs) "Geist Mono";z-index:2}
+    .alt-control{position:absolute;right:1rem;top:1rem;z-index:2;background:var(--surface);border-color:var(--surface)}
+    .hotspot{position:absolute;left:57%;top:46%;z-index:3;display:flex;align-items:center;gap:.55rem}
+    .hotspot-dot{width:34px;height:34px;border-radius:50%;background:var(--accent);color:white;display:grid;place-items:center;box-shadow:0 0 0 8px color-mix(in oklch,var(--accent) 20%,transparent);animation:pulse 2.8s infinite}
+    .hotspot-card{background:var(--surface);padding:.65rem .8rem;box-shadow:var(--shadow);font-size:var(--text-xs);min-width:150px;text-align:left}
+    .hotspot-card strong{display:block;font-size:var(--text-sm)}
+    @keyframes pulse{50%{box-shadow:0 0 0 14px color-mix(in oklch,var(--accent) 0%,transparent)}}
+    .category-wrap{border-block:1px solid var(--border);background:var(--surface)}
+    .category-row{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center}
+    .category-rail{display:flex;gap:.5rem;overflow:auto;padding:.8rem .25rem;scrollbar-width:thin;scroll-snap-type:x proximity}
+    .category-btn{flex:0 0 auto;min-height:44px;padding:.65rem 1rem;border-right:1px solid var(--border);scroll-snap-align:start;white-space:nowrap}
+    .category-btn.active{background:var(--foreground);color:var(--background)}
+    .rail-arrow{height:44px;border:1px solid var(--border);display:grid;place-items:center}
+    .product-toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.4rem}
+    .layout-toggle{display:flex;border:1px solid var(--border)}
+    .layout-toggle button{min-height:42px;padding:.55rem .8rem}
+    .layout-toggle button.active{background:var(--foreground);color:var(--background)}
+    .product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(1rem,2vw,2rem) clamp(.8rem,1.7vw,1.5rem)}
+    .product-grid.editorial{grid-template-columns:repeat(12,1fr);align-items:start}
+    .product-grid.editorial .product-card{grid-column:span 4}
+    .product-grid.editorial .product-card:nth-child(1),.product-grid.editorial .product-card:nth-child(6){grid-column:span 6}
+    .product-card{min-width:0;position:relative}
+    .product-media{position:relative;aspect-ratio:3/4;background:var(--surface-soft);overflow:hidden}
+    .product-media img{transition:opacity .32s,transform .35s var(--ease)}
+    .product-media .alt{position:absolute;inset:0;opacity:0}
+    @media (hover:hover){.product-card:hover .product-media .alt{opacity:1}.product-card:hover .product-media img{transform:scale(1.025)}.product-card:hover{transform:translateY(-3px)}}
+    .product-card{transition:transform .22s var(--ease)}
+    .product-badges{position:absolute;left:.55rem;top:.55rem;z-index:2;display:flex;flex-wrap:wrap;gap:.3rem}
+    .product-badge{background:var(--surface);padding:.3rem .45rem;font:10px "Geist Mono";text-transform:uppercase;letter-spacing:.06em}
+    .product-badge.danger{background:var(--surface-dark);color:oklch(.94 .01 80)}
+    .save-btn{position:absolute;right:.45rem;top:.45rem;z-index:3;background:color-mix(in oklch,var(--surface) 90%,transparent)}
+    .save-btn.saved{color:var(--accent)}
+    .quick-row{position:absolute;inset:auto .55rem .55rem;display:grid;grid-template-columns:1fr 1fr;gap:.45rem;z-index:3;transform:translateY(8px);opacity:0;transition:.22s var(--ease)}
+    .quick-row button{min-height:42px;background:var(--surface);font-size:var(--text-xs);font-weight:600}
+    .quick-row .add-card{background:var(--foreground);color:var(--background)}
+    @media (hover:hover){.product-card:hover .quick-row,.product-card:focus-within .quick-row{transform:none;opacity:1}}
+    .product-info{padding-top:.85rem;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.4rem 1rem}
+    .product-title{margin:0;font-size:var(--text-base);font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .price{font-size:var(--text-sm);font-weight:500;text-align:right;white-space:nowrap}
+    .old-price{text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:.35rem}
+    .product-meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:.8rem;color:var(--muted);font-size:var(--text-xs)}
+    .stock{color:var(--foreground)}
+    .stock.sold{color:var(--danger)}.stock.reserved{color:var(--warning)}
+    .mobile-actions{display:none;grid-column:1/-1;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+    .mobile-actions button{min-height:42px;border:1px solid var(--border);font-size:var(--text-xs)}
+    .skeleton{background:linear-gradient(90deg,var(--surface-soft),var(--surface),var(--surface-soft));background-size:200% 100%;animation:shimmer 1.2s infinite}
+    @keyframes shimmer{to{background-position:-200% 0}}
+    .error-state,.empty-state{border:1px solid var(--border);padding:clamp(2rem,4vw,4rem);text-align:center;background:var(--surface)}
+    .editorial-feature{background:var(--surface-dark);color:oklch(.94 .01 80);overflow:hidden}
+    .editorial-grid{display:grid;grid-template-columns:1.35fr .65fr;min-height:780px}
+    .editorial-images{position:relative;min-height:700px}
+    .editorial-main{position:absolute;inset:0 13% 0 0}
+    .editorial-detail{position:absolute;width:38%;aspect-ratio:4/5;right:0;bottom:8%;border:10px solid var(--surface-dark)}
+    .editorial-copy{display:flex;flex-direction:column;justify-content:center;padding:clamp(2rem,4vw,5rem);border-left:1px solid color-mix(in oklch,white 18%,transparent)}
+    .editorial-copy h2{font-size:var(--text-2xl);line-height:.88;letter-spacing:-.05em;margin:.6rem 0 1.5rem}
+    .editorial-product{margin-top:2rem;padding-top:1.2rem;border-top:1px solid color-mix(in oklch,white 20%,transparent);display:flex;justify-content:space-between;align-items:end;gap:1rem}
+    .mood-grid{display:grid;grid-template-columns:1.15fr .85fr .85fr;grid-template-rows:330px 330px;gap:1rem}
+    .mood-card{position:relative;overflow:hidden;background:var(--surface-soft);isolation:isolate}
+    .mood-card:first-child{grid-row:span 2}
+    .mood-card:nth-child(2){grid-column:span 2}
+    .mood-card img{transition:transform .45s var(--ease)}
+    .mood-card:hover img{transform:scale(1.025)}
+    .mood-card::after{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(transparent,rgba(20,12,10,.76));z-index:1}
+    .mood-copy{position:absolute;z-index:2;left:1.2rem;right:1.2rem;bottom:1.1rem;color:white}
+    .mood-copy h3{font-size:var(--text-xl);margin:0 0 .2rem;letter-spacing:-.03em}
+    .mood-copy p{margin:.2rem 0;font-size:var(--text-sm)}
+    .trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,6vw,7rem);align-items:center}
+    .condition-scale{display:grid;gap:1rem}
+    .condition-item{display:grid;grid-template-columns:110px 1fr auto;gap:1rem;align-items:center}
+    .condition-line{height:4px;background:var(--border);position:relative}
+    .condition-line span{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);transition:width 1s var(--ease)}
+    .condition-scale.in-view .condition-line span{width:var(--value)}
+    .measure-card{border:1px solid var(--border);padding:clamp(1.4rem,3vw,3rem);background:var(--surface);position:relative}
+    .garment-diagram{aspect-ratio:4/3;margin-bottom:1.2rem;display:grid;place-items:center;border-bottom:1px solid var(--border)}
+    .garment-diagram svg{width:70%;height:70%;stroke:var(--foreground);fill:none;stroke-width:1}
+    .trust-tabs{display:grid;gap:.4rem}
+    details{border-top:1px solid var(--border);padding:.8rem 0}
+    summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;justify-content:space-between}
+    summary::after{content:"+";font-size:1.2rem}
+    details[open] summary::after{content:"−"}
+    .product-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,24vw);gap:1rem;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:1rem}
+    .product-rail .product-card{scroll-snap-align:start}
+    .rail-tools{display:flex;gap:.5rem}
+    .rail-progress{height:2px;background:var(--border);margin-top:1.5rem}
+    .rail-progress span{display:block;height:100%;width:28%;background:var(--foreground);transition:transform .2s}
+    .featured-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:clamp(2rem,5vw,6rem);align-items:center}
+    .featured-gallery{display:grid;grid-template-columns:1.4fr .6fr;gap:1rem}
+    .featured-main{aspect-ratio:4/5;overflow:hidden}
+    .featured-thumbs{display:grid;gap:1rem}
+    .featured-thumbs button{overflow:hidden;min-height:0}
+    .featured-copy h2{font-size:var(--text-2xl);line-height:.9;letter-spacing:-.045em;margin:.6rem 0 1.2rem}
+    .fact-list{display:grid;grid-template-columns:1fr 1fr;gap:.8rem 1.4rem;margin:1.4rem 0;border-block:1px solid var(--border);padding:1rem 0}
+    .fact-list div{display:grid;gap:.15rem}
+    .fact-list dt{font-size:var(--text-xs);color:var(--muted)}
+    .fact-list dd{margin:0;font-family:"Geist Mono";font-size:var(--text-sm)}
+    .journal-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:1.2rem}
+    .story-card{border-top:1px solid var(--foreground);padding-top:.7rem}
+    .story-image{aspect-ratio:4/3;overflow:hidden;margin:.8rem 0 1rem}
+    .story-card:first-child .story-image{aspect-ratio:4/5}
+    .story-card h3{font-size:var(--text-xl);line-height:1.05;letter-spacing:-.03em;margin:.4rem 0 1rem}
+    .community-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:160px;gap:.7rem}
+    .look{position:relative;overflow:hidden}
+    .look:nth-child(1){grid-column:span 4;grid-row:span 3}.look:nth-child(2){grid-column:span 3;grid-row:span 2}.look:nth-child(3){grid-column:span 5;grid-row:span 2}.look:nth-child(4){grid-column:span 4;grid-row:span 2}.look:nth-child(5){grid-column:span 4;grid-row:span 2}.look:nth-child(6){grid-column:span 4;grid-row:span 2}
+    .look button{position:absolute;inset:auto .6rem .6rem;background:var(--surface);padding:.55rem .7rem;text-align:left;font-size:var(--text-xs);max-width:calc(100% - 1.2rem)}
+    .newsletter{background:var(--accent);color:oklch(.97 .01 80)}
+    .newsletter-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,6vw,8rem);align-items:end}
+    .newsletter h2{font-size:var(--text-2xl);line-height:.9;letter-spacing:-.05em;margin:0 0 1rem}
+    .signup{display:grid;gap:1rem}
+    .field{display:grid;gap:.4rem}
+    .field label{font-size:var(--text-xs);letter-spacing:.06em;text-transform:uppercase}
+    .field input{min-height:52px;border:0;border-bottom:1px solid currentColor;background:transparent;padding:.6rem 0;font-size:var(--text-lg)}
+    .field input::placeholder{color:color-mix(in oklch,currentColor 65%,transparent)}
+    .prefs{border:0;padding:0;margin:0;display:flex;gap:1rem;flex-wrap:wrap}
+    .prefs label{display:flex;gap:.45rem;align-items:center;min-height:44px}
+    .form-message{min-height:1.5em;font-size:var(--text-sm)}
+    .footer{background:var(--surface-dark);color:oklch(.92 .01 80);padding:clamp(3rem,6vw,6rem) 0 1.4rem}
+    .footer-grid{display:grid;grid-template-columns:1.3fr repeat(4,1fr);gap:2rem}
+    .footer-brand p{max-width:30ch;color:oklch(.72 .02 75)}
+    .footer-group h3{font-size:var(--text-xs);font-family:"Geist Mono";text-transform:uppercase;letter-spacing:.08em;margin:0 0 1rem}
+    .footer-group a,.footer-group button{display:block;color:inherit;text-decoration:none;padding:.35rem 0;font-size:var(--text-sm)}
+    .footer-bottom{margin-top:3rem;padding-top:1rem;border-top:1px solid color-mix(in oklch,white 18%,transparent);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:var(--text-xs)}
+    dialog{padding:0;border:0;background:transparent;color:var(--foreground);max-width:none;max-height:none}
+    dialog::backdrop{background:color-mix(in oklch,var(--surface-dark) 72%,transparent);backdrop-filter:blur(3px)}
+    .dialog-shell{background:var(--surface);width:min(1080px,calc(100vw - 2rem));max-height:calc(100dvh - 2rem);overflow:auto;box-shadow:var(--shadow);position:relative}
+    .dialog-shell.drawer{width:min(480px,100vw);height:100dvh;max-height:none;margin-left:auto}
+    .dialog-shell.search-shell{width:100vw;height:min(82dvh,760px);max-height:none;margin-top:calc(34px + var(--header-h));box-shadow:none;border-top:1px solid var(--border)}
+    .dialog-shell.viewer{width:100vw;height:100dvh;max-height:none;background:oklch(.13 .012 40);color:oklch(.94 .01 80)}
+    .dialog-head{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .dialog-head h2{font-size:var(--text-base);margin:0}
+    .dialog-body{padding:clamp(1rem,3vw,2.5rem)}
+    .quick-grid{display:grid;grid-template-columns:1.05fr .95fr}
+    .quick-gallery{background:var(--surface-soft);min-height:620px;position:relative;overflow:hidden}
+    .quick-info{padding:clamp(1.2rem,3vw,3rem);overflow:auto}
+    .quick-info h2{font-size:var(--text-xl);line-height:1.05;margin:.5rem 0}
+    .quick-thumbs{display:flex;gap:.5rem;margin-top:.8rem}
+    .quick-thumbs button{width:64px;aspect-ratio:3/4;border:1px solid var(--border);overflow:hidden}
+    .size-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}
+    .size-chip{min-width:48px;height:44px;border:1px solid var(--border)}
+    .size-chip.selected{background:var(--foreground);color:var(--background)}
+    .size-chip:disabled{text-decoration:line-through;opacity:.45;cursor:not-allowed}
+    .search-layout{display:grid;grid-template-columns:.7fr 1.3fr;gap:3rem;padding:clamp(1rem,4vw,4rem)}
+    .search-field{position:relative}
+    .search-field input{width:100%;font-size:clamp(2rem,5vw,5rem);border:0;border-bottom:1px solid var(--foreground);background:transparent;padding:.4rem 3rem .8rem 0;letter-spacing:-.04em}
+    .clear-search{position:absolute;right:0;bottom:1rem}
+    .suggestion-list{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+    .suggestion-list button{min-height:40px;border:1px solid var(--border);padding:.5rem .7rem}
+    .search-results{display:grid;gap:.5rem}
+    .search-item{display:grid;grid-template-columns:76px 1fr auto;gap:1rem;align-items:center;padding:.6rem;border-bottom:1px solid var(--border);text-align:left;width:100%}
+    .search-item img{aspect-ratio:3/4}
+    .cart-list{display:grid;gap:1rem}
+    .cart-item{display:grid;grid-template-columns:100px 1fr;gap:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+    .cart-item img{aspect-ratio:3/4}
+    .cart-footer{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:1rem}
+    .subtotal{display:flex;justify-content:space-between;font-weight:700;margin-bottom:1rem}
+    .viewer-grid{height:100%;display:grid;grid-template-rows:auto 1fr auto}
+    .viewer-stage{display:grid;place-items:center;overflow:hidden;position:relative;padding:1rem 5rem}
+    .viewer-stage img{max-width:100%;max-height:calc(100dvh - 160px);width:auto;height:auto;object-fit:contain;transform:scale(var(--zoom,1));transition:transform .2s}
+    .viewer-tools{display:flex;justify-content:center;align-items:center;gap:.6rem;padding:.7rem}
+    .viewer-tools button{color:inherit;border:1px solid color-mix(in oklch,white 25%,transparent);padding:.6rem;min-width:44px;min-height:44px}
+    .toast-region{position:fixed;right:1rem;bottom:1rem;z-index:var(--z-toast);display:grid;gap:.6rem}
+    .toast{background:var(--surface-dark);color:oklch(.95 .01 80);padding:.85rem 1rem;box-shadow:var(--shadow);min-width:240px;animation:toastIn .25s var(--ease)}
+    @keyframes toastIn{from{opacity:0;transform:translateY(12px)}}
+    .devbar{position:fixed;left:1rem;bottom:1rem;z-index:var(--z-toast);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);padding:.45rem;display:flex;gap:.4rem;align-items:center;font-size:11px}
+    .devbar button,.devbar select{min-height:36px;border:1px solid var(--border);background:var(--background);padding:.35rem .55rem}
+    .devbar button.active{background:var(--foreground);color:var(--background)}
+    .wireframe *{box-shadow:none!important;text-shadow:none!important}
+    .wireframe body::before{display:none}
+    .wireframe img{opacity:0!important}
+    .wireframe .hero-visual,.wireframe .product-media,.wireframe .mood-card,.wireframe .editorial-main,.wireframe .editorial-detail,.wireframe .featured-main,.wireframe .featured-thumbs button,.wireframe .story-image,.wireframe .look{background:var(--surface)!important;border:1px solid var(--foreground)!important}
+    .wireframe .hero-visual::before,.wireframe .product-media::before,.wireframe .mood-card::before,.wireframe .story-image::before,.wireframe .look::before{content:attr(data-wire);position:absolute;inset:0;display:grid;place-items:center;font:12px "Geist Mono";letter-spacing:.06em}
+    .wireframe .section,.wireframe header,.wireframe footer{border-color:var(--foreground)!important}
+    .wireframe .hotspot-dot{animation:none;box-shadow:none}
+    [data-state="loading"] .product-grid .product-card>*{visibility:hidden}
+    [data-state="loading"] .product-grid .product-card{aspect-ratio:3/5;background:var(--surface-soft);position:relative;overflow:hidden}
+    [data-state="loading"] .product-grid .product-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in oklch,var(--surface) 70%,transparent),transparent);animation:shimmer 1.2s infinite}
+    .state-only{display:none}
+    [data-state="error"] .state-error{display:block}
+    [data-state="empty"] .state-empty{display:block}
+    [data-state="error"] #productGrid,[data-state="empty"] #productGrid{display:none}
+    @media(max-width:1199px){
+      .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .product-grid.editorial .product-card{grid-column:span 6}
+      .primary-nav{gap:.8rem}
+      .mood-grid{grid-template-columns:1fr 1fr;grid-template-rows:420px 300px 300px}.mood-card:first-child{grid-row:span 2}.mood-card:nth-child(2){grid-column:2}
+      .product-rail{grid-auto-columns:minmax(245px,34vw)}
+    }
+    @media(max-width:899px){
+      .desktop-only{display:none!important}.mobile-only{display:inline-grid}
+      .header-inner{grid-template-columns:1fr auto 1fr}.header-actions{gap:0}
+      .hero{min-height:auto;padding-top:1rem}.hero-grid{grid-template-columns:1fr}.hero-copy{order:0;padding:2rem 0 1rem}.hero-visual{min-height:70vh;aspect-ratio:4/5}
+      .hero-copy h1{font-size:clamp(3.6rem,17vw,7rem);max-width:7ch}
+      .hotspot{left:8%;top:auto;bottom:4.4rem}
+      .section-head{grid-template-columns:auto 1fr}.section-head>*:last-child{grid-column:2}
+      .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .product-grid.editorial{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.product-grid.editorial .product-card,.product-grid.editorial .product-card:nth-child(n){grid-column:auto}
+      .editorial-grid{grid-template-columns:1fr;min-height:auto}.editorial-images{min-height:620px}.editorial-copy{border-left:0;border-top:1px solid color-mix(in oklch,white 18%,transparent)}
+      .trust-grid,.featured-grid,.newsletter-grid{grid-template-columns:1fr}
+      .journal-grid{grid-template-columns:1fr 1fr}.story-card:first-child{grid-column:1/-1}
+      .footer-grid{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}
+      .search-layout{grid-template-columns:1fr;gap:1.5rem}.search-field input{font-size:clamp(2rem,8vw,4rem)}
+      .quick-grid{grid-template-columns:1fr}.quick-gallery{min-height:54dvh}.quick-info{padding-bottom:6rem}
+      .dialog-shell.drawer{width:100vw}
+    }
+    @media(max-width:639px){
+      :root{--header-h:62px}
+      .shell{width:min(100% - 1rem,var(--max))}
+      .utility-inner{justify-content:center}.utility-controls{display:none}
+      .header-inner{gap:.25rem}.brand{font-size:1.2rem}
+      .hero{padding-bottom:3.5rem}.hero-copy h1{font-size:clamp(3.25rem,17vw,5.6rem)}
+      .hero-actions{display:grid}.hero-actions .btn{width:100%}
+      .hero-visual{min-height:0;aspect-ratio:4/5}
+      .category-row{grid-template-columns:minmax(0,1fr)}.category-row>.rail-arrow{display:none}
+      .section{padding-block:4.5rem}.section-head{gap:.8rem 1rem}
+      .section-head h2{font-size:clamp(2.35rem,11vw,4rem)}
+      .product-grid{gap:1.5rem .55rem}.product-info{grid-template-columns:1fr}.price{text-align:left}.product-meta{display:grid;gap:.1rem}
+      .quick-row{display:none}.mobile-actions{display:grid}
+      .product-title{font-size:.91rem}.product-meta,.price{font-size:.72rem}
+      .mood-grid{display:grid;grid-template-columns:1fr;grid-template-rows:500px 270px 340px 270px}.mood-card:nth-child(n){grid-column:auto;grid-row:auto}
+      .condition-item{grid-template-columns:90px 1fr}.condition-item>span:last-child{grid-column:2}
+      .product-rail{grid-auto-columns:minmax(230px,78vw)}
+      .featured-gallery{grid-template-columns:1fr}.featured-thumbs{grid-template-columns:repeat(3,1fr)}
+      .journal-grid{grid-template-columns:1fr}.story-card:first-child{grid-column:auto}
+      .community-grid{grid-template-columns:1fr 1fr;grid-auto-rows:210px}.look:nth-child(n){grid-column:auto;grid-row:auto}.look:nth-child(1),.look:nth-child(4){grid-column:1/-1}
+      .footer-grid{grid-template-columns:1fr}.footer-group{border-top:1px solid color-mix(in oklch,white 16%,transparent);padding-top:.8rem}
+      .devbar{left:.5rem;right:.5rem;bottom:.5rem;overflow:auto}.devbar .dev-label{display:none}
+      .dialog-shell,.dialog-shell.search-shell{width:100vw;height:100dvh;max-height:none;margin:0}
+      .dialog-head{padding-top:max(.8rem,env(safe-area-inset-top))}
+      .dialog-body{padding-bottom:max(1rem,env(safe-area-inset-bottom))}
+      .viewer-stage{padding:1rem}.search-layout{padding:1rem}
+      .search-item{grid-template-columns:64px 1fr}.search-item .price{grid-column:2}
+    }
+    @media(max-width:359px){.product-grid{grid-template-columns:1fr}.mobile-actions{grid-template-columns:1fr 1fr}}
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
+    }
+  </style>
+</head>
+<body class="fidelity" data-state="default">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="utility" aria-label="Store announcements">
+    <div class="shell utility-inner">
+      <span id="utilityMessage" class="utility-message">New drop: 38 pieces added</span>
+      <div class="utility-controls">
+        <button type="button" data-action="prev-utility" aria-label="Previous announcement">←</button>
+        <button type="button" data-overlay="delivery">Delivery information</button>
+        <button type="button" data-action="next-utility" aria-label="Next announcement">→</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header" id="siteHeader">
+    <div class="shell header-inner">
+      <div>
+        <button class="icon-btn mobile-only" type="button" data-overlay="mobile-nav" aria-label="Open menu">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+      <a class="brand" href="#main" aria-label="Laitstyle home">LAITSTYLE</a>
+      <nav class="primary-nav desktop-only" aria-label="Primary navigation">
+        <a class="nav-link" href="#new-drop">New In</a>
+        <button class="nav-link" id="shopTrigger" type="button" aria-expanded="false" aria-controls="megaMenu">Shop</button>
+        <a class="nav-link" href="#moods">Collections</a>
+        <a class="nav-link" href="#stories">Style Notes</a>
+        <a class="nav-link" href="#about">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" type="button" data-overlay="search" aria-label="Search">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        </button>
+        <button class="icon-btn desktop-only" type="button" data-overlay="saved" aria-label="Saved pieces">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M20.5 8.8c0 5.3-8.5 10.1-8.5 10.1S3.5 14.1 3.5 8.8A4.3 4.3 0 0 1 12 7.7a4.3 4.3 0 0 1 8.5 1.1Z"/></svg>
+          <span class="badge-count" id="savedCount">0</span>
+        </button>
+        <button class="icon-btn" type="button" data-overlay="cart" aria-label="Shopping bag">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          <span class="badge-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mega" id="megaMenu" role="region" aria-label="Shop menu">
+    <div class="shell mega-grid">
+      <div>
+        <p class="eyebrow">Browse pieces</p>
+        <div class="mega-links">
+          <a href="#new-drop" data-category="new">New arrivals</a><a href="#new-drop" data-category="dress">Dresses</a>
+          <a href="#new-drop" data-category="shirt">Shirts and blouses</a><a href="#new-drop" data-category="jacket">Jackets and blazers</a>
+          <a href="#new-drop" data-category="jeans">Denim and trousers</a><a href="#new-drop" data-category="knitwear">Knitwear</a>
+          <a href="#new-drop" data-category="bag">Bags and accessories</a><a href="#new-drop" data-category="under">Under ₦20,000</a>
+          <a href="#new-drop" data-category="one">One-of-one archive</a>
+        </div>
+      </div>
+      <div>
+        <div class="mega-image"><img src="https://assets.vogue.com/photos/644157512be90d94aa907d57/master/w_2560%2Cc_limit/00001-kenneth-ize-fall-2023-ready-to-wear-credit-brand.jpg" alt="Layered street tailoring in Lagos" loading="lazy"></div>
+        <p class="eyebrow">Featured collection</p><strong>City Layers — Look 04</strong>
+      </div>
+      <div class="mega-note">
+        <p class="eyebrow">Measured, not guessed</p>
+        <p>Every piece is checked by hand. We publish the garment measurements, its present condition and every flaw worth knowing.</p>
+        <button class="text-link" type="button" data-overlay="condition">Read the condition guide →</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Drop 08 · Lagos / July</span>
+          <h1 id="hero-title">Found once.<span class="serif">Worn your way.</span></h1>
+          <p>A new selection of measured, checked and genuinely one-of-one pieces—ready for their next wardrobe.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#new-drop">Shop the latest drop</a>
+            <a class="btn btn-ghost" href="#city-layers">See the styling story</a>
+          </div>
+          <span class="hero-note mono">38 pieces · no automatic restocks</span>
+        </div>
+        <div class="hero-visual" id="heroVisual" data-wire="[HERO IMAGE 3:4]">
+          <img id="heroImage" src="https://assets.vogue.com/photos/5fca91bc1066b359e5ff827a/master/w_1600%2Cc_limit/1.jpeg" alt="Editorial portrait in red, orange and patterned fabric">
+          <button class="btn alt-control" type="button" data-action="hero-alt">Alternate look</button>
+          <span class="image-index" id="heroIndex">LOOK 01 / 02</span>
+          <button class="hotspot" type="button" data-quick="p02" aria-label="Quick view Broken-in Leather Moto">
+            <span class="hotspot-dot">+</span>
+            <span class="hotspot-card"><span class="mono">LS-JK-041</span><strong>Broken-in Leather Moto</strong><span>₦42,000</span></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <nav class="category-wrap" aria-label="Product categories">
+      <div class="shell category-row">
+        <button class="rail-arrow" type="button" data-scroll="categories" data-dir="-1" aria-label="Scroll categories left">←</button>
+        <div class="category-rail" id="categories">
+          <button class="category-btn active" type="button" data-category="new">New in</button>
+          <button class="category-btn" type="button" data-category="dress">Dresses</button>
+          <button class="category-btn" type="button" data-category="jeans">Denim</button>
+          <button class="category-btn" type="button" data-category="jacket">Jackets</button>
+          <button class="category-btn" type="button" data-category="shirt">Shirts</button>
+          <button class="category-btn" type="button" data-category="knitwear">Knitwear</button>
+          <button class="category-btn" type="button" data-category="bag">Bags</button>
+          <button class="category-btn" type="button" data-category="under">Under ₦20k</button>
+          <button class="category-btn" type="button" data-category="one">One-of-one</button>
+        </div>
+        <button class="rail-arrow" type="button" data-scroll="categories" data-dir="1" aria-label="Scroll categories right">→</button>
+      </div>
+    </nav>
+
+    <section class="section" id="new-drop" aria-labelledby="drop-title">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-no">01 / NEW DROP</span>
+          <div><h2 id="drop-title">New pieces, already with a point of view.</h2><p class="muted">Measured, photographed and checked in Lagos.</p></div>
+          <a class="text-link" href="#featured">View all new pieces →</a>
+        </div>
+        <div class="product-toolbar">
+          <span class="mono" id="productCount">8 pieces</span>
+          <div class="layout-toggle" aria-label="Product layout">
+            <button class="active" type="button" data-layout="grid">Grid</button>
+            <button type="button" data-layout="editorial">Editorial</button>
+          </div>
+        </div>
+        <div class="state-only state-error error-state"><h3>That rail caught a snag.</h3><p>Product data could not be loaded. Your saved pieces are still safe.</p><button class="btn btn-primary" type="button" data-action="reset-state">Try again</button></div>
+        <div class="state-only state-empty empty-state"><h3>No pieces match this view.</h3><p>Try another category or return to the full drop.</p><button class="btn btn-primary" type="button" data-category="new">Show new pieces</button></div>
+        <div class="product-grid" id="productGrid" aria-live="polite" data-wire="[PRODUCT GRID]"></div>
+      </div>
+    </section>
+
+    <section class="section editorial-feature" id="city-layers" aria-labelledby="city-title">
+      <div class="shell editorial-grid">
+        <div class="editorial-images">
+          <div class="editorial-main"><img src="https://assets.vogue.com/photos/5fca9232d326e9a7dba5fa40/master/w_1600%2Cc_limit/7.jpeg" alt="Two people in layered contemporary fashion outdoors" loading="lazy"></div>
+          <div class="editorial-detail"><img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=82" alt="Close detail of worn leather texture" loading="lazy"></div>
+        </div>
+        <div class="editorial-copy">
+          <span class="eyebrow">Look 04 · City Layers</span>
+          <h2 id="city-title">Getting dressed, <span class="serif">less planned.</span></h2>
+          <p>Soft tailoring, washed denim and the pieces that make getting dressed feel less planned.</p>
+          <div class="editorial-product">
+            <div><span class="mono">LS-BZ-018</span><strong>Boxy Wool City Blazer</strong><div>₦36,000</div></div>
+            <button class="btn" type="button" data-quick="p05">Shop look</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="moods" aria-labelledby="moods-title">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-no">02 / MOODS</span>
+          <div><h2 id="moods-title">Shop by how the day feels.</h2><p class="muted">Not trends. More like useful instincts.</p></div>
+        </div>
+        <div class="mood-grid">
+          <article class="mood-card" data-wire="[TALL COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=1200&q=82" alt="Structured neutral blazer styling" loading="lazy"><div class="mood-copy"><span class="eyebrow">11 pieces</span><h3>Soft Tailoring</h3><p>Loose shoulders, clean trousers, no boardroom energy.</p><a href="#new-drop" data-category="jacket">Explore →</a></div></article>
+          <article class="mood-card" data-wire="[WIDE COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1581044777550-4cfa60707c03?auto=format&fit=crop&w=1400&q=82" alt="Colourful contemporary styling outdoors" loading="lazy"><div class="mood-copy"><span class="eyebrow">8 pieces</span><h3>Weekend Colour</h3><p>Pieces that do enough without needing a speech.</p><a href="#new-drop" data-category="dress">Explore →</a></div></article>
+          <article class="mood-card" data-wire="[COMPACT COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1566206091558-7f218b696731?auto=format&fit=crop&w=900&q=82" alt="Dark evening dress styling" loading="lazy"><div class="mood-copy"><span class="eyebrow">6 pieces</span><h3>After Dark</h3><p>Texture, shape and one good exit.</p><a href="#new-drop" data-category="dress">Explore →</a></div></article>
+          <article class="mood-card" data-wire="[COMPACT COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=82" alt="Relaxed workwear styling in daylight" loading="lazy"><div class="mood-copy"><span class="eyebrow">9 pieces</span><h3>Workwear Recut</h3><p>Utility pieces with the stiffness taken out.</p><a href="#new-drop" data-category="shirt">Explore →</a></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about" aria-labelledby="trust-title">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-no">03 / CONDITION + FIT</span>
+          <div><h2 id="trust-title">What you should know before it arrives.</h2><p class="muted">Vintage labels are suggestions. Measurements are evidence.</p></div>
+          <button class="text-link" type="button" data-overlay="condition">View full condition guide →</button>
+        </div>
+        <div class="trust-grid">
+          <div class="condition-scale" id="conditionScale">
+            <div class="condition-item"><strong>Like new</strong><div class="condition-line"><span style="--value:100%"></span></div><span class="mono">5 / 5</span></div>
+            <div class="condition-item"><strong>Excellent</strong><div class="condition-line"><span style="--value:82%"></span></div><span class="mono">4 / 5</span></div>
+            <div class="condition-item"><strong>Very good</strong><div class="condition-line"><span style="--value:64%"></span></div><span class="mono">3 / 5</span></div>
+            <div class="condition-item"><strong>Naturally worn</strong><div class="condition-line"><span style="--value:46%"></span></div><span class="mono">2 / 5</span></div>
+            <p class="muted">Normal ageing is described plainly. A flaw is anything that changes how the piece looks, feels or wears.</p>
+          </div>
+          <div class="measure-card">
+            <div class="garment-diagram" aria-hidden="true">
+              <svg viewBox="0 0 300 240"><path d="M95 35 55 70l30 45 22-17v105h86V98l22 17 30-45-40-35-35 18h-40L95 35Z"/><path d="M106 76h88M150 52v150M105 203h90"/><path d="M100 68 70 105M200 68l30 37"/></svg>
+            </div>
+            <div class="trust-tabs">
+              <details open><summary>Measured flat, in centimetres</summary><p>Chest, waist, hip and length are taken from the garment itself. Double flat widths where noted.</p></details>
+              <details><summary>Vintage size versus measured fit</summary><p>We keep the original label, then add the measured fit we think is most useful today.</p></details>
+              <details><summary>Cleaning status</summary><p>Each listing states whether the piece was steam refreshed, hand cleaned, dry cleaned or left untreated.</p></details>
+            </div>
+            <button class="btn btn-ghost" type="button" data-overlay="size">Open measurement guide</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="saved-title">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-no">04 / SAVED</span>
+          <div><h2 id="saved-title">The ones people keep saving.</h2><p class="muted">Not a countdown. Just the pieces currently getting attention.</p></div>
+          <div class="rail-tools"><button class="rail-arrow" type="button" data-scroll="savedRail" data-dir="-1" aria-label="Previous products">←</button><button class="rail-arrow" type="button" data-scroll="savedRail" data-dir="1" aria-label="Next products">→</button></div>
+        </div>
+        <div class="product-rail" id="savedRail" tabindex="0" aria-label="Most saved products"></div>
+        <div class="rail-progress" aria-hidden="true"><span id="railProgress"></span></div>
+      </div>
+    </section>
+
+    <section class="section" id="featured" aria-labelledby="featured-title">
+      <div class="shell featured-grid">
+        <div class="featured-gallery">
+          <button class="featured-main" type="button" data-viewer="p02" aria-label="Open Broken-in Leather Moto image preview"><img id="featuredMain" src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1300&q=85" alt="Brown vintage leather motorcycle jacket" loading="lazy"></button>
+          <div class="featured-thumbs">
+            <button type="button" data-featured-image="0"><img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=600&q=80" alt="Leather jacket front view" loading="lazy"></button>
+            <button type="button" data-featured-image="1"><img src="https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&w=600&q=80" alt="Leather jacket styled over a light top" loading="lazy"></button>
+            <button type="button" data-featured-image="2"><img src="https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?auto=format&fit=crop&w=600&q=80" alt="Close view of leather texture and zip" loading="lazy"></button>
+          </div>
+        </div>
+        <div class="featured-copy">
+          <span class="eyebrow">Featured exact piece · LS-JK-041</span>
+          <h2 id="featured-title">Broken-in Leather Moto</h2>
+          <p class="price" style="text-align:left;font-size:var(--text-lg)">₦42,000</p>
+          <p>Supple dark-brown leather with the right amount of collapse at the elbow. The patina is the reason, not a problem to hide.</p>
+          <blockquote class="serif" style="font-size:var(--text-xl);margin:1.4rem 0">“Wear it over a white vest now; keep it for harmattan evenings later.”</blockquote>
+          <dl class="fact-list"><div><dt>Measured fit</dt><dd>UK 10–12</dd></div><div><dt>Condition</dt><dd>Very good · 3/5</dd></div><div><dt>Chest</dt><dd>102 cm</dd></div><div><dt>Length</dt><dd>57 cm</dd></div><div><dt>Material</dt><dd>Leather</dd></div><div><dt>Cleaned</dt><dd>Conditioned</dd></div></dl>
+          <div style="display:flex;gap:.7rem;flex-wrap:wrap"><button class="btn btn-primary" type="button" data-add="p02">Add this exact piece</button><button class="btn btn-ghost" type="button" data-save="p02">Save piece</button></div>
+          <button class="text-link" type="button" data-overlay="delivery" style="margin-top:.7rem">Delivery in Lagos from 1–2 working days →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stories" aria-labelledby="stories-title">
+      <div class="shell">
+        <div class="section-head"><span class="section-no">05 / STYLE NOTES</span><div><h2 id="stories-title">Useful opinions on wearing old clothes now.</h2></div></div>
+        <div class="journal-grid">
+          <article class="story-card"><span class="eyebrow">Fit note · 6 min</span><div class="story-image" data-wire="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=1200&q=82" alt="Close view of vintage denim fit" loading="lazy"></div><h3>How to buy vintage denim without trusting the label</h3><a class="text-link" href="#about">Read note →</a></article>
+          <article class="story-card"><span class="eyebrow">Styling · 4 min</span><div class="story-image" data-wire="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=900&q=82" alt="Oversized blazer worn in warm weather" loading="lazy"></div><h3>Three ways to wear an oversized blazer in Lagos heat</h3><a class="text-link" href="#city-layers">Read note →</a></article>
+          <article class="story-card"><span class="eyebrow">Condition · 3 min</span><div class="story-image" data-wire="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=900&q=82" alt="Close detail of naturally worn fabric" loading="lazy"></div><h3>What “naturally worn” actually means</h3><button class="text-link" type="button" data-overlay="condition">Read note →</button></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="community-title">
+      <div class="shell">
+        <div class="section-head"><span class="section-no">06 / OUTSIDE</span><div><h2 id="community-title">Worn outside the product page.</h2><p class="muted">Customer looks from Lagos, Abuja and everywhere the clothes went next.</p></div></div>
+        <div class="community-grid">
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://assets.vogue.com/photos/5fca91d7dad9ba0c310e4bf8/master/w_1600%2Cc_limit/3.jpeg" alt="Layered contemporary look in daylight" loading="lazy"><button type="button" data-look="0"><strong>Ada · Lagos</strong><br>Boxy City Blazer · View look</button></article>
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=82" alt="Woman in checked streetwear" loading="lazy"><button type="button" data-look="1"><strong>Tola · Abuja</strong><br>Pleated Cocoa Midi · View look</button></article>
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1100&q=82" alt="Confident street style with structured layers" loading="lazy"><button type="button" data-look="2"><strong>M.O. · Lagos</strong><br>Reworked Indigo Denim · View look</button></article>
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=82" alt="Portrait in warm daylight" loading="lazy"><button type="button" data-look="3"><strong>Zainab · Kaduna</strong><br>Soft Collar Blouse · View look</button></article>
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=82" alt="Street styling with oversized outerwear" loading="lazy"><button type="button" data-look="4"><strong>Dami · Lagos</strong><br>Leather Moto · Sold</button></article>
+          <article class="look" data-wire="[CUSTOMER LOOK]"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=82" alt="Clothing rail in a warm studio" loading="lazy"><button type="button" data-look="5"><strong>Laitstyle Studio</strong><br>Drop 08 fitting · View look</button></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section newsletter" aria-labelledby="newsletter-title">
+      <div class="shell newsletter-grid">
+        <div><span class="eyebrow">Drop notes</span><h2 id="newsletter-title">The good ones rarely wait.</h2><p>New-drop notes, styling ideas and the occasional piece we almost kept.</p></div>
+        <form class="signup" id="newsletterForm" novalidate>
+          <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" aria-describedby="newsletterMessage" required></div>
+          <fieldset class="prefs"><legend class="eyebrow">Send me</legend><label><input type="radio" name="preference" value="drops"> New drops</label><label><input type="radio" name="preference" value="notes"> Styling notes</label><label><input type="radio" name="preference" value="both" checked> Both</label></fieldset>
+          <button class="btn" type="submit" id="newsletterButton">Join the list</button>
+          <div class="form-message" id="newsletterMessage" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-grid">
+      <div class="footer-brand"><a class="brand" href="#main">LAITSTYLE</a><p>One-of-one clothes with a previous life and a very current point of view.</p><span class="mono">Lagos, Nigeria</span><p><a href="#" data-action="prototype-link">Instagram</a> · <a href="#" data-action="prototype-link">Pinterest</a> · <a href="#" data-action="prototype-link">TikTok</a></p></div>
+      <div class="footer-group"><h3>Shop</h3><a href="#new-drop">New in</a><a href="#new-drop" data-category="dress">Dresses</a><a href="#new-drop" data-category="jacket">Jackets</a><a href="#new-drop" data-category="jeans">Denim</a><a href="#new-drop" data-category="bag">Bags</a><a href="#new-drop" data-category="one">One-of-one archive</a></div>
+      <div class="footer-group"><h3>Help</h3><button type="button" data-overlay="size">Sizing and measurements</button><button type="button" data-overlay="condition">Condition guide</button><button type="button" data-overlay="delivery">Delivery</button><a href="#" data-action="prototype-link">Returns</a><a href="mailto:hello@laitstyle.example">Contact</a></div>
+      <div class="footer-group"><h3>Information</h3><a href="#about">About</a><a href="#stories">Style Notes</a><a href="#about">Responsible sourcing</a><a href="#" data-action="prototype-link">Privacy</a><a href="#" data-action="prototype-link">Terms</a></div>
+      <div class="footer-group"><h3>Preferences</h3><span class="mono">Currency · NGN</span><button type="button" data-overlay="delivery">Region · Nigeria</button><button type="button" data-action="theme">Theme · <span id="themeLabel">Light</span></button><a href="#main">Accessibility</a></div>
+    </div>
+    <div class="shell footer-bottom"><span>© 2026 Laitstyle · Drop 08 / Build 1.0</span><span>Measured by hand. Selected with opinions.</span></div>
+  </footer>
+
+  <dialog id="appDialog" aria-labelledby="dialogTitle"><div id="dialogContent"></div></dialog>
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <aside class="devbar" aria-label="Prototype controls">
+    <span class="dev-label mono">PROTOTYPE</span>
+    <button type="button" data-mode="wireframe">Wireframe</button>
+    <button class="active" type="button" data-mode="fidelity">High fidelity</button>
+    <select id="stateSelect" aria-label="Preview state">
+      <option value="default">Default</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="error">Error</option>
+      <option value="sold">Sold out</option><option value="reserved">Reserved</option><option value="missing">Missing image</option><option value="long">Long title</option>
+    </select>
+  </aside>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const $ = (s, root=document) => root.querySelector(s);
+    const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+    const money = new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0});
+    const icon = {
+      close:'<svg class="icon" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg>',
+      heart:'<svg class="icon" viewBox="0 0 24 24"><path d="M20.5 8.8c0 5.3-8.5 10.1-8.5 10.1S3.5 14.1 3.5 8.8A4.3 4.3 0 0 1 12 7.7a4.3 4.3 0 0 1 8.5 1.1Z"/></svg>',
+      search:'<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>'
+    };
+    const img = (id,w=900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=82`;
+    const PRODUCTS = [
+      {id:"p01",sku:"LS-DR-082",title:"Vintage Ankara Day Dress",brand:"Found in Surulere",category:"dress",price:28000,originalPrice:34000,images:[img("photo-1595777457583-95e059d581b8"),img("photo-1566174053879-31528523f8ae")],sizeLabel:"UK 10 / measured 12",measurements:{bust:"96 cm",waist:"78 cm",hip:"free",length:"118 cm"},conditionScore:4,conditionLabel:"Excellent",flawNote:"One faint pull near the lower side seam, visible only on close inspection.",cleaningStatus:"Hand cleaned",material:"Cotton wax print",colour:"Oxblood / sand",era:"1990s",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:18,savedCount:42},
+      {id:"p02",sku:"LS-JK-041",title:"Broken-in Leather Moto",brand:"Unlabelled",category:"jacket",price:42000,images:[img("photo-1551028719-00167b16eac5"),img("photo-1520975954732-35dd22299614"),img("photo-1523779917675-b6ed3a42a561")],sizeLabel:"UK 10–12",measurements:{chest:"102 cm",length:"57 cm",shoulder:"44 cm",sleeve:"59 cm"},conditionScore:3,conditionLabel:"Very good",flawNote:"Natural creasing at elbows and a repaired 8 mm nick inside the left cuff.",cleaningStatus:"Leather conditioned",material:"Genuine leather",colour:"Dark cocoa",era:"Early 2000s",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:26,savedCount:76},
+      {id:"p03",sku:"LS-JN-103",title:"Reworked Indigo Denim",brand:"Laitstyle Recut",category:"jeans",price:24500,images:[img("photo-1541099649105-f69ad21f3246"),img("photo-1542272604-787c3835535d")],sizeLabel:"W30 / relaxed fit",measurements:{waist:"80 cm",hip:"106 cm",rise:"31 cm",inseam:"74 cm"},conditionScore:4,conditionLabel:"Excellent",flawNote:"Reworked from two vintage pairs; tonal variation is intentional.",cleaningStatus:"Washed and steam refreshed",material:"100% cotton denim",colour:"Indigo",era:"Reworked 2026",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:32,savedCount:63},
+      {id:"p04",sku:"LS-BL-019",title:"Soft Collar Sunday Blouse",category:"blouse",price:16500,images:[img("photo-1564257577-1a86f7d6c4ce"),img("photo-1485968579580-b6d095142e6e")],sizeLabel:"UK 8–10",measurements:{bust:"94 cm",length:"61 cm",shoulder:"38 cm"},conditionScore:5,conditionLabel:"Like new",cleaningStatus:"Hand cleaned",material:"Viscose",colour:"Cream",era:"Unknown",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:9,savedCount:28},
+      {id:"p05",sku:"LS-BZ-018",title:"Boxy Wool City Blazer",brand:"Jaeger",category:"jacket",price:36000,originalPrice:44000,images:[img("photo-1591047139829-d91aecb6caea"),img("photo-1591369822096-ffd140ec948f")],sizeLabel:"UK 14 / oversized 10–12",measurements:{chest:"112 cm",length:"76 cm",shoulder:"48 cm",sleeve:"60 cm"},conditionScore:4,conditionLabel:"Excellent",flawNote:"Two tiny moth grazes on the inner facing; not visible when worn.",cleaningStatus:"Professionally dry cleaned",material:"Wool blend",colour:"Mushroom",era:"1980s",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:21,savedCount:55},
+      {id:"p06",sku:"LS-SK-027",title:"Pleated Cocoa Midi Skirt",brand:"St Michael",category:"skirt",price:19500,images:[img("photo-1583496661160-fb5886a0aaaa"),img("photo-1582142306909-195724d33ffc")],sizeLabel:"Waist 76 cm",measurements:{waist:"76 cm",hip:"free",length:"79 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Steam refreshed",material:"Poly-wool blend",colour:"Cocoa",era:"1980s",stock:1,isOneOfOne:true,isNewDrop:true,isReserved:true,reservedUntil:"18:30 WAT",viewCount:12,savedCount:47},
+      {id:"p07",sku:"LS-SH-211",title:"Washed Linen Camp Shirt",category:"shirt",price:18000,images:[img("photo-1603252109303-2751441dd157"),img("photo-1598032895397-b9472444bf93")],sizeLabel:"M / relaxed",measurements:{chest:"110 cm",length:"70 cm",shoulder:"49 cm",sleeve:"24 cm"},conditionScore:3,conditionLabel:"Very good",flawNote:"Softened collar edge consistent with age.",cleaningStatus:"Hand washed",material:"Linen",colour:"Burnt clay",era:"1990s",stock:2,isOneOfOne:false,isNewDrop:true,viewCount:7,savedCount:19,availableSizes:["S","M"],unavailableSizes:["L"]},
+      {id:"p08",sku:"LS-JK-114",title:"Embroidered Denim Overshirt With Hand-Finished Back Panel and Generous Drop Shoulder",brand:"Unknown studio label",category:"jacket",price:31000,images:[img("photo-1523381294911-8d3cead13475"),img("photo-1542272604-787c3835535d")],sizeLabel:"L / oversized",measurements:{chest:"122 cm",length:"75 cm",shoulder:"55 cm",sleeve:"59 cm"},conditionScore:3,conditionLabel:"Very good",flawNote:"A long but stable repaired seam inside the lower back panel. Repair is neat and does not affect wear.",cleaningStatus:"Washed and steam refreshed",material:"Cotton denim",colour:"Washed blue",era:"1990s",stock:1,isOneOfOne:true,isNewDrop:true,viewCount:15,savedCount:37},
+      {id:"p09",sku:"LS-KN-009",title:"Saffron Rib Knit",category:"knitwear",price:14500,images:[img("photo-1576566588028-4147f3842f27")],sizeLabel:"S–M",measurements:{chest:"86–98 cm",length:"55 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Hand washed",material:"Cotton blend",colour:"Saffron",era:"2000s",stock:1,isOneOfOne:true,viewCount:10,savedCount:31},
+      {id:"p10",sku:"LS-BG-055",title:"Structured Wine Top-Handle Bag",brand:"Unlabelled",category:"bag",price:22000,images:[img("photo-1584917865442-de89df76afd3"),img("photo-1594223274512-ad4803739b7c")],sizeLabel:"One size",conditionScore:3,conditionLabel:"Very good",flawNote:"Light rubbing on two base corners.",cleaningStatus:"Surface cleaned",material:"Leather",colour:"Wine",era:"1990s",stock:1,isOneOfOne:true,viewCount:14,savedCount:44},
+      {id:"p11",sku:"LS-TR-066",title:"High-Rise Tobacco Trousers",category:"trousers",price:23500,images:[img("photo-1594633312681-425c7b97ccd1"),img("photo-1506629082955-511b1aa562c8")],sizeLabel:"W32",measurements:{waist:"84 cm",hip:"108 cm",rise:"33 cm",inseam:"77 cm"},conditionScore:5,conditionLabel:"Like new",cleaningStatus:"Dry cleaned",material:"Wool blend",colour:"Tobacco",era:"1990s",stock:1,isOneOfOne:true,viewCount:11,savedCount:35},
+      {id:"p12",sku:"LS-DR-090",title:"Bias-Cut Ink Slip Dress",category:"dress",price:26000,images:[img("photo-1566206091558-7f218b696731"),img("photo-1568252542512-9fe8fe9c87bb")],sizeLabel:"UK 12",measurements:{bust:"98 cm",waist:"86 cm",hip:"108 cm",length:"132 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Hand cleaned",material:"Viscose",colour:"Ink",era:"1990s",stock:0,isOneOfOne:true,viewCount:23,savedCount:69},
+      {id:"p13",sku:"LS-SH-042",title:"Palm Green Silk Shirt",brand:"Equipment",category:"shirt",price:27500,images:[img("photo-1598033129183-c4f50c736f10"),img("photo-1620799140408-edc6dcb6d633")],sizeLabel:"M",measurements:{chest:"108 cm",length:"72 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Dry cleaned",material:"Silk",colour:"Palm green",era:"2000s",stock:1,isOneOfOne:true,viewCount:8,savedCount:24},
+      {id:"p14",sku:"LS-DR-117",title:"Sunset Column Dress",category:"dress",price:29500,images:[img("photo-1581044777550-4cfa60707c03"),img("photo-1595777457583-95e059d581b8")],sizeLabel:"UK 8",measurements:{bust:"88 cm",waist:"72 cm",hip:"94 cm",length:"136 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Steam refreshed",material:"Rayon",colour:"Tomato",era:"1990s",stock:1,isOneOfOne:true,viewCount:19,savedCount:58},
+      {id:"p15",sku:"LS-AC-021",title:"Hammered Brass Collar",category:"accessory",price:12000,images:[img("photo-1535632066927-ab7c9ab60908")],sizeLabel:"Adjustable",conditionScore:3,conditionLabel:"Very good",flawNote:"Natural darkening at the inner curve.",cleaningStatus:"Gently polished",material:"Brass",colour:"Warm brass",era:"Unknown",stock:1,isOneOfOne:true,viewCount:6,savedCount:17},
+      {id:"p16",sku:"LS-KN-034",title:"Oat Cable Vest",category:"knitwear",price:17000,images:[img("photo-1620799140188-3b2a02fd9a77"),img("photo-1576566588028-4147f3842f27")],sizeLabel:"M–L",measurements:{chest:"104 cm",length:"58 cm"},conditionScore:3,conditionLabel:"Very good",cleaningStatus:"Hand washed",material:"Wool blend",colour:"Oat",era:"1990s",stock:1,isOneOfOne:true,viewCount:7,savedCount:21},
+      {id:"p17",sku:"LS-JK-207",title:"Olive Utility Jacket",category:"jacket",price:25500,images:[img("photo-1551488831-00ddcb6c6bd3"),img("photo-1548126032-079a0fb0099d")],sizeLabel:"M",measurements:{chest:"114 cm",length:"71 cm"},conditionScore:2,conditionLabel:"Naturally worn",flawNote:"Faded pocket edges, softened cuffs and two paint marks near the hem.",cleaningStatus:"Washed",material:"Cotton drill",colour:"Olive",era:"1990s",stock:1,isOneOfOne:true,viewCount:16,savedCount:39},
+      {id:"p18",sku:"LS-SK-031",title:"Graphic Wrap Skirt",category:"skirt",price:20500,images:[img("photo-1582142306909-195724d33ffc"),img("photo-1594633312681-425c7b97ccd1")],sizeLabel:"Adjustable 72–88 cm",measurements:{waist:"72–88 cm",length:"84 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Hand cleaned",material:"Cotton",colour:"Clay / black",era:"2000s",stock:1,isOneOfOne:true,viewCount:12,savedCount:36},
+      {id:"p19",sku:"LS-BL-051",title:"Cloud Organza Blouse",category:"blouse",price:22500,images:[img("photo-1564257577-1a86f7d6c4ce")],sizeLabel:"UK 10",measurements:{bust:"100 cm",length:"63 cm"},conditionScore:5,conditionLabel:"Like new",cleaningStatus:"Hand cleaned",material:"Organza blend",colour:"Cloud",era:"Unknown",stock:1,isOneOfOne:true,viewCount:10,savedCount:29},
+      {id:"p20",sku:"LS-BG-081",title:"Soft Woven Shoulder Bag",category:"bag",price:18500,images:[img("photo-1594223274512-ad4803739b7c")],sizeLabel:"One size",conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Surface cleaned",material:"Woven leather",colour:"Espresso",era:"2000s",stock:1,isOneOfOne:true,viewCount:18,savedCount:51},
+      {id:"p21",sku:"LS-JN-121",title:"Stonewash Straight Jeans",brand:"Levi's",category:"jeans",price:27000,images:[img("photo-1542272604-787c3835535d"),img("photo-1541099649105-f69ad21f3246")],sizeLabel:"W29 L30",measurements:{waist:"78 cm",hip:"100 cm",rise:"29 cm",inseam:"75 cm"},conditionScore:3,conditionLabel:"Very good",cleaningStatus:"Washed",material:"Cotton denim",colour:"Stonewash blue",era:"1990s",stock:1,isOneOfOne:true,viewCount:24,savedCount:72},
+      {id:"p22",sku:"LS-SH-287",title:"Fine Stripe Grandad Shirt",category:"shirt",price:15500,images:["",img("photo-1603252109303-2751441dd157")],sizeLabel:"L",measurements:{chest:"118 cm",length:"78 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Hand washed",colour:"Blue stripe",era:"Unknown",stock:1,isOneOfOne:true,viewCount:5,savedCount:13},
+      {id:"p23",sku:"LS-TR-301",title:"Wide-Leg Night Trousers",category:"trousers",price:21000,images:[img("photo-1506629082955-511b1aa562c8")],sizeLabel:"W28–30",measurements:{waist:"76 cm",hip:"104 cm",rise:"34 cm",inseam:"80 cm"},conditionScore:4,conditionLabel:"Excellent",cleaningStatus:"Dry cleaned",material:"Viscose blend",colour:"Black-brown",era:"2000s",stock:3,isOneOfOne:false,availableSizes:["28","30","32"],unavailableSizes:["34"],viewCount:13,savedCount:33},
+      {id:"p24",sku:"LS-DR-145",title:"Checked Tea Dress",category:"dress",price:23500,images:[img("photo-1572804013309-59a88b7e92f1"),img("photo-1566174053879-31528523f8ae")],sizeLabel:"UK 14",measurements:{bust:"106 cm",waist:"90 cm",hip:"114 cm",length:"116 cm"},conditionScore:3,conditionLabel:"Very good",flawNote:"One replaced button at the lower placket; colour match is close.",cleaningStatus:"Hand washed",material:"Cotton",colour:"Brown check",era:"1980s",stock:1,isOneOfOne:true,viewCount:9,savedCount:27}
+    ];
+    const looks = [
+      {name:"Ada",city:"Lagos",product:"p05",note:"Rolled the sleeves twice, wore it over a tiny white tee and left the trousers loose.",image:"https://assets.vogue.com/photos/5fca91d7dad9ba0c310e4bf8/master/w_1600%2Cc_limit/3.jpeg"},
+      {name:"Tola",city:"Abuja",product:"p06",note:"Kept the pleats sharp and added an old brown belt from my mum.",image:img("photo-1539109136881-3be0616acf4b",1200)},
+      {name:"M.O.",city:"Lagos",product:"p03",note:"The jeans sit low enough to feel relaxed, but the reworked seam makes them feel intentional.",image:img("photo-1529139574466-a303027c1d8b",1200)},
+      {name:"Zainab",city:"Kaduna",product:"p04",note:"Buttoned to the collar for work, open over a vest afterwards.",image:img("photo-1524504388940-b1c1722653e1",1200)},
+      {name:"Dami",city:"Lagos",product:"p02",note:"This exact moto is sold. The leather got better every time it left the house.",image:img("photo-1515886657613-9f3515b0c78f",1200),sold:true},
+      {name:"Laitstyle Studio",city:"Lagos",product:"p08",note:"Drop 08 fitting day. Nothing was pinned to hide the actual fit.",image:img("photo-1483985988355-763728e1935b",1200)}
+    ];
+    const state = {
+      category:"new", layout:"grid", selected:null, selectedSize:null, hero:0, utility:0,
+      saved:new Set(JSON.parse(localStorage.getItem("laitstyle:saved")||"[]")),
+      cart:JSON.parse(localStorage.getItem("laitstyle:cart")||"[]"),
+      lastFocus:null, zoom:1, viewerIndex:0
+    };
+    const announcements = ["New drop: 38 pieces added","Free Lagos delivery over ₦65,000","Every piece is measured by hand","One piece means one piece"];
+    const dialog = $("#appDialog"), dialogContent=$("#dialogContent");
+
+    function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+    function product(id){return PRODUCTS.find(p=>p.id===id)}
+    function discount(p){return p.originalPrice?Math.round((1-p.price/p.originalPrice)*100):0}
+    function stockLabel(p){
+      if(p.isReserved) return {label:"Reserved",cls:"reserved"};
+      if(p.stock===0) return {label:"Sold out",cls:"sold"};
+      if(p.stock===1) return {label:"Exact piece",cls:""};
+      return {label:`${p.stock} available`,cls:""};
+    }
+    function fallback(el,p){
+      el.removeAttribute("src"); el.alt=`Image unavailable for ${p.title}`; el.classList.add("image-failed");
+      el.parentElement.style.background=`var(--surface-soft)`;
+      el.parentElement.insertAdjacentHTML("beforeend",`<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:1rem;font:12px Geist Mono"><div><strong style="font-size:2rem;display:block">LS</strong>Image unavailable<br>${esc(p.category)}</div></div>`);
+    }
+    function card(p,rail=false){
+      const s=stockLabel(p), saved=state.saved.has(p.id), missing=!p.images[0];
+      return `<article class="product-card" data-id="${p.id}">
+        <div class="product-media" data-wire="[PRODUCT IMAGE 3:4]">
+          ${missing?`<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:12px Geist Mono"><div><strong style="font-size:2rem;display:block">LS</strong>Image unavailable<br>${esc(p.category)}</div></div>`:`<img src="${p.images[0]}" alt="${esc(p.title)} front view" loading="lazy">`}
+          ${p.images[1]?`<img class="alt" src="${p.images[1]}" alt="${esc(p.title)} alternate view" loading="lazy">`:""}
+          <div class="product-badges">${p.isNewDrop?`<span class="product-badge">New drop</span>`:""}${p.isOneOfOne?`<span class="product-badge">One of one</span>`:""}${p.stock===0?`<span class="product-badge danger">Sold</span>`:""}${p.isReserved?`<span class="product-badge danger">Reserved</span>`:""}</div>
+          <button class="icon-btn save-btn ${saved?"saved":""}" type="button" data-save="${p.id}" aria-label="${saved?"Remove from":"Save"} ${esc(p.title)}" aria-pressed="${saved}">${icon.heart}</button>
+          <div class="quick-row"><button type="button" data-quick="${p.id}">Quick view</button><button class="add-card" type="button" data-add="${p.id}" ${p.stock===0||p.isReserved?"disabled":""}>${p.stock===0?"Sold out":p.isReserved?"Reserved":p.availableSizes?"Choose size":"Add piece"}</button></div>
+        </div>
+        <div class="product-info">
+          <h3 class="product-title">${esc(p.title)}</h3>
+          <div class="price">${p.originalPrice?`<span class="old-price">${money.format(p.originalPrice)}</span>`:""}${money.format(p.price)}</div>
+          <div class="product-meta"><span>${esc(p.sizeLabel)} · ${esc(p.conditionLabel)}</span><span class="stock ${s.cls}">${s.label}</span></div>
+          ${rail?`<div class="product-meta"><span>♡ ${p.savedCount||0} saves</span><span>${p.viewCount?`${p.viewCount} viewing`:""}</span></div>`:""}
+          <div class="mobile-actions"><button type="button" data-quick="${p.id}">Quick view</button><button type="button" data-add="${p.id}" ${p.stock===0||p.isReserved?"disabled":""}>${p.stock===0?"Sold":p.isReserved?"Reserved":"Add"}</button></div>
+        </div>
+      </article>`;
+    }
+    function filtered(){
+      let list = PRODUCTS;
+      if(state.category==="new") list=PRODUCTS.filter(p=>p.isNewDrop);
+      else if(state.category==="under") list=PRODUCTS.filter(p=>p.price<20000);
+      else if(state.category==="one") list=PRODUCTS.filter(p=>p.isOneOfOne);
+      else if(state.category==="jacket") list=PRODUCTS.filter(p=>["jacket","blazer"].includes(p.category));
+      else if(state.category==="shirt") list=PRODUCTS.filter(p=>["shirt","blouse"].includes(p.category));
+      else if(state.category==="jeans") list=PRODUCTS.filter(p=>["jeans","trousers"].includes(p.category));
+      else list=PRODUCTS.filter(p=>p.category===state.category);
+      return list.slice(0,8);
+    }
+    function renderProducts(){
+      let list=filtered();
+      const preview=document.body.dataset.state;
+      if(preview==="sold") list=list.map((p,i)=>i===0?{...p,stock:0,isReserved:false}:p);
+      if(preview==="reserved") list=list.map((p,i)=>i===0?{...p,isReserved:true}:p);
+      if(preview==="missing") list=list.map((p,i)=>i===0?{...p,images:[""]}:p);
+      if(preview==="long") list=list.map((p,i)=>i===0?{...p,title:"An Exceptionally Long Reworked Indigo Overshirt With Hand-Finished Contrast Panels and an Unusually Generous Drop Shoulder"}:p);
+      $("#productGrid").className=`product-grid ${state.layout==="editorial"?"editorial":""}`;
+      $("#productGrid").innerHTML=list.map(p=>card(p)).join("");
+      $("#productCount").textContent=`${list.length} piece${list.length===1?"":"s"}`;
+    }
+    function renderRail(){
+      const list=[...PRODUCTS].sort((a,b)=>(b.savedCount||0)-(a.savedCount||0)).slice(0,6);
+      $("#savedRail").innerHTML=list.map(p=>card(p,true)).join("");
+    }
+    function syncCounts(){
+      $("#savedCount").textContent=state.saved.size; $("#cartCount").textContent=state.cart.length;
+      localStorage.setItem("laitstyle:saved",JSON.stringify([...state.saved]));
+      localStorage.setItem("laitstyle:cart",JSON.stringify(state.cart));
+      $$("[data-save]").forEach(b=>{const saved=state.saved.has(b.dataset.save);b.classList.toggle("saved",saved);b.setAttribute("aria-pressed",saved);b.setAttribute("aria-label",`${saved?"Remove from":"Save"} saved pieces`)});
+    }
+    function toast(message){
+      const node=document.createElement("div");node.className="toast";node.textContent=message;$("#toastRegion").append(node);
+      setTimeout(()=>node.remove(),3600);
+    }
+    function toggleSave(id){
+      const p=product(id); if(!p)return;
+      if(state.saved.has(id)){state.saved.delete(id);toast("Removed from saved pieces.");}
+      else {state.saved.add(id);toast(p.stock===0?"This piece has sold, but it remains in your archive.":"Saved for later.");}
+      syncCounts(); renderProducts(); renderRail();
+    }
+    function addToCart(id,size=null){
+      const p=product(id); if(!p)return;
+      if(p.stock===0){toast("This piece has sold.");return}
+      if(p.isReserved){toast("This piece is currently reserved.");return}
+      if(p.availableSizes && !size){openQuick(id);toast("Choose a size before adding.");return}
+      if(state.cart.some(i=>i.id===id && i.size===size)){toast("That exact piece is already in your bag.");openOverlay("cart");return}
+      state.cart.push({id,size:size||p.sizeLabel,addedPrice:p.price}); syncCounts(); toast("Added to your bag."); openOverlay("cart");
+    }
+    function closeMega(){
+      $("#megaMenu").classList.remove("open");$("#shopTrigger").setAttribute("aria-expanded","false");
+    }
+    function openMega(){
+      $("#megaMenu").classList.add("open");$("#shopTrigger").setAttribute("aria-expanded","true");
+    }
+    function dialogFrame(title,body,cls=""){
+      return `<div class="dialog-shell ${cls}"><div class="dialog-head"><h2 id="dialogTitle">${title}</h2><button class="icon-btn" type="button" data-close aria-label="Close">${icon.close}</button></div>${body}</div>`;
+    }
+    function openDialog(html){
+      if(dialog.open) dialog.close();
+      state.lastFocus=document.activeElement; dialogContent.innerHTML=html; document.body.classList.add("overlay-open"); dialog.showModal();
+      requestAnimationFrame(()=>{const f=$("input,button,a,[tabindex]:not([tabindex='-1'])",dialogContent);if(f)f.focus()});
+    }
+    function closeDialog(){
+      if(dialog.open)dialog.close();document.body.classList.remove("overlay-open");if(state.lastFocus?.focus)state.lastFocus.focus();
+    }
+    function openQuick(id){
+      const p=product(id); if(!p)return; state.selected=id;state.selectedSize=null;
+      const d=discount(p), s=stockLabel(p), measures=Object.entries(p.measurements||{}).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")||`<p class="muted">Measurements are being rechecked. Contact us before buying.</p>`;
+      const sizes=p.availableSizes?`<div><p class="eyebrow">Choose size</p><div class="size-row">${p.availableSizes.map(x=>`<button class="size-chip" type="button" data-size="${esc(x)}">${esc(x)}</button>`).join("")}${(p.unavailableSizes||[]).map(x=>`<button class="size-chip" type="button" disabled aria-label="${esc(x)} unavailable">${esc(x)}</button>`).join("")}</div></div>`:"";
+      const body=`<div class="quick-grid">
+        <div><div class="quick-gallery"><img id="quickMain" src="${p.images[0]||""}" alt="${esc(p.title)} main image"></div><div class="quick-thumbs">${p.images.filter(Boolean).map((src,i)=>`<button type="button" data-quick-image="${i}"><img src="${src}" alt="${esc(p.title)} view ${i+1}"></button>`).join("")}</div></div>
+        <div class="quick-info">
+          <span class="eyebrow">${esc(p.sku)} · ${s.label}</span><h2>${esc(p.title)}</h2>
+          <p class="price" style="text-align:left;font-size:var(--text-lg)">${p.originalPrice?`<span class="old-price">${money.format(p.originalPrice)}</span>`:""}${money.format(p.price)} ${d?`<span class="product-badge">${d}% less</span>`:""}</p>
+          <p><strong>${p.conditionLabel} · ${p.conditionScore}/5.</strong> ${esc(p.flawNote||"No notable flaw beyond normal signs of careful previous wear.")}</p>
+          ${sizes}
+          <dl class="fact-list">${measures}</dl>
+          <dl class="fact-list"><div><dt>Size label</dt><dd>${esc(p.sizeLabel)}</dd></div><div><dt>Material</dt><dd>${esc(p.material||"Not confirmed")}</dd></div><div><dt>Cleaning</dt><dd>${esc(p.cleaningStatus||"Not recorded")}</dd></div><div><dt>Era</dt><dd>${esc(p.era||"Unknown")}</dd></div></dl>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+            <button class="btn btn-primary" type="button" data-add-from-quick="${p.id}" ${p.stock===0||p.isReserved?"disabled":""}>${p.stock===0?"Sold out":p.isReserved?"Reserved":p.availableSizes?"Choose size":"Add this exact piece"}</button>
+            <button class="btn btn-ghost" type="button" data-save="${p.id}">${state.saved.has(p.id)?"Saved":"Save piece"}</button>
+          </div>
+          <button class="text-link" type="button" data-viewer="${p.id}" style="margin-top:.8rem">View full-size images →</button>
+        </div></div>`;
+      openDialog(dialogFrame("Quick view",body));
+    }
+    function openViewer(id,index=0){
+      const p=product(id);if(!p)return;state.selected=id;state.viewerIndex=index;state.zoom=1;
+      const body=`<div class="dialog-shell viewer"><div class="viewer-grid">
+        <div class="dialog-head" style="background:transparent;color:inherit;border-color:rgba(255,255,255,.18)"><div><span class="eyebrow">${esc(p.sku)}</span><h2 id="dialogTitle">${esc(p.title)}</h2></div><button class="icon-btn" type="button" data-close aria-label="Close">${icon.close}</button></div>
+        <div class="viewer-stage"><img id="viewerImage" draggable="false" src="${p.images[index]||""}" alt="${esc(p.title)} image ${index+1}"></div>
+        <div class="viewer-tools"><button type="button" data-viewer-nav="-1" aria-label="Previous image">←</button><span class="mono" id="viewerCount">${index+1} / ${p.images.length}</span><button type="button" data-viewer-nav="1" aria-label="Next image">→</button><button type="button" data-zoom="in">Zoom +</button><button type="button" data-zoom="reset">Reset</button></div>
+      </div></div>`;
+      openDialog(body);
+    }
+    function updateViewer(dir){
+      const p=product(state.selected);if(!p)return;
+      state.viewerIndex=(state.viewerIndex+dir+p.images.length)%p.images.length; state.zoom=1;
+      $("#viewerImage").src=p.images[state.viewerIndex]||"";$("#viewerImage").style.setProperty("--zoom",1);$("#viewerCount").textContent=`${state.viewerIndex+1} / ${p.images.length}`;
+    }
+    function openSearch(){
+      const body=`<div class="search-layout">
+        <div><p class="eyebrow">Search one-of-one pieces</p><div class="search-field"><label class="sr-only" for="searchInput">Search products</label><input id="searchInput" type="search" autocomplete="off" placeholder="Try leather jacket"><button class="icon-btn clear-search" type="button" data-action="clear-search" aria-label="Clear search">${icon.close}</button></div>
+        <p class="eyebrow" style="margin-top:2rem">Trending</p><div class="suggestion-list">${["Leather jacket","Ankara dress","Oversized blazer","Under ₦20k","Size 12","Denim"].map(q=>`<button type="button" data-search="${q}">${q}</button>`).join("")}</div></div>
+        <div><p class="eyebrow">Results</p><div class="search-results" id="searchResults" aria-live="polite">${searchResults("")}</div></div></div>`;
+      openDialog(dialogFrame("Search",body,"search-shell"));
+      $("#searchInput")?.addEventListener("input",e=>{$("#searchResults").innerHTML=`<div class="skeleton" style="height:82px"></div><div class="skeleton" style="height:82px"></div>`;clearTimeout(window.__searchTimer);window.__searchTimer=setTimeout(()=>{$("#searchResults").innerHTML=searchResults(e.target.value)},220)});
+      $("#searchInput")?.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){e.preventDefault();$("#searchResults button")?.focus()}});
+    }
+    function searchResults(q){
+      const query=q.trim().toLowerCase();
+      if(query==="error") return `<div class="error-state"><p>Search is unavailable for a moment.</p><button class="btn" type="button" data-search="">Try again</button></div>`;
+      let list=PRODUCTS.filter(p=>!query||[p.title,p.category,p.sizeLabel,p.conditionLabel,p.colour,p.material].join(" ").toLowerCase().includes(query));
+      if(query.includes("under")||query.includes("20k")) list=PRODUCTS.filter(p=>p.price<20000);
+      if(!list.length)return `<div class="empty-state"><h3>No exact match.</h3><p>Try “Denim”, “Size 12” or another material.</p></div>`;
+      return list.slice(0,6).map(p=>`<button class="search-item" type="button" data-quick="${p.id}"><img src="${p.images[0]||""}" alt=""><span><strong>${esc(p.title)}</strong><br><small>${esc(p.sizeLabel)} · ${esc(p.conditionLabel)} · ${stockLabel(p).label}</small></span><span class="price">${money.format(p.price)}</span></button>`).join("");
+    }
+    function openCart(){
+      const items=state.cart.map(item=>({item,p:product(item.id)})).filter(x=>x.p);
+      const content=items.length?`<div class="dialog-body"><div class="cart-list">${items.map(({item,p},i)=>`<article class="cart-item"><img src="${p.images[0]||""}" alt="${esc(p.title)}"><div><span class="eyebrow">${esc(p.conditionLabel)} · ${esc(p.sku)}</span><h3>${esc(p.title)}</h3><p>${esc(item.size)} · ${money.format(item.addedPrice)}</p>${p.isOneOfOne?`<small>Quantity is locked to one because this is an exact piece.</small>`:""}${p.stock===0?`<p class="stock sold">This piece sold before checkout. Remove it or save it to your archive.</p>`:""}${item.addedPrice!==p.price?`<p class="stock reserved">Price updated to ${money.format(p.price)}.</p>`:""}<div style="display:flex;gap:.8rem;margin-top:.7rem"><button class="text-link" type="button" data-cart-save="${i}">Save for later</button><button class="text-link" type="button" data-cart-remove="${i}">Remove</button></div></div></article>`).join("")}</div></div>
+        <div class="cart-footer"><p class="muted">Estimated Lagos delivery: 1–2 working days.</p><div class="subtotal"><span>Subtotal</span><span>${money.format(items.reduce((s,x)=>s+x.p.price,0))}</span></div><button class="btn btn-primary" style="width:100%" type="button" data-action="checkout" ${items.some(x=>x.p.stock===0)?"disabled":""}>${items.some(x=>x.p.stock===0)?"Resolve bag before checkout":"Continue to checkout"}</button><button class="btn btn-ghost" style="width:100%;margin-top:.5rem" type="button" data-close>Continue shopping</button></div>`:
+        `<div class="dialog-body empty-state" style="border:0"><h3>Your bag is still waiting for its first good find.</h3><p>One piece means exactly one piece. We will keep your browsing position when you come back.</p><button class="btn btn-primary" type="button" data-close data-scrollto="new-drop">Browse the latest drop</button></div>`;
+      openDialog(dialogFrame("Your bag",content,"drawer"));
+    }
+    function openSaved(){
+      const list=PRODUCTS.filter(p=>state.saved.has(p.id));
+      const body=list.length?`<div class="dialog-body"><div class="cart-list">${list.map(p=>`<article class="cart-item"><img src="${p.images[0]||""}" alt="${esc(p.title)}"><div><h3>${esc(p.title)}</h3><p>${money.format(p.price)} · ${stockLabel(p).label}</p><button class="text-link" type="button" data-quick="${p.id}">Quick view</button><button class="text-link" type="button" data-save="${p.id}">Remove</button></div></article>`).join("")}</div></div>`:`<div class="dialog-body empty-state" style="border:0"><h3>No saved pieces yet.</h3><p>Use the heart on any card. Saved pieces stay in this browser.</p><button class="btn btn-primary" type="button" data-close data-scrollto="new-drop">Browse new pieces</button></div>`;
+      openDialog(dialogFrame("Saved pieces",body,"drawer"));
+    }
+    function openMobileNav(){
+      const body=`<div class="dialog-body"><nav style="display:grid;font-size:var(--text-xl)"><a class="text-link" href="#new-drop" data-close>New In</a><details><summary>Shop</summary><div style="display:grid;padding-left:1rem">${["Dresses","Shirts","Jackets","Denim","Knitwear","Bags","Under ₦20k","One-of-one"].map(x=>`<a class="text-link" href="#new-drop" data-category="${x.toLowerCase().includes("under")?"under":x.toLowerCase().includes("one")?"one":x.toLowerCase().replace("jackets","jacket").replace("shirts","shirt").replace("dresses","dress").replace("bags","bag").replace("denim","jeans")}">${x}</a>`).join("")}</div></details><a class="text-link" href="#moods" data-close>Collections</a><a class="text-link" href="#stories" data-close>Style Notes</a><a class="text-link" href="#about" data-close>About</a></nav><div style="border-top:1px solid var(--border);margin-top:2rem;padding-top:1rem"><button class="text-link" type="button" data-overlay="saved">Saved pieces (${state.saved.size})</button><button class="text-link" type="button" data-overlay="delivery">Delivery information</button></div></div>`;
+      openDialog(dialogFrame("Menu",body,"drawer"));
+    }
+    function openInfo(type){
+      const copy={
+        size:["Size and measurement guide",`<div class="dialog-body"><p class="eyebrow">Measured flat, by hand</p><h2>Use the garment, not the label.</h2><div class="trust-grid"><div><p>Chest and bust are measured from underarm to underarm, then doubled. Waist and hip are measured at the garment’s natural line. Length runs from the highest shoulder point unless stated otherwise.</p><p>Vintage size labels can run smaller or larger than current sizing. We show the original label and a present-day measured fit separately.</p></div><div class="measure-card"><div class="garment-diagram"><svg viewBox="0 0 300 240"><path d="M95 35 55 70l30 45 22-17v105h86V98l22 17 30-45-40-35-35 18h-40L95 35Z"/><path d="M106 76h88M150 52v150M105 203h90"/></svg></div><p class="mono">Need a second measurement? hello@laitstyle.example</p></div></div></div>`],
+        condition:["Condition guide",`<div class="dialog-body"><p class="eyebrow">Calm, specific disclosure</p><h2>Age is not automatically a flaw.</h2><div class="trust-grid"><div>${["Like new — appears unworn or barely worn.","Excellent — minimal signs of careful wear.","Very good — visible but minor signs of previous use.","Naturally worn — patina, fading or softened structure that belongs to the piece."].map(x=>`<p><strong>${x.split(" — ")[0]}</strong><br>${x.split(" — ")[1]}</p>`).join("")}</div><div><p><strong>Normal ageing</strong> is expected change that does not reduce wearability. <strong>A flaw</strong> is a mark, repair or weakness that changes appearance, fit or function.</p><p>Cleaning labels state what we did, not a promise that every historic mark disappeared. Condition affects price alongside rarity, material and construction.</p><p>Questions before buying are welcome. Returns and support are available through the Help links.</p></div></div></div>`],
+        delivery:["Delivery information",`<div class="dialog-body"><p class="eyebrow">Nigeria delivery</p><h2>Clear estimates, no disappearing fees.</h2><div class="fact-list"><div><dt>Lagos metro</dt><dd>1–2 working days</dd></div><div><dt>Other Lagos areas</dt><dd>2–3 working days</dd></div><div><dt>Other Nigerian cities</dt><dd>3–6 working days</dd></div><div><dt>Free Lagos delivery</dt><dd>Orders over ₦65,000</dd></div></div><p>Delivery estimates begin after order confirmation. A one-of-one piece is only yours after checkout succeeds; adding it to the bag does not reserve it.</p></div>`]
+      };
+      openDialog(dialogFrame(copy[type][0],copy[type][1]));
+    }
+    function openLook(i){
+      const look=looks[i],p=product(look.product),similar=PRODUCTS.filter(x=>x.category===p.category&&x.id!==p.id&&x.stock>0).slice(0,2);
+      const body=`<div class="quick-grid"><div class="quick-gallery"><img src="${look.image}" alt="${esc(look.name)} wearing ${esc(p.title)}"></div><div class="quick-info"><span class="eyebrow">${esc(look.name)} · ${esc(look.city)}</span><h2>${esc(p.title)}</h2><p>${esc(look.note)}</p>${look.sold?`<p class="stock sold"><strong>Original piece sold.</strong> It is shown here as a styling reference.</p>`:`<button class="btn btn-primary" type="button" data-quick="${p.id}">View linked piece</button>`}<h3 style="margin-top:2rem">Similar available pieces</h3>${similar.map(x=>`<button class="search-item" type="button" data-quick="${x.id}"><img src="${x.images[0]}" alt=""><span><strong>${esc(x.title)}</strong><br>${esc(x.sizeLabel)}</span><span class="price">${money.format(x.price)}</span></button>`).join("")}</div></div>`;
+      openDialog(dialogFrame("Customer look",body));
+    }
+    function openOverlay(type){
+      closeMega();
+      if(type==="search")openSearch(); else if(type==="cart")openCart(); else if(type==="saved")openSaved(); else if(type==="mobile-nav")openMobileNav(); else openInfo(type);
+    }
+    function setCategory(cat){
+      state.category=cat;$$("[data-category]").forEach(b=>b.classList.toggle("active",b.dataset.category===cat));renderProducts();closeMega();
+      if(location.hash!=="#new-drop")$("#new-drop").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+    }
+    function setTheme(){
+      const next=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=next;$("#themeLabel").textContent=next[0].toUpperCase()+next.slice(1);localStorage.setItem("laitstyle:theme",next);
+    }
+
+    document.addEventListener("click",e=>{
+      const t=e.target.closest("button,a");if(!t)return;
+      if(t.matches("[data-close]")){const id=t.dataset.scrollto;closeDialog();if(id)setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),30)}
+      else if(t.dataset.overlay)openOverlay(t.dataset.overlay);
+      else if(t.dataset.quick){closeDialog();setTimeout(()=>openQuick(t.dataset.quick),20)}
+      else if(t.dataset.viewer){closeDialog();setTimeout(()=>openViewer(t.dataset.viewer),20)}
+      else if(t.dataset.save)toggleSave(t.dataset.save);
+      else if(t.dataset.add)addToCart(t.dataset.add);
+      else if(t.dataset.addFromQuick){const p=product(t.dataset.addFromQuick);if(p.availableSizes&&!state.selectedSize){toast("Choose an available size.");return}addToCart(p.id,state.selectedSize)}
+      else if(t.dataset.size){state.selectedSize=t.dataset.size;$$("[data-size]",dialogContent).forEach(x=>x.classList.toggle("selected",x===t))}
+      else if(t.dataset.quickImage){const p=product(state.selected);$("#quickMain").src=p.images[+t.dataset.quickImage]}
+      else if(t.dataset.category){e.preventDefault();setCategory(t.dataset.category)}
+      else if(t.dataset.layout){state.layout=t.dataset.layout;$$("[data-layout]").forEach(x=>x.classList.toggle("active",x===t));renderProducts()}
+      else if(t.dataset.scroll){const el=document.getElementById(t.dataset.scroll);el?.scrollBy({left:+t.dataset.dir*el.clientWidth*.78,behavior:"smooth"})}
+      else if(t.dataset.action==="hero-alt"){state.hero=1-state.hero;const urls=["https://assets.vogue.com/photos/5fca91bc1066b359e5ff827a/master/w_1600%2Cc_limit/1.jpeg","https://assets.vogue.com/photos/5fca923f82b8e20f65401eac/master/w_1600%2Cc_limit/11.jpeg"];$("#heroImage").src=urls[state.hero];$("#heroIndex").textContent=`LOOK 0${state.hero+1} / 02`}
+      else if(t.dataset.action==="theme")setTheme();
+      else if(t.dataset.action==="next-utility"||t.dataset.action==="prev-utility"){state.utility=(state.utility+(t.dataset.action==="next-utility"?1:-1)+announcements.length)%announcements.length;$("#utilityMessage").textContent=announcements[state.utility]}
+      else if(t.dataset.mode){document.body.classList.toggle("wireframe",t.dataset.mode==="wireframe");document.body.classList.toggle("fidelity",t.dataset.mode==="fidelity");$$("[data-mode]").forEach(x=>x.classList.toggle("active",x===t))}
+      else if(t.dataset.search!==undefined){const input=$("#searchInput");if(input){input.value=t.dataset.search;$("#searchResults").innerHTML=searchResults(t.dataset.search);input.focus()}}
+      else if(t.dataset.action==="clear-search"){const input=$("#searchInput");input.value="";$("#searchResults").innerHTML=searchResults("");input.focus()}
+      else if(t.dataset.viewerNav)updateViewer(+t.dataset.viewerNav);
+      else if(t.dataset.zoom){state.zoom=t.dataset.zoom==="reset"?1:Math.min(2.5,state.zoom+.25);$("#viewerImage").style.setProperty("--zoom",state.zoom)}
+      else if(t.dataset.cartRemove!==undefined){state.cart.splice(+t.dataset.cartRemove,1);syncCounts();openCart();toast("Removed from bag.")}
+      else if(t.dataset.cartSave!==undefined){const item=state.cart.splice(+t.dataset.cartSave,1)[0];state.saved.add(item.id);syncCounts();openCart();toast("Saved for later.")}
+      else if(t.dataset.action==="checkout")toast("Prototype checkout handoff complete.");
+      else if(t.dataset.action==="prototype-link"){e.preventDefault();toast("This destination is represented as a prototype link.");}
+      else if(t.dataset.action==="reset-state"){document.body.dataset.state="default";$("#stateSelect").value="default";renderProducts()}
+      else if(t.dataset.look!==undefined)openLook(+t.dataset.look);
+      else if(t.dataset.featuredImage){const p=product("p02");$("#featuredMain").src=p.images[+t.dataset.featuredImage]}
+    });
+    $("#shopTrigger").addEventListener("click",()=>$("#megaMenu").classList.contains("open")?closeMega():openMega());
+    let hoverTimer;
+    $("#shopTrigger").addEventListener("mouseenter",()=>{clearTimeout(hoverTimer);hoverTimer=setTimeout(openMega,140)});
+    $("#megaMenu").addEventListener("mouseleave",()=>{hoverTimer=setTimeout(closeMega,220)});
+    $("#megaMenu").addEventListener("mouseenter",()=>clearTimeout(hoverTimer));
+    document.addEventListener("pointerdown",e=>{if($("#megaMenu").classList.contains("open")&&!e.target.closest("#megaMenu,#shopTrigger"))closeMega()});
+    document.addEventListener("keydown",e=>{
+      if(e.key==="Escape"){closeMega();if(dialog.open)closeDialog()}
+      if(dialog.open&&e.key==="Tab"){
+        const focusable=$$("button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])",dialogContent).filter(x=>x.offsetParent!==null);
+        if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);
+        if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+      }
+      if(dialog.open&&$(".viewer",dialogContent)){if(e.key==="ArrowRight")updateViewer(1);if(e.key==="ArrowLeft")updateViewer(-1)}
+    });
+    dialog.addEventListener("click",e=>{if(e.target===dialog)closeDialog()});
+    dialog.addEventListener("cancel",e=>{e.preventDefault();closeDialog()});
+    dialog.addEventListener("close",()=>document.body.classList.remove("overlay-open"));
+    document.addEventListener("error",e=>{
+      if(!(e.target instanceof HTMLImageElement)||e.target.dataset.fallbackApplied)return;
+      e.target.dataset.fallbackApplied="true";
+      const card=e.target.closest(".product-card"),p=product(card?.dataset.id);
+      if(p){fallback(e.target,p);return}
+      const label=(e.target.alt||"Laitstyle image").slice(0,60);
+      const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1100"><rect width="100%" height="100%" fill="%23e9e0d4"/><path d="M0 0 900 1100M900 0 0 1100" stroke="%237e6c60" stroke-width="2" opacity=".35"/><text x="50%" y="46%" text-anchor="middle" font-family="monospace" font-size="72" fill="%233f302a">LS</text><text x="50%" y="54%" text-anchor="middle" font-family="monospace" font-size="22" fill="%2368584f">IMAGE UNAVAILABLE</text><text x="50%" y="59%" text-anchor="middle" font-family="monospace" font-size="16" fill="%2368584f">${encodeURIComponent(label)}</text></svg>`;
+      e.target.src=`data:image/svg+xml,${svg}`;
+    },true);
+    $("#newsletterForm").addEventListener("submit",e=>{
+      e.preventDefault();const input=$("#email"),msg=$("#newsletterMessage"),btn=$("#newsletterButton");const value=input.value.trim();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){msg.textContent="Enter a complete email address, such as you@example.com.";input.setAttribute("aria-invalid","true");input.focus();return}
+      input.removeAttribute("aria-invalid");btn.disabled=true;btn.textContent="Joining…";msg.textContent="";
+      setTimeout(()=>{btn.disabled=false;btn.textContent="Join the list";if(value.includes("used"))msg.textContent="You’re already on the list. Nothing else to do.";else if(value.includes("error"))msg.textContent="We could not save that just now. Check your connection and try again.";else{msg.textContent="You’re on the list. We’ll only write when there is something worth opening.";e.target.reset()}},650);
+    });
+    $("#stateSelect").addEventListener("change",e=>{document.body.dataset.state=e.target.value;renderProducts()});
+    $("#savedRail").addEventListener("scroll",()=>{const el=$("#savedRail"),max=el.scrollWidth-el.clientWidth;$("#railProgress").style.transform=`translateX(${max?el.scrollLeft/max*260:0}%)`},{passive:true});
+    const io=new IntersectionObserver(entries=>entries.forEach(x=>x.isIntersecting&&x.target.classList.add("in-view")),{threshold:.3});io.observe($("#conditionScale"));
+    let lastY=scrollY,ticking=false;
+    addEventListener("scroll",()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,header=$("#siteHeader");header.classList.toggle("compact",y>100);if(!dialog.open&&!$("#megaMenu").classList.contains("open"))header.classList.toggle("hidden",y>240&&y>lastY+4);else header.classList.remove("hidden");lastY=y;ticking=false})},{passive:true});
+    if(matchMedia("(hover:hover) and (pointer:fine)").matches&&!matchMedia("(prefers-reduced-motion:reduce)").matches){
+      $("#heroVisual").addEventListener("pointermove",e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;$("#heroImage").style.transform=`scale(1.015) translate(${x*10}px,${y*10}px)`});
+      $("#heroVisual").addEventListener("pointerleave",()=>$("#heroImage").style.transform="");
+    }
+    const savedTheme=localStorage.getItem("laitstyle:theme");if(savedTheme)document.documentElement.dataset.theme=savedTheme;$("#themeLabel").textContent=document.documentElement.dataset.theme[0].toUpperCase()+document.documentElement.dataset.theme.slice(1);
+    renderProducts();renderRail();syncCounts();
+  })();
+  </script>
+</body>
+</html>

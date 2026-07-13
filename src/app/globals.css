@@ -4,59 +4,67 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Canonical application theme. Values are the Laitstyles card-lab palette from
+ * docs/storefront-v2/card-lab (home-lab.css): raw brand hex — Bone / Ink / Sage /
+ * Oxblood / Linen. Light and dark are paired role systems; components consume
+ * semantic roles instead of carrying one-off dark-mode patches.
+ * The semantic role-token structure (surface / action / functional / shadcn-compat)
+ * is preserved; only the underlying values changed.
+ */
 :root {
-  /* Brand ingredients stay stable. Application components consume role tokens below. */
-  --brand-ink: oklch(0.205 0.012 72);
-  --brand-ink-soft: oklch(0.31 0.014 72);
-  --brand-bone: oklch(0.973 0.009 88);
-  --brand-bone-strong: oklch(0.94 0.012 88);
-  --brand-sage: oklch(0.59 0.07 120);
-  --brand-sage-strong: oklch(0.47 0.075 120);
-  --brand-sage-soft: oklch(0.86 0.075 116);
+  /* Brand ingredients (home-lab hex). */
+  --brand-ink: #191a17;
+  --brand-ink-soft: #34362f;
+  --brand-bone: #f3f0e8;
+  --brand-bone-strong: #e9e4d9;
+  --brand-sage: #767e5c;
+  --brand-sage-strong: #596044;
+  --brand-sage-soft: #d6e4a6;
 
-  /* Fashion-operating surface roles — light. */
+  /* Surface roles. */
   --surface-canvas: var(--brand-bone);
   --surface-canvas-foreground: var(--brand-ink);
-  --surface-panel: oklch(0.986 0.006 88);
+  --surface-panel: #f3f0e8;
   --surface-panel-foreground: var(--brand-ink);
-  --surface-raised: oklch(0.997 0.003 88);
+  --surface-raised: #f3f0e8;
   --surface-raised-foreground: var(--brand-ink);
-  --surface-sunken: oklch(0.936 0.013 88);
+  --surface-sunken: #e9e4d9;
   --surface-sunken-foreground: var(--brand-ink);
-  --surface-interactive: oklch(0.958 0.014 101);
-  --surface-interactive-hover: oklch(0.925 0.028 113);
+  --surface-interactive: #e9e4d9;
+  --surface-interactive-hover: #ded8ca;
   --surface-interactive-foreground: var(--brand-ink);
-  --surface-selected: oklch(0.86 0.072 116);
-  --surface-selected-foreground: oklch(0.245 0.04 116);
-  --surface-selected-muted: oklch(0.925 0.035 116);
+  --surface-selected: #d6e4a6;
+  --surface-selected-foreground: #191a17;
+  --surface-selected-muted: #e9e4d9;
   --surface-inverse: var(--brand-ink);
   --surface-inverse-foreground: var(--brand-bone);
 
   /* Action and control roles. */
   --action-primary: var(--brand-ink);
   --action-primary-foreground: var(--brand-bone);
-  --action-secondary: oklch(0.92 0.03 114);
+  --action-secondary: #e9e4d9;
   --action-secondary-foreground: var(--brand-ink);
-  --control: oklch(0.992 0.004 88);
-  --control-hover: oklch(0.952 0.017 101);
+  --control: #f3f0e8;
+  --control-hover: #e9e4d9;
   --control-foreground: var(--brand-ink);
-  --border-subtle: oklch(0.86 0.018 88);
-  --border-strong: oklch(0.76 0.025 88);
-  --focus: var(--brand-sage-strong);
+  --border-subtle: rgba(25, 26, 23, 0.16);
+  --border-strong: rgba(25, 26, 23, 0.34);
+  --focus: #682631;
 
-  /* Functional roles remain distinct from the Sage brand accent. */
-  --destructive: oklch(0.56 0.195 28);
-  --destructive-foreground: oklch(0.985 0 0);
-  --destructive-surface: oklch(0.95 0.025 25);
-  --destructive-surface-foreground: oklch(0.47 0.17 28);
-  --success: oklch(0.52 0.11 145);
-  --success-foreground: oklch(0.985 0 0);
-  --success-surface: oklch(0.925 0.04 145);
-  --success-surface-foreground: oklch(0.35 0.09 145);
-  --warning: oklch(0.67 0.13 78);
-  --warning-foreground: oklch(0.25 0.04 65);
-  --warning-surface: oklch(0.94 0.04 82);
-  --warning-surface-foreground: oklch(0.42 0.09 75);
+  /* Functional roles (home-lab success / warning / error). */
+  --destructive: #8a332d;
+  --destructive-foreground: #f3f0e8;
+  --destructive-surface: #e9e4d9;
+  --destructive-surface-foreground: #8a332d;
+  --success: #35533b;
+  --success-foreground: #f3f0e8;
+  --success-surface: #e9e4d9;
+  --success-surface-foreground: #35533b;
+  --warning: #8b5a26;
+  --warning-foreground: #f3f0e8;
+  --warning-surface: #e9e4d9;
+  --warning-surface-foreground: #8b5a26;
 
   /* shadcn role compatibility. */
   --background: var(--surface-canvas);
@@ -70,135 +78,82 @@
   --secondary: var(--action-secondary);
   --secondary-foreground: var(--action-secondary-foreground);
   --muted: var(--surface-sunken);
-  --muted-foreground: oklch(0.46 0.02 80);
+  --muted-foreground: #727267;
   --accent: var(--surface-selected);
   --accent-foreground: var(--surface-selected-foreground);
   --border: var(--border-subtle);
   --input: var(--border-strong);
   --ring: var(--focus);
   --chip-bg: var(--surface-selected-muted);
-  --chip-border: oklch(0.77 0.045 116);
-  --star: oklch(0.72 0.13 83);
+  --chip-border: rgba(25, 26, 23, 0.16);
+  --star: #8b5a26;
   --radius: 0.625rem;
 
   --chart-1: var(--brand-sage-strong);
-  --chart-2: oklch(0.68 0.09 100);
-  --chart-3: oklch(0.47 0.04 74);
-  --chart-4: oklch(0.76 0.05 120);
-  --chart-5: oklch(0.37 0.035 105);
+  --chart-2: var(--brand-sage);
+  --chart-3: var(--brand-ink-soft);
+  --chart-4: var(--brand-sage-soft);
+  --chart-5: var(--brand-ink);
 
-  /* The sidebar is deliberately inverse in both themes. Selection is Sage, never white. */
-  --sidebar: oklch(0.18 0.014 72);
+  /* The admin sidebar remains the inverse Ink surface with a Sage selection. */
+  --sidebar: #191a17;
   --sidebar-foreground: var(--brand-bone);
-  --sidebar-primary: oklch(0.72 0.08 118);
-  --sidebar-primary-foreground: oklch(0.16 0.02 72);
-  --sidebar-accent: oklch(0.27 0.022 104);
+  --sidebar-primary: #767e5c;
+  --sidebar-primary-foreground: #f3f0e8;
+  --sidebar-accent: #34362f;
   --sidebar-accent-foreground: var(--brand-bone);
-  --sidebar-border: oklch(1 0 0 / 14%);
+  --sidebar-border: rgba(243, 240, 232, 0.14);
   --sidebar-ring: var(--brand-sage-soft);
   --sidebar-selected: var(--sidebar-primary);
   --sidebar-selected-foreground: var(--sidebar-primary-foreground);
 
-  --overlay: oklch(0.15 0.01 72 / 56%);
-  --shadow-color-soft: oklch(0.18 0.015 72 / 8%);
-  --shadow-color: oklch(0.18 0.015 72 / 14%);
-  --shadow-color-strong: oklch(0.18 0.015 72 / 22%);
+  --overlay: rgba(17, 18, 15, 0.48);
+  --shadow-color-soft: rgba(25, 26, 23, 0.08);
+  --shadow-color: rgba(25, 26, 23, 0.14);
+  --shadow-color-strong: rgba(25, 26, 23, 0.24);
 }
 
 .dark {
-  /* Brand ingredients remain Ink, Bone and Sage; role assignment changes. */
-  --brand-ink: oklch(0.17 0.012 72);
-  --brand-ink-soft: oklch(0.31 0.014 72);
-  --brand-bone: oklch(0.95 0.01 88);
-  --brand-bone-strong: oklch(0.91 0.013 88);
-  --brand-sage: oklch(0.67 0.075 120);
-  --brand-sage-strong: oklch(0.74 0.08 118);
-  --brand-sage-soft: oklch(0.79 0.07 116);
-
-  /* Fashion-operating surface roles — dark. */
-  --surface-canvas: oklch(0.145 0.012 72);
-  --surface-canvas-foreground: var(--brand-bone);
-  --surface-panel: oklch(0.185 0.014 72);
-  --surface-panel-foreground: var(--brand-bone);
-  --surface-raised: oklch(0.225 0.016 78);
-  --surface-raised-foreground: var(--brand-bone);
-  --surface-sunken: oklch(0.115 0.01 72);
-  --surface-sunken-foreground: var(--brand-bone);
-  --surface-interactive: oklch(0.235 0.022 100);
-  --surface-interactive-hover: oklch(0.28 0.032 110);
-  --surface-interactive-foreground: var(--brand-bone);
-  --surface-selected: oklch(0.31 0.055 119);
-  --surface-selected-foreground: var(--brand-bone);
-  --surface-selected-muted: oklch(0.26 0.035 116);
-  --surface-inverse: var(--brand-bone);
-  --surface-inverse-foreground: var(--brand-ink);
-
-  --action-primary: var(--brand-sage-strong);
-  --action-primary-foreground: oklch(0.14 0.015 72);
-  --action-secondary: oklch(0.26 0.03 112);
-  --action-secondary-foreground: var(--brand-bone);
-  --control: oklch(0.205 0.016 78);
-  --control-hover: oklch(0.25 0.024 102);
-  --control-foreground: var(--brand-bone);
-  --border-subtle: oklch(0.95 0.01 88 / 13%);
-  --border-strong: oklch(0.95 0.01 88 / 24%);
-  --focus: var(--brand-sage-soft);
-
-  --destructive: oklch(0.72 0.17 28);
-  --destructive-foreground: oklch(0.15 0.02 28);
-  --destructive-surface: oklch(0.28 0.055 25);
-  --destructive-surface-foreground: oklch(0.84 0.11 25);
-  --success: oklch(0.7 0.11 145);
-  --success-foreground: oklch(0.15 0.02 145);
-  --success-surface: oklch(0.25 0.04 145);
-  --success-surface-foreground: oklch(0.82 0.08 145);
-  --warning: oklch(0.78 0.12 82);
-  --warning-foreground: oklch(0.18 0.03 70);
-  --warning-surface: oklch(0.28 0.045 82);
-  --warning-surface-foreground: oklch(0.86 0.09 82);
-
-  --background: var(--surface-canvas);
-  --foreground: var(--surface-canvas-foreground);
-  --card: var(--surface-panel);
-  --card-foreground: var(--surface-panel-foreground);
-  --popover: var(--surface-raised);
-  --popover-foreground: var(--surface-raised-foreground);
-  --primary: var(--action-primary);
-  --primary-foreground: var(--action-primary-foreground);
-  --secondary: var(--action-secondary);
-  --secondary-foreground: var(--action-secondary-foreground);
-  --muted: var(--surface-sunken);
-  --muted-foreground: oklch(0.73 0.018 88);
-  --accent: var(--surface-selected);
-  --accent-foreground: var(--surface-selected-foreground);
-  --border: var(--border-subtle);
-  --input: var(--border-strong);
-  --ring: var(--focus);
-  --chip-bg: var(--surface-selected-muted);
-  --chip-border: oklch(0.58 0.06 118);
-  --star: oklch(0.78 0.12 83);
-
-  --chart-1: var(--brand-sage-soft);
-  --chart-2: oklch(0.72 0.08 100);
-  --chart-3: oklch(0.82 0.03 88);
-  --chart-4: oklch(0.57 0.06 120);
-  --chart-5: oklch(0.66 0.035 105);
-
-  --sidebar: oklch(0.105 0.012 72);
-  --sidebar-foreground: var(--brand-bone);
-  --sidebar-primary: oklch(0.7 0.075 118);
-  --sidebar-primary-foreground: oklch(0.13 0.02 72);
-  --sidebar-accent: oklch(0.21 0.024 108);
-  --sidebar-accent-foreground: var(--brand-bone);
-  --sidebar-border: oklch(0.95 0.01 88 / 13%);
-  --sidebar-ring: var(--brand-sage-soft);
-  --sidebar-selected: var(--sidebar-primary);
-  --sidebar-selected-foreground: var(--sidebar-primary-foreground);
-
-  --overlay: oklch(0.06 0.006 72 / 72%);
-  --shadow-color-soft: oklch(0.04 0.006 72 / 20%);
-  --shadow-color: oklch(0.04 0.006 72 / 38%);
-  --shadow-color-strong: oklch(0.04 0.006 72 / 58%);
+  --brand-ink: #f3f0e8;
+  --brand-ink-soft: #d9d5ca;
+  --brand-bone: #151713;
+  --brand-bone-strong: #1e211b;
+  --brand-sage: #a7b287;
+  --brand-sage-strong: #c0c99e;
+  --brand-sage-soft: #39412f;
+  --surface-panel: #1b1e19;
+  --surface-raised: #23271f;
+  --surface-sunken: #10120f;
+  --surface-interactive: #242820;
+  --surface-interactive-hover: #30362a;
+  --surface-selected: #39412f;
+  --surface-selected-foreground: #f3f0e8;
+  --surface-selected-muted: #242820;
+  --surface-inverse: #f3f0e8;
+  --surface-inverse-foreground: #151713;
+  --action-primary: #f3f0e8;
+  --action-primary-foreground: #151713;
+  --action-secondary: #242820;
+  --action-secondary-foreground: #f3f0e8;
+  --control: #1b1e19;
+  --control-hover: #2a2f26;
+  --control-foreground: #f3f0e8;
+  --border-subtle: rgba(243, 240, 232, 0.14);
+  --border-strong: rgba(243, 240, 232, 0.3);
+  --focus: #d6e4a6;
+  --destructive-surface: #36201f;
+  --destructive-surface-foreground: #f0aaa4;
+  --success-surface: #1e2d22;
+  --success-surface-foreground: #acd0b3;
+  --warning-surface: #362b1e;
+  --warning-surface-foreground: #e4bf8c;
+  --muted-foreground: #aaa99f;
+  --chip-bg: #242820;
+  --chip-border: rgba(243, 240, 232, 0.14);
+  --overlay: rgba(0, 0, 0, 0.66);
+  --shadow-color-soft: rgba(0, 0, 0, 0.18);
+  --shadow-color: rgba(0, 0, 0, 0.32);
+  --shadow-color-strong: rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -259,10 +214,10 @@
   --color-surface-inverse: var(--surface-inverse);
   --color-surface-inverse-foreground: var(--surface-inverse-foreground);
   --color-overlay: var(--overlay);
-  --font-sans: var(--font-instrument-sans);
-  --font-serif: var(--font-newsreader);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-instrument-sans);
+  --font-sans: var(--font-lab-sans);
+  --font-serif: var(--font-lab-serif);
+  --font-mono: var(--font-lab-mono);
+  --font-heading: var(--font-lab-sans);
   --radius-sm: 9px;
   --radius-md: 14px;
   --radius-lg: 16px;
@@ -341,7 +296,7 @@ textarea::placeholder {
 }
 
 body {
-  font-family: var(--font-instrument-sans), system-ui, sans-serif;
+  font-family: var(--font-lab-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
