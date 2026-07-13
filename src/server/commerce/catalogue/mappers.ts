@@ -169,6 +169,9 @@ export function mapProductSummary(row: ProductSummaryRow): ProductSummary {
     referencePrice: referencePriceKobo(row.price, row.reference_price),
     archiveNumber: row.archive_number,
     condition: row.condition,
+    material: row.material,
+    fit: row.fit,
+    style: row.style,
     category: mapTaxonomy(row.catalogue_categories),
     collection: mapTaxonomy(row.catalogue_collections),
     cover,
@@ -203,6 +206,9 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
     referencePrice: referencePriceKobo(row.price, row.reference_price),
     archiveNumber: row.archive_number,
     condition: row.condition,
+    material: row.material,
+    fit: row.fit,
+    style: row.style,
     category: mapTaxonomy(row.catalogue_categories),
     collection: mapTaxonomy(row.catalogue_collections),
     cover: media.find((image) => image.kind === "cover") ?? null,
@@ -210,6 +216,8 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
     media,
     measurements,
     reviewSummary: mapReviewSummary(row.product_reviews),
+    careInstructions: row.care_instructions,
+    flawNotes: row.flaw_notes,
   };
   const availability = productAvailability(
     mode,

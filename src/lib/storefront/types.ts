@@ -79,6 +79,9 @@ interface ProductCommon {
   referencePrice: Kobo | null;
   archiveNumber: string | null;
   condition: string | null;
+  material: string | null;
+  fit: string | null;
+  style: string | null;
   category: TaxonomyRef | null;
   collection: TaxonomyRef | null;
   cover: ProductImage | null;
@@ -98,6 +101,8 @@ export type ProductDetail = ProductCommon & {
   media: ProductImage[];
   measurements: Measurement[];
   reviewSummary: ReviewSummary;
+  careInstructions: string | null;
+  flawNotes: string | null;
 } & (
     | {
         mode: "unique";
@@ -117,4 +122,24 @@ export type ProductDetail = ProductCommon & {
 export interface TaxonomyWithCount extends TaxonomyRef {
   /** Count of storefront-visible products — never fabricated. */
   productCount: number;
+}
+
+/** Canonical condition vocabulary persisted in products.condition. */
+export type ConditionGrade = "Excellent" | "Good" | "Fair";
+
+/**
+ * Derives a shopper label + a 0–10 confidence score from the persisted
+ * condition grade. Never persisted — pure presentation derivation.
+ */
+export function conditionDisplay(grade: string | null): { label: string; score: number } {
+  switch (grade) {
+    case "Excellent":
+      return { label: "Like new", score: 10 };
+    case "Good":
+      return { label: "Good", score: 7 };
+    case "Fair":
+      return { label: "Fair", score: 5 };
+    default:
+      return { label: grade ?? "Unrated", score: 6 };
+  }
 }
