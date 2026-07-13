@@ -59,26 +59,28 @@
   --warning-surface-foreground: oklch(0.42 0.09 75);
 
   /* shadcn role compatibility. */
-  --background: var(--surface-canvas);
-  --foreground: var(--surface-canvas-foreground);
-  --card: var(--surface-panel);
-  --card-foreground: var(--surface-panel-foreground);
-  --popover: var(--surface-raised);
-  --popover-foreground: var(--surface-raised-foreground);
-  --primary: var(--action-primary);
-  --primary-foreground: var(--action-primary-foreground);
-  --secondary: var(--action-secondary);
-  --secondary-foreground: var(--action-secondary-foreground);
-  --muted: var(--surface-sunken);
-  --muted-foreground: oklch(0.46 0.02 80);
-  --accent: var(--surface-selected);
-  --accent-foreground: var(--surface-selected-foreground);
-  --border: var(--border-subtle);
-  --input: var(--border-strong);
-  --ring: var(--focus);
-  --chip-bg: var(--surface-selected-muted);
-  --chip-border: oklch(0.77 0.045 116);
-  --star: oklch(0.72 0.13 83);
+  /* Main's verified storefront aliases stay exact; Control Room uses the richer
+     semantic roles above and the paired dark aliases below. */
+  --background: #f6f5f1;
+  --foreground: #1b1a17;
+  --card: #ffffff;
+  --card-foreground: #1b1a17;
+  --popover: #ffffff;
+  --popover-foreground: #1b1a17;
+  --primary: #1b1a17;
+  --primary-foreground: #ffffff;
+  --secondary: #ecebe6;
+  --secondary-foreground: #1b1a17;
+  --muted: #f0eee8;
+  --muted-foreground: #8a887e;
+  --accent: #7c8c63;
+  --accent-foreground: #ffffff;
+  --border: #e4e2da;
+  --input: #e4e2da;
+  --ring: #7c8c63;
+  --chip-bg: #f2f4ea;
+  --chip-border: #d6dac8;
+  --star: #c9a227;
   --radius: 0.625rem;
 
   --chart-1: var(--brand-sage-strong);
@@ -317,6 +319,20 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes leemPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

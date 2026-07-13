@@ -201,36 +201,36 @@ export const categories = [
 export const reducedItems = [
   {
     name: "Eco Shell Jacket",
-    price: "\u20A631,000",
-    original: "\u20A639,000",
+    price: "₦31,000",
+    original: "₦39,000",
     discount: "-21%",
     image: img("1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_"),
   },
   {
     name: "Soft Beige Knit",
-    price: "\u20A618,000",
-    original: "\u20A624,000",
+    price: "₦18,000",
+    original: "₦24,000",
     discount: "-25%",
     image: img("1ZrtULUSgSWrmIRSve5DAuKqspfdzS71I"),
   },
   {
     name: "Cream Cotton Longsleeve",
-    price: "\u20A612,500",
-    original: "\u20A617,000",
+    price: "₦12,500",
+    original: "₦17,000",
     discount: "-26%",
     image: img("1iCzHDF9lrDV612Ndwi5_m03oqJ7o45NH"),
   },
   {
     name: "Bloom Belted Coat",
-    price: "\u20A645,000",
-    original: "\u20A658,000",
+    price: "₦45,000",
+    original: "₦58,000",
     discount: "-22%",
     image: img("1BI3_38frghBjJx-x8s248hh0EOZOSan1"),
   },
   {
     name: "Herringbone Scarf",
-    price: "\u20A69,500",
-    original: "\u20A614,000",
+    price: "₦9,500",
+    original: "₦14,000",
     discount: "-32%",
     image: img("1oClPdqgEJiM83D0we53IaNOfQGTFaP1D"),
   },
@@ -626,6 +626,22 @@ export const plpItems: PlpProduct[] = [
   },
 ];
 
+const feedAliases: Record<string, string> = {
+  vest: "p2",
+  nature: "p1",
+  botan: "p0",
+  ivory: "p3",
+  bloom: "p9",
+  moss: "p7",
+  tote: "p20",
+  cargo: "p14",
+  "pool-denim": "p4",
+  "pool-cord": "p5",
+  "pool-scarf": "p10",
+  "pool-track": "p6",
+  "pool-linen": "p11",
+};
+
 const pdpGalleryPools: Record<string, string[]> = {
   Jackets: [
     "1T0XygfKzp92Id6ch09aTFcUyG8PbIG66",
@@ -721,6 +737,27 @@ function driveIdFromThumbnail(url: string) {
   return url.match(/[?&]id=([^&]+)/)?.[1] ?? "";
 }
 
+export function canonicalProductId(id: string) {
+  return feedAliases[id] ?? id;
+}
+
+export function canonicalizeProduct(product: Product): Product {
+  const canonicalId = canonicalProductId(product.id);
+  const match =
+    plpItems.find((item) => item.id === canonicalId) ??
+    plpItems.find((item) => item.name === product.name);
+
+  if (!match) return product;
+
+  return {
+    ...match,
+    state: product.state,
+    minutes: product.minutes,
+    secondsLeft: product.secondsLeft,
+    dropped: product.dropped,
+  };
+}
+
 export function galleryForProduct(product: PlpProduct) {
   const mainId = driveIdFromThumbnail(product.image);
   const pool = (pdpGalleryPools[product.category] ?? []).filter((id) => id !== mainId);
@@ -728,13 +765,18 @@ export function galleryForProduct(product: PlpProduct) {
 }
 
 export function findCatalogueProduct(id?: string) {
-  return plpItems.find((item) => item.id === id) ?? plpItems[0];
+  const canonicalId = canonicalProductId(id ?? "");
+  return plpItems.find((item) => item.id === canonicalId) ?? plpItems[0];
 }
 
 export function pdpHref(id: string) {
-  return `/p/${id}`;
+  return `/p/${canonicalProductId(id)}`;
 }
 
 export function naira(value: number) {
-  return `\u20A6${value.toLocaleString()}`;
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(value);
 }

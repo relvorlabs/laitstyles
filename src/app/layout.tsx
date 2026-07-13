@@ -3,8 +3,8 @@ import { Geist_Mono, Instrument_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { themeBootScript } from "@/components/theme/theme-script";
-import { cn } from "@/lib/utils";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -26,7 +26,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Laitstyle",
+  title: {
+    default: "Laitstyle",
+    template: "%s · Laitstyle",
+  },
   description: "One-of-one second-hand pieces from Lagos.",
   icons: {
     icon: "/brand/laitstyle-symbol.svg",
@@ -41,13 +44,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      lang="en"
       className={cn(
         "h-full antialiased font-sans",
         instrumentSans.variable,
         newsreader.variable,
         geistMono.variable,
       )}
-      lang="en"
       suppressHydrationWarning
     >
       <head>

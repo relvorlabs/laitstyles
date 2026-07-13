@@ -2,13 +2,20 @@
 
 ## Current score
 
-**Phase 12 foundation started under explicit override — Phase 11 remains blocked**
+**PR #4 integration verified for merge handoff — Phase 11 remains blocked**
 
 On 2026-07-11 the user reviewed the Phase 11 Docker/Supabase blockers and explicitly chose to override the phase gate and begin the Phase 12 TanStack Query foundation now (Decision 011). This override changes sequencing only: Phase 11 (fresh migration apply, generated types, RLS/advisors) is still blocked on Docker Desktop and is **not** represented as passing. Phase 10 browser OAuth and the required React Doctor `--diff` blockers also remain recorded.
 
 The paused TanStack Phase 9 repository/key work is now promoted to active Phase 12 material. No feature read has been migrated and no Supabase-backed adapter is wired — the deterministic in-memory adapter remains the only truthful prototype source until Phase 11 unblocks.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
+
+On 2026-07-13, current `main` (`60ee6d199de04b1ebc0edf8da3ee9c6128f0ae20`) was merged into
+`feat/control-room-v2` through reviewed conflict resolution. The newer connected storefront from
+`main` was retained; the Control Room root theme provider, semantic role tokens and paired dark theme
+were preserved. PR #4 is being merged as an integration milestone, then active Control Room work will
+continue in a new draft PR branched from the resulting `main`. This handoff does not reclassify any
+phase acceptance blocker as passing.
 
 ## Current phase
 
@@ -20,7 +27,7 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
 | Branch                                         | `feat/control-room-v2`                                                                                |
-| Pull request                                   | `#4` — draft, currently non-mergeable                                                                 |
+| Pull request                                   | `#4` — integration milestone; continuation draft PR follows from merged `main`                       |
 | Phase 8 plan                                   | `docs/control-room-v2/phase8-plan.md`                                                                 |
 | Phase 8 blocker                                | `docs/control-room-v2/phase8-blocker.md`                                                              |
 | Phase 9 plan                                   | `docs/control-room-v2/phase9-plan.md`                                                                 |
@@ -32,8 +39,8 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 | Accepted Batch 4A head/run                     | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035`                                            |
 | Accepted Batch 4B head/run                     | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`                                            |
 | Unresolved executable gates                    | 4F, 5D, 6E, 7E, Phase 8, Phase 9 readiness implementation and paused TanStack foundation verification |
-| Merge integration                              | Branch is 703 commits ahead and 31 behind `main`; reviewed conflict resolution required               |
-| Review readiness                               | Blocked                                                                                               |
+| Merge integration                              | Current `main` merged through reviewed conflict resolution on 2026-07-13                              |
+| Review readiness                               | PR #4 merge handoff verified; feature-phase acceptance blockers carry into the continuation PR        |
 
 ## Completed and accepted foundation
 
@@ -295,7 +302,13 @@ Foundation verification returned:
 
 No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain blocked. Phase 11 local Supabase apply/advisors/type generation are blocked until Docker Desktop is reachable.
 
-PR #4 remains non-mergeable. The branch is 703 commits ahead and 31 commits behind `main`, with merge base `4483156669a2b6f43218d5e27f484562ccc08a8d`. Upstream integration must use reviewed conflict resolution; an `ours` or tree-only merge is not acceptable.
+PR #4's 31-commit divergence from `main` was resolved on 2026-07-13 with a normal reviewed merge.
+The connected storefront implementation from `main` won the shared storefront conflicts; the
+Control Room's theme provider and semantic/dark token contracts were reconciled explicitly. The
+resolved tree passed Biome (44 warnings remain visible), TypeScript, 35 Vitest files / 139 tests, and
+the Next.js 16.2.10 Turbopack production build. The required React Doctor `--diff` mode timed out after
+five minutes; its bounded changed-scope fallback completed with 11 warnings in the merged storefront
+files. Those findings and all earlier phase gates remain open in the continuation PR.
 
 ## Next action
 

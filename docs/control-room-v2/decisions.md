@@ -613,3 +613,51 @@ the first domain migration lands.
 - Phase 11 acceptance is unchanged and still blocked; this override does not represent it as passing.
 - Full Phase 12 acceptance (authenticated queries, invalidation matrix, optimistic rollback, Phase
   4–12 regression) remains open and must be completed once Phase 11 unblocks.
+
+## Decision 012 — Merge PR #4 as an integration milestone and continue from updated main
+
+**Date:** 2026-07-13
+**Status:** Approved by direct user instruction and integration-verified
+**Decision owner:** Direct user instruction
+**Review trigger:** The continuation PR changes phase scope, Phase 11 unblocks, or another long-lived branch diverges materially from `main`
+
+### Context
+
+PR #4 accumulated the Control Room specification, implementation history and phase conversation while
+its branch diverged by 31 commits from `main`. Those upstream commits delivered the connected storefront
+reservation, cart, checkout, account and order-confirmation flows. The user asked to resolve and merge
+PR #4, then continue Control Room work from current `main` without losing the original PR context.
+
+GitHub cannot transfer an existing pull request's conversation timeline to another pull request. A new
+continuation PR therefore needs an explicit handoff that links PR #4, summarizes its chronological
+phase decisions and preserves every unresolved gate.
+
+### Decision
+
+- Merge current `main` into `feat/control-room-v2` with a normal merge commit.
+- Resolve shared storefront conflicts in favour of `main`'s newer connected implementation.
+- Preserve the Control Room root theme provider, semantic light/dark role system and brand metadata.
+- Merge PR #4 as the integration milestone after local verification.
+- Create `surdma/control-room-v2-continuation` from the resulting `main` and open a draft PR with a
+  repository handoff document plus a comprehensive PR #4 conversation summary.
+- Keep Phase 4–8 acceptance, Phase 10 browser OAuth/React Doctor, Phase 11 Docker/RLS/generated-types,
+  and Phase 12 data-migration blockers explicit. The merge is not phase acceptance.
+
+### Verification evidence
+
+- Biome: passed with 44 warnings still visible.
+- TypeScript: passed with `tsc --noEmit --pretty false --incremental false`.
+- Vitest: 35 files and 139 tests passed.
+- Next.js 16.2.10 production build: passed with the default Turbopack build.
+- React Doctor exact `--diff`: timed out after five minutes with no diagnostics.
+- React Doctor changed-scope fallback: completed with 11 warnings in upstream storefront files.
+
+### Consequences
+
+- `main` becomes the shared integration baseline for both storefront and Control Room work.
+- The continuation branch can be refreshed from `main` regularly without replaying the original
+  31-commit divergence.
+- PR #4 remains the immutable source conversation; the continuation PR carries a durable summary and
+  source links rather than pretending GitHub moved the original comments.
+- Outstanding phase gates remain blocking evidence for feature acceptance even though the integration
+  milestone is merged.

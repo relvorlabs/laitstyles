@@ -31,7 +31,7 @@ describe("phase 11 supabase schema guardrails", () => {
     expect(migrationSql).not.toMatch(/\bstorage\.buckets\b/);
     expect(migrationSql).not.toMatch(/\bstorage\.objects\b/);
     expect(migrationSql).not.toMatch(/\bbytea\b/);
-    expect(supabaseConfig).toContain("[storage]\nenabled = false");
+    expect(supabaseConfig).toMatch(/\[storage\]\r?\nenabled = false/);
     expect(supabaseConfig).not.toContain("[storage.buckets");
   });
 });
