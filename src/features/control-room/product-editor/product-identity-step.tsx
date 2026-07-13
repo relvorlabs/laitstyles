@@ -191,6 +191,36 @@ export function ProductIdentityStep() {
           placeholder="Relaxed Adidas denim jeans with…"
           rows={5}
         />
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <EditorTextField
+            label="Material / composition"
+            name="material"
+            placeholder="Wool body / leather sleeves"
+          />
+          <EditorTextField label="Recommended fit" name="fit" placeholder="M–L" />
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <EditorTextField
+            label="Style"
+            name="style"
+            placeholder="Vintage, Streetwear, Workwear…"
+          />
+          <EditorTextField
+            label="Care instructions"
+            name="careInstructions"
+            placeholder="Hang dry, do not machine wash"
+          />
+        </div>
+
+        <EditorTextareaField
+          description="Disclosed honestly and shown to shoppers. Leave blank if there are no flaws."
+          label="Disclosed flaws"
+          name="flawNotes"
+          placeholder="Small mark inside the left cuff"
+          rows={3}
+        />
       </FieldGroup>
     </section>
   );

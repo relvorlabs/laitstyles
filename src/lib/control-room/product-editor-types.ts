@@ -57,6 +57,11 @@ export type ProductEditorBase = {
   name: string;
   category: string;
   brand: string;
+  material: string;
+  fit: string;
+  style: string;
+  careInstructions: string;
+  flawNotes: string;
   description: string;
   collection: string;
   internalReference: string;

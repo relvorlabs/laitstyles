@@ -47,6 +47,13 @@ export type ProductBase = {
   category: string;
   collection: string | null;
   brand: string;
+  // Optional on the in-memory record (like fulfilment/scheduledAt): older seed
+  // products may omit them; the editor always populates them via conversion.
+  material?: string | null;
+  fit?: string | null;
+  style?: string | null;
+  careInstructions?: string | null;
+  flawNotes?: string | null;
   image: string;
   media: ProductMedia[];
   price: number;
