@@ -1,8 +1,9 @@
 "use client";
 
+import { Clock, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, ShoppingBag, Trash2 } from "lucide-react";
+import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -13,16 +14,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import { naira } from "@/lib/catalogue";
 
 export function CartSheet({ compact = false }: { compact?: boolean }) {
   const { heldItems, release, rehold } = useShop();
   const activeItems = heldItems.filter((item) => item.secondsLeft > 0);
   const total = activeItems.reduce((sum, item) => sum + item.product.price, 0);
-  const soonest = activeItems.length
-    ? Math.min(...activeItems.map((item) => item.secondsLeft))
-    : 0;
+  const soonest = activeItems.length ? Math.min(...activeItems.map((item) => item.secondsLeft)) : 0;
 
   return (
     <Sheet>
@@ -50,9 +48,7 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
         }
       >
         <SheetHeader className="border-b border-border p-5">
-          <SheetTitle className="font-serif text-[24px] font-medium">
-            Your reserved rail
-          </SheetTitle>
+          <SheetTitle className="font-serif text-[24px] font-medium">Your reserved rail</SheetTitle>
           <SheetDescription>
             {heldItems.length
               ? `${heldItems.length} one-of-one ${heldItems.length === 1 ? "piece" : "pieces"} in your bag.`
@@ -95,7 +91,10 @@ export function CartSheet({ compact = false }: { compact?: boolean }) {
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <Link className="line-clamp-2 text-[14px] font-medium" href={`/p/${product.id}`}>
+                          <Link
+                            className="line-clamp-2 text-[14px] font-medium"
+                            href={`/p/${product.id}`}
+                          >
                             {product.name}
                           </Link>
                           <div className="mt-1 text-[12px] text-muted-foreground">

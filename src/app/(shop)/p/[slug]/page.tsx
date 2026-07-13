@@ -1,8 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   ChevronDown,
   Expand,
@@ -13,15 +10,18 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import {
   findCatalogueProduct,
   galleryForProduct,
   naira,
+  type PlpProduct,
   pdpHref,
   plpItems,
-  type PlpProduct,
 } from "@/lib/catalogue";
 
 const faqs = [
@@ -61,9 +61,7 @@ export default function ProductPage() {
   const related = plpItems
     .filter(
       (item) =>
-        item.id !== product.id &&
-        item.category === product.category &&
-        item.state !== "sold",
+        item.id !== product.id && item.category === product.category && item.state !== "sold",
     )
     .slice(0, 4);
 
@@ -77,9 +75,7 @@ export default function ProductPage() {
         setImageIndex((current) => (current + 1) % gallery.length);
       }
       if (lightboxOpen && event.key === "ArrowLeft") {
-        setImageIndex(
-          (current) => (current - 1 + gallery.length) % gallery.length,
-        );
+        setImageIndex((current) => (current - 1 + gallery.length) % gallery.length);
       }
     }
 
@@ -106,18 +102,21 @@ export default function ProductPage() {
       <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-20 max-sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-1 pb-2.5 pt-[26px]">
           <div className="flex items-center gap-3">
-            <span className="font-serif text-[15px] tabular-nums">
-              №&nbsp;{product.rank + 104}
-            </span>
+            <span className="font-serif text-[15px] tabular-nums">№&nbsp;{product.rank + 104}</span>
             <span className="h-px w-[22px] bg-[#C6C4BB]" />
             <span className="text-[11px] uppercase tracking-[.34em] text-[#8A887E]">
               One of One
             </span>
           </div>
           <div className="text-[12.5px] text-[#9A988F]">
-            <Link className="text-[#9A988F]" href="/">Home</Link>
+            <Link className="text-[#9A988F]" href="/">
+              Home
+            </Link>
             <span className="mx-[7px]">/</span>
-            <Link className="text-[#9A988F]" href={`/shop?category=${encodeURIComponent(product.category.toLowerCase())}`}>
+            <Link
+              className="text-[#9A988F]"
+              href={`/shop?category=${encodeURIComponent(product.category.toLowerCase())}`}
+            >
               {product.category}
             </Link>
             <span className="mx-[7px]">/</span>
@@ -185,12 +184,15 @@ export default function ProductPage() {
               An individual piece selected for its texture, construction and second-life potential.
             </p>
             <p className="mb-[26px] max-w-[470px] text-[14px] leading-[1.7] text-[#6E6C64]">
-              Professionally checked and photographed in Lagos. Natural wear is documented rather than hidden, so the piece you see is the piece that arrives.
+              Professionally checked and photographed in Lagos. Natural wear is documented rather
+              than hidden, so the piece you see is the piece that arrives.
             </p>
 
             <div className="mb-[22px] flex items-baseline gap-3 border-b border-border pb-[22px]">
               <span className="font-serif text-[30px] font-medium">{naira(product.price)}</span>
-              <span className="text-[15px] text-[#A7A59B] line-through">{naira(product.original)}</span>
+              <span className="text-[15px] text-[#A7A59B] line-through">
+                {naira(product.original)}
+              </span>
               <span className="text-[12px] font-semibold tracking-[.04em] text-accent">
                 −{Math.round((1 - product.price / product.original) * 100)}%
               </span>
@@ -208,10 +210,18 @@ export default function ProductPage() {
 
             <div className="mb-[18px] flex items-center gap-2">
               <span
-                className={status.pulse ? "size-2 animate-[leemPulse_1.8s_ease-in-out_infinite] rounded-full" : "size-2 rounded-full"}
+                className={
+                  status.pulse
+                    ? "size-2 animate-[leemPulse_1.8s_ease-in-out_infinite] rounded-full"
+                    : "size-2 rounded-full"
+                }
                 style={{ backgroundColor: status.dot }}
               />
-              <span aria-live="polite" className="text-[13px] font-medium" style={{ color: status.color }}>
+              <span
+                aria-live="polite"
+                className="text-[13px] font-medium"
+                style={{ color: status.color }}
+              >
                 {status.label}
               </span>
             </div>
@@ -246,16 +256,36 @@ export default function ProductPage() {
                   onClick={() => setWishlist((value) => !value)}
                   type="button"
                 >
-                  <Heart aria-hidden="true" className={wishlist ? "fill-[#B04A45] text-[#B04A45]" : "fill-none"} />
+                  <Heart
+                    aria-hidden="true"
+                    className={wishlist ? "fill-[#B04A45] text-[#B04A45]" : "fill-none"}
+                  />
                 </button>
               </div>
             </div>
 
             {held ? (
-              <div className={expired ? "mt-3.5 rounded-xl border border-[#E4C4BF] bg-[#FBF0EE] px-4 py-3" : "mt-3.5 rounded-xl border border-chip-border bg-chip-bg px-4 py-3"}>
+              <div
+                className={
+                  expired
+                    ? "mt-3.5 rounded-xl border border-[#E4C4BF] bg-[#FBF0EE] px-4 py-3"
+                    : "mt-3.5 rounded-xl border border-chip-border bg-chip-bg px-4 py-3"
+                }
+              >
                 <div className="flex items-center justify-between gap-3">
-                  <span className={expired ? "text-[13px] text-[#8A362F]" : "text-[13px] text-[#4A5540]"}>
-                    {expired ? "Your hold expired." : <>Held for you — releases in <strong className="tabular-nums">{formatHoldTime(secondsLeft)}</strong></>}
+                  <span
+                    className={
+                      expired ? "text-[13px] text-[#8A362F]" : "text-[13px] text-[#4A5540]"
+                    }
+                  >
+                    {expired ? (
+                      "Your hold expired."
+                    ) : (
+                      <>
+                        Held for you — releases in{" "}
+                        <strong className="tabular-nums">{formatHoldTime(secondsLeft)}</strong>
+                      </>
+                    )}
                   </span>
                   <button
                     className="text-[12.5px] text-[#8A887E] underline underline-offset-2"
@@ -266,7 +296,10 @@ export default function ProductPage() {
                   </button>
                 </div>
                 {!expired ? (
-                  <Link className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#5F7043]" href="/cart">
+                  <Link
+                    className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#5F7043]"
+                    href="/cart"
+                  >
                     <ShoppingBag aria-hidden="true" className="size-3.5" />
                     Review your bag
                   </Link>
@@ -289,15 +322,26 @@ export default function ProductPage() {
 
         <section className="grid grid-cols-[1.1fr_.9fr] gap-12 border-t border-border px-1 py-12 max-md:grid-cols-1">
           <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">The piece</div>
-            <h2 className="font-serif text-[30px] font-medium">Condition, story &amp; measurements</h2>
+            <div className="mb-2 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">
+              The piece
+            </div>
+            <h2 className="font-serif text-[30px] font-medium">
+              Condition, story &amp; measurements
+            </h2>
             <p className="mt-4 max-w-[660px] text-[14px] leading-[1.75] text-[#57554E]">
-              This {product.category.toLowerCase()} piece is graded {product.condition.toLowerCase()}. Its structure remains sound, with the character expected from a genuine second-hand garment.
+              This {product.category.toLowerCase()} piece is graded{" "}
+              {product.condition.toLowerCase()}. Its structure remains sound, with the character
+              expected from a genuine second-hand garment.
             </p>
             <div className="mt-6 grid grid-cols-3 gap-3 max-sm:grid-cols-1">
               {measurementRows(product).map((item) => (
-                <div className="rounded-[14px] border border-border bg-white px-4 py-4" key={item.label}>
-                  <div className="text-[11px] uppercase tracking-[.08em] text-[#A7A59B]">{item.label}</div>
+                <div
+                  className="rounded-[14px] border border-border bg-white px-4 py-4"
+                  key={item.label}
+                >
+                  <div className="text-[11px] uppercase tracking-[.08em] text-[#A7A59B]">
+                    {item.label}
+                  </div>
                   <div className="mt-1 font-serif text-[21px]">{item.value}</div>
                 </div>
               ))}
@@ -305,7 +349,9 @@ export default function ProductPage() {
           </div>
 
           <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">Good to know</div>
+            <div className="mb-2 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">
+              Good to know
+            </div>
             <div className="border-t border-border">
               {faqs.map((faq, index) => (
                 <div className="border-b border-border" key={faq.question}>
@@ -316,7 +362,14 @@ export default function ProductPage() {
                     type="button"
                   >
                     {faq.question}
-                    <ChevronDown aria-hidden="true" className={openFaq === index ? "size-4 rotate-180 transition-transform" : "size-4 transition-transform"} />
+                    <ChevronDown
+                      aria-hidden="true"
+                      className={
+                        openFaq === index
+                          ? "size-4 rotate-180 transition-transform"
+                          : "size-4 transition-transform"
+                      }
+                    />
                   </button>
                   {openFaq === index ? (
                     <p className="pb-4 text-[13px] leading-[1.65] text-[#6E6C64]">{faq.answer}</p>
@@ -331,10 +384,15 @@ export default function ProductPage() {
           <section className="border-t border-border px-1 pt-12">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
-                <div className="mb-1 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">Same rail</div>
+                <div className="mb-1 text-[11px] uppercase tracking-[.26em] text-[#8A887E]">
+                  Same rail
+                </div>
                 <h2 className="font-serif text-[30px] font-medium">Pieces you may also like</h2>
               </div>
-              <Link className="text-[13px] font-semibold text-[#7C8C63]" href={`/shop?category=${encodeURIComponent(product.category.toLowerCase())}`}>
+              <Link
+                className="text-[13px] font-semibold text-[#7C8C63]"
+                href={`/shop?category=${encodeURIComponent(product.category.toLowerCase())}`}
+              >
                 View all
               </Link>
             </div>
@@ -363,7 +421,13 @@ export default function ProductPage() {
             <X aria-hidden="true" />
           </button>
           <div className="relative h-[88vh] w-full max-w-[760px] overflow-hidden rounded-[14px] bg-[#E4E5DE]">
-            <Image alt={product.name} className="object-contain" fill sizes="90vw" src={gallery[imageIndex]} />
+            <Image
+              alt={product.name}
+              className="object-contain"
+              fill
+              sizes="90vw"
+              src={gallery[imageIndex]}
+            />
           </div>
         </div>
       ) : null}
@@ -384,14 +448,19 @@ export default function ProductPage() {
             >
               <X aria-hidden="true" className="size-4" />
             </button>
-            <div className="text-[11px] uppercase tracking-[.24em] text-[#8A887E]">Measured flat</div>
+            <div className="text-[11px] uppercase tracking-[.24em] text-[#8A887E]">
+              Measured flat
+            </div>
             <h2 className="mt-1 font-serif text-[30px] font-medium">Measurements &amp; fit</h2>
             <p className="mt-2 text-[13px] leading-[1.6] text-[#6E6C64]">
               Compare these garment measurements with a similar piece you already own.
             </p>
             <div className="mt-6 border-t border-border">
               {measurementRows(product).map((item) => (
-                <div className="flex items-center justify-between border-b border-border py-3.5" key={item.label}>
+                <div
+                  className="flex items-center justify-between border-b border-border py-3.5"
+                  key={item.label}
+                >
                   <span className="text-[13px] text-[#57554E]">{item.label}</span>
                   <span className="font-serif text-[18px]">{item.value}</span>
                 </div>
@@ -409,15 +478,25 @@ function ProductCard({ product }: { product: PlpProduct }) {
     <article>
       <Link className="group block" href={pdpHref(product.id)}>
         <div className="relative aspect-[4/5] overflow-hidden rounded-[14px] bg-muted">
-          <Image alt={product.name} className="object-cover transition-transform duration-300 group-hover:scale-[1.02]" fill sizes="(max-width: 768px) 50vw, 25vw" src={product.image} />
+          <Image
+            alt={product.name}
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            src={product.image}
+          />
           {product.state === "lastone" ? (
-            <span className="absolute left-3 top-3 rounded-full bg-white/92 px-2.5 py-1 text-[10.5px] font-semibold text-[#8A362F]">Last one</span>
+            <span className="absolute left-3 top-3 rounded-full bg-white/92 px-2.5 py-1 text-[10.5px] font-semibold text-[#8A362F]">
+              Last one
+            </span>
           ) : null}
         </div>
         <div className="mt-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="line-clamp-2 text-[14px] font-medium">{product.name}</h3>
-            <p className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.condition}</p>
+            <p className="mt-1 text-[12px] text-[#8A887E]">
+              Size {product.size} · {product.condition}
+            </p>
           </div>
           <span className="shrink-0 text-[13.5px] font-semibold">{naira(product.price)}</span>
         </div>
@@ -426,12 +505,7 @@ function ProductCard({ product }: { product: PlpProduct }) {
   );
 }
 
-function primaryLabel(
-  product: PlpProduct,
-  held: boolean,
-  secondsLeft: number,
-  notified: boolean,
-) {
+function primaryLabel(product: PlpProduct, held: boolean, secondsLeft: number, notified: boolean) {
   if (notified) return "You’ll be notified";
   if (held && secondsLeft <= 0) return "Re-hold this piece";
   if (held) return `Held for you · ${formatHoldTime(secondsLeft)}`;
@@ -441,18 +515,44 @@ function primaryLabel(
   return "Reserve for 15 minutes";
 }
 
-function productStatus(
-  product: PlpProduct,
-  held: boolean,
-  secondsLeft: number,
-  notified: boolean,
-) {
-  if (notified) return { label: "We’ll alert you if this piece returns", color: "#5F7043", dot: "#7C8C63", pulse: false };
-  if (held && secondsLeft <= 0) return { label: "Your hold expired — re-hold if still available", color: "#8A362F", dot: "#B4453C", pulse: false };
-  if (held) return { label: `Reserved by you · ${formatHoldTime(secondsLeft)}`, color: "#4A5540", dot: "#7C8C63", pulse: true };
-  if (product.state === "sold") return { label: "Sold — this exact piece has found a home", color: "#8A887E", dot: "#8A887E", pulse: false };
-  if (product.state === "resOthers") return { label: "Currently held by another shopper", color: "#8A7434", dot: "#C9A227", pulse: true };
-  if (product.state === "lastone") return { label: "Last one — no restock", color: "#8A362F", dot: "#B4453C", pulse: true };
+function productStatus(product: PlpProduct, held: boolean, secondsLeft: number, notified: boolean) {
+  if (notified)
+    return {
+      label: "We’ll alert you if this piece returns",
+      color: "#5F7043",
+      dot: "#7C8C63",
+      pulse: false,
+    };
+  if (held && secondsLeft <= 0)
+    return {
+      label: "Your hold expired — re-hold if still available",
+      color: "#8A362F",
+      dot: "#B4453C",
+      pulse: false,
+    };
+  if (held)
+    return {
+      label: `Reserved by you · ${formatHoldTime(secondsLeft)}`,
+      color: "#4A5540",
+      dot: "#7C8C63",
+      pulse: true,
+    };
+  if (product.state === "sold")
+    return {
+      label: "Sold — this exact piece has found a home",
+      color: "#8A887E",
+      dot: "#8A887E",
+      pulse: false,
+    };
+  if (product.state === "resOthers")
+    return {
+      label: "Currently held by another shopper",
+      color: "#8A7434",
+      dot: "#C9A227",
+      pulse: true,
+    };
+  if (product.state === "lastone")
+    return { label: "Last one — no restock", color: "#8A362F", dot: "#B4453C", pulse: true };
   return { label: "Available now", color: "#4A5540", dot: "#7C8C63", pulse: true };
 }
 

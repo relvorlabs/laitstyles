@@ -1,8 +1,8 @@
 "use client";
 
+import { Clock, Home, LockKeyhole, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Home, LockKeyhole, ShoppingBag, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import { naira } from "@/lib/catalogue";
@@ -19,15 +19,10 @@ export default function CartPage() {
   const [discountMessage, setDiscountMessage] = useState("");
 
   const activeItems = heldItems.filter((item) => item.secondsLeft > 0);
-  const soonest = activeItems.length
-    ? Math.min(...activeItems.map((item) => item.secondsLeft))
-    : 0;
+  const soonest = activeItems.length ? Math.min(...activeItems.map((item) => item.secondsLeft)) : 0;
 
   const totals = useMemo(() => {
-    const subtotal = activeItems.reduce(
-      (sum, item) => sum + item.product.price,
-      0,
-    );
+    const subtotal = activeItems.reduce((sum, item) => sum + item.product.price, 0);
     const discount = discountApplied ? Math.round(subtotal * 0.1) : 0;
     const shipping = activeItems.length ? 3500 : 0;
     const vat = Math.round((subtotal - discount) * 0.075);
@@ -65,21 +60,13 @@ export default function CartPage() {
         <div className="flex items-center justify-between px-1 pb-[22px]">
           <Link className="flex items-center gap-[9px]" href="/">
             <Home aria-hidden="true" className="size-5" strokeWidth={1.9} />
-            <span className="text-[15px] font-semibold tracking-[.26em]">
-              LAITSTYLE
-            </span>
+            <span className="text-[15px] font-semibold tracking-[.26em]">LAITSTYLE</span>
           </Link>
           <div className="flex items-center gap-1.5" aria-label="Currency">
-            <CurrencyButton
-              active={currency === "NGN"}
-              onClick={() => setCurrency("NGN")}
-            >
+            <CurrencyButton active={currency === "NGN"} onClick={() => setCurrency("NGN")}>
               ₦ NGN
             </CurrencyButton>
-            <CurrencyButton
-              active={currency === "USD"}
-              onClick={() => setCurrency("USD")}
-            >
+            <CurrencyButton active={currency === "USD"} onClick={() => setCurrency("USD")}>
               $ USD
             </CurrencyButton>
           </div>
@@ -171,7 +158,8 @@ export default function CartPage() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                               <Clock aria-hidden="true" className="size-3" />
-                              Held · <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
+                              Held ·{" "}
+                              <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
                             </span>
                           )}
                           <button
@@ -219,7 +207,9 @@ export default function CartPage() {
               </h2>
 
               <div className="mb-2 flex gap-2.5">
-                <label className="sr-only" htmlFor="discount-code">Discount code</label>
+                <label className="sr-only" htmlFor="discount-code">
+                  Discount code
+                </label>
                 <input
                   className="h-[46px] min-w-0 flex-1 rounded-[9px] border border-[#E4E2DA] px-3.5 text-[13.5px] outline-none focus:border-[#1B1A17]"
                   id="discount-code"
@@ -238,12 +228,19 @@ export default function CartPage() {
               </div>
               <p
                 aria-live="polite"
-                className={discountApplied ? "mb-4 text-[11.5px] text-[#5F7043]" : "mb-4 text-[11.5px] text-[#8A887E]"}
+                className={
+                  discountApplied
+                    ? "mb-4 text-[11.5px] text-[#5F7043]"
+                    : "mb-4 text-[11.5px] text-[#8A887E]"
+                }
               >
                 {discountMessage || "Preview code: LAIT10"}
               </p>
 
-              <SummaryRow label={`Subtotal · ${activeItems.length} items`} value={money(totals.subtotal)} />
+              <SummaryRow
+                label={`Subtotal · ${activeItems.length} items`}
+                value={money(totals.subtotal)}
+              />
               {totals.discount ? (
                 <SummaryRow label="Discount · LAIT10" value={`−${money(totals.discount)}`} accent />
               ) : null}
@@ -285,7 +282,8 @@ export default function CartPage() {
             </div>
             <h1 className="mt-6 font-serif text-[34px] font-medium">Your bag is waiting</h1>
             <p className="mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll hold it while you decide.
+              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll
+              hold it while you decide.
             </p>
             <Link
               className="mt-6 flex h-[52px] items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14.5px] font-semibold text-white"
@@ -337,9 +335,7 @@ function SummaryRow({
   return (
     <div className="mb-2.5 flex justify-between gap-4 text-[13.5px]">
       <span className="text-[#57554E]">{label}</span>
-      <span className={accent ? "font-medium text-[#5F7043]" : "text-[#1B1A17]"}>
-        {value}
-      </span>
+      <span className={accent ? "font-medium text-[#5F7043]" : "text-[#1B1A17]"}>{value}</span>
     </div>
   );
 }

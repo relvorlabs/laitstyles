@@ -1,25 +1,12 @@
 "use client";
 
+import { Check, ChevronDown, Clock, Heart, Search, SlidersHorizontal, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  Check,
-  ChevronDown,
-  Clock,
-  Heart,
-  Search,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
-import {
-  naira,
-  pdpHref,
-  plpItems,
-  type PlpProduct,
-} from "@/lib/catalogue";
+import { naira, type PlpProduct, pdpHref, plpItems } from "@/lib/catalogue";
 
 const categories = Array.from(new Set(plpItems.map((item) => item.category)));
 const sizes = ["XS", "S", "M", "L", "XL", "OS"];
@@ -52,9 +39,7 @@ function Catalogue() {
   const [notified, setNotified] = useState<Record<string, boolean>>({});
 
   const activeHeld = heldItems.filter((item) => item.secondsLeft > 0);
-  const soonest = activeHeld.length
-    ? Math.min(...activeHeld.map((item) => item.secondsLeft))
-    : 0;
+  const soonest = activeHeld.length ? Math.min(...activeHeld.map((item) => item.secondsLeft)) : 0;
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -91,7 +76,9 @@ function Catalogue() {
   }, [category, condition, price, query, size, sort]);
 
   const shown = filtered.slice(0, visible);
-  const activeFilterCount = [category, size, condition, price !== "any" ? price : ""].filter(Boolean).length;
+  const activeFilterCount = [category, size, condition, price !== "any" ? price : ""].filter(
+    Boolean,
+  ).length;
 
   function clearFilters() {
     setCategory("");
@@ -113,12 +100,15 @@ function Catalogue() {
               {category || "All pieces"}, each here only once.
             </h1>
             <p className="mt-3 max-w-[650px] text-[14px] leading-[1.65] text-[#6E6C64]">
-              Browse honestly graded second-hand clothing from Lagos. Reserve a piece for 15 minutes before someone else takes it.
+              Browse honestly graded second-hand clothing from Lagos. Reserve a piece for 15 minutes
+              before someone else takes it.
             </p>
           </div>
           <div className="text-right">
             <div className="font-serif text-[24px]">{filtered.length}</div>
-            <div className="text-[11px] uppercase tracking-[.16em] text-[#8A887E]">available and rehomed pieces</div>
+            <div className="text-[11px] uppercase tracking-[.16em] text-[#8A887E]">
+              available and rehomed pieces
+            </div>
           </div>
         </div>
       </section>
@@ -140,9 +130,18 @@ function Catalogue() {
       ) : null}
 
       <section className="mt-7 flex items-center gap-3 border-y border-border py-3.5">
-        <form className="relative min-w-0 flex-1" onSubmit={(event) => event.preventDefault()} role="search">
-          <label className="sr-only" htmlFor="catalogue-search">Search catalogue</label>
-          <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#8A887E]" />
+        <form
+          className="relative min-w-0 flex-1"
+          onSubmit={(event) => event.preventDefault()}
+          role="search"
+        >
+          <label className="sr-only" htmlFor="catalogue-search">
+            Search catalogue
+          </label>
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#8A887E]"
+          />
           <input
             autoComplete="off"
             className="h-11 w-full rounded-full border border-border bg-white pl-11 pr-4 text-[13.5px] outline-none focus:border-primary"
@@ -179,7 +178,10 @@ function Catalogue() {
             <option value="price-high">Price: high to low</option>
             <option value="reduced">Most reduced</option>
           </select>
-          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-[#8A887E]" />
+          <ChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-[#8A887E]"
+          />
         </label>
       </section>
 
@@ -204,7 +206,14 @@ function Catalogue() {
               Showing {Math.min(visible, filtered.length)} of {filtered.length} pieces
             </div>
             {activeFilterCount || query ? (
-              <button className="text-[12.5px] font-semibold text-[#7C8C63] underline underline-offset-2" onClick={() => { clearFilters(); setQuery(""); }} type="button">
+              <button
+                className="text-[12.5px] font-semibold text-[#7C8C63] underline underline-offset-2"
+                onClick={() => {
+                  clearFilters();
+                  setQuery("");
+                }}
+                type="button"
+              >
                 Clear search &amp; filters
               </button>
             ) : null}
@@ -220,7 +229,9 @@ function Catalogue() {
                   onNotify={() => setNotified((current) => ({ ...current, [product.id]: true }))}
                   onRelease={() => release(product.id)}
                   onReserve={() => reserve(product)}
-                  onWishlist={() => setWishlist((current) => ({ ...current, [product.id]: !current[product.id] }))}
+                  onWishlist={() =>
+                    setWishlist((current) => ({ ...current, [product.id]: !current[product.id] }))
+                  }
                   product={product}
                   secondsLeft={secondsFor(product.id)}
                   wished={Boolean(wishlist[product.id])}
@@ -228,12 +239,22 @@ function Catalogue() {
               ))}
             </div>
           ) : (
-            <EmptyCatalogue query={query} onReset={() => { clearFilters(); setQuery(""); }} />
+            <EmptyCatalogue
+              query={query}
+              onReset={() => {
+                clearFilters();
+                setQuery("");
+              }}
+            />
           )}
 
           {visible < filtered.length ? (
             <div className="mt-10 flex justify-center">
-              <button className="h-12 rounded-full border-[1.5px] border-primary bg-transparent px-8 text-[14px] font-semibold" onClick={() => setVisible((current) => current + 12)} type="button">
+              <button
+                className="h-12 rounded-full border-[1.5px] border-primary bg-transparent px-8 text-[14px] font-semibold"
+                onClick={() => setVisible((current) => current + 12)}
+                type="button"
+              >
                 Load more one-of-one pieces
               </button>
             </div>
@@ -243,10 +264,20 @@ function Catalogue() {
 
       {filtersOpen ? (
         <div className="fixed inset-0 z-[100] flex justify-end bg-[#171612]/45 md:hidden">
-          <div aria-label="Catalogue filters" aria-modal="true" className="h-full w-[88%] max-w-[380px] overflow-y-auto bg-[#F6F5F1] p-5" role="dialog">
+          <div
+            aria-label="Catalogue filters"
+            aria-modal="true"
+            className="h-full w-[88%] max-w-[380px] overflow-y-auto bg-[#F6F5F1] p-5"
+            role="dialog"
+          >
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-serif text-[26px] font-medium">Filter pieces</h2>
-              <button aria-label="Close filters" className="flex size-10 items-center justify-center rounded-full border border-border bg-white" onClick={() => setFiltersOpen(false)} type="button">
+              <button
+                aria-label="Close filters"
+                className="flex size-10 items-center justify-center rounded-full border border-border bg-white"
+                onClick={() => setFiltersOpen(false)}
+                type="button"
+              >
                 <X aria-hidden="true" className="size-4" />
               </button>
             </div>
@@ -261,7 +292,11 @@ function Catalogue() {
               setSize={setSize}
               size={size}
             />
-            <button className="sticky bottom-3 mt-6 h-12 w-full rounded-full bg-primary text-[14px] font-semibold text-primary-foreground" onClick={() => setFiltersOpen(false)} type="button">
+            <button
+              className="sticky bottom-3 mt-6 h-12 w-full rounded-full bg-primary text-[14px] font-semibold text-primary-foreground"
+              onClick={() => setFiltersOpen(false)}
+              type="button"
+            >
               Show {filtered.length} pieces
             </button>
           </div>
@@ -302,20 +337,29 @@ function ProductCard({
         <Link href={pdpHref(product.id)}>
           <Image
             alt={product.name}
-            className={sold || heldByOther ? "object-cover opacity-60 grayscale" : "object-cover transition-transform duration-300 group-hover:scale-[1.02]"}
+            className={
+              sold || heldByOther
+                ? "object-cover opacity-60 grayscale"
+                : "object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            }
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 28vw"
             src={product.image}
           />
         </Link>
         <button
-          aria-label={wished ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-label={
+            wished ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`
+          }
           aria-pressed={wished}
           className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/92 backdrop-blur"
           onClick={onWishlist}
           type="button"
         >
-          <Heart aria-hidden="true" className={wished ? "size-4 fill-[#B04A45] text-[#B04A45]" : "size-4"} />
+          <Heart
+            aria-hidden="true"
+            className={wished ? "size-4 fill-[#B04A45] text-[#B04A45]" : "size-4"}
+          />
         </button>
         <StateBadge held={held} product={product} secondsLeft={secondsLeft} />
       </div>
@@ -323,27 +367,50 @@ function ProductCard({
       <div className="mt-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <Link className="line-clamp-2 text-[14px] font-medium" href={pdpHref(product.id)}>{product.name}</Link>
-            <p className="mt-1 text-[12px] text-[#8A887E]">Size {product.size} · {product.color} · {product.condition}</p>
+            <Link className="line-clamp-2 text-[14px] font-medium" href={pdpHref(product.id)}>
+              {product.name}
+            </Link>
+            <p className="mt-1 text-[12px] text-[#8A887E]">
+              Size {product.size} · {product.color} · {product.condition}
+            </p>
           </div>
           <span className="shrink-0 text-[13.5px] font-semibold">{naira(product.price)}</span>
         </div>
 
         {held ? (
           <div className="mt-3 flex items-center justify-between gap-2">
-            <span className={expired ? "text-[11.5px] font-semibold text-[#8A362F]" : "text-[11.5px] font-semibold text-[#4A5540]"}>
+            <span
+              className={
+                expired
+                  ? "text-[11.5px] font-semibold text-[#8A362F]"
+                  : "text-[11.5px] font-semibold text-[#4A5540]"
+              }
+            >
               {expired ? "Hold expired" : `Held · ${formatHoldTime(secondsLeft)}`}
             </span>
-            <button className="text-[11.5px] text-[#8A887E] underline underline-offset-2" onClick={expired ? onReserve : onRelease} type="button">
+            <button
+              className="text-[11.5px] text-[#8A887E] underline underline-offset-2"
+              onClick={expired ? onReserve : onRelease}
+              type="button"
+            >
               {expired ? "Re-hold" : "Release"}
             </button>
           </div>
         ) : sold || heldByOther ? (
-          <button className="mt-3 h-9 w-full rounded-full border border-border bg-white text-[12px] font-semibold" disabled={notified} onClick={onNotify} type="button">
+          <button
+            className="mt-3 h-9 w-full rounded-full border border-border bg-white text-[12px] font-semibold"
+            disabled={notified}
+            onClick={onNotify}
+            type="button"
+          >
             {notified ? "Notification set" : sold ? "Find similar" : "Notify me if released"}
           </button>
         ) : (
-          <button className="mt-3 h-9 w-full rounded-full border border-primary bg-transparent text-[12px] font-semibold transition-colors hover:bg-primary hover:text-primary-foreground" onClick={onReserve} type="button">
+          <button
+            className="mt-3 h-9 w-full rounded-full border border-primary bg-transparent text-[12px] font-semibold transition-colors hover:bg-primary hover:text-primary-foreground"
+            onClick={onReserve}
+            type="button"
+          >
             {product.state === "lastone" ? "Reserve the last one" : "Quick reserve"}
           </button>
         )}
@@ -365,7 +432,10 @@ function StateBadge({
   let className = "border-[#D6DAC8] bg-[#F2F4EA] text-[#4A5540]";
   if (held) {
     label = secondsLeft > 0 ? `Held ${formatHoldTime(secondsLeft)}` : "Hold expired";
-    className = secondsLeft > 0 ? "border-[#D6DAC8] bg-[#F2F4EA] text-[#4A5540]" : "border-[#E4C4BF] bg-[#FBF0EE] text-[#8A362F]";
+    className =
+      secondsLeft > 0
+        ? "border-[#D6DAC8] bg-[#F2F4EA] text-[#4A5540]"
+        : "border-[#E4C4BF] bg-[#FBF0EE] text-[#8A362F]";
   } else if (product.state === "lastone") {
     label = "Last one";
     className = "border-[#E8D7A6] bg-[#FBF6E8] text-[#8A7434]";
@@ -376,7 +446,13 @@ function StateBadge({
     label = "Rehomed";
     className = "border-[#DAD8CF] bg-[#EDECE6] text-[#6E6C64]";
   }
-  return <span className={`absolute bottom-3 left-3 rounded-full border px-2.5 py-1 text-[10.5px] font-semibold ${className}`}>{label}</span>;
+  return (
+    <span
+      className={`absolute bottom-3 left-3 rounded-full border px-2.5 py-1 text-[10.5px] font-semibold ${className}`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function FilterPanel({
@@ -403,42 +479,112 @@ function FilterPanel({
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="text-[12px] font-semibold uppercase tracking-[.12em] text-[#57554E]">Filters</div>
-        <button className="text-[11.5px] text-[#7C8C63] underline underline-offset-2" onClick={clearFilters} type="button">Reset</button>
+        <div className="text-[12px] font-semibold uppercase tracking-[.12em] text-[#57554E]">
+          Filters
+        </div>
+        <button
+          className="text-[11.5px] text-[#7C8C63] underline underline-offset-2"
+          onClick={clearFilters}
+          type="button"
+        >
+          Reset
+        </button>
       </div>
       <FilterGroup label="Category">
         <FilterOption active={!category} label="All pieces" onClick={() => setCategory("")} />
-        {categories.map((item) => <FilterOption active={category === item} key={item} label={item} onClick={() => setCategory(item)} />)}
+        {categories.map((item) => (
+          <FilterOption
+            active={category === item}
+            key={item}
+            label={item}
+            onClick={() => setCategory(item)}
+          />
+        ))}
       </FilterGroup>
       <FilterGroup label="Size">
         <div className="grid grid-cols-3 gap-2">
           {sizes.map((item) => (
-            <button aria-pressed={size === item} className={size === item ? "h-9 rounded-[9px] bg-primary text-[12px] font-semibold text-primary-foreground" : "h-9 rounded-[9px] border border-border bg-white text-[12px] font-semibold"} key={item} onClick={() => setSize(size === item ? "" : item)} type="button">{item}</button>
+            <button
+              aria-pressed={size === item}
+              className={
+                size === item
+                  ? "h-9 rounded-[9px] bg-primary text-[12px] font-semibold text-primary-foreground"
+                  : "h-9 rounded-[9px] border border-border bg-white text-[12px] font-semibold"
+              }
+              key={item}
+              onClick={() => setSize(size === item ? "" : item)}
+              type="button"
+            >
+              {item}
+            </button>
           ))}
         </div>
       </FilterGroup>
       <FilterGroup label="Condition">
-        {conditions.map((item) => <FilterOption active={condition === item} key={item} label={item} onClick={() => setCondition(condition === item ? "" : item)} />)}
+        {conditions.map((item) => (
+          <FilterOption
+            active={condition === item}
+            key={item}
+            label={item}
+            onClick={() => setCondition(condition === item ? "" : item)}
+          />
+        ))}
       </FilterGroup>
       <FilterGroup label="Price">
         <FilterOption active={price === "any"} label="Any price" onClick={() => setPrice("any")} />
-        <FilterOption active={price === "under-15"} label="Under ₦15k" onClick={() => setPrice("under-15")} />
-        <FilterOption active={price === "15-30"} label="₦15k–₦30k" onClick={() => setPrice("15-30")} />
-        <FilterOption active={price === "over-30"} label="Over ₦30k" onClick={() => setPrice("over-30")} />
+        <FilterOption
+          active={price === "under-15"}
+          label="Under ₦15k"
+          onClick={() => setPrice("under-15")}
+        />
+        <FilterOption
+          active={price === "15-30"}
+          label="₦15k–₦30k"
+          onClick={() => setPrice("15-30")}
+        />
+        <FilterOption
+          active={price === "over-30"}
+          label="Over ₦30k"
+          onClick={() => setPrice("over-30")}
+        />
       </FilterGroup>
     </div>
   );
 }
 
 function FilterGroup({ children, label }: { children: React.ReactNode; label: string }) {
-  return <section className="border-t border-border py-5"><h3 className="mb-3 text-[13px] font-semibold">{label}</h3><div className="flex flex-col gap-2">{children}</div></section>;
+  return (
+    <section className="border-t border-border py-5">
+      <h3 className="mb-3 text-[13px] font-semibold">{label}</h3>
+      <div className="flex flex-col gap-2">{children}</div>
+    </section>
+  );
 }
 
-function FilterOption({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+function FilterOption({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
   return (
-    <button aria-pressed={active} className="flex items-center justify-between gap-3 text-left text-[12.5px] text-[#57554E]" onClick={onClick} type="button">
+    <button
+      aria-pressed={active}
+      className="flex items-center justify-between gap-3 text-left text-[12.5px] text-[#57554E]"
+      onClick={onClick}
+      type="button"
+    >
       <span>{label}</span>
-      <span className={active ? "flex size-4 items-center justify-center rounded-[4px] bg-primary text-primary-foreground" : "flex size-4 items-center justify-center rounded-[4px] border border-[#CFCDBF] bg-white"}>
+      <span
+        className={
+          active
+            ? "flex size-4 items-center justify-center rounded-[4px] bg-primary text-primary-foreground"
+            : "flex size-4 items-center justify-center rounded-[4px] border border-[#CFCDBF] bg-white"
+        }
+      >
         {active ? <Check aria-hidden="true" className="size-3" /> : null}
       </span>
     </button>
@@ -448,10 +594,22 @@ function FilterOption({ active, label, onClick }: { active: boolean; label: stri
 function EmptyCatalogue({ query, onReset }: { query: string; onReset: () => void }) {
   return (
     <section className="flex min-h-[460px] flex-col items-center justify-center rounded-[16px] border border-border bg-white px-6 text-center">
-      <div className="flex size-[70px] items-center justify-center rounded-full bg-[#F2F4EA] text-[#7C8C63]"><Search aria-hidden="true" className="size-7" /></div>
+      <div className="flex size-[70px] items-center justify-center rounded-full bg-[#F2F4EA] text-[#7C8C63]">
+        <Search aria-hidden="true" className="size-7" />
+      </div>
       <h2 className="mt-5 font-serif text-[30px] font-medium">No one-of-one match yet</h2>
-      <p className="mt-2 max-w-[420px] text-[13.5px] leading-[1.6] text-[#6E6C64]">{query ? `Nothing currently matches “${query}”. Try another term or clear your filters.` : "No pieces match this combination of filters."}</p>
-      <button className="mt-5 h-11 rounded-full bg-primary px-6 text-[13px] font-semibold text-primary-foreground" onClick={onReset} type="button">Show all pieces</button>
+      <p className="mt-2 max-w-[420px] text-[13.5px] leading-[1.6] text-[#6E6C64]">
+        {query
+          ? `Nothing currently matches “${query}”. Try another term or clear your filters.`
+          : "No pieces match this combination of filters."}
+      </p>
+      <button
+        className="mt-5 h-11 rounded-full bg-primary px-6 text-[13px] font-semibold text-primary-foreground"
+        onClick={onReset}
+        type="button"
+      >
+        Show all pieces
+      </button>
     </section>
   );
 }
@@ -461,7 +619,9 @@ function LoadingGrid() {
     <main className="mx-auto w-full max-w-[1240px] px-6 py-10">
       <div className="h-14 w-2/3 animate-pulse rounded-[14px] bg-muted" />
       <div className="mt-10 grid grid-cols-3 gap-4 max-md:grid-cols-2">
-        {Array.from({ length: 9 }).map((_, index) => <div className="aspect-[4/5] animate-pulse rounded-[14px] bg-muted" key={index} />)}
+        {Array.from({ length: 9 }).map((_, index) => (
+          <div className="aspect-[4/5] animate-pulse rounded-[14px] bg-muted" key={index} />
+        ))}
       </div>
     </main>
   );

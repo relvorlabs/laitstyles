@@ -1,17 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Heart, Menu, Search, UserRound } from "lucide-react";
+import Link from "next/link";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { CartSheet } from "@/components/layout/cart-sheet";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const nav = [
   { label: "Shop New In", href: "/shop?sort=newest" },
@@ -33,9 +27,7 @@ export function Header() {
             {nav.map((item, index) => (
               <Link
                 className={
-                  index === 0
-                    ? "text-[14px] font-medium"
-                    : "text-[14px] text-muted-foreground"
+                  index === 0 ? "text-[14px] font-medium" : "text-[14px] text-muted-foreground"
                 }
                 href={item.href}
                 key={item.label}
@@ -74,9 +66,7 @@ export function Header() {
         <div className="flex items-center justify-between px-4 py-3">
           <Sheet>
             <SheetTrigger
-              render={
-                <button aria-label="Open navigation" className="flex p-1" type="button" />
-              }
+              render={<button aria-label="Open navigation" className="flex p-1" type="button" />}
             >
               <Menu aria-hidden="true" />
             </SheetTrigger>
@@ -96,7 +86,10 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
-                <Link className="border-t border-secondary px-3.5 py-3.5 text-[16px]" href="/account?tab=wishlist">
+                <Link
+                  className="border-t border-secondary px-3.5 py-3.5 text-[16px]"
+                  href="/account?tab=wishlist"
+                >
                   Saved pieces
                 </Link>
               </nav>

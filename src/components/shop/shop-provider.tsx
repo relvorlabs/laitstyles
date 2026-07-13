@@ -2,19 +2,14 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
-import {
-  canonicalProductId,
-  canonicalizeProduct,
-  feedItems,
-  type Product,
-} from "@/lib/catalogue";
+import { canonicalizeProduct, canonicalProductId, feedItems, type Product } from "@/lib/catalogue";
 
 const STORAGE_KEY = "laitstyle-held-items-v1";
 const DEFAULT_HOLD_SECONDS = 15 * 60;
@@ -110,10 +105,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reserve = useCallback((incomingProduct: Product) => {
-    if (
-      incomingProduct.state === "sold" ||
-      incomingProduct.state === "resOthers"
-    ) {
+    if (incomingProduct.state === "sold" || incomingProduct.state === "resOthers") {
       return false;
     }
 
@@ -121,11 +113,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     const canonicalId = canonicalProductId(product.id);
 
     setHeldItems((current) => {
-      if (
-        current.some(
-          (item) => canonicalProductId(item.product.id) === canonicalId,
-        )
-      ) {
+      if (current.some((item) => canonicalProductId(item.product.id) === canonicalId)) {
         return current.map((item) =>
           canonicalProductId(item.product.id) === canonicalId
             ? {
@@ -151,9 +139,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const release = useCallback((productId: string) => {
     const canonicalId = canonicalProductId(productId);
     setHeldItems((current) =>
-      current.filter(
-        (item) => canonicalProductId(item.product.id) !== canonicalId,
-      ),
+      current.filter((item) => canonicalProductId(item.product.id) !== canonicalId),
     );
   }, []);
 
@@ -179,16 +165,13 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       clearCart,
       isHeld: (productId) => {
         const canonicalId = canonicalProductId(productId);
-        return heldItems.some(
-          (item) => canonicalProductId(item.product.id) === canonicalId,
-        );
+        return heldItems.some((item) => canonicalProductId(item.product.id) === canonicalId);
       },
       secondsFor: (productId) => {
         const canonicalId = canonicalProductId(productId);
         return (
-          heldItems.find(
-            (item) => canonicalProductId(item.product.id) === canonicalId,
-          )?.secondsLeft ?? 0
+          heldItems.find((item) => canonicalProductId(item.product.id) === canonicalId)
+            ?.secondsLeft ?? 0
         );
       },
     }),

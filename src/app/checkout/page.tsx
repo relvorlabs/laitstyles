@@ -1,8 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Check,
@@ -13,14 +10,13 @@ import {
   LockKeyhole,
   Search,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import { naira } from "@/lib/catalogue";
-import {
-  createOrderNumber,
-  ORDER_STORAGE_KEY,
-  type OrderReceipt,
-} from "@/lib/order";
+import { createOrderNumber, ORDER_STORAGE_KEY, type OrderReceipt } from "@/lib/order";
 
 const USD_RATE = 1600;
 
@@ -97,18 +93,12 @@ export default function CheckoutPage() {
 
   const activeItems = heldItems.filter((item) => item.secondsLeft > 0);
   const expiredItems = heldItems.filter((item) => item.secondsLeft <= 0);
-  const soonest = activeItems.length
-    ? Math.min(...activeItems.map((item) => item.secondsLeft))
-    : 0;
+  const soonest = activeItems.length ? Math.min(...activeItems.map((item) => item.secondsLeft)) : 0;
   const selectedZone = zones.find((item) => item.id === zone) ?? zones[0];
-  const selectedPayment =
-    paymentMethods.find((item) => item.id === payment) ?? paymentMethods[0];
+  const selectedPayment = paymentMethods.find((item) => item.id === payment) ?? paymentMethods[0];
 
   const totals = useMemo(() => {
-    const subtotal = activeItems.reduce(
-      (sum, item) => sum + item.product.price,
-      0,
-    );
+    const subtotal = activeItems.reduce((sum, item) => sum + item.product.price, 0);
     const discount = discountApplied ? Math.round(subtotal * 0.1) : 0;
     const shipping = activeItems.length ? selectedZone.fee : 0;
     const vat = Math.round((subtotal - discount) * 0.075);
@@ -170,7 +160,9 @@ export default function CheckoutPage() {
   }
 
   function reholdExpiredItems() {
-    expiredItems.forEach((item) => rehold(item.product.id));
+    expiredItems.forEach((item) => {
+      rehold(item.product.id);
+    });
   }
 
   function placeOrder() {
@@ -225,21 +217,13 @@ export default function CheckoutPage() {
         <div className="flex items-center justify-between border-b border-[#F0EEE8] px-[34px] py-[22px] max-sm:px-5">
           <Link className="flex items-center gap-[9px]" href="/">
             <Home aria-hidden="true" className="size-5" strokeWidth={1.9} />
-            <span className="text-[15px] font-semibold tracking-[.26em]">
-              LAITSTYLE
-            </span>
+            <span className="text-[15px] font-semibold tracking-[.26em]">LAITSTYLE</span>
           </Link>
           <div className="flex items-center gap-1.5" aria-label="Currency">
-            <CurrencyButton
-              active={currency === "NGN"}
-              onClick={() => setCurrency("NGN")}
-            >
+            <CurrencyButton active={currency === "NGN"} onClick={() => setCurrency("NGN")}>
               ₦ NGN
             </CurrencyButton>
-            <CurrencyButton
-              active={currency === "USD"}
-              onClick={() => setCurrency("USD")}
-            >
+            <CurrencyButton active={currency === "USD"} onClick={() => setCurrency("USD")}>
               $ USD
             </CurrencyButton>
           </div>
@@ -247,10 +231,14 @@ export default function CheckoutPage() {
 
         {expiredItems.length ? (
           <div className="mx-[34px] mt-6 flex gap-3 rounded-xl border border-[#E8D7A6] bg-[#FBF6E8] px-4 py-3.5 max-sm:mx-5">
-            <AlertTriangle aria-hidden="true" className="mt-0.5 size-[18px] shrink-0 text-[#9A7B1F]" />
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 size-[18px] shrink-0 text-[#9A7B1F]"
+            />
             <div className="flex-1">
               <div className="text-[13.5px] font-semibold text-[#6E5714]">
-                {expiredItems.length} {expiredItems.length === 1 ? "hold has" : "holds have"} expired
+                {expiredItems.length} {expiredItems.length === 1 ? "hold has" : "holds have"}{" "}
+                expired
               </div>
               <p className="mt-0.5 text-[12.5px] leading-[1.5] text-[#8A7434]">
                 Good news — the pieces are still available. Re-hold them before completing payment.
@@ -327,7 +315,10 @@ export default function CheckoutPage() {
                     <option>United Kingdom</option>
                     <option>United States</option>
                   </select>
-                  <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-6 size-4 text-[#8A887E]" />
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-4 top-6 size-4 text-[#8A887E]"
+                  />
                 </label>
 
                 <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
@@ -362,7 +353,10 @@ export default function CheckoutPage() {
                     value={form.address}
                     withRightPadding
                   />
-                  <Search aria-hidden="true" className="pointer-events-none absolute right-4 top-[18px] size-4 text-[#8A887E]" />
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-4 top-[18px] size-4 text-[#8A887E]"
+                  />
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
@@ -397,7 +391,10 @@ export default function CheckoutPage() {
                     value={form.phone}
                     withRightPadding
                   />
-                  <HelpCircle aria-hidden="true" className="pointer-events-none absolute right-3.5 top-4 size-5 text-[#8A887E]" />
+                  <HelpCircle
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-3.5 top-4 size-5 text-[#8A887E]"
+                  />
                 </div>
 
                 <div className="mb-2.5 mt-6 text-[12.5px] font-semibold uppercase tracking-[.04em] text-[#57554E]">
@@ -458,7 +455,8 @@ export default function CheckoutPage() {
                       </span>
                       {method.id === "pod" && payment === "pod" ? (
                         <span className="mt-2 block pl-8 text-[12px] leading-[1.5] text-[#8A7434]">
-                          A refundable {money(5000)} deposit is paid now to confirm the hold; the balance is paid to the courier.
+                          A refundable {money(5000)} deposit is paid now to confirm the hold; the
+                          balance is paid to the courier.
                         </span>
                       ) : null}
                     </button>
@@ -470,11 +468,7 @@ export default function CheckoutPage() {
             {step === 3 ? (
               <div className="animate-[leemRise_.3s_ease]">
                 <h1 className="mb-3.5 text-[18px] font-semibold">Review &amp; confirm</h1>
-                <ReviewRow
-                  label="Contact"
-                  onEdit={() => setStep(0)}
-                  value={form.email}
-                />
+                <ReviewRow label="Contact" onEdit={() => setStep(0)} value={form.email} />
                 <ReviewRow
                   label="Delivery"
                   onEdit={() => setStep(1)}
@@ -488,7 +482,8 @@ export default function CheckoutPage() {
                 <div className="mt-[18px] flex gap-2.5 rounded-[11px] border border-[#D6DAC8] bg-[#F2F4EA] px-[15px] py-[13px]">
                   <Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#7C8C63]" />
                   <span className="text-[12.5px] leading-[1.5] text-[#4A5540]">
-                    These {activeItems.length} one-of-one pieces stay reserved through payment. Your next hold releases in{" "}
+                    These {activeItems.length} one-of-one pieces stay reserved through payment. Your
+                    next hold releases in{" "}
                     <strong className="tabular-nums">{formatHoldTime(soonest)}</strong>.
                   </span>
                 </div>
@@ -511,7 +506,11 @@ export default function CheckoutPage() {
                   onClick={nextStep}
                   type="button"
                 >
-                  {step === 0 ? "Continue to delivery" : step === 1 ? "Continue to payment" : "Review order"}
+                  {step === 0
+                    ? "Continue to delivery"
+                    : step === 1
+                      ? "Continue to payment"
+                      : "Review order"}
                 </button>
               ) : (
                 <button
@@ -546,7 +545,9 @@ export default function CheckoutPage() {
                   <div className="relative h-[66px] w-[60px] shrink-0 overflow-hidden rounded-[9px] bg-[#E4E5DE]">
                     <Image
                       alt={product.name}
-                      className={secondsLeft <= 0 ? "object-cover opacity-55 grayscale" : "object-cover"}
+                      className={
+                        secondsLeft <= 0 ? "object-cover opacity-55 grayscale" : "object-cover"
+                      }
                       fill
                       sizes="60px"
                       src={product.image}
@@ -564,7 +565,9 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mb-2 mt-[18px] flex gap-2.5">
-              <label className="sr-only" htmlFor="checkout-discount">Discount code or gift card</label>
+              <label className="sr-only" htmlFor="checkout-discount">
+                Discount code or gift card
+              </label>
               <input
                 className="h-12 min-w-0 flex-1 rounded-[9px] border border-[#E4E2DA] bg-white px-[15px] text-[13.5px] outline-none focus:border-[#1B1A17]"
                 id="checkout-discount"
@@ -583,12 +586,19 @@ export default function CheckoutPage() {
             </div>
             <p
               aria-live="polite"
-              className={discountApplied ? "mb-5 text-[11.5px] text-[#5F7043]" : "mb-5 text-[11.5px] text-[#8A887E]"}
+              className={
+                discountApplied
+                  ? "mb-5 text-[11.5px] text-[#5F7043]"
+                  : "mb-5 text-[11.5px] text-[#8A887E]"
+              }
             >
               {discountMessage || "Preview code: LAIT10"}
             </p>
 
-            <SummaryRow label={`Subtotal · ${activeItems.length} items`} value={money(totals.subtotal)} />
+            <SummaryRow
+              label={`Subtotal · ${activeItems.length} items`}
+              value={money(totals.subtotal)}
+            />
             {totals.discount ? (
               <SummaryRow label="Discount · LAIT10" value={`−${money(totals.discount)}`} accent />
             ) : null}
@@ -617,10 +627,16 @@ function CheckoutEmptyState() {
           Checkout begins after you reserve at least one available one-of-one piece.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link className="flex h-[50px] items-center rounded-full border border-[#D6D4CB] px-6 text-[14px] font-semibold" href="/cart">
+          <Link
+            className="flex h-[50px] items-center rounded-full border border-[#D6D4CB] px-6 text-[14px] font-semibold"
+            href="/cart"
+          >
             Review bag
           </Link>
-          <Link className="flex h-[50px] items-center rounded-full bg-[#1B1A17] px-6 text-[14px] font-semibold text-white" href="/shop">
+          <Link
+            className="flex h-[50px] items-center rounded-full bg-[#1B1A17] px-6 text-[14px] font-semibold text-white"
+            href="/shop"
+          >
             Browse the drop
           </Link>
         </div>
@@ -661,12 +677,24 @@ function StepIndicator({
               >
                 {complete ? <Check aria-hidden="true" className="size-3.5" /> : index + 1}
               </span>
-              <span className={active ? "text-[10.5px] font-semibold text-[#1B1A17]" : "text-[10.5px] text-[#8A887E]"}>
+              <span
+                className={
+                  active
+                    ? "text-[10.5px] font-semibold text-[#1B1A17]"
+                    : "text-[10.5px] text-[#8A887E]"
+                }
+              >
                 {label}
               </span>
             </button>
             {index < labels.length - 1 ? (
-              <span className={complete ? "mx-2 mb-5 h-px flex-1 bg-[#1B1A17]" : "mx-2 mb-5 h-px flex-1 bg-[#DDDAD1]"} />
+              <span
+                className={
+                  complete
+                    ? "mx-2 mb-5 h-px flex-1 bg-[#1B1A17]"
+                    : "mx-2 mb-5 h-px flex-1 bg-[#DDDAD1]"
+                }
+              />
             ) : null}
           </li>
         );
@@ -760,28 +788,36 @@ function ChoiceRow({
 
 function RadioDot({ active }: { active: boolean }) {
   return (
-    <span className={active ? "flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 border-[#7C8C63]" : "flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 border-[#C8C6BD]"}>
-      <span className={active ? "size-[9px] rounded-full bg-[#7C8C63]" : "size-[9px] rounded-full bg-transparent"} />
+    <span
+      className={
+        active
+          ? "flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 border-[#7C8C63]"
+          : "flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 border-[#C8C6BD]"
+      }
+    >
+      <span
+        className={
+          active ? "size-[9px] rounded-full bg-[#7C8C63]" : "size-[9px] rounded-full bg-transparent"
+        }
+      />
     </span>
   );
 }
 
-function ReviewRow({
-  label,
-  onEdit,
-  value,
-}: {
-  label: string;
-  onEdit: () => void;
-  value: string;
-}) {
+function ReviewRow({ label, onEdit, value }: { label: string; onEdit: () => void; value: string }) {
   return (
     <div className="flex justify-between gap-3 border-t border-[#F0EEE8] py-[15px]">
       <div className="min-w-0">
         <div className="mb-1 text-[11px] uppercase tracking-[.06em] text-[#A7A59B]">{label}</div>
-        <div className="whitespace-pre-line text-[13.5px] leading-[1.6] text-[#3D3B35]">{value}</div>
+        <div className="whitespace-pre-line text-[13.5px] leading-[1.6] text-[#3D3B35]">
+          {value}
+        </div>
       </div>
-      <button className="self-start text-[12.5px] font-semibold text-[#7C8C63] underline underline-offset-2" onClick={onEdit} type="button">
+      <button
+        className="self-start text-[12.5px] font-semibold text-[#7C8C63] underline underline-offset-2"
+        onClick={onEdit}
+        type="button"
+      >
         Edit
       </button>
     </div>

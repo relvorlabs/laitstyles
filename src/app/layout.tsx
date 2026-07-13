@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Instrument_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/layout/site-chrome";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { themeBootScript } from "@/components/theme/theme-script";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +31,10 @@ export const metadata: Metadata = {
     template: "%s · Laitstyle",
   },
   description: "One-of-one second-hand pieces from Lagos.",
+  icons: {
+    icon: "/brand/laitstyle-symbol.svg",
+    shortcut: "/brand/laitstyle-symbol.svg",
+  },
 };
 
 export default function RootLayout({
@@ -40,14 +46,21 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        "h-full antialiased",
+        "h-full antialiased font-sans",
         instrumentSans.variable,
         newsreader.variable,
         geistMono.variable,
       )}
+      suppressHydrationWarning
     >
+      <head>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static theme bootstrap prevents light/dark hydration flash and contains no user input. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="flex min-h-full flex-col">
-        <SiteChrome>{children}</SiteChrome>
+        <ThemeProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </ThemeProvider>
       </body>
     </html>
   );
