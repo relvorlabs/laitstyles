@@ -44,6 +44,24 @@ export interface CreatePublishedProductInput {
     priceKobo?: number | null;
     stock: number;
   }[];
+  material?: string | null;
+  fit?: string | null;
+  style?: string | null;
+  careInstructions?: string | null;
+  flawNotes?: string | null;
+  weightGrams?: number | null;
+  pickupAvailable?: boolean;
+  deliveryRestrictions?: string;
+  packagingNotes?: string;
+  gallery?: {
+    publicId: string;
+    secureUrl: string;
+    alt: string;
+    kind: "detail" | "defect";
+    width?: number | null;
+    height?: number | null;
+  }[];
+  measurements?: { label: string; value: string }[];
 }
 
 const koboToDecimalString = (kobo: number): string => (kobo / 100).toFixed(2);
@@ -94,6 +112,15 @@ export async function createPublishedProduct(
           colour: input.colour ?? null,
           archive_number: input.archiveNumber ?? null,
           category_id: input.categoryId ?? null,
+          material: input.material ?? null,
+          fit: input.fit ?? null,
+          style: input.style ?? null,
+          care_instructions: input.careInstructions ?? null,
+          flaw_notes: input.flawNotes ?? null,
+          weight_grams: input.weightGrams ?? null,
+          pickup_available: input.pickupAvailable ?? true,
+          delivery_restrictions: input.deliveryRestrictions ?? "",
+          packaging_notes: input.packagingNotes ?? "",
         },
       });
 
@@ -123,6 +150,51 @@ export async function createPublishedProduct(
       await tx.product_channels.create({
         data: { product_id: product.id, channel: "storefront" },
       });
+
+      // Gallery media (detail/defect) — cover already written at position 0.
+      if (input.gallery?.length) {
+        for (const [index, item] of input.gallery.entries()) {
+          const galleryKind = item.kind === "defect" ? "product_defect" : "product_detail";
+          const galleryAsset = await tx.cloudinary_assets.upsert({
+            where: {
+              store_id_public_id: { store_id: actor.storeId, public_id: item.publicId },
+            },
+            update: {},
+            create: {
+              store_id: actor.storeId,
+              kind: galleryKind,
+              public_id: item.publicId,
+              secure_url: item.secureUrl,
+              alt: item.alt,
+              width: item.width ?? null,
+              height: item.height ?? null,
+            },
+          });
+          await tx.product_media.create({
+            data: {
+              store_id: actor.storeId,
+              product_id: product.id,
+              asset_id: galleryAsset.id,
+              kind: galleryKind,
+              position: index + 1,
+            },
+          });
+        }
+      }
+
+      // Measurements — ordered structured spec values.
+      if (input.measurements?.length) {
+        for (const [index, measurement] of input.measurements.entries()) {
+          await tx.product_measurements.create({
+            data: {
+              product_id: product.id,
+              label: measurement.label,
+              value: measurement.value,
+              position: index,
+            },
+          });
+        }
+      }
 
       if (input.mode === "variant" && input.variants?.length) {
         for (const [index, variant] of input.variants.entries()) {
