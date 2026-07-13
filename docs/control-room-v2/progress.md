@@ -2,7 +2,7 @@
 
 ## Current score
 
-**PR #4 integration verified for merge handoff — Phase 11 remains blocked**
+**Continuation handoff started from merged main — Phase 11 remains blocked**
 
 On 2026-07-11 the user reviewed the Phase 11 Docker/Supabase blockers and explicitly chose to override the phase gate and begin the Phase 12 TanStack Query foundation now (Decision 011). This override changes sequencing only: Phase 11 (fresh migration apply, generated types, RLS/advisors) is still blocked on Docker Desktop and is **not** represented as passing. Phase 10 browser OAuth and the required React Doctor `--diff` blockers also remain recorded.
 
@@ -13,9 +13,9 @@ This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No
 On 2026-07-13, current `main` (`60ee6d199de04b1ebc0edf8da3ee9c6128f0ae20`) was merged into
 `feat/control-room-v2` through reviewed conflict resolution. The newer connected storefront from
 `main` was retained; the Control Room root theme provider, semantic role tokens and paired dark theme
-were preserved. PR #4 is being merged as an integration milestone, then active Control Room work will
-continue in a new draft PR branched from the resulting `main`. This handoff does not reclassify any
-phase acceptance blocker as passing.
+were preserved. PR #4 was merged as integration commit `37e300622c5bf9d8dc3ea2b31ce019554a43abe0`.
+Active Control Room work now continues in a new draft PR branched from that resulting `main`. This
+handoff does not reclassify any phase acceptance blocker as passing.
 
 ## Current phase
 
@@ -26,8 +26,8 @@ phase acceptance blocker as passing.
 | Compact Inventory gallery head                 | `5398b7449a59bcfbd6d497e5f47208f78abc2f6c`                                                            |
 | Paused TanStack repository/key foundation head | `0b266e4faed24fc3ea8bfcbb2d2133bf5a16647f`                                                            |
 | Previous Phase 9 documentation head            | `e8e7d94141b0410517bd69746001df6be7388e76`                                                            |
-| Branch                                         | `feat/control-room-v2`                                                                                |
-| Pull request                                   | `#4` — integration milestone; continuation draft PR follows from merged `main`                       |
+| Branch                                         | `surdma/control-room-v2-continuation`                                                                 |
+| Pull request                                   | Continuation draft PR pending creation; source conversation is merged PR `#4`                         |
 | Phase 8 plan                                   | `docs/control-room-v2/phase8-plan.md`                                                                 |
 | Phase 8 blocker                                | `docs/control-room-v2/phase8-blocker.md`                                                              |
 | Phase 9 plan                                   | `docs/control-room-v2/phase9-plan.md`                                                                 |
@@ -40,7 +40,7 @@ phase acceptance blocker as passing.
 | Accepted Batch 4B head/run                     | `2dd8442898703354d34e292361e0f5f70064ebdc` / `29046530809`                                            |
 | Unresolved executable gates                    | 4F, 5D, 6E, 7E, Phase 8, Phase 9 readiness implementation and paused TanStack foundation verification |
 | Merge integration                              | Current `main` merged through reviewed conflict resolution on 2026-07-13                              |
-| Review readiness                               | PR #4 merge handoff verified; feature-phase acceptance blockers carry into the continuation PR        |
+| Review readiness                               | Draft continuation only; feature-phase acceptance blockers carried from merged PR #4                  |
 
 ## Completed and accepted foundation
 

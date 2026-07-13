@@ -81,7 +81,9 @@ Load the current versions of these skills before the phase where they apply.
 
 ## 3. Control Room phase gate
 
-Control Room V2 is implemented one phase at a time on `feat/control-room-v2` and its dedicated draft PR.
+Control Room V2 is implemented one phase at a time on `surdma/control-room-v2-continuation` and its
+dedicated draft continuation PR. PR #4 is the merged integration milestone and remains the source
+conversation; `docs/control-room-v2/pr4-conversation-handoff.md` carries that context forward.
 
 - Only the phase marked active in `docs/control-room-v2/progress.md` may receive feature code.
 - A later-phase route, button, dependency or architecture must not enter an earlier active phase.

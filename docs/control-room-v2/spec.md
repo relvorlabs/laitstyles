@@ -1,7 +1,7 @@
 # Laitstyle Control Room V2 — Product and UX Specification
 
 **Status:** Locked for phased implementation  
-**Branch:** `feat/control-room-v2`  
+**Branch:** `surdma/control-room-v2-continuation`
 **Primary user:** Laitstyle owner/operator  
 **Secondary user:** Store staff member with limited operational responsibility  
 **Implementation rule:** Finish and verify one phase before starting another.

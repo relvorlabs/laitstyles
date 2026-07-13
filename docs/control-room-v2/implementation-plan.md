@@ -1,15 +1,17 @@
 # Laitstyle Control Room V2 — Phased Implementation Plan
 
 **Source of truth:** `docs/control-room-v2/spec.md` plus the active phase plan  
-**Working branch:** `feat/control-room-v2`  
+**Working branch:** `surdma/control-room-v2-continuation`
 **PR mode:** Draft until the final phase is verified and the branch is mergeable  
 **Execution rule:** Do not begin a later phase until the current phase satisfies every required gate unless the user explicitly overrides that gate.
 
 ## 1. Planning decisions
 
-### 1.1 One PR, multiple verified batches
+### 1.1 One active draft PR, multiple verified batches
 
-The revamp is implemented in one dedicated draft pull request so design and architecture decisions remain reviewable in one place. Each phase has:
+PR #4 is the merged integration milestone. Active work continues in one dedicated draft continuation
+PR from merged `main`, with `pr4-conversation-handoff.md` preserving the original conversation and
+unresolved gates. Each phase has:
 
 - a narrow scope
 - focused commits
