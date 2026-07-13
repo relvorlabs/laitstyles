@@ -46,7 +46,8 @@ drawer on add is an optional emphasis we can enable.
 |---|---|
 | Hold-state location | **B — unify on `StorefrontExperienceProvider`** so the global hold banner + Reservations tab reflect storefront holds |
 | Held countdown visibility | **Persistent "Held · MM:SS" chip on the card** (not hover-only) |
-| Variant pieces | Hover button says **"Choose options"** and opens quick view (no size-less hold) |
+| Variant pieces | Hover button says **"Choose options"**; the bottom CTA says **"Select size"** (distinct labels, both open quick view; no size-less hold) |
+| Reload survival | **Yes** — storefront holds persist to `sessionStorage` as absolute expiry timestamps and rehydrate on mount |
 
 ## Architecture
 
@@ -142,7 +143,7 @@ Card changes:
   |---|---|
   | `status === "sold"` | `Sold` (disabled) |
   | `status === "reserved"` | `Reserved` (disabled) |
-  | `inventory === "variant"` | `Choose options` |
+  | `inventory === "variant"` | `Select size` |
   | `inventory === "one-of-one"` | `Grab it — the only one` |
   | `stock === 1` | `Grab it — last one` |
   | `stock <= 3` | `Add to bag · {stock} left` |
@@ -177,17 +178,21 @@ acceptable for this prototype surface.
 - **Add-to-bag while held:** releases the hold, then adds to cart.
 - **Re-hold:** resets the 15:00 timer (idempotent).
 - **Reserved/sold pieces:** no hover button; CTA disabled with status label.
-- **Persistence:** account holds are already session-lived (seed re-inits on reload).
-  Storefront holds live in the same in-memory `items[]`; they reset on full reload —
-  acceptable for the prototype, consistent with the account's own behavior. (No new
-  sessionStorage needed; noted as a future enhancement if reload-survival is wanted.)
+- **Persistence (reload survival):** storefront holds persist to `sessionStorage`
+  under `laitstyles-storefront:v1:holds` as `{ [productId]: { expiresAt: number,
+  piece: HoldablePiece } }` (absolute epoch ms, so the countdown stays accurate
+  across reloads). On provider mount, entries with `expiresAt > now` rehydrate as
+  `resYou` items with `secondsLeft = ceil((expiresAt - now) / 1000)`; expired entries
+  are dropped. `holdProduct` writes the entry, `releaseProduct` and auto-expiry
+  remove it. The 8-item account **seed** remains session-lived as today (unchanged).
 
 ## Testing
 
 - **Vitest, pure helpers** (`storefront-experience-data.ts`): `applyHold` (append +
   reset), `applyRelease` (remove storefront item vs reset seed item), `tickHolds`
-  (decrement, auto-release/drop at 0), and `addToBagLabel` table test across
-  inventory/stock/status.
+  (decrement, auto-release/drop at 0), `addToBagLabel` table test across
+  inventory/stock/status, and `holdsToItems` (rehydrate unexpired at correct
+  `secondsLeft`, drop expired) with a fixed `now`.
 - **Interaction check** in the running dev app: hover reveals Hold; clicking Hold
   shows the persistent countdown chip + global banner increments; Release clears it;
   image click opens quick view; CTA labels match state.
@@ -202,10 +207,12 @@ acceptable for this prototype surface.
 ## Files touched
 
 - `src/features/storefront/shared/storefront-experience-data.ts` — `HoldablePiece`,
-  `HOLD_SECONDS`, `applyHold` / `applyRelease` / `tickHolds`.
+  `HOLD_SECONDS`, `applyHold` / `applyRelease` / `tickHolds`, and pure
+  `readPersistedHolds` / `writePersistedHolds` / `holdsToItems` helpers for the
+  sessionStorage layer.
 - `src/features/storefront/shared/storefront-experience-provider.tsx` —
   `holdProduct` / `releaseProduct` actions, `holdSecondsByProduct`, interval uses
-  `tickHolds`.
+  `tickHolds`, mount rehydration + write-through to `sessionStorage`.
 - `src/features/storefront/home-lab/product-card.tsx` — image→quick-view, held chip,
   hover state machine, promoted dynamic CTA, `addToBagLabel`.
 - `src/features/storefront/home-lab/catalogue-lab.tsx` &
