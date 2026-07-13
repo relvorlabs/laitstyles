@@ -977,6 +977,15 @@ model products {
   condition               String?
   size_label              String?
   colour                  String?
+  material                String?
+  fit                     String?
+  style                   String?
+  care_instructions       String?
+  flaw_notes              String?
+  weight_grams            Int?
+  pickup_available        Boolean                   @default(true)
+  delivery_restrictions   String                    @default("")
+  packaging_notes         String                    @default("")
   scheduled_at            DateTime?                 @db.Timestamptz(6)
   created_at              DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
