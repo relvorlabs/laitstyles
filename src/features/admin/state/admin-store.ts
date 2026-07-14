@@ -71,7 +71,7 @@ type CustomerNoteResult = Result<CustomerNoteActionSuccess, CustomerActionError>
 type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
 type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
 
-export type ControlRoomStore = {
+export type AdminStore = {
   getSnapshot: () => ControlRoomState;
   subscribe: (listener: () => void) => () => void;
   saveProduct: (values: ProductEditorValues, intent: ProductEditorIntent) => ProductActionResult;
@@ -94,10 +94,10 @@ export type ControlRoomStore = {
   resetPrototypeState: () => void;
 };
 
-export function createControlRoomStore(
+export function createAdminStore(
   initialState: ControlRoomState,
   now?: () => string,
-): ControlRoomStore {
+): AdminStore {
   const normalizedInitialState = normalizeState(initialState);
   const getNow = now ?? createSessionClock(normalizedInitialState.asOf);
   let state = normalizedInitialState;
@@ -209,3 +209,8 @@ function createSessionClock(anchor: string) {
 
   return () => new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }
+
+/** @deprecated Use AdminStore while remaining Admin modules are renamed. */
+export type ControlRoomStore = AdminStore;
+/** @deprecated Use createAdminStore while remaining Admin modules are renamed. */
+export const createControlRoomStore = createAdminStore;

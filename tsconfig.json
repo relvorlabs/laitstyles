@@ -20,6 +20,8 @@
     ],
     "paths": {
       "@/features/control-room/shared/control-room-icon": ["./src/features/admin/shared/admin-icon"],
+      "@/features/control-room/state/control-room-provider": ["./src/features/admin/state/admin-provider"],
+      "@/features/control-room/state/control-room-store": ["./src/features/admin/state/admin-store"],
       "@/*": ["./src/*"]
     }
   },

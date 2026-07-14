@@ -9,34 +9,31 @@ import {
   useSyncExternalStore,
 } from "react";
 import { ControlRoomRepositoryProvider } from "@/features/control-room/data/control-room-repository-context";
-import {
-  type ControlRoomStore,
-  createControlRoomStore,
-} from "@/features/control-room/state/control-room-store";
+import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
-const ControlRoomContext = createContext<ControlRoomStore | null>(null);
+const AdminContext = createContext<AdminStore | null>(null);
 
-export function ControlRoomProvider({
+export function AdminProvider({
   children,
   initialState,
 }: {
   children: ReactNode;
   initialState: ControlRoomState;
 }) {
-  const [store] = useState(() => createControlRoomStore(initialState));
+  const [store] = useState(() => createAdminStore(initialState));
 
   return (
-    <ControlRoomContext.Provider value={store}>
+    <AdminContext.Provider value={store}>
       <ControlRoomRepositoryProvider store={store}>{children}</ControlRoomRepositoryProvider>
-    </ControlRoomContext.Provider>
+    </AdminContext.Provider>
   );
 }
 
-export function useControlRoom() {
-  const store = useContext(ControlRoomContext);
+export function useAdmin() {
+  const store = useContext(AdminContext);
   if (!store) {
-    throw new Error("useControlRoom must be used inside ControlRoomProvider");
+    throw new Error("useAdmin must be used inside AdminProvider");
   }
 
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
@@ -66,3 +63,8 @@ export function useControlRoom() {
     [state, store],
   );
 }
+
+/** @deprecated Use AdminProvider while remaining Admin modules are renamed. */
+export const ControlRoomProvider = AdminProvider;
+/** @deprecated Use useAdmin while remaining Admin modules are renamed. */
+export const useControlRoom = useAdmin;
