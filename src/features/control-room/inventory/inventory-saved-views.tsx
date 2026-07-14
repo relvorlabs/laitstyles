@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { inventorySavedViews } from "@/lib/control-room/inventory-selectors";
 import type { InventorySavedView } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
@@ -21,15 +22,16 @@ export function InventorySavedViews({ value, counts, onChange }: InventorySavedV
           const active = value === view.value;
 
           return (
-            <button
+            <Button
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex min-h-12 touch-manipulation items-center gap-2 px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                active && "text-foreground",
+                "relative min-h-12 touch-manipulation gap-2 rounded-none px-3 text-[12px] font-semibold",
+                active ? "text-foreground" : "text-muted-foreground",
               )}
               key={view.value}
               onClick={() => onChange(view.value)}
               type="button"
+              variant="ghost"
             >
               <span>{view.label}</span>
               <span
@@ -41,7 +43,7 @@ export function InventorySavedViews({ value, counts, onChange }: InventorySavedV
                 {counts[view.value]}
               </span>
               {active ? <span className="absolute inset-x-2 bottom-0 h-0.5 bg-primary" /> : null}
-            </button>
+            </Button>
           );
         })}
       </div>
