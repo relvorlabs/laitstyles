@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { createInMemoryControlRoomRepositories } from "@/lib/control-room/data/in-memory/control-room-repositories";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import { getOverviewSnapshot } from "@/lib/control-room/selectors";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { createInMemoryAdminRepositories } from "@/lib/admin/data/in-memory/admin-repositories";
+import { getOverviewSnapshot } from "@/lib/admin/selectors";
 
 const now = "2026-07-10T13:00:00+01:00";
 
-describe("in-memory Control Room repositories", () => {
+describe("in-memory Admin repositories", () => {
   it("reads cloned records without duplicating the source of truth", async () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const repositories = createInMemoryControlRoomRepositories(store);
+    const store = createAdminStore(activeAdminSeed, () => now);
+    const repositories = createInMemoryAdminRepositories(store);
 
     const products = await repositories.inventory.listProducts();
     const sourceLength = store.getSnapshot().products.length;
@@ -20,8 +20,8 @@ describe("in-memory Control Room repositories", () => {
   });
 
   it("reflects later store writes instead of retaining a stale adapter snapshot", async () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const repositories = createInMemoryControlRoomRepositories(store);
+    const store = createAdminStore(activeAdminSeed, () => now);
+    const repositories = createInMemoryAdminRepositories(store);
     const product = store.getSnapshot().products[0];
     if (!product) throw new Error("Expected a seeded product");
 
@@ -35,8 +35,8 @@ describe("in-memory Control Room repositories", () => {
   });
 
   it("derives Overview data from the same current records", async () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const repositories = createInMemoryControlRoomRepositories(store);
+    const store = createAdminStore(activeAdminSeed, () => now);
+    const repositories = createInMemoryAdminRepositories(store);
     const resource = await repositories.overview.getOverview();
 
     expect(resource.snapshot).toEqual(getOverviewSnapshot(store.getSnapshot()));
@@ -45,8 +45,8 @@ describe("in-memory Control Room repositories", () => {
   });
 
   it("returns null for missing detail records", async () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
-    const repositories = createInMemoryControlRoomRepositories(store);
+    const store = createAdminStore(activeAdminSeed, () => now);
+    const repositories = createInMemoryAdminRepositories(store);
 
     await expect(repositories.inventory.getProduct("missing-product")).resolves.toBeNull();
     await expect(repositories.orders.getOrder("missing-order")).resolves.toBeNull();

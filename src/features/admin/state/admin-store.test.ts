@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { createEmptyProductEditorValues } from "@/lib/control-room/product-editor-defaults";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { createEmptyProductEditorValues } from "@/lib/admin/product-editor-defaults";
 
-describe("Control Room store subscriptions", () => {
+describe("Admin store subscriptions", () => {
   it("notifies Inventory subscribers and exposes a saved draft immediately", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => "2026-07-09T16:00:00+01:00");
+    const store = createAdminStore(activeAdminSeed, () => "2026-07-09T16:00:00+01:00");
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
     const initialCount = store.getSnapshot().products.length;
@@ -39,7 +39,7 @@ describe("Control Room store subscriptions", () => {
   });
 
   it("notifies every workspace after a connected offline sale", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => "2026-07-09T18:00:00+01:00");
+    const store = createAdminStore(activeAdminSeed, () => "2026-07-09T18:00:00+01:00");
     const listener = vi.fn();
     store.subscribe(listener);
     const before = store.getSnapshot();
@@ -83,7 +83,7 @@ describe("Control Room store subscriptions", () => {
   });
 
   it("stops notifying a removed subscriber", () => {
-    const store = createControlRoomStore(activeControlRoomSeed);
+    const store = createAdminStore(activeAdminSeed);
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
     unsubscribe();
