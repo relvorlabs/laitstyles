@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { type Product, productById, productToHoldable } from "./data";
 import { ProductCard } from "./product-card";
@@ -105,15 +106,16 @@ function CatalogueApp() {
       <div className="quick-nav-wrap">
         <nav className="shell quick-nav" aria-label="Quick collections">
           {quickLinks.map(([key, label]) => (
-            <button
+            <Button
               key={key}
               className={`quick-link${quickActive(key) ? " active" : ""}`}
               type="button"
+              variant="ghost"
               aria-pressed={quickActive(key)}
               onClick={() => applyQuick(key)}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </nav>
       </div>
@@ -122,68 +124,83 @@ function CatalogueApp() {
         <div className="shell">
           <div className="toolbar-main">
             <div className="toolbar-group">
-              <button
+              <Button
                 className="control-button mobile-filter-trigger"
                 type="button"
+                variant="ghost"
                 onClick={() => s.open("filterDrawer")}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
                 Filters <span className="mono">{s.activeFilterChips.length}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 className={`control-button desktop-filter-toggle${sidebarVisible ? " active" : ""}`}
                 type="button"
+                variant="ghost"
+                aria-pressed={sidebarVisible}
                 onClick={() => setSidebarVisible((v) => !v)}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
                 {sidebarVisible ? "Hide filters" : "Show filters"}
-              </button>
-              <button className="control-button" type="button" onClick={() => s.open("sortSheet")}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              </Button>
+              <Button
+                className="control-button"
+                type="button"
+                variant="ghost"
+                onClick={() => s.open("sortSheet")}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M8 7h10M8 12h7M8 17h4M4 5v14" />
                 </svg>
                 Sort
-              </button>
+              </Button>
             </div>
             <div className="toolbar-group">
               <span id="resultCount" className="result-count mono">
                 {list.length} products
               </span>
               <div className="density-control" aria-label="Product grid density">
-                <button
+                <Button
                   className={density === "comfortable" ? "active" : ""}
                   type="button"
+                  size="icon"
+                  variant="ghost"
                   aria-label="Comfortable grid"
+                  aria-pressed={density === "comfortable"}
                   onClick={() => changeDensity("comfortable")}
                 >
                   ▦
-                </button>
-                <button
+                </Button>
+                <Button
                   className={density === "compact" ? "active" : ""}
                   type="button"
+                  size="icon"
+                  variant="ghost"
                   aria-label="Compact grid"
+                  aria-pressed={density === "compact"}
                   onClick={() => changeDensity("compact")}
                 >
                   ▥
-                </button>
+                </Button>
               </div>
             </div>
           </div>
           {s.activeFilterChips.length > 0 && (
             <div id="activeFilters" className="active-filters">
               {s.activeFilterChips.map((chip) => (
-                <button
+                <Button
                   key={`${chip.type}-${chip.value ?? chip.label}`}
                   className="filter-chip"
                   type="button"
+                  variant="ghost"
                   onClick={() => s.removeFilter(chip.type, chip.value)}
                 >
                   {chip.label} ×
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -196,9 +213,14 @@ function CatalogueApp() {
             <div className="filter-panel">
               <div className="filter-head">
                 <h2>Refine the rack</h2>
-                <button className="button button-ghost" type="button" onClick={s.clearFilters}>
+                <Button
+                  className="button button-ghost"
+                  type="button"
+                  variant="ghost"
+                  onClick={s.clearFilters}
+                >
                   Clear all
-                </button>
+                </Button>
               </div>
               <FilterControls />
             </div>
@@ -213,42 +235,49 @@ function CatalogueApp() {
               <div id="emptyState" className="empty-state">
                 <h2>No pieces match this edit.</h2>
                 <p>Clear one or more filters or return to the complete rack.</p>
-                <button className="button button-primary" type="button" onClick={s.clearFilters}>
+                <Button className="button button-primary" type="button" onClick={s.clearFilters}>
                   Clear filters
-                </button>
+                </Button>
               </div>
             )}
             {list.length > 0 && pages > 1 && (
               <nav id="pagination" className="pagination" aria-label="Product result pages">
-                <button
+                <Button
                   className="page-button"
                   type="button"
+                  size="icon"
+                  variant="ghost"
                   disabled={current === 1}
                   aria-label="Previous page"
                   onClick={() => goToPage(Math.max(1, current - 1))}
                 >
                   ←
-                </button>
+                </Button>
                 {Array.from({ length: pages }, (_, i) => (
-                  <button
+                  <Button
                     key={i + 1}
                     className={`page-button${current === i + 1 ? " active" : ""}`}
                     type="button"
+                    size="icon"
+                    variant="ghost"
                     aria-label={`Page ${i + 1}`}
+                    aria-current={current === i + 1 ? "page" : undefined}
                     onClick={() => goToPage(i + 1)}
                   >
                     {i + 1}
-                  </button>
+                  </Button>
                 ))}
-                <button
+                <Button
                   className="page-button"
                   type="button"
+                  size="icon"
+                  variant="ghost"
                   disabled={current === pages}
                   aria-label="Next page"
                   onClick={() => goToPage(Math.min(pages, current + 1))}
                 >
                   →
-                </button>
+                </Button>
               </nav>
             )}
           </div>
