@@ -17,7 +17,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
 const setupSteps = [
@@ -72,7 +72,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                 href="/"
               >
                 Preview storefront
-                <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                <AdminIcon icon={ArrowRight01Icon} size={16} />
               </Link>
               <Link
                 className={buttonVariants({
@@ -116,7 +116,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
               Build the operating foundation
             </CardTitle>
             <CardDescription className="mt-1 text-[13px] leading-5">
-              These steps unlock in sequence as their Control Room phases are completed.
+              These steps unlock in sequence as their Admin phases are completed.
             </CardDescription>
           </CardHeader>
           <CardContent className="divide-y divide-border p-0">
@@ -126,7 +126,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
                 key={step.title}
               >
                 <span className="grid size-11 place-items-center rounded-[13px] bg-accent text-accent-foreground">
-                  <ControlRoomIcon icon={step.icon} size={20} />
+                  <AdminIcon icon={step.icon} size={20} />
                 </span>
                 <div className="min-w-0">
                   <div className="text-[13.5px] font-semibold">
@@ -146,7 +146,7 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
           <Empty className="min-h-[320px] border-0 p-5">
             <EmptyHeader>
               <EmptyMedia className="grid size-14 place-items-center rounded-full bg-card text-accent-foreground ring-1 ring-foreground/10">
-                <ControlRoomIcon icon={CheckmarkCircle02Icon} size={24} />
+                <AdminIcon icon={CheckmarkCircle02Icon} size={24} />
               </EmptyMedia>
               <EmptyTitle className="font-serif text-[25px] font-medium">
                 No empty analytics theatre
