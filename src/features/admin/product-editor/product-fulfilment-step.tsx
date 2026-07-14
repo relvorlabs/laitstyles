@@ -14,8 +14,8 @@ import {
   EditorCheckboxField,
   EditorNumberField,
   EditorTextareaField,
-} from "@/features/control-room/product-editor/product-editor-fields";
-import type { CatalogueChannel, ProductEditorValues } from "@/lib/control-room/types";
+} from "@/features/admin/product-editor/product-editor-fields";
+import type { CatalogueChannel, ProductEditorValues } from "@/lib/admin/types";
 
 const channels = [
   ["storefront", "Storefront", "Visible in the customer-facing catalogue."],
