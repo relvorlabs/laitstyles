@@ -6,15 +6,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EditorTextField } from "@/features/control-room/product-editor/product-editor-fields";
-import { getProductEditorStepLabel } from "@/features/control-room/product-editor/product-editor-step-labels";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
+import { EditorTextField } from "@/features/admin/product-editor/product-editor-fields";
+import { getProductEditorStepLabel } from "@/features/admin/product-editor/product-editor-step-labels";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira } from "@/lib/admin/formatters";
 import type {
   ProductEditorIssue,
   ProductEditorStep,
   ProductEditorValues,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export function ProductReviewStep({
   issues,
@@ -51,7 +51,7 @@ export function ProductReviewStep({
 
       {issues.length ? (
         <Alert variant="destructive">
-          <ControlRoomIcon icon={AlertCircleIcon} size={18} />
+          <AdminIcon icon={AlertCircleIcon} size={18} />
           <AlertTitle>
             {issues.length} blocking requirement{issues.length === 1 ? "" : "s"}
           </AlertTitle>
