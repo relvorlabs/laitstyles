@@ -31,18 +31,21 @@ export function OrdersMobileList({
           <Card className="gap-0 overflow-hidden py-0" key={order.id}>
             <div className="border-b border-border bg-secondary/45 px-4 py-3">
               <div className="flex items-start justify-between gap-3">
-                <button
-                  className="rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Button
+                  className="h-auto justify-start p-0 text-left"
                   onClick={() => onOpen(order.id)}
                   type="button"
+                  variant="link"
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                    {channelLabels[order.channel]} · {formatOrderDate(order.placedAt)}
-                  </p>
-                  <h3 className="mt-1 font-serif text-[24px] font-medium leading-none">
-                    {order.id}
-                  </h3>
-                </button>
+                  <span>
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      {channelLabels[order.channel]} · {formatOrderDate(order.placedAt)}
+                    </span>
+                    <span className="mt-1 block font-serif text-[24px] font-medium leading-none">
+                      {order.id}
+                    </span>
+                  </span>
+                </Button>
                 {item.needsAttention ? <Badge variant="destructive">Attention</Badge> : null}
               </div>
             </div>
