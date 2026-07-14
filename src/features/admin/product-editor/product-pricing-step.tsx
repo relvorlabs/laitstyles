@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { EditorNumberField } from "@/features/control-room/product-editor/product-editor-fields";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+import { EditorNumberField } from "@/features/admin/product-editor/product-editor-fields";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function ProductPricingStep() {
   const [desiredDiscount, setDesiredDiscount] = useState("");
