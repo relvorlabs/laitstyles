@@ -41,7 +41,7 @@ export function ControlRoomSidebar({
           <span className="min-w-0">
             <span className="block font-serif text-[24px] font-medium leading-none">Laitstyle</span>
             <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/60">
-              Control room
+              Admin
             </span>
           </span>
         </Link>
@@ -49,7 +49,7 @@ export function ControlRoomSidebar({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className={cn("flex flex-col gap-7", compact ? "p-4" : "p-5")}>
-          <nav aria-label="Control Room" className="flex flex-col gap-5">
+          <nav aria-label="Admin" className="flex flex-col gap-5">
             {controlRoomNavigationGroups.map((group) => (
               <div key={group.label}>
                 <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/56">
