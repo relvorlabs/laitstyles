@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -43,20 +44,23 @@ export function PaymentsSection() {
             Billing address: 18 Example Road, Lagos
           </p>
           <div className="mt-6 flex flex-wrap gap-4 border-t border-[var(--acc-line)] pt-4">
-            <button
+            {/* TODO(button-action): Open the billing-address editor after the payment provider exposes its update flow. */}
+            <Button
               type="button"
-              onClick={() => toast("Billing address editor would open.")}
-              className="text-sm font-semibold underline underline-offset-4"
+              onClick={() => toast("Billing address updates are not available yet.")}
+              className="h-auto p-0 text-sm font-semibold"
+              variant="link"
             >
               Update billing
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => openModal("remove-payment")}
-              className="text-sm font-semibold acc-fg-oxblood underline underline-offset-4"
+              className="h-auto p-0 text-sm font-semibold acc-fg-oxblood"
+              variant="link"
             >
               Remove
-            </button>
+            </Button>
           </div>
         </article>
 
