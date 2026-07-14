@@ -19,6 +19,8 @@
       }
     ],
     "paths": {
+      "@/features/control-room": ["./src/features/admin"],
+      "@/features/control-room/*": ["./src/features/admin/*"],
       "@/*": ["./src/*"]
     }
   },
