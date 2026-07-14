@@ -20,9 +20,6 @@
     ],
     "paths": {
       "@/features/control-room/shared/control-room-icon": ["./src/features/admin/shared/admin-icon"],
-      "@/features/control-room/state/control-room-provider": ["./src/features/admin/state/admin-provider"],
-      "@/features/control-room/state/control-room-store": ["./src/features/admin/state/admin-store"],
-      "@/features/control-room/data/control-room-repository-context": ["./src/features/admin/data/admin-repository-context"],
       "@/features/control-room/orders/*": ["./src/features/admin/orders/*"],
       "@/features/control-room/holds/*": ["./src/features/admin/holds/*"],
       "@/features/control-room/customers/*": ["./src/features/admin/customers/*"],
@@ -31,7 +28,6 @@
       "@/features/control-room/product-editor/*": ["./src/features/admin/product-editor/*"],
       "@/features/control-room/record-sale/*": ["./src/features/admin/record-sale/*"],
       "@/features/control-room/inventory/*": ["./src/features/admin/inventory/*"],
-      "@/lib/control-room/data/in-memory/control-room-repositories": ["./src/lib/admin/data/in-memory/admin-repositories"],
       "@/lib/control-room/*": ["./src/lib/admin/*"],
       "@/*": ["./src/*"]
     }
