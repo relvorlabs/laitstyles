@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { products } from "../../home-lab/data";
 import { useAccountUi } from "../account-context";
@@ -23,13 +24,14 @@ export function OrderDetailSection() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={() => navigate("orders")}
-        className="mb-5 text-sm font-semibold underline underline-offset-4"
+        className="mb-5 h-auto p-0 text-sm font-semibold"
+        variant="link"
       >
         ← Back to orders
-      </button>
+      </Button>
 
       <header className="flex flex-wrap items-start justify-between gap-5">
         <div>
@@ -42,16 +44,20 @@ export function OrderDetailSection() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <AcctButton variant="secondary" onClick={() => toast("Receipt download would start.")}>
+          {/* TODO(button-action): Download the receipt after a signed receipt endpoint or file is available. */}
+          <AcctButton
+            variant="secondary"
+            onClick={() => toast("Receipt download is not available yet.")}
+          >
             Receipt
           </AcctButton>
-          <AcctButton onClick={() => toast("Carrier tracking would open.")}>
+          {/* TODO(button-action): Open carrier tracking after fulfillment exposes a trusted tracking URL. */}
+          <AcctButton onClick={() => toast("Carrier tracking is not available yet.")}>
             Track shipment
           </AcctButton>
         </div>
       </header>
 
-      {/* Progress */}
       <section className={cn("mt-7 p-5 sm:p-6", panelElevatedClass)}>
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-serif text-3xl font-normal">Progress</h2>
@@ -89,7 +95,6 @@ export function OrderDetailSection() {
         </ProgressTrack>
       </section>
 
-      {/* Items */}
       <section className={cn("mt-6 overflow-hidden", panelClass)}>
         <div className="border-b border-[var(--acc-line)] p-5">
           <h2 className="font-serif text-3xl font-normal">Items</h2>
@@ -112,13 +117,14 @@ export function OrderDetailSection() {
               Eligible for return after delivery.
             </p>
           </div>
-          <button
+          <Button
             type="button"
             onClick={() => openModal("cancel")}
-            className="text-sm font-semibold acc-fg-oxblood underline underline-offset-4"
+            className="h-auto justify-self-start p-0 text-sm font-semibold acc-fg-oxblood sm:justify-self-end"
+            variant="link"
           >
             Cancel item
-          </button>
+          </Button>
         </article>
         <article className="grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
           <PlaceholderLink className={cn(thumbLinkClass, "aspect-[4/5]")}>
@@ -142,7 +148,6 @@ export function OrderDetailSection() {
         </article>
       </section>
 
-      {/* Delivery + payment */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className={cn("p-5 sm:p-6", panelClass)}>
           <Eyebrow className="text-[var(--acc-muted)]">Delivery</Eyebrow>
