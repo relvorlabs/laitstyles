@@ -36,11 +36,12 @@ export function InventoryMobileList({
         return (
           <Card className="overflow-hidden py-0" key={item.product.id}>
             <div className="grid grid-cols-[96px_minmax(0,1fr)]">
-              <button
+              <Button
                 aria-label={`View images for ${item.product.name}`}
-                className="group relative min-h-[150px] bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
+                className="group relative min-h-[150px] rounded-none bg-secondary p-0"
                 onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                 type="button"
+                variant="ghost"
               >
                 <Image
                   alt={item.coverImage.alt}
@@ -52,25 +53,28 @@ export function InventoryMobileList({
                 <span className="absolute bottom-2 left-1/2 inline-flex size-9 -translate-x-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-lg backdrop-blur">
                   <Expand aria-hidden="true" className="size-4" />
                 </span>
-              </button>
+              </Button>
 
               <div className="flex min-w-0 flex-col gap-3 p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <button
-                    className="min-w-0 rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                  <Button
+                    className="h-auto min-w-0 justify-start p-0 text-left"
                     onClick={() => onOpen(item.product.id)}
                     type="button"
+                    variant="link"
                   >
-                    <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      {item.product.category} · {item.reference}
-                    </p>
-                    <h3 className="mt-1 text-[14px] font-semibold leading-5">
-                      {item.product.name}
-                    </h3>
-                    <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
-                      {getProductDescriptor(item.product)}
-                    </p>
-                  </button>
+                    <span className="min-w-0">
+                      <span className="block text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        {item.product.category} · {item.reference}
+                      </span>
+                      <span className="mt-1 block text-[14px] font-semibold leading-5">
+                        {item.product.name}
+                      </span>
+                      <span className="mt-1 block line-clamp-1 text-[11px] text-muted-foreground">
+                        {getProductDescriptor(item.product)}
+                      </span>
+                    </span>
+                  </Button>
                   <label className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-background">
                     <span className="sr-only">Select {item.product.name}</span>
                     <Checkbox
