@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
-import { ControlRoomQueryProvider } from "@/app/admin/query-provider";
+import { AdminQueryProvider } from "@/app/admin/admin-query-provider";
 import {
   Sheet,
   SheetContent,
@@ -30,7 +30,7 @@ export function AdminShell({
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <ControlRoomQueryProvider>
+    <AdminQueryProvider>
       <AdminProvider initialState={initialState}>
         <ProductEditorControllerProvider>
           <RecordSaleControllerProvider>
@@ -81,6 +81,6 @@ export function AdminShell({
           </RecordSaleControllerProvider>
         </ProductEditorControllerProvider>
       </AdminProvider>
-    </ControlRoomQueryProvider>
+    </AdminQueryProvider>
   );
 }
