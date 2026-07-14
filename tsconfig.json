@@ -25,7 +25,6 @@
       "@/features/control-room/customers/*": ["./src/features/admin/customers/*"],
       "@/features/control-room/returns/*": ["./src/features/admin/returns/*"],
       "@/features/control-room/settings/*": ["./src/features/admin/settings/*"],
-      "@/features/control-room/product-editor/*": ["./src/features/admin/product-editor/*"],
       "@/features/control-room/inventory/*": ["./src/features/admin/inventory/*"],
       "@/lib/control-room/*": ["./src/lib/admin/*"],
       "@/*": ["./src/*"]
