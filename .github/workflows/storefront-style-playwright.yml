@@ -14,26 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: laitstyles
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d laitstyles"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 12
-
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
       DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+      STOREFRONT_STYLE_SMOKE: "1"
 
     steps:
       - name: Check out repository
@@ -55,13 +41,6 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm prisma:generate
-
-      - name: Prepare storefront database
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm exec prisma db push --accept-data-loss 2>&1 | tee prisma-db-push.log
-          pnpm db:seed:storefront 2>&1 | tee storefront-seed.log
 
       - name: Start local Supabase auth stub
         shell: bash
@@ -123,8 +102,6 @@ jobs:
         with:
           name: storefront-style-playwright
           path: |
-            prisma-db-push.log
-            storefront-seed.log
             playwright-artifacts/
             playwright-server.log
             playwright-styles.log
