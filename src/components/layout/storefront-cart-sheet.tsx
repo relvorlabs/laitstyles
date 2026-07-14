@@ -53,10 +53,6 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
       </SheetTrigger>
 
       <SheetContent
-        /* `lst-lab` scopes the portalled sheet so the prototype's var aliases
-           (--bone/--ink/--line/--muted/--linen/--bone-2/--sage-light) resolve — Base UI
-           portals to <body>, outside the storefront's .lst-lab root; without it the panel
-           renders transparent/unstyled. */
         className="lst-lab flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[470px]"
         side="right"
       >
@@ -149,25 +145,26 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         </div>
                       )}
                       <div className="flex items-center gap-3 text-xs">
-                        <button
-                          className="inline-flex items-center gap-1.5 text-[var(--muted)] hover:text-[var(--ink)]"
+                        <Button
+                          className="h-auto gap-1.5 p-0 text-[var(--muted)] hover:text-[var(--ink)]"
                           onClick={() => {
-                            if (!storefront.saved.has(product.id))
-                              storefront.toggleSaved(product.id);
+                            if (!storefront.saved.has(product.id)) storefront.toggleSaved(product.id);
                             storefront.removeFromCart(product.id);
                           }}
                           type="button"
+                          variant="link"
                         >
                           <HugeiconsIcon icon={FavouriteIcon} size={14} strokeWidth={1.6} />
                           Save
-                        </button>
-                        <button
-                          className="text-[var(--muted)] underline underline-offset-4 hover:text-[var(--ink)]"
+                        </Button>
+                        <Button
+                          className="h-auto p-0 text-[var(--muted)] hover:text-[var(--ink)]"
                           onClick={() => storefront.removeFromCart(product.id)}
                           type="button"
+                          variant="link"
                         >
                           Remove
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -181,28 +178,31 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     {recommendations.map((product) => (
-                      <button
-                        className="group text-left"
+                      <Button
+                        className="group h-auto min-w-0 justify-start rounded-sm p-0 text-left"
                         key={product.id}
                         onClick={() => storefront.addToCart(product.id)}
                         type="button"
+                        variant="ghost"
                       >
-                        <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
-                          <Image
-                            alt=""
-                            className="object-cover transition-transform group-hover:scale-[1.03]"
-                            fill
-                            sizes="190px"
-                            src={product.images[0]}
-                          />
+                        <span className="min-w-0">
+                          <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
+                            <Image
+                              alt=""
+                              className="object-cover transition-transform group-hover:scale-[1.03]"
+                              fill
+                              sizes="190px"
+                              src={product.images[0]}
+                            />
+                          </span>
+                          <span className="mt-2 block truncate text-xs font-medium">
+                            {product.name}
+                          </span>
+                          <span className="block text-[11px] text-[var(--muted)]">
+                            Add · {money(product.price)}
+                          </span>
                         </span>
-                        <span className="mt-2 block truncate text-xs font-medium">
-                          {product.name}
-                        </span>
-                        <span className="block text-[11px] text-[var(--muted)]">
-                          Add · {money(product.price)}
-                        </span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </section>
