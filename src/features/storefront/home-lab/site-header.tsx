@@ -43,11 +43,11 @@ export function SiteHeader({
               Nationwide delivery · Every piece inspected · New drop every Friday
             </p>
             <Button
-              className="utility-dismiss"
-              type="button"
               aria-label="Dismiss announcement"
+              className="utility-dismiss"
               onClick={s.dismissUtility}
               size="icon-sm"
+              type="button"
               variant="ghost"
             >
               <IconClose />
@@ -59,40 +59,40 @@ export function SiteHeader({
       <header id="header" className={headerCls}>
         <div className="shell grid min-h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center gap-6">
           <nav
-            className="flex items-center gap-[22px] text-[0.86rem] max-[860px]:hidden"
             aria-label="Primary navigation"
+            className="flex items-center gap-[22px] text-[0.86rem] max-[860px]:hidden"
           >
-            <Button className={navBtn} type="button" onClick={onNavNew} variant="ghost">
+            <Button className={navBtn} onClick={onNavNew} type="button" variant="ghost">
               New arrivals
             </Button>
             <Button
               className={navBtn}
-              type="button"
               onClick={() => onNavShop({ category: "Women" })}
+              type="button"
               variant="ghost"
             >
               Women
             </Button>
             <Button
               className={navBtn}
-              type="button"
               onClick={() => onNavShop({ category: "Men" })}
+              type="button"
               variant="ghost"
             >
               Men
             </Button>
             <Button
               className={navBtn}
-              type="button"
               onClick={() => onNavShop({ category: "Unisex" })}
+              type="button"
               variant="ghost"
             >
               Unisex
             </Button>
             <Button
               className={navBtn}
-              type="button"
               onClick={() => onNavShop({ collection: "one-of-one" })}
+              type="button"
               variant="ghost"
             >
               One-of-one
@@ -100,23 +100,23 @@ export function SiteHeader({
           </nav>
 
           <Button
-            className="icon-button menu-button"
-            type="button"
             aria-label="Open navigation"
+            className="icon-button menu-button"
             onClick={() => s.open("mobileMenu")}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </Button>
 
           <Button
-            className="brand h-auto rounded-none p-0"
-            type="button"
             aria-label="Laitstyles home"
+            className="brand h-auto rounded-none p-0"
             onClick={onGoHome}
+            type="button"
             variant="ghost"
           >
             <span className="brand-symbol">
@@ -127,21 +127,21 @@ export function SiteHeader({
 
           <div className="flex items-center justify-self-end gap-1 max-[600px]:gap-0">
             <Button
-              className="icon-button"
-              type="button"
               aria-label="Search products"
+              className="icon-button"
               onClick={() => s.open("searchModal")}
               size="icon-lg"
+              type="button"
               variant="ghost"
             >
               <IconSearch />
             </Button>
             <Button
-              className="icon-button relative max-[600px]:size-10"
-              type="button"
               aria-label={`Saved items, ${s.saved.size}`}
+              className="icon-button relative max-[600px]:size-10"
               onClick={() => s.open("savedDrawer")}
               size="icon-lg"
+              type="button"
               variant="ghost"
             >
               <HugeiconsIcon aria-hidden="true" icon={FavouriteIcon} size={19} strokeWidth={1.6} />
@@ -157,12 +157,12 @@ export function SiteHeader({
       </header>
 
       <div
-        id="mobileMenu"
-        className={`overlay${s.openId === "mobileMenu" ? " open" : ""}`}
-        role="dialog"
-        aria-modal="true"
         aria-label="Navigation"
-        onClick={(e) => e.target === e.currentTarget && s.closeAll()}
+        aria-modal="true"
+        className={`overlay${s.openId === "mobileMenu" ? " open" : ""}`}
+        id="mobileMenu"
+        onClick={(event) => event.target === event.currentTarget && s.closeAll()}
+        role="dialog"
       >
         <aside className="drawer">
           <div className="drawer-head">
@@ -173,50 +173,64 @@ export function SiteHeader({
               <span className="brand-word">LAITSTYLES</span>
             </div>
             <Button
-              className="close-button"
-              type="button"
               aria-label="Close navigation"
+              className="close-button"
               onClick={s.closeAll}
               size="icon-lg"
+              type="button"
               variant="ghost"
             >
               <IconClose />
             </Button>
           </div>
-          <nav className="mobile-nav" aria-label="Mobile navigation">
-            <Button type="button" onClick={() => onNavShop({ collection: "new" })} variant="ghost">
+          <nav aria-label="Mobile navigation" className="mobile-nav">
+            <Button
+              onClick={() => onNavShop({ collection: "new" })}
+              type="button"
+              variant="ghost"
+            >
               New arrivals <span>→</span>
             </Button>
-            <Button type="button" onClick={() => onNavShop({ category: "Women" })} variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Women" })}
+              type="button"
+              variant="ghost"
+            >
               Women <span>→</span>
             </Button>
-            <Button type="button" onClick={() => onNavShop({ category: "Men" })} variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Men" })}
+              type="button"
+              variant="ghost"
+            >
               Men <span>→</span>
             </Button>
-            <Button type="button" onClick={() => onNavShop({ category: "Unisex" })} variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Unisex" })}
+              type="button"
+              variant="ghost"
+            >
               Unisex <span>→</span>
             </Button>
             <Button
-              type="button"
               onClick={() => onNavShop({ collection: "one-of-one" })}
+              type="button"
               variant="ghost"
             >
               One-of-one <span>→</span>
             </Button>
-            <Button type="button" onClick={() => onNavShop({})} variant="ghost">
+            <Button onClick={() => onNavShop({})} type="button" variant="ghost">
               Shop all <span>→</span>
             </Button>
           </nav>
           <Button
             className="mobile-feature h-auto w-full justify-start rounded-none p-0 text-left"
-            type="button"
             onClick={() => s.openQuick("p5")}
+            type="button"
             variant="ghost"
           >
-            <span>
-              <img src={MOBILE_FEATURE} alt="Man in graphic streetwear" />
-              <span className="block">Vintage sportswear edit →</span>
-            </span>
+            <img alt="Man in graphic streetwear" src={MOBILE_FEATURE} />
+            <p>Vintage sportswear edit →</p>
           </Button>
           <div className="mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4 min-[601px]:hidden">
             <span className="text-xs text-[var(--muted)]">Appearance</span>
@@ -229,10 +243,10 @@ export function SiteHeader({
 }
 
 export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
-  const s = useStorefront();
-  const h3 =
+  const storefront = useStorefront();
+  const headingClass =
     "mb-[18px] mt-0 font-mono text-[0.68rem] font-medium uppercase leading-none tracking-[0.1em] text-[rgba(243,240,232,0.56)]";
-  const footerButton =
+  const footerButtonClass =
     "h-auto justify-start rounded-none bg-transparent p-0 text-left text-inherit hover:bg-transparent hover:text-inherit";
 
   return (
@@ -252,47 +266,87 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
             </p>
           </div>
           <div>
-            <h3 className={h3}>Shop</h3>
+            <h3 className={headingClass}>Shop</h3>
             <div className="footer-links">
-              <Button className={footerButton} type="button" onClick={() => onNavShop({ collection: "new" })} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => onNavShop({ collection: "new" })}
+                type="button"
+                variant="ghost"
+              >
                 New arrivals
               </Button>
-              <Button className={footerButton} type="button" onClick={() => onNavShop({ category: "Women" })} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => onNavShop({ category: "Women" })}
+                type="button"
+                variant="ghost"
+              >
                 Women
               </Button>
-              <Button className={footerButton} type="button" onClick={() => onNavShop({ category: "Men" })} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => onNavShop({ category: "Men" })}
+                type="button"
+                variant="ghost"
+              >
                 Men
               </Button>
-              <Button className={footerButton} type="button" onClick={() => onNavShop({ collection: "one-of-one" })} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => onNavShop({ collection: "one-of-one" })}
+                type="button"
+                variant="ghost"
+              >
                 One-of-one
               </Button>
             </div>
           </div>
           <div>
-            <h3 className={h3}>Customer care</h3>
+            <h3 className={headingClass}>Customer care</h3>
             <div className="footer-links">
-              <Button className={footerButton} type="button" onClick={() => s.open("deliveryModal")} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => storefront.open("deliveryModal")}
+                type="button"
+                variant="ghost"
+              >
                 Delivery and returns
               </Button>
-              <Button className={footerButton} type="button" onClick={() => s.open("conditionModal")} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => storefront.open("conditionModal")}
+                type="button"
+                variant="ghost"
+              >
                 Condition guide
               </Button>
-              <Button className={footerButton} type="button" onClick={() => s.open("measureModal")} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => storefront.open("measureModal")}
+                type="button"
+                variant="ghost"
+              >
                 Measurements
               </Button>
-              <Button className={footerButton} type="button" onClick={() => s.open("authModal")} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => storefront.open("authModal")}
+                type="button"
+                variant="ghost"
+              >
                 Brand labelling
               </Button>
             </div>
           </div>
           <div>
-            <h3 className={h3}>Follow</h3>
+            <h3 className={headingClass}>Follow</h3>
             <div className="footer-links">
               {/* TODO(button-action): Link to the verified Instagram profile when the public URL is configured. */}
               <Button
                 aria-label="Instagram"
-                className={footerButton}
-                onClick={() => s.showToast("Instagram is not available yet.")}
+                className={footerButtonClass}
+                onClick={() => storefront.showToast("Instagram is not available yet.")}
                 type="button"
                 variant="ghost"
               >
@@ -301,14 +355,19 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
               {/* TODO(button-action): Link to the verified TikTok profile when the public URL is configured. */}
               <Button
                 aria-label="TikTok"
-                className={footerButton}
-                onClick={() => s.showToast("TikTok is not available yet.")}
+                className={footerButtonClass}
+                onClick={() => storefront.showToast("TikTok is not available yet.")}
                 type="button"
                 variant="ghost"
               >
                 TikTok
               </Button>
-              <Button className={footerButton} type="button" onClick={() => s.open("supportModal")} variant="ghost">
+              <Button
+                className={footerButtonClass}
+                onClick={() => storefront.open("supportModal")}
+                type="button"
+                variant="ghost"
+              >
                 Contact
               </Button>
             </div>
