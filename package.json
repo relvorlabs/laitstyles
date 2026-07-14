@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "portless run next dev",
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
