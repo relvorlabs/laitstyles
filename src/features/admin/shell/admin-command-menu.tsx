@@ -21,21 +21,48 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { settingsSections } from "@/features/admin/settings/settings-config";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { settingsSections } from "@/features/control-room/settings/settings-config";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
 
 const overviewTargets = [
-  { label: "Today’s store pulse", detail: "Revenue, orders, units and active holds", target: "/admin#today", icon: DashboardSquare01Icon },
-  { label: "Attention queue", detail: "Payments, packing, delivery and stock exceptions", target: "/admin#attention", icon: Search01Icon },
-  { label: "Sales pulse", detail: "Seven-day online and offline revenue", target: "/admin#sales-pulse", icon: ChartIncreaseIcon },
+  {
+    label: "Today’s store pulse",
+    detail: "Revenue, orders, units and active holds",
+    target: "/admin#today",
+    icon: DashboardSquare01Icon,
+  },
+  {
+    label: "Attention queue",
+    detail: "Payments, packing, delivery and stock exceptions",
+    target: "/admin#attention",
+    icon: Search01Icon,
+  },
+  {
+    label: "Sales pulse",
+    detail: "Seven-day online and offline revenue",
+    target: "/admin#sales-pulse",
+    icon: ChartIncreaseIcon,
+  },
 ] as const;
 
 const inventoryTargets = [
-  { label: "All inventory", detail: "Unique pieces, stocked products and variants", target: "/admin/inventory" },
-  { label: "Low stock", detail: "Products at or below their stock threshold", target: "/admin/inventory?view=low-stock" },
-  { label: "Intake queue", detail: "New pieces still being prepared", target: "/admin/inventory?view=intake" },
+  {
+    label: "All inventory",
+    detail: "Unique pieces, stocked products and variants",
+    target: "/admin/inventory",
+  },
+  {
+    label: "Low stock",
+    detail: "Products at or below their stock threshold",
+    target: "/admin/inventory?view=low-stock",
+  },
+  {
+    label: "Intake queue",
+    detail: "New pieces still being prepared",
+    target: "/admin/inventory?view=intake",
+  },
 ] as const;
 
 const terminalOrderStatuses = new Set(["delivered", "cancelled", "refunded", "returned"]);
@@ -47,21 +74,27 @@ type AdminCommandMenuProps = {
 
 export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) {
   const router = useRouter();
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const toggleOpen = useEffectEvent(() => onOpenChange(!open));
 
   const records = useMemo(() => {
     const products = state.products
-      .toSorted((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+      .toSorted(
+        (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+      )
       .slice(0, 7);
     const orders = state.orders
       .filter((order) => !terminalOrderStatuses.has(order.fulfilmentStatus))
-      .toSorted((left, right) => new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime())
+      .toSorted(
+        (left, right) => new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime(),
+      )
       .slice(0, 6);
     const customers = state.customers.slice(0, 6);
     const holds = state.holds
       .filter((hold) => !hold.status || hold.status === "active")
-      .toSorted((left, right) => new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime())
+      .toSorted(
+        (left, right) => new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime(),
+      )
       .slice(0, 5);
     return { products, orders, customers, holds };
   }, [state.customers, state.holds, state.orders, state.products]);
@@ -108,7 +141,12 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
 
           <CommandGroup heading="Operate today">
             {overviewTargets.map((item) => (
-              <CommandRecord key={item.target} {...item} onSelect={() => choose(item.target)} value={`${item.label} ${item.detail}`} />
+              <CommandRecord
+                key={item.target}
+                {...item}
+                onSelect={() => choose(item.target)}
+                value={`${item.label} ${item.detail}`}
+              />
             ))}
           </CommandGroup>
 
@@ -125,7 +163,13 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
               />
             ))}
             {inventoryTargets.map((item) => (
-              <CommandRecord key={item.target} {...item} icon={PackageIcon} onSelect={() => choose(item.target)} value={`${item.label} ${item.detail}`} />
+              <CommandRecord
+                key={item.target}
+                {...item}
+                icon={PackageIcon}
+                onSelect={() => choose(item.target)}
+                value={`${item.label} ${item.detail}`}
+              />
             ))}
           </CommandGroup>
 
@@ -211,7 +255,11 @@ function CommandRecord({
   value: string;
 }) {
   return (
-    <CommandItem className="min-h-14 gap-3 rounded-xl px-2.5 py-2" onSelect={onSelect} value={value}>
+    <CommandItem
+      className="min-h-14 gap-3 rounded-xl px-2.5 py-2"
+      onSelect={onSelect}
+      value={value}
+    >
       <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-surface-interactive text-surface-interactive-foreground">
         <AdminIcon icon={icon} size={17} />
       </span>
