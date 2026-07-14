@@ -142,33 +142,27 @@ export function StorefrontAuthDialog({
                   : "Sign in to pick up your holds and saved finds."}
               </p>
               <div className="mb-6 flex gap-1 rounded-full border border-border bg-[#F2F1EC] p-1">
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    !signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
+                <Button
+                  aria-pressed={!signup}
+                  className="h-[38px] flex-1 rounded-full text-[13.5px] font-medium"
                   onClick={() => onModeChange("signin")}
                   type="button"
+                  variant={!signup ? "default" : "ghost"}
                 >
                   Sign in
-                </button>
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
+                </Button>
+                <Button
+                  aria-pressed={signup}
+                  className="h-[38px] flex-1 rounded-full text-[13.5px] font-medium"
                   onClick={() => onModeChange("signup")}
                   type="button"
+                  variant={signup ? "default" : "ghost"}
                 >
                   Create account
-                </button>
+                </Button>
               </div>
               <Button
-                className="mb-5 h-[50px] w-full rounded-full border-[1.5px] border-[#E0DED5] bg-card text-sm font-medium text-primary hover:bg-card"
+                className="mb-5 h-[50px] w-full rounded-full border-[1.5px] border-[#E0DED5] bg-card text-sm font-medium hover:bg-card"
                 onClick={onContinueWithGoogle}
                 variant="outline"
               >
@@ -220,18 +214,20 @@ export function StorefrontAuthDialog({
                       type={revealPassword ? "text" : "password"}
                       value={form.password}
                     />
-                    <button
-                      aria-label="Toggle password visibility"
-                      className="absolute right-3.5 top-[15px] flex text-[#8A887E]"
+                    <Button
+                      aria-label={revealPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2.5 top-2.5 size-8 rounded-full text-muted-foreground"
                       onClick={() => onRevealPasswordChange(!revealPassword)}
+                      size="icon-sm"
                       type="button"
+                      variant="ghost"
                     >
                       {revealPassword ? (
                         <Eye className="size-[18px]" />
                       ) : (
                         <EyeOff className="size-[18px]" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                   <FieldError className="mt-1.5 text-xs">{errorFor("password")}</FieldError>
                 </Field>
@@ -277,7 +273,7 @@ export function StorefrontAuthDialog({
                 onClick={onSubmit}
               >
                 {busy ? (
-                  <span className="size-[18px] rounded-full border-[2.5px] border-white/40 border-t-white animate-spin" />
+                  <span className="size-[18px] rounded-full border-[2.5px] border-current/40 border-t-current animate-spin" />
                 ) : null}
                 {busy
                   ? signup
@@ -289,13 +285,14 @@ export function StorefrontAuthDialog({
               </Button>
               <div className="mt-4 text-center text-[13px] text-[#8A887E]">
                 {signup ? "Already have an account?" : "New to Laitstyle?"}{" "}
-                <button
-                  className="bg-transparent p-0 text-[13px] font-semibold text-accent"
+                <Button
+                  className="h-auto bg-transparent p-0 text-[13px] font-semibold"
                   onClick={() => onModeChange(signup ? "signin" : "signup")}
                   type="button"
+                  variant="link"
                 >
                   {signup ? "Sign in" : "Create one"}
-                </button>
+                </Button>
               </div>
             </div>
           )}
