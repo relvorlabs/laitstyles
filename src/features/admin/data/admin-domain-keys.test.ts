@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { overviewKeys } from "@/features/admin/overview/data/overview-keys";
+import { orderKeys } from "@/features/admin/orders/data/order-keys";
 import { customerKeys } from "@/features/control-room/customers/data/customer-keys";
 import { holdKeys } from "@/features/control-room/holds/data/hold-keys";
-import { orderKeys } from "@/features/control-room/orders/data/order-keys";
 import { returnKeys } from "@/features/control-room/returns/data/return-keys";
 import { settingsKeys } from "@/features/control-room/settings/data/settings-keys";
 
