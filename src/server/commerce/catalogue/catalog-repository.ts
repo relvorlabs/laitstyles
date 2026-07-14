@@ -37,6 +37,22 @@ export interface CatalogueQuery extends CatalogueFilters {
   offset?: number;
 }
 
+// The dedicated browser smoke test validates route/layout styling, not persistence.
+// This explicit CI-only mode keeps those route shells deterministic without attempting
+// to recreate Supabase's managed auth schema in a disposable PostgreSQL container.
+// Production and normal development always use the real repository below.
+const useStyleSmokeCatalogue = process.env.STOREFRONT_STYLE_SMOKE === "1";
+const styleSmokeCategory: TaxonomyRef = {
+  id: "style-smoke-category",
+  slug: "jeans-denim",
+  name: "Jeans & Denim",
+};
+const styleSmokeCollection: TaxonomyRef = {
+  id: "style-smoke-collection",
+  slug: "vintage-edit",
+  name: "The Vintage Edit",
+};
+
 // Compose the public-visibility predicate with optional filters using AND, so a
 // filter's OR (search) never clobbers the visibility OR. Facet filters use IN /
 // range. Basic contains-search for now; Postgres FTS + pg_trgm is a documented
@@ -80,6 +96,8 @@ function catalogueOrderBy(sort?: CatalogueSort): Prisma.productsOrderByWithRelat
 // Public catalogue reads — always scoped by the active store + publishedProductWhere.
 // There is no unscoped variant (docs/storefront-v2/04 §4.1 #5).
 export async function listPublishedProducts(query: CatalogueQuery = {}): Promise<ProductSummary[]> {
+  if (useStyleSmokeCatalogue) return [];
+
   const store = await getActiveStore();
   const rows = await prisma.products.findMany({
     where: catalogueWhere(store.id, query),
@@ -92,11 +110,15 @@ export async function listPublishedProducts(query: CatalogueQuery = {}): Promise
 }
 
 export async function countPublishedProducts(filters: CatalogueFilters = {}): Promise<number> {
+  if (useStyleSmokeCatalogue) return 0;
+
   const store = await getActiveStore();
   return prisma.products.count({ where: catalogueWhere(store.id, filters) });
 }
 
 export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
+  if (useStyleSmokeCatalogue) return null;
+
   const store = await getActiveStore();
   const row = await prisma.products.findFirst({
     where: { ...publishedProductWhere(store.id), slug },
@@ -108,6 +130,8 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
 // Categories that contain at least one storefront-visible product, with a real
 // (never fabricated) count. Small catalogue → per-category count is fine.
 export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
+  if (useStyleSmokeCatalogue) return [{ ...styleSmokeCategory, productCount: 0 }];
+
   const store = await getActiveStore();
   const categories = await prisma.catalogue_categories.findMany({
     where: { store_id: store.id },
@@ -128,6 +152,10 @@ export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
 }
 
 export async function getStorefrontCategoryBySlug(slug: string): Promise<TaxonomyRef | null> {
+  if (useStyleSmokeCatalogue) {
+    return slug === styleSmokeCategory.slug ? styleSmokeCategory : null;
+  }
+
   const store = await getActiveStore();
   return prisma.catalogue_categories.findFirst({
     where: { store_id: store.id, slug },
@@ -136,6 +164,10 @@ export async function getStorefrontCategoryBySlug(slug: string): Promise<Taxonom
 }
 
 export async function getStorefrontCollectionBySlug(slug: string): Promise<TaxonomyRef | null> {
+  if (useStyleSmokeCatalogue) {
+    return slug === styleSmokeCollection.slug ? styleSmokeCollection : null;
+  }
+
   const store = await getActiveStore();
   return prisma.catalogue_collections.findFirst({
     where: { store_id: store.id, slug },
@@ -153,6 +185,10 @@ export interface StorefrontFacetOptions {
 // Available facet values among storefront-visible products (product-level).
 // Small catalogue → derive distinct values in one query.
 export async function getStorefrontFacets(): Promise<StorefrontFacetOptions> {
+  if (useStyleSmokeCatalogue) {
+    return { brands: [], conditions: [], colours: [], sizes: [] };
+  }
+
   const store = await getActiveStore();
   const rows = await prisma.products.findMany({
     where: publishedProductWhere(store.id),
