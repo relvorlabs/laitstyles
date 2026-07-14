@@ -3,6 +3,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
+import { ShopProvider } from "@/components/shop/shop-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/home-lab/site-header";
 import { StorefrontProvider } from "@/features/storefront/home-lab/storefront-context";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
@@ -46,17 +47,19 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   if (isStandaloneSurface) return <>{children}</>;
 
   return (
-    <StorefrontProvider>
-      <QueryProvider>
-        <SiteHeader
-          onGoHome={() => router.push("/")}
-          onNavNew={() => navigateShop({ collection: "new" })}
-          onNavShop={navigateShop}
-        />
-        {children}
-        <SiteFooter onNavShop={navigateShop} />
-        <Analytics />
-      </QueryProvider>
-    </StorefrontProvider>
+    <ShopProvider>
+      <StorefrontProvider>
+        <QueryProvider>
+          <SiteHeader
+            onGoHome={() => router.push("/")}
+            onNavNew={() => navigateShop({ collection: "new" })}
+            onNavShop={navigateShop}
+          />
+          {children}
+          <SiteFooter onNavShop={navigateShop} />
+          <Analytics />
+        </QueryProvider>
+      </StorefrontProvider>
+    </ShopProvider>
   );
 }

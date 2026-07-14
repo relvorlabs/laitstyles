@@ -10,6 +10,7 @@ import { labFontClassName } from "@/features/storefront/home-lab/fonts";
 import { StorefrontExperienceProvider } from "@/features/storefront/shared/storefront-experience-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+import "@/features/storefront/home-lab/home-lab.css";
 
 export const metadata: Metadata = {
   title: "Laitstyle",

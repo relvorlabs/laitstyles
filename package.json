@@ -15,6 +15,7 @@
     "prisma:pull": "prisma db pull",
     "db:seed:storefront": "tsx scripts/seed/seed-storefront.ts",
     "smoke:storefront": "NODE_OPTIONS=--conditions=react-server tsx scripts/checks/storefront-smoke.ts",
+    "test:styles:e2e": "node scripts/checks/non-admin-style-smoke.mjs",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "test": "vitest run --passWithNoTests",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
