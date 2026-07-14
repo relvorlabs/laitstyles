@@ -1,0 +1,48 @@
+name: Admin theme and button audit bootstrap
+
+on:
+  push:
+    branches:
+      - chore/admin-theme-button-audit
+    paths:
+      - scripts/map-admin-theme-buttons.mjs
+      - .github/workflows/admin-theme-button-audit-bootstrap.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: admin-theme-button-audit-bootstrap
+  cancel-in-progress: true
+
+jobs:
+  map:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/admin-theme-button-audit
+          fetch-depth: 0
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Generate repository map
+        run: node scripts/map-admin-theme-buttons.mjs
+
+      - name: Commit repository map
+        run: |
+          if git diff --quiet -- docs/repository-audit-map.md docs/repository-audit-map.json; then
+            echo "Repository map is unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/repository-audit-map.md docs/repository-audit-map.json
+          git commit -m "docs: capture admin theme and button baseline"
+          git push origin HEAD:chore/admin-theme-button-audit
