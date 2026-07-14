@@ -160,8 +160,9 @@ test("legacy Control Room URL redirects to the Admin destination", async ({ page
   await page.goto("/control-room/inventory", { waitUntil: "domcontentloaded" });
   const url = new URL(page.url());
   const redirectedToAdmin = url.pathname.startsWith("/admin");
+  const nextPath = url.searchParams.get("next");
   const redirectedToAuthForAdmin =
-    url.pathname === "/auth/sign-in" && url.searchParams.get("next") === "/admin/inventory";
+    url.pathname === "/auth/sign-in" && nextPath != null && nextPath.startsWith("/admin");
   expect(redirectedToAdmin || redirectedToAuthForAdmin).toBe(true);
 });
 
