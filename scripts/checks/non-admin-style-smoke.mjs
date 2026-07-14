@@ -39,6 +39,26 @@ function destination(routePath) {
   return new URL(routePath, baseUrl).toString();
 }
 
+function monitorRuntime(page) {
+  const errors = [];
+
+  page.on("pageerror", (error) => {
+    errors.push(`pageerror: ${error.message}`);
+  });
+
+  page.on("console", (message) => {
+    const text = message.text();
+    if (
+      text.includes("useTheme must be used inside ThemeProvider") ||
+      text.includes("Encountered a script tag while rendering React component")
+    ) {
+      errors.push(`${message.type()}: ${text}`);
+    }
+  });
+
+  return errors;
+}
+
 async function capture(page, name, viewport) {
   await page.screenshot({
     path: path.join(outputDir, `${name}-${viewport}.png`),
@@ -46,8 +66,20 @@ async function capture(page, name, viewport) {
   });
 }
 
+async function verifyThemeToggle(page) {
+  const toggle = page.locator('header#header button[aria-label^="Use "]').first();
+  await toggle.waitFor({ state: "visible", timeout: 10_000 });
+  const wasDark = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+  await toggle.click();
+  await page.waitForFunction(
+    (previouslyDark) => document.documentElement.classList.contains("dark") !== previouslyDark,
+    wasDark,
+  );
+}
+
 async function verifyConsumerRoute(context, route, viewport) {
   const page = await context.newPage();
+  const runtimeErrors = monitorRuntime(page);
   try {
     await page.goto(destination(route.path), { waitUntil: "domcontentloaded", timeout: 45_000 });
     await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
@@ -89,11 +121,22 @@ async function verifyConsumerRoute(context, route, viewport) {
 
     if (route.productDetail) {
       assert.equal(await page.locator("main.lst-catalogue").count(), 1, "product detail shell must be styled");
+      assert.equal(
+        await page.locator('script[type="application/ld+json"]').count(),
+        2,
+        "product detail must render both JSON-LD payloads",
+      );
       const primaryButton = page.locator(".button.button-primary").first();
       await primaryButton.waitFor({ state: "attached", timeout: 10_000 });
-      const minHeight = await primaryButton.evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
+      const minHeight = await primaryButton.evaluate((element) =>
+        Number.parseFloat(getComputedStyle(element).minHeight),
+      );
       assert.ok(minHeight >= 48, "product detail primary action must inherit button styling");
+
+      if (viewport.name === "desktop") await verifyThemeToggle(page);
     }
+
+    assert.deepEqual(runtimeErrors, [], `route emitted browser runtime errors: ${runtimeErrors.join(" | ")}`);
 
     await capture(page, route.name, viewport.name);
     console.log(`PASS ${viewport.name} ${route.path}`);
@@ -107,6 +150,7 @@ async function verifyConsumerRoute(context, route, viewport) {
 
 async function verifyAdminExclusion(context, viewport) {
   const page = await context.newPage();
+  const runtimeErrors = monitorRuntime(page);
   try {
     await page.goto(destination("/admin"), { waitUntil: "domcontentloaded", timeout: 45_000 });
     await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
@@ -123,6 +167,7 @@ async function verifyAdminExclusion(context, viewport) {
     );
     assert.equal(state.storefrontScopeCount, 0, "admin/auth surfaces must stay outside .lst-lab");
     assert.equal(state.storefrontHeaderCount, 0, "admin/auth surfaces must not render storefront chrome");
+    assert.deepEqual(runtimeErrors, [], `admin emitted browser runtime errors: ${runtimeErrors.join(" | ")}`);
 
     await capture(page, "admin-excluded", viewport.name);
     console.log(`PASS ${viewport.name} /admin excluded from storefront styles`);
@@ -149,5 +194,5 @@ if (failures.length) {
   process.exitCode = 1;
 } else {
   console.log(`\nVerified ${consumerRoutes.length} consumer routes across ${viewports.length} viewports.`);
-  console.log("Future routes rendered through SiteChrome inherit home-lab.css without route-level imports.");
+  console.log("Theme context, JSON-LD rendering, and shared storefront styles are browser-error free.");
 }
