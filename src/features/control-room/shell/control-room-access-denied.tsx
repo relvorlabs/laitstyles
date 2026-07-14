@@ -15,7 +15,7 @@ export function ControlRoomAccessDenied({ reason }: { reason: AuthDeniedReason }
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Permission restricted
           </p>
-          <h1 className="mt-2 font-serif text-4xl font-medium">Control Room is staff-only</h1>
+          <h1 className="mt-2 font-serif text-4xl font-medium">Admin is staff-only</h1>
         </div>
         <p className="text-sm leading-6 text-muted-foreground">{AUTH_DENIED_MESSAGES[reason]}</p>
         <div className="flex flex-wrap justify-center gap-3">
