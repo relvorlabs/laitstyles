@@ -69,7 +69,10 @@ jobs:
           echo $! > supabase-mock.pid
 
       - name: Build production app
-        run: pnpm build
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm build 2>&1 | tee storefront-build.log
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
@@ -102,6 +105,7 @@ jobs:
         with:
           name: storefront-style-playwright
           path: |
+            storefront-build.log
             playwright-artifacts/
             playwright-server.log
             playwright-styles.log
