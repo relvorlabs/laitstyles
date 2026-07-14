@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@/features/control-room/shared/control-room-icon": ["./src/features/admin/shared/admin-icon"],
       "@/*": ["./src/*"]
     }
   },
