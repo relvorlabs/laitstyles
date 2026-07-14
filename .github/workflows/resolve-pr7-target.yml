@@ -1,6 +1,11 @@
 name: Resolve PR 7 from target
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/resolve-pr7-target.yml
   pull_request_target:
     types:
       - synchronize
@@ -11,9 +16,10 @@ permissions:
 jobs:
   resolve:
     if: >-
-      github.event.pull_request.number == 7 &&
+      github.event_name == 'push' ||
+      (github.event.pull_request.number == 7 &&
       github.event.pull_request.head.ref == 'feat/storefront-v2-spec' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - name: Check out storefront branch
