@@ -14,12 +14,12 @@ function createPrismaClient(): PrismaClient {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set — cannot create the Prisma client.");
   }
+
   // Prisma 7 requires a driver adapter. Runtime connects via the pg pooler
   // (DATABASE_URL, transaction pooler). Pool options are set explicitly because
   // the pg driver has no default connection timeout.
   const adapter = new PrismaPg({
     connectionString,
-    // conservative pool for serverless/pooled runtime
     max: 5,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
@@ -27,11 +27,33 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
-// Hot-reload-safe singleton in dev; fresh in prod.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+let modulePrisma: PrismaClient | undefined;
 
-export const prisma: PrismaClient = globalForPrisma.prisma ?? createPrismaClient();
+function getPrismaClient(): PrismaClient {
+  const existing = globalForPrisma.prisma ?? modulePrisma;
+  if (existing) return existing;
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  const client = createPrismaClient();
+  modulePrisma = client;
+
+  // Preserve one client across Fast Refresh in development. Production keeps the
+  // module-local singleton for the lifetime of the serverless/function instance.
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
 }
+
+// Next.js imports server modules while collecting route configuration and page data.
+// Deferring client construction until the first Prisma property is actually used lets
+// dynamic routes build without DATABASE_URL, while real runtime queries still produce
+// the explicit configuration error above when the deployment is misconfigured.
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client, property, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
