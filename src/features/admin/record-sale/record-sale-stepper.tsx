@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import {
   type RecordSaleStep,
   recordSaleSteps,
-} from "@/features/control-room/record-sale/record-sale-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+} from "@/features/admin/record-sale/record-sale-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const labels: Record<RecordSaleStep, string> = {
   item: "Item",
@@ -50,7 +50,7 @@ export function RecordSaleStepper({
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="grid size-6 shrink-0 place-items-center rounded-full border border-current text-[11px]">
                     {completed ? (
-                      <ControlRoomIcon icon={CheckmarkCircle02Icon} size={15} />
+                      <AdminIcon icon={CheckmarkCircle02Icon} size={15} />
                     ) : (
                       index + 1
                     )}
