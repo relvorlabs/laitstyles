@@ -4,8 +4,8 @@ import { Archive02Icon, Layers01Icon, PackageAddIcon } from "@hugeicons/core-fre
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { InventoryMode, ProductEditorValues } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { InventoryMode, ProductEditorValues } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 const productTypes = [
@@ -85,7 +85,7 @@ export function ProductTypeStep({ onModeChange }: { onModeChange: (mode: Invento
                       : "bg-secondary text-foreground",
                   )}
                 >
-                  <ControlRoomIcon icon={type.icon} size={20} />
+                  <AdminIcon icon={type.icon} size={20} />
                 </span>
                 {selected ? <Badge>Selected</Badge> : null}
               </span>
