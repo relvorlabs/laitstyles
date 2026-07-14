@@ -37,7 +37,7 @@ export function ControlRoomTopbar({
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/88 backdrop-blur-xl">
       <div className="flex min-h-[76px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <Button
-          aria-label="Open Control Room navigation"
+          aria-label="Open Admin navigation"
           className="size-11 rounded-full lg:hidden"
           onClick={onOpenNavigation}
           size="icon-lg"
@@ -49,18 +49,19 @@ export function ControlRoomTopbar({
 
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Control room
+            Admin
           </div>
           <div className="mt-0.5 truncate font-serif text-[21px] font-medium leading-none">
             {page.label}
           </div>
         </div>
 
-        <button
+        <Button
           aria-label="Search products, orders, customers and store tasks"
-          className="group hidden min-h-12 min-w-[300px] items-center gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
+          className="group hidden min-h-12 min-w-[300px] items-center justify-start gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
           onClick={onOpenSearch}
           type="button"
+          variant="outline"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-selected text-surface-selected-foreground">
             <ControlRoomIcon icon={Search01Icon} size={17} />
@@ -76,10 +77,10 @@ export function ControlRoomTopbar({
           <kbd className="rounded-lg border border-border bg-surface-sunken px-2 py-1 font-mono text-[10px] text-muted-foreground">
             ⌘ K
           </kbd>
-        </button>
+        </Button>
 
         <Button
-          aria-label="Search the Control Room"
+          aria-label="Search Admin"
           className="size-11 rounded-full xl:hidden"
           onClick={onOpenSearch}
           size="icon-lg"
@@ -94,7 +95,7 @@ export function ControlRoomTopbar({
         <form action="/auth/sign-out" className="hidden sm:block" method="post">
           <input name="next" type="hidden" value="/auth/sign-in?next=/admin" />
           <Button
-            aria-label="Sign out of Control Room"
+            aria-label="Sign out of Admin"
             className="size-11 rounded-full"
             size="icon-lg"
             type="submit"
