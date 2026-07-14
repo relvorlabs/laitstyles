@@ -4,7 +4,7 @@ import { FavouriteIcon, ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -91,13 +91,14 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 Add a piece from the archive and it will stay here as you move through the shop.
               </p>
             </div>
-            <Link
-              className={cn(buttonVariants({ size: "lg" }), "rounded-full px-7")}
-              href="/shop"
+            <Button
+              className="rounded-full px-7"
               onClick={storefront.closeAll}
+              render={<Link href="/shop" />}
+              size="lg"
             >
               Shop the archive
-            </Link>
+            </Button>
           </div>
         ) : (
           <>
@@ -149,25 +150,26 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         </div>
                       )}
                       <div className="flex items-center gap-3 text-xs">
-                        <button
-                          className="inline-flex items-center gap-1.5 text-[var(--muted)] hover:text-[var(--ink)]"
+                        <Button
+                          className="h-auto gap-1.5 p-0 text-[var(--muted)]! hover:bg-transparent hover:text-[var(--ink)]!"
                           onClick={() => {
-                            if (!storefront.saved.has(product.id))
-                              storefront.toggleSaved(product.id);
+                            if (!storefront.saved.has(product.id)) storefront.toggleSaved(product.id);
                             storefront.removeFromCart(product.id);
                           }}
                           type="button"
+                          variant="ghost"
                         >
                           <HugeiconsIcon icon={FavouriteIcon} size={14} strokeWidth={1.6} />
                           Save
-                        </button>
-                        <button
-                          className="text-[var(--muted)] underline underline-offset-4 hover:text-[var(--ink)]"
+                        </Button>
+                        <Button
+                          className="h-auto p-0 text-[var(--muted)]! underline underline-offset-4 hover:bg-transparent hover:text-[var(--ink)]!"
                           onClick={() => storefront.removeFromCart(product.id)}
                           type="button"
+                          variant="ghost"
                         >
                           Remove
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -181,11 +183,12 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     {recommendations.map((product) => (
-                      <button
-                        className="group text-left"
+                      <Button
+                        className="group h-auto w-full flex-col items-stretch rounded-none p-0 text-left hover:bg-transparent"
                         key={product.id}
                         onClick={() => storefront.addToCart(product.id)}
                         type="button"
+                        variant="ghost"
                       >
                         <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
                           <Image
@@ -202,7 +205,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         <span className="block text-[11px] text-[var(--muted)]">
                           Add · {money(product.price)}
                         </span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </section>
