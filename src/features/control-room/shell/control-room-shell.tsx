@@ -37,9 +37,9 @@ export function ControlRoomShell({
             <div className="min-h-dvh bg-background text-foreground">
               <a
                 className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
-                href="#control-room-main"
+                href="#admin-main"
               >
-                Skip to Control Room content
+                Skip to Admin content
               </a>
 
               <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -53,7 +53,7 @@ export function ControlRoomShell({
                     onOpenSearch={() => setSearchOpen(true)}
                     pathname={pathname}
                   />
-                  <main id="control-room-main" tabIndex={-1}>
+                  <main id="admin-main" tabIndex={-1}>
                     {children}
                   </main>
                 </div>
@@ -65,7 +65,7 @@ export function ControlRoomShell({
                   side="left"
                 >
                   <SheetHeader className="sr-only">
-                    <SheetTitle>Control Room navigation</SheetTitle>
+                    <SheetTitle>Admin navigation</SheetTitle>
                     <SheetDescription>Move around the Laitstyle owner workspace.</SheetDescription>
                   </SheetHeader>
                   <ControlRoomSidebar
