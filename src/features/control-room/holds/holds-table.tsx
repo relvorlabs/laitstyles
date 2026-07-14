@@ -50,18 +50,21 @@ export function HoldsTable({
             return (
               <TableRow key={hold.id}>
                 <TableCell className="overflow-hidden">
-                  <button
-                    className="max-w-full rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  <Button
+                    className="h-auto max-w-full justify-start p-0 text-left"
                     onClick={() => onOpen(hold.id)}
                     type="button"
+                    variant="link"
                   >
-                    <span className="block truncate text-[12.5px] font-semibold">
-                      {item.productName}
+                    <span className="min-w-0">
+                      <span className="block truncate text-[12.5px] font-semibold">
+                        {item.productName}
+                      </span>
+                      <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
+                        {item.variantLabel ?? item.productReference}
+                      </span>
                     </span>
-                    <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
-                      {item.variantLabel ?? item.productReference}
-                    </span>
-                  </button>
+                  </Button>
                 </TableCell>
                 <TableCell className="overflow-hidden">
                   <span className="block truncate text-[12px] font-medium">
