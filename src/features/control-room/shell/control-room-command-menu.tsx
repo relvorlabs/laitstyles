@@ -122,7 +122,7 @@ export function ControlRoomCommandMenu({ open, onOpenChange }: ControlRoomComman
       description="Find products, orders, customers, holds, settings and operating destinations."
       onOpenChange={onOpenChange}
       open={open}
-      title="Search the Control Room"
+      title="Search Admin"
     >
       <Command className="bg-surface-raised text-surface-raised-foreground">
         <div className="border-b border-border px-1 pt-1">
