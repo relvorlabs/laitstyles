@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { StorefrontAccountMenu } from "@/components/layout/storefront-account-menu";
 import { StorefrontCartSheet } from "@/components/layout/storefront-cart-sheet";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { BrandMark } from "./brand-mark";
 import { IconClose, IconSearch } from "./icons";
 import { useStorefront } from "./storefront-context";
@@ -14,9 +15,6 @@ const MOBILE_FEATURE =
 
 export type NavShop = (opts: { category?: string; collection?: string | null }) => void;
 
-// Shared utility bar + sticky header + mobile-nav drawer. Navigation intent is supplied
-// by the host route (homepage toggles its in-page shop view; /products filters/links),
-// while the search/saved/cart controls use the shared storefront context.
 export function SiteHeader({
   onNavShop,
   onGoHome,
@@ -27,14 +25,12 @@ export function SiteHeader({
   onNavNew: () => void;
 }) {
   const s = useStorefront();
-  // BLOCKER 2-3N-01: utility bar + header layout converted to Tailwind. Kept as shared
-  // classes: `shell`, `utility-dismiss`/`icon-button`/`menu-button` (intrinsic SVG sizing),
-  // `brand*`, and the overlay/drawer/mobile-nav/mobile-feature classes below.
   const navBtn =
-    "relative border-0 bg-transparent py-3 after:absolute after:bottom-[5px] after:left-0 after:right-full after:h-px after:bg-[var(--ink)] after:content-[''] after:[transition:right_220ms_var(--ease)] hover:after:right-0";
+    "relative h-auto rounded-none border-0 bg-transparent px-0 py-3 text-[0.86rem] after:absolute after:bottom-[5px] after:left-0 after:right-full after:h-px after:bg-[var(--ink)] after:content-[''] after:[transition:right_220ms_var(--ease)] hover:bg-transparent hover:after:right-0";
   const headerCls =
     "sticky top-0 z-[60] border-b border-b-transparent backdrop-blur-[16px] [background:color-mix(in_srgb,var(--bone)_92%,transparent)] [transition:border-color_220ms_var(--ease),box-shadow_220ms_var(--ease)]" +
     (s.headerScrolled ? " border-b-[var(--line)] shadow-[0_8px_28px_rgba(25,26,23,0.06)]" : "");
+
   return (
     <>
       {!s.utilityDismissed && (
@@ -46,14 +42,16 @@ export function SiteHeader({
             <p className="m-0">
               Nationwide delivery · Every piece inspected · New drop every Friday
             </p>
-            <button
+            <Button
               className="utility-dismiss"
               type="button"
               aria-label="Dismiss announcement"
               onClick={s.dismissUtility}
+              size="icon-sm"
+              variant="ghost"
             >
               <IconClose />
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -64,73 +62,93 @@ export function SiteHeader({
             className="flex items-center gap-[22px] text-[0.86rem] max-[860px]:hidden"
             aria-label="Primary navigation"
           >
-            <button className={navBtn} type="button" onClick={onNavNew}>
+            <Button className={navBtn} type="button" onClick={onNavNew} variant="ghost">
               New arrivals
-            </button>
-            <button
+            </Button>
+            <Button
               className={navBtn}
               type="button"
               onClick={() => onNavShop({ category: "Women" })}
+              variant="ghost"
             >
               Women
-            </button>
-            <button className={navBtn} type="button" onClick={() => onNavShop({ category: "Men" })}>
+            </Button>
+            <Button
+              className={navBtn}
+              type="button"
+              onClick={() => onNavShop({ category: "Men" })}
+              variant="ghost"
+            >
               Men
-            </button>
-            <button
+            </Button>
+            <Button
               className={navBtn}
               type="button"
               onClick={() => onNavShop({ category: "Unisex" })}
+              variant="ghost"
             >
               Unisex
-            </button>
-            <button
+            </Button>
+            <Button
               className={navBtn}
               type="button"
               onClick={() => onNavShop({ collection: "one-of-one" })}
+              variant="ghost"
             >
               One-of-one
-            </button>
+            </Button>
           </nav>
 
-          <button
+          <Button
             className="icon-button menu-button"
             type="button"
             aria-label="Open navigation"
             onClick={() => s.open("mobileMenu")}
+            size="icon-lg"
+            variant="ghost"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
-          </button>
+          </Button>
 
-          <button className="brand" type="button" aria-label="Laitstyles home" onClick={onGoHome}>
+          <Button
+            className="brand h-auto rounded-none p-0"
+            type="button"
+            aria-label="Laitstyles home"
+            onClick={onGoHome}
+            variant="ghost"
+          >
             <span className="brand-symbol">
               <BrandMark />
             </span>
             <span className="brand-word">LAITSTYLES</span>
-          </button>
+          </Button>
 
           <div className="flex items-center justify-self-end gap-1 max-[600px]:gap-0">
-            <button
+            <Button
               className="icon-button"
               type="button"
               aria-label="Search products"
               onClick={() => s.open("searchModal")}
+              size="icon-lg"
+              variant="ghost"
             >
               <IconSearch />
-            </button>
-            <button
+            </Button>
+            <Button
               className="icon-button relative max-[600px]:size-10"
               type="button"
               aria-label={`Saved items, ${s.saved.size}`}
               onClick={() => s.open("savedDrawer")}
+              size="icon-lg"
+              variant="ghost"
             >
               <HugeiconsIcon aria-hidden="true" icon={FavouriteIcon} size={19} strokeWidth={1.6} />
               {s.saved.size > 0 ? (
                 <span className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-[var(--sage)]" />
               ) : null}
-            </button>
+            </Button>
             <ThemeToggle className="max-[600px]:hidden" />
             <StorefrontAccountMenu />
             <StorefrontCartSheet className="max-[600px]:size-10" />
@@ -138,7 +156,6 @@ export function SiteHeader({
         </div>
       </header>
 
-      {/* Mobile navigation */}
       <div
         id="mobileMenu"
         className={`overlay${s.openId === "mobileMenu" ? " open" : ""}`}
@@ -155,39 +172,52 @@ export function SiteHeader({
               </span>
               <span className="brand-word">LAITSTYLES</span>
             </div>
-            <button
+            <Button
               className="close-button"
               type="button"
               aria-label="Close navigation"
               onClick={s.closeAll}
+              size="icon-lg"
+              variant="ghost"
             >
               <IconClose />
-            </button>
+            </Button>
           </div>
           <nav className="mobile-nav" aria-label="Mobile navigation">
-            <button type="button" onClick={() => onNavShop({ collection: "new" })}>
+            <Button type="button" onClick={() => onNavShop({ collection: "new" })} variant="ghost">
               New arrivals <span>→</span>
-            </button>
-            <button type="button" onClick={() => onNavShop({ category: "Women" })}>
+            </Button>
+            <Button type="button" onClick={() => onNavShop({ category: "Women" })} variant="ghost">
               Women <span>→</span>
-            </button>
-            <button type="button" onClick={() => onNavShop({ category: "Men" })}>
+            </Button>
+            <Button type="button" onClick={() => onNavShop({ category: "Men" })} variant="ghost">
               Men <span>→</span>
-            </button>
-            <button type="button" onClick={() => onNavShop({ category: "Unisex" })}>
+            </Button>
+            <Button type="button" onClick={() => onNavShop({ category: "Unisex" })} variant="ghost">
               Unisex <span>→</span>
-            </button>
-            <button type="button" onClick={() => onNavShop({ collection: "one-of-one" })}>
+            </Button>
+            <Button
+              type="button"
+              onClick={() => onNavShop({ collection: "one-of-one" })}
+              variant="ghost"
+            >
               One-of-one <span>→</span>
-            </button>
-            <button type="button" onClick={() => onNavShop({})}>
+            </Button>
+            <Button type="button" onClick={() => onNavShop({})} variant="ghost">
               Shop all <span>→</span>
-            </button>
+            </Button>
           </nav>
-          <button className="mobile-feature" type="button" onClick={() => s.openQuick("p5")}>
-            <img src={MOBILE_FEATURE} alt="Man in graphic streetwear" />
-            <p>Vintage sportswear edit →</p>
-          </button>
+          <Button
+            className="mobile-feature h-auto w-full justify-start rounded-none p-0 text-left"
+            type="button"
+            onClick={() => s.openQuick("p5")}
+            variant="ghost"
+          >
+            <span>
+              <img src={MOBILE_FEATURE} alt="Man in graphic streetwear" />
+              <span className="block">Vintage sportswear edit →</span>
+            </span>
+          </Button>
           <div className="mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4 min-[601px]:hidden">
             <span className="text-xs text-[var(--muted)]">Appearance</span>
             <ThemeToggle />
@@ -198,15 +228,13 @@ export function SiteHeader({
   );
 }
 
-// Shared footer. Nav links defer to the host route; care/labelling links open shared
-// modals via context.
 export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
   const s = useStorefront();
-  // BLOCKER 2-3N-01: footer layout converted to Tailwind. Shared classes kept: `shell`,
-  // `footer-brand` (carries the enlarged brand-symbol/word overrides) and `footer-links`
-  // (styles its button/anchor children).
   const h3 =
     "mb-[18px] mt-0 font-mono text-[0.68rem] font-medium uppercase leading-none tracking-[0.1em] text-[rgba(243,240,232,0.56)]";
+  const footerButton =
+    "h-auto justify-start rounded-none bg-transparent p-0 text-left text-inherit hover:bg-transparent hover:text-inherit";
+
   return (
     <footer className="bg-[var(--ink)] pb-[30px] pt-[70px] text-[var(--bone)]">
       <div className="shell">
@@ -226,49 +254,63 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
           <div>
             <h3 className={h3}>Shop</h3>
             <div className="footer-links">
-              <button type="button" onClick={() => onNavShop({ collection: "new" })}>
+              <Button className={footerButton} type="button" onClick={() => onNavShop({ collection: "new" })} variant="ghost">
                 New arrivals
-              </button>
-              <button type="button" onClick={() => onNavShop({ category: "Women" })}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => onNavShop({ category: "Women" })} variant="ghost">
                 Women
-              </button>
-              <button type="button" onClick={() => onNavShop({ category: "Men" })}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => onNavShop({ category: "Men" })} variant="ghost">
                 Men
-              </button>
-              <button type="button" onClick={() => onNavShop({ collection: "one-of-one" })}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => onNavShop({ collection: "one-of-one" })} variant="ghost">
                 One-of-one
-              </button>
+              </Button>
             </div>
           </div>
           <div>
             <h3 className={h3}>Customer care</h3>
             <div className="footer-links">
-              <button type="button" onClick={() => s.open("deliveryModal")}>
+              <Button className={footerButton} type="button" onClick={() => s.open("deliveryModal")} variant="ghost">
                 Delivery and returns
-              </button>
-              <button type="button" onClick={() => s.open("conditionModal")}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => s.open("conditionModal")} variant="ghost">
                 Condition guide
-              </button>
-              <button type="button" onClick={() => s.open("measureModal")}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => s.open("measureModal")} variant="ghost">
                 Measurements
-              </button>
-              <button type="button" onClick={() => s.open("authModal")}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => s.open("authModal")} variant="ghost">
                 Brand labelling
-              </button>
+              </Button>
             </div>
           </div>
           <div>
             <h3 className={h3}>Follow</h3>
             <div className="footer-links">
-              <button type="button" aria-label="Instagram placeholder">
+              {/* TODO(button-action): Link to the verified Instagram profile when the public URL is configured. */}
+              <Button
+                aria-label="Instagram"
+                className={footerButton}
+                onClick={() => s.showToast("Instagram is not available yet.")}
+                type="button"
+                variant="ghost"
+              >
                 Instagram
-              </button>
-              <button type="button" aria-label="TikTok placeholder">
+              </Button>
+              {/* TODO(button-action): Link to the verified TikTok profile when the public URL is configured. */}
+              <Button
+                aria-label="TikTok"
+                className={footerButton}
+                onClick={() => s.showToast("TikTok is not available yet.")}
+                type="button"
+                variant="ghost"
+              >
                 TikTok
-              </button>
-              <button type="button" onClick={() => s.open("supportModal")}>
+              </Button>
+              <Button className={footerButton} type="button" onClick={() => s.open("supportModal")} variant="ghost">
                 Contact
-              </button>
+              </Button>
             </div>
           </div>
         </div>
