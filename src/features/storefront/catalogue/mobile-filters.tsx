@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 // Client wrapper for the mobile filter sheet. The FacetPanel (a server
@@ -16,9 +17,10 @@ export function MobileFilters({
     <Sheet>
       <SheetTrigger
         render={
-          <button
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-border-strong bg-control px-4 text-[13px] font-medium text-foreground md:hidden"
+          <Button
+            className="h-10 gap-2 rounded-full px-4 text-[13px] md:hidden"
             type="button"
+            variant="outline"
           />
         }
       >
