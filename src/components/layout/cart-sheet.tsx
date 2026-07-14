@@ -3,7 +3,7 @@
 import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
   SheetClose,
@@ -24,10 +24,12 @@ export function CartSheet() {
     <Sheet>
       <SheetTrigger
         render={
-          <button
+          <Button
             aria-label={`Bag, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
-            className="relative flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover"
+            className="relative size-11 rounded-full"
+            size="icon-lg"
             type="button"
+            variant="ghost"
           />
         }
       >
