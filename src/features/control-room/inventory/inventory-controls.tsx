@@ -131,20 +131,20 @@ export function InventoryControls({
             role="group"
           >
             {(["grid", "table"] as const).map((option) => (
-              <button
+              <Button
                 aria-pressed={presentation === option}
                 className={cn(
-                  "min-h-9 rounded-full px-3 text-[11px] font-semibold capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  presentation === option
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                  "min-h-9 rounded-full px-3 text-[11px] font-semibold capitalize",
+                  presentation === option ? "shadow-sm" : "text-muted-foreground",
                 )}
                 key={option}
                 onClick={() => onPresentationChange(option)}
+                size="sm"
                 type="button"
+                variant={presentation === option ? "default" : "ghost"}
               >
                 {option}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
