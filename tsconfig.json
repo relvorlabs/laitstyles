@@ -29,6 +29,7 @@
       "@/features/control-room/returns/*": ["./src/features/admin/returns/*"],
       "@/features/control-room/settings/*": ["./src/features/admin/settings/*"],
       "@/features/control-room/product-editor/*": ["./src/features/admin/product-editor/*"],
+      "@/features/control-room/record-sale/*": ["./src/features/admin/record-sale/*"],
       "@/*": ["./src/*"]
     }
   },
