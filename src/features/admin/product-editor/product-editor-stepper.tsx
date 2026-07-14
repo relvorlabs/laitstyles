@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { productEditorStepLabels } from "@/features/control-room/product-editor/product-editor-step-labels";
-import { productEditorSteps } from "@/lib/control-room/product-editor-types";
-import type { ProductEditorStep } from "@/lib/control-room/types";
+import { productEditorStepLabels } from "@/features/admin/product-editor/product-editor-step-labels";
+import { productEditorSteps } from "@/lib/admin/product-editor-types";
+import type { ProductEditorStep } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 export function ProductEditorStepper({
