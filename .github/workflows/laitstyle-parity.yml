@@ -64,6 +64,32 @@ jobs:
           set -o pipefail
           pnpm build 2>&1 | tee build.log
 
+      - name: Playwright storefront style inheritance
+        id: playwright_styles
+        if: ${{ steps.build.outcome == 'success' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec playwright install --with-deps chromium
+          pnpm start > playwright-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+              break
+            fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+              cat playwright-server.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl -fsS http://127.0.0.1:3000 >/dev/null
+          PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 pnpm test:styles:e2e 2>&1 | tee playwright-styles.log
+
       - name: React Doctor diagnostics
         id: react_doctor
         continue-on-error: true
@@ -82,6 +108,9 @@ jobs:
             typescript.log
             tests.log
             build.log
+            playwright-server.log
+            playwright-styles.log
+            playwright-artifacts/
             react-doctor.log
           if-no-files-found: warn
           retention-days: 7
@@ -93,10 +122,12 @@ jobs:
           TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
           TESTS_OUTCOME: ${{ steps.tests.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          PLAYWRIGHT_OUTCOME: ${{ steps.playwright_styles.outcome }}
         run: |
-          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\n' \
-            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME"
+          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\nplaywright=%s\n' \
+            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME" "$PLAYWRIGHT_OUTCOME"
           test "$LINT_OUTCOME" = success
           test "$TYPESCRIPT_OUTCOME" = success
           test "$TESTS_OUTCOME" = success
           test "$BUILD_OUTCOME" = success
+          test "$PLAYWRIGHT_OUTCOME" = success
