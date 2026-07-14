@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { type Product, productById, productToHoldable } from "./data";
 import { ProductCard } from "./product-card";
@@ -21,48 +22,53 @@ const quickLinks: [string, string][] = [
 ];
 const genderByKey: Record<string, string> = { women: "Women", men: "Men", unisex: "Unisex" };
 
-// Ported from inventory.html: the full-page catalogue. Reuses the shared storefront
-// context, ProductCard, header/footer, overlays and FilterControls; adds only the
-// catalogue-specific layout (quick-nav, toolbar, density, sidebar, pagination).
 function CatalogueApp() {
-  const s = useStorefront();
+  const storefront = useStorefront();
   const [page, setPage] = useState(1);
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   useEffect(() => {
-    const d = sessionStorage.getItem("laitstyles-density");
-    if (d === "compact" || d === "comfortable") setDensity(d);
+    const storedDensity = sessionStorage.getItem("laitstyles-density");
+    if (storedDensity === "compact" || storedDensity === "comfortable") {
+      setDensity(storedDensity);
+    }
   }, []);
-  const changeDensity = (d: "comfortable" | "compact") => {
-    setDensity(d);
+
+  const changeDensity = (nextDensity: "comfortable" | "compact") => {
+    setDensity(nextDensity);
     try {
-      sessionStorage.setItem("laitstyles-density", d);
+      sessionStorage.setItem("laitstyles-density", nextDensity);
     } catch {
-      // ignore
+      // Ignore unavailable storage.
     }
   };
 
-  // Reset to the first page whenever the active filter set changes (source: state.page = 1).
-  const filterSig = `${s.category}|${s.collection}|${[...s.conditions].sort().join(",")}|${[...s.inventories].sort().join(",")}|${s.inStock}|${s.maxPrice}|${s.search}|${s.sort}`;
+  const filterSignature = `${storefront.category}|${storefront.collection}|${[
+    ...storefront.conditions,
+  ]
+    .sort()
+    .join(",")}|${[...storefront.inventories].sort().join(",")}|${storefront.inStock}|${
+    storefront.maxPrice
+  }|${storefront.search}|${storefront.sort}`;
   // biome-ignore lint/correctness/useExhaustiveDependencies: page resets on filter-signature change only.
-  useEffect(() => setPage(1), [filterSig]);
+  useEffect(() => setPage(1), [filterSignature]);
 
-  const list = s.filteredList;
+  const list = storefront.filteredList;
   const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const current = Math.min(page, pages);
   const start = (current - 1) * PAGE_SIZE;
   const pageItems = list.slice(start, start + PAGE_SIZE);
 
   const applyQuick = (key: string) => {
-    if (key === "all") s.applyShop({});
-    else if (genderByKey[key]) s.applyShop({ category: genderByKey[key] });
-    else s.applyShop({ collection: key });
+    if (key === "all") storefront.applyShop({});
+    else if (genderByKey[key]) storefront.applyShop({ category: genderByKey[key] });
+    else storefront.applyShop({ collection: key });
   };
   const quickActive = (key: string) => {
-    if (key === "all") return s.category === "All" && !s.collection;
-    if (genderByKey[key]) return s.category === genderByKey[key];
-    return s.collection === key;
+    if (key === "all") return storefront.category === "All" && !storefront.collection;
+    if (genderByKey[key]) return storefront.category === genderByKey[key];
+    return storefront.collection === key;
   };
 
   const {
@@ -70,12 +76,11 @@ function CatalogueApp() {
     actions: { holdProduct, releaseProduct },
   } = useStorefrontExperience();
   const cardHandlers = {
-    onQuickView: s.openQuick,
-    onSave: s.toggleSaved,
-    // Add to bag supersedes an active hold, then commits to the cart.
+    onQuickView: storefront.openQuick,
+    onSave: storefront.toggleSaved,
     onAdd: (id: string) => {
       releaseProduct(id);
-      s.addToCart(id);
+      storefront.addToCart(id);
     },
     onHold: (id: string) => {
       const product = productById(id);
@@ -84,37 +89,41 @@ function CatalogueApp() {
     onRelease: releaseProduct,
   };
   const renderCards = (items: Product[]) =>
-    items.map((p) => (
+    items.map((product) => (
       <ProductCard
-        key={p.id}
-        product={p}
-        isSaved={s.saved.has(p.id)}
-        isHeld={p.id in holdSecondsByProduct}
-        holdSeconds={holdSecondsByProduct[p.id] ?? null}
         {...cardHandlers}
+        holdSeconds={holdSecondsByProduct[product.id] ?? null}
+        isHeld={product.id in holdSecondsByProduct}
+        isSaved={storefront.saved.has(product.id)}
+        key={product.id}
+        product={product}
       />
     ));
 
-  const goToPage = (p: number) => {
-    setPage(p);
+  const goToPage = (nextPage: number) => {
+    setPage(nextPage);
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <main id="main" className="lst-catalogue">
+    <main className="lst-catalogue" id="main">
       <div className="quick-nav-wrap">
-        <nav className="shell quick-nav" aria-label="Quick collections">
-          {quickLinks.map(([key, label]) => (
-            <button
-              key={key}
-              className={`quick-link${quickActive(key) ? " active" : ""}`}
-              type="button"
-              aria-pressed={quickActive(key)}
-              onClick={() => applyQuick(key)}
-            >
-              {label}
-            </button>
-          ))}
+        <nav aria-label="Quick collections" className="shell quick-nav">
+          {quickLinks.map(([key, label]) => {
+            const active = quickActive(key);
+            return (
+              <Button
+                aria-pressed={active}
+                className={`quick-link${active ? " active" : ""}`}
+                key={key}
+                onClick={() => applyQuick(key)}
+                type="button"
+                variant="ghost"
+              >
+                {label}
+              </Button>
+            );
+          })}
         </nav>
       </div>
 
@@ -122,83 +131,103 @@ function CatalogueApp() {
         <div className="shell">
           <div className="toolbar-main">
             <div className="toolbar-group">
-              <button
+              <Button
                 className="control-button mobile-filter-trigger"
+                onClick={() => storefront.open("filterDrawer")}
                 type="button"
-                onClick={() => s.open("filterDrawer")}
+                variant="outline"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
-                Filters <span className="mono">{s.activeFilterChips.length}</span>
-              </button>
-              <button
+                Filters <span className="mono">{storefront.activeFilterChips.length}</span>
+              </Button>
+              <Button
+                aria-pressed={sidebarVisible}
                 className={`control-button desktop-filter-toggle${sidebarVisible ? " active" : ""}`}
+                onClick={() => setSidebarVisible((visible) => !visible)}
                 type="button"
-                onClick={() => setSidebarVisible((v) => !v)}
+                variant="outline"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
                 {sidebarVisible ? "Hide filters" : "Show filters"}
-              </button>
-              <button className="control-button" type="button" onClick={() => s.open("sortSheet")}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              </Button>
+              <Button
+                className="control-button"
+                onClick={() => storefront.open("sortSheet")}
+                type="button"
+                variant="outline"
+              >
+                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M8 7h10M8 12h7M8 17h4M4 5v14" />
                 </svg>
                 Sort
-              </button>
+              </Button>
             </div>
             <div className="toolbar-group">
-              <span id="resultCount" className="result-count mono">
+              <span className="result-count mono" id="resultCount">
                 {list.length} products
               </span>
-              <div className="density-control" aria-label="Product grid density">
-                <button
-                  className={density === "comfortable" ? "active" : ""}
-                  type="button"
+              <div aria-label="Product grid density" className="density-control" role="group">
+                <Button
                   aria-label="Comfortable grid"
+                  aria-pressed={density === "comfortable"}
+                  className={density === "comfortable" ? "active" : ""}
                   onClick={() => changeDensity("comfortable")}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
                 >
                   ▦
-                </button>
-                <button
-                  className={density === "compact" ? "active" : ""}
-                  type="button"
+                </Button>
+                <Button
                   aria-label="Compact grid"
+                  aria-pressed={density === "compact"}
+                  className={density === "compact" ? "active" : ""}
                   onClick={() => changeDensity("compact")}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
                 >
                   ▥
-                </button>
+                </Button>
               </div>
             </div>
           </div>
-          {s.activeFilterChips.length > 0 && (
-            <div id="activeFilters" className="active-filters">
-              {s.activeFilterChips.map((chip) => (
-                <button
-                  key={`${chip.type}-${chip.value ?? chip.label}`}
+          {storefront.activeFilterChips.length > 0 ? (
+            <div className="active-filters" id="activeFilters">
+              {storefront.activeFilterChips.map((chip) => (
+                <Button
                   className="filter-chip"
+                  key={`${chip.type}-${chip.value ?? chip.label}`}
+                  onClick={() => storefront.removeFilter(chip.type, chip.value)}
                   type="button"
-                  onClick={() => s.removeFilter(chip.type, chip.value)}
+                  variant="secondary"
                 >
                   {chip.label} ×
-                </button>
+                </Button>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </section>
 
-      <section id="products" className="catalogue">
+      <section className="catalogue" id="products">
         <div className={`shell catalogue-layout${sidebarVisible ? "" : " no-sidebar"}`}>
-          <aside className="filter-sidebar" aria-label="Catalogue filters" hidden={!sidebarVisible}>
+          <aside aria-label="Catalogue filters" className="filter-sidebar" hidden={!sidebarVisible}>
             <div className="filter-panel">
               <div className="filter-head">
                 <h2>Refine the rack</h2>
-                <button className="button button-ghost" type="button" onClick={s.clearFilters}>
+                <Button
+                  className="button button-ghost"
+                  onClick={storefront.clearFilters}
+                  type="button"
+                  variant="ghost"
+                >
                   Clear all
-                </button>
+                </Button>
               </div>
               <FilterControls />
             </div>
@@ -206,51 +235,67 @@ function CatalogueApp() {
 
           <div className="results">
             {list.length ? (
-              <div id="productGrid" className={`product-grid ${density}`} aria-live="polite">
+              <div
+                aria-live="polite"
+                className={`product-grid ${density}`}
+                id="productGrid"
+              >
                 {renderCards(pageItems)}
               </div>
             ) : (
-              <div id="emptyState" className="empty-state">
+              <div className="empty-state" id="emptyState">
                 <h2>No pieces match this edit.</h2>
                 <p>Clear one or more filters or return to the complete rack.</p>
-                <button className="button button-primary" type="button" onClick={s.clearFilters}>
+                <Button
+                  className="button button-primary"
+                  onClick={storefront.clearFilters}
+                  type="button"
+                >
                   Clear filters
-                </button>
+                </Button>
               </div>
             )}
-            {list.length > 0 && pages > 1 && (
-              <nav id="pagination" className="pagination" aria-label="Product result pages">
-                <button
-                  className="page-button"
-                  type="button"
-                  disabled={current === 1}
+            {list.length > 0 && pages > 1 ? (
+              <nav aria-label="Product result pages" className="pagination" id="pagination">
+                <Button
                   aria-label="Previous page"
+                  className="page-button"
+                  disabled={current === 1}
                   onClick={() => goToPage(Math.max(1, current - 1))}
+                  type="button"
+                  variant="outline"
                 >
                   ←
-                </button>
-                {Array.from({ length: pages }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    className={`page-button${current === i + 1 ? " active" : ""}`}
-                    type="button"
-                    aria-label={`Page ${i + 1}`}
-                    onClick={() => goToPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  className="page-button"
-                  type="button"
-                  disabled={current === pages}
+                </Button>
+                {Array.from({ length: pages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  const active = current === pageNumber;
+                  return (
+                    <Button
+                      aria-current={active ? "page" : undefined}
+                      aria-label={`Page ${pageNumber}`}
+                      className={`page-button${active ? " active" : ""}`}
+                      key={pageNumber}
+                      onClick={() => goToPage(pageNumber)}
+                      type="button"
+                      variant={active ? "default" : "outline"}
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+                <Button
                   aria-label="Next page"
+                  className="page-button"
+                  disabled={current === pages}
                   onClick={() => goToPage(Math.min(pages, current + 1))}
+                  type="button"
+                  variant="outline"
                 >
                   →
-                </button>
+                </Button>
               </nav>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
