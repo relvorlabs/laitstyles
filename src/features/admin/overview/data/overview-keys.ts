@@ -1,5 +1,5 @@
 /**
- * Overview domain query-key factory (Phase 12 foundation).
+ * Overview domain query-key factory.
  *
  * Overview is a single aggregated store-scoped snapshot today. A reporting-date
  * input can be added to the summary key when Overview reads migrate onto the
