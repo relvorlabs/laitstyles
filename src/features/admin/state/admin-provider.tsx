@@ -10,7 +10,7 @@ import {
 } from "react";
 import { AdminRepositoryProvider } from "@/features/admin/data/admin-repository-context";
 import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
-import type { ControlRoomState } from "@/lib/control-room/types";
+import type { AdminState } from "@/lib/admin/types";
 
 const AdminContext = createContext<AdminStore | null>(null);
 
@@ -19,7 +19,7 @@ export function AdminProvider({
   initialState,
 }: {
   children: ReactNode;
-  initialState: ControlRoomState;
+  initialState: AdminState;
 }) {
   const [store] = useState(() => createAdminStore(initialState));
 
@@ -64,7 +64,7 @@ export function useAdmin() {
   );
 }
 
-/** @deprecated Use AdminProvider while remaining Admin modules are renamed. */
+/** @deprecated Use AdminProvider. */
 export const ControlRoomProvider = AdminProvider;
-/** @deprecated Use useAdmin while remaining Admin modules are renamed. */
+/** @deprecated Use useAdmin. */
 export const useControlRoom = useAdmin;

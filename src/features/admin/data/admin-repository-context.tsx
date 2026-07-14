@@ -2,10 +2,10 @@
 
 import { createContext, type ReactNode, useContext, useState } from "react";
 import type { AdminStore } from "@/features/admin/state/admin-store";
-import { createInMemoryControlRoomRepositories } from "@/lib/control-room/data/in-memory/control-room-repositories";
-import type { ControlRoomRepositories } from "@/lib/control-room/data/repositories";
+import { createInMemoryAdminRepositories } from "@/lib/admin/data/in-memory/admin-repositories";
+import type { AdminRepositories } from "@/lib/admin/data/repositories";
 
-const AdminRepositoryContext = createContext<ControlRoomRepositories | null>(null);
+const AdminRepositoryContext = createContext<AdminRepositories | null>(null);
 
 export function AdminRepositoryProvider({
   children,
@@ -14,7 +14,7 @@ export function AdminRepositoryProvider({
   children: ReactNode;
   store: AdminStore;
 }) {
-  const [repositories] = useState(() => createInMemoryControlRoomRepositories(store));
+  const [repositories] = useState(() => createInMemoryAdminRepositories(store));
 
   return (
     <AdminRepositoryContext.Provider value={repositories}>
@@ -31,7 +31,7 @@ export function useAdminRepositories() {
   return repositories;
 }
 
-/** @deprecated Use AdminRepositoryProvider while remaining Admin modules are renamed. */
+/** @deprecated Use AdminRepositoryProvider. */
 export const ControlRoomRepositoryProvider = AdminRepositoryProvider;
-/** @deprecated Use useAdminRepositories while remaining Admin modules are renamed. */
+/** @deprecated Use useAdminRepositories. */
 export const useControlRoomRepositories = useAdminRepositories;

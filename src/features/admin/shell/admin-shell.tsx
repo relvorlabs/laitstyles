@@ -10,20 +10,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { AdminProvider } from "@/features/admin/state/admin-provider";
-import { ProductEditorControllerProvider } from "@/features/control-room/product-editor/product-editor-controller";
-import { RecordSaleControllerProvider } from "@/features/control-room/record-sale/record-sale-controller";
+import { ProductEditorControllerProvider } from "@/features/admin/product-editor/product-editor-controller";
+import { RecordSaleControllerProvider } from "@/features/admin/record-sale/record-sale-controller";
 import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";
 import { AdminSidebar } from "@/features/admin/shell/admin-sidebar";
 import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
-import type { ControlRoomState } from "@/lib/control-room/types";
+import { AdminProvider } from "@/features/admin/state/admin-provider";
+import type { AdminState } from "@/lib/admin/types";
 
 export function AdminShell({
   children,
   initialState,
 }: {
   children: ReactNode;
-  initialState: ControlRoomState;
+  initialState: AdminState;
 }) {
   const pathname = usePathname();
   const [navigationOpen, setNavigationOpen] = useState(false);

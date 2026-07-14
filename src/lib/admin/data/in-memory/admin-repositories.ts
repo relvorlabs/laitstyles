@@ -1,7 +1,7 @@
-import type { ControlRoomStore } from "@/features/control-room/state/control-room-store";
-import type { ControlRoomRepositories } from "@/lib/control-room/data/repositories";
-import { getOverviewSnapshot } from "@/lib/control-room/selectors";
-import type { ControlRoomState, OrderStatus } from "@/lib/control-room/types";
+import type { AdminStore } from "@/features/admin/state/admin-store";
+import type { AdminRepositories } from "@/lib/admin/data/repositories";
+import { getOverviewSnapshot } from "@/lib/admin/selectors";
+import type { AdminState, OrderStatus } from "@/lib/admin/types";
 
 const closedOrderStatuses = new Set<OrderStatus>([
   "delivered",
@@ -10,10 +10,8 @@ const closedOrderStatuses = new Set<OrderStatus>([
   "returned",
 ]);
 
-export function createInMemoryControlRoomRepositories(
-  store: ControlRoomStore,
-): ControlRoomRepositories {
-  const read = <T>(selector: (state: ControlRoomState) => T): Promise<T> =>
+export function createInMemoryAdminRepositories(store: AdminStore): AdminRepositories {
+  const read = <T>(selector: (state: AdminState) => T): Promise<T> =>
     Promise.resolve(cloneValue(selector(store.getSnapshot())));
 
   return {
@@ -65,6 +63,9 @@ export function createInMemoryControlRoomRepositories(
     },
   };
 }
+
+/** @deprecated Use createInMemoryAdminRepositories. */
+export const createInMemoryControlRoomRepositories = createInMemoryAdminRepositories;
 
 function cloneValue<T>(value: T): T {
   return structuredClone(value);

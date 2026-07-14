@@ -1,19 +1,19 @@
-import type { CatalogueTaxonomyItem } from "@/lib/control-room/catalogue-taxonomy";
-import type { ControlRoomCustomer } from "@/lib/control-room/customer-types";
+import type { CatalogueTaxonomyItem } from "@/lib/admin/catalogue-taxonomy";
+import type { ControlRoomCustomer } from "@/lib/admin/customer-types";
 import type {
   InventoryProduct,
   ProductReview,
   StockMovement,
-} from "@/lib/control-room/inventory-types";
-import type { IntakeRecord } from "@/lib/control-room/product-editor-types";
+} from "@/lib/admin/inventory-types";
+import type { IntakeRecord } from "@/lib/admin/product-editor-types";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
   ControlRoomReturn,
   CurrencyCode,
   FulfilmentStatus,
-} from "@/lib/control-room/sales-types";
-import type { StoreSettings } from "@/lib/control-room/settings-types";
+} from "@/lib/admin/sales-types";
+import type { StoreSettings } from "@/lib/admin/settings-types";
 
 export type {
   CatalogueTaxonomyActionError,
@@ -21,7 +21,7 @@ export type {
   CatalogueTaxonomyInput,
   CatalogueTaxonomyItem,
   CatalogueTaxonomyKind,
-} from "@/lib/control-room/catalogue-taxonomy";
+} from "@/lib/admin/catalogue-taxonomy";
 
 export type {
   AddCustomerNoteInput,
@@ -42,7 +42,7 @@ export type {
   CustomerTimelineEvent,
   CustomerTimelineKind,
   CustomerType,
-} from "@/lib/control-room/customer-types";
+} from "@/lib/admin/customer-types";
 
 export type {
   CatalogueChannel,
@@ -74,7 +74,7 @@ export type {
   StockMovementKind,
   UniqueProduct,
   VariantProduct,
-} from "@/lib/control-room/inventory-types";
+} from "@/lib/admin/inventory-types";
 
 export type {
   IntakeRecord,
@@ -94,7 +94,7 @@ export type {
   StockedProductEditorValues,
   UniqueProductEditorValues,
   VariantProductEditorValues,
-} from "@/lib/control-room/product-editor-types";
+} from "@/lib/admin/product-editor-types";
 
 export type {
   ControlRoomHold,
@@ -132,7 +132,7 @@ export type {
   SalesActionError,
   SalesActionErrorCode,
   SalesChannel,
-} from "@/lib/control-room/sales-types";
+} from "@/lib/admin/sales-types";
 
 export type {
   AcceptedPaymentMethod,
@@ -155,7 +155,7 @@ export type {
   TeamMemberStatus,
   TeamRole,
   TeamSettings,
-} from "@/lib/control-room/settings-types";
+} from "@/lib/admin/settings-types";
 
 export type ActivityKind =
   | "order"
@@ -168,7 +168,7 @@ export type ActivityKind =
   | "return"
   | "settings";
 
-export type ControlRoomActivity = {
+export type AdminActivity = {
   id: string;
   kind: ActivityKind;
   title: string;
@@ -178,6 +178,9 @@ export type ControlRoomActivity = {
   orderId?: string;
   customerId?: string;
 };
+
+/** @deprecated Use AdminActivity. */
+export type ControlRoomActivity = AdminActivity;
 
 export type SalesPulsePoint = {
   date: string;
@@ -195,7 +198,7 @@ export type ContinueTask = {
   progress: number;
 };
 
-export type ControlRoomState = {
+export type AdminState = {
   storeName: string;
   reportingDate: string;
   asOf: string;
@@ -209,12 +212,15 @@ export type ControlRoomState = {
   returns?: ControlRoomReturn[];
   customers: ControlRoomCustomer[];
   settings?: StoreSettings;
-  activities: ControlRoomActivity[];
+  activities: AdminActivity[];
   stockMovements: StockMovement[];
   reviews: ProductReview[];
   salesPulse: SalesPulsePoint[];
   continueTasks: ContinueTask[];
 };
+
+/** @deprecated Use AdminState. */
+export type ControlRoomState = AdminState;
 
 export type AttentionTone = "critical" | "warning" | "info";
 
@@ -246,6 +252,6 @@ export type OverviewSnapshot = {
   fulfilment: FulfilmentLaneItem[];
   lowStockProducts: InventoryProduct[];
   unpublishedProducts: InventoryProduct[];
-  recentActivities: ControlRoomActivity[];
+  recentActivities: AdminActivity[];
   continueTask?: ContinueTask;
 };

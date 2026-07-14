@@ -6,39 +6,39 @@ import {
   type CatalogueTaxonomyActionSuccess,
   type CatalogueTaxonomyInput,
   hydrateCatalogueTaxonomy,
-} from "@/lib/control-room/catalogue-taxonomy";
-import { applyAddCustomerNote } from "@/lib/control-room/customer-actions";
-import { hydrateCustomerProfiles } from "@/lib/control-room/customer-profile-seed";
+} from "@/lib/admin/catalogue-taxonomy";
+import { applyAddCustomerNote } from "@/lib/admin/customer-actions";
+import { hydrateCustomerProfiles } from "@/lib/admin/customer-profile-seed";
 import type {
   AddCustomerNoteInput,
   CustomerActionError,
   CustomerNoteActionSuccess,
-} from "@/lib/control-room/customer-types";
+} from "@/lib/admin/customer-types";
 import {
   applyHoldConversion,
   applyHoldExtension,
   applyHoldRelease,
-} from "@/lib/control-room/hold-actions";
-import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
-import { applyOrderTransition } from "@/lib/control-room/order-actions";
+} from "@/lib/admin/hold-actions";
+import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
+import { applyOrderTransition } from "@/lib/admin/order-actions";
 import {
   applyIntakeTransition,
   applyProductEditorAction,
   createInitialIntakeRecords,
-} from "@/lib/control-room/product-editor-actions";
+} from "@/lib/admin/product-editor-actions";
 import {
   applyArchiveProduct,
   applyDeleteProduct,
   applyRestoreProduct,
   type ProductLifecycleActionError,
   type ProductLifecycleActionSuccess,
-} from "@/lib/control-room/product-lifecycle-actions";
-import type { Result } from "@/lib/control-room/result";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
-import { applySaveStoreSettings } from "@/lib/control-room/settings-actions";
-import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
+} from "@/lib/admin/product-lifecycle-actions";
+import type { Result } from "@/lib/admin/result";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
+import { applySaveStoreSettings } from "@/lib/admin/settings-actions";
+import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
 import type {
-  ControlRoomState,
+  AdminState,
   ConvertHoldInput,
   CreateReturnInput,
   HoldActionSuccess,
@@ -58,7 +58,7 @@ import type {
   SaveStoreSettingsInput,
   StoreSettingsActionError,
   StoreSettingsActionSuccess,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
@@ -72,7 +72,7 @@ type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActio
 type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
 
 export type AdminStore = {
-  getSnapshot: () => ControlRoomState;
+  getSnapshot: () => AdminState;
   subscribe: (listener: () => void) => () => void;
   saveProduct: (values: ProductEditorValues, intent: ProductEditorIntent) => ProductActionResult;
   archiveProduct: (productId: string) => ProductLifecycleResult;
@@ -94,22 +94,19 @@ export type AdminStore = {
   resetPrototypeState: () => void;
 };
 
-export function createAdminStore(
-  initialState: ControlRoomState,
-  now?: () => string,
-): AdminStore {
+export function createAdminStore(initialState: AdminState, now?: () => string): AdminStore {
   const normalizedInitialState = normalizeState(initialState);
   const getNow = now ?? createSessionClock(normalizedInitialState.asOf);
   let state = normalizedInitialState;
   const listeners = new Set<() => void>();
 
-  function emit(nextState: ControlRoomState) {
+  function emit(nextState: AdminState) {
     state = nextState;
     for (const listener of listeners) listener();
   }
 
   function commitAction<TAction, TError>(
-    result: Result<{ state: ControlRoomState; action: TAction }, TError>,
+    result: Result<{ state: AdminState; action: TAction }, TError>,
   ): Result<TAction, TError> {
     if (!result.ok) return result;
     emit(result.value.state);
@@ -179,7 +176,7 @@ export function createAdminStore(
   };
 }
 
-function normalizeState(initialState: ControlRoomState): ControlRoomState {
+function normalizeState(initialState: AdminState): AdminState {
   let index = 0;
   const idFactory = (prefix: string) => `${prefix}-seed-${++index}`;
 
@@ -210,7 +207,7 @@ function createSessionClock(anchor: string) {
   return () => new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }
 
-/** @deprecated Use AdminStore while remaining Admin modules are renamed. */
+/** @deprecated Use AdminStore. */
 export type ControlRoomStore = AdminStore;
-/** @deprecated Use createAdminStore while remaining Admin modules are renamed. */
+/** @deprecated Use createAdminStore. */
 export const createControlRoomStore = createAdminStore;

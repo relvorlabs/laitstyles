@@ -9,7 +9,7 @@ import type {
   SalesPulsePoint,
   StockMovement,
   StoreSettings,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export type OverviewResource = {
   snapshot: OverviewSnapshot;
@@ -54,7 +54,7 @@ export type OverviewRepository = {
   getOverview: () => Promise<OverviewResource>;
 };
 
-export type ControlRoomRepositories = {
+export type AdminRepositories = {
   inventory: InventoryRepository;
   orders: OrderRepository;
   holds: HoldRepository;
@@ -63,3 +63,6 @@ export type ControlRoomRepositories = {
   settings: SettingsRepository;
   overview: OverviewRepository;
 };
+
+/** @deprecated Use AdminRepositories. */
+export type ControlRoomRepositories = AdminRepositories;
