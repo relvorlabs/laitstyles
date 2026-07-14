@@ -4,24 +4,24 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
-import { OrderControls } from "@/features/control-room/orders/order-controls";
-import { OrderDetailSheet } from "@/features/control-room/orders/order-detail-sheet";
-import { OrderSavedViews } from "@/features/control-room/orders/order-saved-views";
+import { OrderControls } from "@/features/admin/orders/order-controls";
+import { OrderDetailSheet } from "@/features/admin/orders/order-detail-sheet";
+import { OrderSavedViews } from "@/features/admin/orders/order-saved-views";
 import {
   defaultOrderQuery,
   getOrderSavedViewCounts,
   getOrderWorkspaceSummary,
   queryOrders,
-} from "@/features/control-room/orders/order-selectors";
-import type { OrderQuery } from "@/features/control-room/orders/order-types";
-import { OrdersEmptyState } from "@/features/control-room/orders/orders-empty-state";
-import { OrdersHeader } from "@/features/control-room/orders/orders-header";
-import { OrdersMobileList } from "@/features/control-room/orders/orders-mobile-list";
-import { OrdersSummaryStrip } from "@/features/control-room/orders/orders-summary-strip";
-import { OrdersTable } from "@/features/control-room/orders/orders-table";
-import { buildOrdersHref } from "@/features/control-room/orders/orders-url";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { OrderStatus } from "@/lib/control-room/types";
+} from "@/features/admin/orders/order-selectors";
+import type { OrderQuery } from "@/features/admin/orders/order-types";
+import { OrdersEmptyState } from "@/features/admin/orders/orders-empty-state";
+import { OrdersHeader } from "@/features/admin/orders/orders-header";
+import { OrdersMobileList } from "@/features/admin/orders/orders-mobile-list";
+import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip";
+import { OrdersTable } from "@/features/admin/orders/orders-table";
+import { buildOrdersHref } from "@/features/admin/orders/orders-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { OrderStatus } from "@/lib/admin/types";
 
 export function OrdersWorkspace({
   initialQuery,
@@ -31,7 +31,7 @@ export function OrdersWorkspace({
   initialOpenOrderId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, transitionOrder } = useControlRoom();
+  const { state, transitionOrder } = useAdmin();
   const [query, setQuery] = useState(initialQuery);
   const [openOrderId, setOpenOrderId] = useState<string | null>(initialOpenOrderId);
   const [feedback, setFeedback] = useState<{

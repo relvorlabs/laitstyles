@@ -3,24 +3,24 @@
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { HoldControls } from "@/features/control-room/holds/hold-controls";
-import { HoldDetailSheet } from "@/features/control-room/holds/hold-detail-sheet";
-import { HoldSavedViews } from "@/features/control-room/holds/hold-saved-views";
+import { HoldControls } from "@/features/admin/holds/hold-controls";
+import { HoldDetailSheet } from "@/features/admin/holds/hold-detail-sheet";
+import { HoldSavedViews } from "@/features/admin/holds/hold-saved-views";
 import {
   defaultHoldQuery,
   getHoldSavedViewCounts,
   getHoldWorkspaceSummary,
   queryHolds,
-} from "@/features/control-room/holds/hold-selectors";
-import type { HoldQuery } from "@/features/control-room/holds/hold-types";
-import { HoldsEmptyState } from "@/features/control-room/holds/holds-empty-state";
-import { HoldsHeader } from "@/features/control-room/holds/holds-header";
-import { HoldsMobileList } from "@/features/control-room/holds/holds-mobile-list";
-import { HoldsSummaryStrip } from "@/features/control-room/holds/holds-summary-strip";
-import { HoldsTable } from "@/features/control-room/holds/holds-table";
-import { buildHoldsHref } from "@/features/control-room/holds/holds-url";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { ConvertHoldInput } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-selectors";
+import type { HoldQuery } from "@/features/admin/holds/hold-types";
+import { HoldsEmptyState } from "@/features/admin/holds/holds-empty-state";
+import { HoldsHeader } from "@/features/admin/holds/holds-header";
+import { HoldsMobileList } from "@/features/admin/holds/holds-mobile-list";
+import { HoldsSummaryStrip } from "@/features/admin/holds/holds-summary-strip";
+import { HoldsTable } from "@/features/admin/holds/holds-table";
+import { buildHoldsHref } from "@/features/admin/holds/holds-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { ConvertHoldInput } from "@/lib/admin/types";
 
 export type HoldActionFeedback = {
   tone: "success" | "error";
@@ -36,7 +36,7 @@ export function HoldsWorkspace({
   initialOpenHoldId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, extendHold, releaseHold, convertHold } = useControlRoom();
+  const { state, extendHold, releaseHold, convertHold } = useAdmin();
   const [query, setQuery] = useState(initialQuery);
   const [openHoldId, setOpenHoldId] = useState<string | null>(initialOpenHoldId);
   const [feedback, setFeedback] = useState<HoldActionFeedback | null>(null);
