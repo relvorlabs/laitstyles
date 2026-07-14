@@ -7,10 +7,10 @@ import { themeBootScript } from "@/components/theme/theme-script";
 // The canonical typography is the card-lab home-lab set (Geist / Instrument Serif /
 // Geist Mono), loaded once here via next/font and exposed as --font-lab-* for the whole app.
 import { labFontClassName } from "@/features/storefront/home-lab/fonts";
-import "@/features/storefront/home-lab/home-lab.css";
 import { StorefrontExperienceProvider } from "@/features/storefront/shared/storefront-experience-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+import "@/features/storefront/home-lab/home-lab.css";
 
 export const metadata: Metadata = {
   title: "Laitstyle",
