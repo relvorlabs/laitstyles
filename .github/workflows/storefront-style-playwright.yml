@@ -57,9 +57,11 @@ jobs:
         run: pnpm prisma:generate
 
       - name: Prepare storefront database
+        shell: bash
         run: |
-          pnpm exec prisma db push --skip-generate --accept-data-loss
-          pnpm db:seed:storefront
+          set -o pipefail
+          pnpm exec prisma db push --accept-data-loss 2>&1 | tee prisma-db-push.log
+          pnpm db:seed:storefront 2>&1 | tee storefront-seed.log
 
       - name: Start local Supabase auth stub
         shell: bash
@@ -121,6 +123,8 @@ jobs:
         with:
           name: storefront-style-playwright
           path: |
+            prisma-db-push.log
+            storefront-seed.log
             playwright-artifacts/
             playwright-server.log
             playwright-styles.log
