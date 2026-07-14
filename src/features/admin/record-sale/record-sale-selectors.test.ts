@@ -5,13 +5,13 @@ import {
   getSaleUnitPrice,
   getSelectedSaleProduct,
   getSellableProducts,
-} from "@/features/control-room/record-sale/record-sale-selectors";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/record-sale/record-sale-selectors";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 
 describe("Record Sale selectors", () => {
   it("starts from an available published product and existing customer", () => {
-    const defaults = createRecordSaleDefaults(activeControlRoomSeed);
-    const product = getSelectedSaleProduct(activeControlRoomSeed, defaults.productId);
+    const defaults = createRecordSaleDefaults(activeAdminSeed);
+    const product = getSelectedSaleProduct(activeAdminSeed, defaults.productId);
 
     expect(product).not.toBeNull();
     expect(defaults.quantity).toBe(1);
@@ -21,7 +21,7 @@ describe("Record Sale selectors", () => {
   });
 
   it("excludes unavailable and unpublished catalogue records", () => {
-    const products = getSellableProducts(activeControlRoomSeed);
+    const products = getSellableProducts(activeAdminSeed);
     const ids = products.map((product) => product.id);
 
     expect(ids).toContain("botanical-jeans");
@@ -31,7 +31,7 @@ describe("Record Sale selectors", () => {
   });
 
   it("uses the selected variant availability and optional price", () => {
-    const product = getSelectedSaleProduct(activeControlRoomSeed, "ribbed-studio-tank");
+    const product = getSelectedSaleProduct(activeAdminSeed, "ribbed-studio-tank");
 
     expect(getAvailableForSale(product!, "tank-s-cream")).toBe(2);
     expect(getAvailableForSale(product!, "tank-l-ink")).toBe(1);
