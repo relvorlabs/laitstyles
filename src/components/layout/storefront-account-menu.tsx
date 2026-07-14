@@ -8,6 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,10 +40,11 @@ export function StorefrontAccountMenu() {
 
   if (!state.signedIn) {
     return (
-      <button
-        className="group inline-flex h-11 items-center gap-2 rounded-full border border-[var(--line)] px-3 text-left transition-colors hover:bg-[var(--sage-light)] max-[700px]:size-11 max-[700px]:justify-center max-[700px]:px-0"
+      <Button
+        className="group h-11 items-center gap-2 rounded-full border border-[var(--line)] px-3 text-left transition-colors hover:bg-[var(--sage-light)] max-[700px]:size-11 max-[700px]:justify-center max-[700px]:px-0"
         onClick={() => actions.openSignin(() => router.push("/account"))}
         type="button"
+        variant="ghost"
       >
         <HugeiconsIcon aria-hidden="true" icon={UserIcon} size={19} strokeWidth={1.6} />
         <span className="leading-tight max-[700px]:hidden">
@@ -52,7 +54,7 @@ export function StorefrontAccountMenu() {
           <span className="block text-xs font-semibold">Sign in</span>
         </span>
         <span className="sr-only">Sign in or create an account</span>
-      </button>
+      </Button>
     );
   }
 
