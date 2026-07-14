@@ -5,23 +5,23 @@ import {
   type ControlRoomIconData,
 } from "@/features/control-room/shared/control-room-icon";
 import {
-  type ControlRoomNavigationItem,
-  controlRoomExternalLinks,
-  controlRoomNavigationGroups,
-} from "@/features/control-room/shell/navigation";
+  type AdminNavigationItem,
+  adminExternalLinks,
+  adminNavigationGroups,
+} from "@/features/admin/shell/navigation";
 import { cn } from "@/lib/utils";
 
-type ControlRoomSidebarProps = {
+type AdminSidebarProps = {
   pathname: string;
   onNavigate?: () => void;
   compact?: boolean;
 };
 
-export function ControlRoomSidebar({
+export function AdminSidebar({
   pathname,
   onNavigate,
   compact = false,
-}: ControlRoomSidebarProps) {
+}: AdminSidebarProps) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div
@@ -50,7 +50,7 @@ export function ControlRoomSidebar({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className={cn("flex flex-col gap-7", compact ? "p-4" : "p-5")}>
           <nav aria-label="Admin" className="flex flex-col gap-5">
-            {controlRoomNavigationGroups.map((group) => (
+            {adminNavigationGroups.map((group) => (
               <div key={group.label}>
                 <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/56">
                   {group.label}
@@ -78,7 +78,7 @@ export function ControlRoomSidebar({
               Storefront
             </div>
             <div className="flex flex-col gap-1.5">
-              {controlRoomExternalLinks.map((item) => (
+              {adminExternalLinks.map((item) => (
                 <Link
                   className="group flex min-h-11 items-center gap-3 rounded-[12px] px-3 text-[12.5px] font-medium text-sidebar-foreground/74 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring forced-colors:outline"
                   href={item.href}
@@ -102,7 +102,7 @@ export function ControlRoomSidebar({
 type SidebarLinkProps = {
   active: boolean;
   icon: ControlRoomIconData;
-  item: ControlRoomNavigationItem;
+  item: AdminNavigationItem;
   onNavigate?: () => void;
 };
 

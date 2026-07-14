@@ -12,13 +12,13 @@ import {
 } from "@/components/ui/sheet";
 import { ProductEditorControllerProvider } from "@/features/control-room/product-editor/product-editor-controller";
 import { RecordSaleControllerProvider } from "@/features/control-room/record-sale/record-sale-controller";
-import { ControlRoomCommandMenu } from "@/features/control-room/shell/control-room-command-menu";
-import { ControlRoomSidebar } from "@/features/control-room/shell/control-room-sidebar";
-import { ControlRoomTopbar } from "@/features/control-room/shell/control-room-topbar";
+import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";
+import { AdminSidebar } from "@/features/admin/shell/admin-sidebar";
+import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
 import { ControlRoomProvider } from "@/features/control-room/state/control-room-provider";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
-export function ControlRoomShell({
+export function AdminShell({
   children,
   initialState,
 }: {
@@ -44,11 +44,11 @@ export function ControlRoomShell({
 
               <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
                 <aside className="sticky top-0 hidden h-dvh min-h-0 overflow-hidden lg:block">
-                  <ControlRoomSidebar pathname={pathname} />
+                  <AdminSidebar pathname={pathname} />
                 </aside>
 
                 <div className="min-w-0 bg-background">
-                  <ControlRoomTopbar
+                  <AdminTopbar
                     onOpenNavigation={() => setNavigationOpen(true)}
                     onOpenSearch={() => setSearchOpen(true)}
                     pathname={pathname}
@@ -68,7 +68,7 @@ export function ControlRoomShell({
                     <SheetTitle>Admin navigation</SheetTitle>
                     <SheetDescription>Move around the Laitstyle owner workspace.</SheetDescription>
                   </SheetHeader>
-                  <ControlRoomSidebar
+                  <AdminSidebar
                     compact
                     onNavigate={() => setNavigationOpen(false)}
                     pathname={pathname}
@@ -76,7 +76,7 @@ export function ControlRoomShell({
                 </SheetContent>
               </Sheet>
 
-              <ControlRoomCommandMenu onOpenChange={setSearchOpen} open={searchOpen} />
+              <AdminCommandMenu onOpenChange={setSearchOpen} open={searchOpen} />
             </div>
           </RecordSaleControllerProvider>
         </ProductEditorControllerProvider>

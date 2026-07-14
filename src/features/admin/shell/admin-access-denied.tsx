@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AUTH_DENIED_MESSAGES, type AuthDeniedReason } from "@/lib/auth/auth-errors";
 
-export function ControlRoomAccessDenied({ reason }: { reason: AuthDeniedReason }) {
+export function AdminAccessDenied({ reason }: { reason: AuthDeniedReason }) {
   return (
     <main className="grid min-h-dvh place-items-center bg-background px-4 py-10 text-foreground">
       <Card className="w-full max-w-[560px] gap-5 rounded-lg p-6 text-center shadow-laitstyle sm:p-8">

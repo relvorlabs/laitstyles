@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { ControlRoomAccessDenied } from "@/features/control-room/shell/control-room-access-denied";
-import { ControlRoomShell } from "@/features/control-room/shell/control-room-shell";
+import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
+import { AdminShell } from "@/features/admin/shell/admin-shell";
 import { getControlRoomAccess } from "@/lib/auth/server/control-room";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
@@ -19,8 +19,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       redirect("/auth/sign-in?next=/admin");
     }
 
-    return <ControlRoomAccessDenied reason={access.reason} />;
+    return <AdminAccessDenied reason={access.reason} />;
   }
 
-  return <ControlRoomShell initialState={activeControlRoomSeed}>{children}</ControlRoomShell>;
+  return <AdminShell initialState={activeControlRoomSeed}>{children}</AdminShell>;
 }

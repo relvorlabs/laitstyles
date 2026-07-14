@@ -15,20 +15,20 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
 import { useRecordSaleController } from "@/features/control-room/record-sale/record-sale-controller";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { getControlRoomPage } from "@/features/control-room/shell/navigation";
+import { getAdminPage } from "@/features/admin/shell/navigation";
 
-type ControlRoomTopbarProps = {
+type AdminTopbarProps = {
   pathname: string;
   onOpenNavigation: () => void;
   onOpenSearch: () => void;
 };
 
-export function ControlRoomTopbar({
+export function AdminTopbar({
   pathname,
   onOpenNavigation,
   onOpenSearch,
-}: ControlRoomTopbarProps) {
-  const page = getControlRoomPage(pathname);
+}: AdminTopbarProps) {
+  const page = getAdminPage(pathname);
   const { openNewProduct } = useProductEditorController();
   const { openRecordSale } = useRecordSaleController();
   const attentionHref = pathname === "/admin" ? "#attention" : "/admin#attention";
