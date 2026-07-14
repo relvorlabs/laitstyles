@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { useAccountUi } from "../account-context";
 import { routeTitles } from "../account-nav";
 
@@ -19,13 +20,14 @@ export function AccountBreadcrumb() {
         </li>
         <li aria-hidden="true">/</li>
         <li>
-          <button
+          <Button
             type="button"
             onClick={() => navigate("overview")}
-            className="hover:text-[var(--acc-ink)]"
+            className="h-auto p-0 text-[var(--acc-muted)] hover:text-[var(--acc-ink)]"
+            variant="link"
           >
             Account
-          </button>
+          </Button>
         </li>
         <li className="flex items-center gap-2">
           <span aria-hidden="true">/</span>
