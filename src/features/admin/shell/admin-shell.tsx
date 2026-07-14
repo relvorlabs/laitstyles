@@ -10,12 +10,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { AdminProvider } from "@/features/admin/state/admin-provider";
 import { ProductEditorControllerProvider } from "@/features/control-room/product-editor/product-editor-controller";
 import { RecordSaleControllerProvider } from "@/features/control-room/record-sale/record-sale-controller";
 import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";
 import { AdminSidebar } from "@/features/admin/shell/admin-sidebar";
 import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
-import { ControlRoomProvider } from "@/features/control-room/state/control-room-provider";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
 export function AdminShell({
@@ -31,7 +31,7 @@ export function AdminShell({
 
   return (
     <ControlRoomQueryProvider>
-      <ControlRoomProvider initialState={initialState}>
+      <AdminProvider initialState={initialState}>
         <ProductEditorControllerProvider>
           <RecordSaleControllerProvider>
             <div className="min-h-dvh bg-background text-foreground">
@@ -80,7 +80,7 @@ export function AdminShell({
             </div>
           </RecordSaleControllerProvider>
         </ProductEditorControllerProvider>
-      </ControlRoomProvider>
+      </AdminProvider>
     </ControlRoomQueryProvider>
   );
 }
