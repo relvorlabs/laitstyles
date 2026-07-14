@@ -1,0 +1,42 @@
+name: Resolve PR 7 from target
+
+on:
+  pull_request_target:
+    types:
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    if: >-
+      github.event.pull_request.number == 7 &&
+      github.event.pull_request.head.ref == 'feat/storefront-v2-spec' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out storefront branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/storefront-v2-spec
+          fetch-depth: 0
+
+      - name: Merge main with storefront precedence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "main is already merged into feat/storefront-v2-spec"
+            exit 0
+          fi
+
+          git merge --no-ff -X ours origin/main -m "merge(main): resolve PR #7 with storefront v2 precedence"
+          git rm -f .github/workflows/resolve-pr7-conflicts.yml || true
+          git rm -f .github/workflows/resolve-pr7-target.yml || true
+          git commit --amend --no-edit
+          git push origin HEAD:feat/storefront-v2-spec
