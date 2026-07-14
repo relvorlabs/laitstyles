@@ -30,6 +30,7 @@
       "@/features/control-room/settings/*": ["./src/features/admin/settings/*"],
       "@/features/control-room/product-editor/*": ["./src/features/admin/product-editor/*"],
       "@/features/control-room/record-sale/*": ["./src/features/admin/record-sale/*"],
+      "@/features/control-room/inventory/*": ["./src/features/admin/inventory/*"],
       "@/*": ["./src/*"]
     }
   },

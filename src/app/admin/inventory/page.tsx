@@ -1,5 +1,5 @@
-import { defaultInventoryPageSize } from "@/features/control-room/inventory/inventory-url";
-import { InventoryWorkspace } from "@/features/control-room/inventory/inventory-workspace";
+import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
+import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
