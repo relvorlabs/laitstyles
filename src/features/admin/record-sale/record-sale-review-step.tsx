@@ -6,13 +6,13 @@ import { Separator } from "@/components/ui/separator";
 import {
   getSelectedSaleProduct,
   getSelectedSaleVariant,
-} from "@/features/control-room/record-sale/record-sale-selectors";
-import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { formatNaira } from "@/lib/control-room/formatters";
+} from "@/features/admin/record-sale/record-sale-selectors";
+import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { formatNaira } from "@/lib/admin/formatters";
 
 export function RecordSaleReviewStep() {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const methods = useFormContext<RecordSaleValues>();
   const values = useWatch({ control: methods.control }) as RecordSaleValues;
   const product = getSelectedSaleProduct(state, values.productId);

@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,14 +23,14 @@ import {
   getSaleUnitPrice,
   getSelectedSaleProduct,
   getSellableProducts,
-} from "@/features/control-room/record-sale/record-sale-selectors";
-import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { formatNaira } from "@/lib/control-room/formatters";
-import { getProductCover } from "@/lib/control-room/inventory-selectors";
+} from "@/features/admin/record-sale/record-sale-selectors";
+import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { formatNaira } from "@/lib/admin/formatters";
+import { getProductCover } from "@/lib/admin/inventory-selectors";
 
 export function RecordSaleItemStep() {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const methods = useFormContext<RecordSaleValues>();
   const productId = useWatch({ control: methods.control, name: "productId" });
   const variantId = useWatch({ control: methods.control, name: "variantId" });
