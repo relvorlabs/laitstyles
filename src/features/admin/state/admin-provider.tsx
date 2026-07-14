@@ -8,7 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { ControlRoomRepositoryProvider } from "@/features/control-room/data/control-room-repository-context";
+import { AdminRepositoryProvider } from "@/features/admin/data/admin-repository-context";
 import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
 import type { ControlRoomState } from "@/lib/control-room/types";
 
@@ -25,7 +25,7 @@ export function AdminProvider({
 
   return (
     <AdminContext.Provider value={store}>
-      <ControlRoomRepositoryProvider store={store}>{children}</ControlRoomRepositoryProvider>
+      <AdminRepositoryProvider store={store}>{children}</AdminRepositoryProvider>
     </AdminContext.Provider>
   );
 }
