@@ -1,7 +1,7 @@
-import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
-import type { ControlRoomState, InventoryProduct } from "@/lib/control-room/types";
+import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
+import type { AdminState, InventoryProduct } from "@/lib/admin/types";
 
-export function createRecordSaleDefaults(state: ControlRoomState): RecordSaleValues {
+export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
   const firstProduct = getSellableProducts(state)[0];
   const firstVariant =
     firstProduct?.inventoryMode === "variant"
@@ -26,7 +26,7 @@ export function createRecordSaleDefaults(state: ControlRoomState): RecordSaleVal
   };
 }
 
-export function getSellableProducts(state: ControlRoomState) {
+export function getSellableProducts(state: AdminState) {
   return state.products.filter(
     (product) =>
       product.lifecycle === "active" &&
@@ -43,7 +43,7 @@ export function getAvailableForSale(product: InventoryProduct, variantId?: strin
   return product.variants.find((variant) => variant.id === variantId)?.stock.available ?? 0;
 }
 
-export function getSelectedSaleProduct(state: ControlRoomState, productId: string) {
+export function getSelectedSaleProduct(state: AdminState, productId: string) {
   return state.products.find((product) => product.id === productId) ?? null;
 }
 
