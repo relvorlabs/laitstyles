@@ -3,24 +3,24 @@
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { InventoryControls } from "@/features/control-room/inventory/inventory-controls";
-import { InventoryDetailSheet } from "@/features/control-room/inventory/inventory-detail-sheet";
-import { InventoryEmptyState } from "@/features/control-room/inventory/inventory-empty-state";
-import { downloadInventoryCsv } from "@/features/control-room/inventory/inventory-export";
-import { InventoryExportAlert } from "@/features/control-room/inventory/inventory-export-alert";
-import { InventoryGrid } from "@/features/control-room/inventory/inventory-grid";
-import { InventoryIntakeQueue } from "@/features/control-room/inventory/inventory-intake-queue";
-import { InventoryMobileList } from "@/features/control-room/inventory/inventory-mobile-list";
-import { InventoryPagination } from "@/features/control-room/inventory/inventory-pagination";
-import { InventorySavedViews } from "@/features/control-room/inventory/inventory-saved-views";
-import { InventorySelectionBar } from "@/features/control-room/inventory/inventory-selection-bar";
-import { InventorySummaryStrip } from "@/features/control-room/inventory/inventory-summary-strip";
-import { InventoryTable } from "@/features/control-room/inventory/inventory-table";
-import { buildInventoryHref } from "@/features/control-room/inventory/inventory-url";
-import { InventoryWorkspaceHeader } from "@/features/control-room/inventory/inventory-workspace-header";
-import { ProductMediaViewer } from "@/features/control-room/inventory/product-media-viewer";
-import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
+import { InventoryControls } from "@/features/admin/inventory/inventory-controls";
+import { InventoryDetailSheet } from "@/features/admin/inventory/inventory-detail-sheet";
+import { InventoryEmptyState } from "@/features/admin/inventory/inventory-empty-state";
+import { downloadInventoryCsv } from "@/features/admin/inventory/inventory-export";
+import { InventoryExportAlert } from "@/features/admin/inventory/inventory-export-alert";
+import { InventoryGrid } from "@/features/admin/inventory/inventory-grid";
+import { InventoryIntakeQueue } from "@/features/admin/inventory/inventory-intake-queue";
+import { InventoryMobileList } from "@/features/admin/inventory/inventory-mobile-list";
+import { InventoryPagination } from "@/features/admin/inventory/inventory-pagination";
+import { InventorySavedViews } from "@/features/admin/inventory/inventory-saved-views";
+import { InventorySelectionBar } from "@/features/admin/inventory/inventory-selection-bar";
+import { InventorySummaryStrip } from "@/features/admin/inventory/inventory-summary-strip";
+import { InventoryTable } from "@/features/admin/inventory/inventory-table";
+import { buildInventoryHref } from "@/features/admin/inventory/inventory-url";
+import { InventoryWorkspaceHeader } from "@/features/admin/inventory/inventory-workspace-header";
+import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
+import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -28,12 +28,12 @@ import {
   getInventoryViewCounts,
   queryInventory,
   toInventoryListItem,
-} from "@/lib/control-room/inventory-selectors";
+} from "@/lib/admin/inventory-selectors";
 import type {
   InventoryFacetOptions,
   InventoryPresentation,
   InventoryQuery,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 type InventoryWorkspaceProps = {
   initialQuery: InventoryQuery;
@@ -51,7 +51,7 @@ export function InventoryWorkspace({
   initialPageSize,
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] = useState<InventoryPresentation>(initialPresentation);
