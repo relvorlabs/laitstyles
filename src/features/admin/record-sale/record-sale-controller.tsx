@@ -5,9 +5,9 @@ import Link from "next/link";
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
-import { RecordSaleDialog } from "@/features/control-room/record-sale/record-sale-dialog";
-import type { RecordSaleCompletion } from "@/features/control-room/record-sale/record-sale-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { RecordSaleDialog } from "@/features/admin/record-sale/record-sale-dialog";
+import type { RecordSaleCompletion } from "@/features/admin/record-sale/record-sale-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const RecordSaleControllerContext = createContext<{
   openRecordSale: () => void;
@@ -32,7 +32,7 @@ export function RecordSaleControllerProvider({ children }: { children: ReactNode
           aria-live="polite"
           className="fixed right-4 bottom-4 z-[80] w-[min(92vw,440px)] border-primary/25 bg-background text-foreground shadow-xl"
         >
-          <ControlRoomIcon className="text-primary" icon={CheckmarkCircle02Icon} size={18} />
+          <AdminIcon className="text-primary" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             Inventory, Orders, revenue and activity now use this session-only sale record.
