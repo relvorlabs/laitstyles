@@ -10,32 +10,32 @@ import {
   type Resolver,
   useForm,
 } from "react-hook-form";
-import { settingsSections } from "@/features/control-room/settings/settings-config";
+import { settingsSections } from "@/features/admin/settings/settings-config";
 import {
   countSettingsSectionErrors,
   getFirstSettingsErrorSection,
-} from "@/features/control-room/settings/settings-errors";
-import { SettingsHeader } from "@/features/control-room/settings/settings-header";
-import { SettingsNavigation } from "@/features/control-room/settings/settings-navigation";
+} from "@/features/admin/settings/settings-errors";
+import { SettingsHeader } from "@/features/admin/settings/settings-header";
+import { SettingsNavigation } from "@/features/admin/settings/settings-navigation";
 import {
   type SettingsFeedback,
   SettingsSaveBar,
-} from "@/features/control-room/settings/settings-save-bar";
-import { SettingsSectionContent } from "@/features/control-room/settings/settings-section-content";
-import { SettingsStatusStrip } from "@/features/control-room/settings/settings-status-strip";
-import { buildSettingsHref } from "@/features/control-room/settings/settings-url";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { createDefaultStoreSettings } from "@/lib/control-room/settings-defaults";
-import { storeSettingsInputSchema } from "@/lib/control-room/settings-schema";
+} from "@/features/admin/settings/settings-save-bar";
+import { SettingsSectionContent } from "@/features/admin/settings/settings-section-content";
+import { SettingsStatusStrip } from "@/features/admin/settings/settings-status-strip";
+import { buildSettingsHref } from "@/features/admin/settings/settings-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
+import { storeSettingsInputSchema } from "@/lib/admin/settings-schema";
 import type {
   SaveStoreSettingsInput,
   SettingsSection,
   StoreSettings,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {
   const pathname = usePathname();
-  const { state, saveStoreSettings } = useControlRoom();
+  const { state, saveStoreSettings } = useAdmin();
   const persistedSettings = state.settings ?? createDefaultStoreSettings(state.asOf);
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [feedback, setFeedback] = useState<SettingsFeedback | null>(null);
