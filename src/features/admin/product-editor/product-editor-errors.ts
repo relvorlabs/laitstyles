@@ -1,5 +1,5 @@
 import type { FieldErrors } from "react-hook-form";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function getProductEditorFieldError(errors: FieldErrors<ProductEditorValues>, name: string) {
   let current: unknown = errors;
