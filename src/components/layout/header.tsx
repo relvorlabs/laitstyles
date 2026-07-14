@@ -1,34 +1,87 @@
 "use client";
 
-import { Heart, Menu, Search, UserRound } from "lucide-react";
+import { FavouriteIcon, Menu02Icon, Search01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { CartSheet } from "@/components/layout/cart-sheet";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
-const nav = [
-  { label: "Shop New In", href: "/shop?sort=newest" },
-  { label: "Women", href: "/shop?department=women" },
-  { label: "Men", href: "/shop?department=men" },
-  { label: "Accessories", href: "/shop?category=accessories" },
-  { label: "Journal", href: "/#journal" },
+// Phase 2 shell nav points at real destinations. Category/collection routes
+// arrive in Phase 3 (discovery); until then these resolve to /shop.
+const primaryNav: { label: string; href: string }[] = [
+  { label: "New in", href: "/shop" },
+  { label: "Coats", href: "/shop" },
+  { label: "Dresses", href: "/shop" },
+  { label: "Sale", href: "/shop" },
 ];
+
+function SearchField({ id }: { id: string }) {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = query.trim();
+    router.push(trimmed ? `/shop?q=${encodeURIComponent(trimmed)}` : "/shop");
+  }
+
+  return (
+    <form
+      className="flex items-center gap-2 rounded-full border border-border bg-control px-4 py-[9px]"
+      onSubmit={onSubmit}
+      role="search"
+    >
+      <label className="sr-only" htmlFor={id}>
+        Search pieces
+      </label>
+      <button aria-label="Search" className="flex text-muted-foreground" type="submit">
+        <HugeiconsIcon aria-hidden="true" icon={Search01Icon} size={18} strokeWidth={1.6} />
+      </button>
+      <Input
+        className="h-auto border-0 bg-transparent p-0 text-[13.5px] shadow-none focus-visible:ring-0"
+        id={id}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search one-of-one pieces"
+        value={query}
+      />
+    </form>
+  );
+}
+
+function IconLink({ href, label, icon }: { href: string; label: string; icon: typeof UserIcon }) {
+  return (
+    <Link
+      aria-label={label}
+      className="flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-control-hover"
+      href={href}
+    >
+      <HugeiconsIcon aria-hidden="true" icon={icon} size={20} strokeWidth={1.6} />
+    </Link>
+  );
+}
 
 export function Header() {
   return (
     <>
+      {/* Desktop */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/86 backdrop-blur-[14px] max-md:hidden">
         <div className="mx-auto flex max-w-[1240px] items-center gap-7 px-8 py-4">
           <Link aria-label="Laitstyle home" href="/">
             <BrandMark />
           </Link>
-          <nav aria-label="Primary" className="ml-2 flex items-center gap-[26px]">
-            {nav.map((item, index) => (
+          <nav className="ml-2 flex items-center gap-[26px]">
+            {primaryNav.map((item, index) => (
               <Link
-                className={
-                  index === 0 ? "text-[14px] font-medium" : "text-[14px] text-muted-foreground"
-                }
+                className={cn(
+                  "text-[14px] transition-colors hover:text-foreground",
+                  index === 0 ? "font-medium text-foreground" : "text-muted-foreground",
+                )}
                 href={item.href}
                 key={item.label}
               >
@@ -37,60 +90,45 @@ export function Header() {
             ))}
           </nav>
           <div className="flex-1" />
-          <form action="/shop" className="w-[230px]" role="search">
-            <label className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-[9px] focus-within:border-primary">
-              <Search aria-hidden="true" className="text-[#9A988F]" />
-              <span className="sr-only">Search one-of-one pieces</span>
-              <Input
-                autoComplete="off"
-                className="h-auto border-0 bg-transparent p-0 text-[13.5px] shadow-none focus-visible:ring-0"
-                name="q"
-                placeholder="Search one-of-one pieces…"
-                type="search"
-              />
-            </label>
-          </form>
-          <div className="flex items-center gap-4">
-            <Link aria-label="Wishlist" className="flex p-1" href="/account?tab=wishlist">
-              <Heart aria-hidden="true" />
-            </Link>
-            <Link aria-label="Account" className="flex p-1" href="/account">
-              <UserRound aria-hidden="true" />
-            </Link>
+          <div className="w-[230px]">
+            <SearchField id="header-search-desktop" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle />
+            <IconLink href="/account/saved" icon={FavouriteIcon} label="Saved items" />
+            <IconLink href="/account" icon={UserIcon} label="Account" />
             <CartSheet />
           </div>
         </div>
       </header>
 
+      {/* Mobile */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/92 backdrop-blur-[14px] md:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Sheet>
             <SheetTrigger
-              render={<button aria-label="Open navigation" className="flex p-1" type="button" />}
+              render={<button aria-label="Open menu" className="flex p-1" type="button" />}
             >
-              <Menu aria-hidden="true" />
+              <HugeiconsIcon aria-hidden="true" icon={Menu02Icon} size={24} strokeWidth={1.6} />
             </SheetTrigger>
-            <SheetContent className="w-[78%] max-w-[320px] gap-0 bg-card p-0" side="left">
+            <SheetContent className="w-[80%] max-w-[320px] gap-0 bg-card p-0" side="left">
               <SheetHeader className="flex-row items-center justify-between border-b border-border p-4">
-                <SheetTitle className="text-[14px] font-semibold tracking-[.24em]">
-                  LAITSTYLE
+                <SheetTitle>
+                  <BrandMark compact />
                 </SheetTitle>
               </SheetHeader>
-              <nav aria-label="Mobile primary" className="flex flex-col px-1.5 py-2">
-                {nav.map((item) => (
+              <nav className="flex flex-col px-1.5 py-2">
+                {primaryNav.map((item) => (
                   <Link
-                    className="border-b border-secondary px-3.5 py-3.5 text-[16px] last:border-b-0"
+                    className="border-b border-border px-3.5 py-3.5 text-[16px] last:border-b-0"
                     href={item.href}
                     key={item.label}
                   >
                     {item.label}
                   </Link>
                 ))}
-                <Link
-                  className="border-t border-secondary px-3.5 py-3.5 text-[16px]"
-                  href="/account?tab=wishlist"
-                >
-                  Saved pieces
+                <Link className="px-3.5 py-3.5 text-[16px]" href="/account">
+                  My account
                 </Link>
               </nav>
             </SheetContent>
@@ -98,26 +136,15 @@ export function Header() {
           <Link aria-label="Laitstyle home" href="/">
             <BrandMark compact />
           </Link>
-          <div className="flex items-center gap-3.5">
-            <Link aria-label="Account" className="flex p-0.5" href="/account">
-              <UserRound aria-hidden="true" />
-            </Link>
-            <CartSheet compact />
+          <div className="flex items-center gap-1">
+            <ThemeToggle className="size-10" />
+            <IconLink href="/account" icon={UserIcon} label="Account" />
+            <CartSheet />
           </div>
         </div>
-        <form action="/shop" className="px-4 pb-3" role="search">
-          <label className="flex items-center gap-2 rounded-full border border-border bg-card px-[15px] py-[9px] focus-within:border-primary">
-            <Search aria-hidden="true" className="text-[#9A988F]" />
-            <span className="sr-only">Search one-of-one pieces</span>
-            <Input
-              autoComplete="off"
-              className="h-auto border-0 bg-transparent p-0 text-[14px] shadow-none focus-visible:ring-0"
-              name="q"
-              placeholder="Search one-of-one pieces…"
-              type="search"
-            />
-          </label>
-        </form>
+        <div className="px-4 pb-3">
+          <SearchField id="header-search-mobile" />
+        </div>
       </header>
     </>
   );
