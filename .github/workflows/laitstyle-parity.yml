@@ -66,7 +66,6 @@ jobs:
 
       - name: Playwright storefront style inheritance
         id: playwright_styles
-        if: ${{ steps.build.outcome == 'success' }}
         continue-on-error: true
         shell: bash
         run: |
