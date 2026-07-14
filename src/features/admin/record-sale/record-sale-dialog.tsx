@@ -22,28 +22,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RecordSaleCustomerStep } from "@/features/control-room/record-sale/record-sale-customer-step";
-import { RecordSaleItemStep } from "@/features/control-room/record-sale/record-sale-item-step";
-import { RecordSalePaymentStep } from "@/features/control-room/record-sale/record-sale-payment-step";
-import { RecordSaleReviewStep } from "@/features/control-room/record-sale/record-sale-review-step";
+import { RecordSaleCustomerStep } from "@/features/admin/record-sale/record-sale-customer-step";
+import { RecordSaleItemStep } from "@/features/admin/record-sale/record-sale-item-step";
+import { RecordSalePaymentStep } from "@/features/admin/record-sale/record-sale-payment-step";
+import { RecordSaleReviewStep } from "@/features/admin/record-sale/record-sale-review-step";
 import {
   getRecordSaleStepFields,
   recordSaleSchema,
-} from "@/features/control-room/record-sale/record-sale-schema";
+} from "@/features/admin/record-sale/record-sale-schema";
 import {
   createRecordSaleDefaults,
   getAvailableForSale,
   getSelectedSaleProduct,
-} from "@/features/control-room/record-sale/record-sale-selectors";
-import { RecordSaleStepper } from "@/features/control-room/record-sale/record-sale-stepper";
+} from "@/features/admin/record-sale/record-sale-selectors";
+import { RecordSaleStepper } from "@/features/admin/record-sale/record-sale-stepper";
 import {
   type RecordSaleCompletion,
   type RecordSaleStep,
   type RecordSaleValues,
   recordSaleSteps,
   toOfflineSaleInput,
-} from "@/features/control-room/record-sale/record-sale-types";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
+} from "@/features/admin/record-sale/record-sale-types";
+import { useAdmin } from "@/features/admin/state/admin-provider";
 
 export function RecordSaleDialog({
   open,
@@ -54,7 +54,7 @@ export function RecordSaleDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
 }) {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   if (!open) return null;
 
   return (
@@ -79,7 +79,7 @@ function RecordSaleForm({
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
 }) {
-  const { state, recordOfflineSale } = useControlRoom();
+  const { state, recordOfflineSale } = useAdmin();
   const [activeStep, setActiveStep] = useState<RecordSaleStep>("item");
   const [highestVisited, setHighestVisited] = useState(0);
   const [discardOpen, setDiscardOpen] = useState(false);
