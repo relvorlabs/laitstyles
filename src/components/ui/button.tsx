@@ -4,20 +4,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-60 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-current [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/86",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/86 active:bg-primary/78",
         outline:
           "border-border-strong bg-control text-control-foreground hover:bg-control-hover hover:text-foreground aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-surface-interactive-hover aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-surface-interactive-hover hover:text-foreground aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
-          "hover:bg-surface-interactive hover:text-foreground aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground",
+          "bg-transparent text-foreground hover:bg-surface-interactive hover:text-foreground aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground",
         destructive:
-          "bg-destructive-surface text-destructive-surface-foreground hover:bg-destructive hover:text-destructive-foreground focus-visible:border-destructive focus-visible:ring-destructive/25",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/86 active:bg-destructive/78 focus-visible:border-destructive focus-visible:ring-destructive/30",
+        link: "bg-transparent text-foreground underline-offset-4 hover:underline",
       },
       size: {
         default:
@@ -49,6 +50,8 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
+      data-variant={variant}
+      data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
       render={render}
       // A custom `render` (e.g. `<Link>`/`<a>`) is not a native <button>, so tell Base UI
