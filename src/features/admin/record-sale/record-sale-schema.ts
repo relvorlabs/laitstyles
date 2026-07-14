@@ -2,7 +2,7 @@ import { z } from "zod";
 import type {
   RecordSaleStep,
   RecordSaleValues,
-} from "@/features/control-room/record-sale/record-sale-types";
+} from "@/features/admin/record-sale/record-sale-types";
 
 export const recordSaleSchema = z
   .object({
