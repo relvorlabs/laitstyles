@@ -52,16 +52,19 @@ export function OrdersTable({
             return (
               <TableRow key={order.id}>
                 <TableCell className="overflow-hidden">
-                  <button
-                    className="max-w-full rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  <Button
+                    className="h-auto max-w-full justify-start p-0 text-left"
                     onClick={() => onOpen(order.id)}
                     type="button"
+                    variant="link"
                   >
-                    <span className="block truncate text-[13px] font-semibold">{order.id}</span>
-                    <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
-                      {channelLabels[order.channel]}
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-semibold">{order.id}</span>
+                      <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
+                        {channelLabels[order.channel]}
+                      </span>
                     </span>
-                  </button>
+                  </Button>
                 </TableCell>
                 <TableCell className="overflow-hidden">
                   <span className="block truncate text-[12.5px] font-medium">
