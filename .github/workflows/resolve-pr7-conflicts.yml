@@ -1,3 +1,4 @@
+# Synchronization trigger for the guarded PR #7 resolver on main.
 name: Resolve PR 7 conflicts
 
 on:
