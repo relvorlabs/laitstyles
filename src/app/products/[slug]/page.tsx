@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import "@/features/storefront/home-lab/home-lab.css";
 import {
   inventoryLabel,
   money,

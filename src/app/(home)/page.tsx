@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@/features/storefront/home-lab/home-lab.css";
 import { labFontClassName } from "@/features/storefront/home-lab/fonts";
 import { StorefrontLab } from "@/features/storefront/home-lab/storefront-lab";
 
