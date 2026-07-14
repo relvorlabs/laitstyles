@@ -104,6 +104,7 @@ export function ProductCard({
       ref={ref}
       className={`group min-w-0 reveal${visible ? " visible" : ""}`}
       data-card={p.id}
+      data-urgent={urgent || undefined}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] bg-[var(--linen)] shadow-[0_1px_0_rgba(25,26,23,0.06)]">
         <img
@@ -124,9 +125,10 @@ export function ProductCard({
             e.currentTarget.style.display = "none";
           }}
         />
-        <button
-          className="absolute inset-0 z-[2] cursor-pointer"
+        <Button
+          className="absolute inset-0 z-[2] h-full w-full rounded-none p-0 hover:bg-transparent"
           type="button"
+          variant="ghost"
           aria-label={`Quick view ${p.name}`}
           onClick={() => onQuickView(p.id)}
         />
@@ -141,9 +143,11 @@ export function ProductCard({
           {p.inventory === "one-of-one" ? <span className="badge badge-solid">1 of 1</span> : null}
           {p.condition === "A+" ? <span className="badge badge-sage">A+</span> : null}
         </div>
-        <button
-          className={`absolute right-3 top-3 z-[4] grid size-10 place-items-center rounded-full bg-[rgba(243,240,232,0.92)] backdrop-blur-[10px] [transition:transform_180ms_var(--ease),background_180ms_var(--ease)] hover:scale-[1.04] hover:bg-white max-[600px]:right-2 max-[600px]:top-2 max-[600px]:size-[38px] ${isSaved ? "text-[#682631]" : "text-[#20261c]"}`}
+        <Button
+          className={`absolute right-3 top-3 z-[4] size-10 rounded-full bg-[rgba(243,240,232,0.92)] text-[#20261c]! backdrop-blur-[10px] [transition:transform_180ms_var(--ease),background_180ms_var(--ease)] hover:scale-[1.04] hover:bg-white max-[600px]:right-2 max-[600px]:top-2 max-[600px]:size-[38px] ${isSaved ? "text-[#682631]!" : "text-[#20261c]!"}`}
           type="button"
+          size="icon-lg"
+          variant="ghost"
           aria-label={`${isSaved ? "Remove" : "Save"} ${p.name}`}
           onClick={() => onSave(p.id)}
         >
@@ -152,7 +156,7 @@ export function ProductCard({
             className="[stroke-width:1.5]"
             style={{ width: 18, height: 18 }}
           />
-        </button>
+        </Button>
         {unavailable ? (
           <div className="absolute inset-0 z-[3] grid place-items-center bg-[rgba(25,26,23,0.34)] font-mono text-[0.72rem] font-medium uppercase leading-none tracking-[0.12em] text-white">
             {p.status}
@@ -162,7 +166,7 @@ export function ProductCard({
             size="sm"
             type="button"
             onClick={hover.action}
-            className={`absolute inset-x-3 bottom-3 z-[4] h-auto min-h-11 w-full rounded-[4px] text-[0.82rem] font-[550] text-white translate-y-[calc(100%+16px)] opacity-0 [transition:translate_250ms_var(--ease),opacity_220ms_var(--ease),background_180ms_var(--ease)] focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 max-[600px]:hidden ${hover.className}`}
+            className={`absolute inset-x-3 bottom-3 z-[4] h-auto min-h-11 w-[calc(100%-1.5rem)] rounded-[4px] text-[0.82rem] font-[550] text-white! translate-y-[calc(100%+16px)] opacity-0 [transition:translate_250ms_var(--ease),opacity_220ms_var(--ease),background_180ms_var(--ease)] focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 max-[600px]:hidden ${hover.className}`}
           >
             {hover.label}
           </Button>
