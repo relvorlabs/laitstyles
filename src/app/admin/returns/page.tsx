@@ -2,9 +2,9 @@ import {
   defaultReturnQuery,
   returnSavedViews,
   returnStatuses,
-} from "@/features/control-room/returns/return-selectors";
-import type { ReturnSavedView, ReturnSortKey } from "@/features/control-room/returns/return-types";
-import { ReturnsWorkspace } from "@/features/control-room/returns/returns-workspace";
+} from "@/features/admin/returns/return-selectors";
+import type { ReturnSavedView, ReturnSortKey } from "@/features/admin/returns/return-types";
+import { ReturnsWorkspace } from "@/features/admin/returns/returns-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 import type { ReturnStatus } from "@/lib/control-room/types";
 
