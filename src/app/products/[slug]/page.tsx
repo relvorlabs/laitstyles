@@ -86,12 +86,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
 
   return (
     <>
-      {/* JSON-LD structured data rendered as script children (no dangerouslySetInnerHTML). */}
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      <script type="application/ld+json">{JSON.stringify(breadcrumbLd)}</script>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
+      />
       <ProductDetailLab product={product} fontClassName={labFontClassName} />
     </>
   );
+}
+
+function serializeJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
 // Pre-render all prototype product detail pages at build time.
