@@ -9,7 +9,9 @@
 /*
  * Unlayered semantic foreground guards. The scoped storefront prototype resets
  * native button color to inherit; these more-specific data attributes preserve the
- * shared shadcn Button contract without blanket text-white overrides.
+ * filled and bordered shadcn Button contracts without blanket text-white overrides.
+ * Ghost/link controls intentionally inherit their contextual foreground so they stay
+ * readable on inverse banners, cards and ordinary page surfaces.
  */
 [data-slot="button"] svg {
   color: currentColor;
@@ -29,11 +31,6 @@
 
 .lst-lab [data-slot="button"][data-variant="outline"] {
   color: var(--control-foreground);
-}
-
-.lst-lab [data-slot="button"][data-variant="ghost"],
-.lst-lab [data-slot="button"][data-variant="link"] {
-  color: var(--foreground);
 }
 
 .lst-lab [data-slot="button"]:disabled {
