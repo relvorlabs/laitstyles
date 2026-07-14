@@ -15,7 +15,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "audit:buttons": "node scripts/audit-buttons.mjs",
+    "audit:buttons": "node scripts/audit-buttons.mjs --strict",
     "test:e2e": "playwright test",
     "supabase:bootstrap-owner": "node scripts/bootstrap-owner.mjs",
     "supabase:types": "npx --yes supabase@latest gen types typescript --local > src/lib/supabase/types.ts",
