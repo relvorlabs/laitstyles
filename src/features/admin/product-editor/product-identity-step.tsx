@@ -5,18 +5,18 @@ import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { CatalogueTaxonomyManager } from "@/features/control-room/inventory/catalogue-taxonomy-manager";
+import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
 import {
   EditorSelectField,
   EditorTextareaField,
   EditorTextField,
-} from "@/features/control-room/product-editor/product-editor-fields";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { generateProductSku } from "@/lib/control-room/sku";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+} from "@/features/admin/product-editor/product-editor-fields";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { generateProductSku } from "@/lib/admin/sku";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function ProductIdentityStep() {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const { control, setValue } = useFormContext<ProductEditorValues>();
   const [mode, name, brand, category, collection] = useWatch({
     control,

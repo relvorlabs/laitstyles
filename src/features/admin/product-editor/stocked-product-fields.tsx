@@ -5,12 +5,12 @@ import { FieldGroup } from "@/components/ui/field";
 import {
   EditorNumberField,
   EditorTextField,
-} from "@/features/control-room/product-editor/product-editor-fields";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+} from "@/features/admin/product-editor/product-editor-fields";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function StockedProductFields() {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const { control } = useFormContext<ProductEditorValues>();
   const [productId, quantity] = useWatch({
     control,
