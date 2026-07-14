@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -40,13 +41,25 @@ export function SupportSection() {
           />
         </label>
         <div className="mt-4 flex flex-wrap gap-2">
-          <AcctButton variant="secondary" onClick={() => toast("Delivery help article opened.")}>
+          {/* TODO(button-action): Open the delivery help article when support content routes exist. */}
+          <AcctButton
+            variant="secondary"
+            onClick={() => toast("Delivery help is not available yet.")}
+          >
             Delivery
           </AcctButton>
-          <AcctButton variant="secondary" onClick={() => toast("Returns help article opened.")}>
+          {/* TODO(button-action): Open the returns help article when support content routes exist. */}
+          <AcctButton
+            variant="secondary"
+            onClick={() => toast("Returns help is not available yet.")}
+          >
             Returns
           </AcctButton>
-          <AcctButton variant="secondary" onClick={() => toast("Sizing help article opened.")}>
+          {/* TODO(button-action): Open the sizing help article when support content routes exist. */}
+          <AcctButton
+            variant="secondary"
+            onClick={() => toast("Sizing help is not available yet.")}
+          >
             Sizing
           </AcctButton>
         </div>
@@ -60,10 +73,11 @@ export function SupportSection() {
             panelElevatedClass,
           )}
         >
-          <button
+          <Button
             type="button"
             onClick={() => navigate("ticket-detail")}
-            className="grid w-full gap-4 p-5 text-left sm:grid-cols-[1fr_auto]"
+            className="grid min-h-0 w-full justify-stretch gap-4 rounded-none p-5 text-left sm:grid-cols-[1fr_auto]"
+            variant="ghost"
           >
             <span>
               <Eyebrow className="text-[var(--acc-muted)]">
@@ -75,11 +89,12 @@ export function SupportSection() {
               </span>
             </span>
             <StatusBadge variant="warning">Waiting for you</StatusBadge>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => navigate("ticket-detail")}
-            className="grid w-full gap-4 p-5 text-left sm:grid-cols-[1fr_auto]"
+            className="grid min-h-0 w-full justify-stretch gap-4 rounded-none p-5 text-left sm:grid-cols-[1fr_auto]"
+            variant="ghost"
           >
             <span>
               <Eyebrow className="text-[var(--acc-muted)]">
@@ -91,7 +106,7 @@ export function SupportSection() {
               </span>
             </span>
             <StatusBadge variant="success">Resolved</StatusBadge>
-          </button>
+          </Button>
         </div>
       </section>
     </>
