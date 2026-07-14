@@ -31,6 +31,8 @@
       "@/features/control-room/product-editor/*": ["./src/features/admin/product-editor/*"],
       "@/features/control-room/record-sale/*": ["./src/features/admin/record-sale/*"],
       "@/features/control-room/inventory/*": ["./src/features/admin/inventory/*"],
+      "@/lib/control-room/data/in-memory/control-room-repositories": ["./src/lib/admin/data/in-memory/admin-repositories"],
+      "@/lib/control-room/*": ["./src/lib/admin/*"],
       "@/*": ["./src/*"]
     }
   },
