@@ -2,12 +2,17 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-// Baseline mapper for the dedicated Admin/theme/button stabilization branch.
+// Repository mapper for the Admin/theme/button stabilization branch.
 const root = process.cwd();
 const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
   .split("\0")
   .filter(Boolean)
-  .filter((file) => !/(^|\/)(node_modules|\.next|dist|build|coverage|playwright-report|test-results)(\/|$)/.test(file));
+  .filter(
+    (file) =>
+      !/(^|\/)(node_modules|\.next|dist|build|coverage|playwright-report|test-results)(\/|$)/.test(
+        file,
+      ),
+  );
 
 const read = (file) => {
   try {
@@ -18,24 +23,37 @@ const read = (file) => {
 };
 const sourceFiles = files.filter((file) => /\.(?:[cm]?[jt]sx?|css|md|json|ya?ml)$/.test(file));
 const entries = sourceFiles.map((file) => ({ file, text: read(file) }));
-const matches = (regex) => entries.filter(({ file, text }) => regex.test(file) || regex.test(text)).map(({ file }) => file);
+const matches = (regex) =>
+  entries.filter(({ file, text }) => regex.test(file) || regex.test(text)).map(({ file }) => file);
 const unique = (values) => [...new Set(values)].sort();
 const count = (text, regex) => [...text.matchAll(regex)].length;
 const surfaceFor = (file) => {
-  if (/control-room|\/admin(?:\/|\.)/i.test(file)) return "admin";
+  if (/^src\/(?:app|features)\/admin(?:\/|\.)/i.test(file)) return "admin";
   if (/account|profile|settings/i.test(file)) return "account";
   if (/storefront|home-lab|products|catalog|cart|checkout/i.test(file)) return "storefront";
   return "shared";
 };
 
-const namingFiles = unique(matches(/Control Room|control room|control-room|control_room|controlRoom|ControlRoom/i));
-const styleFiles = files.filter((file) => /(?:^|\/)(?:global|globals|home-lab|.*theme.*|.*admin.*)\.css$/i.test(file));
+// Old naming is intentionally searched so compatibility aliases, redirects and
+// remaining migration debt stay visible in the generated map.
+const namingFiles = unique(
+  matches(/Control Room|control room|control-room|control_room|controlRoom|ControlRoom/i),
+);
+const styleFiles = files.filter((file) =>
+  /(?:^|\/)(?:global|globals|home-lab|.*theme.*|.*admin.*)\.css$/i.test(file),
+);
 const cssImports = entries
   .filter(({ text }) => /(?:import\s+["'][^"']+\.css["']|@import\s+)/.test(text))
   .map(({ file }) => file);
-const providerFiles = unique(matches(/ThemeProvider|next-themes|data-theme|classList\.toggle\(["']dark/i));
+const providerFiles = unique(
+  matches(/ThemeProvider|next-themes|data-theme|classList\.toggle\(["']dark/i),
+);
 const tokenFiles = entries
-  .filter(({ file, text }) => file.endsWith(".css") && /--(?:background|foreground|primary|secondary|accent|brand|admin|control)/.test(text))
+  .filter(
+    ({ file, text }) =>
+      file.endsWith(".css") &&
+      /--(?:background|foreground|primary|secondary|accent|brand|admin|control)/.test(text),
+  )
   .map(({ file }) => file);
 
 const buttonRows = [];
@@ -60,17 +78,34 @@ for (const { file, text } of entries) {
 
 const rawButtonFiles = buttonRows.filter((row) => row.raw > 0);
 const suspiciousActionFiles = entries
-  .filter(({ file, text }) => /\.(?:tsx|jsx)$/.test(file) && /<button|<Button/.test(text) && /(console\.log\(|onClick=\{\(\)\s*=>\s*\{?\s*\}?\}|TODO)/.test(text))
+  .filter(
+    ({ file, text }) =>
+      /\.(?:tsx|jsx)$/.test(file) &&
+      /<button|<Button/.test(text) &&
+      /(console\.log\(|onClick=\{\(\)\s*=>\s*\{?\s*\}?\}|TODO)/.test(text),
+  )
   .map(({ file }) => file);
-const toastFiles = unique(matches(/from ["']sonner["']|toast\.(?:success|error|info|warning)|<Toaster/));
-const buttonPrimitiveFiles = unique(matches(/buttonVariants|cva\([^)]*variant|components\/ui\/button/));
+const toastFiles = unique(
+  matches(/from ["']sonner["']|toast\.(?:success|error|info|warning)|<Toaster/),
+);
+const buttonPrimitiveFiles = unique(
+  matches(/buttonVariants|cva\([^)]*variant|components\/ui\/button/),
+);
 const workflows = files.filter((file) => file.startsWith(".github/workflows/"));
 const playwrightFiles = unique(matches(/playwright|test:e2e|e2e/i));
-const routeFiles = files.filter((file) => /src\/app\/.*(?:page|layout|route)\.(?:tsx?|jsx?)$/.test(file));
+const routeFiles = files.filter((file) =>
+  /src\/app\/.*(?:page|layout|route)\.(?:tsx?|jsx?)$/.test(file),
+);
 
 const pkg = existsSync(path.join(root, "package.json")) ? JSON.parse(read("package.json")) : {};
-const nodeFiles = files.filter((file) => /(^|\/)(?:\.nvmrc|\.node-version|vercel\.json|package\.json|pnpm-workspace\.yaml)$/.test(file));
-const lockfiles = files.filter((file) => /(?:^|\/)(?:pnpm-lock\.yaml|package-lock\.json|yarn\.lock|bun\.lockb?)$/.test(file));
+const nodeFiles = files.filter((file) =>
+  /(^|\/)(?:\.nvmrc|\.node-version|vercel\.json|package\.json|pnpm-workspace\.yaml)$/.test(
+    file,
+  ),
+);
+const lockfiles = files.filter((file) =>
+  /(?:^|\/)(?:pnpm-lock\.yaml|package-lock\.json|yarn\.lock|bun\.lockb?)$/.test(file),
+);
 
 const lines = [];
 lines.push("# Repository map: Admin, themes, buttons, Node and Playwright", "");
@@ -80,7 +115,10 @@ lines.push(`- packageManager: \`${pkg.packageManager ?? "not declared"}\``);
 lines.push(`- engines.node: \`${pkg.engines?.node ?? "not declared"}\``);
 lines.push(`- package scripts: \`${Object.keys(pkg.scripts ?? {}).sort().join(", ")}\``);
 lines.push(`- lockfiles: ${lockfiles.map((file) => `\`${file}\``).join(", ") || "none"}`);
-lines.push(`- Node/Vercel metadata files: ${nodeFiles.map((file) => `\`${file}\``).join(", ") || "none"}`, "");
+lines.push(
+  `- Node/Vercel metadata files: ${nodeFiles.map((file) => `\`${file}\``).join(", ") || "none"}`,
+  "",
+);
 
 lines.push("## Naming map", "");
 lines.push(`Total files containing an old naming form or path: **${namingFiles.length}**`, "");
@@ -103,13 +141,15 @@ for (const file of tokenFiles) lines.push(`- \`${file}\``);
 lines.push("");
 
 lines.push("## Button baseline", "");
-lines.push(`- Raw application \`<button>\`: **${totals.raw}**`);
-lines.push(`- \`<Button>\` usage: **${totals.shadcn}**`);
-lines.push(`- \`role=\"button\"\`: **${totals.role}**`, "");
+lines.push(`- Raw native \`<button>\`: **${totals.raw}**`);
+lines.push(`- Shared \`<Button>\` usage: **${totals.shadcn}**`);
+lines.push(`- \`role="button"\`: **${totals.role}**`, "");
 lines.push("| Surface | Raw | Button | role=button | Files |");
 lines.push("|---|---:|---:|---:|---:|");
 for (const [surface, values] of Object.entries(totals.bySurface).sort()) {
-  lines.push(`| ${surface} | ${values.raw} | ${values.shadcn} | ${values.role} | ${values.files} |`);
+  lines.push(
+    `| ${surface} | ${values.raw} | ${values.shadcn} | ${values.role} | ${values.files} |`,
+  );
 }
 lines.push("", "### Files with button controls", "");
 lines.push("| File | Surface | Raw | Button | role=button |");
@@ -138,6 +178,30 @@ mkdirSync(path.join(root, "docs"), { recursive: true });
 writeFileSync(path.join(root, "docs/repository-audit-map.md"), `${lines.join("\n")}\n`);
 writeFileSync(
   path.join(root, "docs/repository-audit-map.json"),
-  `${JSON.stringify({ generatedAt: new Date().toISOString(), pkg: { packageManager: pkg.packageManager, engines: pkg.engines, scripts: pkg.scripts }, namingFiles, routeFiles, styleFiles, cssImports, providerFiles, tokenFiles, buttonRows, totals, suspiciousActionFiles, toastFiles, buttonPrimitiveFiles, workflows, playwrightFiles, nodeFiles, lockfiles }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      pkg: { packageManager: pkg.packageManager, engines: pkg.engines, scripts: pkg.scripts },
+      namingFiles,
+      routeFiles,
+      styleFiles,
+      cssImports,
+      providerFiles,
+      tokenFiles,
+      buttonRows,
+      totals,
+      suspiciousActionFiles,
+      toastFiles,
+      buttonPrimitiveFiles,
+      workflows,
+      playwrightFiles,
+      nodeFiles,
+      lockfiles,
+    },
+    null,
+    2,
+  )}\n`,
 );
-console.log(`Mapped ${files.length} tracked files; ${totals.raw} raw buttons and ${totals.shadcn} shadcn Button usages.`);
+console.log(
+  `Mapped ${files.length} tracked files; ${totals.raw} raw native buttons and ${totals.shadcn} shared Button usages.`,
+);
