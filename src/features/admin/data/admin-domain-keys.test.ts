@@ -4,7 +4,7 @@ import { holdKeys } from "@/features/admin/holds/data/hold-keys";
 import { overviewKeys } from "@/features/admin/overview/data/overview-keys";
 import { orderKeys } from "@/features/admin/orders/data/order-keys";
 import { returnKeys } from "@/features/admin/returns/data/return-keys";
-import { settingsKeys } from "@/features/control-room/settings/data/settings-keys";
+import { settingsKeys } from "@/features/admin/settings/data/settings-keys";
 
 describe("Admin domain query keys", () => {
   it("scopes list and detail keys under a stable domain root", () => {
