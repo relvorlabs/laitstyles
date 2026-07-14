@@ -6,9 +6,9 @@
 // `.field`, `.timeline-dot`) translated to Tailwind so the rendered result is
 // identical while the markup stays composable and typed.
 
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /** `.field` — the shared input/select/textarea surface. */
@@ -45,17 +45,13 @@ export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 }
 
 // ---- Buttons -------------------------------------------------------------
-// The account uses a pill button system (three variants) distinct from the
-// app's shadcn Button variants, so we style the same Base UI Button primitive
-// shadcn is built on, keeping full fidelity with `.btn-primary/.btn-secondary/.btn-danger`.
+// Account buttons keep their pill styling, but now compose the single shared
+// shadcn Button instead of maintaining a second Base UI button implementation.
 const acctButton = cva(
-  "inline-flex items-center justify-center gap-2 min-h-12 rounded-full px-[1.1rem] py-3 text-base font-[650] whitespace-normal outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(.22,.8,.24,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] disabled:cursor-not-allowed disabled:opacity-[.48] [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:pointer-events-none",
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-[1.1rem] py-3 text-base font-[650] whitespace-normal outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(.22,.8,.24,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] disabled:cursor-not-allowed disabled:opacity-[.48] [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:pointer-events-none",
   {
     variants: {
       variant: {
-        // `text-…!` (important) so the bone label wins over home-lab.css's
-        // `.lst-lab button { color: inherit }`, which the shared chrome wrapper
-        // otherwise forces onto in-page buttons (ink-on-ink = invisible).
         primary:
           "border border-[var(--acc-ink)] bg-[var(--acc-ink)] text-[var(--acc-bone)]! enabled:hover:-translate-y-0.5 enabled:hover:shadow-[0_12px_24px_rgba(25,26,23,.14)]",
         secondary:
@@ -65,22 +61,34 @@ const acctButton = cva(
       },
     },
     defaultVariants: { variant: "primary" },
-    
   },
 );
 
-export type AcctButtonProps = ButtonPrimitive.Props & VariantProps<typeof acctButton>;
+export type AcctButtonProps = Omit<ComponentProps<typeof Button>, "variant"> &
+  VariantProps<typeof acctButton>;
 
 export function AcctButton({ className, variant, ...props }: AcctButtonProps) {
-  return <ButtonPrimitive className={cn(acctButton({ variant, className }))} {...props} />;
+  return (
+    <Button
+      variant="ghost"
+      size="lg"
+      className={cn(acctButton({ variant, className }))}
+      {...props}
+    />
+  );
 }
 
 /** `.icon-btn` — 44px round control (used for modal close, mobile menu). */
-export function IconButton({ className, ...props }: ButtonPrimitive.Props) {
+export function IconButton({
+  className,
+  ...props
+}: Omit<ComponentProps<typeof Button>, "variant" | "size">) {
   return (
-    <ButtonPrimitive
+    <Button
+      variant="ghost"
+      size="icon-lg"
       className={cn(
-        "grid size-11 shrink-0 place-items-center rounded-full border border-[var(--acc-line)] bg-[rgba(250,248,242,.86)] outline-none transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--acc-ink)] hover:bg-[var(--acc-surface)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] [&_svg]:pointer-events-none",
+        "grid size-11 shrink-0 place-items-center rounded-full border border-[var(--acc-line)] bg-[rgba(250,248,242,.86)] text-[var(--acc-ink)]! outline-none transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--acc-ink)] hover:bg-[var(--acc-surface)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] [&_svg]:pointer-events-none",
         className,
       )}
       {...props}
