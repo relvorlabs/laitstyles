@@ -1,5 +1,5 @@
-import { NewStoreOverview } from "@/features/control-room/overview/new-store-overview";
-import { OverviewPage } from "@/features/control-room/overview/overview-page";
+import { NewStoreOverview } from "@/features/admin/overview/new-store-overview";
+import { OverviewPage } from "@/features/admin/overview/overview-page";
 import { activeControlRoomSeed, newStoreControlRoomSeed } from "@/lib/control-room/seed";
 
 type AdminOverviewPageProps = {

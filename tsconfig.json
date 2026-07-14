@@ -23,6 +23,7 @@
       "@/features/control-room/state/control-room-provider": ["./src/features/admin/state/admin-provider"],
       "@/features/control-room/state/control-room-store": ["./src/features/admin/state/admin-store"],
       "@/features/control-room/data/control-room-repository-context": ["./src/features/admin/data/admin-repository-context"],
+      "@/features/control-room/overview/*": ["./src/features/admin/overview/*"],
       "@/*": ["./src/*"]
     }
   },
