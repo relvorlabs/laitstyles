@@ -2,13 +2,13 @@ import {
   customerSavedViews,
   customerSortOptions,
   defaultCustomerQuery,
-} from "@/features/control-room/customers/customer-selectors";
+} from "@/features/admin/customers/customer-selectors";
 import type {
   CustomerSavedView,
   CustomerSortKey,
   CustomerTypeFilter,
-} from "@/features/control-room/customers/customer-types";
-import { CustomersWorkspace } from "@/features/control-room/customers/customers-workspace";
+} from "@/features/admin/customers/customer-types";
+import { CustomersWorkspace } from "@/features/admin/customers/customers-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 type CustomersPageProps = {
