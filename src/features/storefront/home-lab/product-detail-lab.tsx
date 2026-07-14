@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import {
   inventoryLabel,
@@ -21,26 +22,31 @@ const conditionRank: Record<string, number> = { "A+": 10, A: 8, "B+": 6 };
 const conditionWord: Record<string, string> = { "A+": "Like new", A: "Excellent", "B+": "Good" };
 
 function Gallery({ product }: { product: Product }) {
-  const s = useStorefront();
+  const storefront = useStorefront();
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
   const images = product.images;
   const count = images.length;
-  const go = (i: number) => setIndex((i + count) % count);
+  const go = (nextIndex: number) => setIndex((nextIndex + count) % count);
+
   return (
     <div className="grid gap-3 lg:grid-cols-[88px_minmax(0,1fr)]">
       <div
         className="order-2 flex gap-3 overflow-x-auto pb-1 lg:order-1 lg:flex-col"
         aria-label="Product media"
       >
-        {images.map((src, i) => (
-          <button
-            key={`${src}-${i}`}
+        {images.map((src, imageIndex) => (
+          <Button
+            key={`${src}-${imageIndex}`}
             type="button"
-            aria-label={`View image ${i + 1}`}
-            aria-current={i === index}
-            onClick={() => setIndex(i)}
-            className={`relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-[8px] border ${i === index ? "border-foreground" : "border-border"}`}
+            aria-label={`View image ${imageIndex + 1}`}
+            aria-current={imageIndex === index}
+            aria-pressed={imageIndex === index}
+            onClick={() => setIndex(imageIndex)}
+            className={`relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden rounded-[8px] border p-0 ${
+              imageIndex === index ? "border-foreground" : "border-border"
+            }`}
+            variant="ghost"
           >
             <img
               src={src}
@@ -48,7 +54,7 @@ function Gallery({ product }: { product: Product }) {
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
             />
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -75,11 +81,13 @@ function Gallery({ product }: { product: Product }) {
 
           {count > 1 ? (
             <>
-              <button
+              <Button
                 type="button"
                 aria-label="Previous image"
                 onClick={() => go(index - 1)}
-                className="absolute left-4 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-border bg-surface-raised/90 backdrop-blur"
+                className="absolute left-4 top-1/2 size-11 -translate-y-1/2 rounded-full border border-border bg-surface-raised/90 p-0 backdrop-blur"
+                size="icon-lg"
+                variant="ghost"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
@@ -90,12 +98,14 @@ function Gallery({ product }: { product: Product }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 aria-label="Next image"
                 onClick={() => go(index + 1)}
-                className="absolute right-4 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-border bg-surface-raised/90 backdrop-blur"
+                className="absolute right-4 top-1/2 size-11 -translate-y-1/2 rounded-full border border-border bg-surface-raised/90 p-0 backdrop-blur"
+                size="icon-lg"
+                variant="ghost"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path
@@ -106,15 +116,16 @@ function Gallery({ product }: { product: Product }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </button>
+              </Button>
             </>
           ) : null}
 
-          <button
+          <Button
             type="button"
-            onClick={() => s.openImageViewerFor(product.id, index)}
+            onClick={() => storefront.openImageViewerFor(product.id, index)}
             aria-label="Open image viewer"
-            className="absolute bottom-4 right-4 flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface-raised/90 px-4 text-sm font-semibold backdrop-blur hover:border-foreground"
+            className="absolute bottom-4 right-4 min-h-11 gap-2 rounded-full border border-border bg-surface-raised/90 px-4 text-sm font-semibold backdrop-blur hover:border-foreground"
+            variant="outline"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -126,7 +137,7 @@ function Gallery({ product }: { product: Product }) {
               />
             </svg>
             View details
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-4 text-xs uppercase tracking-[0.13em] text-muted-foreground">
@@ -152,6 +163,7 @@ function MobileBuyBar({
   onAdd: () => void;
 }) {
   const reduce = useReducedMotion();
+
   return (
     <AnimatePresence>
       {visible ? (
@@ -169,15 +181,14 @@ function MobileBuyBar({
               </p>
               <p className="mt-1 font-semibold tabular-nums">{money(product.price)}</p>
             </div>
-            <button
+            <Button
               type="button"
               onClick={onAdd}
               disabled={!canAdd}
-              className="button button-primary ml-auto flex-1"
-              style={{ borderRadius: 999 }}
+              className="button button-primary ml-auto flex-1 rounded-full"
             >
               {product.status === "available" ? "Add this piece" : product.status}
-            </button>
+            </Button>
           </div>
         </motion.div>
       ) : null}
@@ -197,10 +208,11 @@ function InfoRow({
   icon: React.ReactNode;
 }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className="flex min-h-16 w-full items-center gap-3 text-left"
+      className="min-h-16 w-full justify-start gap-3 rounded-none px-0 text-left"
+      variant="ghost"
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-sunken">
         {icon}
@@ -212,7 +224,7 @@ function InfoRow({
       <span className="ml-auto" aria-hidden="true">
         ›
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -240,46 +252,43 @@ function Accordion({
 }
 
 function ProductDetailApp({ product }: { product: Product }) {
-  const s = useStorefront();
+  const storefront = useStorefront();
   const {
     state: { holdSecondsByProduct },
     actions: { holdProduct, releaseProduct },
   } = useStorefrontExperience();
   const [showBar, setShowBar] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const { setSelectedVariant, setQuickError } = s;
+  const { setSelectedVariant, setQuickError } = storefront;
 
-  // Reset the shared variant selection when landing on a new PDP.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset once per product mount.
   useEffect(() => {
     setSelectedVariant(null);
     setQuickError("");
   }, [product.id, setSelectedVariant, setQuickError]);
 
-  // Reveal the mobile buy bar once the main purchase action scrolls out of view.
   useEffect(() => {
-    const el = anchorRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setShowBar(!entry.isIntersecting), {
+    const element = anchorRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => setShowBar(!entry.isIntersecting), {
       rootMargin: "0px 0px -8px 0px",
     });
-    io.observe(el);
-    return () => io.disconnect();
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   const isVariant = product.inventory === "variant";
   const isOneOfOne = product.inventory === "one-of-one";
   const available = product.status === "available";
-  const canAdd = available && (!isVariant || Boolean(s.selectedVariant));
+  const canAdd = available && (!isVariant || Boolean(storefront.selectedVariant));
   const filled = conditionRank[product.condition] ?? 6;
 
   const handleAdd = () => {
-    if (isVariant && !s.selectedVariant) {
+    if (isVariant && !storefront.selectedVariant) {
       setQuickError("Choose an available size before adding this piece.");
       return;
     }
-    s.addToCart(product.id);
-    s.open("cartDrawer");
+    storefront.addToCart(product.id);
+    storefront.open("cartDrawer");
   };
 
   const onShare = async () => {
@@ -290,10 +299,10 @@ function ProductDetailApp({ product }: { product: Product }) {
         await navigator.share({ title: product.name, url });
       } else {
         await navigator.clipboard?.writeText(url);
-        s.showToast("Link copied to clipboard.");
+        storefront.showToast("Link copied to clipboard.");
       }
     } catch {
-      // Share cancelled or unavailable; no-op.
+      // Share cancelled or unavailable.
     }
   };
 
@@ -307,34 +316,18 @@ function ProductDetailApp({ product }: { product: Product }) {
           aria-label="Breadcrumb"
         >
           <ol className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-            <li>
-              <Link className="hover:text-foreground" href="/">
-                Home
-              </Link>
-            </li>
+            <li><Link className="hover:text-foreground" href="/">Home</Link></li>
             <li aria-hidden="true">/</li>
-            <li>
-              <Link className="hover:text-foreground" href="/products">
-                Shop
-              </Link>
-            </li>
+            <li><Link className="hover:text-foreground" href="/products">Shop</Link></li>
             <li aria-hidden="true">/</li>
-            <li>
-              <Link className="hover:text-foreground" href="/products">
-                {product.category}
-              </Link>
-            </li>
+            <li><Link className="hover:text-foreground" href="/products">{product.category}</Link></li>
             <li aria-hidden="true">/</li>
-            <li className="truncate text-foreground" aria-current="page">
-              {product.name}
-            </li>
+            <li className="truncate text-foreground" aria-current="page">{product.name}</li>
           </ol>
         </nav>
 
         <section className="mx-auto grid max-w-[1500px] gap-10 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(390px,0.82fr)] lg:px-8 xl:gap-16">
-          <div className="min-w-0">
-            <Gallery product={product} />
-          </div>
+          <div className="min-w-0"><Gallery product={product} /></div>
 
           <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-[16px] border border-border bg-surface-raised p-5 sm:p-7 lg:p-8">
@@ -345,14 +338,10 @@ function ProductDetailApp({ product }: { product: Product }) {
                   <span className="badge badge-sage">{inventoryLabel(product.inventory)}</span>
                 )}
                 <span className="badge">{available ? "Available" : product.status}</span>
-                <span className="mono ml-auto text-muted-foreground">
-                  LS-{product.id.toUpperCase()}
-                </span>
+                <span className="mono ml-auto text-muted-foreground">LS-{product.id.toUpperCase()}</span>
               </div>
 
-              <p className="eyebrow mt-7 text-muted-foreground">
-                {product.style} · {product.category}
-              </p>
+              <p className="eyebrow mt-7 text-muted-foreground">{product.style} · {product.category}</p>
               <h1 className="mt-3 font-serif text-[clamp(2.4rem,5vw,4.4rem)] font-medium leading-[0.95] tracking-[-0.03em]">
                 {product.name}
               </h1>
@@ -360,9 +349,7 @@ function ProductDetailApp({ product }: { product: Product }) {
               <div className="mt-6 flex flex-wrap items-end justify-between gap-4 border-y border-border py-5">
                 <div>
                   <p className="eyebrow text-muted-foreground">Price</p>
-                  <p className="price mt-2 text-3xl font-semibold tracking-[-0.02em] tabular-nums">
-                    {money(product.price)}
-                  </p>
+                  <p className="price mt-2 text-3xl font-semibold tracking-[-0.02em] tabular-nums">{money(product.price)}</p>
                 </div>
                 <div className="max-w-[200px] text-right text-sm leading-6 text-muted-foreground">
                   Taxes included. Delivery calculated at checkout.
@@ -378,29 +365,17 @@ function ProductDetailApp({ product }: { product: Product }) {
                 <div className="rounded-[9px] border border-border bg-surface-panel p-4">
                   <p className="eyebrow text-muted-foreground">Tagged size</p>
                   <p className="mt-2 text-lg font-semibold">{product.size}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Recommended fit: {product.fit}
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">Recommended fit: {product.fit}</p>
                 </div>
                 <div className="rounded-[9px] border border-border bg-surface-panel p-4">
                   <p className="eyebrow text-muted-foreground">Condition</p>
                   <div className="mt-2 flex items-center justify-between">
-                    <p className="text-lg font-semibold">
-                      {conditionWord[product.condition] ?? product.condition}
-                    </p>
-                    <span className="font-semibold text-brand-sage-strong">
-                      Grade {product.condition}
-                    </span>
+                    <p className="text-lg font-semibold">{conditionWord[product.condition] ?? product.condition}</p>
+                    <span className="font-semibold text-brand-sage-strong">Grade {product.condition}</span>
                   </div>
-                  <div
-                    className="mt-3 flex gap-1"
-                    aria-label={`Condition grade ${product.condition}`}
-                  >
-                    {Array.from({ length: 10 }, (_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 flex-1 rounded-full ${i < filled ? "bg-brand-sage" : "bg-border"}`}
-                      />
+                  <div className="mt-3 flex gap-1" aria-label={`Condition grade ${product.condition}`}>
+                    {Array.from({ length: 10 }, (_, index) => (
+                      <span key={index} className={`h-1.5 flex-1 rounded-full ${index < filled ? "bg-brand-sage" : "bg-border"}`} />
                     ))}
                   </div>
                 </div>
@@ -410,27 +385,13 @@ function ProductDetailApp({ product }: { product: Product }) {
                 <div className="mt-4 rounded-[9px] border border-border bg-surface-sunken p-4">
                   <div className="flex items-start gap-3">
                     <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-brand-sage text-white">
-                      <svg
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="m7 12 3 3 7-7"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m7 12 3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </span>
                     <div>
                       <p className="font-semibold">You are buying the exact piece shown.</p>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        One item only. No restock expected.
-                      </p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">One item only. No restock expected.</p>
                     </div>
                   </div>
                 </div>
@@ -440,86 +401,73 @@ function ProductDetailApp({ product }: { product: Product }) {
                 <div className="mt-6">
                   <p className="eyebrow mb-2 text-muted-foreground">Select size</p>
                   <div className="flex flex-wrap gap-2">
-                    {product.variants.map((v, i) => {
-                      const disabled =
-                        i === (product.variants?.length ?? 0) - 1 && product.stock < 5;
-                      const selected = s.selectedVariant === v;
+                    {product.variants.map((variant, index) => {
+                      const disabled = index === (product.variants?.length ?? 0) - 1 && product.stock < 5;
+                      const selected = storefront.selectedVariant === variant;
                       return (
-                        <button
-                          key={v}
+                        <Button
+                          key={variant}
                           type="button"
                           disabled={disabled}
+                          aria-pressed={selected}
                           onClick={() => {
-                            s.setSelectedVariant(v);
+                            storefront.setSelectedVariant(variant);
                             setQuickError("");
                           }}
-                          className={`inline-flex min-h-11 min-w-12 items-center justify-center rounded-[8px] border px-3 text-[13px] ${
+                          className={`min-h-11 min-w-12 rounded-[8px] border px-3 text-[13px] ${
                             selected
                               ? "border-foreground bg-primary text-primary-foreground"
                               : "border-border bg-control text-foreground"
                           } disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-muted-foreground disabled:line-through`}
+                          variant={selected ? "default" : "outline"}
                         >
-                          {v}
-                        </button>
+                          {variant}
+                        </Button>
                       );
                     })}
                   </div>
-                  <p className="mt-2 min-h-[19px] text-[13px] text-destructive" role="alert">
-                    {s.quickError}
-                  </p>
+                  <p className="mt-2 min-h-[19px] text-[13px] text-destructive" role="alert">{storefront.quickError}</p>
                 </div>
               ) : null}
 
               <div className="mt-7 grid grid-cols-2 gap-3">
-                <button type="button" className="button" onClick={() => s.open("measureModal")}>
+                <Button type="button" className="button" onClick={() => storefront.open("measureModal")} variant="outline">
                   Measurements
-                </button>
-                <button type="button" className="button" onClick={() => s.open("conditionModal")}>
+                </Button>
+                <Button type="button" className="button" onClick={() => storefront.open("conditionModal")} variant="outline">
                   Condition guide
-                </button>
+                </Button>
               </div>
 
               <div ref={anchorRef} className="mt-6 grid gap-3">
-                <button
+                <Button
                   type="button"
-                  className="button button-primary w-full"
+                  className="button button-primary min-h-[54px] w-full rounded-full"
                   disabled={!canAdd}
                   onClick={handleAdd}
-                  style={{ borderRadius: 999, minHeight: 54 }}
                 >
-                  {available
-                    ? isOneOfOne
-                      ? "Add this exact piece"
-                      : "Add to bag"
-                    : product.status}
-                </button>
+                  {available ? (isOneOfOne ? "Add this exact piece" : "Add to bag") : product.status}
+                </Button>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
+                  <Button
                     type="button"
-                    className="button flex items-center justify-center gap-2"
-                    aria-pressed={s.saved.has(product.id)}
-                    onClick={() => s.toggleSaved(product.id)}
+                    className="button gap-2"
+                    aria-pressed={storefront.saved.has(product.id)}
+                    onClick={() => storefront.toggleSaved(product.id)}
+                    variant="outline"
                   >
-                    <IconHeart filled={s.saved.has(product.id)} style={{ width: 18, height: 18 }} />
-                    {s.saved.has(product.id) ? "Saved" : "Save"}
-                  </button>
-                  <button
-                    type="button"
-                    className="button flex items-center justify-center gap-2"
-                    onClick={onShare}
-                  >
+                    <IconHeart filled={storefront.saved.has(product.id)} style={{ width: 18, height: 18 }} />
+                    {storefront.saved.has(product.id) ? "Saved" : "Save"}
+                  </Button>
+                  <Button type="button" className="button gap-2" onClick={onShare} variant="outline">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle cx="18" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.6" />
                       <circle cx="6" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.6" />
                       <circle cx="18" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.6" />
-                      <path
-                        d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                      />
+                      <path d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3" stroke="currentColor" strokeWidth="1.6" />
                     </svg>
                     Share
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -527,15 +475,10 @@ function ProductDetailApp({ product }: { product: Product }) {
                 <InfoRow
                   title="Delivery from Lagos"
                   body="Lagos 1–2 days · Nationwide 2–5 days"
-                  onClick={() => s.open("deliveryModal")}
+                  onClick={() => storefront.open("deliveryModal")}
                   icon={
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path
-                        d="M3 7h11v10H3zM14 10h3l4 4v3h-7z"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
-                      />
+                      <path d="M3 7h11v10H3zM14 10h3l4 4v3h-7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
                       <circle cx="7" cy="18" r="2" stroke="currentColor" strokeWidth="1.6" />
                       <circle cx="18" cy="18" r="2" stroke="currentColor" strokeWidth="1.6" />
                     </svg>
@@ -544,41 +487,21 @@ function ProductDetailApp({ product }: { product: Product }) {
                 <InfoRow
                   title="7-day returns"
                   body="Condition and tags must remain unchanged"
-                  onClick={() =>
-                    s.showToast(
-                      "Returns accepted within 7 days when the item remains unworn and tagged.",
-                    )
-                  }
+                  onClick={() => storefront.showToast("Returns accepted within 7 days when the item remains unworn and tagged.")}
                   icon={
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path
-                        d="M8 7H4v4M4.5 10.5A8 8 0 1 0 7 5.3"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                      <path d="M8 7H4v4M4.5 10.5A8 8 0 1 0 7 5.3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   }
                 />
                 <InfoRow
                   title="Inspected and cleaned"
                   body="Condition checked by hand"
-                  onClick={() => s.open("conditionModal")}
+                  onClick={() => storefront.open("conditionModal")}
                   icon={
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path
-                        d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6l-7-3Z"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                      />
-                      <path
-                        d="m9 12 2 2 4-4"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                      <path d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.6" />
+                      <path d="m9 12 2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   }
                 />
@@ -591,19 +514,17 @@ function ProductDetailApp({ product }: { product: Product }) {
           <section className="border-y border-border bg-surface-sunken">
             <div className="mx-auto max-w-[1500px] px-4 py-12 sm:px-6 lg:px-8">
               <p className="eyebrow text-brand-sage-strong">Disclosed detail</p>
-              <h2 className="mt-3 max-w-2xl font-serif text-[clamp(1.6rem,3vw,2.4rem)] font-medium leading-tight">
-                {product.flaw}.
-              </h2>
+              <h2 className="mt-3 max-w-2xl font-serif text-[clamp(1.6rem,3vw,2.4rem)] font-medium leading-tight">{product.flaw}.</h2>
               <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-                Every flaw is inspected, photographed and disclosed before purchase — this piece
-                remains stable and wearable.{" "}
-                <button
+                Every flaw is inspected, photographed and disclosed before purchase — this piece remains stable and wearable.{" "}
+                <Button
                   type="button"
-                  className="underline underline-offset-4"
-                  onClick={() => s.openImageViewerFor(product.id, product.images.length - 1)}
+                  className="inline-flex h-auto p-0 align-baseline"
+                  onClick={() => storefront.openImageViewerFor(product.id, product.images.length - 1)}
+                  variant="link"
                 >
                   View the detail image
-                </button>
+                </Button>
               </p>
             </div>
           </section>
@@ -620,23 +541,11 @@ function ProductDetailApp({ product }: { product: Product }) {
               </div>
               <div className="divide-y divide-[color:var(--line)] border-y border-border">
                 <Accordion title="Description" open>
-                  {product.material} in {product.style.toLowerCase()} styling. Tagged size{" "}
-                  {product.size} with a recommended fit of {product.fit}. The exact piece pictured
-                  is the one delivered.
+                  {product.material} in {product.style.toLowerCase()} styling. Tagged size {product.size} with a recommended fit of {product.fit}. The exact piece pictured is the one delivered.
                 </Accordion>
-                <Accordion title="Delivery">
-                  Lagos delivery is typically 1–2 business days. Other states are typically 2–5
-                  business days. Tracking is shared after dispatch.
-                </Accordion>
-                <Accordion title="Returns">
-                  Return requests are accepted within 7 days of delivery. The item must remain
-                  unworn, unwashed and returned with the original Laitstyles tag attached.
-                </Accordion>
-                <Accordion title="Care">
-                  Keep on a wide hanger away from direct heat. Follow standard care for{" "}
-                  {product.material.toLowerCase()}. Do not machine wash or soak unless labelled
-                  safe.
-                </Accordion>
+                <Accordion title="Delivery">Lagos delivery is typically 1–2 business days. Other states are typically 2–5 business days. Tracking is shared after dispatch.</Accordion>
+                <Accordion title="Returns">Return requests are accepted within 7 days of delivery. The item must remain unworn, unwashed and returned with the original Laitstyles tag attached.</Accordion>
+                <Accordion title="Care">Keep on a wide hanger away from direct heat. Follow standard care for {product.material.toLowerCase()}. Do not machine wash or soak unless labelled safe.</Accordion>
               </div>
             </div>
           </div>
@@ -650,29 +559,18 @@ function ProductDetailApp({ product }: { product: Product }) {
                 {isOneOfOne ? "No reviews for this exact piece." : "No reviews yet."}
               </h2>
               <p className="mt-5 max-w-md leading-7 text-muted-foreground">
-                {isOneOfOne
-                  ? "It is one of one, so nobody else has owned this listing."
-                  : "Be the first to share how this piece fits and wears."}
+                {isOneOfOne ? "It is one of one, so nobody else has owned this listing." : "Be the first to share how this piece fits and wears."}
               </p>
             </div>
             <div className="flex min-h-64 flex-col justify-between rounded-[16px] border border-border bg-surface-raised p-6 sm:p-8">
               <div>
                 <p className="eyebrow text-muted-foreground">What can still help</p>
-                <h3 className="mt-4 font-serif text-3xl leading-tight">
-                  Need another measurement or a closer photo?
-                </h3>
-                <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
-                  Ask before buying. We can confirm a measurement, show a detail more closely or
-                  help compare the fit.
-                </p>
+                <h3 className="mt-4 font-serif text-3xl leading-tight">Need another measurement or a closer photo?</h3>
+                <p className="mt-4 max-w-xl leading-7 text-muted-foreground">Ask before buying. We can confirm a measurement, show a detail more closely or help compare the fit.</p>
               </div>
-              <button
-                type="button"
-                className="button mt-8 w-fit"
-                onClick={() => s.open("supportModal")}
-              >
+              <Button type="button" className="button mt-8 w-fit" onClick={() => storefront.open("supportModal")} variant="outline">
                 Ask about this piece
-              </button>
+              </Button>
             </div>
           </div>
         </section>
@@ -683,31 +581,26 @@ function ProductDetailApp({ product }: { product: Product }) {
               <div className="flex flex-wrap items-end justify-between gap-5">
                 <div>
                   <p className="eyebrow text-brand-sage-strong">Keep looking</p>
-                  <h2 className="mt-4 font-serif text-[clamp(2rem,5vw,3.4rem)] font-medium leading-[0.95] tracking-[-0.03em]">
-                    Pieces with a similar point of view.
-                  </h2>
+                  <h2 className="mt-4 font-serif text-[clamp(2rem,5vw,3.4rem)] font-medium leading-[0.95] tracking-[-0.03em]">Pieces with a similar point of view.</h2>
                 </div>
-                <Link
-                  href="/products"
-                  className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4"
-                >
+                <Link href="/products" className="inline-flex min-h-11 items-center gap-2 font-semibold underline underline-offset-4">
                   View all
                   <IconArrow style={{ width: 18, height: 18 }} />
                 </Link>
               </div>
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {related.map((rp) => (
+                {related.map((relatedProduct) => (
                   <ProductCard
-                    key={rp.id}
-                    product={rp}
-                    isSaved={s.saved.has(rp.id)}
-                    isHeld={rp.id in holdSecondsByProduct}
-                    holdSeconds={holdSecondsByProduct[rp.id] ?? null}
-                    onQuickView={s.openQuick}
-                    onSave={s.toggleSaved}
+                    key={relatedProduct.id}
+                    product={relatedProduct}
+                    isSaved={storefront.saved.has(relatedProduct.id)}
+                    isHeld={relatedProduct.id in holdSecondsByProduct}
+                    holdSeconds={holdSecondsByProduct[relatedProduct.id] ?? null}
+                    onQuickView={storefront.openQuick}
+                    onSave={storefront.toggleSaved}
                     onAdd={(id) => {
                       releaseProduct(id);
-                      s.addToCart(id);
+                      storefront.addToCart(id);
                     }}
                     onHold={(id) => {
                       const target = productById(id);
