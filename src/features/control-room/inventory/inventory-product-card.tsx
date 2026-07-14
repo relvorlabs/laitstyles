@@ -33,11 +33,12 @@ export function InventoryProductCard({
       data-state={selected ? "selected" : undefined}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-sunken">
-        <button
+        <Button
           aria-label={`View images for ${product.name}`}
-          className="absolute inset-0 block size-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          className="absolute inset-0 block size-full rounded-none p-0"
           onClick={onOpenMedia}
           type="button"
+          variant="ghost"
         >
           <Image
             alt={item.coverImage.alt}
@@ -50,7 +51,7 @@ export function InventoryProductCard({
             <Expand aria-hidden="true" className="size-3.5" />
             <span className="sr-only">Preview images</span>
           </span>
-        </button>
+        </Button>
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-2">
           <label className="pointer-events-auto grid size-8 cursor-pointer place-items-center rounded-full border border-border bg-surface-raised/92 shadow-laitstyle-sm backdrop-blur-sm">
@@ -66,16 +67,21 @@ export function InventoryProductCard({
 
       <CardContent className="min-w-0 px-2.5 py-2.5">
         <div className="flex min-w-0 items-start gap-2">
-          <button
-            className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          <Button
+            className="h-auto min-w-0 flex-1 justify-start p-0 text-left"
             onClick={onOpen}
             type="button"
+            variant="link"
           >
-            <p className="truncate text-[8.5px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
-              {product.category} · {item.reference}
-            </p>
-            <h3 className="mt-0.5 truncate text-[13px] font-semibold leading-5">{product.name}</h3>
-          </button>
+            <span className="min-w-0">
+              <span className="block truncate text-[8.5px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+                {product.category} · {item.reference}
+              </span>
+              <span className="mt-0.5 block truncate text-[13px] font-semibold leading-5">
+                {product.name}
+              </span>
+            </span>
+          </Button>
           <Button
             aria-label={`Open ${product.name} record`}
             className="size-8 shrink-0 rounded-full"
