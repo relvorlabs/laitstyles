@@ -4,20 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-current! [&_svg]:stroke-current! [&_svg]:opacity-100 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/86",
+        default: "bg-primary text-primary-foreground! hover:bg-primary/86",
         outline:
-          "border-border-strong bg-control text-control-foreground hover:bg-control-hover hover:text-foreground aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground",
+          "border-border-strong bg-control text-control-foreground! hover:bg-control-hover hover:text-foreground! aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground!",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-surface-interactive-hover aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground! hover:bg-surface-interactive-hover aria-expanded:bg-secondary aria-expanded:text-secondary-foreground!",
         ghost:
-          "hover:bg-surface-interactive hover:text-foreground aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground",
+          "text-foreground! hover:bg-surface-interactive hover:text-foreground! aria-expanded:bg-surface-interactive-hover aria-expanded:text-foreground!",
         destructive:
-          "bg-destructive-surface text-destructive-surface-foreground hover:bg-destructive hover:text-destructive-foreground focus-visible:border-destructive focus-visible:ring-destructive/25",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive-surface text-destructive-surface-foreground! hover:bg-destructive hover:text-destructive-foreground! focus-visible:border-destructive focus-visible:ring-destructive/25",
+        link: "text-primary! underline-offset-4 hover:underline",
       },
       size: {
         default:
