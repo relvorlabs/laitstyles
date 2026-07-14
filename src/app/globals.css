@@ -111,6 +111,20 @@
   --shadow-color-soft: rgba(25, 26, 23, 0.08);
   --shadow-color: rgba(25, 26, 23, 0.14);
   --shadow-color-strong: rgba(25, 26, 23, 0.24);
+
+  /*
+   * Prototype motion, layout & elevation — the tokens that had no global
+   * equivalent, moved verbatim out of home-lab.css `.lst-lab` so the storefront
+   * consumes a single source of truth. Oxblood is the restrained destructive/brand
+   * accent (also drives --focus). Values are unchanged from the prototype.
+   */
+  --oxblood: #682631;
+  --ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --drawer-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --header-h: 78px;
+  --shadow-1: 0 1px 0 rgba(25, 26, 23, 0.08), 0 8px 20px rgba(25, 26, 23, 0.06);
+  --shadow-2: 0 2px 0 rgba(25, 26, 23, 0.07), 0 16px 44px rgba(25, 26, 23, 0.14);
+  --shadow-3: 0 4px 0 rgba(25, 26, 23, 0.06), 0 26px 80px rgba(25, 26, 23, 0.24);
 }
 
 .dark {
@@ -154,6 +168,10 @@
   --shadow-color-soft: rgba(0, 0, 0, 0.18);
   --shadow-color: rgba(0, 0, 0, 0.32);
   --shadow-color-strong: rgba(0, 0, 0, 0.5);
+  --oxblood: #d2979f;
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 2px 0 rgba(0, 0, 0, 0.24), 0 16px 44px rgba(0, 0, 0, 0.34);
+  --shadow-3: 0 4px 0 rgba(0, 0, 0, 0.28), 0 26px 80px rgba(0, 0, 0, 0.52);
 }
 
 @theme inline {
@@ -214,6 +232,12 @@
   --color-surface-inverse: var(--surface-inverse);
   --color-surface-inverse-foreground: var(--surface-inverse-foreground);
   --color-overlay: var(--overlay);
+  --color-oxblood: var(--oxblood);
+  --ease-lab: var(--ease);
+  --ease-drawer: var(--drawer-ease);
+  --shadow-lab-1: var(--shadow-1);
+  --shadow-lab-2: var(--shadow-2);
+  --shadow-lab-3: var(--shadow-3);
   --font-sans: var(--font-lab-sans);
   --font-serif: var(--font-lab-serif);
   --font-mono: var(--font-lab-mono);
@@ -284,6 +308,55 @@
   }
 }
 
+/*
+ * Account workspace — the fixed editorial palette from
+ * docs/storefront-v2/card-lab/account-workspace.html (Bone / Ink / Sage / Oxblood).
+ * Scoped as literal light values so the prototype renders identically regardless of
+ * the app theme, and applied to the workspace root AND to portalled dialog/sheet
+ * content (which renders outside the workspace subtree).
+ */
+.lst-account {
+  --acc-bone: #f3f0e8;
+  --acc-bone-2: #e9e4d9;
+  --acc-surface: #faf8f2;
+  --acc-ink: #191a17;
+  --acc-muted: #727267;
+  --acc-sage: #d6e4a6;
+  --acc-sage-deep: #35533b;
+  --acc-oxblood: #682631;
+  --acc-danger: #8a332d;
+  --acc-warning: #8b5a26;
+  --acc-warning-surface: #ead8bd;
+  --acc-danger-surface: #ead0d0;
+  --acc-line: rgba(25, 26, 23, 0.16);
+  --acc-line-strong: rgba(25, 26, 23, 0.34);
+  --acc-shadow-sm: 0 10px 30px rgba(25, 26, 23, 0.07);
+  --acc-shadow-md: 0 30px 80px rgba(25, 26, 23, 0.14);
+  color: var(--acc-ink);
+}
+
+/*
+ * The storefront chrome (home-lab.css, unlayered) forces `color: inherit` on every
+ * button/a/input/select/textarea nested in its `.lst-lab` wrapper — and the account
+ * renders inside that chrome. That reset (specificity 0,1,1, unlayered) beats the
+ * account's Tailwind colour utilities (0,1,0, layered) on its shadcn buttons/links,
+ * flattening them to the inherited ink. These scoped classes (0,2,0) re-assert the
+ * account's own foreground colours and hover/active states, mirroring how the
+ * prototype's own `.button` classes dodge the same reset.
+ */
+.lst-account .acc-fg-oxblood {
+  color: var(--acc-oxblood);
+}
+.lst-account .acc-sidebar-link {
+  color: var(--acc-muted);
+}
+.lst-account .acc-sidebar-link:hover {
+  color: var(--acc-ink);
+}
+.lst-account .acc-sidebar-link[aria-current="page"] {
+  color: var(--acc-bone);
+}
+
 ::selection {
   background: var(--surface-selected);
   color: var(--surface-selected-foreground);
@@ -311,9 +384,19 @@ button:not(:disabled),
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
+  /*
+   * Near-zero durations (not `animation/transition: none`) so motion is effectively
+   * removed while `animationend`/`transitionend` STILL FIRE — Base UI overlays
+   * (Dialog/Sheet) rely on the exit animation completing to unmount. With hard
+   * `none` they never fire the end event and get stuck visible after close.
+   */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

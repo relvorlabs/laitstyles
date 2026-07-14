@@ -243,16 +243,16 @@ export default function CheckoutPage() {
                   type="email"
                   value={form.email}
                 />
-                <button
-                  className="mt-4 flex items-center gap-2.5 bg-transparent text-left"
+                <Button
+                  className="mt-4 flex h-auto items-center gap-2.5 rounded-none bg-transparent p-0 text-left font-normal hover:bg-transparent"
                   onClick={() => setNews((value) => !value)}
-                  type="button"
+                  variant="ghost"
                 >
                   <CheckBox checked={news} />
                   <span className="text-[13.5px] text-[#3D3B35]">
                     Email me with news and one-of-one drop alerts
                   </span>
-                </button>
+                </Button>
               </div>
             ) : null}
 
@@ -370,10 +370,10 @@ export default function CheckoutPage() {
                         )}
                         key={item.id}
                       >
-                        <button
-                          className="flex w-full items-center gap-[13px] bg-transparent px-4 py-3.5 text-left"
+                        <Button
+                          className="flex h-auto w-full items-center gap-[13px] rounded-none bg-transparent px-4 py-3.5 text-left font-normal hover:bg-transparent"
                           onClick={() => setMethod(item.id)}
-                          type="button"
+                          variant="ghost"
                         >
                           <RadioDot active={active} />
                           <span className="flex-1">
@@ -390,7 +390,7 @@ export default function CheckoutPage() {
                               </Badge>
                             ))}
                           </span>
-                        </button>
+                        </Button>
                         {active && item.id === "pod" ? (
                           <div className="px-4 pb-3.5 pl-12 text-xs leading-[1.5] text-[#8A7434]">
                             A refundable <strong>{vals.podDeposit} deposit</strong> is paid now to
@@ -736,10 +736,10 @@ function StepIndicator({
                 )}
               />
             ) : null}
-            <button
-              className="flex shrink-0 items-center gap-2 bg-transparent p-0"
+            <Button
+              className="flex h-auto shrink-0 items-center gap-2 rounded-none bg-transparent p-0 font-normal hover:bg-transparent"
               onClick={() => goStep(index as CheckoutStep)}
-              type="button"
+              variant="ghost"
               aria-label={label}
             >
               <span
@@ -764,7 +764,7 @@ function StepIndicator({
               >
                 {label}
               </span>
-            </button>
+            </Button>
           </div>
         );
       })}
@@ -827,13 +827,13 @@ function ChoiceRow({
   title: string;
 }) {
   return (
-    <button
+    <Button
       className={cn(
-        "flex items-center gap-[13px] rounded-[11px] border px-4 py-3.5 text-left",
+        "flex h-auto items-center gap-[13px] rounded-[11px] border px-4 py-3.5 text-left font-normal hover:bg-[#F7F7F3]",
         active ? "border-primary bg-[#F7F7F3]" : "border-input bg-card",
       )}
       onClick={onClick}
-      type="button"
+      variant="ghost"
     >
       <RadioDot active={active} />
       <span className="flex-1">
@@ -841,7 +841,7 @@ function ChoiceRow({
         <span className="mt-0.5 block text-xs text-[#8A887E]">{subtitle}</span>
       </span>
       <span className="text-sm font-semibold">{right}</span>
-    </button>
+    </Button>
   );
 }
 
@@ -882,13 +882,13 @@ function ReviewRow({ label, onEdit, value }: { label: string; onEdit: () => void
           {value}
         </div>
       </div>
-      <button
-        className="shrink-0 self-start text-[12.5px] font-semibold text-accent underline underline-offset-2"
+      <Button
+        className="h-auto shrink-0 self-start rounded-none p-0 text-[12.5px] font-semibold text-accent underline underline-offset-2 hover:bg-transparent"
         onClick={onEdit}
-        type="button"
+        variant="ghost"
       >
         Edit
-      </button>
+      </Button>
     </div>
   );
 }
@@ -975,9 +975,13 @@ function ProcessingDialog({
         >
           I&apos;ve completed payment
         </Button>
-        <button className="text-[12.5px] text-[#A7A59B]" onClick={simulateDecline} type="button">
+        <Button
+          className="h-auto rounded-none p-0 text-[12.5px] font-normal text-[#A7A59B] hover:bg-transparent"
+          onClick={simulateDecline}
+          variant="ghost"
+        >
           Payment failed? Simulate a declined card
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -1013,9 +1017,13 @@ function DeclinedDialog({
         <Button className="mb-2.5 h-12 w-full rounded-full text-sm font-semibold" onClick={payNow}>
           Try payment again
         </Button>
-        <button className="text-[13px] text-[#8A887E]" onClick={dismiss} type="button">
+        <Button
+          className="h-auto rounded-none p-0 text-[13px] font-normal text-[#8A887E] hover:bg-transparent"
+          onClick={dismiss}
+          variant="ghost"
+        >
           Choose another method
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -1055,18 +1063,18 @@ function CurrencyButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       className={cn(
         "h-8 rounded-full border px-[13px] text-xs font-semibold",
         active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-[#D6D4CB] bg-card text-[#57554E]",
+          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/86"
+          : "border-[#D6D4CB] bg-card text-[#57554E] hover:bg-card",
       )}
       onClick={onClick}
-      type="button"
+      variant="ghost"
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

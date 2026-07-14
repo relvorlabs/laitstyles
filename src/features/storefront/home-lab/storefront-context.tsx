@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast as sonnerToast } from "sonner";
 import {
   collectionTitle,
   filteredProducts,
@@ -22,7 +23,6 @@ import {
 import { StorefrontOverlays } from "./storefront-overlays";
 
 export type CartLine = { id: string; qty: number; variant: string | null };
-export type ToastData = { text: string; actionLabel: string; action?: () => void };
 export type FilterChip = { type: string; label: string; value?: string };
 
 // Shared interactive layer for every .lst-lab route. Ported from the storefront.html
@@ -68,8 +68,6 @@ type StorefrontContextValue = {
   setDeliveryStatus: (v: string) => void;
   headerScrolled: boolean;
   showToast: (text: string, actionLabel?: string, action?: () => void) => void;
-  toast: ToastData | null;
-  clearToast: () => void;
   // Filter state (shared catalogue semantics).
   category: string;
   setCategory: (v: string) => void;
@@ -135,13 +133,11 @@ export function StorefrontProvider({ children }: { fontClassName?: string; child
   const [searchValue, setSearchValue] = useState("");
   const [measureUnit, setMeasureUnit] = useState<"cm" | "in">("cm");
   const [headerScrolled, setHeaderScrolled] = useState(false);
-  const [toast, setToast] = useState<ToastData | null>(null);
   const [newsletterStatus, setNewsletterStatus] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("");
   const [storageReady, setStorageReady] = useState(false);
 
   const lastFocusRef = useRef<HTMLElement | null>(null);
-  const toastTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -231,12 +227,14 @@ export function StorefrontProvider({ children }: { fontClassName?: string; child
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Prototype toast → sonner. Preserves the (text, actionLabel?, action?) contract and
+  // the 3400ms dwell; the Toaster below is themed to the prototype's ink/bone pill.
   const showToast = useCallback((text: string, actionLabel = "", action?: () => void) => {
-    setToast({ text, actionLabel, action });
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(null), 3400);
+    sonnerToast(text, {
+      duration: 3400,
+      action: actionLabel ? { label: actionLabel, onClick: () => action?.() } : undefined,
+    });
   }, []);
-  const clearToast = useCallback(() => setToast(null), []);
 
   const open = useCallback((id: string) => {
     if (typeof document !== "undefined")
@@ -506,8 +504,6 @@ export function StorefrontProvider({ children }: { fontClassName?: string; child
     setDeliveryStatus,
     headerScrolled,
     showToast,
-    toast,
-    clearToast,
     category,
     setCategory,
     collection,
@@ -549,6 +545,8 @@ export function StorefrontProvider({ children }: { fontClassName?: string; child
         {children}
         <StorefrontOverlays />
       </div>
+      {/* Toast host lives once in the root layout (ink/bone pill, bottom-right) so /products
+          no longer double-renders toasts. */}
     </StorefrontContext.Provider>
   );
 }

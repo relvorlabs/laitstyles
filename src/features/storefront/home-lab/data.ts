@@ -2,6 +2,8 @@
 // The prototype's fake catalogue and hardcoded pexels imagery are kept exactly as the
 // source of truth for the Phase 2-3N homepage. Do not swap these for the real catalogue.
 
+import type { HoldablePiece } from "@/features/storefront/shared/storefront-experience-data";
+
 export type Condition = "A+" | "A" | "B+";
 export type Inventory = "one-of-one" | "variant" | "matching-stock";
 export type Status = "available" | "reserved" | "sold";
@@ -425,6 +427,36 @@ export const money = (n: number) =>
 
 export const inventoryLabel = (v: Inventory) =>
   v === "one-of-one" ? "One of one" : v === "variant" ? "Variants" : "Multiple units";
+
+// Map a home-lab product into the shared, home-lab-agnostic shape the hold system
+// accepts. `origNum` reuses the price (the prototype has no separate reference price)
+// and `color` is empty (no color field on Product).
+export function productToHoldable(p: Product): HoldablePiece {
+  return {
+    id: p.id,
+    name: p.name,
+    cat: p.category,
+    size: p.size,
+    color: "",
+    cond: p.condition,
+    priceNum: p.price,
+    origNum: p.price,
+    img: p.images[0],
+  };
+}
+
+// Dynamic label for the promoted "Add to bag" CTA. Emphasis scales with scarcity so
+// shoppers feel the one-of-one / low-stock urgency. Variant pieces route through the
+// quick view ("Select size"); sold/reserved pieces disable the button (see the card).
+export function addToBagLabel(p: Pick<Product, "status" | "inventory" | "stock">) {
+  if (p.status === "sold") return "Sold";
+  if (p.status === "reserved") return "Reserved";
+  if (p.inventory === "variant") return "Select size";
+  if (p.inventory === "one-of-one") return "Grab it — the only one";
+  if (p.stock === 1) return "Grab it — last one";
+  if (p.stock <= 3) return `Add to bag · ${p.stock} left`;
+  return "Add to bag";
+}
 
 export const productById = (id: string) => products.find((p) => p.id === id);
 

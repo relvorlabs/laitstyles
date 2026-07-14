@@ -2,20 +2,30 @@
 // utilities (exact values preserved via arbitrary utilities that reference the same
 // .lst-lab scoped vars). Shared primitives kept as classes: `badge*` (used across the
 // storefront), `inventory-note` (also used by the cart drawer), and `reveal`/`visible`
-// (scroll reveal — pending BLOCKER 2-3N-02 Motion migration). The media and title are
-// real links to the canonical PDP; save / quick-add stay independent controls above.
+// (scroll reveal — pending BLOCKER 2-3N-02 Motion migration).
+//
+// Interaction model (mirrors the account card): clicking the image opens the quick-view
+// dialog; the product name links to the canonical PDP. The hover button places / releases
+// a 15-minute hold (variant pieces route to quick view to choose a size first); a held
+// piece shows a persistent "Held · MM:SS" chip. The bottom "Add to bag" is the emphasized
+// commit CTA whose label scales with scarcity.
 
 import Link from "next/link";
-import { money, type Product, productSlug } from "./data";
+import { Button } from "@/components/ui/button";
+import { addToBagLabel, money, type Product, productSlug } from "./data";
 import { IconHeart } from "./icons";
 import { useReveal } from "./reveal";
 
 type Props = {
   product: Product;
   isSaved: boolean;
+  isHeld: boolean;
+  holdSeconds: number | null;
   onQuickView: (id: string) => void;
   onSave: (id: string) => void;
   onAdd: (id: string) => void;
+  onHold: (id: string) => void;
+  onRelease: (id: string) => void;
 };
 
 const imgBase =
@@ -23,11 +33,72 @@ const imgBase =
 const imgHover =
   "[@media(hover:hover)]:group-hover:scale-[1.025] [@media(hover:hover)]:group-hover:[filter:saturate(0.86)_contrast(1)]";
 
-export function ProductCard({ product: p, isSaved, onQuickView, onSave, onAdd }: Props) {
+function formatHold(seconds: number) {
+  const s = Math.max(0, seconds);
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function IconBag() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+      className="size-[15px] [stroke-width:1.7]"
+    >
+      <path d="M6 7h12l-1 13H7L6 7Z" />
+      <path d="M9 7a3 3 0 0 1 6 0" />
+    </svg>
+  );
+}
+
+export function ProductCard({
+  product: p,
+  isSaved,
+  isHeld,
+  holdSeconds,
+  onQuickView,
+  onSave,
+  onAdd,
+  onHold,
+  onRelease,
+}: Props) {
   const unavailable = p.status !== "available";
-  const primaryAction = p.inventory === "variant" ? () => onQuickView(p.id) : () => onAdd(p.id);
+  const isVariant = p.inventory === "variant";
   const href = `/products/${productSlug(p)}`;
+  const urgent = p.inventory === "one-of-one" || (!unavailable && p.stock <= 1);
   const { ref, visible } = useReveal<HTMLElement>();
+
+  // Hover button: Release when held, quick-view for variants (pick a size first),
+  // otherwise place a hold.
+  // Over-image action: fixed dark scrim + white text so it stays legible in both themes
+  // (the sage/oxblood role tokens invert to light in dark mode → low contrast on hover).
+  const hover = isHeld
+    ? {
+        label: "Release hold",
+        action: () => onRelease(p.id),
+        className: "bg-[rgba(104,38,49,0.92)] hover:bg-[#682631]",
+      }
+    : isVariant
+      ? {
+          label: "Choose options",
+          action: () => onQuickView(p.id),
+          className: "bg-[rgba(25,26,23,0.9)] hover:bg-[#596044]",
+        }
+      : {
+          label: "Hold piece",
+          action: () => onHold(p.id),
+          className: "bg-[rgba(25,26,23,0.9)] hover:bg-[#596044]",
+        };
+
+  // Bottom CTA: variants open quick view; sold/reserved are disabled.
+  const bagAction = unavailable
+    ? undefined
+    : isVariant
+      ? () => onQuickView(p.id)
+      : () => onAdd(p.id);
+
   return (
     <article
       ref={ref}
@@ -53,14 +124,25 @@ export function ProductCard({ product: p, isSaved, onQuickView, onSave, onAdd }:
             e.currentTarget.style.display = "none";
           }}
         />
-        <Link className="absolute inset-0 z-[2]" href={href} aria-label={`View ${p.name}`} />
+        <button
+          className="absolute inset-0 z-[2] cursor-pointer"
+          type="button"
+          aria-label={`Quick view ${p.name}`}
+          onClick={() => onQuickView(p.id)}
+        />
         <div className="pointer-events-none absolute left-3 top-3 z-[3] flex flex-wrap gap-1.5 max-[600px]:left-2 max-[600px]:top-2">
+          {isHeld ? (
+            <span className="badge badge-sage inline-flex items-center gap-1.5 tabular-nums">
+              <span className="size-1.5 rounded-full bg-[var(--sage-deep)] [animation:leemPulse_1.6s_ease-in-out_infinite]" />
+              Held · {formatHold(holdSeconds ?? 0)}
+            </span>
+          ) : null}
           {p.new ? <span className="badge badge-light">New</span> : null}
           {p.inventory === "one-of-one" ? <span className="badge badge-solid">1 of 1</span> : null}
           {p.condition === "A+" ? <span className="badge badge-sage">A+</span> : null}
         </div>
         <button
-          className={`absolute right-3 top-3 z-[4] grid size-10 place-items-center rounded-full bg-[rgba(243,240,232,0.9)] backdrop-blur-[10px] [transition:transform_180ms_var(--ease),background_180ms_var(--ease)] hover:scale-[1.04] hover:bg-[var(--bone)] max-[600px]:right-2 max-[600px]:top-2 max-[600px]:size-[38px] ${isSaved ? "text-[var(--oxblood)]" : ""}`}
+          className={`absolute right-3 top-3 z-[4] grid size-10 place-items-center rounded-full bg-[rgba(243,240,232,0.92)] backdrop-blur-[10px] [transition:transform_180ms_var(--ease),background_180ms_var(--ease)] hover:scale-[1.04] hover:bg-white max-[600px]:right-2 max-[600px]:top-2 max-[600px]:size-[38px] ${isSaved ? "text-[#682631]" : "text-[#20261c]"}`}
           type="button"
           aria-label={`${isSaved ? "Remove" : "Save"} ${p.name}`}
           onClick={() => onSave(p.id)}
@@ -72,17 +154,18 @@ export function ProductCard({ product: p, isSaved, onQuickView, onSave, onAdd }:
           />
         </button>
         {unavailable ? (
-          <div className="absolute inset-0 z-[3] grid place-items-center bg-[rgba(25,26,23,0.34)] font-mono text-[0.72rem] font-medium uppercase leading-none tracking-[0.12em] text-[var(--bone)]">
+          <div className="absolute inset-0 z-[3] grid place-items-center bg-[rgba(25,26,23,0.34)] font-mono text-[0.72rem] font-medium uppercase leading-none tracking-[0.12em] text-white">
             {p.status}
           </div>
         ) : (
-          <button
-            className="absolute inset-x-3 bottom-3 z-[4] min-h-11 rounded-[4px] bg-[rgba(25,26,23,0.9)] font-[550] text-[var(--bone)] opacity-0 [transform:translateY(calc(100%+16px))] [transition:transform_250ms_var(--ease),opacity_220ms_var(--ease),background_180ms_var(--ease)] hover:bg-[var(--sage-deep)] focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 max-[600px]:hidden"
+          <Button
+            size="sm"
             type="button"
-            onClick={primaryAction}
+            onClick={hover.action}
+            className={`absolute inset-x-3 bottom-3 z-[4] h-auto min-h-11 w-full rounded-[4px] text-[0.82rem] font-[550] text-white translate-y-[calc(100%+16px)] opacity-0 [transition:translate_250ms_var(--ease),opacity_220ms_var(--ease),background_180ms_var(--ease)] focus-visible:translate-y-0 focus-visible:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 max-[600px]:hidden ${hover.className}`}
           >
-            {p.inventory === "variant" ? "Choose options" : "Quick add"}
-          </button>
+            {hover.label}
+          </Button>
         )}
       </div>
       <div className="px-[2px] pt-[13px]">
@@ -97,7 +180,7 @@ export function ProductCard({ product: p, isSaved, onQuickView, onSave, onAdd }:
         <p className="mt-1.5 text-[0.78rem] text-[var(--muted)] max-[600px]:text-[0.69rem]">
           Size {p.size} · Grade {p.condition}
         </p>
-        <div className="mt-[9px] flex items-center justify-between gap-2 max-[600px]:block">
+        <div className="mt-[11px] flex flex-col gap-[9px]">
           <span className="inventory-note">
             {p.inventory === "one-of-one"
               ? "Exact piece"
@@ -105,14 +188,16 @@ export function ProductCard({ product: p, isSaved, onQuickView, onSave, onAdd }:
                 ? "Size options"
                 : `${p.stock} available`}
           </span>
-          <button
-            className="border-0 border-b border-[var(--line-strong)] bg-transparent py-[5px] text-[0.75rem] font-semibold hover:text-[var(--sage-deep)] max-[600px]:text-[0.7rem]"
+          <Button
             type="button"
-            onClick={primaryAction}
+            variant={unavailable ? "secondary" : "default"}
+            onClick={bagAction}
             disabled={unavailable}
+            className="h-auto min-h-[42px] w-full gap-2 rounded-[6px] px-4 text-[0.82rem] font-[600]"
           >
-            {unavailable ? p.status : p.inventory === "variant" ? "View options" : "Add to bag"}
-          </button>
+            {!unavailable && !isVariant ? <IconBag data-icon="inline-start" /> : null}
+            {addToBagLabel(p)}
+          </Button>
         </div>
       </div>
     </article>

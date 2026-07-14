@@ -18,8 +18,18 @@ import {
   type StorefrontAuthState,
 } from "./storefront-auth-dialog";
 import {
+  applyHold,
+  applyRelease,
+  HOLD_SECONDS,
+  type HoldablePiece,
+  type HoldsRecord,
+  holdsToItems,
+  pruneExpiredHolds,
+  readPersistedHolds,
   type StorefrontAccountItem,
   storefrontAccountSeedItems,
+  tickHolds,
+  writePersistedHolds,
 } from "./storefront-experience-data";
 import {
   StorefrontHoldAlert,
@@ -32,6 +42,7 @@ type StorefrontExperienceState = {
   authReady: boolean;
   heldItems: StorefrontAccountItem[];
   holdCount: number;
+  holdSecondsByProduct: Record<string, number>;
   items: StorefrontAccountItem[];
   signedIn: boolean;
   soonestHoldSeconds: number;
@@ -41,8 +52,10 @@ type StorefrontExperienceState = {
 
 type StorefrontExperienceActions = {
   dismissToast: () => void;
+  holdProduct: (piece: HoldablePiece) => void;
   openSignin: (onSuccess?: () => void) => void;
   openSignup: (onSuccess?: () => void) => void;
+  releaseProduct: (id: string) => void;
   revealHoldAlert: () => void;
   showToast: (tone: StorefrontToastTone, title: string, message: string) => void;
   signOut: () => Promise<void>;
@@ -91,6 +104,9 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
   const [remember, setRemember] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const authSuccessRef = useRef<(() => void) | null>(null);
+  // Absolute-expiry record for storefront-originated holds, mirrored to sessionStorage
+  // so a live countdown survives reload. Seed holds are not tracked here.
+  const holdsRef = useRef<HoldsRecord>({});
 
   useEffect(() => {
     let active = true;
@@ -120,17 +136,29 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
     }
   }, []);
 
+  // Rehydrate storefront holds from sessionStorage once, on mount (deferred so it does
+  // not diverge from the seed-only server render and cause a hydration mismatch).
+  useEffect(() => {
+    const now = Date.now();
+    const record = pruneExpiredHolds(readPersistedHolds(), now);
+    holdsRef.current = record;
+    writePersistedHolds(record);
+    const rehydrated = holdsToItems(record, now);
+    if (rehydrated.length === 0) return;
+    setItems((current) => {
+      const known = new Set(current.map((item) => item.id));
+      return [...current, ...rehydrated.filter((item) => !known.has(item.id))];
+    });
+  }, []);
+
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setItems((current) =>
-        current.map((item) => {
-          if (item.st !== "resYou") return item;
-          const next = (item.secondsLeft || 0) - 1;
-          return next <= 0
-            ? { ...item, st: "available", secondsLeft: undefined }
-            : { ...item, secondsLeft: next };
-        }),
-      );
+      setItems((current) => tickHolds(current));
+      const pruned = pruneExpiredHolds(holdsRef.current, Date.now());
+      if (Object.keys(pruned).length !== Object.keys(holdsRef.current).length) {
+        holdsRef.current = pruned;
+        writePersistedHolds(pruned);
+      }
     }, 1000);
 
     return () => window.clearInterval(timer);
@@ -150,6 +178,11 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
   const soonestHoldSeconds = holdCount
     ? Math.min(...heldItems.map((item) => item.secondsLeft || 0))
     : 0;
+  const holdSecondsByProduct = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const item of heldItems) map[item.id] = item.secondsLeft ?? 0;
+    return map;
+  }, [heldItems]);
 
   const openAuth = useCallback((mode: StorefrontAuthMode, onSuccess?: () => void) => {
     authSuccessRef.current = onSuccess ?? null;
@@ -241,6 +274,27 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
   }, []);
   const dismissToast = useCallback(() => setToast(null), []);
   const revealHoldAlert = useCallback(() => setHoldAlertDismissed(false), []);
+
+  const holdProduct = useCallback(
+    (piece: HoldablePiece) => {
+      const expiresAt = Date.now() + HOLD_SECONDS * 1000;
+      holdsRef.current = { ...holdsRef.current, [piece.id]: { expiresAt, piece } };
+      writePersistedHolds(holdsRef.current);
+      setItems((current) => applyHold(current, piece));
+      setHoldAlertDismissed(false);
+      showToast("bag", "Held for you", `"${piece.name}" is held for 15 minutes.`);
+    },
+    [showToast],
+  );
+
+  const releaseProduct = useCallback((id: string) => {
+    if (holdsRef.current[id]) {
+      const { [id]: _removed, ...rest } = holdsRef.current;
+      holdsRef.current = rest;
+      writePersistedHolds(holdsRef.current);
+    }
+    setItems((current) => applyRelease(current, id));
+  }, []);
   const signOut = useCallback(async () => {
     try {
       const supabase = createClient();
@@ -265,6 +319,7 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
         authReady,
         heldItems,
         holdCount,
+        holdSecondsByProduct,
         items,
         signedIn,
         soonestHoldSeconds,
@@ -273,8 +328,10 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
       },
       actions: {
         dismissToast,
+        holdProduct,
         openSignin,
         openSignup,
+        releaseProduct,
         revealHoldAlert,
         showToast,
         signOut,
@@ -286,9 +343,12 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
       dismissToast,
       heldItems,
       holdCount,
+      holdProduct,
+      holdSecondsByProduct,
       items,
       openSignin,
       openSignup,
+      releaseProduct,
       revealHoldAlert,
       showToast,
       signedIn,

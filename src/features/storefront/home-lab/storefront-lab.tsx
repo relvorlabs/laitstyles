@@ -1,7 +1,15 @@
 "use client";
 
 import { type FormEvent, useCallback, useMemo, useState } from "react";
-import { homeCategories, money, type Product, products } from "./data";
+import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import {
+  homeCategories,
+  money,
+  type Product,
+  productById,
+  products,
+  productToHoldable,
+} from "./data";
 import { IconArrow } from "./icons";
 import { ProductCard } from "./product-card";
 import { RevealDiv, useReveal } from "./reveal";
@@ -111,10 +119,34 @@ function HomeApp() {
     [],
   );
 
-  const cardHandlers = { onQuickView: s.openQuick, onSave: s.toggleSaved, onAdd: s.addToCart };
+  const {
+    state: { holdSecondsByProduct },
+    actions: { holdProduct, releaseProduct },
+  } = useStorefrontExperience();
+  const cardHandlers = {
+    onQuickView: s.openQuick,
+    onSave: s.toggleSaved,
+    // Add to bag supersedes an active hold, then commits to the cart.
+    onAdd: (id: string) => {
+      releaseProduct(id);
+      s.addToCart(id);
+    },
+    onHold: (id: string) => {
+      const product = productById(id);
+      if (product) holdProduct(productToHoldable(product));
+    },
+    onRelease: releaseProduct,
+  };
   const renderCards = (list: Product[]) =>
     list.map((p) => (
-      <ProductCard key={p.id} product={p} isSaved={s.saved.has(p.id)} {...cardHandlers} />
+      <ProductCard
+        key={p.id}
+        product={p}
+        isSaved={s.saved.has(p.id)}
+        isHeld={p.id in holdSecondsByProduct}
+        holdSeconds={holdSecondsByProduct[p.id] ?? null}
+        {...cardHandlers}
+      />
     ));
 
   const onNewsletterSubmit = (e: FormEvent<HTMLFormElement>) => {

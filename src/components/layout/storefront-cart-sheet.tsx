@@ -33,13 +33,14 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
     >
       <SheetTrigger
         render={
-          <button
+          <Button
             aria-label={`Bag, ${storefront.cartCount} ${storefront.cartCount === 1 ? "item" : "items"}`}
             className={cn(
               "relative flex size-11 items-center justify-center rounded-full text-[var(--ink)] transition-colors hover:bg-[var(--sage-light)]",
               className,
             )}
-            type="button"
+            size="icon"
+            variant="ghost"
           />
         }
       >
@@ -52,7 +53,11 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
       </SheetTrigger>
 
       <SheetContent
-        className="flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[470px]"
+        /* `lst-lab` scopes the portalled sheet so the prototype's var aliases
+           (--bone/--ink/--line/--muted/--linen/--bone-2/--sage-light) resolve — Base UI
+           portals to <body>, outside the storefront's .lst-lab root; without it the panel
+           renders transparent/unstyled. */
+        className="lst-lab flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[470px]"
         side="right"
       >
         <SheetHeader className="border-b border-[var(--line)] px-6 py-5 text-left">
@@ -122,23 +127,25 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         <span className="text-xs text-[var(--muted)]">One-of-one</span>
                       ) : (
                         <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
-                          <button
+                          <Button
                             aria-label={`Decrease ${product.name} quantity`}
-                            className="grid size-8 place-items-center"
+                            className="grid size-8 place-items-center rounded-full hover:bg-[var(--sage-light)]"
                             onClick={() => storefront.changeQty(product.id, -1)}
-                            type="button"
+                            size="icon"
+                            variant="ghost"
                           >
                             −
-                          </button>
+                          </Button>
                           <span className="min-w-6 text-center font-mono text-xs">{lineQty}</span>
-                          <button
+                          <Button
                             aria-label={`Increase ${product.name} quantity`}
-                            className="grid size-8 place-items-center"
+                            className="grid size-8 place-items-center rounded-full hover:bg-[var(--sage-light)]"
                             onClick={() => storefront.changeQty(product.id, 1)}
-                            type="button"
+                            size="icon"
+                            variant="ghost"
                           >
                             +
-                          </button>
+                          </Button>
                         </div>
                       )}
                       <div className="flex items-center gap-3 text-xs">

@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { themeBootScript } from "@/components/theme/theme-script";
 // The canonical typography is the card-lab home-lab set (Geist / Instrument Serif /
 // Geist Mono), loaded once here via next/font and exposed as --font-lab-* for the whole app.
@@ -38,6 +40,20 @@ export default function RootLayout({
           <StorefrontExperienceProvider>
             <SiteChrome>{children}</SiteChrome>
           </StorefrontExperienceProvider>
+          {/* Single app-wide toast host. Ink pill + bone text, bottom-right — on-brand and
+              high-contrast (light text on dark), matching the button contrast rule. Home-lab's
+              own Toaster was removed so /products no longer double-renders toasts. */}
+          <Toaster
+            position="bottom-right"
+            style={
+              {
+                "--normal-bg": "var(--brand-ink)",
+                "--normal-text": "var(--brand-bone)",
+                "--normal-border": "var(--border-strong)",
+                "--border-radius": "5px",
+              } as CSSProperties
+            }
+          />
         </ThemeProvider>
       </body>
     </html>

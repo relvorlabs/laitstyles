@@ -38,61 +38,35 @@
     transform: none;
   }
 }
-@keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-}
 
 /* Scroll lock while an overlay is open (source used body.locked). */
 body.lst-locked {
   overflow: hidden;
 }
 
-.dark .lst-lab {
-  --bone: #151713;
-  --bone-2: #1e211b;
-  --linen: #292d25;
-  --ink: #f3f0e8;
-  --ink-soft: #d6d3c8;
-  --muted: #aaa99f;
-  --sage: #a7b287;
-  --sage-deep: #c0c99e;
-  --sage-light: #39412f;
-  --oxblood: #d2979f;
-  --success: #acd0b3;
-  --warning: #e4bf8c;
-  --error: #f0aaa4;
-  --line: rgba(243, 240, 232, 0.14);
-  --line-strong: rgba(243, 240, 232, 0.3);
-  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.18);
-  --shadow-2: 0 2px 0 rgba(0, 0, 0, 0.24), 0 16px 44px rgba(0, 0, 0, 0.34);
-  --shadow-3: 0 4px 0 rgba(0, 0, 0, 0.28), 0 26px 80px rgba(0, 0, 0, 0.52);
-}
-
+/*
+ * Local var names are retained as thin aliases over the global role tokens now
+ * defined in globals.css (single source of truth). Values are identical, so the
+ * rendered result is unchanged. Tokens whose local name already matches the global
+ * name (--oxblood, --success, --warning, --shadow-1/2/3, --ease, --drawer-ease,
+ * --header-h) are inherited from :root and intentionally not re-declared here (a
+ * self-referential `--x: var(--x)` would be cyclic/invalid). Dark mode is driven by
+ * the global `.dark` palette through these aliases; the former `.dark .lst-lab`
+ * override block is removed.
+ */
 .lst-lab {
-  --bone: #f3f0e8;
-  --bone-2: #e9e4d9;
-  --linen: #ded8ca;
-  --ink: #191a17;
-  --ink-soft: #34362f;
-  --muted: #727267;
-  --sage: #767e5c;
-  --sage-deep: #596044;
-  --sage-light: #d6e4a6;
-  --oxblood: #682631;
-  --success: #35533b;
-  --warning: #8b5a26;
-  --error: #8a332d;
-  --line: rgba(25, 26, 23, 0.16);
-  --line-strong: rgba(25, 26, 23, 0.34);
-  --shadow-1: 0 1px 0 rgba(25, 26, 23, 0.08), 0 8px 20px rgba(25, 26, 23, 0.06);
-  --shadow-2: 0 2px 0 rgba(25, 26, 23, 0.07), 0 16px 44px rgba(25, 26, 23, 0.14);
-  --shadow-3: 0 4px 0 rgba(25, 26, 23, 0.06), 0 26px 80px rgba(25, 26, 23, 0.24);
-  --ease: cubic-bezier(0.33, 1, 0.68, 1);
-  --drawer-ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --header-h: 78px;
+  --bone: var(--brand-bone);
+  --bone-2: var(--brand-bone-strong);
+  --linen: var(--surface-interactive-hover);
+  --ink: var(--brand-ink);
+  --ink-soft: var(--brand-ink-soft);
+  --muted: var(--muted-foreground);
+  --sage: var(--brand-sage);
+  --sage-deep: var(--brand-sage-strong);
+  --sage-light: var(--brand-sage-soft);
+  --error: var(--destructive);
+  --line: var(--border-subtle);
+  --line-strong: var(--border-strong);
 
   min-width: 320px;
   background: var(--bone);
@@ -1262,40 +1236,6 @@ body.lst-locked {
     font-weight: 600;
   }
 
-  /* TOAST */
-  .toast {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    z-index: 140;
-    width: min(390px, calc(100% - 36px));
-    background: var(--ink);
-    color: var(--bone);
-    box-shadow: var(--shadow-3);
-    border-radius: 5px;
-    padding: 14px 16px;
-    display: none;
-    animation: toastIn 260ms var(--ease) both;
-  }
-  .toast.show {
-    display: block;
-  }
-  .toast-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-  }
-  .toast p {
-    margin: 0;
-    font-size: 0.8rem;
-  }
-  .toast button {
-    border: 0;
-    background: transparent;
-    color: var(--sage-light);
-    text-decoration: underline;
-  }
 
   .reveal {
     opacity: 0;
@@ -1544,11 +1484,6 @@ body.lst-locked {
     }
     .measure-illustration {
       min-height: 260px;
-    }
-    .toast {
-      right: 12px;
-      bottom: 12px;
-      width: calc(100% - 24px);
     }
   }
 }

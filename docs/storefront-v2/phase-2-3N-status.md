@@ -11,6 +11,35 @@ Phase 2-3N ports the static `docs/storefront-v2/card-lab/*.html` design-lab prot
 - **Global theme + typography** — `src/app/globals.css` role tokens remapped to home-lab hex; `.dark` removed (light-only source); fonts (Geist / Instrument Serif / Geist Mono) loaded globally. Verified.
 - **Product detail** (`product-detail.html` → `src/app/products/[slug]/page.tsx`). This increment. Canonical PDP is `/products/[slug]`, rendering the fake home-lab product by slug, using the prototype chrome (SiteHeader/SiteFooter/overlays/cart). `/p/[slug]` was already a `permanentRedirect` → `/products/[slug]` (unchanged). Prototype product cards now link to `/products/[slug]`.
 
+## Clean-sweep refactor log (token + shadcn pass)
+
+Continuation pass authorized by the user: globalize prototype tokens, replace inline/arbitrary CSS with theme tokens, convert raw HTML → shadcn (incl. overlays), split long components. Decisions on record: **keep `(shop)/`** (real Prisma track, out of scope); **build/lint/tsc/biome-verified only** — visual sign-off deferred (pexels host blocked in sandbox, 2-3N-03); **full shadcn incl. overlays** this pass; **overlays use Base UI's default open motion + blur** (prototype `modalIn`/`drawerIn`/`viewIn` keyframes to be removed as each overlay converts, not hand-preserved); **search Dialog (#3) is the pattern gate** — user spot-checks it before overlay replication (#4) proceeds. **Portal-scope rule (mandatory):** Base UI Dialog/Sheet portal to `<body>` outside `.lst-lab`, so every converted overlay's `DialogContent`/`SheetContent` MUST carry the `lst-lab` class or its var aliases + scoped classes (`.eyebrow`/`.control-button`/`.price`/`var(--bone)`…) resolve to nothing → transparent/unstyled panel (same precedent as `.lst-account`, globals.css §account). Fixed in #3 after user-reported transparent background.
+
+| # | Increment | Files | Status |
+|---|---|---|---|
+| 1 | Token foundation: move non-global tokens (oxblood, `--ease`, `--drawer-ease`, `--header-h`, shadow scale) to `globals.css`; `.lst-lab` → thin aliases over global roles; `.dark .lst-lab` block removed | `src/app/globals.css`, `home-lab/home-lab.css` | ✅ biome ✓ |
+| 2 | Prototype toast → `sonner` (themed ink/bone pill, bottom-right); `showToast` contract preserved; `.toast*` CSS + `toastIn` keyframe removed; `<Toaster>` mounted in provider | `components/ui/sonner.tsx` (added), `home-lab/storefront-context.tsx`, `home-lab/storefront-overlays.tsx`, `home-lab/home-lab.css` | ✅ tsc 0, biome ✓ |
+| 3 | Search modal → Base UI `Dialog` — **REVERTED to hand-rolled overlay.** Live-testing on `laitstyle.localhost` exposed 2-3N-OVL (below): the Base UI Dialog popup does not unmount on close, leaving a full-screen `pointer-events:auto` overlay that **freezes the page**. Restored working hand-rolled search (opens+closes clean, verified) | `home-lab/storefront-overlays.tsx` | ↩ reverted; shared `dialog.tsx`/`sheet.tsx` restored to HEAD |
+| 4 | Cart/saved drawer + quick-view/image-viewer/measure/guide modals → `Sheet`/`Dialog` | `home-lab/storefront-overlays.tsx` | ⛔ **BLOCKED by 2-3N-OVL** |
+
+### Overlay hotfixes (user-reported, real-browser confirmed & fixed)
+- **Cart** (`components/layout/storefront-cart-sheet.tsx`, a shadcn `Sheet` — this is what the bag button opens, not the legacy `.overlay` drawer): was **transparent + behind header**. Fixed: added `lst-lab` scope to `SheetContent` (its `--bone`/`--ink`/`--line`/`--muted`/`--linen`/`--bone-2`/`--sage-light` now resolve → opaque, verified `--bone: #151713` live), and raised shared Sheet `z-50 → z-[100]` (above header `z-[60]`, verified live).
+- **Auth dialog** (shared `storefront-auth-dialog`, shadcn `Dialog`): was **behind header + felt off-centre**. Fixed: raised shared Dialog `z-50 → z-[100]` (same mechanism verified on the Sheet); clearing the header also restores the centred read. Layout (2-col, not 384px-capped) already fixed via `sm:max-w-[940px]`.
+- **Freeze re-assessment:** user actively uses these overlays with no freeze → the earlier "doesn't unmount" was a **synthetic-`dispatchEvent` test artifact**, not a real bug. 2-3N-OVL downgraded to a watch-item; overlay migration is **not** blocked by it. z-index raised in shared `dialog.tsx`/`sheet.tsx`; biome/tsc clean.
+
+### BLOCKER 2-3N-OVL — Base UI overlay close behaviour needs trusted-interaction verification (downgraded → watch-item)
+Observed while live-testing the storefront search `Dialog` and the pre-existing `/shop` mobile-filters `Sheet`: after close the portalled popup stayed in the DOM, `mounted` (per `DialogPopup.js` gate `hidden:!mounted`) stuck `true`, `pointer-events:auto`; for the centered dialog this blocks clicks. **Caveat — not conclusive:** the close was driven mostly via **synthetic `dispatchEvent`**, which Base UI may ignore (untrusted), so the overlays may simply not have *truly* closed rather than "failed to unmount". Clean confirmation with **trusted** interactions was blocked by sandbox flakiness (pexels-blocked screenshots time out; coordinate clicks need a screenshot; classifier outages). No animations were present at the stuck moment, so animation is *not* the cause.
+
+**Leading hypothesis for the storefront search specifically:** the conversion was **partial** — Base UI `Dialog` was layered on top of the still-running hand-rolled `openId` state machine (its own Escape handler, scroll-lock, focus effects). Two systems controlling one overlay is the likely culprit; a proper conversion must hand open/close/focus/scroll-lock **fully** to Base UI and drop the `openId` machinery for that overlay.
+
+**Action:** confirm with one trusted real-browser test (open auth dialog or a `/shop` sheet, close via its X/Escape, check the page is still clickable). If overlays close cleanly for real users → the freeze was a test artifact and migration can proceed (with the full-handover rule above). If they truly stick → root-cause Base UI v1.6.0 `mounted` gating in the shared primitives first. Search `Dialog` reverted to the working hand-rolled overlay in the meantime; shared `dialog.tsx`/`sheet.tsx` restored to HEAD. Separately real: shared overlay `z-50` sits under storefront header `z-[60]`.
+| 5 | Raw `.button`/`.badge`/`.field` → `Button`/`Badge`/`Field` | storefront-wide | ☐ |
+| 6 | `storefront-lab.tsx` hero/category/one-of-one/rail/newsletter → utilities + `motion` | `home-lab/storefront-lab.tsx` | ☐ |
+| 7 | `catalogue-lab.tsx` `.lst-catalogue` → utilities | `home-lab/catalogue-lab.tsx` | ☐ |
+| 8 | Delete dead `home-lab.css` selectors as consumers clear (2-3N-04 gate) | `home-lab/home-lab.css` | ☐ gated |
+
+Follow-up noted: `shared/storefront-experience-provider.tsx` has a **second** toast system (`showToast(tone, title, message)`, account/shared world) — not migrated to sonner in this pass; separate item.
+
 ## Blocker register
 
 ### BLOCKER 2-3N-01 — Legacy storefront CSS conversion — **Open (in progress)**

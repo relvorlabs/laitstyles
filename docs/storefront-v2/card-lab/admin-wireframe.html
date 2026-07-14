@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Internal Operations Workspace — Wireframe</title>
+  <meta name="description" content="Interactive low-fidelity wireframe for a persona-aware commerce, store operations, and platform administration workspace." />
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      --paper: #f3f1eb;
+      --surface: #fff;
+      --soft: #e8e5dd;
+      --soft-2: #d9d5cb;
+      --ink: #171714;
+      --muted: #6f6c64;
+      --line: #bab5aa;
+      --line-dark: #171714;
+      --critical: #641d26;
+      --warning: #77501e;
+      --success: #34513a;
+      --focus: #171714;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--paper); scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        linear-gradient(rgba(23,23,20,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,23,20,.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 22px 22px;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, a, input, select, textarea, summary { touch-action: manipulation; }
+    button, a { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+
+    .surface { background: var(--surface); border: 2px solid var(--line-dark); }
+    .panel { background: rgba(255,255,255,.93); border: 1px solid var(--line); }
+    .soft { background: var(--soft); border: 1px solid var(--line); }
+    .dashed { background: rgba(232,229,221,.72); border: 2px dashed var(--line); }
+    .label {
+      font-size: .68rem;
+      font-weight: 850;
+      letter-spacing: .13em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 2px solid var(--ink);
+      background: var(--ink);
+      color: white;
+      padding: .68rem .95rem;
+      font-weight: 800;
+    }
+    .btn:hover:not(:disabled) { background: #30302b; }
+    .btn.secondary { background: white; color: var(--ink); }
+    .btn.secondary:hover:not(:disabled) { background: var(--soft); }
+    .btn.danger { border-color: var(--critical); background: var(--critical); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .icon-btn {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 2px solid var(--ink);
+      background: white;
+    }
+
+    .field {
+      min-height: 46px;
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      padding: .72rem .82rem;
+    }
+    .field:focus { border-color: var(--ink); }
+
+    .nav-group-title {
+      padding: .9rem .8rem .4rem;
+      color: var(--muted);
+      font-size: .66rem;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      min-height: 44px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      border-left: 4px solid transparent;
+      padding: .62rem .75rem;
+      color: var(--ink);
+      text-align: left;
+      font-size: .91rem;
+      font-weight: 700;
+    }
+    .nav-item:hover { background: var(--soft); }
+    .nav-item[aria-current="page"] {
+      border-left-color: var(--ink);
+      background: var(--soft);
+    }
+    .nav-item.is-disabled { color: #99958c; cursor: not-allowed; }
+
+    .chip {
+      display: inline-flex;
+      min-height: 27px;
+      align-items: center;
+      gap: .35rem;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      padding: .22rem .62rem;
+      font-size: .68rem;
+      font-weight: 850;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .chip.critical { border-color: var(--critical); color: var(--critical); }
+    .chip.warning { border-color: var(--warning); color: var(--warning); }
+    .chip.success { border-color: var(--success); color: var(--success); }
+
+    .route-page { animation: page-in 150ms ease-out both; }
+    @keyframes page-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .placeholder-image {
+      background:
+        linear-gradient(135deg, transparent 0 48%, rgba(23,23,20,.17) 49% 51%, transparent 52% 100%),
+        linear-gradient(45deg, transparent 0 48%, rgba(23,23,20,.17) 49% 51%, transparent 52% 100%),
+        var(--soft);
+      background-size: 36px 36px;
+    }
+
+    .metric-rule {
+      position: relative;
+      padding-left: 1rem;
+    }
+    .metric-rule::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .25rem;
+      bottom: .25rem;
+      width: 4px;
+      background: var(--ink);
+    }
+
+    .chart-grid line { stroke: #d3cfc5; stroke-width: 1; }
+    .chart-series { fill: none; stroke: var(--ink); stroke-width: 3; }
+    .chart-series-dashed { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 6 5; }
+    .bar { fill: #7f7b71; }
+    .bar-dark { fill: var(--ink); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 820px; }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: .85rem .9rem;
+      text-align: left;
+      vertical-align: top;
+      font-size: .87rem;
+    }
+    th {
+      background: var(--soft);
+      font-size: .69rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    tbody tr:hover { background: rgba(232,229,221,.55); }
+
+    .modal-backdrop, .drawer-backdrop {
+      background: rgba(23,23,20,.57);
+      backdrop-filter: blur(2px);
+    }
+    .modal-panel {
+      opacity: 0;
+      transform: translateY(12px) scale(.985);
+      transition: opacity 170ms ease, transform 200ms ease;
+    }
+    .modal-panel.is-open { opacity: 1; transform: translateY(0) scale(1); }
+
+    .drawer-panel {
+      transform: translateX(-102%);
+      transition: transform 220ms ease;
+    }
+    .drawer-panel.is-open { transform: translateX(0); }
+
+    .toast {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 160ms ease, transform 180ms ease;
+    }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
+
+    .skeleton {
+      position: relative;
+      overflow: hidden;
+      background: var(--soft);
+    }
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+      animation: shimmer 1.3s infinite;
+    }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+    .step-node {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: white;
+      font-size: .72rem;
+      font-weight: 850;
+    }
+    .step-node.active, .step-node.complete {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: white;
+    }
+
+    .intake-step { display: none; }
+    .intake-step.active { display: block; animation: page-in 150ms ease-out both; }
+
+    .mobile-safe {
+      padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="fixed left-3 top-3 z-[160] -translate-y-24 border-2 border-black bg-white px-4 py-2 font-bold transition focus:translate-y-0">
+    Skip to workspace
+  </a>
+
+  <!-- Prototype controls -->
+  <section class="border-b-2 border-black bg-black text-white" aria-label="Wireframe controls">
+    <div class="mx-auto flex min-h-12 max-w-[1800px] flex-wrap items-center gap-3 px-4 py-2">
+      <p class="label">Internal operations wireframe</p>
+      <div class="ml-auto flex flex-wrap items-center gap-3">
+        <label class="flex items-center gap-2 text-sm">
+          <span>Persona</span>
+          <select id="persona-selector" class="min-h-9 border border-white bg-black px-3 text-white">
+            <option value="manager">Store manager</option>
+            <option value="owner">Shop owner</option>
+            <option value="staff">Operational staff</option>
+            <option value="developer">Developer</option>
+            <option value="superadmin">Super admin</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <span>State</span>
+          <select id="state-selector" class="min-h-9 border border-white bg-black px-3 text-white">
+            <option value="default">Default</option>
+            <option value="loading">Loading</option>
+            <option value="empty">Empty</option>
+            <option value="error">Error</option>
+            <option value="stale">Stale data</option>
+            <option value="restricted">Permission changed</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <div class="min-h-screen md:grid md:grid-cols-[250px_minmax(0,1fr)] lg:grid-cols-[282px_minmax(0,1fr)]">
+    <!-- Desktop sidebar -->
+    <aside class="hidden border-r-2 border-black bg-white md:flex md:min-h-screen md:flex-col">
+      <div class="border-b-2 border-black p-5">
+        <div class="flex items-center gap-3">
+          <span class="grid size-10 place-items-center border-2 border-black font-black">LS</span>
+          <div>
+            <p class="font-black uppercase tracking-[.12em]">Control Room</p>
+            <p id="sidebar-persona" class="mt-1 text-sm text-[var(--muted)]">Store manager</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-b border-[var(--line)] p-3">
+        <button class="flex min-h-12 w-full items-center justify-between border border-[var(--line)] bg-[var(--soft)] px-3 text-left" type="button" data-open="scope-modal">
+          <span>
+            <span class="label text-[var(--muted)]">Current scope</span>
+            <span class="mt-1 block font-bold">Lagos Flagship</span>
+          </span>
+          <span>↕</span>
+        </button>
+      </div>
+
+      <nav id="desktop-nav" class="min-h-0 flex-1 overflow-y-auto p-2" aria-label="Internal workspace">
+        <div class="nav-group" data-permissions="all">
+          <p class="nav-group-title">Workspace</p>
+          <button class="nav-item" type="button" data-route="dashboard" aria-current="page">Dashboard</button>
+          <button class="nav-item" type="button" data-route="tasks">Assigned work <span class="ml-auto border border-black px-2 text-xs">8</span></button>
+          <button class="nav-item" type="button" data-route="alerts">Alerts <span class="ml-auto border border-black px-2 text-xs">4</span></button>
+        </div>
+
+        <div class="nav-group" data-permissions="manager,owner,staff,superadmin">
+          <p class="nav-group-title">Commerce</p>
+          <button class="nav-item" type="button" data-route="products">Products</button>
+          <button class="nav-item" type="button" data-route="inventory">Inventory</button>
+          <button class="nav-item" type="button" data-route="orders">Orders</button>
+          <button class="nav-item" type="button" data-route="returns">Returns</button>
+          <button class="nav-item" type="button" data-route="customers">Customers</button>
+        </div>
+
+        <div class="nav-group" data-permissions="owner,manager,superadmin">
+          <p class="nav-group-title">Performance</p>
+          <button class="nav-item" type="button" data-route="finance">Revenue & payouts</button>
+          <button class="nav-item" type="button" data-route="reports">Reports</button>
+        </div>
+
+        <div class="nav-group" data-permissions="owner,manager,superadmin">
+          <p class="nav-group-title">Administration</p>
+          <button class="nav-item" type="button" data-route="team">Team & access</button>
+          <button class="nav-item" type="button" data-route="settings">Store configuration</button>
+        </div>
+
+        <div class="nav-group" data-permissions="developer,superadmin">
+          <p class="nav-group-title">System</p>
+          <button class="nav-item" type="button" data-route="system">System health</button>
+          <button class="nav-item" type="button" data-route="jobs">Jobs & webhooks</button>
+          <button class="nav-item" type="button" data-route="flags">Feature flags</button>
+          <button class="nav-item" type="button" data-route="audit">Audit log</button>
+        </div>
+      </nav>
+
+      <div class="border-t-2 border-black p-3">
+        <button class="nav-item" type="button" data-route="profile">Profile & security</button>
+        <button class="nav-item text-[var(--critical)]" type="button" data-info="Internal session sign-out selected.">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="min-w-0">
+      <!-- Navbar -->
+      <header class="sticky top-0 z-40 border-b-2 border-black bg-[rgba(243,241,235,.96)] backdrop-blur">
+        <div class="flex min-h-[68px] items-center gap-3 px-4 sm:px-5 lg:px-7">
+          <button id="mobile-nav-trigger" class="icon-btn md:hidden" type="button" aria-label="Open workspace navigation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+
+          <button class="hidden min-h-11 border-2 border-black bg-white px-4 text-left sm:block" type="button" data-open="scope-modal">
+            <span class="label text-[var(--muted)]">Scope</span>
+            <span class="ml-2 font-bold">Lagos Flagship</span>
+          </button>
+
+          <button class="min-h-11 min-w-0 flex-1 border border-[var(--line)] bg-white px-4 text-left text-[var(--muted)] lg:max-w-xl" type="button" data-open="command-modal">
+            Search product, order, return, customer, route…
+            <kbd class="float-right hidden border border-[var(--line)] px-2 py-0.5 text-xs lg:inline">⌘ K</kbd>
+          </button>
+
+          <button class="icon-btn relative" type="button" data-open="alerts-drawer" aria-label="Open alerts">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 10a5 5 0 0 1 10 0v4l2 3H5l2-3v-4Z" stroke="currentColor" stroke-width="1.7"/><path d="M10 20h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-black text-[10px] font-bold text-white">4</span>
+          </button>
+
+          <button class="hidden min-h-11 border-2 border-black bg-white px-4 text-left lg:block" type="button" data-open="persona-modal">
+            <span id="navbar-persona" class="font-bold">Store manager</span>
+            <span class="ml-2 text-[var(--muted)]">↕</span>
+          </button>
+
+          <button class="icon-btn" type="button" data-open="profile-menu" aria-label="Open account menu">
+            <span class="font-black">AO</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" class="min-w-0 p-4 sm:p-5 lg:p-7">
+        <nav class="mb-5 text-sm text-[var(--muted)]" aria-label="Breadcrumb">
+          <ol class="flex flex-wrap items-center gap-2">
+            <li>Control Room</li>
+            <li aria-hidden="true">/</li>
+            <li id="breadcrumb-current" class="text-[var(--ink)]" aria-current="page">Dashboard</li>
+          </ol>
+        </nav>
+
+        <section id="state-overlay" class="surface mb-6 p-6" hidden aria-live="polite"></section>
+
+        <!-- DASHBOARD -->
+        <section class="route-page" data-page="dashboard">
+          <header class="flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <p id="dashboard-eyebrow" class="label text-[var(--muted)]">Daily operations · Lagos Flagship</p>
+              <h1 id="dashboard-title" class="mt-3 text-4xl font-black sm:text-5xl">Store manager control desk</h1>
+              <p id="dashboard-summary" class="mt-3 max-w-3xl text-[var(--muted)]">Resolve the oldest fulfillment risks, intake backlog, and inventory mismatches before reviewing performance.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button id="dashboard-primary" class="btn" type="button" data-route="orders">Open fulfillment queue</button>
+              <button class="btn secondary" type="button" data-open="handover-modal">Shift handover</button>
+            </div>
+          </header>
+
+          <section id="critical-banner" class="mt-6 surface border-l-[8px] border-l-[var(--critical)] p-5">
+            <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p class="label text-[var(--critical)]">High priority · 18 minutes old</p>
+                <h2 class="mt-3 text-2xl font-black">Two orders have exceeded the packing SLA.</h2>
+                <p class="mt-2 text-[var(--muted)]">Both are paid, allocated, and still unassigned to a packer.</p>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                <button class="btn" type="button" data-route="orders">Assign now</button>
+                <button class="btn secondary" type="button" data-open="alert-action-modal">Acknowledge</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="mt-6 grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
+            <div class="surface">
+              <div class="flex flex-wrap items-end justify-between gap-4 border-b-2 border-black p-5">
+                <div>
+                  <p class="label text-[var(--muted)]">Action queue</p>
+                  <h2 id="queue-title" class="mt-2 text-2xl font-black">What needs intervention today</h2>
+                </div>
+                <span id="queue-count" class="chip warning">8 open</span>
+              </div>
+              <div id="persona-queue" class="divide-y-2 divide-black">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <section class="surface p-5">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <p class="label text-[var(--muted)]">Current shift</p>
+                    <h2 class="mt-2 text-2xl font-black">Operational pulse</h2>
+                  </div>
+                  <span class="text-xs text-[var(--muted)]">Updated 4 min ago</span>
+                </div>
+                <dl id="persona-metrics" class="mt-5 grid gap-5 sm:grid-cols-2">
+                  <!-- populated by JS -->
+                </dl>
+              </section>
+
+              <section class="surface p-5">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <p class="label text-[var(--muted)]">Exceptions</p>
+                    <h2 class="mt-2 text-2xl font-black">Risk watch</h2>
+                  </div>
+                  <button class="text-sm font-bold underline underline-offset-4" type="button" data-route="alerts">All alerts</button>
+                </div>
+                <ul id="risk-list" class="mt-5 space-y-4">
+                  <!-- populated by JS -->
+                </ul>
+              </section>
+            </div>
+          </section>
+
+          <section class="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
+            <section class="surface p-5">
+              <div class="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p id="chart-eyebrow" class="label text-[var(--muted)]">Decision chart</p>
+                  <h2 id="chart-title" class="mt-2 text-2xl font-black">Where fulfillment is aging</h2>
+                  <p id="chart-summary" class="mt-2 text-sm text-[var(--muted)]">Five orders are older than the 12-hour internal target.</p>
+                </div>
+                <button class="btn secondary" type="button" data-info="Underlying records opened.">View evidence</button>
+              </div>
+              <div id="persona-chart" class="mt-5 min-h-64" aria-label="Operational chart">
+                <!-- populated by JS -->
+              </div>
+            </section>
+
+            <section class="surface p-5">
+              <p class="label text-[var(--muted)]">Accountability</p>
+              <h2 class="mt-2 text-2xl font-black">Recent decisions</h2>
+              <ol class="mt-5 space-y-5">
+                <li class="border-l-4 border-black pl-4"><p class="font-bold">Inventory adjustment approved</p><p class="mt-1 text-sm text-[var(--muted)]">Tomi · 14:32 · Piece PC-02041</p></li>
+                <li class="border-l-4 border-black pl-4"><p class="font-bold">Order reassigned</p><p class="mt-1 text-sm text-[var(--muted)]">Ada · 14:09 · #LS-1082</p></li>
+                <li class="border-l-4 border-black pl-4"><p class="font-bold">Return inspection completed</p><p class="mt-1 text-sm text-[var(--muted)]">Mina · 13:44 · #RT-0041</p></li>
+              </ol>
+            </section>
+          </section>
+        </section>
+
+        <!-- TASKS -->
+        <section class="route-page" data-page="tasks" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5">
+            <div><p class="label text-[var(--muted)]">Assigned work</p><h1 class="mt-3 text-4xl font-black">My operational queue</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Work is grouped by required outcome, not by database record type.</p></div>
+            <button class="btn" type="button" data-open="handover-modal">Create handover</button>
+          </header>
+
+          <div class="mt-6 grid gap-6 xl:grid-cols-[.72fr_1.28fr]">
+            <aside class="surface p-4">
+              <p class="label text-[var(--muted)]">Views</p>
+              <div class="mt-4 grid gap-2">
+                <button class="nav-item" type="button" aria-current="page">Due now <span class="ml-auto">4</span></button>
+                <button class="nav-item" type="button">Today <span class="ml-auto">8</span></button>
+                <button class="nav-item" type="button">Waiting on others <span class="ml-auto">3</span></button>
+                <button class="nav-item" type="button">Completed this shift <span class="ml-auto">12</span></button>
+              </div>
+            </aside>
+
+            <section class="surface">
+              <div class="border-b-2 border-black p-5"><h2 class="text-2xl font-black">Due now</h2></div>
+              <div class="divide-y-2 divide-black">
+                <article class="grid gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center"><input type="checkbox" class="size-5" aria-label="Select task" /><div><p class="font-bold">Pack order #LS-1082</p><p class="mt-1 text-sm text-[var(--muted)]">SLA breached by 22 minutes · 2 pieces</p></div><button class="btn" type="button" data-route="orders">Open</button></article>
+                <article class="grid gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center"><input type="checkbox" class="size-5" aria-label="Select task" /><div><p class="font-bold">Resolve duplicate SKU</p><p class="mt-1 text-sm text-[var(--muted)]">Draft product “Vintage Moto Jacket”</p></div><button class="btn secondary" type="button" data-route="products">Review</button></article>
+                <article class="grid gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center"><input type="checkbox" class="size-5" aria-label="Select task" /><div><p class="font-bold">Inspect return #RT-0041</p><p class="mt-1 text-sm text-[var(--muted)]">Customer requested refund · item received</p></div><button class="btn secondary" type="button" data-route="returns">Inspect</button></article>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- ALERTS -->
+        <section class="route-page" data-page="alerts" hidden>
+          <header><p class="label text-[var(--muted)]">Attention model</p><h1 class="mt-3 text-4xl font-black">Alerts and exceptions</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Each alert has severity, scope, ownership, evidence, and a resolution path.</p></header>
+
+          <div class="mt-6 grid gap-4">
+            <article class="surface border-l-[8px] border-l-[var(--critical)] p-5">
+              <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div><div class="flex flex-wrap gap-2"><span class="chip critical">Critical</span><span class="chip">Owned by Platform</span></div><h2 class="mt-3 text-2xl font-black">Payment provider callback failures are increasing.</h2><p class="mt-2 text-[var(--muted)]">8 failed callbacks in 15 minutes · all stores · detected 14:21</p></div>
+                <div class="flex flex-wrap gap-3"><button class="btn" type="button" data-route="jobs">Investigate</button><button class="btn secondary" type="button" data-open="alert-action-modal">Assign</button></div>
+              </div>
+            </article>
+            <article class="surface border-l-[8px] border-l-[var(--warning)] p-5">
+              <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div><div class="flex flex-wrap gap-2"><span class="chip warning">High</span><span class="chip">Lagos Flagship</span></div><h2 class="mt-3 text-2xl font-black">Inventory count has 3 unresolved mismatches.</h2><p class="mt-2 text-[var(--muted)]">Count session CT-018 · assigned to store manager</p></div>
+                <button class="btn secondary" type="button" data-route="inventory">Review mismatches</button>
+              </div>
+            </article>
+            <article class="surface p-5">
+              <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div><span class="chip">Medium</span><h2 class="mt-3 text-2xl font-black">Tax configuration review is due this week.</h2><p class="mt-2 text-[var(--muted)]">Nigeria store scope · owner action</p></div>
+                <button class="btn secondary" type="button" data-route="settings">Open configuration</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section class="route-page" data-page="products" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5">
+            <div><p class="label text-[var(--muted)]">Product lifecycle</p><h1 class="mt-3 text-4xl font-black">Products and pieces</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Focus on publish readiness, inventory state, ownership, and blocking issues.</p></div>
+            <div class="flex flex-wrap gap-3"><button class="btn secondary" type="button" data-open="intake-modal">Start piece intake</button><button class="btn" type="button" data-route="product-editor">New product</button></div>
+          </header>
+
+          <div class="mt-6 surface p-4">
+            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_170px_190px_180px_auto]">
+              <input class="field" type="search" placeholder="Product name, SKU, barcode…" aria-label="Search products" />
+              <select class="field" aria-label="Publication state"><option>All publish states</option><option>Draft</option><option>Needs review</option><option>Published</option><option>Blocked</option></select>
+              <select class="field" aria-label="Inventory state"><option>All inventory states</option><option>Available</option><option>Reserved</option><option>Sold</option><option>Mismatch</option></select>
+              <select class="field" aria-label="Location"><option>All locations</option><option>Lagos Flagship</option><option>Ikeja Studio</option></select>
+              <button class="btn secondary" type="button" data-info="Product filters applied.">Apply</button>
+            </div>
+          </div>
+
+          <div class="mt-5 surface table-wrap">
+            <table>
+              <thead><tr><th>Product</th><th>Publish state</th><th>Completeness</th><th>Inventory</th><th>Price</th><th>Owner / updated</th><th>Next action</th></tr></thead>
+              <tbody>
+                <tr><td><div class="flex gap-3"><div class="placeholder-image size-16 shrink-0 border border-black"></div><div><strong>Broken-in Leather Moto</strong><p class="mt-1 text-xs text-[var(--muted)]">SKU MOTO-2041 · One of one</p></div></div></td><td><span class="chip success">Published</span></td><td>10 / 10</td><td><span class="chip success">Available</span></td><td>₦41,000</td><td>Ada · 20 min</td><td><button class="btn secondary" type="button" data-route="product-editor">Open</button></td></tr>
+                <tr><td><div class="flex gap-3"><div class="placeholder-image size-16 shrink-0 border border-black"></div><div><strong>Vintage Moto Jacket</strong><p class="mt-1 text-xs text-[var(--muted)]">Duplicate SKU detected</p></div></div></td><td><span class="chip warning">Blocked</span></td><td>7 / 10</td><td>Draft piece</td><td>₦38,000</td><td>Tomi · 1h</td><td><button class="btn" type="button" data-route="product-editor">Resolve</button></td></tr>
+                <tr><td><div class="flex gap-3"><div class="placeholder-image size-16 shrink-0 border border-black"></div><div><strong>Reworked Indigo Denim</strong><p class="mt-1 text-xs text-[var(--muted)]">SKU DEN-8803</p></div></div></td><td><span class="chip">Needs review</span></td><td>9 / 10</td><td><span class="chip">Reserved</span></td><td>₦22,000</td><td>Mina · 3h</td><td><button class="btn secondary" type="button" data-open="publish-modal">Review</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- PRODUCT EDITOR -->
+        <section class="route-page" data-page="product-editor" hidden>
+          <button class="mb-5 font-bold underline underline-offset-4" type="button" data-route="products">← Back to products</button>
+          <header class="flex flex-wrap items-end justify-between gap-5">
+            <div><p class="label text-[var(--muted)]">Draft product · SKU validation blocked</p><h1 class="mt-3 text-4xl font-black">Vintage Moto Jacket</h1><p class="mt-3 text-[var(--muted)]">Progressive editor with publish validation, not one endless form.</p></div>
+            <div class="flex flex-wrap gap-3"><button class="btn secondary" type="button" data-info="Draft saved.">Save draft</button><button class="btn" type="button" data-open="publish-modal">Review for publish</button></div>
+          </header>
+
+          <div class="mt-6 grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
+            <aside class="surface p-3">
+              <p class="label p-2 text-[var(--muted)]">Sections</p>
+              <div class="mt-2 grid gap-1"><button class="nav-item" aria-current="page">Identity</button><button class="nav-item">Media</button><button class="nav-item">Pricing</button><button class="nav-item">Fit & measurements</button><button class="nav-item">Condition & flaws</button><button class="nav-item">Inventory</button><button class="nav-item">Merchandising</button><button class="nav-item">SEO & publish</button><button class="nav-item">Change history</button></div>
+            </aside>
+
+            <form class="surface">
+              <div class="border-b-2 border-black p-5"><h2 class="text-2xl font-black">Identity</h2></div>
+              <div class="grid gap-5 p-5">
+                <label><span class="font-bold">Product name</span><input class="field mt-2" value="Vintage Moto Jacket" /></label>
+                <div class="grid gap-5 sm:grid-cols-2"><label><span class="font-bold">Category</span><select class="field mt-2"><option>Jackets</option></select></label><label><span class="font-bold">Collection</span><select class="field mt-2"><option>Archive Leather</option></select></label></div>
+                <label><span class="font-bold">Short summary</span><textarea class="field mt-2 min-h-24">Broken-in black leather with repaired seam and exact measurements.</textarea></label>
+                <label><span class="font-bold">Description</span><textarea class="field mt-2 min-h-44"></textarea></label>
+              </div>
+            </form>
+
+            <aside class="space-y-5">
+              <section class="surface p-5">
+                <div class="flex items-center justify-between"><h2 class="text-xl font-black">Publish readiness</h2><span class="chip warning">7 / 10</span></div>
+                <ul class="mt-5 space-y-3 text-sm"><li>✓ Primary image</li><li>✓ Product name</li><li>✓ Price</li><li>✓ Category</li><li>✓ Condition</li><li class="text-[var(--critical)]">✕ Unique SKU</li><li class="text-[var(--critical)]">✕ Sleeve measurement</li><li class="text-[var(--critical)]">✕ Delivery eligibility</li></ul>
+              </section>
+              <section class="surface p-5"><p class="label text-[var(--muted)]">Blocking issue</p><h2 class="mt-3 text-xl font-black">SKU MOTO-2041 already exists.</h2><button class="btn secondary mt-4 w-full" type="button" data-info="Duplicate SKU resolution opened.">Resolve duplicate</button></section>
+            </aside>
+          </div>
+        </section>
+
+        <!-- INVENTORY -->
+        <section class="route-page" data-page="inventory" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="label text-[var(--muted)]">Inventory control</p><h1 class="mt-3 text-4xl font-black">Pieces, counts, and transfers</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">One-of-one pieces remain distinguishable from quantity-based stock.</p></div><div class="flex flex-wrap gap-3"><button class="btn secondary" type="button" data-open="adjustment-modal">Adjust inventory</button><button class="btn" type="button" data-open="intake-modal">Start intake</button></div></header>
+
+          <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="surface p-5 metric-rule"><p class="label text-[var(--muted)]">Available pieces</p><p class="mt-3 text-3xl font-black">318</p><p class="mt-2 text-sm text-[var(--muted)]">Across current store scope</p></article>
+            <article class="surface p-5 metric-rule"><p class="label text-[var(--muted)]">Intake queue</p><p class="mt-3 text-3xl font-black">14</p><p class="mt-2 text-sm text-[var(--warning)]">5 older than one day</p></article>
+            <article class="surface p-5 metric-rule"><p class="label text-[var(--muted)]">Count mismatch</p><p class="mt-3 text-3xl font-black">3</p><p class="mt-2 text-sm text-[var(--critical)]">Approval required</p></article>
+            <article class="surface p-5 metric-rule"><p class="label text-[var(--muted)]">Reserved</p><p class="mt-3 text-3xl font-black">11</p><p class="mt-2 text-sm text-[var(--muted)]">4 reservations expire today</p></article>
+          </section>
+
+          <section class="mt-6 grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
+            <div class="surface p-5"><p class="label text-[var(--muted)]">Inventory aging</p><h2 class="mt-2 text-2xl font-black">Value tied up by age</h2><div class="mt-5 space-y-4"><div><div class="flex justify-between text-sm"><span>Under 30 days</span><span>₦3.4m</span></div><div class="mt-2 h-5 bg-[var(--soft)]"><div class="h-full w-[78%] bg-black"></div></div></div><div><div class="flex justify-between text-sm"><span>30–60 days</span><span>₦1.9m</span></div><div class="mt-2 h-5 bg-[var(--soft)]"><div class="h-full w-[48%] bg-[#59574f]"></div></div></div><div><div class="flex justify-between text-sm"><span>60–90 days</span><span>₦1.1m</span></div><div class="mt-2 h-5 bg-[var(--soft)]"><div class="h-full w-[31%] bg-[#77736b]"></div></div></div><div><div class="flex justify-between text-sm"><span>Over 90 days</span><span>₦860k</span></div><div class="mt-2 h-5 bg-[var(--soft)]"><div class="h-full w-[23%] bg-[#99958c]"></div></div></div></div></div>
+
+            <div class="surface table-wrap">
+              <table>
+                <thead><tr><th>Piece / stock</th><th>State</th><th>Location</th><th>Expected</th><th>Counted</th><th>Issue</th><th>Action</th></tr></thead>
+                <tbody><tr><td>PC-02041 · Leather Moto</td><td><span class="chip warning">Mismatch</span></td><td>Lagos</td><td>1</td><td>0</td><td>Possible sold-piece scan delay</td><td><button class="btn secondary" type="button" data-open="adjustment-modal">Review</button></td></tr><tr><td>DEN-8803 · Indigo Denim</td><td><span class="chip">Reserved</span></td><td>Ikeja</td><td>1</td><td>1</td><td>Reservation expires 17:00</td><td><button class="btn secondary" type="button" data-info="Reservation details opened.">Open</button></td></tr><tr><td>KNIT-044 · Rib knit</td><td><span class="chip success">Available</span></td><td>Lagos</td><td>8</td><td>8</td><td>None</td><td><button class="btn secondary" type="button">View</button></td></tr></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <!-- ORDERS -->
+        <section class="route-page" data-page="orders" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="label text-[var(--muted)]">Fulfillment operations</p><h1 class="mt-3 text-4xl font-black">Orders requiring action</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Payment, allocation, fulfillment, return, and refund states stay separate.</p></div><button class="btn" type="button" data-info="Pick list generated for eligible selected orders.">Generate pick list</button></header>
+
+          <div class="mt-6 surface p-4">
+            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_190px_190px_180px_auto]"><input class="field" placeholder="Order number or customer…" /><select class="field"><option>Fulfillment risk</option><option>SLA breached</option><option>Due this shift</option><option>Blocked</option></select><select class="field"><option>Payment state</option><option>Paid</option><option>Failed</option><option>Review</option></select><select class="field"><option>All locations</option><option>Lagos</option><option>Ikeja</option></select><button class="btn secondary">Apply</button></div>
+          </div>
+
+          <div class="mt-5 surface table-wrap">
+            <table>
+              <thead><tr><th><input type="checkbox" aria-label="Select all orders" /></th><th>Order / age</th><th>Customer</th><th>Payment</th><th>Fulfillment</th><th>Items</th><th>Promise</th><th>Owner</th><th>Next action</th></tr></thead>
+              <tbody>
+                <tr><td><input type="checkbox" /></td><td><strong>#LS-1082</strong><p class="text-xs text-[var(--critical)]">14h 22m</p></td><td>Ada Okafor</td><td><span class="chip success">Paid</span></td><td><span class="chip warning">Ready to pack</span></td><td>2</td><td>SLA breached</td><td>Unassigned</td><td><button class="btn" type="button" data-route="order-detail">Assign & pack</button></td></tr>
+                <tr><td><input type="checkbox" /></td><td><strong>#LS-1080</strong><p class="text-xs text-[var(--muted)]">8h 07m</p></td><td>Chika Bello</td><td><span class="chip success">Paid</span></td><td><span class="chip">Picking</span></td><td>1</td><td>Today 18:00</td><td>Mina</td><td><button class="btn secondary" type="button" data-route="order-detail">Open</button></td></tr>
+                <tr><td><input type="checkbox" /></td><td><strong>#LS-1074</strong><p class="text-xs text-[var(--muted)]">1d 4h</p></td><td>Tayo Eze</td><td><span class="chip critical">Payment failed</span></td><td>Not allocated</td><td>3</td><td>Blocked</td><td>Support</td><td><button class="btn secondary" type="button" data-info="Payment issue workflow opened.">Contact</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ORDER DETAIL -->
+        <section class="route-page" data-page="order-detail" hidden>
+          <button class="mb-5 font-bold underline underline-offset-4" type="button" data-route="orders">← Back to orders</button>
+          <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="label text-[var(--muted)]">Order #LS-1082 · Lagos Flagship</p><h1 class="mt-3 text-4xl font-black">Ready to pack · SLA breached</h1><p class="mt-3 text-[var(--muted)]">Paid · 2 allocated pieces · customer promise today 18:00</p></div><div class="flex flex-wrap gap-3"><button class="btn secondary" type="button" data-open="hold-order-modal">Place on hold</button><button class="btn" type="button" data-open="shipment-modal">Create shipment</button></div></header>
+
+          <div class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+            <section class="surface">
+              <div class="border-b-2 border-black p-5"><h2 class="text-2xl font-black">Fulfillment steps</h2></div>
+              <ol class="divide-y-2 divide-black">
+                <li class="grid gap-4 p-5 sm:grid-cols-[40px_1fr_auto] sm:items-center"><span class="grid size-9 place-items-center rounded-full bg-black text-white">✓</span><div><p class="font-bold">Payment confirmed</p><p class="mt-1 text-sm text-[var(--muted)]">14 Jul · 08:02</p></div><span class="chip success">Complete</span></li>
+                <li class="grid gap-4 p-5 sm:grid-cols-[40px_1fr_auto] sm:items-center"><span class="grid size-9 place-items-center rounded-full bg-black text-white">✓</span><div><p class="font-bold">Inventory allocated</p><p class="mt-1 text-sm text-[var(--muted)]">Both one-of-one pieces reserved</p></div><span class="chip success">Complete</span></li>
+                <li class="grid gap-4 p-5 sm:grid-cols-[40px_1fr_auto] sm:items-center"><span class="grid size-9 place-items-center rounded-full border-2 border-black">3</span><div><p class="font-bold">Pack and verify</p><p class="mt-1 text-sm text-[var(--critical)]">Unassigned · 22 minutes overdue</p></div><button class="btn" type="button" data-info="Packing task assigned to current staff member.">Assign to me</button></li>
+                <li class="grid gap-4 p-5 sm:grid-cols-[40px_1fr_auto] sm:items-center"><span class="grid size-9 place-items-center rounded-full border border-[var(--line)] text-[var(--muted)]">4</span><div><p class="font-bold text-[var(--muted)]">Shipment and dispatch</p></div><span class="text-sm text-[var(--muted)]">Pending</span></li>
+              </ol>
+            </section>
+
+            <aside class="space-y-5">
+              <section class="surface p-5"><p class="label text-[var(--muted)]">Financial impact</p><dl class="mt-4 space-y-3"><div class="flex justify-between"><dt>Order total</dt><dd>₦63,000</dd></div><div class="flex justify-between"><dt>Paid</dt><dd>₦63,000</dd></div><div class="flex justify-between"><dt>Refunded</dt><dd>₦0</dd></div></dl><button class="btn secondary mt-5 w-full" type="button" data-open="refund-modal">Issue refund</button></section>
+              <section class="surface p-5"><p class="label text-[var(--muted)]">Customer</p><h2 class="mt-3 text-xl font-black">Ada Okafor</h2><p class="mt-2 text-sm text-[var(--muted)]">3 orders · no previous returns</p><button class="btn secondary mt-5 w-full" type="button" data-route="customers">Open customer</button></section>
+            </aside>
+          </div>
+        </section>
+
+        <!-- RETURNS -->
+        <section class="route-page" data-page="returns" hidden>
+          <header><p class="label text-[var(--muted)]">Return operations</p><h1 class="mt-3 text-4xl font-black">Inspections, exchanges, and refunds</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Prioritize the party who must act next, refund risk, and aging.</p></header>
+
+          <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><article class="surface p-5"><p class="label text-[var(--muted)]">Awaiting inspection</p><p class="mt-3 text-3xl font-black">6</p></article><article class="surface p-5"><p class="label text-[var(--muted)]">Refund processing</p><p class="mt-3 text-3xl font-black">3</p></article><article class="surface p-5"><p class="label text-[var(--muted)]">Exchange stock risk</p><p class="mt-3 text-3xl font-black">2</p></article><article class="surface p-5"><p class="label text-[var(--muted)]">Oldest unresolved</p><p class="mt-3 text-3xl font-black">2d 8h</p></article></div>
+
+          <div class="mt-6 surface table-wrap">
+            <table><thead><tr><th>Return</th><th>Order / customer</th><th>State</th><th>Resolution</th><th>Age</th><th>Refund exposure</th><th>Owner</th><th>Next action</th></tr></thead><tbody><tr><td>#RT-0041</td><td>#LS-0977 · Ada</td><td><span class="chip warning">Awaiting inspection</span></td><td>Refund</td><td>4h</td><td>₦28,500</td><td>Unassigned</td><td><button class="btn" type="button" data-open="inspection-modal">Inspect</button></td></tr><tr><td>#RT-0038</td><td>#LS-0924 · Chika</td><td><span class="chip">In transit</span></td><td>Exchange</td><td>1d</td><td>Replacement reserved</td><td>Mina</td><td><button class="btn secondary" type="button">Open</button></td></tr><tr><td>#RT-0031</td><td>#LS-0882 · Tayo</td><td><span class="chip critical">Refund failed</span></td><td>Refund</td><td>2d 8h</td><td>₦19,000</td><td>Finance</td><td><button class="btn secondary" type="button" data-route="finance">Resolve</button></td></tr></tbody></table>
+          </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section class="route-page" data-page="customers" hidden>
+          <header><p class="label text-[var(--muted)]">Operational customer management</p><h1 class="mt-3 text-4xl font-black">Customers requiring context</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Views are organized around service and account outcomes, not raw customer records.</p></header>
+
+          <div class="mt-6 grid gap-6 xl:grid-cols-[.72fr_1.28fr]">
+            <aside class="surface p-4"><p class="label text-[var(--muted)]">Operational views</p><div class="mt-4 grid gap-2"><button class="nav-item" aria-current="page">Support attention <span class="ml-auto">6</span></button><button class="nav-item">Payment issue <span class="ml-auto">3</span></button><button class="nav-item">Deletion request <span class="ml-auto">1</span></button><button class="nav-item">Recently active</button><button class="nav-item">Repeat customers</button></div></aside>
+            <section class="surface table-wrap"><table><thead><tr><th>Customer</th><th>Relationship</th><th>Current issue</th><th>Orders</th><th>Net sales</th><th>Last activity</th><th>Action</th></tr></thead><tbody><tr><td><strong>Ada Okafor</strong><p class="text-xs text-[var(--muted)]">Verified</p></td><td>Returning</td><td>Order SLA breach</td><td>3</td><td>₦110,500</td><td>Today</td><td><button class="btn secondary" type="button" data-info="Customer detail opened.">Open</button></td></tr><tr><td><strong>Tayo Eze</strong><p class="text-xs text-[var(--muted)]">Email pending</p></td><td>New</td><td>Payment failed</td><td>1</td><td>₦0</td><td>Today</td><td><button class="btn secondary" type="button">Open</button></td></tr><tr><td><strong>Maya Cole</strong></td><td>Returning</td><td>Deletion request blocked</td><td>8</td><td>₦312,000</td><td>Yesterday</td><td><button class="btn secondary" type="button">Review</button></td></tr></tbody></table></section>
+          </div>
+        </section>
+
+        <!-- FINANCE -->
+        <section class="route-page" data-page="finance" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="label text-[var(--muted)]">Finance and reconciliation</p><h1 class="mt-3 text-4xl font-black">Revenue, payouts, and exceptions</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Estimated commercial activity is kept separate from settled cash.</p></div><button class="btn secondary" type="button" data-open="export-modal">Request export</button></header>
+
+          <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+            <div class="surface p-5">
+              <div class="flex flex-wrap items-end justify-between gap-4"><div><p class="label text-[var(--muted)]">Net sales · last 30 days</p><h2 class="mt-2 text-3xl font-black">₦8.42m</h2><p class="mt-2 text-sm text-[var(--muted)]">+12.4% versus prior 30 days</p></div><span class="chip">Updated 8 min ago</span></div>
+              <svg class="mt-5 w-full" viewBox="0 0 760 280" role="img" aria-label="Net sales trend compared with previous period">
+                <g class="chart-grid"><line x1="40" y1="40" x2="730" y2="40"/><line x1="40" y1="105" x2="730" y2="105"/><line x1="40" y1="170" x2="730" y2="170"/><line x1="40" y1="235" x2="730" y2="235"/></g>
+                <polyline class="chart-series-dashed" points="45,205 120,190 195,200 270,160 345,175 420,145 495,155 570,110 645,130 725,85"/>
+                <polyline class="chart-series" points="45,220 120,180 195,188 270,142 345,155 420,117 495,125 570,80 645,92 725,50"/>
+              </svg>
+            </div>
+
+            <div class="surface p-5">
+              <p class="label text-[var(--muted)]">Revenue bridge</p>
+              <dl class="mt-5 space-y-4"><div class="flex justify-between"><dt>Gross sales</dt><dd>₦9.03m</dd></div><div class="flex justify-between"><dt>Discounts</dt><dd>−₦220k</dd></div><div class="flex justify-between"><dt>Returns</dt><dd>−₦390k</dd></div><div class="flex justify-between border-t-2 border-black pt-4 font-black"><dt>Net sales</dt><dd>₦8.42m</dd></div><div class="flex justify-between"><dt>Payment fees</dt><dd>−₦210k</dd></div><div class="flex justify-between"><dt>Known COGS</dt><dd>−₦3.61m</dd></div></dl>
+              <p class="mt-5 text-sm text-[var(--warning)]">Margin excludes 6 products with missing cost data.</p>
+            </div>
+          </section>
+
+          <section class="mt-6 surface table-wrap">
+            <table><thead><tr><th>Payout</th><th>Provider</th><th>Amount</th><th>Expected</th><th>Status</th><th>Transactions</th><th>Reconciliation</th><th>Action</th></tr></thead><tbody><tr><td>PO-7712</td><td>Paystack</td><td>₦1.42m</td><td>16 Jul</td><td><span class="chip warning">Delayed</span></td><td>82</td><td>2 mismatches</td><td><button class="btn secondary" type="button" data-info="Payout evidence opened.">Review</button></td></tr><tr><td>PO-7708</td><td>Paystack</td><td>₦980k</td><td>14 Jul</td><td><span class="chip success">Settled</span></td><td>61</td><td>Complete</td><td><button class="btn secondary">Open</button></td></tr></tbody></table>
+          </section>
+        </section>
+
+        <!-- REPORTS -->
+        <section class="route-page" data-page="reports" hidden>
+          <header><p class="label text-[var(--muted)]">Purpose-specific reporting</p><h1 class="mt-3 text-4xl font-black">Reports</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Each report declares scope, source, refresh time, exclusions, and export behavior.</p></header>
+          <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Sales</p><h2 class="mt-3 text-2xl font-black">Net sales performance</h2><p class="mt-3 text-sm text-[var(--muted)]">Orders, discounts, returns, and comparison periods.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Inventory</p><h2 class="mt-3 text-2xl font-black">Aging and sell-through</h2><p class="mt-3 text-sm text-[var(--muted)]">By category, intake cohort, and location.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Operations</p><h2 class="mt-3 text-2xl font-black">Fulfillment SLA</h2><p class="mt-3 text-sm text-[var(--muted)]">Age buckets, breaches, and assignment load.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Returns</p><h2 class="mt-3 text-2xl font-black">Reasons and outcomes</h2><p class="mt-3 text-sm text-[var(--muted)]">Count, refund value, and inspection disposition.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Customer</p><h2 class="mt-3 text-2xl font-black">Retention cohorts</h2><p class="mt-3 text-sm text-[var(--muted)]">Repeat behavior without exposing unnecessary PII.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Finance</p><h2 class="mt-3 text-2xl font-black">Payment reconciliation</h2><p class="mt-3 text-sm text-[var(--muted)]">Orders, provider transactions, refunds, fees, payouts.</p><button class="btn secondary mt-5 w-full">Open report</button></article>
+          </div>
+        </section>
+
+        <!-- TEAM -->
+        <section class="route-page" data-page="team" hidden>
+          <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="label text-[var(--muted)]">Internal user lifecycle</p><h1 class="mt-3 text-4xl font-black">Team and access</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Role, scope, security state, workload, and auditability stay visible together.</p></div><button class="btn" type="button" data-open="invite-modal">Invite team member</button></header>
+
+          <div class="mt-6 surface table-wrap">
+            <table><thead><tr><th>Member</th><th>Role</th><th>Scope</th><th>Status</th><th>Security</th><th>Current workload</th><th>Last active</th><th>Action</th></tr></thead><tbody><tr><td><strong>Ada Okafor</strong><p class="text-xs text-[var(--muted)]">ada@laitstyle.test</p></td><td>Store manager</td><td>Lagos Flagship</td><td><span class="chip success">Active</span></td><td>2FA enabled</td><td>8 assigned</td><td>Now</td><td><button class="btn secondary" type="button" data-open="role-modal">Manage</button></td></tr><tr><td><strong>Tomi Bello</strong></td><td>Cataloguing staff</td><td>Lagos</td><td><span class="chip success">Active</span></td><td>Password only</td><td>5 drafts</td><td>12 min</td><td><button class="btn secondary" type="button" data-open="role-modal">Manage</button></td></tr><tr><td><strong>Mina Cole</strong></td><td>Fulfillment staff</td><td>Ikeja</td><td><span class="chip warning">Invite pending</span></td><td>Not enrolled</td><td>—</td><td>Invited yesterday</td><td><button class="btn secondary" type="button" data-info="Invitation controls opened.">Review invite</button></td></tr></tbody></table>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="route-page" data-page="settings" hidden>
+          <header><p class="label text-[var(--muted)]">Configuration lifecycle</p><h1 class="mt-3 text-4xl font-black">Store configuration</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">High-impact settings use impact preview and confirmation, not instant toggles.</p></header>
+          <div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Store</p><h2 class="mt-3 text-2xl font-black">Identity, currency, timezone</h2><p class="mt-3 text-sm text-[var(--muted)]">Nigeria · NGN · Africa/Lagos</p></button>
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Locations</p><h2 class="mt-3 text-2xl font-black">Inventory and fulfillment scope</h2><p class="mt-3 text-sm text-[var(--muted)]">2 active locations</p></button>
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Checkout</p><h2 class="mt-3 text-2xl font-black">Payment and order requirements</h2><p class="mt-3 text-sm text-[var(--muted)]">Guest checkout enabled</p></button>
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Shipping</p><h2 class="mt-3 text-2xl font-black">Zones, rates, providers</h2><p class="mt-3 text-sm text-[var(--warning)]">1 provider token expires soon</p></button>
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Returns</p><h2 class="mt-3 text-2xl font-black">Eligibility and resolution policy</h2><p class="mt-3 text-sm text-[var(--muted)]">7-day window</p></button>
+            <button class="surface p-5 text-left" type="button" data-open="settings-modal"><p class="label text-[var(--muted)]">Integrations</p><h2 class="mt-3 text-2xl font-black">Payment, shipping, email</h2><p class="mt-3 text-sm text-[var(--muted)]">4 connected · 1 warning</p></button>
+          </div>
+        </section>
+
+        <!-- SYSTEM -->
+        <section class="route-page" data-page="system" hidden>
+          <header><p class="label text-[var(--muted)]">Restricted system workspace</p><h1 class="mt-3 text-4xl font-black">System health</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Technical evidence is separated from business authority and sensitive values remain redacted.</p></header>
+
+          <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Overall status</p><p class="mt-3 text-2xl font-black">Degraded</p><p class="mt-2 text-sm text-[var(--critical)]">Payments callback path</p></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">API error rate</p><p class="mt-3 text-2xl font-black">1.8%</p><p class="mt-2 text-sm text-[var(--warning)]">Above 0.5% baseline</p></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">P95 latency</p><p class="mt-3 text-2xl font-black">612 ms</p><p class="mt-2 text-sm text-[var(--muted)]">Last 15 minutes</p></article>
+            <article class="surface p-5"><p class="label text-[var(--muted)]">Failed jobs</p><p class="mt-3 text-2xl font-black">12</p><p class="mt-2 text-sm text-[var(--critical)]">3 exhausted retries</p></article>
+          </section>
+
+          <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+            <div class="surface p-5"><div class="flex items-end justify-between gap-4"><div><p class="label text-[var(--muted)]">Error rate</p><h2 class="mt-2 text-2xl font-black">Payment callback failures</h2></div><button class="btn secondary" type="button" data-route="jobs">Affected jobs</button></div><svg class="mt-5 w-full" viewBox="0 0 760 260" role="img" aria-label="Error rate time series"><g class="chart-grid"><line x1="40" y1="40" x2="730" y2="40"/><line x1="40" y1="100" x2="730" y2="100"/><line x1="40" y1="160" x2="730" y2="160"/><line x1="40" y1="220" x2="730" y2="220"/></g><polyline class="chart-series" points="40,215 110,210 180,205 250,207 320,198 390,202 460,184 530,136 600,102 670,70 730,92"/></svg></div>
+            <div class="surface p-5"><p class="label text-[var(--muted)]">Release state</p><h2 class="mt-3 text-2xl font-black">v2026.07.15-2</h2><dl class="mt-5 space-y-4 text-sm"><div class="flex justify-between"><dt>Status</dt><dd><span class="chip warning">Monitoring</span></dd></div><div class="flex justify-between"><dt>Migration</dt><dd>Complete</dd></div><div class="flex justify-between"><dt>Started</dt><dd>13:42</dd></div><div class="flex justify-between"><dt>Rollback</dt><dd>Available</dd></div></dl><button class="btn secondary mt-5 w-full" type="button" data-info="Release evidence opened.">View release</button></div>
+          </section>
+        </section>
+
+        <!-- JOBS -->
+        <section class="route-page" data-page="jobs" hidden>
+          <header><p class="label text-[var(--muted)]">Background processing and integrations</p><h1 class="mt-3 text-4xl font-black">Jobs and webhooks</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Retries are scoped, reasoned, permission-checked, and never expose full secrets.</p></header>
+
+          <div class="mt-6 surface table-wrap">
+            <table><thead><tr><th>Type</th><th>Resource</th><th>State</th><th>Attempts</th><th>Age</th><th>Sanitized error</th><th>Next retry</th><th>Action</th></tr></thead><tbody><tr><td>Payment webhook</td><td>#LS-1087</td><td><span class="chip critical">Failed</span></td><td>5 / 5</td><td>18m</td><td>Provider callback 5xx</td><td>Exhausted</td><td><button class="btn" type="button" data-open="retry-modal">Retry</button></td></tr><tr><td>Search index</td><td>Product PC-02041</td><td><span class="chip warning">Retrying</span></td><td>2 / 5</td><td>7m</td><td>Timeout</td><td>2m</td><td><button class="btn secondary">Inspect</button></td></tr><tr><td>Email delivery</td><td>Receipt #LS-1082</td><td><span class="chip success">Complete</span></td><td>1 / 5</td><td>2m</td><td>—</td><td>—</td><td><button class="btn secondary">Open</button></td></tr></tbody></table>
+          </div>
+        </section>
+
+        <!-- FLAGS -->
+        <section class="route-page" data-page="flags" hidden>
+          <header><p class="label text-[var(--muted)]">Protected production configuration</p><h1 class="mt-3 text-4xl font-black">Feature flags</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Every production change needs ownership, reason, preview, expiry, and rollback context.</p></header>
+          <div class="mt-6 surface table-wrap"><table><thead><tr><th>Flag</th><th>Environment</th><th>State</th><th>Targeting</th><th>Owner</th><th>Expiry</th><th>Last change</th><th>Action</th></tr></thead><tbody><tr><td><strong>new_returns_flow</strong><p class="text-xs text-[var(--muted)]">New customer return request UI</p></td><td>Production</td><td><span class="chip success">On</span></td><td>25% of customers</td><td>Commerce Platform</td><td>30 Jul</td><td>Today 12:10</td><td><button class="btn secondary" type="button" data-open="flag-modal">Change</button></td></tr><tr><td><strong>inventory_count_v2</strong></td><td>Staging</td><td><span class="chip">On</span></td><td>All staff</td><td>Inventory</td><td>None</td><td>Yesterday</td><td><button class="btn secondary" type="button" data-open="flag-modal">Change</button></td></tr></tbody></table></div>
+        </section>
+
+        <!-- AUDIT -->
+        <section class="route-page" data-page="audit" hidden>
+          <header><p class="label text-[var(--muted)]">Accountability</p><h1 class="mt-3 text-4xl font-black">Audit log</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Sensitive actions record actor, scope, reason, previous state, new state, and timestamp.</p></header>
+          <div class="mt-6 surface table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Scope</th><th>Reason</th><th>Outcome</th></tr></thead><tbody><tr><td>14:32</td><td>Ada Okafor</td><td>inventory.adjust</td><td>PC-02041</td><td>Lagos</td><td>Count mismatch</td><td><span class="chip success">Applied</span></td></tr><tr><td>14:21</td><td>System</td><td>alert.create</td><td>payment.callback</td><td>All stores</td><td>Error threshold exceeded</td><td><span class="chip warning">Open</span></td></tr><tr><td>13:58</td><td>Dev Operator</td><td>webhook.retry</td><td>WH-81102</td><td>Production</td><td>Provider recovery</td><td><span class="chip critical">Failed</span></td></tr></tbody></table></div>
+        </section>
+
+        <!-- PROFILE -->
+        <section class="route-page" data-page="profile" hidden>
+          <header><p class="label text-[var(--muted)]">Personal access</p><h1 class="mt-3 text-4xl font-black">Profile and security</h1><p class="mt-3 max-w-3xl text-[var(--muted)]">Personal preferences stay separate from team permissions and store authority.</p></header>
+          <div class="mt-6 grid gap-6 xl:grid-cols-2"><form class="surface p-5"><h2 class="text-2xl font-black">Profile</h2><div class="mt-5 grid gap-5"><label><span class="font-bold">Display name</span><input class="field mt-2" value="Ada Okafor" /></label><label><span class="font-bold">Work email</span><input class="field mt-2" value="ada@laitstyle.test" disabled /></label><label><span class="font-bold">Default workspace</span><select class="field mt-2"><option>Store manager</option><option>Shop owner</option></select></label><button class="btn" type="button" data-info="Profile preferences saved.">Save profile</button></div></form><section class="surface p-5"><h2 class="text-2xl font-black">Security</h2><div class="mt-5 space-y-5"><div class="soft p-4"><p class="font-bold">Two-factor authentication</p><p class="mt-1 text-sm text-[var(--muted)]">Enabled · Authenticator app</p></div><div class="soft p-4"><p class="font-bold">Active sessions</p><p class="mt-1 text-sm text-[var(--muted)]">2 devices · current session in Lagos</p></div><button class="btn secondary" type="button" data-info="Session management opened.">Manage sessions</button></div></section></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile drawer -->
+  <div id="mobile-drawer" class="drawer-backdrop fixed inset-0 z-[80] hidden" aria-hidden="true">
+    <aside class="drawer-panel absolute inset-y-0 left-0 flex w-[min(88vw,330px)] flex-col bg-white" role="dialog" aria-modal="true" aria-labelledby="mobile-drawer-title">
+      <div class="flex items-center justify-between border-b-2 border-black p-4"><div><p class="label text-[var(--muted)]">Control Room</p><h2 id="mobile-drawer-title" class="mt-2 text-2xl font-black">Workspace navigation</h2></div><button id="mobile-drawer-close" class="icon-btn" type="button" aria-label="Close navigation"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <div class="border-b border-[var(--line)] p-3"><button class="flex min-h-12 w-full items-center justify-between border border-[var(--line)] bg-[var(--soft)] px-3 text-left" type="button" data-open="scope-modal"><span><span class="label text-[var(--muted)]">Scope</span><span class="mt-1 block font-bold">Lagos Flagship</span></span><span>↕</span></button></div>
+      <nav id="mobile-nav" class="min-h-0 flex-1 overflow-y-auto p-2" aria-label="Mobile internal workspace"></nav>
+    </aside>
+  </div>
+
+  <!-- Alerts drawer -->
+  <div id="alerts-drawer" class="modal-backdrop fixed inset-0 z-[90] hidden" aria-hidden="true">
+    <section class="modal-panel absolute inset-y-0 right-0 w-[min(96vw,520px)] overflow-y-auto bg-white" role="dialog" aria-modal="true" aria-labelledby="alerts-drawer-title">
+      <div class="flex items-center justify-between border-b-2 border-black p-5"><div><p class="label text-[var(--muted)]">Attention required</p><h2 id="alerts-drawer-title" class="mt-2 text-3xl font-black">Alerts</h2></div><button class="icon-btn" type="button" data-close aria-label="Close alerts"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <div class="divide-y-2 divide-black">
+        <article class="border-l-[8px] border-l-[var(--critical)] p-5"><span class="chip critical">Critical</span><h3 class="mt-3 text-xl font-black">Payment callback failures</h3><p class="mt-2 text-sm text-[var(--muted)]">All stores · 18 minutes old</p><button class="btn mt-4" type="button" data-route="jobs" data-close>Investigate</button></article>
+        <article class="border-l-[8px] border-l-[var(--warning)] p-5"><span class="chip warning">High</span><h3 class="mt-3 text-xl font-black">Three inventory mismatches</h3><p class="mt-2 text-sm text-[var(--muted)]">Lagos · assigned to store manager</p><button class="btn secondary mt-4" type="button" data-route="inventory" data-close>Review</button></article>
+        <article class="p-5"><span class="chip">Medium</span><h3 class="mt-3 text-xl font-black">Shipping token expires soon</h3><p class="mt-2 text-sm text-[var(--muted)]">Integration configuration · 6 days</p><button class="btn secondary mt-4" type="button" data-route="settings" data-close>Open settings</button></article>
+      </div>
+    </section>
+  </div>
+
+  <!-- Generic modals -->
+  <div id="scope-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="scope-title"><div class="flex items-start justify-between gap-4"><div><p class="label text-[var(--muted)]">Scope switch</p><h2 id="scope-title" class="mt-2 text-3xl font-black">Choose store and location</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><form class="mt-6 grid gap-5" data-demo="Scope changed"><label><span class="font-bold">Store</span><select class="field mt-2"><option>Laitstyle Nigeria</option><option>All permitted stores</option></select></label><label><span class="font-bold">Location</span><select class="field mt-2"><option>Lagos Flagship</option><option>Ikeja Studio</option><option>All permitted locations</option></select></label><div class="dashed p-4 text-sm">Changing scope re-queries data, clears incompatible selections, and never silently combines stores.</div><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Change scope</button></div></form></section>
+  </div>
+
+  <div id="persona-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="persona-title"><div class="flex items-start justify-between gap-4"><div><p class="label text-[var(--muted)]">Workspace persona</p><h2 id="persona-title" class="mt-2 text-3xl font-black">Switch operating context</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><div class="mt-6 grid gap-3"><button class="nav-item" type="button" data-persona-choice="manager">Store manager</button><button class="nav-item" type="button" data-persona-choice="owner">Shop owner</button><button class="nav-item" type="button" data-persona-choice="staff">Operational staff</button><button class="nav-item" type="button" data-persona-choice="developer">Developer</button><button class="nav-item" type="button" data-persona-choice="superadmin">Super admin</button></div><p class="mt-5 text-sm text-[var(--muted)]">Available personas remain limited by real permissions.</p></section>
+  </div>
+
+  <div id="profile-menu" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-md surface p-5" role="dialog" aria-modal="true" aria-labelledby="profile-menu-title"><div class="flex items-center justify-between"><div><p class="label text-[var(--muted)]">Signed in</p><h2 id="profile-menu-title" class="mt-2 text-2xl font-black">Ada Okafor</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><div class="mt-5 grid gap-2"><button class="nav-item" type="button" data-route="profile" data-close>Profile & security</button><button class="nav-item" type="button" data-info="Help center opened.">Help</button><button class="nav-item text-[var(--critical)]" type="button" data-info="Internal session sign-out selected.">Sign out</button></div></section>
+  </div>
+
+  <div id="command-modal" class="modal-backdrop fixed inset-0 z-[110] hidden items-start justify-center p-4 pt-[10vh]" aria-hidden="true">
+    <section class="modal-panel w-full max-w-2xl surface" role="dialog" aria-modal="true" aria-labelledby="command-title"><div class="border-b-2 border-black p-4"><label><span id="command-title" class="label text-[var(--muted)]">Permission-aware command search</span><input id="command-input" class="field mt-3" autofocus placeholder="Try order #LS-1082, MOTO-2041, returns, jobs…" /></label></div><div class="p-3"><p class="label p-2 text-[var(--muted)]">Suggested results</p><button class="nav-item" type="button" data-route="orders" data-close>Order #LS-1082 · SLA breached</button><button class="nav-item" type="button" data-route="products" data-close>Product MOTO-2041 · Published</button><button class="nav-item" type="button" data-route="returns" data-close>Return #RT-0041 · Awaiting inspection</button><button class="nav-item" type="button" data-route="jobs" data-close>Payment callback failures</button></div></section>
+  </div>
+
+  <div id="handover-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="handover-title"><div class="flex items-start justify-between gap-4"><div><p class="label text-[var(--muted)]">Shift continuity</p><h2 id="handover-title" class="mt-2 text-3xl font-black">Create handover note</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><form class="mt-6 grid gap-5" data-demo="Handover saved"><label><span class="font-bold">Incoming owner</span><select class="field mt-2"><option>Mina Cole · Evening manager</option></select></label><label><span class="font-bold">Open risks and context</span><textarea class="field mt-2 min-h-36" required>Two orders are over SLA. Count CT-018 still has three mismatches.</textarea></label><label class="flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>Include my open assigned tasks</span></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Save handover</button></div></form></section>
+  </div>
+
+  <div id="alert-action-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="alert-action-title"><h2 id="alert-action-title" class="text-3xl font-black">Acknowledge and assign alert</h2><form class="mt-6 grid gap-5" data-demo="Alert acknowledged"><label><span class="font-bold">Owner</span><select class="field mt-2"><option>Ada Okafor</option><option>Fulfillment team</option></select></label><label><span class="font-bold">Action note</span><textarea class="field mt-2 min-h-24" required></textarea></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Acknowledge</button></div></form></section>
+  </div>
+
+  <div id="publish-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="publish-title"><div><p class="label text-[var(--muted)]">Publish review</p><h2 id="publish-title" class="mt-2 text-3xl font-black">Resolve three blockers first</h2></div><ul class="mt-5 space-y-3"><li class="soft p-3">Unique SKU required</li><li class="soft p-3">Sleeve measurement required</li><li class="soft p-3">Delivery eligibility required</li></ul><div class="mt-6 flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Return to editor</button><button class="btn" type="button" disabled>Publish product</button></div></section>
+  </div>
+
+  <!-- Intake wizard -->
+  <div id="intake-modal" class="modal-backdrop fixed inset-0 z-[105] hidden items-center justify-center p-0 sm:p-4" aria-hidden="true">
+    <section class="modal-panel flex h-full w-full max-w-4xl flex-col overflow-hidden bg-white sm:h-auto sm:max-h-[94vh] sm:border-2 sm:border-black" role="dialog" aria-modal="true" aria-labelledby="intake-title">
+      <div class="flex items-start justify-between gap-4 border-b-2 border-black p-5"><div><p class="label text-[var(--muted)]">One-of-one piece intake</p><h2 id="intake-title" class="mt-2 text-3xl font-black">Capture a new piece</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <div class="border-b border-[var(--line)] bg-[var(--soft)] p-4"><ol class="grid grid-cols-5 gap-2"><li class="text-center"><span class="step-node mx-auto active" data-intake-node="1">1</span><span class="mt-2 hidden text-xs sm:block">Source</span></li><li class="text-center"><span class="step-node mx-auto" data-intake-node="2">2</span><span class="mt-2 hidden text-xs sm:block">Identity</span></li><li class="text-center"><span class="step-node mx-auto" data-intake-node="3">3</span><span class="mt-2 hidden text-xs sm:block">Condition</span></li><li class="text-center"><span class="step-node mx-auto" data-intake-node="4">4</span><span class="mt-2 hidden text-xs sm:block">Media</span></li><li class="text-center"><span class="step-node mx-auto" data-intake-node="5">5</span><span class="mt-2 hidden text-xs sm:block">Review</span></li></ol></div>
+      <div class="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+        <section class="intake-step active" data-intake-step="1"><h3 class="text-2xl font-black">Source and cost</h3><div class="mt-5 grid gap-5 sm:grid-cols-2"><label><span class="font-bold">Source</span><select class="field mt-2"><option>Direct acquisition</option><option>Supplier</option><option>Consignment</option></select></label><label><span class="font-bold">Purchase cost</span><input class="field mt-2" type="number" value="18000" /></label><label><span class="font-bold">Store</span><select class="field mt-2"><option>Laitstyle Nigeria</option></select></label><label><span class="font-bold">Location</span><select class="field mt-2"><option>Lagos Flagship</option></select></label></div></section>
+        <section class="intake-step" data-intake-step="2"><h3 class="text-2xl font-black">Piece identity</h3><div class="mt-5 grid gap-5 sm:grid-cols-2"><label><span class="font-bold">Category</span><select class="field mt-2"><option>Jacket</option></select></label><label><span class="font-bold">Tagged size</span><input class="field mt-2" value="Large" /></label><label class="sm:col-span-2"><span class="font-bold">Working title</span><input class="field mt-2" value="Broken-in Leather Moto" /></label><label><span class="font-bold">Material</span><input class="field mt-2" value="Leather" /></label><label><span class="font-bold">Colour</span><input class="field mt-2" value="Black-brown" /></label></div></section>
+        <section class="intake-step" data-intake-step="3"><h3 class="text-2xl font-black">Condition and measurements</h3><div class="mt-5 grid gap-5 sm:grid-cols-2"><label><span class="font-bold">Condition grade</span><select class="field mt-2"><option>Very good</option></select></label><label><span class="font-bold">Condition score</span><input class="field mt-2" type="number" value="8.5" step=".5" /></label><label><span class="font-bold">Chest</span><input class="field mt-2" value="56 cm" /></label><label><span class="font-bold">Length</span><input class="field mt-2" value="65 cm" /></label><label class="sm:col-span-2"><span class="font-bold">Disclosed flaws</span><textarea class="field mt-2 min-h-24">Natural creasing; repaired seam near left cuff.</textarea></label></div></section>
+        <section class="intake-step" data-intake-step="4"><h3 class="text-2xl font-black">Media evidence</h3><button class="dashed mt-5 flex min-h-56 w-full flex-col items-center justify-center p-6 text-center" type="button" data-info="Media picker opened with file validation."><strong>Add front, back, detail, and flaw images</strong><span class="mt-2 text-sm text-[var(--muted)]">Primary image and flaw evidence are checked before review.</span></button></section>
+        <section class="intake-step" data-intake-step="5"><h3 class="text-2xl font-black">Review and submit</h3><dl class="mt-5 divide-y divide-[var(--line)] surface"><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-bold">Piece</dt><dd>Broken-in Leather Moto · Large</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-bold">Location</dt><dd>Lagos Flagship</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-bold">Cost</dt><dd>₦18,000</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-bold">Condition</dt><dd>Very good · 8.5 / 10</dd></div></dl><p class="mt-5 text-sm text-[var(--muted)]">Submitting creates an intake record and assigns quality review. It does not publish the product.</p></section>
+      </div>
+      <div class="mobile-safe flex items-center justify-between gap-3 border-t-2 border-black bg-white p-4"><button id="intake-back" class="btn secondary" type="button" disabled>Back</button><p id="intake-label" class="text-sm font-bold">Step 1 of 5</p><button id="intake-next" class="btn" type="button">Continue</button></div>
+    </section>
+  </div>
+
+  <div id="adjustment-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="adjustment-title"><div><p class="label text-[var(--critical)]">Audited inventory mutation</p><h2 id="adjustment-title" class="mt-2 text-3xl font-black">Review inventory adjustment</h2></div><form class="mt-6 grid gap-5" data-demo="Inventory adjustment submitted for approval"><div class="soft p-4"><p class="font-bold">PC-02041 · Broken-in Leather Moto</p><p class="mt-1 text-sm text-[var(--muted)]">Lagos Flagship · Expected 1 · Counted 0</p></div><label><span class="font-bold">New state</span><select class="field mt-2"><option>Missing — investigation</option><option>Damaged</option><option>Written off</option></select></label><label><span class="font-bold">Reason</span><select class="field mt-2"><option>Count mismatch</option><option>Damage</option><option>Administrative correction</option></select></label><label><span class="font-bold">Evidence and note</span><textarea class="field mt-2 min-h-24" required></textarea></label><p class="text-sm text-[var(--critical)]">Manager approval is required because the piece is one of one.</p><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Submit adjustment</button></div></form></section></div>
+
+  <div id="hold-order-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-lg surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="hold-title"><h2 id="hold-title" class="text-3xl font-black">Place order #LS-1082 on hold</h2><form class="mt-6 grid gap-5" data-demo="Order placed on hold"><label><span class="font-bold">Reason</span><select class="field mt-2"><option>Address issue</option><option>Customer request</option><option>Inventory verification</option></select></label><label><span class="font-bold">Internal note</span><textarea class="field mt-2 min-h-24" required></textarea></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Place on hold</button></div></form></section></div>
+
+  <div id="shipment-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="shipment-title"><div><p class="label text-[var(--muted)]">Fulfillment action</p><h2 id="shipment-title" class="mt-2 text-3xl font-black">Create shipment</h2></div><form class="mt-6 grid gap-5" data-demo="Shipment created"><label><span class="font-bold">Carrier and service</span><select class="field mt-2"><option>DHL Express · Next day</option></select></label><label><span class="font-bold">Package</span><select class="field mt-2"><option>Both allocated pieces</option><option>Split shipment</option></select></label><div class="dashed p-4 text-sm">The provider may create a label even when the response times out. Recheck before retrying.</div><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Purchase label</button></div></form></section></div>
+
+  <div id="refund-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="refund-title"><div><p class="label text-[var(--critical)]">Financial mutation</p><h2 id="refund-title" class="mt-2 text-3xl font-black">Issue refund for #LS-1082</h2></div><form class="mt-6 grid gap-5" data-demo="Refund submitted"><div class="soft p-4"><div class="flex justify-between"><span>Maximum refundable</span><strong>₦63,000</strong></div><div class="mt-2 flex justify-between text-sm text-[var(--muted)]"><span>Already refunded</span><span>₦0</span></div></div><label><span class="font-bold">Refund amount</span><input class="field mt-2" type="number" max="63000" value="63000" /></label><label><span class="font-bold">Reason</span><select class="field mt-2"><option>Customer cancellation</option><option>Item unavailable</option><option>Return approved</option></select></label><label class="flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>Notify customer when provider confirms the refund</span></label><p class="text-sm text-[var(--critical)]">The server recalculates the refund limit before submission.</p><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn danger" type="submit">Issue refund</button></div></form></section></div>
+
+  <div id="inspection-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel max-h-[94vh] w-full max-w-2xl overflow-y-auto surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="inspection-title"><div><p class="label text-[var(--muted)]">Return inspection</p><h2 id="inspection-title" class="mt-2 text-3xl font-black">Inspect return #RT-0041</h2></div><form class="mt-6 grid gap-5" data-demo="Return inspection completed"><label><span class="font-bold">Received condition</span><select class="field mt-2"><option>Matches return request</option><option>Additional damage</option><option>Wrong item</option></select></label><label><span class="font-bold">Disposition</span><select class="field mt-2"><option>Restock</option><option>Repair and review</option><option>Write off</option><option>Return to customer</option></select></label><label><span class="font-bold">Approved refund</span><input class="field mt-2" type="number" value="28500" /></label><label><span class="font-bold">Inspection note</span><textarea class="field mt-2 min-h-24" required></textarea></label><div class="dashed p-4 text-sm">Refund limits, previously refunded amounts, and approval thresholds are rechecked server-side.</div><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Complete inspection</button></div></form></section></div>
+
+  <div id="export-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="export-title"><div><p class="label text-[var(--muted)]">Permission-scoped export</p><h2 id="export-title" class="mt-2 text-3xl font-black">Request finance export</h2></div><form class="mt-6 grid gap-5" data-demo="Export requested"><label><span class="font-bold">Report</span><select class="field mt-2"><option>Payment reconciliation</option><option>Revenue summary</option><option>Payout transactions</option></select></label><label><span class="font-bold">Period</span><select class="field mt-2"><option>Last 30 days</option><option>This month</option><option>Custom range</option></select></label><div class="dashed p-4 text-sm">Large exports are prepared asynchronously and delivered through an expiring link. Sensitive columns are excluded.</div><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Request export</button></div></form></section></div>
+
+  <div id="invite-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="invite-title"><div><p class="label text-[var(--muted)]">Team lifecycle</p><h2 id="invite-title" class="mt-2 text-3xl font-black">Invite team member</h2></div><form class="mt-6 grid gap-5" data-demo="Team invitation sent"><label><span class="font-bold">Work email</span><input class="field mt-2" type="email" required /></label><label><span class="font-bold">Role</span><select class="field mt-2"><option>Cataloguing staff</option><option>Fulfillment staff</option><option>Store manager</option></select></label><label><span class="font-bold">Scope</span><select class="field mt-2"><option>Lagos Flagship</option><option>Ikeja Studio</option></select></label><label><span class="font-bold">Invitation expiry</span><select class="field mt-2"><option>7 days</option><option>24 hours</option><option>30 days</option></select></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Send invitation</button></div></form></section></div>
+
+  <div id="role-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel max-h-[94vh] w-full max-w-2xl overflow-y-auto surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="role-title"><div><p class="label text-[var(--critical)]">Permission change</p><h2 id="role-title" class="mt-2 text-3xl font-black">Review role and scope</h2></div><form class="mt-6 grid gap-5" data-demo="Role change submitted"><label><span class="font-bold">Role</span><select class="field mt-2"><option>Store manager</option><option>Operational staff</option><option>Shop owner</option></select></label><fieldset><legend class="font-bold">High-risk capabilities</legend><div class="mt-3 grid gap-3"><label class="soft flex items-start gap-3 p-4"><input type="checkbox" class="mt-1" checked /><span><strong class="block">Issue refunds</strong><span class="text-sm text-[var(--muted)]">Up to store approval threshold</span></span></label><label class="soft flex items-start gap-3 p-4"><input type="checkbox" class="mt-1" /><span><strong class="block">Manage payouts</strong><span class="text-sm text-[var(--muted)]">Owner approval required</span></span></label><label class="soft flex items-start gap-3 p-4"><input type="checkbox" class="mt-1" /><span><strong class="block">Manage team access</strong></span></label></div></fieldset><label><span class="font-bold">Reason for change</span><textarea class="field mt-2 min-h-24" required></textarea></label><p class="text-sm text-[var(--critical)]">The final valid owner cannot be removed.</p><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Apply changes</button></div></form></section></div>
+
+  <div id="settings-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-2xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div><p class="label text-[var(--muted)]">Configuration change</p><h2 id="settings-title" class="mt-2 text-3xl font-black">Review proposed setting</h2></div><div class="mt-6 grid gap-5"><div class="grid gap-3 sm:grid-cols-2"><div class="soft p-4"><p class="label text-[var(--muted)]">Current</p><p class="mt-2 font-bold">Free shipping at ₦50,000</p></div><div class="soft p-4"><p class="label text-[var(--muted)]">Proposed</p><p class="mt-2 font-bold">Free shipping at ₦65,000</p></div></div><div class="dashed p-4"><p class="font-bold">Impact preview</p><ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]"><li>Applies to Nigeria domestic zone</li><li>Does not change existing orders</li><li>Affects future checkout quotes after cache revalidation</li></ul></div><label><span class="font-bold">Reason</span><textarea class="field mt-2 min-h-24" required></textarea></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="button" data-success="Configuration applied and audited">Apply setting</button></div></div></section></div>
+
+  <div id="retry-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="retry-title"><div><p class="label text-[var(--critical)]">Production retry</p><h2 id="retry-title" class="mt-2 text-3xl font-black">Retry failed payment webhook</h2></div><div class="mt-6 soft p-4"><p class="font-bold">Event WH-81102 · Order #LS-1087</p><p class="mt-2 text-sm text-[var(--muted)]">5 attempts · provider callback 5xx · no secret payload displayed</p></div><form class="mt-5 grid gap-5" data-demo="Webhook retry queued"><label><span class="font-bold">Reason</span><textarea class="field mt-2 min-h-24" required></textarea></label><label class="flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>I checked that retrying will not duplicate the financial side effect.</span></label><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Queue retry</button></div></form></section></div>
+
+  <div id="flag-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal-panel w-full max-w-2xl surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="flag-title"><div><p class="label text-[var(--critical)]">Production feature flag</p><h2 id="flag-title" class="mt-2 text-3xl font-black">Change new_returns_flow</h2></div><form class="mt-6 grid gap-5" data-demo="Feature flag change submitted"><div class="grid gap-4 sm:grid-cols-2"><label><span class="font-bold">Current exposure</span><input class="field mt-2" value="25%" disabled /></label><label><span class="font-bold">Proposed exposure</span><select class="field mt-2"><option>50%</option><option>100%</option><option>Off</option></select></label></div><label><span class="font-bold">Environment</span><select class="field mt-2"><option>Production</option></select></label><label><span class="font-bold">Reason and expected outcome</span><textarea class="field mt-2 min-h-24" required></textarea></label><label><span class="font-bold">Automatic expiry</span><input class="field mt-2" type="date" /></label><div class="dashed p-4 text-sm">High-risk production changes may require approval and must have a rollback path.</div><div class="flex justify-end gap-3"><button class="btn secondary" type="button" data-close>Cancel</button><button class="btn" type="submit">Submit change</button></div></form></section></div>
+
+  <div id="toast-region" class="fixed bottom-5 left-1/2 z-[180] w-[min(92vw,480px)] -translate-x-1/2" aria-live="polite" aria-atomic="true">
+    <div id="toast" class="toast border-2 border-black bg-black px-5 py-3 text-center font-bold text-white" hidden></div>
+  </div>
+
+  <script>
+    (() => {
+      const personaConfig = {
+        manager: {
+          name: "Store manager",
+          eyebrow: "Daily operations · Lagos Flagship",
+          title: "Store manager control desk",
+          summary: "Resolve the oldest fulfillment risks, intake backlog, and inventory mismatches before reviewing performance.",
+          primary: "Open fulfillment queue",
+          primaryRoute: "orders",
+          queueTitle: "What needs intervention today",
+          queue: [
+            ["Pack order #LS-1082", "SLA breached · paid and allocated", "orders", "Critical"],
+            ["Resolve inventory count CT-018", "3 unmatched pieces", "inventory", "High"],
+            ["Inspect return #RT-0041", "Refund exposure ₦28,500", "returns", "High"],
+            ["Review 5 aging intake records", "Older than one day", "inventory", "Medium"]
+          ],
+          metrics: [["Orders awaiting action", "11", "2 above SLA"], ["Pieces awaiting intake", "14", "5 aging"], ["Returns requiring store action", "6", "Oldest 4h"], ["Staff tasks overdue", "3", "Current shift"]],
+          risks: [["Negative stock anomaly", "Piece PC-02041"], ["Shipping token expiry", "6 days"], ["Unassigned packing work", "2 orders"]],
+          chartTitle: "Where fulfillment is aging",
+          chartSummary: "Five orders are older than the 12-hour internal target.",
+          chartType: "bars"
+        },
+        owner: {
+          name: "Shop owner",
+          eyebrow: "Commercial health · Laitstyle Nigeria",
+          title: "Owner performance and risk desk",
+          summary: "Review net sales, margin quality, inventory value, payouts, and the exceptions that can change cash or customer trust.",
+          primary: "Open revenue view",
+          primaryRoute: "finance",
+          queueTitle: "Decisions requiring owner authority",
+          queue: [
+            ["Delayed payout PO-7712", "₦1.42m · 2 reconciliation mismatches", "finance", "Critical"],
+            ["Approve refund above threshold", "Order #LS-1011 · ₦112,000", "returns", "High"],
+            ["Review aging inventory plan", "₦860k over 90 days", "inventory", "High"],
+            ["Approve role escalation", "Payout access requested", "team", "Medium"]
+          ],
+          metrics: [["Net sales · 30d", "₦8.42m", "+12.4%"], ["Gross margin coverage", "92%", "6 costs missing"], ["Pending payouts", "₦1.42m", "Delayed"], ["Inventory value", "₦7.26m", "₦860k aged"]],
+          risks: [["Payout delay", "Paystack settlement"], ["Missing product costs", "6 products"], ["Return value increase", "+18% vs prior period"]],
+          chartTitle: "Net sales versus previous period",
+          chartSummary: "Growth is positive, but return value increased in the final week.",
+          chartType: "line"
+        },
+        staff: {
+          name: "Operational staff",
+          eyebrow: "Assigned work · Lagos Flagship",
+          title: "My work queue",
+          summary: "Only tasks, records, and actions permitted for the current staff assignment are shown.",
+          primary: "Open assigned work",
+          primaryRoute: "tasks",
+          queueTitle: "Work assigned to me",
+          queue: [
+            ["Pack order #LS-1082", "2 pieces · customer promise today", "orders", "Critical"],
+            ["Photograph flaw evidence", "Piece PC-02088", "products", "High"],
+            ["Complete chest measurement", "Draft product MOTO-2092", "products", "Medium"],
+            ["Confirm transfer receipt", "Transfer TR-018", "inventory", "Medium"]
+          ],
+          metrics: [["Assigned now", "8", "4 due now"], ["Completed this shift", "12", "No reopen"], ["Average task age", "38m", "Target under 45m"], ["Waiting on manager", "2", "Approvals"]],
+          risks: [["Task nearing SLA", "#LS-1082"], ["Transfer mismatch", "TR-018"], ["Missing product evidence", "PC-02088"]],
+          chartTitle: "My task completion by hour",
+          chartSummary: "Current pace is on target; one fulfillment task is blocking the queue.",
+          chartType: "bars"
+        },
+        developer: {
+          name: "Developer",
+          eyebrow: "Production operations · All permitted stores",
+          title: "Technical operations desk",
+          summary: "Inspect degraded dependencies, failed jobs, webhooks, releases, and safe diagnostic actions without gaining business authority.",
+          primary: "Open system health",
+          primaryRoute: "system",
+          queueTitle: "Technical incidents requiring intervention",
+          queue: [
+            ["Payment callback failures", "8 failures · provider 5xx", "jobs", "Critical"],
+            ["Three jobs exhausted retries", "payment-webhooks queue", "jobs", "Critical"],
+            ["Release v2026.07.15-2 monitoring", "Error rate elevated", "system", "High"],
+            ["Search index delay", "19 products pending", "jobs", "Medium"]
+          ],
+          metrics: [["API error rate", "1.8%", "Baseline 0.5%"], ["P95 latency", "612 ms", "+220 ms"], ["Failed jobs", "12", "3 exhausted"], ["Webhook failure", "4.6%", "15 min"]],
+          risks: [["Payment callback path", "Degraded"], ["Release monitoring", "Error trend elevated"], ["Queue backlog", "Search indexing"]],
+          chartTitle: "Error rate and webhook retries",
+          chartSummary: "The spike began seven minutes after the current production release.",
+          chartType: "line"
+        },
+        superadmin: {
+          name: "Super admin",
+          eyebrow: "Cross-store platform operations",
+          title: "Platform oversight desk",
+          summary: "Review platform incidents, store health, security anomalies, global integrations, and protected escalation paths.",
+          primary: "Open platform health",
+          primaryRoute: "system",
+          queueTitle: "Cross-store interventions",
+          queue: [
+            ["Payment callback incident", "Affects 3 stores", "system", "Critical"],
+            ["Permission escalation anomaly", "Payout access granted outside policy", "audit", "Critical"],
+            ["Integration secret expires soon", "Shipping provider · 6 days", "settings", "High"],
+            ["Store onboarding blocked", "Tax configuration incomplete", "settings", "Medium"]
+          ],
+          metrics: [["Stores healthy", "7 / 8", "1 degraded"], ["Security anomalies", "2", "24 hours"], ["Open incidents", "1", "SEV-2"], ["Global failed jobs", "18", "4 exhausted"]],
+          risks: [["Cross-store payment issue", "3 stores"], ["Permission anomaly", "Payout access"], ["Secret expiry", "Shipping integration"]],
+          chartTitle: "Platform health by store",
+          chartSummary: "Seven stores are healthy; one store is degraded by the shared payment callback path.",
+          chartType: "bars"
+        }
+      };
+
+      const routeTitles = {
+        dashboard: "Dashboard", tasks: "Assigned work", alerts: "Alerts",
+        products: "Products", "product-editor": "Product editor", inventory: "Inventory",
+        orders: "Orders", "order-detail": "Order #LS-1082", returns: "Returns",
+        customers: "Customers", finance: "Revenue & payouts", reports: "Reports",
+        team: "Team & access", settings: "Store configuration", system: "System health",
+        jobs: "Jobs & webhooks", flags: "Feature flags", audit: "Audit log",
+        profile: "Profile & security"
+      };
+
+      let currentPersona = "manager";
+      let currentRoute = "dashboard";
+      let lastFocused = null;
+      let toastTimer = null;
+      let intakeStep = 1;
+
+      const pages = [...document.querySelectorAll("[data-page]")];
+      const desktopNav = document.getElementById("desktop-nav");
+      const mobileNav = document.getElementById("mobile-nav");
+      const mobileDrawer = document.getElementById("mobile-drawer");
+      const mobileDrawerPanel = mobileDrawer.querySelector(".drawer-panel");
+      const stateSelector = document.getElementById("state-selector");
+      const stateOverlay = document.getElementById("state-overlay");
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add("is-visible"));
+        toastTimer = setTimeout(() => {
+          toast.classList.remove("is-visible");
+          setTimeout(() => { toast.hidden = true; }, 190);
+        }, 2600);
+      }
+
+      function buildChart(type) {
+        if (type === "line") {
+          return `
+            <svg class="w-full" viewBox="0 0 760 270" role="img" aria-label="Current and comparison trend">
+              <g class="chart-grid"><line x1="40" y1="40" x2="730" y2="40"/><line x1="40" y1="100" x2="730" y2="100"/><line x1="40" y1="160" x2="730" y2="160"/><line x1="40" y1="220" x2="730" y2="220"/></g>
+              <polyline class="chart-series-dashed" points="45,205 120,190 195,200 270,160 345,175 420,145 495,155 570,110 645,130 725,85"/>
+              <polyline class="chart-series" points="45,220 120,180 195,188 270,142 345,155 420,117 495,125 570,80 645,92 725,50"/>
+            </svg>
+            <div class="mt-3 flex gap-5 text-xs"><span>— Current period</span><span>– – Comparison</span></div>`;
+        }
+        return `
+          <div class="grid min-h-60 grid-cols-5 items-end gap-4" role="img" aria-label="Operational age distribution">
+            <div class="text-center"><div class="mx-auto h-24 w-full bg-[#aaa69c]"></div><p class="mt-2 text-xs">Under 4h</p><strong>18</strong></div>
+            <div class="text-center"><div class="mx-auto h-36 w-full bg-[#8e8a81]"></div><p class="mt-2 text-xs">4–12h</p><strong>12</strong></div>
+            <div class="text-center"><div class="mx-auto h-48 w-full bg-black"></div><p class="mt-2 text-xs">12–24h</p><strong>5</strong></div>
+            <div class="text-center"><div class="mx-auto h-20 w-full bg-[#737068]"></div><p class="mt-2 text-xs">1–2d</p><strong>2</strong></div>
+            <div class="text-center"><div class="mx-auto h-10 w-full border-2 border-black bg-white"></div><p class="mt-2 text-xs">2d+</p><strong>1</strong></div>
+          </div>`;
+      }
+
+      function renderPersona() {
+        const config = personaConfig[currentPersona];
+        document.getElementById("sidebar-persona").textContent = config.name;
+        document.getElementById("navbar-persona").textContent = config.name;
+        document.getElementById("dashboard-eyebrow").textContent = config.eyebrow;
+        document.getElementById("dashboard-title").textContent = config.title;
+        document.getElementById("dashboard-summary").textContent = config.summary;
+        document.getElementById("dashboard-primary").textContent = config.primary;
+        document.getElementById("dashboard-primary").dataset.route = config.primaryRoute;
+        document.getElementById("queue-title").textContent = config.queueTitle;
+        document.getElementById("queue-count").textContent = `${config.queue.length} open`;
+        document.getElementById("chart-title").textContent = config.chartTitle;
+        document.getElementById("chart-summary").textContent = config.chartSummary;
+        document.getElementById("persona-chart").innerHTML = buildChart(config.chartType);
+
+        document.getElementById("persona-queue").innerHTML = config.queue.map((item, index) => `
+          <article class="grid gap-4 p-5 sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center">
+            <span class="grid size-9 place-items-center border-2 border-black font-black">${index + 1}</span>
+            <div><p class="font-bold">${item[0]}</p><p class="mt-1 text-sm text-[var(--muted)]">${item[1]}</p></div>
+            <button class="btn ${item[3] === "Critical" ? "" : "secondary"}" type="button" data-generated-route="${item[2]}">${item[3] === "Critical" ? "Act now" : "Review"}</button>
+          </article>
+        `).join("");
+
+        document.getElementById("persona-metrics").innerHTML = config.metrics.map(metric => `
+          <div class="metric-rule"><dt class="label text-[var(--muted)]">${metric[0]}</dt><dd class="mt-2 text-2xl font-black">${metric[1]}</dd><dd class="mt-1 text-xs text-[var(--muted)]">${metric[2]}</dd></div>
+        `).join("");
+
+        document.getElementById("risk-list").innerHTML = config.risks.map(risk => `
+          <li class="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-3"><span><strong class="block">${risk[0]}</strong><span class="mt-1 block text-sm text-[var(--muted)]">${risk[1]}</span></span><span>→</span></li>
+        `).join("");
+
+        document.querySelectorAll("[data-generated-route]").forEach(button => {
+          button.addEventListener("click", () => navigate(button.dataset.generatedRoute));
+        });
+
+        document.querySelectorAll(".nav-group").forEach(group => {
+          const allowed = group.dataset.permissions.split(",");
+          group.hidden = !(allowed.includes("all") || allowed.includes(currentPersona));
+        });
+
+        buildMobileNav();
+      }
+
+      function buildMobileNav() {
+        mobileNav.innerHTML = "";
+        desktopNav.querySelectorAll(".nav-group:not([hidden])").forEach(group => {
+          const clone = group.cloneNode(true);
+          clone.querySelectorAll("[data-route]").forEach(button => {
+            button.addEventListener("click", () => navigate(button.dataset.route));
+          });
+          mobileNav.appendChild(clone);
+        });
+        mobileNav.querySelectorAll(".nav-item[data-route]").forEach(button => {
+          if (button.dataset.route === currentRoute) button.setAttribute("aria-current", "page");
+        });
+      }
+
+      function renderState() {
+        const state = stateSelector.value;
+        if (state === "default") {
+          stateOverlay.hidden = true;
+          return;
+        }
+
+        const title = routeTitles[currentRoute] || "Current page";
+        const states = {
+          loading: `<div aria-label="Loading ${title}"><div class="skeleton h-4 w-32"></div><div class="skeleton mt-4 h-11 w-2/3"></div><div class="skeleton mt-3 h-5 w-1/2"></div><div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div class="skeleton h-36"></div><div class="skeleton h-36"></div><div class="skeleton h-36"></div><div class="skeleton h-36"></div></div><div class="skeleton mt-5 h-64"></div></div>`,
+          empty: `<div class="mx-auto max-w-2xl py-8 text-center"><div class="dashed mx-auto grid size-24 place-items-center text-3xl">∅</div><h2 class="mt-5 text-3xl font-black">Nothing requires action here.</h2><p class="mt-3 text-[var(--muted)]">The empty state names the completed outcome and suggests the next relevant workflow.</p><button class="btn mt-6" type="button" data-overlay-action>Return to dashboard</button></div>`,
+          error: `<div class="border-l-[8px] border-l-[var(--critical)]"><p class="label text-[var(--critical)]">Scoped load failure</p><h2 class="mt-3 text-3xl font-black">${title} could not be loaded.</h2><p class="mt-3 max-w-2xl text-[var(--muted)]">Other workspace areas remain available. Internal stack traces and provider payloads stay hidden.</p><div class="mt-5 flex gap-3"><button class="btn" type="button" data-overlay-action>Retry</button><button class="btn secondary" type="button" data-route="alerts">Open alerts</button></div></div>`,
+          stale: `<div class="border-l-[8px] border-l-[var(--warning)]"><p class="label text-[var(--warning)]">Stale data</p><h2 class="mt-3 text-3xl font-black">Some ${title.toLowerCase()} data is older than expected.</h2><p class="mt-3 max-w-2xl text-[var(--muted)]">Last complete refresh: 19 minutes ago. Decisions using affected metrics should wait or open underlying records.</p><button class="btn mt-5" type="button" data-overlay-action>Refresh affected data</button></div>`,
+          restricted: `<div class="border-l-[8px] border-l-[var(--critical)]"><p class="label text-[var(--critical)]">Permission changed</p><h2 class="mt-3 text-3xl font-black">Your access to this workspace has changed.</h2><p class="mt-3 max-w-2xl text-[var(--muted)]">The server rechecked permission and store scope. Unsaved high-risk actions were not applied.</p><button class="btn mt-5" type="button" data-overlay-action>Return to permitted dashboard</button></div>`
+        };
+
+        stateOverlay.innerHTML = states[state];
+        stateOverlay.hidden = false;
+        stateOverlay.querySelectorAll("[data-overlay-action]").forEach(button => button.addEventListener("click", () => {
+          if (state === "restricted" || state === "empty") navigate("dashboard");
+          else showToast(`${button.textContent.trim()} selected`);
+        }));
+        stateOverlay.querySelectorAll("[data-route]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.route)));
+      }
+
+      function closeMobileDrawer() {
+        mobileDrawerPanel.classList.remove("is-open");
+        setTimeout(() => {
+          mobileDrawer.classList.add("hidden");
+          mobileDrawer.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 220);
+      }
+
+      function openMobileDrawer() {
+        lastFocused = document.activeElement;
+        mobileDrawer.classList.remove("hidden");
+        mobileDrawer.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        requestAnimationFrame(() => mobileDrawerPanel.classList.add("is-open"));
+        setTimeout(() => document.getElementById("mobile-drawer-close").focus(), 80);
+      }
+
+      function navigate(route) {
+        if (!routeTitles[route]) return;
+        const permitted = [...desktopNav.querySelectorAll(`.nav-group:not([hidden]) [data-route="${route}"]`)].length > 0;
+        const alwaysAllowed = ["dashboard", "tasks", "alerts", "profile", "product-editor", "order-detail"];
+        if (!permitted && !alwaysAllowed.includes(route)) {
+          showToast("This persona does not have access to that workspace.");
+          return;
+        }
+
+        currentRoute = route;
+        pages.forEach(page => page.hidden = page.dataset.page !== route);
+        document.querySelectorAll(".nav-item[data-route]").forEach(item => {
+          if (item.dataset.route === route) item.setAttribute("aria-current", "page");
+          else item.removeAttribute("aria-current");
+        });
+        document.getElementById("breadcrumb-current").textContent = routeTitles[route];
+        document.title = `${routeTitles[route]} — Control Room Wireframe`;
+        history.replaceState(null, "", `#${route}`);
+        closeMobileDrawer();
+        renderState();
+        buildMobileNav();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        const heading = pages.find(page => page.dataset.page === route)?.querySelector("h1");
+        heading?.setAttribute("tabindex", "-1");
+        setTimeout(() => heading?.focus(), 100);
+      }
+
+      function openModal(id) {
+        const backdrop = document.getElementById(id);
+        if (!backdrop) return;
+        lastFocused = document.activeElement;
+        backdrop.classList.remove("hidden");
+        if (id !== "alerts-drawer") backdrop.classList.add("flex");
+        backdrop.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        const panel = backdrop.querySelector(".modal-panel");
+        requestAnimationFrame(() => panel?.classList.add("is-open"));
+        setTimeout(() => backdrop.querySelector("button, input, select, textarea")?.focus(), 80);
+      }
+
+      function closeModal(backdrop) {
+        if (!backdrop) return;
+        const panel = backdrop.querySelector(".modal-panel");
+        panel?.classList.remove("is-open");
+        setTimeout(() => {
+          backdrop.classList.add("hidden");
+          backdrop.classList.remove("flex");
+          backdrop.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 190);
+      }
+
+      document.querySelectorAll("[data-route]").forEach(button => button.addEventListener("click", event => {
+        event.preventDefault();
+        navigate(button.dataset.route);
+        const modal = button.closest(".modal-backdrop");
+        if (modal) closeModal(modal);
+      }));
+
+      document.querySelectorAll("[data-open]").forEach(button => button.addEventListener("click", () => openModal(button.dataset.open)));
+      document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.closest(".modal-backdrop"))));
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.addEventListener("click", event => {
+        if (event.target === backdrop) closeModal(backdrop);
+      }));
+
+      document.querySelectorAll("[data-info]").forEach(button => button.addEventListener("click", () => showToast(button.dataset.info)));
+      document.querySelectorAll("[data-success]").forEach(button => button.addEventListener("click", () => {
+        showToast(button.dataset.success);
+        closeModal(button.closest(".modal-backdrop"));
+      }));
+
+      document.querySelectorAll("[data-demo]").forEach(form => form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!form.checkValidity()) return form.reportValidity();
+        showToast(form.dataset.demo);
+        closeModal(form.closest(".modal-backdrop"));
+      }));
+
+      document.getElementById("persona-selector").addEventListener("change", event => {
+        currentPersona = event.target.value;
+        renderPersona();
+        navigate("dashboard");
+        showToast(`Switched to ${personaConfig[currentPersona].name}`);
+      });
+
+      document.querySelectorAll("[data-persona-choice]").forEach(button => button.addEventListener("click", () => {
+        currentPersona = button.dataset.personaChoice;
+        document.getElementById("persona-selector").value = currentPersona;
+        renderPersona();
+        closeModal(button.closest(".modal-backdrop"));
+        navigate("dashboard");
+        showToast(`Switched to ${personaConfig[currentPersona].name}`);
+      }));
+
+      stateSelector.addEventListener("change", renderState);
+      document.getElementById("mobile-nav-trigger").addEventListener("click", openMobileDrawer);
+      document.getElementById("mobile-drawer-close").addEventListener("click", closeMobileDrawer);
+      mobileDrawer.addEventListener("click", event => { if (event.target === mobileDrawer) closeMobileDrawer(); });
+
+      document.addEventListener("keydown", event => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          openModal("command-modal");
+          return;
+        }
+        if (event.key !== "Escape") return;
+        const open = [...document.querySelectorAll(".modal-backdrop:not(.hidden)")].pop();
+        if (open) closeModal(open);
+        else if (!mobileDrawer.classList.contains("hidden")) closeMobileDrawer();
+      });
+
+      function renderIntake() {
+        document.querySelectorAll("[data-intake-step]").forEach(step => step.classList.toggle("active", Number(step.dataset.intakeStep) === intakeStep));
+        document.querySelectorAll("[data-intake-node]").forEach(node => {
+          const n = Number(node.dataset.intakeNode);
+          node.classList.toggle("active", n === intakeStep);
+          node.classList.toggle("complete", n < intakeStep);
+        });
+        document.getElementById("intake-back").disabled = intakeStep === 1;
+        document.getElementById("intake-next").textContent = intakeStep === 5 ? "Submit for review" : "Continue";
+        document.getElementById("intake-label").textContent = `Step ${intakeStep} of 5`;
+      }
+
+      document.getElementById("intake-back").addEventListener("click", () => {
+        intakeStep = Math.max(1, intakeStep - 1);
+        renderIntake();
+      });
+      document.getElementById("intake-next").addEventListener("click", () => {
+        if (intakeStep < 5) {
+          intakeStep += 1;
+          renderIntake();
+        } else {
+          showToast("Piece intake submitted for quality review");
+          closeModal(document.getElementById("intake-modal"));
+          intakeStep = 1;
+          renderIntake();
+        }
+      });
+
+      renderIntake();
+      renderPersona();
+      navigate(routeTitles[location.hash.replace("#", "")] ? location.hash.replace("#", "") : "dashboard");
+    })();
+  </script>
+</body>
+</html>

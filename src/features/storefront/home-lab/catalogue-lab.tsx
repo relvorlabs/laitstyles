@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Product } from "./data";
+import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { type Product, productById, productToHoldable } from "./data";
 import { ProductCard } from "./product-card";
 import { useStorefront } from "./storefront-context";
 import { FilterControls } from "./storefront-overlays";
@@ -64,10 +65,34 @@ function CatalogueApp() {
     return s.collection === key;
   };
 
-  const cardHandlers = { onQuickView: s.openQuick, onSave: s.toggleSaved, onAdd: s.addToCart };
+  const {
+    state: { holdSecondsByProduct },
+    actions: { holdProduct, releaseProduct },
+  } = useStorefrontExperience();
+  const cardHandlers = {
+    onQuickView: s.openQuick,
+    onSave: s.toggleSaved,
+    // Add to bag supersedes an active hold, then commits to the cart.
+    onAdd: (id: string) => {
+      releaseProduct(id);
+      s.addToCart(id);
+    },
+    onHold: (id: string) => {
+      const product = productById(id);
+      if (product) holdProduct(productToHoldable(product));
+    },
+    onRelease: releaseProduct,
+  };
   const renderCards = (items: Product[]) =>
     items.map((p) => (
-      <ProductCard key={p.id} product={p} isSaved={s.saved.has(p.id)} {...cardHandlers} />
+      <ProductCard
+        key={p.id}
+        product={p}
+        isSaved={s.saved.has(p.id)}
+        isHeld={p.id in holdSecondsByProduct}
+        holdSeconds={holdSecondsByProduct[p.id] ?? null}
+        {...cardHandlers}
+      />
     ));
 
   const goToPage = (p: number) => {

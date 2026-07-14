@@ -55,7 +55,9 @@ export function StorefrontOverlays() {
 
   return (
     <>
-      {/* Search */}
+      {/* Search — hand-rolled overlay (see 2-3N-OVL: shadcn Dialog migration blocked by a
+          Base UI Popup that does not unmount on close → leftover full-screen overlay freezes
+          the page. Reverted until the shared dialog.tsx/sheet.tsx unmount bug is fixed). */}
       <div
         id="searchModal"
         className={`overlay modal-wrap${s.openId === "searchModal" ? " open" : ""}`}
@@ -1009,22 +1011,6 @@ export function StorefrontOverlays() {
         </section>
       </div>
 
-      <div id="toast" className={`toast${s.toast ? " show" : ""}`} role="status" aria-live="polite">
-        <div className="toast-inner">
-          <p id="toastText">{s.toast?.text}</p>
-          <button
-            id="toastAction"
-            type="button"
-            style={{ display: s.toast?.actionLabel ? "inline" : "none" }}
-            onClick={() => {
-              s.toast?.action?.();
-              s.clearToast();
-            }}
-          >
-            {s.toast?.actionLabel}
-          </button>
-        </div>
-      </div>
     </>
   );
 }

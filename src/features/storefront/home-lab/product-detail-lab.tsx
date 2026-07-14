@@ -3,7 +3,16 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { inventoryLabel, money, type Product, productSlug, relatedProducts } from "./data";
+import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import {
+  inventoryLabel,
+  money,
+  type Product,
+  productById,
+  productSlug,
+  productToHoldable,
+  relatedProducts,
+} from "./data";
 import { IconArrow, IconHeart } from "./icons";
 import { ProductCard } from "./product-card";
 import { useStorefront } from "./storefront-context";
@@ -232,6 +241,10 @@ function Accordion({
 
 function ProductDetailApp({ product }: { product: Product }) {
   const s = useStorefront();
+  const {
+    state: { holdSecondsByProduct },
+    actions: { holdProduct, releaseProduct },
+  } = useStorefrontExperience();
   const [showBar, setShowBar] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const { setSelectedVariant, setQuickError } = s;
@@ -688,9 +701,19 @@ function ProductDetailApp({ product }: { product: Product }) {
                     key={rp.id}
                     product={rp}
                     isSaved={s.saved.has(rp.id)}
+                    isHeld={rp.id in holdSecondsByProduct}
+                    holdSeconds={holdSecondsByProduct[rp.id] ?? null}
                     onQuickView={s.openQuick}
                     onSave={s.toggleSaved}
-                    onAdd={s.addToCart}
+                    onAdd={(id) => {
+                      releaseProduct(id);
+                      s.addToCart(id);
+                    }}
+                    onHold={(id) => {
+                      const target = productById(id);
+                      if (target) holdProduct(productToHoldable(target));
+                    }}
+                    onRelease={releaseProduct}
                   />
                 ))}
               </div>

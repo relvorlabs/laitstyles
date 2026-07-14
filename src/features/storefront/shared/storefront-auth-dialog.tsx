@@ -75,7 +75,7 @@ export function StorefrontAuthDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="max-h-[calc(100vh-64px)] max-w-[940px] grid-cols-1 gap-0 overflow-y-auto rounded-lg p-0 shadow-[0_30px_80px_rgba(0,0,0,.24)] md:grid-cols-[minmax(300px,1fr)_minmax(320px,1.2fr)]"
+        className="max-h-[calc(100vh-64px)] max-w-[940px] grid-cols-1 gap-0 overflow-y-auto rounded-lg p-0 shadow-[0_30px_80px_rgba(0,0,0,.24)] sm:max-w-[940px] md:grid-cols-[minmax(300px,1fr)_minmax(320px,1.2fr)]"
       >
         <DialogTitle className="sr-only">Sign in</DialogTitle>
         <DialogDescription className="sr-only">Access your Laitstyle account.</DialogDescription>
