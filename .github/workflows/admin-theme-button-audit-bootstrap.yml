@@ -7,13 +7,20 @@ on:
     paths:
       - scripts/map-admin-theme-buttons.mjs
       - .github/workflows/admin-theme-button-audit-bootstrap.yml
+  pull_request:
+    branches:
+      - main
+    types: [opened, reopened, synchronize]
+    paths:
+      - scripts/map-admin-theme-buttons.mjs
+      - .github/workflows/admin-theme-button-audit-bootstrap.yml
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: admin-theme-button-audit-bootstrap
+  group: admin-theme-button-audit-bootstrap-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
