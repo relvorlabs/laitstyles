@@ -88,11 +88,12 @@ export function InventoryTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex min-w-0 items-center gap-3">
-                    <button
+                    <Button
                       aria-label={`Preview images for ${item.product.name}`}
-                      className="group/media relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded-[10px] bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="group/media relative aspect-[4/5] h-auto w-14 shrink-0 overflow-hidden rounded-[10px] bg-surface-sunken p-0"
                       onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                       type="button"
+                      variant="ghost"
                     >
                       <Image
                         alt={item.coverImage.alt}
@@ -104,19 +105,22 @@ export function InventoryTable({
                       <span className="absolute inset-0 grid place-items-center bg-overlay/0 text-surface-inverse-foreground opacity-0 transition-opacity group-hover/media:bg-overlay/55 group-hover/media:opacity-100 group-focus-visible/media:bg-overlay/55 group-focus-visible/media:opacity-100">
                         <Expand aria-hidden="true" className="size-4" />
                       </span>
-                    </button>
-                    <button
-                      className="min-w-0 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    </Button>
+                    <Button
+                      className="h-auto min-w-0 justify-start rounded-lg p-0 text-left"
                       onClick={() => onOpen(item.product.id)}
                       type="button"
+                      variant="link"
                     >
-                      <span className="block truncate text-[13.5px] font-semibold">
-                        {item.product.name}
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13.5px] font-semibold">
+                          {item.product.name}
+                        </span>
+                        <span className="mt-1 block truncate text-[11px] text-muted-foreground">
+                          {item.reference} · {item.product.category} · {item.product.brand}
+                        </span>
                       </span>
-                      <span className="mt-1 block truncate text-[11px] text-muted-foreground">
-                        {item.reference} · {item.product.category} · {item.product.brand}
-                      </span>
-                    </button>
+                    </Button>
                   </div>
                 </TableCell>
                 <TableCell className="hidden text-[11.5px] text-muted-foreground xl:table-cell">
