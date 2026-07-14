@@ -3,6 +3,7 @@
 import { Archive02Icon, Layers01Icon, PackageAddIcon } from "@hugeicons/core-free-icons";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import type { InventoryMode, ProductEditorValues } from "@/lib/control-room/types";
 import { cn } from "@/lib/utils";
@@ -62,19 +63,20 @@ export function ProductTypeStep({ onModeChange }: { onModeChange: (mode: Invento
           const selected = mode === type.value;
 
           return (
-            <button
+            <Button
               aria-pressed={selected}
               className={cn(
-                "group flex min-h-[220px] flex-col rounded-[18px] border bg-card p-5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "group min-h-[220px] w-full flex-col items-stretch justify-start whitespace-normal rounded-[18px] border bg-card p-5 text-left transition-all",
                 selected
                   ? "border-primary shadow-laitstyle"
-                  : "border-border hover:border-foreground/30 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+                  : "border-border hover:-translate-y-0.5 hover:border-foreground/30 motion-reduce:hover:translate-y-0",
               )}
               key={type.value}
               onClick={() => onModeChange(type.value)}
               type="button"
+              variant="ghost"
             >
-              <div className="flex items-start justify-between gap-3">
+              <span className="flex items-start justify-between gap-3">
                 <span
                   className={cn(
                     "grid size-11 place-items-center rounded-full",
@@ -86,18 +88,18 @@ export function ProductTypeStep({ onModeChange }: { onModeChange: (mode: Invento
                   <ControlRoomIcon icon={type.icon} size={20} />
                 </span>
                 {selected ? <Badge>Selected</Badge> : null}
-              </div>
-              <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              </span>
+              <span className="mt-6 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 {type.eyebrow}
-              </p>
-              <h3 className="mt-1 font-serif text-[24px] font-medium">{type.label}</h3>
-              <p className="mt-3 text-[12.5px] leading-5 text-muted-foreground">
+              </span>
+              <span className="mt-1 font-serif text-[24px] font-medium">{type.label}</span>
+              <span className="mt-3 text-[12.5px] leading-5 text-muted-foreground">
                 {type.description}
-              </p>
-              <p className="mt-auto pt-5 text-[11px] font-semibold text-foreground">
+              </span>
+              <span className="mt-auto pt-5 text-[11px] font-semibold text-foreground">
                 Example: {type.example}
-              </p>
-            </button>
+              </span>
+            </Button>
           );
         })}
       </div>
