@@ -4,9 +4,9 @@ import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ProductEditorDialog } from "@/features/control-room/product-editor/product-editor-dialog";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ProductEditorActionSuccess } from "@/lib/control-room/types";
+import { ProductEditorDialog } from "@/features/admin/product-editor/product-editor-dialog";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ProductEditorActionSuccess } from "@/lib/admin/types";
 
 type ProductEditorControllerValue = {
   openNewProduct: () => void;
@@ -51,7 +51,7 @@ export function ProductEditorControllerProvider({ children }: { children: ReactN
           aria-live="polite"
           className="fixed bottom-4 right-4 z-[80] w-[min(92vw,420px)] border-success/35 bg-card text-card-foreground shadow-xl"
         >
-          <ControlRoomIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
+          <AdminIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             Catalogue views now use this session-only product record. Refreshing resets the
