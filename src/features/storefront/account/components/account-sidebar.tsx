@@ -1,11 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import { type AccountNavItem, type AccountRoute, accountNavItems } from "../account-nav";
 
 const sidebarLinkBase =
-  "relative flex min-h-[46px] w-full items-center gap-3 rounded-[10px] px-[.8rem] py-[.7rem] text-left text-[.92rem] font-[560] transition-[background-color,color,transform] duration-200";
+  "relative min-h-[46px] w-full justify-start gap-3 rounded-[10px] px-[.8rem] py-[.7rem] text-left text-[.92rem] font-[560] transition-[background-color,color,transform] duration-200";
 
 export function SidebarLink({
   item,
@@ -21,14 +22,14 @@ export function SidebarLink({
   className?: string;
 }) {
   return (
-    <button
+    <Button
       type="button"
       aria-current={active ? "page" : undefined}
       onClick={() => onSelect(item.route)}
+      variant={active ? "default" : "ghost"}
       className={cn(
-        // `acc-sidebar-link` carries the colour states (muted / hover-ink /
-        // active-bone) via globals.css so they beat home-lab.css's `.lst-lab
-        // button { color: inherit }`; bg + translateX slide stay Tailwind.
+        // `acc-sidebar-link` carries contextual account colours while the Button
+        // variant supplies focus, disabled and icon behaviour consistently.
         sidebarLinkBase,
         "acc-sidebar-link",
         active ? "bg-[var(--acc-ink)]" : "hover:translate-x-0.5 hover:bg-[var(--acc-bone-2)]",
@@ -46,12 +47,12 @@ export function SidebarLink({
           className="ml-auto size-2 rounded-full bg-[var(--acc-oxblood)]"
         />
       ) : null}
-    </button>
+    </Button>
   );
 }
 
 export function AccountSidebar() {
-  const { currentRoute, navigate, toast } = useAccountUi();
+  const { currentRoute, navigate } = useAccountUi();
 
   return (
     <aside className="hidden md:block">
@@ -80,16 +81,19 @@ export function AccountSidebar() {
         </nav>
 
         <div className="border-t border-[var(--acc-line)] p-2.5">
-          <button
-            type="button"
-            onClick={() => toast("Current-session sign-out selected")}
-            className={cn(
-              sidebarLinkBase,
-              "acc-fg-oxblood hover:translate-x-0.5 hover:bg-[var(--acc-bone-2)]",
-            )}
-          >
-            <span>Sign out</span>
-          </button>
+          <form action="/auth/sign-out" method="post">
+            <input name="next" type="hidden" value="/" />
+            <Button
+              type="submit"
+              variant="ghost"
+              className={cn(
+                sidebarLinkBase,
+                "acc-fg-oxblood hover:translate-x-0.5 hover:bg-[var(--acc-bone-2)]",
+              )}
+            >
+              <span>Sign out</span>
+            </Button>
+          </form>
         </div>
       </div>
     </aside>
