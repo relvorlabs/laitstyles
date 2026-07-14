@@ -2,14 +2,14 @@ import {
   defaultHoldQuery,
   holdSavedViews,
   holdSortOptions,
-} from "@/features/control-room/holds/hold-selectors";
+} from "@/features/admin/holds/hold-selectors";
 import type {
   HoldSavedView,
   HoldSortKey,
   HoldSourceFilter,
   HoldStageFilter,
-} from "@/features/control-room/holds/hold-types";
-import { HoldsWorkspace } from "@/features/control-room/holds/holds-workspace";
+} from "@/features/admin/holds/hold-types";
+import { HoldsWorkspace } from "@/features/admin/holds/holds-workspace";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 type HoldsPageProps = {

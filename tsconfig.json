@@ -24,6 +24,7 @@
       "@/features/control-room/state/control-room-store": ["./src/features/admin/state/admin-store"],
       "@/features/control-room/data/control-room-repository-context": ["./src/features/admin/data/admin-repository-context"],
       "@/features/control-room/orders/*": ["./src/features/admin/orders/*"],
+      "@/features/control-room/holds/*": ["./src/features/admin/holds/*"],
       "@/*": ["./src/*"]
     }
   },
