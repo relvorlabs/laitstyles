@@ -309,40 +309,35 @@
 }
 
 /*
- * Account workspace — the fixed editorial palette from
- * docs/storefront-v2/card-lab/account-workspace.html (Bone / Ink / Sage / Oxblood).
- * Scoped as literal light values so the prototype renders identically regardless of
- * the app theme, and applied to the workspace root AND to portalled dialog/sheet
- * content (which renders outside the workspace subtree).
+ * Account workspace consumes the same global surface, action and functional roles
+ * as storefront and Admin. These aliases preserve the account component API while
+ * removing the former hardcoded light-only token island. Portalled account overlays
+ * receive `.lst-account` from their existing component wrappers.
  */
 .lst-account {
-  --acc-bone: #f3f0e8;
-  --acc-bone-2: #e9e4d9;
-  --acc-surface: #faf8f2;
-  --acc-ink: #191a17;
-  --acc-muted: #727267;
-  --acc-sage: #d6e4a6;
-  --acc-sage-deep: #35533b;
-  --acc-oxblood: #682631;
-  --acc-danger: #8a332d;
-  --acc-warning: #8b5a26;
-  --acc-warning-surface: #ead8bd;
-  --acc-danger-surface: #ead0d0;
-  --acc-line: rgba(25, 26, 23, 0.16);
-  --acc-line-strong: rgba(25, 26, 23, 0.34);
-  --acc-shadow-sm: 0 10px 30px rgba(25, 26, 23, 0.07);
-  --acc-shadow-md: 0 30px 80px rgba(25, 26, 23, 0.14);
+  --acc-bone: var(--background);
+  --acc-bone-2: var(--surface-sunken);
+  --acc-surface: var(--card);
+  --acc-ink: var(--foreground);
+  --acc-muted: var(--muted-foreground);
+  --acc-sage: var(--surface-selected);
+  --acc-sage-deep: var(--success-surface-foreground);
+  --acc-oxblood: var(--oxblood);
+  --acc-danger: var(--destructive);
+  --acc-warning: var(--warning);
+  --acc-warning-surface: var(--warning-surface);
+  --acc-danger-surface: var(--destructive-surface);
+  --acc-line: var(--border-subtle);
+  --acc-line-strong: var(--border-strong);
+  --acc-shadow-sm: var(--shadow-1);
+  --acc-shadow-md: var(--shadow-2);
   color: var(--acc-ink);
 }
 
 /*
- * The storefront chrome (home-lab.css, unlayered) forces `color: inherit` on every
- * button/a/input/select/textarea nested in its `.lst-lab` wrapper — and the account
- * renders inside that chrome. That reset (specificity 0,1,1, unlayered) beats the
- * account's Tailwind colour utilities (0,1,0, layered) on its shadcn buttons/links,
- * flattening them to the inherited ink. These scoped classes (0,2,0) re-assert the
- * account's own foreground colours and hover/active states, mirroring how the
- * prototype's own `.button` classes dodge the same reset.
+ * The storefront chrome reset is intentionally unlayered, so these scoped account
+ * states retain their semantic foreground and active behaviour without a separate
+ * account theme provider or blanket `!important` colour rule.
  */
 .lst-account .acc-fg-oxblood {
   color: var(--acc-oxblood);
