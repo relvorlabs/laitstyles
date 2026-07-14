@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -51,11 +52,8 @@ export function SecuritySection() {
                 Only offer this when the authentication backend supports the complete lifecycle.
               </p>
             </div>
-            <AcctButton
-              onClick={() =>
-                toast("2FA setup would require recent authentication and code verification.")
-              }
-            >
+            {/* TODO(button-action): Start 2FA enrollment after Supabase recent-auth and verification APIs are configured. */}
+            <AcctButton onClick={() => toast("Two-factor authentication is not available yet.")}>
               Enable 2FA
             </AcctButton>
           </div>
@@ -91,13 +89,14 @@ export function SecuritySection() {
                   Lagos · Last active 2 days ago
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => openModal("revoke")}
-                className="text-sm font-semibold acc-fg-oxblood underline underline-offset-4"
+                className="h-auto justify-self-start p-0 text-sm font-semibold acc-fg-oxblood sm:justify-self-end"
+                variant="link"
               >
                 Revoke
-              </button>
+              </Button>
             </article>
           </div>
         </section>
