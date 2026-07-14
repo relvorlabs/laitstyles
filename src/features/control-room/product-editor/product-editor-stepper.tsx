@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { productEditorStepLabels } from "@/features/control-room/product-editor/product-editor-step-labels";
 import { productEditorSteps } from "@/lib/control-room/product-editor-types";
@@ -42,12 +43,12 @@ export function ProductEditorStepper({
 
             return (
               <li key={step}>
-                <button
+                <Button
                   aria-current={active ? "step" : undefined}
                   className={cn(
-                    "flex min-h-12 w-full items-center gap-3 rounded-[12px] px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "min-h-12 w-full justify-start gap-3 rounded-[12px] px-3 text-left",
                     active
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground hover:bg-primary"
                       : available
                         ? "text-foreground hover:bg-background"
                         : "cursor-not-allowed text-muted-foreground/55",
@@ -55,6 +56,7 @@ export function ProductEditorStepper({
                   disabled={!available}
                   onClick={() => onStepChange(step)}
                   type="button"
+                  variant={active ? "default" : "ghost"}
                 >
                   <span
                     className={cn(
@@ -69,7 +71,7 @@ export function ProductEditorStepper({
                     {complete ? "✓" : index + 1}
                   </span>
                   <span className="text-[12px] font-semibold">{productEditorStepLabels[step]}</span>
-                </button>
+                </Button>
               </li>
             );
           })}
