@@ -13,8 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { ProductLifecycle } from "@/lib/control-room/types";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { ProductLifecycle } from "@/lib/admin/types";
 
 type PendingAction = "archive" | "restore" | "delete" | null;
 
@@ -29,7 +29,7 @@ export function InventoryProductLifecycleActions({
   lifecycle: ProductLifecycle;
   onDeleted: () => void;
 }) {
-  const { archiveProduct, deleteProduct, restoreProduct } = useControlRoom();
+  const { archiveProduct, deleteProduct, restoreProduct } = useAdmin();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
