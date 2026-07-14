@@ -56,11 +56,12 @@ export function ControlRoomTopbar({
           </div>
         </div>
 
-        <button
+        <Button
           aria-label="Search products, orders, customers and store tasks"
-          className="group hidden min-h-12 min-w-[300px] items-center gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
+          className="group hidden min-h-12 min-w-[300px] items-center justify-start gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
           onClick={onOpenSearch}
           type="button"
+          variant="ghost"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-selected text-surface-selected-foreground">
             <ControlRoomIcon icon={Search01Icon} size={17} />
@@ -76,7 +77,7 @@ export function ControlRoomTopbar({
           <kbd className="rounded-lg border border-border bg-surface-sunken px-2 py-1 font-mono text-[10px] text-muted-foreground">
             ⌘ K
           </kbd>
-        </button>
+        </Button>
 
         <Button
           aria-label="Search the Control Room"
