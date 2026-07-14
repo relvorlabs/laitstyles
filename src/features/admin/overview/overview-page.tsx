@@ -1,15 +1,15 @@
 import { ArrowRight01Icon, Search01Icon, Store01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { ActivityStream } from "@/features/control-room/overview/activity-stream";
-import { AttentionQueue } from "@/features/control-room/overview/attention-queue";
-import { ContinueWorking } from "@/features/control-room/overview/continue-working";
-import { FulfilmentLane } from "@/features/control-room/overview/fulfilment-lane";
-import { InventoryWatch } from "@/features/control-room/overview/inventory-watch";
-import { OpenOrdersPreview } from "@/features/control-room/overview/open-orders-preview";
-import { SalesPulse } from "@/features/control-room/overview/sales-pulse";
-import { TodayStrip } from "@/features/control-room/overview/today-strip";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { ActivityStream } from "@/features/admin/overview/activity-stream";
+import { AttentionQueue } from "@/features/admin/overview/attention-queue";
+import { ContinueWorking } from "@/features/admin/overview/continue-working";
+import { FulfilmentLane } from "@/features/admin/overview/fulfilment-lane";
+import { InventoryWatch } from "@/features/admin/overview/inventory-watch";
+import { OpenOrdersPreview } from "@/features/admin/overview/open-orders-preview";
+import { SalesPulse } from "@/features/admin/overview/sales-pulse";
+import { TodayStrip } from "@/features/admin/overview/today-strip";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatReportingDate } from "@/lib/control-room/formatters";
 import { getOverviewSnapshot } from "@/lib/control-room/selectors";
 import type { ControlRoomState } from "@/lib/control-room/types";
@@ -43,7 +43,7 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
             })}
             href="#attention"
           >
-            <ControlRoomIcon icon={Search01Icon} size={16} />
+            <AdminIcon icon={Search01Icon} size={16} />
             Review attention
           </a>
           <Link
@@ -53,9 +53,9 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
             })}
             href="/"
           >
-            <ControlRoomIcon icon={Store01Icon} size={16} />
+            <AdminIcon icon={Store01Icon} size={16} />
             Preview storefront
-            <ControlRoomIcon icon={ArrowRight01Icon} size={15} />
+            <AdminIcon icon={ArrowRight01Icon} size={15} />
           </Link>
         </div>
       </section>
