@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { products } from "../../home-lab/data";
 import { useAccountUi } from "../account-context";
@@ -18,8 +19,6 @@ export function OverviewSection() {
   const { navigate, openModal, toast } = useAccountUi();
   const { saved } = useAccountProducts();
 
-  // "Still thinking" shows saved pieces; when nothing is saved yet, suggest a few
-  // available pieces so the overview stays alive.
   const railProducts = (saved.length ? saved : products.filter((p) => p.status === "available")).slice(
     0,
     3,
@@ -37,7 +36,6 @@ export function OverviewSection() {
         </p>
       </header>
 
-      {/* Action required */}
       <section
         className={cn("mt-7 border-l-[5px] border-[var(--acc-oxblood)] p-5 sm:p-6", panelClass)}
       >
@@ -55,7 +53,6 @@ export function OverviewSection() {
         </div>
       </section>
 
-      {/* Current order */}
       <section className={cn("mt-6 overflow-hidden", panelElevatedClass)}>
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--acc-line)] p-5 sm:p-6">
           <div>
@@ -100,9 +97,8 @@ export function OverviewSection() {
           </div>
 
           <div className="grid gap-3">
-            <AcctButton
-              onClick={() => toast("Carrier tracking would open with real fulfillment events.")}
-            >
+            {/* TODO(button-action): Open the carrier tracking URL after fulfillment events expose a trusted tracking link. */}
+            <AcctButton onClick={() => toast("Carrier tracking is not available yet.")}>
               Track order
             </AcctButton>
             <AcctButton variant="secondary" onClick={() => navigate("order-detail")}>
@@ -112,7 +108,6 @@ export function OverviewSection() {
         </div>
       </section>
 
-      {/* Quick actions + recent orders */}
       <section className="mt-10 grid gap-8 xl:grid-cols-[.75fr_1.25fr]">
         <div>
           <Eyebrow className="text-[var(--acc-sage-deep)]">Quick actions</Eyebrow>
@@ -126,15 +121,16 @@ export function OverviewSection() {
               { label: "Manage addresses", action: () => navigate("addresses") },
               { label: "Contact support", action: () => navigate("support") },
             ].map((item) => (
-              <button
+              <Button
                 key={item.label}
                 type="button"
                 onClick={item.action}
-                className="flex min-h-16 w-full items-center justify-between gap-4 text-left"
+                className="min-h-16 w-full justify-between rounded-none px-0 text-left"
+                variant="ghost"
               >
                 <span>{item.label}</span>
-                <span>→</span>
-              </button>
+                <span aria-hidden="true">→</span>
+              </Button>
             ))}
           </div>
         </div>
@@ -145,13 +141,14 @@ export function OverviewSection() {
               <Eyebrow className="text-[var(--acc-muted)]">Purchase history</Eyebrow>
               <h2 className="mt-3 font-serif text-4xl font-normal">Recent orders</h2>
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => navigate("orders")}
-              className="text-sm font-semibold underline underline-offset-4"
+              className="h-auto p-0 text-sm font-semibold"
+              variant="link"
             >
               View all
-            </button>
+            </Button>
           </div>
 
           <div className={cn("mt-5 divide-y divide-[var(--acc-line)] overflow-hidden", panelClass)}>
@@ -177,7 +174,6 @@ export function OverviewSection() {
         </div>
       </section>
 
-      {/* Saved rail — shared storefront ProductCard */}
       <section className="mt-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -186,13 +182,14 @@ export function OverviewSection() {
               Still thinking about these.
             </h2>
           </div>
-          <button
+          <Button
             type="button"
             onClick={() => navigate("saved")}
-            className="text-sm font-semibold underline underline-offset-4"
+            className="h-auto p-0 text-sm font-semibold"
+            variant="link"
           >
             Open saved items
-          </button>
+          </Button>
         </div>
 
         <AccountProductGrid products={railProducts} layout="rail" className="mt-7" />
