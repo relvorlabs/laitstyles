@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Laitstyle — measured, checked and genuinely one-of-one fashion finds." />
+  <title>Laitstyle — Found once. Worn your way.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --background: oklch(0.967 0.006 78);
+      --surface: oklch(0.985 0.005 80);
+      --surface-soft: oklch(0.936 0.012 77);
+      --surface-dark: oklch(0.240 0.012 45);
+      --foreground: oklch(0.190 0.010 45);
+      --muted: oklch(0.505 0.020 65);
+      --border: oklch(0.850 0.018 75);
+      --accent: oklch(0.470 0.145 28);
+      --accent-soft: oklch(0.730 0.105 60);
+      --success: oklch(0.500 0.090 145);
+      --warning: oklch(0.680 0.115 75);
+      --danger: oklch(0.525 0.165 27);
+      --paper: oklch(0.955 0.012 72);
+      --text-xs: clamp(0.72rem, 0.68rem + 0.12vw, 0.78rem);
+      --text-sm: clamp(0.82rem, 0.78rem + 0.16vw, 0.92rem);
+      --text-base: clamp(0.96rem, 0.9rem + 0.22vw, 1.08rem);
+      --text-lg: clamp(1.15rem, 1rem + 0.5vw, 1.5rem);
+      --text-xl: clamp(1.55rem, 1.2rem + 1.2vw, 2.4rem);
+      --text-2xl: clamp(2.4rem, 1.7rem + 2.8vw, 5.5rem);
+      --text-hero: clamp(3.25rem, 2.1rem + 5.5vw, 8.8rem);
+      --ease: cubic-bezier(0.33, 1, 0.68, 1);
+      --container: min(100% - 32px, 1680px);
+      --z-base: 0;
+      --z-sticky: 20;
+      --z-header: 40;
+      --z-menu: 60;
+      --z-overlay: 80;
+      --z-dialog: 100;
+      --z-toast: 120;
+      --header-h: 82px;
+      --utility-h: 32px;
+      --radius-sm: 4px;
+      --radius-md: 10px;
+      --radius-lg: 18px;
+      --shadow: 0 24px 70px oklch(0.12 0.02 40 / 0.18);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --background: oklch(0.175 0.010 45);
+      --surface: oklch(0.215 0.012 45);
+      --surface-soft: oklch(0.255 0.014 45);
+      --surface-dark: oklch(0.130 0.010 45);
+      --foreground: oklch(0.935 0.008 78);
+      --muted: oklch(0.690 0.020 70);
+      --border: oklch(0.340 0.017 48);
+      --accent: oklch(0.710 0.125 42);
+      --accent-soft: oklch(0.625 0.090 70);
+      --success: oklch(0.690 0.090 145);
+      --warning: oklch(0.760 0.110 78);
+      --danger: oklch(0.690 0.150 27);
+      --paper: oklch(0.235 0.014 50);
+      --shadow: 0 28px 90px oklch(0.05 0.01 40 / 0.52);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: "Geist", ui-sans-serif, sans-serif;
+      font-size: var(--text-base);
+      line-height: 1.5;
+      text-rendering: optimizeLegibility;
+    }
+    body.overlay-open { overflow: hidden; }
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+    ::selection { background: var(--accent); color: var(--surface); }
+
+    .skip-link {
+      position: fixed; left: 16px; top: 12px; z-index: 999;
+      transform: translateY(-180%); background: var(--foreground); color: var(--background);
+      padding: 10px 14px; text-decoration: none;
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .container { width: var(--container); margin-inline: auto; }
+    .mono { font-family: "Geist Mono", monospace; font-variant-numeric: tabular-nums; }
+    .serif { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; }
+    .eyebrow {
+      font-family: "Geist Mono", monospace; font-size: var(--text-xs); letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .section { padding: clamp(72px, 9vw, 156px) 0; border-top: 1px solid var(--border); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 40px; }
+    .section-title { margin: 6px 0 0; font-size: var(--text-2xl); line-height: .95; letter-spacing: -.035em; max-width: 780px; }
+    .section-note { max-width: 480px; color: var(--muted); }
+    .text-link { display: inline-flex; gap: 10px; align-items: center; text-underline-offset: 5px; }
+    .button {
+      min-height: 46px; border: 1px solid var(--foreground); background: var(--foreground); color: var(--background);
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 18px;
+      text-decoration: none; font-weight: 600; transition: transform 180ms var(--ease), background 180ms var(--ease), color 180ms var(--ease);
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button.secondary { background: transparent; color: var(--foreground); }
+    .button.ghost { border-color: transparent; background: transparent; color: var(--foreground); padding-inline: 8px; }
+    .button:disabled, .icon-button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .icon-button {
+      width: 44px; height: 44px; display: inline-grid; place-items: center; border: 1px solid transparent;
+      background: transparent; border-radius: 50%; transition: background 160ms ease, transform 160ms ease;
+    }
+    .icon-button:hover { background: var(--surface-soft); }
+    .icon-button[aria-pressed="true"] { color: var(--accent); transform: scale(1.04); }
+    .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .wordmark { font-size: clamp(1.25rem, 1rem + .7vw, 2rem); font-weight: 700; letter-spacing: -.05em; text-decoration: none; }
+
+    .utility {
+      min-height: var(--utility-h); background: var(--surface-dark); color: oklch(0.94 0.008 78);
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px;
+      padding: 6px max(16px, calc((100vw - 1680px) / 2)); font-size: var(--text-xs); position: relative; z-index: calc(var(--z-header) + 1);
+    }
+    .utility-message { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .utility-actions { display: flex; gap: 14px; align-items: center; }
+    .utility button { border: 0; background: transparent; color: inherit; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+    .site-header {
+      position: sticky; top: 0; z-index: var(--z-header); background: color-mix(in oklch, var(--background) 96%, transparent);
+      border-bottom: 1px solid transparent; transition: transform 220ms var(--ease), min-height 220ms var(--ease), border-color 220ms ease;
+      backdrop-filter: blur(14px); min-height: var(--header-h);
+    }
+    .site-header.compact { border-bottom-color: var(--border); --header-h: 66px; }
+    .site-header.hidden-header { transform: translateY(-110%); }
+    .header-inner { min-height: var(--header-h); display: grid; grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr); align-items: center; transition: min-height 220ms var(--ease); }
+    .desktop-nav { display: flex; align-items: center; gap: clamp(18px, 2vw, 34px); justify-content: center; }
+    .nav-link { border: 0; background: transparent; padding: 12px 0; text-decoration: none; font-size: var(--text-sm); position: relative; }
+    .nav-link::after { content: ""; height: 1px; background: currentColor; position: absolute; left: 0; right: 100%; bottom: 7px; transition: right 180ms ease; }
+    .nav-link:hover::after, .nav-link[aria-expanded="true"]::after { right: 0; }
+    .header-actions { justify-self: end; display: flex; align-items: center; gap: 2px; }
+    .action-text { font-size: var(--text-sm); }
+    .count-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 20px; display: inline-grid; place-items: center; background: var(--accent); color: var(--surface); font-size: 10px; font-family: "Geist Mono"; }
+    .mobile-only { display: none; }
+
+    .mega-menu {
+      position: fixed; z-index: var(--z-menu); left: 0; right: 0; top: calc(var(--utility-h) + var(--header-h));
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface);
+      box-shadow: 0 20px 50px oklch(0.2 0.01 40 / .12); max-height: calc(100vh - var(--utility-h) - var(--header-h) - 16px); overflow: auto;
+    }
+    .mega-grid { display: grid; grid-template-columns: 1.05fr .8fr .75fr; gap: 48px; padding: 38px 0 44px; }
+    .mega-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 28px; align-content: start; }
+    .mega-links a { text-decoration: none; padding: 7px 0; }
+    .mega-links a:hover { color: var(--accent); }
+    .mega-editorial { display: grid; grid-template-columns: 42% 1fr; gap: 20px; align-items: end; }
+    .mega-image { aspect-ratio: 4/5; overflow: hidden; background: var(--surface-soft); }
+    .trust-card { border-left: 1px solid var(--border); padding-left: 32px; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; }
+
+    .hero { min-height: calc(100svh - var(--utility-h) - var(--header-h)); padding: 28px 0 60px; border-bottom: 1px solid var(--border); }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 1fr); gap: clamp(28px, 4vw, 76px); align-items: end; }
+    .hero-copy { padding-bottom: clamp(18px, 5vw, 84px); position: relative; z-index: 2; }
+    .hero h1 { font-size: var(--text-hero); line-height: .83; letter-spacing: -.055em; margin: 26px 0; max-width: 8.2ch; text-wrap: balance; }
+    .hero h1 .serif { color: var(--accent); }
+    .hero-copy > p { max-width: 580px; color: var(--muted); font-size: var(--text-lg); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 26px; }
+    .inventory-note { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: var(--text-sm); }
+    .inventory-note::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+    .hero-visual { position: relative; min-height: 540px; aspect-ratio: 4/5; max-height: 780px; overflow: hidden; background: var(--surface-soft); isolation: isolate; }
+    .hero-visual img { transform: scale(1.015); transition: opacity 280ms ease, transform 500ms var(--ease); }
+    .hero-visual::after { content: ""; position: absolute; inset: auto 0 0; height: 30%; background: linear-gradient(to top, oklch(0.1 0.01 40 / .35), transparent); pointer-events: none; }
+    .hero-index { position: absolute; left: 18px; bottom: 16px; z-index: 2; color: white; display: flex; align-items: center; gap: 10px; font-family: "Geist Mono"; font-size: var(--text-xs); }
+    .hero-progress { width: 72px; height: 1px; background: rgb(255 255 255 / .35); }
+    .hero-progress span { display: block; width: 50%; height: 100%; background: white; transition: transform 220ms ease; transform-origin: left; }
+    .hero-image-control { position: absolute; right: 14px; bottom: 12px; z-index: 3; background: rgb(25 20 18 / .7); color: white; border-color: rgb(255 255 255 / .3); }
+    .hotspot { position: absolute; right: 17%; top: 48%; z-index: 3; width: 42px; height: 42px; border-radius: 50%; border: 1px solid white; background: rgb(32 25 23 / .72); color: white; display: grid; place-items: center; box-shadow: 0 0 0 8px rgb(255 255 255 / .14); }
+    .hotspot:hover { transform: scale(1.08); }
+    .hotspot-card { position: absolute; z-index: 3; right: 12px; top: calc(48% + 54px); width: min(240px, 52%); padding: 12px; background: color-mix(in oklch, var(--surface) 94%, transparent); box-shadow: var(--shadow); font-size: var(--text-sm); }
+    .hotspot-card strong { display: block; margin-bottom: 4px; }
+
+    .category-shell { border-bottom: 1px solid var(--border); background: var(--surface); position: relative; }
+    .category-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; align-items: center; }
+    .category-rail { display: flex; gap: 30px; overflow-x: auto; padding: 18px 4px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+    .category-rail button { border: 0; background: transparent; white-space: nowrap; padding: 8px 0; color: var(--muted); scroll-snap-align: start; }
+    .category-rail button[aria-pressed="true"] { color: var(--foreground); text-decoration: underline; text-underline-offset: 7px; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 42px 18px; }
+    .product-grid.editorial { grid-template-columns: repeat(12, 1fr); }
+    .product-grid.editorial .product-card { grid-column: span 4; }
+    .product-grid.editorial .product-card:nth-child(5n + 1), .product-grid.editorial .product-card:nth-child(5n + 4) { grid-column: span 6; }
+    .product-card { min-width: 0; position: relative; }
+    .product-media { position: relative; aspect-ratio: 4/5; overflow: hidden; background: var(--surface-soft); }
+    .product-media img { transition: opacity 300ms ease, transform 420ms var(--ease); }
+    .product-media img.alt { position: absolute; inset: 0; opacity: 0; }
+    .product-card:hover .product-media img:first-child { transform: scale(1.025); }
+    .product-card:hover .product-media img.alt { opacity: 1; transform: scale(1.025); }
+    .product-badges { position: absolute; left: 10px; top: 10px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 64px); }
+    .badge { background: color-mix(in oklch, var(--surface) 94%, transparent); color: var(--foreground); padding: 5px 7px; font-family: "Geist Mono"; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+    .badge.dark { background: var(--surface-dark); color: oklch(0.94 0.008 78); }
+    .badge.warn { background: var(--warning); color: oklch(0.18 0.01 50); }
+    .card-save { position: absolute; top: 8px; right: 8px; z-index: 3; background: color-mix(in oklch, var(--surface) 90%, transparent); }
+    .card-actions { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 3; display: grid; grid-template-columns: 1fr auto; gap: 8px; opacity: 0; transform: translateY(8px); transition: opacity 180ms ease, transform 180ms var(--ease); }
+    .product-card:hover .card-actions, .product-card:focus-within .card-actions { opacity: 1; transform: translateY(0); }
+    .card-actions .button { min-height: 42px; font-size: var(--text-sm); }
+    .card-info { padding-top: 14px; display: grid; gap: 7px; }
+    .card-meta { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-family: "Geist Mono"; font-size: var(--text-xs); }
+    .product-title { margin: 0; font-size: var(--text-base); line-height: 1.25; min-height: 2.5em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    .price-row { display: flex; gap: 9px; align-items: baseline; font-variant-numeric: tabular-nums; }
+    .price { font-weight: 600; }
+    .old-price { color: var(--muted); text-decoration: line-through; font-size: var(--text-sm); }
+    .condition-line { color: var(--muted); font-size: var(--text-sm); display: flex; align-items: center; gap: 8px; }
+    .condition-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; background: var(--success); }
+    .state-card { grid-column: 1 / -1; min-height: 240px; border: 1px dashed var(--border); display: grid; place-items: center; text-align: center; padding: 32px; background: var(--surface-soft); }
+    .skeleton { background: linear-gradient(90deg, var(--surface-soft), var(--surface), var(--surface-soft)); background-size: 200% 100%; animation: shimmer 1.35s linear infinite; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    .editorial-feature { background: var(--surface-dark); color: oklch(0.94 0.008 78); overflow: hidden; }
+    .editorial-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr); gap: clamp(32px, 6vw, 100px); align-items: center; }
+    .editorial-images { position: relative; min-height: 700px; }
+    .editorial-main { width: 78%; height: 84%; position: absolute; left: 0; top: 0; overflow: hidden; }
+    .editorial-detail { width: 38%; aspect-ratio: 3/4; position: absolute; right: 0; bottom: 0; border: 10px solid var(--surface-dark); overflow: hidden; }
+    .editorial-copy h2 { font-size: clamp(3rem, 2rem + 3vw, 7rem); line-height: .88; letter-spacing: -.045em; margin: 18px 0 26px; }
+    .editorial-copy p { color: oklch(0.78 0.01 78); font-size: var(--text-lg); max-width: 520px; }
+    .featured-mini { margin-top: 38px; padding-top: 24px; border-top: 1px solid oklch(0.45 0.01 45); display: grid; grid-template-columns: 74px 1fr auto; gap: 14px; align-items: center; }
+    .featured-mini img { aspect-ratio: 1; }
+
+    .mood-grid { display: grid; grid-template-columns: 1.08fr .92fr; grid-template-rows: repeat(2, minmax(240px, 1fr)); gap: 16px; min-height: 760px; }
+    .mood-card { position: relative; overflow: hidden; min-height: 260px; color: white; isolation: isolate; text-decoration: none; }
+    .mood-card:first-child { grid-row: 1 / 3; }
+    .mood-card:nth-child(2) { grid-column: 2; }
+    .mood-small-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .mood-card::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgb(25 18 17 / .72), transparent 62%); }
+    .mood-card img { position: absolute; inset: 0; z-index: -2; transition: transform 500ms var(--ease); }
+    .mood-card:hover img { transform: scale(1.025); }
+    .mood-content { position: absolute; left: 22px; right: 22px; bottom: 20px; display: flex; justify-content: space-between; gap: 18px; align-items: end; }
+    .mood-content h3 { margin: 0 0 4px; font-size: var(--text-xl); line-height: 1; }
+    .mood-content p { margin: 0; color: rgb(255 255 255 / .78); font-size: var(--text-sm); max-width: 28ch; }
+
+    .trust-section { background: var(--surface); }
+    .trust-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(40px, 8vw, 130px); }
+    .condition-scale { display: grid; gap: 12px; margin-top: 40px; }
+    .condition-step { display: grid; grid-template-columns: 26px 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
+    .condition-step span:first-child { width: 18px; height: 18px; border: 1px solid currentColor; border-radius: 50%; position: relative; }
+    .condition-step.active span:first-child::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent); }
+    .measurement-board { min-height: 520px; border: 1px solid var(--border); background: var(--paper); display: grid; grid-template-columns: .85fr 1.15fr; }
+    .garment-sketch { display: grid; place-items: center; padding: 28px; border-right: 1px solid var(--border); position: relative; }
+    .garment-sketch svg { width: min(88%, 320px); height: auto; }
+    .garment-sketch .measure-line { stroke: var(--accent); stroke-dasharray: 5 5; }
+    .trust-tabs { display: flex; flex-direction: column; }
+    .tab-list { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); }
+    .tab-list button { border: 0; border-right: 1px solid var(--border); background: transparent; padding: 14px 10px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .05em; }
+    .tab-list button[aria-selected="true"] { background: var(--foreground); color: var(--background); }
+    .tab-panel { padding: 28px; color: var(--muted); }
+    .tab-panel h3 { color: var(--foreground); font-size: var(--text-xl); line-height: 1; margin-top: 0; }
+
+    .rail-wrap { position: relative; }
+    .product-rail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 27vw); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; padding-bottom: 16px; }
+    .product-rail .product-card { scroll-snap-align: start; }
+    .rail-controls { display: flex; gap: 8px; }
+    .rail-progress { height: 2px; background: var(--border); margin-top: 18px; }
+    .rail-progress span { display: block; height: 100%; width: 20%; background: var(--foreground); transition: transform 180ms ease; transform-origin: left; }
+
+    .featured-product { background: var(--surface-soft); }
+    .featured-grid { display: grid; grid-template-columns: 1.2fr .8fr; min-height: 760px; }
+    .feature-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); }
+    .feature-gallery button { border: 0; padding: 0; background: var(--surface); overflow: hidden; min-height: 360px; position: relative; }
+    .feature-gallery button:first-child { grid-row: 1 / 3; min-height: 720px; }
+    .feature-gallery button::after { content: "Open image"; position: absolute; right: 12px; bottom: 12px; padding: 7px 10px; background: rgb(25 20 18 / .72); color: white; font-size: var(--text-xs); opacity: 0; transition: opacity 180ms ease; }
+    .feature-gallery button:hover::after, .feature-gallery button:focus-visible::after { opacity: 1; }
+    .feature-copy { background: var(--surface); padding: clamp(32px, 5vw, 72px); display: flex; flex-direction: column; justify-content: center; }
+    .feature-copy h2 { font-size: clamp(2.4rem, 2rem + 2vw, 5.4rem); line-height: .92; letter-spacing: -.04em; margin: 16px 0; }
+    .feature-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--border); margin: 28px 0; }
+    .feature-fact { padding: 16px 12px 16px 0; border-bottom: 1px solid var(--border); }
+    .feature-fact span { display: block; color: var(--muted); font-size: var(--text-xs); font-family: "Geist Mono"; text-transform: uppercase; letter-spacing: .05em; }
+    .feature-fact strong { display: block; margin-top: 4px; }
+    .style-note { border-left: 2px solid var(--accent); padding: 6px 0 6px 18px; margin: 10px 0 24px; color: var(--muted); }
+
+    .notes-grid { display: grid; grid-template-columns: 1.18fr .82fr .82fr; gap: 18px; align-items: start; }
+    .note-card { text-decoration: none; display: block; }
+    .note-card .note-image { aspect-ratio: 4/3; overflow: hidden; background: var(--surface-soft); }
+    .note-card:first-child .note-image { aspect-ratio: 4/5; }
+    .note-card img { transition: transform 500ms var(--ease); }
+    .note-card:hover img { transform: scale(1.02); }
+    .note-card h3 { font-size: var(--text-xl); line-height: 1.05; letter-spacing: -.025em; margin: 12px 0; }
+    .note-card:first-child h3 { font-size: clamp(2rem, 1.4rem + 2vw, 4.2rem); }
+    .note-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-family: "Geist Mono"; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .05em; }
+
+    .community-grid { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 130px; gap: 12px; }
+    .look-card { position: relative; overflow: hidden; border: 0; padding: 0; background: var(--surface-soft); color: white; text-align: left; }
+    .look-card:nth-child(1) { grid-column: span 4; grid-row: span 4; }
+    .look-card:nth-child(2) { grid-column: span 3; grid-row: span 3; }
+    .look-card:nth-child(3) { grid-column: span 5; grid-row: span 2; }
+    .look-card:nth-child(4) { grid-column: span 3; grid-row: span 3; }
+    .look-card:nth-child(5) { grid-column: span 2; grid-row: span 2; }
+    .look-card:nth-child(6) { grid-column: span 3; grid-row: span 3; }
+    .look-card::after { content: ""; position: absolute; inset: 50% 0 0; background: linear-gradient(to top, rgb(20 15 14 / .7), transparent); }
+    .look-card img { transition: transform 420ms var(--ease); }
+    .look-card:hover img { transform: scale(1.025); }
+    .look-caption { position: absolute; z-index: 2; left: 14px; right: 14px; bottom: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+    .look-caption span { display: block; font-size: var(--text-xs); color: rgb(255 255 255 / .75); }
+
+    .newsletter { background: var(--accent); color: oklch(0.96 0.01 75); }
+    .newsletter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 8vw, 140px); align-items: end; }
+    .newsletter h2 { font-size: clamp(3rem, 2rem + 4vw, 8rem); line-height: .84; letter-spacing: -.05em; margin: 14px 0; }
+    .newsletter-form { display: grid; gap: 18px; }
+    .field { display: grid; gap: 7px; }
+    .field input, .field select {
+      width: 100%; min-height: 52px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; padding: 10px 2px; border-radius: 0;
+    }
+    .field input::placeholder { color: color-mix(in oklch, currentColor 68%, transparent); }
+    .field-error { min-height: 1.3em; font-size: var(--text-sm); }
+    .newsletter-form .button { background: oklch(0.95 0.01 75); color: var(--accent); border-color: oklch(0.95 0.01 75); width: fit-content; }
+    .form-status { min-height: 1.5em; font-size: var(--text-sm); }
+
+    .site-footer { background: var(--surface-dark); color: oklch(0.92 0.008 78); padding: 72px 0 26px; }
+    .footer-grid { display: grid; grid-template-columns: 1.3fr repeat(3, .7fr) 1fr; gap: 44px; }
+    .footer-brand p { color: oklch(0.7 0.01 75); max-width: 36ch; }
+    .footer-group h3 { font-size: var(--text-xs); font-family: "Geist Mono"; text-transform: uppercase; letter-spacing: .08em; color: oklch(0.67 0.01 75); margin: 0 0 18px; }
+    .footer-links { display: grid; gap: 10px; }
+    .footer-links a, .footer-links button { color: inherit; text-decoration: none; border: 0; background: transparent; padding: 0; text-align: left; }
+    .footer-links a:hover, .footer-links button:hover { color: var(--accent-soft); }
+    .footer-controls { display: grid; gap: 12px; }
+    .footer-control { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.36 0.01 45); padding: 10px 0; }
+    .footer-control select { background: transparent; border: 0; color: inherit; }
+    .footer-bottom { margin-top: 66px; padding-top: 20px; border-top: 1px solid oklch(0.34 0.01 45); display: flex; justify-content: space-between; gap: 20px; color: oklch(0.62 0.01 75); font-size: var(--text-xs); font-family: "Geist Mono"; }
+
+    .overlay-backdrop {
+      position: fixed; inset: 0; z-index: var(--z-overlay); background: oklch(0.12 0.01 40 / .58); backdrop-filter: blur(4px);
+      opacity: 0; transition: opacity 180ms ease; pointer-events: none;
+    }
+    .overlay-backdrop.active { opacity: 1; pointer-events: auto; }
+    .overlay {
+      position: fixed; z-index: var(--z-dialog); background: var(--surface); color: var(--foreground); box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; transition: opacity 200ms ease, transform 240ms var(--ease); overflow: auto;
+    }
+    .overlay.active { opacity: 1; visibility: visible; transform: none; }
+    .dialog { inset: 50% auto auto 50%; width: min(1040px, calc(100vw - 32px)); max-height: min(88vh, 900px); transform: translate(-50%, calc(-50% + 20px)); }
+    .dialog.active { transform: translate(-50%, -50%); }
+    .drawer { top: 0; right: 0; bottom: 0; width: min(480px, 100vw); transform: translateX(100%); }
+    .search-overlay { left: 0; right: 0; top: calc(var(--utility-h) + var(--header-h)); max-height: calc(100vh - var(--utility-h) - var(--header-h)); transform: translateY(-14px); border-top: 1px solid var(--border); }
+    .mobile-sheet { top: 0; left: 0; bottom: 0; width: min(420px, 100vw); transform: translateX(-100%); }
+    .viewer { inset: 0; background: oklch(0.14 0.01 42); color: oklch(0.94 0.01 75); transform: scale(.985); }
+    .overlay-header { position: sticky; top: 0; z-index: 2; min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--surface) 96%, transparent); backdrop-filter: blur(12px); }
+    .overlay-header h2 { font-size: var(--text-lg); margin: 0; }
+    .overlay-body { padding: 24px; }
+
+    .search-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 48px; padding: 28px 0 42px; }
+    .search-input-wrap { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 12px; border-bottom: 1px solid var(--foreground); }
+    .search-input-wrap input { border: 0; background: transparent; font-size: clamp(1.8rem, 1.2rem + 2vw, 4.6rem); letter-spacing: -.04em; min-width: 0; padding: 8px 0 16px; }
+    .search-input-wrap input:focus { outline: 0; }
+    .search-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 9px; }
+    .chip { border: 1px solid var(--border); background: transparent; padding: 8px 10px; border-radius: 999px; }
+    .search-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .search-result { border: 1px solid var(--border); background: transparent; padding: 10px; display: grid; grid-template-columns: 74px 1fr; gap: 12px; text-align: left; }
+    .search-result img { aspect-ratio: 4/5; }
+    .search-result p { margin: 3px 0; font-size: var(--text-sm); }
+
+    .quick-grid { display: grid; grid-template-columns: 1.05fr .95fr; min-height: 600px; }
+    .quick-gallery { display: grid; grid-template-columns: 72px 1fr; gap: 12px; background: var(--surface-soft); padding: 16px; min-width: 0; }
+    .thumbs { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+    .thumbs button { padding: 0; border: 1px solid transparent; background: transparent; aspect-ratio: 4/5; overflow: hidden; }
+    .thumbs button[aria-current="true"] { border-color: var(--foreground); }
+    .quick-main-image { border: 0; padding: 0; background: var(--paper); overflow: hidden; min-height: 540px; }
+    .quick-info { padding: 32px; overflow-y: auto; }
+    .quick-info h2 { font-size: clamp(2rem, 1.5rem + 1.5vw, 4rem); line-height: .95; letter-spacing: -.035em; margin: 12px 0; }
+    .stock-message { margin: 16px 0; padding: 11px 13px; background: var(--surface-soft); border-left: 3px solid var(--success); font-size: var(--text-sm); }
+    .stock-message.reserved { border-color: var(--warning); }
+    .stock-message.sold { border-color: var(--danger); }
+    .quick-facts { display: grid; grid-template-columns: repeat(2, 1fr); margin: 22px 0; border-top: 1px solid var(--border); }
+    .quick-fact { padding: 12px 8px 12px 0; border-bottom: 1px solid var(--border); }
+    .quick-fact span { color: var(--muted); font-size: var(--text-xs); display: block; }
+    .size-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+    .size-options button { min-width: 48px; height: 44px; border: 1px solid var(--border); background: transparent; }
+    .size-options button[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
+    .quick-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; position: sticky; bottom: 0; background: var(--surface); padding-top: 12px; }
+
+    .cart-items { display: grid; gap: 0; }
+    .cart-item { display: grid; grid-template-columns: 96px 1fr auto; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+    .cart-item img { aspect-ratio: 4/5; }
+    .cart-item h3 { font-size: var(--text-base); margin: 0 0 5px; }
+    .cart-item p { margin: 2px 0; font-size: var(--text-sm); color: var(--muted); }
+    .cart-summary { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 20px 24px max(20px, env(safe-area-inset-bottom)); }
+    .subtotal { display: flex; justify-content: space-between; font-size: var(--text-lg); font-weight: 600; margin-bottom: 14px; }
+    .cart-summary .button { width: 100%; }
+    .empty-state { min-height: 60vh; display: grid; place-items: center; text-align: center; padding: 34px; }
+    .empty-state h3 { font-size: var(--text-xl); line-height: 1.05; margin-bottom: 12px; }
+
+    .viewer-grid { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+    .viewer-main { min-height: 0; display: grid; place-items: center; overflow: hidden; padding: 14px 80px; touch-action: pan-y pinch-zoom; }
+    .viewer-image-wrap { height: 100%; width: 100%; display: grid; place-items: center; overflow: hidden; }
+    .viewer-image-wrap img { max-height: 100%; max-width: 100%; object-fit: contain; transform: scale(var(--zoom, 1)); transition: transform 180ms ease; }
+    .viewer-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgb(255 255 255 / .08); color: white; border-color: rgb(255 255 255 / .25); }
+    .viewer-prev { left: 18px; }
+    .viewer-next { right: 18px; }
+    .viewer-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; border-top: 1px solid rgb(255 255 255 / .16); padding: 12px 18px max(12px, env(safe-area-inset-bottom)); }
+    .viewer-thumbs { display: flex; gap: 8px; overflow-x: auto; }
+    .viewer-thumbs button { width: 54px; flex: 0 0 auto; padding: 0; border: 1px solid transparent; background: transparent; aspect-ratio: 4/5; }
+    .viewer-thumbs button[aria-current="true"] { border-color: white; }
+
+    .guide-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .guide-card { padding: 20px; border: 1px solid var(--border); background: var(--surface-soft); }
+    .guide-card h3 { margin-top: 0; }
+    .look-dialog-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: 600px; }
+    .look-dialog-copy { padding: 36px; }
+    .similar-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 24px; }
+    .similar-item { border: 1px solid var(--border); background: transparent; padding: 8px; text-align: left; }
+    .similar-item img { aspect-ratio: 4/5; margin-bottom: 8px; }
+
+    .toast-region { position: fixed; right: 18px; bottom: 18px; z-index: var(--z-toast); display: grid; gap: 10px; pointer-events: none; }
+    .toast { background: var(--foreground); color: var(--background); padding: 13px 16px; min-width: min(360px, calc(100vw - 36px)); box-shadow: var(--shadow); animation: toast-in 240ms var(--ease); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+
+    .prototype-controls {
+      position: fixed; left: 14px; bottom: 14px; z-index: calc(var(--z-toast) + 2); background: color-mix(in oklch, var(--surface) 94%, transparent);
+      border: 1px solid var(--border); box-shadow: var(--shadow); padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; max-width: calc(100vw - 28px); backdrop-filter: blur(14px);
+    }
+    .prototype-controls label { font-size: var(--text-xs); font-family: "Geist Mono"; text-transform: uppercase; letter-spacing: .05em; }
+    .segmented { display: flex; border: 1px solid var(--border); }
+    .segmented button { border: 0; background: transparent; padding: 7px 10px; font-size: var(--text-xs); }
+    .segmented button[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
+    .prototype-controls select { min-height: 32px; border: 1px solid var(--border); background: var(--surface); padding: 0 8px; font-size: var(--text-xs); }
+
+    body.wireframe { --background: oklch(0.985 0 0); --surface: oklch(1 0 0); --surface-soft: oklch(.95 0 0); --foreground: oklch(.16 0 0); --muted: oklch(.45 0 0); --border: oklch(.45 0 0); --accent: oklch(.45 .14 25); }
+    body.wireframe * { box-shadow: none !important; text-shadow: none !important; }
+    body.wireframe .section, body.wireframe .hero, body.wireframe .category-shell, body.wireframe .site-header { background: var(--background) !important; color: var(--foreground) !important; }
+    body.wireframe .media-frame, body.wireframe .product-media, body.wireframe .hero-visual, body.wireframe .mega-image, body.wireframe .editorial-main, body.wireframe .editorial-detail, body.wireframe .note-image, body.wireframe .feature-gallery button, body.wireframe .look-card, body.wireframe .quick-main-image, body.wireframe .quick-gallery, body.wireframe .mood-card {
+      background: repeating-linear-gradient(45deg, transparent 0 12px, oklch(.88 0 0) 12px 13px) !important;
+      border: 1px solid var(--foreground) !important; position: relative;
+    }
+    body.wireframe .media-frame img, body.wireframe .product-media img, body.wireframe .hero-visual img, body.wireframe .mega-image img, body.wireframe .editorial-main img, body.wireframe .editorial-detail img, body.wireframe .note-image img, body.wireframe .feature-gallery img, body.wireframe .look-card img, body.wireframe .mood-card img { opacity: 0 !important; }
+    body.wireframe [data-wire-label]::before {
+      content: attr(data-wire-label); position: absolute; inset: 0; display: grid; place-items: center; z-index: 10; padding: 16px; text-align: center;
+      font-family: "Geist Mono"; font-size: var(--text-xs); letter-spacing: .04em; color: var(--foreground); pointer-events: none;
+    }
+    body.wireframe .button, body.wireframe .icon-button, body.wireframe .badge, body.wireframe .chip { border-radius: 0; }
+    body.wireframe .section::before { content: attr(data-wire-section); display: block; width: var(--container); margin: 0 auto 24px; font-family: "Geist Mono"; font-size: var(--text-xs); color: var(--accent); }
+    body.wireframe .editorial-feature { background: var(--surface-soft) !important; color: var(--foreground) !important; }
+    body.wireframe .editorial-copy p { color: var(--muted); }
+    body.wireframe .newsletter { background: var(--surface-soft); color: var(--foreground); }
+
+    @media (max-width: 1199px) {
+      .header-inner { grid-template-columns: auto 1fr auto; }
+      .desktop-nav { gap: 18px; }
+      .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .footer-grid { grid-template-columns: 1.2fr repeat(2, .8fr); }
+      .footer-controls, .footer-group:nth-of-type(3) { margin-top: 20px; }
+      .featured-grid { grid-template-columns: 1fr; }
+      .feature-copy { min-height: 560px; }
+      .notes-grid { grid-template-columns: 1fr 1fr; }
+      .note-card:first-child { grid-row: span 2; }
+      .community-grid { grid-auto-rows: 110px; }
+    }
+
+    @media (max-width: 899px) {
+      :root { --header-h: 66px; --container: min(100% - 24px, 820px); }
+      .desktop-only, .desktop-nav { display: none !important; }
+      .mobile-only { display: inline-grid; }
+      .header-inner { grid-template-columns: 48px 1fr auto; }
+      .header-inner .wordmark { justify-self: center; }
+      .hero { min-height: auto; padding-top: 20px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+      .hero-copy { padding-bottom: 0; }
+      .hero h1 { max-width: 9ch; }
+      .hero-visual { min-height: 0; max-height: none; aspect-ratio: 4/5; }
+      .section-head { align-items: start; flex-direction: column; }
+      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 12px; }
+      .product-grid.editorial { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .product-grid.editorial .product-card, .product-grid.editorial .product-card:nth-child(n) { grid-column: auto; }
+      .card-actions { position: static; opacity: 1; transform: none; display: grid; margin-top: 10px; }
+      .card-actions .button { min-height: 40px; padding-inline: 8px; }
+      .editorial-grid { grid-template-columns: 1fr; }
+      .editorial-images { min-height: 620px; }
+      .mood-grid { min-height: 0; grid-template-columns: 1fr; grid-template-rows: auto; }
+      .mood-card:first-child, .mood-card:nth-child(2) { grid-row: auto; grid-column: auto; min-height: 520px; }
+      .mood-small-grid { grid-template-columns: 1fr 1fr; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .measurement-board { grid-template-columns: 1fr; }
+      .garment-sketch { border-right: 0; border-bottom: 1px solid var(--border); min-height: 360px; }
+      .featured-grid { display: block; }
+      .feature-gallery { min-height: 680px; }
+      .feature-copy { min-height: auto; }
+      .notes-grid { grid-template-columns: 1fr 1fr; }
+      .note-card:first-child { grid-column: 1 / -1; grid-row: auto; }
+      .community-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 220px; }
+      .look-card:nth-child(n) { grid-column: auto; grid-row: auto; }
+      .look-card:first-child { grid-row: span 2; }
+      .newsletter-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .search-overlay { top: 0; bottom: 0; max-height: none; }
+      .search-layout { grid-template-columns: 1fr; }
+      .search-input-wrap { grid-column: auto; }
+      .search-results { grid-template-columns: 1fr; }
+      .dialog { inset: auto 0 0; width: 100%; max-height: calc(100svh - 18px); transform: translateY(100%); border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+      .dialog.active { transform: translateY(0); }
+      .quick-grid, .look-dialog-grid { grid-template-columns: 1fr; }
+      .quick-gallery { min-height: 520px; }
+      .quick-info { overflow: visible; }
+      .viewer-main { padding: 12px 52px; }
+      .prototype-controls { right: 10px; left: 10px; bottom: 8px; justify-content: center; }
+    }
+
+    @media (max-width: 639px) {
+      :root { --container: min(100% - 20px, 620px); }
+      .utility { grid-template-columns: 1fr auto; padding-inline: 10px; }
+      .utility-actions a { display: none; }
+      .action-text { display: none; }
+      .section { padding-block: 72px; }
+      .hero h1 { font-size: clamp(3.15rem, 17vw, 5.5rem); }
+      .hero-actions { display: grid; grid-template-columns: 1fr; }
+      .hero-actions .button { width: 100%; }
+      .category-row { grid-template-columns: 1fr; }
+      .category-row > .icon-button { display: none; }
+      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .product-title { font-size: .92rem; }
+      .card-meta { display: grid; gap: 3px; }
+      .card-actions { grid-template-columns: 1fr; }
+      .card-actions .icon-button { display: none; }
+      .editorial-images { min-height: 500px; }
+      .editorial-main { width: 88%; height: 80%; }
+      .editorial-detail { width: 43%; }
+      .featured-mini { grid-template-columns: 64px 1fr; }
+      .featured-mini .button { grid-column: 1 / -1; }
+      .mood-small-grid { grid-template-columns: 1fr; }
+      .mood-card:first-child, .mood-card:nth-child(2) { min-height: 430px; }
+      .measurement-board { min-height: 0; }
+      .tab-list { overflow-x: auto; grid-template-columns: repeat(3, minmax(130px, 1fr)); }
+      .product-rail { grid-auto-columns: minmax(230px, 76vw); }
+      .feature-gallery { grid-template-columns: 1fr; min-height: 0; }
+      .feature-gallery button:first-child { grid-row: auto; min-height: 520px; }
+      .feature-gallery button { min-height: 360px; }
+      .feature-facts { grid-template-columns: 1fr; }
+      .notes-grid { grid-template-columns: 1fr; }
+      .note-card:first-child { grid-column: auto; }
+      .community-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 180px; }
+      .look-card:first-child { grid-column: 1 / -1; grid-row: span 2; }
+      .footer-grid { grid-template-columns: 1fr; gap: 0; }
+      .footer-brand { margin-bottom: 28px; }
+      .footer-group { border-top: 1px solid oklch(0.34 0.01 45); }
+      .footer-group h3 { margin: 0; padding: 16px 0; display: flex; justify-content: space-between; cursor: pointer; }
+      .footer-group h3::after { content: "+"; }
+      .footer-group.open h3::after { content: "−"; }
+      .footer-group .footer-links { display: none; padding-bottom: 18px; }
+      .footer-group.open .footer-links { display: grid; }
+      .footer-bottom { flex-direction: column; padding-bottom: 90px; }
+      .search-suggestions { grid-template-columns: 1fr; }
+      .quick-gallery { grid-template-columns: 1fr; min-height: 440px; }
+      .thumbs { flex-direction: row; order: 2; }
+      .thumbs button { width: 60px; flex: 0 0 auto; }
+      .quick-main-image { min-height: 430px; }
+      .quick-info { padding: 22px 16px; }
+      .quick-actions { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+      .guide-grid { grid-template-columns: 1fr; }
+      .viewer-main { padding: 8px 46px; }
+      .viewer-toolbar { align-items: flex-start; flex-direction: column; }
+      .cart-item { grid-template-columns: 80px 1fr auto; }
+      .look-dialog-copy { padding: 22px; }
+    }
+
+    @media (max-width: 359px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .community-grid { grid-template-columns: 1fr; }
+      .look-card:first-child { grid-column: auto; }
+      .hotspot-card { width: 72%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body class="wireframe">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="utility" aria-label="Store information">
+    <div class="utility-message" id="utility-message">New drop: 38 pieces added</div>
+    <div class="utility-actions">
+      <button type="button" data-open="delivery">Delivery info</button>
+      <a href="#newsletter">Sign up</a>
+      <a href="#footer">Help</a>
+    </div>
+  </div>
+
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <button class="icon-button mobile-only" type="button" data-open="mobile-nav" aria-label="Open menu">
+        <svg class="icon" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="wordmark" href="#top" aria-label="Laitstyle home">LAITSTYLE</a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a class="nav-link" href="#new-drop">New In</a>
+        <button class="nav-link" id="shop-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="mega-menu">Shop</button>
+        <a class="nav-link" href="#moods">Collections</a>
+        <a class="nav-link" href="#style-notes">Style Notes</a>
+        <a class="nav-link" href="#footer">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button" type="button" data-open="search" aria-label="Search">
+          <svg class="icon" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        </button>
+        <button class="icon-button desktop-only" type="button" data-open="saved" aria-label="Saved pieces">
+          <svg class="icon" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>
+          <span class="action-text">Saved</span><span class="count-badge" id="saved-count" hidden>0</span>
+        </button>
+        <button class="icon-button" type="button" data-open="cart" aria-label="Open bag">
+          <svg class="icon" aria-hidden="true"><path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+          <span class="action-text">Bag</span><span class="count-badge" id="cart-count" hidden>0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mega-menu" id="mega-menu" hidden>
+    <div class="container mega-grid">
+      <div>
+        <div class="eyebrow">[SHOP DIRECTORY]</div>
+        <div class="mega-links">
+          <a href="#new-drop" data-category-link="new">New arrivals</a>
+          <a href="#new-drop" data-category-link="dress">Dresses</a>
+          <a href="#new-drop" data-category-link="shirt">Shirts and blouses</a>
+          <a href="#new-drop" data-category-link="jacket">Jackets and blazers</a>
+          <a href="#new-drop" data-category-link="jeans">Denim and trousers</a>
+          <a href="#new-drop" data-category-link="knitwear">Knitwear</a>
+          <a href="#new-drop" data-category-link="bag">Bags and accessories</a>
+          <a href="#new-drop" data-category-link="under20">Under ₦20,000</a>
+          <a href="#new-drop" data-category-link="archive">One-of-one archive</a>
+        </div>
+      </div>
+      <div class="mega-editorial">
+        <div class="mega-image" data-wire-label="[EDITORIAL IMAGE 4:5]"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=700&q=82" alt="Model in layered vintage fashion" /></div>
+        <div><span class="eyebrow">Featured collection</span><h3>City Layers</h3><p>Soft tailoring and washed denim for days that change plan halfway through.</p><a class="text-link" href="#editorial">See the look →</a></div>
+      </div>
+      <div class="trust-card">
+        <div><span class="eyebrow">Measured, not guessed</span><h3>Every piece is checked by hand.</h3><p>Condition, exact measurements and cleaning status are listed before you buy.</p></div>
+        <button class="button secondary" type="button" data-open="condition">Condition & fit guide</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Drop 08 · Lagos / July</div>
+          <h1 id="hero-title">Found once. <span class="serif">Worn your way.</span></h1>
+          <p>A new selection of measured, checked and genuinely one-of-one pieces—ready for their next wardrobe.</p>
+          <div class="hero-actions">
+            <a class="button" href="#new-drop">Shop the latest drop</a>
+            <a class="button secondary" href="#editorial">See the styling story</a>
+          </div>
+          <div class="inventory-note mono">38 pieces · no automatic restocks</div>
+        </div>
+        <div class="hero-visual media-frame" id="hero-visual" data-wire-label="[PRIMARY FASHION IMAGE 4:5 · POINTER MOTION · ALTERNATE IMAGE]">
+          <img id="hero-image" src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1200&q=88" alt="Model wearing a structured vintage jacket in warm daylight" />
+          <button class="hotspot" type="button" data-quick="p02" aria-label="Quick view Broken-in Leather Moto">+</button>
+          <div class="hotspot-card"><strong>Broken-in Leather Moto</strong><span class="mono">₦48,000 · Size M</span></div>
+          <div class="hero-index"><span id="hero-index">01 / 02</span><span class="hero-progress"><span id="hero-progress"></span></span></div>
+          <button class="icon-button hero-image-control" type="button" id="hero-next" aria-label="Show alternate hero image">
+            <svg class="icon" aria-hidden="true"><path d="m8 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="category-shell" aria-label="Shop categories">
+      <div class="container category-row">
+        <button class="icon-button" type="button" data-rail-prev="categories" aria-label="Scroll categories left"><svg class="icon"><path d="m15 5-7 7 7 7"/></svg></button>
+        <div class="category-rail" id="category-rail" tabindex="0">
+          <button type="button" aria-pressed="true" data-category="all">New in</button>
+          <button type="button" aria-pressed="false" data-category="dress">Dresses</button>
+          <button type="button" aria-pressed="false" data-category="jeans">Denim</button>
+          <button type="button" aria-pressed="false" data-category="jacket">Jackets</button>
+          <button type="button" aria-pressed="false" data-category="shirt">Shirts</button>
+          <button type="button" aria-pressed="false" data-category="knitwear">Knitwear</button>
+          <button type="button" aria-pressed="false" data-category="bag">Bags</button>
+          <button type="button" aria-pressed="false" data-category="under20">Under ₦20k</button>
+          <button type="button" aria-pressed="false" data-category="one">One-of-one</button>
+        </div>
+        <button class="icon-button" type="button" data-rail-next="categories" aria-label="Scroll categories right"><svg class="icon"><path d="m9 5 7 7-7 7"/></svg></button>
+      </div>
+    </section>
+
+    <section class="section" id="new-drop" data-wire-section="[PRODUCT GRID · 8 INITIAL ITEMS · GRID/EDITORIAL SWITCH · QUICK VIEW · CART · SAVED]">
+      <div class="container">
+        <div class="section-head">
+          <div><div class="eyebrow">01 / New drop</div><h2 class="section-title">Measured, checked and ready for what comes next.</h2></div>
+          <div><p class="section-note" id="product-count-label">8 of 24 available pieces</p><div class="segmented" aria-label="Product layout"><button type="button" data-layout="grid" aria-pressed="true">Grid</button><button type="button" data-layout="editorial" aria-pressed="false">Editorial</button></div></div>
+        </div>
+        <div class="product-grid" id="product-grid" aria-live="polite"></div>
+        <div style="display:flex;justify-content:center;margin-top:46px"><button class="button secondary" type="button" id="view-all-products">View all new pieces</button></div>
+      </div>
+    </section>
+
+    <section class="section editorial-feature" id="editorial" data-wire-section="[EDITORIAL STORY · CITY LAYERS · FEATURED PRODUCT HOTSPOT]">
+      <div class="container editorial-grid">
+        <div class="editorial-images">
+          <div class="editorial-main" data-wire-label="[DOCUMENTARY IMAGE 3:4]"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=86" alt="Clothing rack with layered garments in a warm studio" loading="lazy" /></div>
+          <div class="editorial-detail" data-wire-label="[TEXTURE DETAIL 3:4]"><img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=700&q=84" alt="Close detail of textured garments" loading="lazy" /></div>
+        </div>
+        <div class="editorial-copy">
+          <div class="eyebrow" style="color:oklch(.7 .02 70)">Look 03 · City Layers</div>
+          <h2>Getting dressed, <span class="serif">less planned.</span></h2>
+          <p>Soft tailoring, washed denim and the pieces that make getting dressed feel less planned.</p>
+          <div class="featured-mini">
+            <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=300&q=80" alt="Boxy wool blazer" loading="lazy" />
+            <div><strong>Boxy Wool City Blazer</strong><div class="mono">₦36,500 · Excellent</div></div>
+            <button class="button" type="button" data-quick="p05">Shop this look</button>
+          </div>
+          <p><a class="text-link" href="#style-notes">Read the City Layers style note →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="moods" data-wire-section="[SHOP BY MOOD · ASYMMETRIC COLLECTION CARDS]">
+      <div class="container">
+        <div class="section-head"><div><div class="eyebrow">02 / Shop by mood</div><h2 class="section-title">A useful way to browse when categories feel too tidy.</h2></div></div>
+        <div class="mood-grid">
+          <a class="mood-card" href="#new-drop" data-category-link="blazer" data-wire-label="[TALL COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1000&q=86" alt="Tailored garments on a rack" loading="lazy" /><span class="mood-content"><span><h3>Soft Tailoring</h3><p>Relaxed shoulders, useful structure.</p></span><span class="mono">12 pieces →</span></span></a>
+          <a class="mood-card" href="#new-drop" data-category-link="dress" data-wire-label="[WIDE COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1100&q=86" alt="Colourful fashion look in daylight" loading="lazy" /><span class="mood-content"><span><h3>Weekend Colour</h3><p>Easy pieces that still have a point of view.</p></span><span class="mono">9 pieces →</span></span></a>
+          <div class="mood-small-grid">
+            <a class="mood-card" href="#new-drop" data-category-link="skirt" data-wire-label="[COMPACT COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=86" alt="Evening fashion styling" loading="lazy" /><span class="mood-content"><span><h3>After Dark</h3><p>Texture after sunset.</p></span></span></a>
+            <a class="mood-card" href="#new-drop" data-category-link="jacket" data-wire-label="[COMPACT COLLECTION IMAGE]"><img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=800&q=86" alt="Layered workwear fashion" loading="lazy" /><span class="mood-content"><span><h3>Workwear Recut</h3><p>Utility without the uniform.</p></span></span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section trust-section" id="condition-fit" data-wire-section="[CONDITION SCALE · MEASUREMENT ILLUSTRATION · TRUST TABS · GUIDE DIALOG]">
+      <div class="container">
+        <div class="section-head"><div><div class="eyebrow">03 / Condition & fit</div><h2 class="section-title">The label is a clue. The measurements are the answer.</h2></div><button class="button secondary" type="button" data-open="condition">View full condition guide</button></div>
+        <div class="trust-grid">
+          <div>
+            <p class="section-note">Every garment is graded without dramatic language. Normal ageing is separated from actual flaws, then photographed and described.</p>
+            <div class="condition-scale">
+              <div class="condition-step active"><span></span><strong>Like new</strong><small>No visible wear</small></div>
+              <div class="condition-step"><span></span><strong>Excellent</strong><small>Very light signs of use</small></div>
+              <div class="condition-step"><span></span><strong>Very good</strong><small>Minor, disclosed wear</small></div>
+              <div class="condition-step"><span></span><strong>Naturally worn</strong><small>Visible character, still wearable</small></div>
+            </div>
+          </div>
+          <div class="measurement-board">
+            <div class="garment-sketch" data-wire-label="[MEASUREMENT ILLUSTRATION]">
+              <svg viewBox="0 0 320 440" role="img" aria-label="Shirt measurement diagram"><path d="M105 60 55 96l34 70 27-17v222h88V149l27 17 34-70-50-36-27 24h-56l-27-24Z" fill="none" stroke="currentColor" stroke-width="3"/><path class="measure-line" d="M113 150h94M120 280h80M100 376h120M83 101l-24 56M237 101l24 56" fill="none" stroke-width="2"/><text x="142" y="140" font-size="12" fill="currentColor">CHEST</text><text x="141" y="270" font-size="12" fill="currentColor">WAIST</text><text x="140" y="400" font-size="12" fill="currentColor">LENGTH</text></svg>
+            </div>
+            <div class="trust-tabs">
+              <div class="tab-list" role="tablist" aria-label="Trust information">
+                <button type="button" role="tab" aria-selected="true" aria-controls="measure-panel" id="measure-tab" data-trust-tab="measure">Measured fit</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="clean-panel" id="clean-tab" data-trust-tab="clean">Cleaning</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="flaw-panel" id="flaw-tab" data-trust-tab="flaw">Flaws</button>
+              </div>
+              <div class="tab-panel" role="tabpanel" id="measure-panel" aria-labelledby="measure-tab"><h3>Vintage sizing moves. Tape measurements do not.</h3><p>We measure each piece flat and list the garment dimensions alongside the original label. Compare them with something you already own and like.</p><button class="text-link button ghost" type="button" data-open="size">Open measurement guide →</button></div>
+              <div class="tab-panel" role="tabpanel" id="clean-panel" aria-labelledby="clean-tab" hidden><h3>Cleaned, refreshed or left untouched—with a reason.</h3><p>Cleaning status tells you whether a piece was professionally cleaned, gently washed, steamed, or left untreated because of fabric sensitivity.</p></div>
+              <div class="tab-panel" role="tabpanel" id="flaw-panel" aria-labelledby="flaw-tab" hidden><h3>We call out what could change your decision.</h3><p>A softened cuff is normal ageing. A repaired seam or visible mark is a flaw. Both are described calmly and photographed where possible.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="saved-by-others" data-wire-section="[HORIZONTAL PRODUCT RAIL · SAVE COUNTS · NO AUTO-SCROLL]">
+      <div class="container">
+        <div class="section-head"><div><div class="eyebrow">04 / Currently noticed</div><h2 class="section-title">The ones people keep saving</h2><p class="section-note">Not a countdown. Just the pieces currently getting attention.</p></div><div class="rail-controls"><button class="icon-button" type="button" data-rail-prev="saved-products" aria-label="Previous saved products"><svg class="icon"><path d="m15 5-7 7 7 7"/></svg></button><button class="icon-button" type="button" data-rail-next="saved-products" aria-label="Next saved products"><svg class="icon"><path d="m9 5 7 7-7 7"/></svg></button></div></div>
+        <div class="rail-wrap"><div class="product-rail" id="saved-products" tabindex="0"></div><div class="rail-progress"><span id="saved-rail-progress"></span></div></div>
+      </div>
+    </section>
+
+    <section class="section featured-product" id="featured-product" data-wire-section="[FEATURED PRODUCT · MULTI-IMAGE GALLERY · MEASUREMENTS · QUICK ADD]">
+      <div class="container featured-grid">
+        <div class="feature-gallery" id="featured-gallery">
+          <button type="button" data-viewer="p02" data-image-index="0" data-wire-label="[PRIMARY PRODUCT IMAGE 4:5]"><img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1000&q=88" alt="Black vintage leather moto jacket" loading="lazy" /></button>
+          <button type="button" data-viewer="p02" data-image-index="1" data-wire-label="[DETAIL IMAGE]"><img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=700&q=86" alt="Leather jacket collar and hardware detail" loading="lazy" /></button>
+          <button type="button" data-viewer="p02" data-image-index="2" data-wire-label="[STYLING IMAGE]"><img src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=700&q=86" alt="Leather jacket styled on a clothing rack" loading="lazy" /></button>
+        </div>
+        <div class="feature-copy">
+          <div class="eyebrow">Featured exact piece · LS-JKT-082</div>
+          <h2>Broken-in Leather Moto</h2>
+          <div class="price-row"><span class="price" style="font-size:var(--text-xl)">₦48,000</span><span class="old-price">₦56,000</span></div>
+          <div class="feature-facts">
+            <div class="feature-fact"><span>Measured fit</span><strong>M / relaxed 10–12</strong></div>
+            <div class="feature-fact"><span>Condition</span><strong>Very good · 8.4/10</strong></div>
+            <div class="feature-fact"><span>Chest</span><strong class="mono">102 cm</strong></div>
+            <div class="feature-fact"><span>Length</span><strong class="mono">58 cm</strong></div>
+            <div class="feature-fact"><span>Material</span><strong>Genuine leather</strong></div>
+            <div class="feature-fact"><span>Cleaning</span><strong>Leather conditioned</strong></div>
+          </div>
+          <p class="style-note"><span class="serif">Wear it over a white vest now; keep it for harmattan evenings later.</span></p>
+          <div class="stock-message">One exact piece available. Quantity is fixed at one.</div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px"><button class="button" type="button" data-add="p02">Add this exact piece</button><button class="icon-button" type="button" data-save="p02" aria-label="Save Broken-in Leather Moto" aria-pressed="false"><svg class="icon"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></button></div>
+          <button class="button ghost" type="button" data-open="delivery">Lagos delivery estimate: 1–2 working days →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="style-notes" data-wire-section="[STYLE NOTES · 3 EDITORIAL CARDS]">
+      <div class="container">
+        <div class="section-head"><div><div class="eyebrow">05 / Style notes</div><h2 class="section-title">Useful reading for clothes with a previous life.</h2></div></div>
+        <div class="notes-grid">
+          <a class="note-card" href="#condition-fit"><div class="note-image media-frame" data-wire-label="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=1000&q=85" alt="Close view of vintage denim" loading="lazy" /></div><div class="note-meta"><span>Fit notes</span><span>5 min</span></div><h3>How to buy vintage denim without trusting the label</h3><span class="text-link">Read note →</span></a>
+          <a class="note-card" href="#editorial"><div class="note-image media-frame" data-wire-label="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=800&q=85" alt="Oversized blazer styling" loading="lazy" /></div><div class="note-meta"><span>Styling</span><span>4 min</span></div><h3>Three ways to wear an oversized blazer in Lagos heat</h3><span class="text-link">Read note →</span></a>
+          <a class="note-card" href="#condition-fit"><div class="note-image media-frame" data-wire-label="[EDITORIAL IMAGE]"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=85" alt="Textured worn fabric detail" loading="lazy" /></div><div class="note-meta"><span>Care</span><span>3 min</span></div><h3>What “naturally worn” actually means</h3><span class="text-link">Read note →</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="community" data-wire-section="[COMMUNITY LOOKS · CUSTOMER LOOK DIALOG · SOLD PRODUCT ALTERNATIVES]">
+      <div class="container">
+        <div class="section-head"><div><div class="eyebrow">06 / Recent finds</div><h2 class="section-title">Worn outside the product page</h2></div><p class="section-note">Real styling notes, linked back to the piece where it still exists.</p></div>
+        <div class="community-grid" id="community-grid"></div>
+      </div>
+    </section>
+
+    <section class="section newsletter" id="newsletter" data-wire-section="[NEWSLETTER · VALIDATION · LOADING · SUCCESS · DUPLICATE · ERROR]">
+      <div class="container newsletter-grid">
+        <div><div class="eyebrow" style="color:currentColor">Drop notes, not noise</div><h2>The good ones rarely wait.</h2><p>New-drop notes, styling ideas and the occasional piece we almost kept.</p></div>
+        <form class="newsletter-form" id="newsletter-form" novalidate>
+          <div class="field"><label for="newsletter-email">Email address</label><input id="newsletter-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" aria-describedby="newsletter-error newsletter-status" required /><div class="field-error" id="newsletter-error"></div></div>
+          <div class="field"><label for="newsletter-preference">What should we send?</label><select id="newsletter-preference" name="preference"><option>Both</option><option>New drops</option><option>Styling notes</option></select></div>
+          <button class="button" type="submit">Join the list</button>
+          <div class="form-status" id="newsletter-status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><a class="wordmark" href="#top">LAITSTYLE</a><p>One-of-one clothes, selected with opinions. Measured and checked in Lagos before they move into another wardrobe.</p><div class="footer-links"><a href="#">Instagram</a><a href="#">TikTok</a><span>Lagos, Nigeria</span></div></div>
+        <div class="footer-group"><h3 tabindex="0">Shop</h3><div class="footer-links"><a href="#new-drop">New in</a><a href="#new-drop">Dresses</a><a href="#new-drop">Jackets</a><a href="#new-drop">Denim</a><a href="#new-drop">Bags</a><a href="#new-drop">One-of-one archive</a></div></div>
+        <div class="footer-group"><h3 tabindex="0">Help</h3><div class="footer-links"><button type="button" data-open="size">Sizing and measurements</button><button type="button" data-open="condition">Condition guide</button><button type="button" data-open="delivery">Delivery</button><a href="#">Returns</a><a href="mailto:hello@laitstyle.example">Contact</a></div></div>
+        <div class="footer-group"><h3 tabindex="0">Information</h3><div class="footer-links"><a href="#footer">About</a><a href="#style-notes">Style Notes</a><a href="#condition-fit">Responsible sourcing</a><a href="#">Privacy</a><a href="#">Terms</a></div></div>
+        <div class="footer-controls">
+          <div class="footer-control"><span>Currency</span><strong>NGN</strong></div>
+          <div class="footer-control"><label for="region-select">Delivery</label><select id="region-select"><option>Lagos</option><option>Rest of Nigeria</option><option>International enquiry</option></select></div>
+          <div class="footer-control"><span>Theme</span><button type="button" id="theme-toggle">Switch to dark</button></div>
+          <div class="footer-control"><span>Accessibility</span><a href="#condition-fit">View options</a></div>
+        </div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 Laitstyle · Drop 08 / build 01</span><span>Measured by hand. Selected with opinions.</span></div>
+    </div>
+  </footer>
+
+  <div class="overlay-backdrop" id="overlay-backdrop"></div>
+
+  <aside class="overlay mobile-sheet" id="mobile-nav" role="dialog" aria-modal="true" aria-labelledby="mobile-nav-title" hidden>
+    <div class="overlay-header"><h2 id="mobile-nav-title">Menu</h2><button class="icon-button" type="button" data-close aria-label="Close menu"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div>
+    <div class="overlay-body"><a class="wordmark" href="#top" data-close>LAITSTYLE</a><nav style="display:grid;margin-top:30px"><a class="button ghost" href="#new-drop" data-close>New In</a><details><summary class="button ghost">Shop</summary><div style="display:grid;padding:4px 20px 18px"><a href="#new-drop" data-close>New arrivals</a><a href="#new-drop" data-close>Dresses</a><a href="#new-drop" data-close>Jackets and blazers</a><a href="#new-drop" data-close>Denim and trousers</a><a href="#new-drop" data-close>Under ₦20,000</a></div></details><a class="button ghost" href="#moods" data-close>Collections</a><a class="button ghost" href="#style-notes" data-close>Style Notes</a><a class="button ghost" href="#footer" data-close>About</a></nav><hr style="border:0;border-top:1px solid var(--border);margin:24px 0"><button class="button secondary" style="width:100%" type="button" data-open="saved">Saved pieces</button><button class="button ghost" style="width:100%;margin-top:8px" type="button" data-open="delivery">Delivery information</button></div>
+  </aside>
+
+  <section class="overlay search-overlay" id="search" role="dialog" aria-modal="true" aria-labelledby="search-title" hidden>
+    <div class="container">
+      <div class="overlay-header" style="padding-inline:0"><h2 id="search-title">Search Laitstyle</h2><button class="icon-button" type="button" data-close aria-label="Close search"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div>
+      <div class="search-layout">
+        <div class="search-input-wrap"><input id="search-input" type="search" placeholder="What are you looking for?" autocomplete="off" aria-controls="search-results" /><button class="button ghost" id="clear-search" type="button">Clear</button></div>
+        <div class="search-suggestions"><div><h3 class="eyebrow">Recent searches</h3><div class="chip-list"><button class="chip" type="button" data-search-term="Leather jacket">Leather jacket</button><button class="chip" type="button" data-search-term="Size 12">Size 12</button><button class="chip" type="button" data-search-term="Denim">Denim</button></div></div><div><h3 class="eyebrow">Trending now</h3><div class="chip-list"><button class="chip" type="button" data-search-term="Ankara dress">Ankara dress</button><button class="chip" type="button" data-search-term="Oversized blazer">Oversized blazer</button><button class="chip" type="button" data-search-term="Under ₦20k">Under ₦20k</button></div></div></div>
+        <div><h3 class="eyebrow">Suggested categories</h3><div class="footer-links"><a href="#new-drop" data-close>Dresses</a><a href="#new-drop" data-close>Jackets and blazers</a><a href="#new-drop" data-close>Denim and trousers</a><a href="#new-drop" data-close>Bags and accessories</a></div></div>
+        <div><div style="display:flex;justify-content:space-between;align-items:center"><h3 class="eyebrow">Product matches</h3><span id="search-status" class="mono"></span></div><div class="search-results" id="search-results" role="listbox"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="overlay dialog" id="quick-view" role="dialog" aria-modal="true" aria-labelledby="quick-title" hidden><div id="quick-content"></div></section>
+  <section class="overlay viewer" id="image-viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden><div id="viewer-content" class="viewer-grid"></div></section>
+  <aside class="overlay drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cart-title" hidden><div class="overlay-header"><h2 id="cart-title">Your bag</h2><button class="icon-button" type="button" data-close aria-label="Close bag"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><div id="cart-content"></div></aside>
+  <aside class="overlay drawer" id="saved" role="dialog" aria-modal="true" aria-labelledby="saved-title" hidden><div class="overlay-header"><h2 id="saved-title">Saved pieces</h2><button class="icon-button" type="button" data-close aria-label="Close saved pieces"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><div id="saved-content"></div></aside>
+
+  <section class="overlay dialog" id="size" role="dialog" aria-modal="true" aria-labelledby="size-title" hidden><div class="overlay-header"><h2 id="size-title">Size and measurement guide</h2><button class="icon-button" type="button" data-close aria-label="Close size guide"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><div class="overlay-body"><p>Measure a garment you already own while it lies flat. Compare like for like rather than relying only on the size label.</p><div class="guide-grid"><div class="guide-card"><h3>Chest / bust</h3><p>Measure straight across from underarm to underarm, then double it for the full circumference.</p></div><div class="guide-card"><h3>Waist</h3><p>Measure across the narrowest point or the waistband, depending on the garment.</p></div><div class="guide-card"><h3>Length</h3><p>Measure from the highest shoulder point or waistband down to the hem.</p></div><div class="guide-card"><h3>Vintage label note</h3><p>A vintage size 14 can fit like a modern 10. The measured-fit note is our practical comparison, not a replacement for exact dimensions.</p></div></div></div></section>
+
+  <section class="overlay dialog" id="condition" role="dialog" aria-modal="true" aria-labelledby="condition-title" hidden><div class="overlay-header"><h2 id="condition-title">Condition guide</h2><button class="icon-button" type="button" data-close aria-label="Close condition guide"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><div class="overlay-body"><p>Condition changes the price, but honest wear can also be part of why a piece looks good. We separate normal ageing from flaws that may affect your decision.</p><div class="guide-grid"><div class="guide-card"><h3>Like new</h3><p>No visible wear after close inspection. Shape, finish and hardware remain crisp.</p></div><div class="guide-card"><h3>Excellent</h3><p>Very light signs of previous use, such as gentle fabric softening.</p></div><div class="guide-card"><h3>Very good</h3><p>Minor wear is visible and disclosed, but the piece remains sound and ready to wear.</p></div><div class="guide-card"><h3>Naturally worn</h3><p>Visible patina, fading or softened edges that suit the garment. Repairs and marks are still listed separately.</p></div><div class="guide-card"><h3>Flaw versus ageing</h3><p>Fading on washed denim is ageing. An untreated stain or repaired tear is a flaw. We name both without making them sound alarming.</p></div><div class="guide-card"><h3>Cleaning labels</h3><p>Professionally cleaned, gently washed, steamed, conditioned or untreated for material safety.</p></div></div><p>Need a closer photo before buying? Contact support and include the SKU.</p></div></section>
+
+  <section class="overlay dialog" id="delivery" role="dialog" aria-modal="true" aria-labelledby="delivery-title" hidden><div class="overlay-header"><h2 id="delivery-title">Delivery information</h2><button class="icon-button" type="button" data-close aria-label="Close delivery information"><svg class="icon"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><div class="overlay-body"><div class="guide-grid"><div class="guide-card"><h3>Lagos</h3><p>Usually 1–2 working days. Free delivery for orders above ₦65,000.</p></div><div class="guide-card"><h3>Rest of Nigeria</h3><p>Usually 2–5 working days depending on the destination and courier route.</p></div><div class="guide-card"><h3>One-of-one handling</h3><p>Items are packed after a final condition check. A sold item cannot be substituted without your approval.</p></div><div class="guide-card"><h3>International</h3><p>Available by enquiry. Duties and local import charges are not included in the item price.</p></div></div></div></section>
+
+  <section class="overlay dialog" id="customer-look" role="dialog" aria-modal="true" aria-labelledby="look-title" hidden><div id="look-content"></div></section>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="prototype-controls" aria-label="Prototype controls">
+    <label>Design review</label>
+    <div class="segmented"><button type="button" id="wireframe-mode" aria-pressed="true">Wireframe</button><button type="button" id="hifi-mode" aria-pressed="false">High fidelity</button></div>
+    <label for="state-switcher">State</label>
+    <select id="state-switcher"><option value="default">Default</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="error">Error</option><option value="sold">Sold out</option><option value="reserved">Reserved</option><option value="missing">Missing image</option><option value="long">Long title</option></select>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const svg = {
+      heart: '<svg class="icon" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>',
+      eye: '<svg class="icon" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
+      close: '<svg class="icon" aria-hidden="true"><path d="m5 5 14 14M19 5 5 19"/></svg>',
+      arrowLeft: '<svg class="icon" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',
+      arrowRight: '<svg class="icon" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>'
+    };
+
+    const images = [
+      'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1566206091558-7f218b696731?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1564584217132-2271feaeb3c5?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1583743814966-8936f37f4ec6?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1496217590455-aa63a8350eea?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1542060748-10c28b62716f?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=900&q=84',
+      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=900&q=84'
+    ];
+
+    const products = [
+      {id:'p01',sku:'LS-DRS-081',title:'Vintage Ankara Day Dress',brand:'Kiki Kamanu',category:'dress',price:28500,originalPrice:34000,currency:'NGN',images:[{src:images[0],alt:'Vintage Ankara day dress on model'},{src:images[5],alt:'Back view of patterned day dress'}],sizeLabel:'UK 10 / measured 10–12',measurements:{bust:'94 cm',waist:'78 cm',hip:'104 cm',length:'118 cm'},conditionScore:9.2,conditionLabel:'Excellent',flawNote:'Very light softening at the inner neckline.',cleaningStatus:'Gently washed and steamed',material:'Cotton',colour:'Oxblood / sand',era:'1990s',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:18,savedCount:42},
+      {id:'p02',sku:'LS-JKT-082',title:'Broken-in Leather Moto',brand:'Wilson Leather',category:'jacket',price:48000,originalPrice:56000,currency:'NGN',images:[{src:images[1],alt:'Black vintage leather moto jacket'},{src:images[4],alt:'Leather collar and zip detail'},{src:images[3],alt:'Leather jacket on clothing rack'}],sizeLabel:'M / relaxed 10–12',measurements:{chest:'102 cm',length:'58 cm',shoulder:'43 cm',sleeve:'61 cm'},conditionScore:8.4,conditionLabel:'Very good',flawNote:'Natural creasing at sleeves and a softened cuff edge.',cleaningStatus:'Leather cleaned and conditioned',material:'Genuine leather',colour:'Deep black',era:'Late 1990s',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:31,savedCount:76},
+      {id:'p03',sku:'LS-JNS-083',title:'Reworked Indigo Denim',category:'jeans',price:24000,currency:'NGN',images:[{src:images[2],alt:'Reworked indigo denim jeans'},{src:images[18],alt:'Indigo denim seam detail'}],sizeLabel:'W30 / measured waist 78 cm',measurements:{waist:'78 cm',hip:'104 cm',rise:'31 cm',inseam:'77 cm'},conditionScore:8.8,conditionLabel:'Excellent',flawNote:'No flaw. Intentional contrast stitching from rework.',cleaningStatus:'Washed',material:'100% cotton denim',colour:'Indigo',era:'Reworked contemporary',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:22,savedCount:55},
+      {id:'p04',sku:'LS-BLS-084',title:'Soft Collar Sunday Blouse',brand:'Principles',category:'blouse',price:16500,currency:'NGN',images:[{src:images[6],alt:'Soft cream collared blouse'},{src:images[23],alt:'Blouse fabric texture detail'}],sizeLabel:'UK 12',availableSizes:['10','12','14'],unavailableSizes:['8'],measurements:{bust:'98 cm',length:'64 cm',shoulder:'39 cm'},conditionScore:9.4,conditionLabel:'Like new',cleaningStatus:'Gently washed and steamed',material:'Viscose blend',colour:'Warm cream',era:'2000s',stock:3,isOneOfOne:false,isNewDrop:true,viewCount:9,savedCount:21},
+      {id:'p05',sku:'LS-BLZ-085',title:'Boxy Wool City Blazer',brand:'Jaeger',category:'blazer',price:36500,originalPrice:42000,currency:'NGN',images:[{src:images[4],alt:'Boxy charcoal wool blazer'},{src:images[19],alt:'Wool blazer button and lapel detail'}],sizeLabel:'UK 12 / oversized 10',measurements:{chest:'108 cm',length:'74 cm',shoulder:'45 cm',sleeve:'59 cm'},conditionScore:9.0,conditionLabel:'Excellent',flawNote:'Tiny repaired lining seam, not visible when worn.',cleaningStatus:'Professionally dry cleaned',material:'Wool blend',colour:'Charcoal',era:'1990s',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:26,savedCount:63},
+      {id:'p06',sku:'LS-SKT-086',title:'Pleated Cocoa Midi Skirt',category:'skirt',price:19500,currency:'NGN',images:[{src:images[7],alt:'Pleated cocoa brown midi skirt'},{src:images[13],alt:'Pleated skirt styled in daylight'}],sizeLabel:'Waist 74 cm',measurements:{waist:'74 cm',hip:'Free',length:'82 cm'},conditionScore:8.6,conditionLabel:'Very good',flawNote:'Two faint pin marks inside waistband.',cleaningStatus:'Steamed',material:'Poly-wool blend',colour:'Cocoa',stock:1,isOneOfOne:true,isNewDrop:true,isReserved:true,reservedUntil:'Today, 18:30',viewCount:12,savedCount:39},
+      {id:'p07',sku:'LS-SHT-087',title:'Washed Linen Camp Shirt',brand:'Mango',category:'shirt',price:18000,currency:'NGN',images:[{src:images[15],alt:'Washed linen camp shirt'},{src:images[8],alt:'Open collar linen shirt detail'}],sizeLabel:'L / relaxed M–L',availableSizes:['M','L'],unavailableSizes:['S','XL'],measurements:{chest:'112 cm',length:'72 cm',shoulder:'47 cm'},conditionScore:9.1,conditionLabel:'Excellent',cleaningStatus:'Gently washed',material:'Linen',colour:'Clay',stock:2,isOneOfOne:false,isNewDrop:true,viewCount:7,savedCount:16},
+      {id:'p08',sku:'LS-SHT-088',title:'Embroidered Denim Overshirt',category:'shirt',price:27500,currency:'NGN',images:[{src:images[18],alt:'Embroidered denim overshirt'},{src:images[2],alt:'Embroidery and denim texture detail'}],sizeLabel:'XL / oversized 12–16',measurements:{chest:'122 cm',length:'76 cm',shoulder:'53 cm'},conditionScore:8.2,conditionLabel:'Naturally worn',flawNote:'Fade at collar and one repaired cuff buttonhole.',cleaningStatus:'Washed',material:'Cotton denim',colour:'Washed blue',era:'1980s',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:29,savedCount:68},
+      {id:'p09',sku:'LS-KNT-089',title:'Ochre Hand-Knit Vest',category:'knitwear',price:22000,currency:'NGN',images:[{src:images[12],alt:'Ochre knitted vest'},{src:images[23],alt:'Hand-knit texture close-up'}],sizeLabel:'Free / best 8–14',measurements:{chest:'104 cm',length:'56 cm'},conditionScore:9.0,conditionLabel:'Excellent',cleaningStatus:'Hand washed flat',material:'Wool blend',colour:'Ochre',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:17,savedCount:49},
+      {id:'p10',sku:'LS-BAG-090',title:'Structured Chestnut Shoulder Bag',brand:'Etienne Aigner',category:'bag',price:32000,currency:'NGN',images:[{src:images[10],alt:'Structured chestnut leather shoulder bag'},{src:images[11],alt:'Leather bag hardware detail'}],sizeLabel:'One size',measurements:{length:'27 × 18 × 8 cm'},conditionScore:8.7,conditionLabel:'Very good',flawNote:'Light corner patina and small interior pen mark.',cleaningStatus:'Leather conditioned',material:'Leather',colour:'Chestnut',era:'1990s',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:14,savedCount:44},
+      {id:'p11',sku:'LS-TRS-091',title:'High-Rise Sand Trousers',brand:'COS',category:'trousers',price:26000,originalPrice:30000,currency:'NGN',images:[{src:images[16],alt:'High-rise sand trousers'},{src:images[8],alt:'Sand trouser tailoring detail'}],sizeLabel:'EU 40 / waist 78 cm',measurements:{waist:'78 cm',hip:'106 cm',rise:'32 cm',inseam:'75 cm'},conditionScore:9.5,conditionLabel:'Like new',cleaningStatus:'Professionally cleaned',material:'Cotton twill',colour:'Sand',stock:1,isOneOfOne:true,isNewDrop:true,viewCount:11,savedCount:27},
+      {id:'p12',sku:'LS-DRS-092',title:'Bias-Cut Wine Slip Dress',category:'dress',price:23500,currency:'NGN',images:[{src:images[13],alt:'Wine coloured bias-cut slip dress'},{src:images[5],alt:'Slip dress side profile'}],sizeLabel:'UK 10',measurements:{bust:'90 cm',waist:'78 cm',hip:'102 cm',length:'128 cm'},conditionScore:8.9,conditionLabel:'Excellent',flawNote:'No flaw found.',cleaningStatus:'Hand washed',material:'Viscose satin',colour:'Wine',stock:0,isOneOfOne:true,isNewDrop:false,viewCount:25,savedCount:71},
+      {id:'p13',sku:'LS-JKT-093',title:'Faded Utility Chore Jacket',category:'jacket',price:29000,currency:'NGN',images:[{src:images[19],alt:'Faded utility chore jacket'},{src:images[17],alt:'Chore jacket pocket detail'}],sizeLabel:'L / relaxed',measurements:{chest:'116 cm',length:'73 cm',shoulder:'49 cm'},conditionScore:7.9,conditionLabel:'Naturally worn',flawNote:'Even sun fade and two neat hand repairs at lower pocket.',cleaningStatus:'Washed',material:'Cotton canvas',colour:'Faded olive',stock:1,isOneOfOne:true,viewCount:33,savedCount:82},
+      {id:'p14',sku:'LS-SHT-094',title:'Blue Stripe Banker Shirt',brand:'Ralph Lauren',category:'shirt',price:21000,currency:'NGN',images:[{src:images[20],alt:'Blue striped banker shirt'},{src:images[15],alt:'Striped shirt cuff detail'}],sizeLabel:'Men S / women oversized 10–14',measurements:{chest:'110 cm',length:'76 cm',shoulder:'46 cm',sleeve:'61 cm'},conditionScore:9.1,conditionLabel:'Excellent',cleaningStatus:'Washed and pressed',material:'Cotton poplin',colour:'Blue / white',stock:1,isOneOfOne:true,viewCount:20,savedCount:35},
+      {id:'p15',sku:'LS-SKT-095',title:'Graphic Wrap Midi Skirt',category:'skirt',price:17500,currency:'NGN',images:[{src:images[21],alt:'Graphic wrap midi skirt'},{src:images[0],alt:'Pattern detail on wrap skirt'}],sizeLabel:'Adjustable 10–14',measurements:{waist:'76–88 cm',length:'84 cm'},conditionScore:8.5,conditionLabel:'Very good',flawNote:'Small pull near inner tie, reinforced.',cleaningStatus:'Gently washed',material:'Rayon',colour:'Rust / cream',stock:1,isOneOfOne:true,viewCount:8,savedCount:19},
+      {id:'p16',sku:'LS-KNT-096',title:'Fine Rib Chocolate Cardigan',brand:'Benetton',category:'knitwear',price:20500,currency:'NGN',images:[{src:images[12],alt:'Chocolate fine rib cardigan'},{src:images[23],alt:'Rib knit cardigan texture'}],sizeLabel:'M',availableSizes:['S','M','L'],unavailableSizes:['XL'],measurements:{chest:'92–104 cm',length:'59 cm',sleeve:'62 cm'},conditionScore:9.3,conditionLabel:'Like new',cleaningStatus:'Hand washed flat',material:'Merino blend',colour:'Chocolate',stock:3,isOneOfOne:false,viewCount:13,savedCount:31},
+      {id:'p17',sku:'LS-BAG-097',title:'Beaded Evening Pouch',category:'bag',price:14500,currency:'NGN',images:[{src:images[11],alt:'Beaded evening pouch'},{src:images[10],alt:'Bead and clasp detail'}],sizeLabel:'One size',measurements:{length:'19 × 13 cm'},conditionScore:8.1,conditionLabel:'Very good',flawNote:'Three replacement beads at lower corner.',cleaningStatus:'Surface cleaned',material:'Glass beads / satin',colour:'Black / bronze',era:'1980s',stock:1,isOneOfOne:true,viewCount:6,savedCount:14},
+      {id:'p18',sku:'LS-ACC-098',title:'Silk Geometry Scarf',brand:'Echo',category:'accessory',price:12000,currency:'NGN',images:[{src:images[22],alt:'Silk geometric print scarf'},{src:images[21],alt:'Folded silk scarf detail'}],sizeLabel:'One size',measurements:{length:'86 × 86 cm'},conditionScore:9.0,conditionLabel:'Excellent',cleaningStatus:'Specialist cleaned',material:'Silk',colour:'Tobacco / teal',stock:1,isOneOfOne:true,viewCount:5,savedCount:22},
+      {id:'p19',sku:'LS-BLZ-099',title:'Double-Breasted Navy Blazer with Strong Shoulder and Longline Vintage Proportion',brand:'Aquascutum',category:'blazer',price:41000,currency:'NGN',images:[{src:images[5],alt:'Double-breasted navy blazer'},{src:images[4],alt:'Navy blazer button detail'}],sizeLabel:'UK 14 / oversized 10–12',measurements:{chest:'112 cm',length:'79 cm',shoulder:'46 cm'},conditionScore:8.8,conditionLabel:'Excellent',flawNote:'Light shine at one elbow under direct light.',cleaningStatus:'Professionally dry cleaned',material:'Wool',colour:'Navy',era:'1980s',stock:1,isOneOfOne:true,viewCount:28,savedCount:66},
+      {id:'p20',sku:'LS-DRS-100',title:'Cotton Poplin Shirt Dress',brand:'Jigsaw',category:'dress',price:25500,currency:'NGN',images:[{src:images[6],alt:'Cotton poplin shirt dress'},{src:images[15],alt:'Shirt dress collar detail'}],sizeLabel:'UK 14',measurements:{bust:'104 cm',waist:'98 cm',length:'112 cm'},conditionScore:9.2,conditionLabel:'Excellent',cleaningStatus:'Washed and pressed',material:'Cotton poplin',colour:'Bone',stock:1,isOneOfOne:true,viewCount:10,savedCount:28},
+      {id:'p21',sku:'LS-JNS-101',title:'Stonewashed Straight Jeans',brand:'Levi’s',category:'jeans',price:28500,currency:'NGN',images:[{src:images[2],alt:'Stonewashed straight leg jeans'},{src:images[18],alt:'Stonewashed denim label and pocket'}],sizeLabel:'W32 L30',measurements:{waist:'82 cm',hip:'108 cm',rise:'30 cm',inseam:'75 cm'},conditionScore:8.0,conditionLabel:'Naturally worn',flawNote:'Natural whiskering and softened pocket edges.',cleaningStatus:'Washed',material:'Cotton denim',colour:'Stonewash blue',stock:1,isOneOfOne:true,viewCount:24,savedCount:53},
+      {id:'p22',sku:'LS-BLS-102',title:'Sheer Dotted Evening Blouse',category:'blouse',price:18500,currency:'NGN',images:[{src:images[14],alt:'Sheer dotted evening blouse'},{src:images[7],alt:'Dotted sheer sleeve detail'}],sizeLabel:'UK 10',measurements:{bust:'94 cm',length:'61 cm',sleeve:'62 cm'},conditionScore:8.7,conditionLabel:'Very good',flawNote:'One tiny repaired snag near side seam.',cleaningStatus:'Hand washed',material:'Poly chiffon',colour:'Black',stock:1,isOneOfOne:true,isReserved:true,reservedUntil:'Tomorrow, 11:00',viewCount:15,savedCount:37},
+      {id:'p23',sku:'LS-JKT-103',title:'Cropped Suede City Jacket',category:'jacket',price:44500,currency:'NGN',images:[{src:images[3],alt:'Cropped brown suede jacket'},{src:images[17],alt:'Suede jacket texture and pocket'}],sizeLabel:'S / best 8–10',measurements:{chest:'96 cm',length:'52 cm',shoulder:'40 cm'},conditionScore:8.3,conditionLabel:'Very good',flawNote:'Subtle colour variation at the back panel, typical of suede.',cleaningStatus:'Specialist brushed',material:'Suede',colour:'Tobacco',stock:1,isOneOfOne:true,viewCount:30,savedCount:73},
+      {id:'p24',sku:'LS-ACC-104',title:'Hammered Brass Waist Belt',category:'accessory',price:15500,currency:'NGN',images:[{src:images[9],alt:'Hammered brass waist belt'},{src:images[10],alt:'Hammered metal clasp detail'}],sizeLabel:'Adjustable 72–90 cm',measurements:{waist:'72–90 cm'},conditionScore:8.9,conditionLabel:'Excellent',cleaningStatus:'Polished',material:'Brass / elastic',colour:'Antique gold',stock:1,isOneOfOne:true,viewCount:4,savedCount:17}
+    ];
+
+    const communityLooks = [
+      {id:'l1',name:'Mira A.',city:'Yaba',productId:'p05',note:'I wore the blazer over a ribbed vest and rolled the sleeves once. It still felt structured without feeling formal.',image:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=84'},
+      {id:'l2',name:'Tomi O.',city:'Surulere',productId:'p03',note:'The measured waist was exactly why the denim worked. I paired it with a tiny tee and flat sandals.',image:'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=84'},
+      {id:'l3',name:'Z. K.',city:'Ikeja',productId:'p12',note:'The original slip dress sold, so I kept the look simple and found a similar wine tone from the next drop.',image:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=84'},
+      {id:'l4',name:'Ada N.',city:'Lekki',productId:'p14',note:'Oversized shirt, fitted skirt, no overthinking. The cotton stayed comfortable through the afternoon.',image:'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&q=84'},
+      {id:'l5',name:'R. M.',city:'Abuja',productId:'p21',note:'The fading was the whole point. I wore the jeans with a clean white shirt and old loafers.',image:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=84'},
+      {id:'l6',name:'Feyi L.',city:'Lagos',productId:'p23',note:'The suede jacket was light enough for an evening out and looked better slightly undone.',image:'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=84'}
+    ];
+
+    const formatPrice = value => new Intl.NumberFormat('en-NG', {style:'currency',currency:'NGN',maximumFractionDigits:0}).format(value);
+    const discount = p => p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    const state = { saved:new Set(), cart:[], category:'all', showAll:false, layout:'grid', activeOverlay:null, lastFocus:null, quickProduct:null, viewerProduct:null, viewerIndex:0, zoom:1, prototypeState:'default' };
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const touchCapable = matchMedia('(hover: none)').matches;
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+    const announce = message => { const live=$('#live-region'); live.textContent=''; requestAnimationFrame(()=>live.textContent=message); };
+
+    function safeText(value, fallback='Not listed') { return value || fallback; }
+    function stockLabel(p) { if(p.stock<=0) return 'Sold out'; if(p.isReserved) return 'Reserved'; if(p.stock===1) return p.isOneOfOne ? 'One of one' : 'Last piece'; if(p.stock<=3) return `Low stock · ${p.stock}`; return `${p.stock} available`; }
+    function stockClass(p) { return p.stock<=0?'sold':p.isReserved?'reserved':''; }
+    function actionLabel(p) { if(p.stock<=0) return 'Sold out'; if(p.isReserved) return 'Currently reserved'; if(p.isOneOfOne) return 'Add this exact piece'; if(p.availableSizes?.length) return 'Choose size'; return 'Add to bag'; }
+    function productMatchesCategory(p, cat) { if(cat==='all') return p.isNewDrop; if(cat==='under20') return p.price<20000; if(cat==='one') return p.isOneOfOne; if(cat==='archive') return p.stock<=0; if(cat==='new') return p.isNewDrop; if(cat==='jacket') return ['jacket','blazer'].includes(p.category); if(cat==='shirt') return ['shirt','blouse'].includes(p.category); if(cat==='jeans') return ['jeans','trousers'].includes(p.category); if(cat==='bag') return ['bag','accessory'].includes(p.category); return p.category===cat; }
+    function currentProducts() { const matches=products.filter(p=>productMatchesCategory(p,state.category)); return state.showAll?matches:matches.slice(0,8); }
+
+    function missingFallback(category='piece') {
+      return `<div style="height:100%;display:grid;place-items:center;text-align:center;padding:20px;background:repeating-linear-gradient(45deg,var(--paper) 0 12px,var(--surface-soft) 12px 13px)"><div><strong style="font-size:1.4rem;letter-spacing:-.05em">LS</strong><p class="mono">Image unavailable</p><small>${category}</small></div></div>`;
+    }
+    function imageMarkup(image, category, cls='', lazy=true) {
+      if(!image?.src) return missingFallback(category);
+      return `<img class="${cls}" src="${image.src}" alt="${image.alt || category}" ${lazy?'loading="lazy"':''} data-image-fallback="${category}">`;
+    }
+
+    function renderProductCard(p, rail=false) {
+      const saved=state.saved.has(p.id);
+      const badgeStock=p.stock<=0?'<span class="badge dark">Sold</span>':p.isReserved?'<span class="badge warn">Reserved</span>':p.isOneOfOne?'<span class="badge">One of one</span>':'';
+      const newBadge=p.isNewDrop?'<span class="badge dark">New drop</span>':'';
+      const social=rail?`<div class="card-meta"><span>${p.savedCount||0} saves</span><span>${p.viewCount||0} viewing</span></div>`:'';
+      return `<article class="product-card" data-product-card="${p.id}">
+        <div class="product-media" data-wire-label="[PRODUCT IMAGE 4:5 · ALT IMAGE · QUICK ACTIONS]">
+          ${imageMarkup(p.images[0],p.category,'',false)}${p.images[1]?imageMarkup(p.images[1],p.category,'alt'):''}
+          <div class="product-badges">${newBadge}${badgeStock}</div>
+          <button class="icon-button card-save" type="button" data-save="${p.id}" aria-label="${saved?'Remove':'Save'} ${p.title}" aria-pressed="${saved}">${svg.heart}</button>
+          <div class="card-actions"><button class="button" type="button" data-add="${p.id}" ${p.stock<=0||p.isReserved?'disabled':''}>${actionLabel(p)}</button><button class="icon-button" type="button" data-quick="${p.id}" aria-label="Quick view ${p.title}">${svg.eye}</button></div>
+        </div>
+        <div class="card-info">${social}<div class="card-meta"><span>${p.sizeLabel}</span><span>${stockLabel(p)}</span></div><h3 class="product-title">${p.title}</h3><div class="price-row"><span class="price">${formatPrice(p.price)}</span>${p.originalPrice?`<span class="old-price">${formatPrice(p.originalPrice)}</span>`:''}</div><div class="condition-line"><span class="condition-dot" aria-hidden="true"></span>${p.conditionLabel} · ${p.conditionScore}/10</div></div>
+      </article>`;
+    }
+
+    function renderGrid() {
+      const grid=$('#product-grid');
+      const proto=state.prototypeState;
+      grid.classList.toggle('editorial',state.layout==='editorial');
+      if(proto==='loading') { grid.innerHTML=Array.from({length:8},()=>'<div class="product-card"><div class="product-media skeleton"></div><div class="card-info"><div class="skeleton" style="height:12px;width:45%"></div><div class="skeleton" style="height:18px"></div><div class="skeleton" style="height:16px;width:55%"></div></div></div>').join(''); return; }
+      if(proto==='empty') { grid.innerHTML='<div class="state-card"><div><div class="eyebrow">Empty state</div><h3>No pieces match this view yet.</h3><p>Try New in or clear the prototype state.</p><button class="button secondary" type="button" data-reset-state>Reset view</button></div></div>'; return; }
+      if(proto==='error') { grid.innerHTML='<div class="state-card"><div><div class="eyebrow">Inventory error</div><h3>The rack did not load properly.</h3><p>Your saved pieces and bag are still safe.</p><button class="button secondary" type="button" data-retry-grid>Try again</button></div></div>'; return; }
+      let list=currentProducts().map(p=>({...p}));
+      if(proto==='sold'&&list[0]) list[0].stock=0;
+      if(proto==='reserved'&&list[0]) list[0].isReserved=true;
+      if(proto==='missing'&&list[0]) list[0].images=[{src:'',alt:''}];
+      if(proto==='long'&&list[0]) list[0].title='Extremely Long Vintage Double-Breasted Wool Blazer with Hand-Finished Lapels and Extended Architectural Shoulder Line';
+      grid.innerHTML=list.map(p=>renderProductCard(p)).join('') || '<div class="state-card"><div><h3>No matching pieces right now.</h3><button class="button secondary" type="button" data-category-reset>Show new in</button></div></div>';
+      $('#product-count-label').textContent=`${list.length} of ${products.filter(p=>productMatchesCategory(p,state.category)).length} matching pieces`;
+      $('#view-all-products').hidden=state.showAll || products.filter(p=>productMatchesCategory(p,state.category)).length<=8;
+      syncSaveButtons();
+    }
+
+    function renderRail() { $('#saved-products').innerHTML=products.slice().sort((a,b)=>(b.savedCount||0)-(a.savedCount||0)).slice(0,6).map(p=>renderProductCard(p,true)).join(''); syncSaveButtons(); }
+    function renderCommunity() { $('#community-grid').innerHTML=communityLooks.map((look,i)=>`<button class="look-card" type="button" data-look="${look.id}" data-wire-label="[CUSTOMER LOOK ${i+1}]"><img src="${look.image}" alt="${look.name} styling a Laitstyle piece in ${look.city}" loading="lazy"><span class="look-caption"><span><strong>${look.name}</strong><span>${look.city} · ${products.find(p=>p.id===look.productId)?.sku}</span></span><span>View look →</span></span></button>`).join(''); }
+
+    function syncCounts() {
+      const sc=$('#saved-count'), cc=$('#cart-count');
+      sc.textContent=state.saved.size; sc.hidden=!state.saved.size;
+      cc.textContent=state.cart.length; cc.hidden=!state.cart.length;
+    }
+    function syncSaveButtons() { $$('[data-save]').forEach(btn=>{ const saved=state.saved.has(btn.dataset.save); btn.setAttribute('aria-pressed',String(saved)); const p=products.find(x=>x.id===btn.dataset.save); btn.setAttribute('aria-label',`${saved?'Remove':'Save'} ${p?.title||'piece'}`); }); syncCounts(); }
+    function toast(message) { const el=document.createElement('div'); el.className='toast'; el.textContent=message; $('#toast-region').append(el); setTimeout(()=>el.remove(),3200); }
+    function toggleSave(id) { const p=products.find(x=>x.id===id); if(!p) return; if(state.saved.has(id)){state.saved.delete(id);toast('Removed from saved pieces.');announce(`${p.title} removed from saved pieces.`);}else{state.saved.add(id);toast(p.stock<=0?'This piece has sold, but it remains in your archive.':'Saved for later.');announce(`${p.title} saved for later.`);} syncSaveButtons(); if(state.activeOverlay==='saved')renderSaved(); }
+
+    function addToCart(id, selectedSize='') {
+      const p=products.find(x=>x.id===id); if(!p) return;
+      if(p.stock<=0){toast('This piece has sold.');announce(`${p.title} is sold out.`);return;}
+      if(p.isReserved){toast('This piece is currently reserved.');return;}
+      if(p.availableSizes?.length && !selectedSize){openQuick(p.id);toast('Choose an available size first.');return;}
+      if(state.cart.some(item=>item.id===id&&item.size===selectedSize)){toast('This exact piece is already in your bag.');openOverlay('cart');return;}
+      state.cart.push({id,size:selectedSize||p.sizeLabel,price:p.price,status:'ok'}); syncCounts(); toast('Successfully added to your bag.'); announce(`${p.title} added to bag.`); if(state.activeOverlay==='quick-view')closeOverlay(); openOverlay('cart');
+    }
+
+    function renderCart() {
+      const root=$('#cart-content');
+      if(!state.cart.length){root.innerHTML='<div class="empty-state"><div><div class="eyebrow">Bag · empty</div><h3>Your bag is still waiting for its first good find.</h3><p>Every piece you add stays tied to its exact stock state.</p><button class="button" type="button" data-close data-scroll="#new-drop">Browse the latest drop</button></div></div>';return;}
+      const items=state.cart.map((item,index)=>{const p=products.find(x=>x.id===item.id);return `<article class="cart-item"><div>${imageMarkup(p.images[0],p.category)}</div><div><h3>${p.title}</h3><p>${item.size}</p><p>${p.conditionLabel}</p><p>${p.isOneOfOne?'Quantity fixed at one.':''}</p><strong>${formatPrice(item.price)}</strong>${item.status==='sold'?'<div class="stock-message sold">This item sold before checkout. Remove it or save a similar piece.</div>':''}${item.status==='price'?'<div class="stock-message reserved">Price updated. Review before checkout.</div>':''}</div><div><button class="icon-button" type="button" data-cart-remove="${index}" aria-label="Remove ${p.title}">${svg.close}</button><button class="button ghost" type="button" data-cart-save="${index}">Save</button></div></article>`}).join('');
+      const subtotal=state.cart.reduce((sum,item)=>sum+item.price,0);
+      root.innerHTML=`<div class="overlay-body cart-items">${items}</div><div class="cart-summary"><p class="section-note">Delivery estimate: Lagos 1–2 working days. Final stock is checked before payment.</p><div class="subtotal"><span>Subtotal</span><span>${formatPrice(subtotal)}</span></div><button class="button" type="button" id="checkout-button" ${state.cart.some(i=>i.status==='sold')?'disabled':''}>Continue to checkout</button><button class="button ghost" type="button" data-close>Continue shopping</button></div>`;
+    }
+
+    function renderSaved() {
+      const root=$('#saved-content'), list=products.filter(p=>state.saved.has(p.id));
+      if(!list.length){root.innerHTML='<div class="empty-state"><div><div class="eyebrow">Saved · empty</div><h3>No saved pieces yet.</h3><p>Use the heart on any card. Saves remain in this browser session.</p><button class="button" type="button" data-close data-scroll="#new-drop">Browse new pieces</button></div></div>';return;}
+      root.innerHTML=`<div class="overlay-body"><div class="product-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 12px">${list.map(p=>renderProductCard(p)).join('')}</div></div>`; syncSaveButtons();
+    }
+
+    function measurementsMarkup(p){const entries=Object.entries(p.measurements||{});return entries.length?entries.map(([k,v])=>`<div class="quick-fact"><span>${k}</span><strong class="mono">${v}</strong></div>`).join(''):'<div class="quick-fact"><span>Measurements</span><strong>Ask us for exact dimensions</strong></div>';}
+    function renderQuick(p,selected=0){
+      state.quickProduct=p; const saved=state.saved.has(p.id); const sizes=p.availableSizes||[];
+      $('#quick-content').innerHTML=`<div class="overlay-header"><div><span class="eyebrow">Quick view · ${p.sku}</span><h2 id="quick-title" style="margin:2px 0 0;font-size:var(--text-lg)">${p.title}</h2></div><button class="icon-button" type="button" data-close aria-label="Close quick view">${svg.close}</button></div><div class="quick-grid"><div class="quick-gallery"><div class="thumbs">${p.images.length?p.images.map((im,i)=>`<button type="button" data-quick-image="${i}" aria-label="Show image ${i+1}" aria-current="${i===selected}">${imageMarkup(im,p.category)}</button>`).join(''):'<span></span>'}</div><button class="quick-main-image" type="button" data-viewer="${p.id}" data-image-index="${selected}" aria-label="Open full-screen image viewer">${imageMarkup(p.images[selected],p.category,'',false)}</button></div><div class="quick-info"><div class="eyebrow">${p.brand||'Laitstyle find'} · ${safeText(p.era,'Era not confirmed')}</div><h2>${p.title}</h2><div class="price-row"><span class="price" style="font-size:var(--text-xl)">${formatPrice(p.price)}</span>${p.originalPrice?`<span class="old-price">${formatPrice(p.originalPrice)}</span><span class="badge">${discount(p)}% less</span>`:''}</div><div class="stock-message ${stockClass(p)}">${stockLabel(p)}${p.isReserved&&p.reservedUntil?` until ${p.reservedUntil}`:''}${p.isOneOfOne&&p.stock>0&&!p.isReserved?' · quantity is fixed at one.':''}</div><p><strong>${p.conditionLabel} · ${p.conditionScore}/10.</strong> ${p.flawNote||'No flaw found during inspection.'}</p><div class="quick-facts"><div class="quick-fact"><span>Measured fit</span><strong>${p.sizeLabel}</strong></div><div class="quick-fact"><span>Material</span><strong>${safeText(p.material)}</strong></div><div class="quick-fact"><span>Cleaning</span><strong>${safeText(p.cleaningStatus)}</strong></div><div class="quick-fact"><span>Colour</span><strong>${safeText(p.colour)}</strong></div>${measurementsMarkup(p)}</div>${sizes.length?`<div><div style="display:flex;justify-content:space-between"><strong>Choose size</strong><button class="button ghost" type="button" data-open="size">Size guide</button></div><div class="size-options">${[...(p.unavailableSizes||[]),...sizes].map(s=>`<button type="button" data-size="${s}" aria-pressed="false" ${(p.unavailableSizes||[]).includes(s)?'disabled aria-label="Size '+s+' unavailable"':''}>${s}</button>`).join('')}</div></div>`:''}<p class="mono" style="font-size:var(--text-xs)">SKU ${p.sku}</p><div class="quick-actions"><button class="button" type="button" data-quick-add="${p.id}" ${p.stock<=0||p.isReserved?'disabled':''}>${actionLabel(p)}</button><button class="icon-button" type="button" data-save="${p.id}" aria-label="${saved?'Remove':'Save'} ${p.title}" aria-pressed="${saved}">${svg.heart}</button></div><a class="text-link" href="#featured-product" data-close>View full product details →</a></div></div>`; syncSaveButtons();
+    }
+    function openQuick(id){const p=products.find(x=>x.id===id);if(!p)return;renderQuick(p);openOverlay('quick-view');}
+
+    function renderViewer(p,index=0){state.viewerProduct=p;state.viewerIndex=index;state.zoom=1;const im=p.images[index];$('#viewer-content').innerHTML=`<div class="overlay-header" style="background:oklch(.14 .01 42);border-color:rgb(255 255 255 / .16)"><div><span class="eyebrow" style="color:rgb(255 255 255 / .6)">${p.sku}</span><h2 id="viewer-title">${p.title}</h2></div><div style="display:flex;gap:4px"><button class="icon-button" type="button" data-zoom="in" aria-label="Zoom in">+</button><button class="icon-button" type="button" data-zoom="out" aria-label="Zoom out">−</button><button class="icon-button" type="button" data-zoom="reset">Reset</button><button class="icon-button" type="button" data-close aria-label="Close image viewer">${svg.close}</button></div></div><div class="viewer-main"><button class="icon-button viewer-nav viewer-prev" type="button" data-viewer-prev aria-label="Previous image" ${p.images.length<2?'disabled':''}>${svg.arrowLeft}</button><div class="viewer-image-wrap">${im?.src?`<img src="${im.src}" alt="${im.alt}" draggable="false" id="viewer-image">`:missingFallback(p.category)}</div><button class="icon-button viewer-nav viewer-next" type="button" data-viewer-next aria-label="Next image" ${p.images.length<2?'disabled':''}>${svg.arrowRight}</button></div><div class="viewer-toolbar"><div class="viewer-thumbs">${p.images.map((img,i)=>`<button type="button" data-viewer-index="${i}" aria-current="${i===index}">${imageMarkup(img,p.category)}</button>`).join('')}</div><span class="mono">${String(index+1).padStart(2,'0')} / ${String(p.images.length).padStart(2,'0')}</span></div>`;}
+    function openViewer(id,index=0){const p=products.find(x=>x.id===id);if(!p)return;renderViewer(p,Number(index)||0);openOverlay('image-viewer');}
+    function moveViewer(delta){const p=state.viewerProduct;if(!p||p.images.length<2)return;state.viewerIndex=(state.viewerIndex+delta+p.images.length)%p.images.length;renderViewer(p,state.viewerIndex);$('#image-viewer .viewer-main').focus?.();}
+    function updateZoom(deltaOrReset){state.zoom=deltaOrReset==='reset'?1:Math.max(1,Math.min(2.5,state.zoom+deltaOrReset));const img=$('#viewer-image');if(img)img.style.setProperty('--zoom',state.zoom);}
+
+    function renderLook(look){const p=products.find(x=>x.id===look.productId), similar=products.filter(x=>x.category===p.category&&x.id!==p.id&&x.stock>0).slice(0,2);$('#look-content').innerHTML=`<div class="overlay-header"><h2 id="look-title">${look.name} · ${look.city}</h2><button class="icon-button" type="button" data-close aria-label="Close customer look">${svg.close}</button></div><div class="look-dialog-grid"><div class="media-frame" data-wire-label="[CUSTOMER LOOK IMAGE]"><img src="${look.image}" alt="${look.name} wearing ${p.title}"></div><div class="look-dialog-copy"><div class="eyebrow">Worn outside the product page</div><h3 style="font-size:var(--text-xl)">${p.title}</h3><p class="serif" style="font-size:var(--text-lg)">“${look.note}”</p>${p.stock<=0?'<div class="stock-message sold">The original piece is sold. Similar available pieces are listed below.</div>':`<div class="stock-message">The original piece is still available.</div><button class="button" type="button" data-quick="${p.id}">View linked piece</button>`}<button class="button ghost" type="button" data-save="${p.id}" aria-pressed="${state.saved.has(p.id)}">${state.saved.has(p.id)?'Saved':'Save this reference'}</button><h4>Similar available pieces</h4><div class="similar-list">${similar.map(s=>`<button class="similar-item" type="button" data-quick="${s.id}">${imageMarkup(s.images[0],s.category)}<strong>${s.title}</strong><div>${formatPrice(s.price)}</div></button>`).join('')}</div></div></div>`;syncSaveButtons();}
+
+    const overlayMap=new Map($$('.overlay').map(el=>[el.id,el]));
+    function focusable(root){return $$('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',root).filter(el=>!el.hidden&&el.offsetParent!==null);}
+    function openOverlay(id){
+      if(state.activeOverlay)closeOverlay(false);
+      const el=overlayMap.get(id);if(!el)return;
+      state.lastFocus=document.activeElement;state.activeOverlay=id;
+      if(id==='cart')renderCart();if(id==='saved')renderSaved();
+      el.hidden=false;$('#overlay-backdrop').classList.add('active');document.body.classList.add('overlay-open');
+      requestAnimationFrame(()=>{el.classList.add('active');const first=focusable(el)[0];first?.focus();});
+    }
+    function closeOverlay(returnFocus=true){const id=state.activeOverlay;if(!id)return;const el=overlayMap.get(id);el?.classList.remove('active');$('#overlay-backdrop').classList.remove('active');document.body.classList.remove('overlay-open');setTimeout(()=>{if(el)el.hidden=true;},210);state.activeOverlay=null;if(returnFocus)state.lastFocus?.focus?.();}
+    function trapFocus(event){if(!state.activeOverlay||event.key!=='Tab')return;const el=overlayMap.get(state.activeOverlay),items=focusable(el);if(!items.length)return;const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
+
+    function setCategory(cat,scroll=true){state.category=cat;state.showAll=false;$$('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.category===cat)));renderGrid();if(scroll)$('#new-drop').scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth'});}
+    function railMove(id,dir){const rail=$('#'+id);if(!rail)return;rail.scrollBy({left:dir*rail.clientWidth*.78,behavior:reducedMotion.matches?'auto':'smooth'});}
+
+    function renderSearch(query=''){
+      const root=$('#search-results'),status=$('#search-status');
+      const q=query.trim().toLowerCase();
+      if(q==='error'){root.innerHTML='<div class="state-card"><div><h3>Search is temporarily unavailable.</h3><button class="button secondary" type="button" id="retry-search">Try again</button></div></div>';status.textContent='Error';return;}
+      if(q==='loading'){root.innerHTML='<div class="search-result skeleton" style="height:104px"></div><div class="search-result skeleton" style="height:104px"></div>';status.textContent='Loading';return;}
+      let results=!q?products.filter(p=>p.isNewDrop).slice(0,4):products.filter(p=>{const hay=[p.title,p.brand,p.category,p.sizeLabel,p.conditionLabel,p.colour,p.material,p.price<20000?'under 20k':''].join(' ').toLowerCase();return hay.includes(q.replace('₦',''));}).slice(0,8);
+      status.textContent=`${results.length} result${results.length===1?'':'s'}`;
+      root.innerHTML=results.length?results.map(p=>`<button class="search-result" type="button" role="option" data-quick="${p.id}">${imageMarkup(p.images[0],p.category)}<span><strong>${p.title}</strong><p>${formatPrice(p.price)} · ${p.sizeLabel}</p><p>${p.conditionLabel} · ${stockLabel(p)}</p></span></button>`).join(''):'<div class="state-card"><div><h3>No matching pieces.</h3><p>Try a category, size, colour or “under 20k”.</p><button class="button ghost" type="button" id="clear-search-empty">Clear search</button></div></div>';
+    }
+
+    function setMode(mode){const wire=mode==='wireframe';document.body.classList.toggle('wireframe',wire);$('#wireframe-mode').setAttribute('aria-pressed',String(wire));$('#hifi-mode').setAttribute('aria-pressed',String(!wire));localStorage.setItem('laitstyle-mode',mode);announce(`${wire?'Wireframe':'High fidelity'} mode enabled.`);}
+    function toggleTheme(){const html=document.documentElement,dark=html.dataset.theme!=='dark';html.dataset.theme=dark?'dark':'light';$('#theme-toggle').textContent=dark?'Switch to light':'Switch to dark';localStorage.setItem('laitstyle-theme',html.dataset.theme);}
+
+    document.addEventListener('click',event=>{
+      const open=event.target.closest('[data-open]');if(open){const id=open.dataset.open;if(state.activeOverlay&&id!==state.activeOverlay)closeOverlay(false);openOverlay(id);return;}
+      if(event.target.closest('[data-close]')){const scroll=event.target.closest('[data-scroll]')?.dataset.scroll;closeOverlay();if(scroll)setTimeout(()=>$(scroll)?.scrollIntoView({behavior:'smooth'}),220);return;}
+      const quick=event.target.closest('[data-quick]');if(quick){openQuick(quick.dataset.quick);return;}
+      const save=event.target.closest('[data-save]');if(save){toggleSave(save.dataset.save);return;}
+      const add=event.target.closest('[data-add]');if(add){addToCart(add.dataset.add);return;}
+      const viewer=event.target.closest('[data-viewer]');if(viewer){openViewer(viewer.dataset.viewer,viewer.dataset.imageIndex);return;}
+      const qimg=event.target.closest('[data-quick-image]');if(qimg&&state.quickProduct){renderQuick(state.quickProduct,Number(qimg.dataset.quickImage));return;}
+      const qadd=event.target.closest('[data-quick-add]');if(qadd){const selected=$('.size-options button[aria-pressed="true"]')?.dataset.size||'';addToCart(qadd.dataset.quickAdd,selected);return;}
+      const size=event.target.closest('[data-size]');if(size&&!size.disabled){$$('[data-size]').forEach(b=>b.setAttribute('aria-pressed','false'));size.setAttribute('aria-pressed','true');announce(`Size ${size.dataset.size} selected.`);return;}
+      const remove=event.target.closest('[data-cart-remove]');if(remove){const [item]=state.cart.splice(Number(remove.dataset.cartRemove),1);renderCart();syncCounts();toast('Item removed from bag.');announce(`${products.find(p=>p.id===item.id)?.title} removed from bag.`);return;}
+      const csave=event.target.closest('[data-cart-save]');if(csave){const [item]=state.cart.splice(Number(csave.dataset.cartSave),1);state.saved.add(item.id);renderCart();syncSaveButtons();toast('Moved to saved pieces.');return;}
+      const lookBtn=event.target.closest('[data-look]');if(lookBtn){const look=communityLooks.find(x=>x.id===lookBtn.dataset.look);renderLook(look);openOverlay('customer-look');return;}
+      if(event.target.closest('[data-viewer-prev]')){moveViewer(-1);return;}if(event.target.closest('[data-viewer-next]')){moveViewer(1);return;}
+      const vi=event.target.closest('[data-viewer-index]');if(vi&&state.viewerProduct){renderViewer(state.viewerProduct,Number(vi.dataset.viewerIndex));return;}
+      const zoom=event.target.closest('[data-zoom]');if(zoom){updateZoom(zoom.dataset.zoom==='in'?.25:zoom.dataset.zoom==='out'?-.25:'reset');return;}
+      const cat=event.target.closest('[data-category]');if(cat){setCategory(cat.dataset.category,false);return;}
+      const catLink=event.target.closest('[data-category-link]');if(catLink){closeMega();setCategory(catLink.dataset.category);return;}
+      const tab=event.target.closest('[data-trust-tab]');if(tab){$$('[data-trust-tab]').forEach(b=>b.setAttribute('aria-selected','false'));tab.setAttribute('aria-selected','true');$$('.tab-panel').forEach(p=>p.hidden=true);$(`#${tab.dataset.trustTab}-panel`).hidden=false;return;}
+      const prev=event.target.closest('[data-rail-prev]');if(prev){railMove(prev.dataset.railPrev,-1);return;}const next=event.target.closest('[data-rail-next]');if(next){railMove(next.dataset.railNext,1);return;}
+      if(event.target.closest('[data-reset-state]')||event.target.closest('[data-retry-grid]')){$('#state-switcher').value='default';state.prototypeState='default';renderGrid();return;}
+      if(event.target.closest('[data-category-reset]')){setCategory('all',false);return;}
+      const term=event.target.closest('[data-search-term]');if(term){$('#search-input').value=term.dataset.searchTerm;renderSearch(term.dataset.searchTerm);return;}
+      if(event.target.id==='clear-search'||event.target.id==='clear-search-empty'){$('#search-input').value='';renderSearch('');$('#search-input').focus();return;}
+      if(event.target.id==='retry-search'){renderSearch('');return;}
+      const layout=event.target.closest('[data-layout]');if(layout){state.layout=layout.dataset.layout;$$('[data-layout]').forEach(b=>b.setAttribute('aria-pressed',String(b===layout)));renderGrid();return;}
+      if(event.target.id==='view-all-products'){state.showAll=true;renderGrid();return;}
+      if(event.target.id==='theme-toggle'){toggleTheme();return;}
+      if(event.target.id==='wireframe-mode'){setMode('wireframe');return;}if(event.target.id==='hifi-mode'){setMode('hifi');return;}
+      const footerHead=event.target.closest('.footer-group h3');if(footerHead&&matchMedia('(max-width:639px)').matches){footerHead.parentElement.classList.toggle('open');return;}
+      if(event.target.id==='checkout-button'){toast('Checkout is unavailable in this frontend prototype. Your bag remains intact.');announce('Checkout unavailable in prototype.');return;}
+    });
+
+    document.addEventListener('keydown',event=>{
+      trapFocus(event);
+      if(event.key==='Escape'){if(state.activeOverlay)closeOverlay();else closeMega();}
+      if(state.activeOverlay==='image-viewer'){if(event.key==='ArrowLeft')moveViewer(-1);if(event.key==='ArrowRight')moveViewer(1);if(event.key==='+')updateZoom(.25);if(event.key==='-')updateZoom(-.25);}
+      if(state.activeOverlay==='search'&&['ArrowDown','ArrowUp'].includes(event.key)){const options=$$('.search-result');if(!options.length)return;event.preventDefault();let index=options.indexOf(document.activeElement);index=event.key==='ArrowDown'?Math.min(index+1,options.length-1):Math.max(index-1,0);options[index<0?0:index].focus();}
+    });
+
+    $('#overlay-backdrop').addEventListener('click',()=>closeOverlay());
+    $('#search-input').addEventListener('input',e=>renderSearch(e.target.value));
+    $('#state-switcher').addEventListener('change',e=>{state.prototypeState=e.target.value;renderGrid();});
+
+    const shopTrigger=$('#shop-menu-trigger'),mega=$('#mega-menu');let hoverTimer;
+    function openMega(){if(matchMedia('(max-width:899px)').matches)return;mega.hidden=false;shopTrigger.setAttribute('aria-expanded','true');state.megaOpen=true;}
+    function closeMega(){mega.hidden=true;shopTrigger.setAttribute('aria-expanded','false');state.megaOpen=false;}
+    shopTrigger.addEventListener('click',()=>mega.hidden?openMega():closeMega());
+    shopTrigger.addEventListener('mouseenter',()=>{clearTimeout(hoverTimer);hoverTimer=setTimeout(openMega,130)});
+    mega.addEventListener('mouseenter',()=>clearTimeout(hoverTimer));
+    shopTrigger.addEventListener('mouseleave',()=>hoverTimer=setTimeout(()=>{if(!mega.matches(':hover')&&!mega.matches(':focus-within'))closeMega()},220));
+    mega.addEventListener('mouseleave',()=>hoverTimer=setTimeout(()=>{if(!shopTrigger.matches(':hover')&&!mega.matches(':focus-within'))closeMega()},220));
+    document.addEventListener('pointerdown',e=>{if(!mega.hidden&&!mega.contains(e.target)&&e.target!==shopTrigger)closeMega();});
+
+    let lastScroll=0,ticking=false;
+    addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const y=scrollY,header=$('#site-header');header.classList.toggle('compact',y>100);const down=y>lastScroll;header.classList.toggle('hidden-header',down&&y>240&&!state.activeOverlay&&!state.megaOpen);lastScroll=y;ticking=false;});},{passive:true});
+
+    const heroImages=['https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1200&q=88','https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=88'];let heroIndex=0;
+    $('#hero-next').addEventListener('click',()=>{heroIndex=(heroIndex+1)%heroImages.length;const img=$('#hero-image');img.style.opacity='0';setTimeout(()=>{img.src=heroImages[heroIndex];img.alt=heroIndex?'Curated vintage garments arranged in a warm studio':'Model wearing a structured vintage jacket in warm daylight';img.style.opacity='1';$('#hero-index').textContent=`0${heroIndex+1} / 02`;$('#hero-progress').style.transform=`scaleX(${heroIndex?2:1})`;},180);});
+    if(!touchCapable&&!reducedMotion.matches){const visual=$('#hero-visual');visual.addEventListener('pointermove',e=>{const r=visual.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;$('#hero-image').style.transform=`scale(1.025) translate(${x*10}px,${y*10}px)`;});visual.addEventListener('pointerleave',()=>$('#hero-image').style.transform='scale(1.015)');}
+
+    const utilityMessages=['New drop: 38 pieces added','Free Lagos delivery over ₦65,000','Every piece is measured by hand','One piece means one piece'];let utilityIndex=0,utilityPaused=false;
+    const utilityTimer=setInterval(()=>{if(utilityPaused||reducedMotion.matches)return;utilityIndex=(utilityIndex+1)%utilityMessages.length;$('#utility-message').textContent=utilityMessages[utilityIndex];},5200);
+    $('.utility').addEventListener('mouseenter',()=>utilityPaused=true);$('.utility').addEventListener('mouseleave',()=>utilityPaused=false);$('.utility').addEventListener('focusin',()=>utilityPaused=true);$('.utility').addEventListener('focusout',()=>utilityPaused=false);
+
+    $('#newsletter-form').addEventListener('submit',event=>{event.preventDefault();const email=$('#newsletter-email'),err=$('#newsletter-error'),status=$('#newsletter-status'),button=event.currentTarget.querySelector('button[type="submit"]');err.textContent='';status.textContent='';if(!email.validity.valid){err.textContent='Enter a valid email address.';email.setAttribute('aria-invalid','true');email.focus();return;}email.removeAttribute('aria-invalid');button.disabled=true;button.textContent='Joining…';status.textContent='Checking your address…';setTimeout(()=>{button.disabled=false;button.textContent='Join the list';if(email.value.toLowerCase().includes('duplicate'))status.textContent='You are already subscribed. No need to join twice.';else if(email.value.toLowerCase().includes('error'))status.textContent='We could not add you just now. Please try again.';else{status.textContent='You’re on the list. We’ll only write when there is something worth opening.';event.currentTarget.reset();}},900);});
+
+    $('#saved-products').addEventListener('scroll',()=>{const rail=$('#saved-products'),max=rail.scrollWidth-rail.clientWidth,progress=max?rail.scrollLeft/max:0;$('#saved-rail-progress').style.transform=`scaleX(${.2+progress*.8})`;},{passive:true});
+    document.addEventListener('error',event=>{const img=event.target;if(img.tagName==='IMG'&&img.dataset.imageFallback!==undefined){const wrap=img.parentElement;img.remove();wrap.insertAdjacentHTML('afterbegin',missingFallback(img.dataset.imageFallback));}},true);
+
+    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:reducedMotion.matches?1:520,easing:'cubic-bezier(.33,1,.68,1)',fill:'both'});observer.unobserve(entry.target);}}),{threshold:.12});
+    $$('.section-head,.editorial-copy,.trust-grid').forEach(el=>observer.observe(el));
+
+    const storedTheme=localStorage.getItem('laitstyle-theme');if(storedTheme){document.documentElement.dataset.theme=storedTheme;$('#theme-toggle').textContent=storedTheme==='dark'?'Switch to light':'Switch to dark';}
+    setMode(localStorage.getItem('laitstyle-mode')||'wireframe');
+    renderGrid();renderRail();renderCommunity();renderSearch('');syncCounts();
+  })();
+  </script>
+</body>
+</html>

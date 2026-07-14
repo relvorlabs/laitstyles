@@ -49,7 +49,7 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
           <Link
             className={buttonVariants({
               size: "lg",
-              className: "h-11 rounded-full px-4",
+              className: "h-11 rounded-full px-4 text-white",
             })}
             href="/"
           >

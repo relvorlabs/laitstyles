@@ -1,0 +1,2350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laitstyle Account Workspace — Interactive Wireframe</title>
+  <meta
+    name="description"
+    content="Responsive low-fidelity wireframe for a complete ecommerce customer account, orders, returns, security, privacy, and support workspace."
+  />
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --wire-paper: #f5f4ef;
+      --wire-surface: #ffffff;
+      --wire-soft: #eceae3;
+      --wire-ink: #171714;
+      --wire-muted: #6d6b64;
+      --wire-line: #bdb9ae;
+      --wire-line-soft: #d9d6cd;
+      --wire-danger: #6b2626;
+      --wire-success: #324c38;
+      --wire-focus: #171714;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--wire-paper);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        linear-gradient(rgba(23, 23, 20, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 23, 20, 0.035) 1px, transparent 1px),
+        var(--wire-paper);
+      background-size: 24px 24px;
+      color: var(--wire-ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    summary {
+      touch-action: manipulation;
+    }
+
+    button,
+    a {
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--wire-focus);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .wire-surface {
+      background: var(--wire-surface);
+      border: 2px solid var(--wire-ink);
+    }
+
+    .wire-panel {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--wire-line);
+    }
+
+    .wire-card {
+      background: var(--wire-surface);
+      border: 1px solid var(--wire-line);
+    }
+
+    .wire-dashed {
+      border: 2px dashed var(--wire-line);
+      background: rgba(236, 234, 227, 0.72);
+    }
+
+    .wire-image {
+      background:
+        linear-gradient(
+          135deg,
+          transparent 0 48.8%,
+          rgba(23, 23, 20, 0.18) 49% 51%,
+          transparent 51.2% 100%
+        ),
+        linear-gradient(
+          45deg,
+          transparent 0 48.8%,
+          rgba(23, 23, 20, 0.18) 49% 51%,
+          transparent 51.2% 100%
+        ),
+        var(--wire-soft);
+      background-size: 44px 44px;
+    }
+
+    .wire-label {
+      font-size: 0.69rem;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .wire-button {
+      min-height: 44px;
+      border: 2px solid var(--wire-ink);
+      background: var(--wire-ink);
+      color: white;
+      padding: 0.72rem 1rem;
+      font-weight: 800;
+    }
+
+    .wire-button:hover {
+      background: #2d2d28;
+    }
+
+    .wire-button--secondary {
+      background: white;
+      color: var(--wire-ink);
+    }
+
+    .wire-button--secondary:hover {
+      background: var(--wire-soft);
+    }
+
+    .wire-button--danger {
+      border-color: var(--wire-danger);
+      background: var(--wire-danger);
+    }
+
+    .wire-link {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .wire-input {
+      min-height: 48px;
+      width: 100%;
+      border: 1px solid var(--wire-line);
+      background: white;
+      padding: 0.75rem 0.85rem;
+    }
+
+    .wire-input:focus {
+      border-color: var(--wire-ink);
+    }
+
+    .nav-item {
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      border-left: 4px solid transparent;
+      padding: 0.65rem 0.8rem;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .nav-item:hover {
+      background: var(--wire-soft);
+    }
+
+    .nav-item[aria-current="page"] {
+      border-left-color: var(--wire-ink);
+      background: var(--wire-soft);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      border: 1px solid var(--wire-ink);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .status-chip--success {
+      border-color: var(--wire-success);
+      color: var(--wire-success);
+    }
+
+    .status-chip--danger {
+      border-color: var(--wire-danger);
+      color: var(--wire-danger);
+    }
+
+    .account-page {
+      animation: route-in 150ms ease-out both;
+    }
+
+    @keyframes route-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .skeleton {
+      position: relative;
+      overflow: hidden;
+      background: var(--wire-soft);
+    }
+
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.75),
+        transparent
+      );
+      animation: skeleton 1.3s infinite;
+    }
+
+    @keyframes skeleton {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .modal-backdrop {
+      background: rgba(23, 23, 20, 0.56);
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-panel {
+      opacity: 0;
+      transform: translateY(12px) scale(0.985);
+      transition:
+        opacity 170ms ease,
+        transform 190ms ease;
+    }
+
+    .modal-panel.is-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .mobile-sheet {
+      transform: translateY(102%);
+      transition: transform 220ms ease;
+    }
+
+    .mobile-sheet.is-open {
+      transform: translateY(0);
+    }
+
+    .return-step {
+      display: none;
+    }
+
+    .return-step.is-active {
+      display: block;
+      animation: route-in 150ms ease-out both;
+    }
+
+    .step-dot {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 2px solid var(--wire-line);
+      border-radius: 999px;
+      background: white;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .step-dot.is-active,
+    .step-dot.is-complete {
+      border-color: var(--wire-ink);
+      background: var(--wire-ink);
+      color: white;
+    }
+
+    .toast {
+      opacity: 0;
+      transform: translateY(14px);
+      transition:
+        opacity 160ms ease,
+        transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mobile-sticky-action {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a
+    href="#account-main"
+    class="fixed left-3 top-3 z-[120] -translate-y-24 border-2 border-black bg-white px-4 py-2 font-bold transition focus:translate-y-0"
+  >
+    Skip to account content
+  </a>
+
+  <!-- Prototype toolbar -->
+  <section class="border-b-2 border-black bg-black text-white" aria-label="Wireframe prototype controls">
+    <div class="mx-auto flex min-h-12 max-w-[1520px] flex-wrap items-center gap-3 px-4 py-2 sm:px-6 lg:px-8">
+      <p class="wire-label">Account workspace wireframe</p>
+
+      <label class="ml-auto flex items-center gap-2 text-sm">
+        <span>Page state</span>
+        <select id="state-selector" class="min-h-9 border border-white bg-black px-3 text-white">
+          <option value="default">Default</option>
+          <option value="empty">Empty</option>
+          <option value="loading">Loading</option>
+          <option value="error">Error</option>
+          <option value="expired">Session expired</option>
+          <option value="restricted">Restricted account</option>
+          <option value="deleting">Pending deletion</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <!-- Shared storefront header wireframe -->
+  <header class="sticky top-0 z-30 border-b-2 border-black bg-[rgba(245,244,239,0.96)] backdrop-blur">
+    <div class="mx-auto flex min-h-[68px] max-w-[1520px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <button
+        id="store-menu-trigger"
+        type="button"
+        class="grid size-11 place-items-center border-2 border-black lg:hidden"
+        aria-label="Open storefront navigation"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <a href="#" class="border-2 border-black px-4 py-2 text-sm font-black uppercase tracking-[0.14em]">
+        Shared logo
+      </a>
+
+      <nav class="hidden items-center gap-6 text-sm font-bold lg:flex" aria-label="Storefront">
+        <a href="#">New in</a>
+        <a href="#">Products</a>
+        <a href="#">Collections</a>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-2">
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" aria-label="Search">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M16 16l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="hidden min-h-11 border-2 border-black px-4 text-sm font-bold sm:block" type="button">
+          Saved (5)
+        </button>
+        <button class="min-h-11 border-2 border-black bg-black px-4 text-sm font-bold text-white" type="button">
+          Bag (1)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-[1520px] px-4 py-5 sm:px-6 lg:px-8">
+    <nav class="text-sm text-[var(--wire-muted)]" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2">
+        <li><a href="#" class="underline underline-offset-4">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="#overview" class="underline underline-offset-4">Account</a></li>
+        <li id="breadcrumb-current-wrapper" class="flex items-center gap-2">
+          <span aria-hidden="true">/</span>
+          <span id="breadcrumb-current" aria-current="page">Overview</span>
+        </li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="mx-auto grid max-w-[1520px] gap-6 px-4 pb-14 sm:px-6 md:grid-cols-[230px_minmax(0,1fr)] lg:grid-cols-[270px_minmax(0,1fr)] lg:px-8">
+    <!-- Desktop account navigation -->
+    <aside class="hidden md:block">
+      <div class="sticky top-24 wire-surface">
+        <div class="border-b-2 border-black p-5">
+          <p class="wire-label text-[var(--wire-muted)]">Signed in as</p>
+          <p class="mt-3 text-xl font-black">Ada Okafor</p>
+          <p class="mt-1 text-sm text-[var(--wire-muted)]">Customer since 2024</p>
+        </div>
+
+        <nav id="desktop-account-nav" class="p-2" aria-label="Account">
+          <button class="nav-item" type="button" data-route="overview" aria-current="page">
+            <span aria-hidden="true">□</span><span>Overview</span>
+          </button>
+          <button class="nav-item" type="button" data-route="profile">
+            <span aria-hidden="true">○</span><span>Profile</span>
+          </button>
+          <button class="nav-item" type="button" data-route="orders">
+            <span aria-hidden="true">▤</span><span>Orders</span>
+          </button>
+          <button class="nav-item" type="button" data-route="returns">
+            <span aria-hidden="true">↶</span><span>Returns</span>
+          </button>
+          <button class="nav-item" type="button" data-route="addresses">
+            <span aria-hidden="true">⌖</span><span>Addresses</span>
+          </button>
+          <button class="nav-item" type="button" data-route="payments">
+            <span aria-hidden="true">▭</span><span>Payment methods</span>
+          </button>
+          <button class="nav-item" type="button" data-route="saved">
+            <span aria-hidden="true">♡</span><span>Saved items</span>
+          </button>
+          <button class="nav-item" type="button" data-route="notifications">
+            <span aria-hidden="true">◇</span><span>Notifications</span><span class="ml-auto border border-black px-2 text-xs">3</span>
+          </button>
+          <button class="nav-item" type="button" data-route="preferences">
+            <span aria-hidden="true">≡</span><span>Preferences</span>
+          </button>
+          <button class="nav-item" type="button" data-route="security">
+            <span aria-hidden="true">◇</span><span>Security</span>
+          </button>
+          <button class="nav-item" type="button" data-route="privacy">
+            <span aria-hidden="true">⊙</span><span>Privacy</span>
+          </button>
+          <button class="nav-item" type="button" data-route="support">
+            <span aria-hidden="true">?</span><span>Support</span>
+          </button>
+        </nav>
+
+        <div class="border-t-2 border-black p-3">
+          <button id="desktop-signout" type="button" class="nav-item text-[var(--wire-danger)]">
+            <span aria-hidden="true">→</span><span>Sign out</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <main id="account-main" class="min-w-0">
+      <!-- Mobile page header -->
+      <div class="mb-5 flex items-center justify-between gap-3 md:hidden">
+        <div>
+          <p class="wire-label text-[var(--wire-muted)]">Account</p>
+          <h1 id="mobile-route-title" class="mt-2 text-3xl font-black">Overview</h1>
+        </div>
+        <button
+          id="account-menu-trigger"
+          type="button"
+          class="wire-button wire-button--secondary flex items-center gap-2"
+          aria-expanded="false"
+        >
+          Account menu
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Simulated global states -->
+      <section id="state-overlay" class="wire-surface mb-6 p-6" hidden aria-live="polite"></section>
+
+      <!-- OVERVIEW -->
+      <section class="account-page" data-page="overview">
+        <header class="mb-7 hidden md:block">
+          <p class="wire-label text-[var(--wire-muted)]">Account overview</p>
+          <h1 class="mt-3 text-4xl font-black sm:text-5xl">Good afternoon, Ada.</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">
+            Track the order that needs attention first, then manage the rest of your account.
+          </p>
+        </header>
+
+        <section class="wire-surface border-l-[8px] p-5">
+          <div class="flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <p class="wire-label">Action required</p>
+              <h2 class="mt-3 text-2xl font-black">Verify your email address</h2>
+              <p class="mt-2 max-w-xl text-[var(--wire-muted)]">
+                Verification protects order updates and sensitive account changes.
+              </p>
+            </div>
+            <button class="wire-button" type="button" data-open-dialog="verify-email-dialog">
+              Verify email
+            </button>
+          </div>
+        </section>
+
+        <section class="mt-6 wire-surface">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+            <div>
+              <p class="wire-label text-[var(--wire-muted)]">Current order</p>
+              <h2 class="mt-2 text-2xl font-black">Order #LS-1048</h2>
+            </div>
+            <span class="status-chip status-chip--success">Shipped</span>
+          </div>
+
+          <div class="grid gap-6 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+            <div class="wire-image aspect-[4/3] border border-black" aria-label="Order product image placeholder"></div>
+
+            <div>
+              <p class="font-black">2 items · ₦63,000</p>
+              <p class="mt-2 text-[var(--wire-muted)]">Estimated arrival: Friday, 17 July</p>
+
+              <ol class="mt-5 grid grid-cols-4 gap-2 text-center text-xs font-bold" aria-label="Shipment progress">
+                <li><span class="mx-auto block h-2 bg-black"></span><span class="mt-2 block">Placed</span></li>
+                <li><span class="mx-auto block h-2 bg-black"></span><span class="mt-2 block">Paid</span></li>
+                <li><span class="mx-auto block h-2 bg-black"></span><span class="mt-2 block">Shipped</span></li>
+                <li><span class="mx-auto block h-2 bg-[var(--wire-line)]"></span><span class="mt-2 block text-[var(--wire-muted)]">Delivered</span></li>
+              </ol>
+            </div>
+
+            <div class="grid gap-3">
+              <button class="wire-button" type="button" data-info="Tracking view would open with real carrier events.">Track order</button>
+              <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">View order</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-8">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="wire-label text-[var(--wire-muted)]">Common tasks</p>
+              <h2 class="mt-2 text-2xl font-black">Quick actions</h2>
+            </div>
+          </div>
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <button class="wire-card min-h-28 p-4 text-left" type="button" data-route="orders">
+              <p class="font-black">View orders</p>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">Track, cancel, return</p>
+            </button>
+            <button class="wire-card min-h-28 p-4 text-left" type="button" data-open-dialog="return-dialog">
+              <p class="font-black">Start a return</p>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">Eligible items only</p>
+            </button>
+            <button class="wire-card min-h-28 p-4 text-left" type="button" data-route="addresses">
+              <p class="font-black">Addresses</p>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">Shipping and billing</p>
+            </button>
+            <button class="wire-card min-h-28 p-4 text-left" type="button" data-route="saved">
+              <p class="font-black">Saved pieces</p>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">5 products</p>
+            </button>
+            <button class="wire-card min-h-28 p-4 text-left" type="button" data-open-dialog="support-dialog">
+              <p class="font-black">Contact support</p>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">Include order context</p>
+            </button>
+          </div>
+        </section>
+
+        <section class="mt-8">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="wire-label text-[var(--wire-muted)]">Purchase history</p>
+              <h2 class="mt-2 text-2xl font-black">Recent orders</h2>
+            </div>
+            <button class="wire-link" type="button" data-route="orders">All orders →</button>
+          </div>
+
+          <div class="mt-4 divide-y-2 divide-black wire-surface">
+            <article class="grid gap-4 p-5 md:grid-cols-[100px_minmax(0,1fr)_auto] md:items-center">
+              <div class="wire-image aspect-square border border-black"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <h3 class="font-black">#LS-1048</h3>
+                  <span class="status-chip status-chip--success">Shipped</span>
+                </div>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">2 items · 12 July 2026 · ₦63,000</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">View</button>
+            </article>
+
+            <article class="grid gap-4 p-5 md:grid-cols-[100px_minmax(0,1fr)_auto] md:items-center">
+              <div class="wire-image aspect-square border border-black"></div>
+              <div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <h3 class="font-black">#LS-0977</h3>
+                  <span class="status-chip">Delivered</span>
+                </div>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">1 item · 18 May 2026 · ₦28,500</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">View</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="mt-8">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="wire-label text-[var(--wire-muted)]">Wishlist</p>
+              <h2 class="mt-2 text-2xl font-black">Saved pieces</h2>
+            </div>
+            <button class="wire-link" type="button" data-route="saved">View saved →</button>
+          </div>
+
+          <div class="mt-4 grid auto-cols-[76%] grid-flow-col gap-4 overflow-x-auto pb-4 sm:auto-cols-[43%] lg:grid-flow-row lg:grid-cols-3 lg:overflow-visible">
+            <article class="wire-card">
+              <a href="#" class="block">
+                <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)]"></div>
+                <div class="p-4">
+                  <p class="wire-label text-[var(--wire-muted)]">Available</p>
+                  <h3 class="mt-2 font-black">Saved ProductCard</h3>
+                  <p class="mt-2">₦24,000</p>
+                </div>
+              </a>
+            </article>
+            <article class="wire-card">
+              <a href="#" class="block">
+                <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)]"></div>
+                <div class="p-4">
+                  <p class="wire-label text-[var(--wire-danger)]">Sold</p>
+                  <h3 class="mt-2 font-black">One-of-one piece</h3>
+                  <p class="mt-2 text-[var(--wire-muted)]">No longer available</p>
+                </div>
+              </a>
+            </article>
+            <article class="wire-card">
+              <a href="#" class="block">
+                <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)]"></div>
+                <div class="p-4">
+                  <p class="wire-label text-[var(--wire-muted)]">Price changed</p>
+                  <h3 class="mt-2 font-black">Shared ProductCard</h3>
+                  <p class="mt-2">₦21,500</p>
+                </div>
+              </a>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="account-page" data-page="profile" hidden>
+        <header class="mb-7">
+          <p class="wire-label text-[var(--wire-muted)]">Identity and contact</p>
+          <h1 class="mt-3 text-4xl font-black">Profile</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">
+            Manage the information used for your account and order communication.
+          </p>
+        </header>
+
+        <form id="profile-form" class="wire-surface">
+          <div class="border-b-2 border-black p-5">
+            <h2 class="text-2xl font-black">Personal information</h2>
+            <p class="mt-2 text-sm text-[var(--wire-muted)]">Fields with an asterisk are required.</p>
+          </div>
+
+          <div class="grid gap-5 p-5 sm:grid-cols-2">
+            <label>
+              <span class="font-bold">First name *</span>
+              <input class="wire-input mt-2" name="firstName" value="Ada" required autocomplete="given-name" />
+            </label>
+            <label>
+              <span class="font-bold">Last name *</span>
+              <input class="wire-input mt-2" name="lastName" value="Okafor" required autocomplete="family-name" />
+            </label>
+            <label class="sm:col-span-2">
+              <span class="font-bold">Preferred name</span>
+              <input class="wire-input mt-2" name="preferredName" value="Ada" autocomplete="nickname" />
+              <span class="mt-2 block text-sm text-[var(--wire-muted)]">Used in account greetings.</span>
+            </label>
+          </div>
+
+          <div class="border-t-2 border-black p-5">
+            <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div>
+                <p class="font-black">Email address</p>
+                <p class="mt-1">ada@example.com</p>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">Verified · Used for sign-in and order updates</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-open-dialog="change-email-dialog">Change email</button>
+            </div>
+          </div>
+
+          <div class="border-t-2 border-black p-5">
+            <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div>
+                <p class="font-black">Phone number</p>
+                <p class="mt-1">+234 801 234 5678</p>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">Verified · Used for delivery updates</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-info="Phone verification flow would open.">Change phone</button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-4 border-t-2 border-black p-5">
+            <p id="profile-status" class="text-sm text-[var(--wire-muted)]">No unsaved changes.</p>
+            <button id="profile-save" class="wire-button" type="submit" disabled>Save changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ORDERS -->
+      <section class="account-page" data-page="orders" hidden>
+        <header class="mb-7">
+          <p class="wire-label text-[var(--wire-muted)]">Purchase history</p>
+          <h1 class="mt-3 text-4xl font-black">Orders</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Track current orders and review completed purchases.</p>
+        </header>
+
+        <div class="wire-surface p-4">
+          <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+            <label>
+              <span class="sr-only">Search orders</span>
+              <input class="wire-input" type="search" placeholder="Search order number or product" />
+            </label>
+            <label>
+              <span class="sr-only">Filter by order status</span>
+              <select class="wire-input">
+                <option>All statuses</option>
+                <option>Awaiting payment</option>
+                <option>Processing</option>
+                <option>Shipped</option>
+                <option>Delivered</option>
+                <option>Returned</option>
+              </select>
+            </label>
+            <label>
+              <span class="sr-only">Sort orders</span>
+              <select class="wire-input">
+                <option>Newest first</option>
+                <option>Oldest first</option>
+              </select>
+            </label>
+            <button class="wire-button wire-button--secondary" type="button" data-info="Order filters applied.">Apply</button>
+          </div>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <article class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Order #LS-1048</p>
+                <p class="mt-2 text-sm">12 July 2026 · ₦63,000</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="status-chip">Paid</span>
+                <span class="status-chip status-chip--success">Shipped</span>
+              </div>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="wire-image aspect-square border border-black"></div>
+                <div class="wire-image aspect-square border border-black"></div>
+              </div>
+              <div>
+                <p class="font-black">2 items</p>
+                <p class="mt-2 text-[var(--wire-muted)]">Estimated arrival: Friday, 17 July</p>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">Shipment 1 of 1 · DHL Express</p>
+              </div>
+              <div class="grid gap-3">
+                <button class="wire-button" type="button" data-info="Tracking view would open with carrier data.">Track shipment</button>
+                <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">Order details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Order #LS-0977</p>
+                <p class="mt-2 text-sm">18 May 2026 · ₦28,500</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="status-chip">Paid</span>
+                <span class="status-chip">Delivered</span>
+              </div>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="wire-image aspect-[4/3] border border-black"></div>
+              <div>
+                <p class="font-black">1 item</p>
+                <p class="mt-2 text-[var(--wire-muted)]">Delivered on 23 May 2026</p>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">Return window closes in 2 days</p>
+              </div>
+              <div class="grid gap-3">
+                <button class="wire-button" type="button" data-open-dialog="return-dialog">Start return</button>
+                <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">Order details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Order #LS-0891</p>
+                <p class="mt-2 text-sm">5 March 2026 · ₦19,000</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="status-chip status-chip--danger">Payment failed</span>
+              </div>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="wire-image aspect-[4/3] border border-black"></div>
+              <div>
+                <p class="font-black">1 item</p>
+                <p class="mt-2 text-[var(--wire-muted)]">The order has not entered fulfillment.</p>
+              </div>
+              <div class="grid gap-3">
+                <button class="wire-button" type="button" data-info="Payment retry would use the existing checkout provider.">Retry payment</button>
+                <button class="wire-button wire-button--secondary" type="button" data-route="order-detail">Order details</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ORDER DETAIL -->
+      <section class="account-page" data-page="order-detail" hidden>
+        <button class="wire-link mb-5" type="button" data-route="orders">← Back to orders</button>
+
+        <header class="flex flex-wrap items-start justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Order detail</p>
+            <h1 class="mt-3 text-4xl font-black">Order #LS-1048</h1>
+            <p class="mt-3 text-[var(--wire-muted)]">Placed 12 July 2026 · Total ₦63,000</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button class="wire-button wire-button--secondary" type="button" data-info="Receipt download would start.">Download receipt</button>
+            <button class="wire-button" type="button" data-info="Tracking view would open.">Track shipment</button>
+          </div>
+        </header>
+
+        <section class="mt-6 wire-surface p-5">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-black">Order progress</h2>
+            <span class="status-chip status-chip--success">Shipped</span>
+          </div>
+
+          <ol class="mt-6 grid gap-4 sm:grid-cols-4" aria-label="Order timeline">
+            <li class="border-l-4 border-black pl-4">
+              <p class="font-black">Order placed</p>
+              <p class="mt-1 text-sm text-[var(--wire-muted)]">12 Jul · 10:04</p>
+            </li>
+            <li class="border-l-4 border-black pl-4">
+              <p class="font-black">Payment confirmed</p>
+              <p class="mt-1 text-sm text-[var(--wire-muted)]">12 Jul · 10:06</p>
+            </li>
+            <li class="border-l-4 border-black pl-4">
+              <p class="font-black">Shipped</p>
+              <p class="mt-1 text-sm text-[var(--wire-muted)]">14 Jul · 16:42</p>
+            </li>
+            <li class="border-l-4 border-[var(--wire-line)] pl-4 text-[var(--wire-muted)]">
+              <p class="font-black">Delivered</p>
+              <p class="mt-1 text-sm">Pending carrier event</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="mt-6 wire-surface">
+          <div class="border-b-2 border-black p-5">
+            <h2 class="text-2xl font-black">Items</h2>
+          </div>
+
+          <article class="grid gap-5 border-b border-[var(--wire-line)] p-5 sm:grid-cols-[120px_minmax(0,1fr)_auto]">
+            <a href="#" class="wire-image aspect-[4/5] border border-black" aria-label="Open Broken-in Leather Moto product page"></a>
+            <div>
+              <a href="#" class="font-black underline underline-offset-4">Broken-in Leather Moto</a>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">Large · Quantity 1</p>
+              <p class="mt-2">₦41,000</p>
+              <p class="mt-3 text-sm text-[var(--wire-muted)]">Eligible for return after delivery.</p>
+            </div>
+            <div class="text-right">
+              <p class="font-black">₦41,000</p>
+              <button class="wire-link mt-3" type="button" data-open-dialog="cancel-order-dialog">Cancel item</button>
+            </div>
+          </article>
+
+          <article class="grid gap-5 p-5 sm:grid-cols-[120px_minmax(0,1fr)_auto]">
+            <a href="#" class="wire-image aspect-[4/5] border border-black" aria-label="Open Reworked Indigo Denim product page"></a>
+            <div>
+              <a href="#" class="font-black underline underline-offset-4">Reworked Indigo Denim</a>
+              <p class="mt-2 text-sm text-[var(--wire-muted)]">W 32 · Quantity 1</p>
+              <p class="mt-2">₦22,000</p>
+              <p class="mt-3 text-sm text-[var(--wire-muted)]">Already handed to carrier; cancellation unavailable.</p>
+            </div>
+            <div class="text-right">
+              <p class="font-black">₦22,000</p>
+              <span class="mt-3 inline-block text-sm text-[var(--wire-muted)]">Not cancellable</span>
+            </div>
+          </article>
+        </section>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+          <section class="wire-surface p-5">
+            <h2 class="text-2xl font-black">Delivery</h2>
+            <address class="mt-4 not-italic leading-7">
+              Ada Okafor<br />
+              18 Example Road<br />
+              Lekki Phase 1, Lagos<br />
+              Nigeria
+            </address>
+            <div class="mt-5 border-t border-[var(--wire-line)] pt-4">
+              <p class="font-black">DHL Express</p>
+              <p class="mt-1 text-sm text-[var(--wire-muted)]">Tracking: DHL-83920102</p>
+            </div>
+          </section>
+
+          <section class="wire-surface p-5">
+            <h2 class="text-2xl font-black">Payment summary</h2>
+            <dl class="mt-4 space-y-3">
+              <div class="flex justify-between gap-4"><dt>Subtotal</dt><dd>₦63,000</dd></div>
+              <div class="flex justify-between gap-4"><dt>Delivery</dt><dd>₦0</dd></div>
+              <div class="flex justify-between gap-4"><dt>Tax</dt><dd>Included</dd></div>
+              <div class="flex justify-between gap-4 border-t-2 border-black pt-3 font-black"><dt>Total</dt><dd>₦63,000</dd></div>
+            </dl>
+            <p class="mt-5 text-sm text-[var(--wire-muted)]">Paid with Visa ending in 4242.</p>
+          </section>
+        </div>
+
+        <section class="mt-6 wire-dashed p-5">
+          <h2 class="text-xl font-black">Need help with this order?</h2>
+          <p class="mt-2 text-[var(--wire-muted)]">Support receives the order context automatically.</p>
+          <button class="wire-button wire-button--secondary mt-4" type="button" data-open-dialog="support-dialog">Contact support</button>
+        </section>
+      </section>
+
+      <!-- RETURNS -->
+      <section class="account-page" data-page="returns" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Post-purchase</p>
+            <h1 class="mt-3 text-4xl font-black">Returns and refunds</h1>
+            <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Start an eligible request and track every stage.</p>
+          </div>
+          <button class="wire-button" type="button" data-open-dialog="return-dialog">Start a return</button>
+        </header>
+
+        <div class="mt-6 space-y-4">
+          <article class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Return #RT-0038</p>
+                <h2 class="mt-2 text-xl font-black">Order #LS-0924</h2>
+              </div>
+              <span class="status-chip">Awaiting shipment</span>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[120px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="wire-image aspect-square border border-black"></div>
+              <div>
+                <p class="font-black">1 item · Refund requested</p>
+                <p class="mt-2 text-[var(--wire-muted)]">Ship the item by 20 July 2026.</p>
+                <p class="mt-2 text-sm">Estimated refund: ₦24,000</p>
+              </div>
+              <button class="wire-button" type="button" data-route="return-detail">View instructions</button>
+            </div>
+          </article>
+
+          <article class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Return #RT-0021</p>
+                <h2 class="mt-2 text-xl font-black">Order #LS-0838</h2>
+              </div>
+              <span class="status-chip status-chip--success">Refunded</span>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[120px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="wire-image aspect-square border border-black"></div>
+              <div>
+                <p class="font-black">1 item · Refund completed</p>
+                <p class="mt-2 text-[var(--wire-muted)]">₦18,500 returned to Visa ending 4242.</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-route="return-detail">View return</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- RETURN DETAIL -->
+      <section class="account-page" data-page="return-detail" hidden>
+        <button class="wire-link mb-5" type="button" data-route="returns">← Back to returns</button>
+        <header>
+          <p class="wire-label text-[var(--wire-muted)]">Return detail</p>
+          <h1 class="mt-3 text-4xl font-black">Return #RT-0038</h1>
+          <p class="mt-3 text-[var(--wire-muted)]">Related order #LS-0924</p>
+        </header>
+
+        <section class="mt-6 wire-surface p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2 class="text-2xl font-black">Next action</h2>
+            <span class="status-chip">Awaiting shipment</span>
+          </div>
+          <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p class="font-black">Send the item by 20 July 2026.</p>
+              <p class="mt-2 max-w-2xl text-[var(--wire-muted)]">Use the generated label or arrange pickup through support.</p>
+            </div>
+            <button class="wire-button" type="button" data-info="Return label download would begin.">Download return label</button>
+          </div>
+        </section>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
+          <section class="wire-surface p-5">
+            <h2 class="text-2xl font-black">Return progress</h2>
+            <ol class="mt-6 space-y-5">
+              <li class="border-l-4 border-black pl-4">
+                <p class="font-black">Request submitted</p>
+                <p class="mt-1 text-sm text-[var(--wire-muted)]">15 Jul · 11:20</p>
+              </li>
+              <li class="border-l-4 border-black pl-4">
+                <p class="font-black">Approved</p>
+                <p class="mt-1 text-sm text-[var(--wire-muted)]">15 Jul · 16:45</p>
+              </li>
+              <li class="border-l-4 border-black pl-4">
+                <p class="font-black">Awaiting shipment</p>
+                <p class="mt-1 text-sm text-[var(--wire-muted)]">Action required</p>
+              </li>
+              <li class="border-l-4 border-[var(--wire-line)] pl-4 text-[var(--wire-muted)]">
+                <p class="font-black">Inspection and refund</p>
+                <p class="mt-1 text-sm">Pending</p>
+              </li>
+            </ol>
+          </section>
+
+          <section class="wire-surface p-5">
+            <h2 class="text-2xl font-black">Request summary</h2>
+            <dl class="mt-5 space-y-4">
+              <div><dt class="wire-label text-[var(--wire-muted)]">Reason</dt><dd class="mt-2">Fit was smaller than expected</dd></div>
+              <div><dt class="wire-label text-[var(--wire-muted)]">Resolution</dt><dd class="mt-2">Refund to original method</dd></div>
+              <div><dt class="wire-label text-[var(--wire-muted)]">Estimated refund</dt><dd class="mt-2 font-black">₦24,000</dd></div>
+              <div><dt class="wire-label text-[var(--wire-muted)]">Method</dt><dd class="mt-2">Customer drop-off</dd></div>
+            </dl>
+          </section>
+        </div>
+      </section>
+
+      <!-- ADDRESSES -->
+      <section class="account-page" data-page="addresses" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Delivery and billing</p>
+            <h1 class="mt-3 text-4xl font-black">Addresses</h1>
+            <p class="mt-3 text-[var(--wire-muted)]">Changes do not alter addresses on already placed orders.</p>
+          </div>
+          <button class="wire-button" type="button" data-open-dialog="address-dialog">Add address</button>
+        </header>
+
+        <div class="mt-6 grid gap-5 xl:grid-cols-2">
+          <article class="wire-surface p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex gap-2">
+                <span class="status-chip">Default shipping</span>
+                <span class="status-chip">Default billing</span>
+              </div>
+              <button class="wire-link" type="button" data-open-dialog="address-dialog">Edit</button>
+            </div>
+            <address class="mt-5 not-italic leading-7">
+              <strong>Ada Okafor</strong><br />
+              18 Example Road<br />
+              Lekki Phase 1<br />
+              Lagos, Nigeria<br />
+              +234 801 234 5678
+            </address>
+            <div class="mt-5 flex flex-wrap gap-3 border-t border-[var(--wire-line)] pt-4">
+              <button class="wire-button wire-button--secondary" type="button" disabled>Current default</button>
+              <button class="wire-link text-[var(--wire-danger)]" type="button" data-info="The only default address cannot be deleted until another default exists.">Delete</button>
+            </div>
+          </article>
+
+          <article class="wire-surface p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <span class="status-chip">Additional</span>
+              <button class="wire-link" type="button" data-open-dialog="address-dialog">Edit</button>
+            </div>
+            <address class="mt-5 not-italic leading-7">
+              <strong>Ada Okafor</strong><br />
+              2 Sample Avenue<br />
+              Ikeja<br />
+              Lagos, Nigeria<br />
+              +234 801 234 5678
+            </address>
+            <div class="mt-5 flex flex-wrap gap-3 border-t border-[var(--wire-line)] pt-4">
+              <button class="wire-button wire-button--secondary" type="button" data-info="Address set as default shipping.">Set as default</button>
+              <button class="wire-link text-[var(--wire-danger)]" type="button" data-open-dialog="delete-address-dialog">Delete</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- PAYMENTS -->
+      <section class="account-page" data-page="payments" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Provider-tokenized methods only</p>
+            <h1 class="mt-3 text-4xl font-black">Payment methods</h1>
+            <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Full card numbers and security codes are never stored in the account UI.</p>
+          </div>
+          <button class="wire-button" type="button" data-open-dialog="payment-dialog">Add payment method</button>
+        </header>
+
+        <div class="mt-6 grid gap-5 xl:grid-cols-2">
+          <article class="wire-surface p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Visa</p>
+                <h2 class="mt-3 text-2xl font-black">•••• 4242</h2>
+                <p class="mt-2 text-[var(--wire-muted)]">Expires 08/28</p>
+              </div>
+              <span class="status-chip">Default</span>
+            </div>
+            <p class="mt-5 text-sm">Billing address: 18 Example Road, Lagos</p>
+            <div class="mt-5 flex flex-wrap gap-4 border-t border-[var(--wire-line)] pt-4">
+              <button class="wire-link" type="button" data-info="Billing-address editor would open.">Update billing address</button>
+              <button class="wire-link text-[var(--wire-danger)]" type="button" data-open-dialog="remove-payment-dialog">Remove</button>
+            </div>
+          </article>
+
+          <article class="wire-surface border-l-[8px] border-l-[var(--wire-danger)] p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Mastercard</p>
+                <h2 class="mt-3 text-2xl font-black">•••• 8910</h2>
+                <p class="mt-2 text-[var(--wire-danger)]">Expired 04/26</p>
+              </div>
+              <span class="status-chip status-chip--danger">Action required</span>
+            </div>
+            <p class="mt-5 text-sm text-[var(--wire-muted)]">Replace this method before using it for a future checkout.</p>
+            <button class="wire-button wire-button--secondary mt-5" type="button" data-open-dialog="payment-dialog">Replace method</button>
+          </article>
+        </div>
+
+        <section class="wire-dashed mt-6 p-5">
+          <h2 class="text-xl font-black">Provider boundary</h2>
+          <p class="mt-2 max-w-3xl text-[var(--wire-muted)]">The production add-method flow must use secure hosted fields, an SDK, or a provider redirect—not custom card inputs.</p>
+        </section>
+      </section>
+
+      <!-- SAVED -->
+      <section class="account-page" data-page="saved" hidden>
+        <header>
+          <p class="wire-label text-[var(--wire-muted)]">Wishlist</p>
+          <h1 class="mt-3 text-4xl font-black">Saved pieces</h1>
+          <p class="mt-3 text-[var(--wire-muted)]">Availability can change quickly for one-of-one products.</p>
+        </header>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <article class="wire-card">
+            <a href="#" class="block" aria-label="Open Shared ProductCard product detail">
+              <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)]"></div>
+            </a>
+            <div class="p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="status-chip status-chip--success">Available</span>
+                <button class="wire-link text-[var(--wire-danger)]" type="button" data-info="Saved item removed.">Remove</button>
+              </div>
+              <a href="#" class="wire-link mt-2 font-black">Shared ProductCard</a>
+              <p class="mt-2">₦24,000</p>
+              <a href="#" class="wire-button mt-4 flex w-full items-center justify-center">Open product</a>
+            </div>
+          </article>
+
+          <article class="wire-card">
+            <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)] opacity-60"></div>
+            <div class="p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="status-chip status-chip--danger">Sold</span>
+                <button class="wire-link text-[var(--wire-danger)]" type="button" data-info="Sold item removed from saved list.">Remove</button>
+              </div>
+              <h2 class="mt-4 font-black">One-of-one product</h2>
+              <p class="mt-2 text-[var(--wire-muted)]">No longer available</p>
+              <button class="wire-button wire-button--secondary mt-4 w-full" type="button">Find similar pieces</button>
+            </div>
+          </article>
+
+          <article class="wire-card">
+            <a href="#" class="block" aria-label="Open Variant product detail">
+              <div class="wire-image aspect-[4/5] border-b border-[var(--wire-line)]"></div>
+            </a>
+            <div class="p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="status-chip">Price changed</span>
+                <button class="wire-link text-[var(--wire-danger)]" type="button" data-info="Saved item removed.">Remove</button>
+              </div>
+              <a href="#" class="wire-link mt-2 font-black">Variant product</a>
+              <p class="mt-2">Now ₦21,500</p>
+              <button class="wire-button mt-4 w-full" type="button">Select options</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="account-page" data-page="notifications" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Account inbox</p>
+            <h1 class="mt-3 text-4xl font-black">Notifications</h1>
+            <p class="mt-3 text-[var(--wire-muted)]">Only shown when a real account-notification backend exists.</p>
+          </div>
+          <button class="wire-button wire-button--secondary" type="button" data-info="All notifications marked as read.">Mark all as read</button>
+        </header>
+
+        <div class="mt-6 divide-y-2 divide-black wire-surface">
+          <button class="grid w-full gap-4 bg-[var(--wire-soft)] p-5 text-left sm:grid-cols-[16px_minmax(0,1fr)_auto]" type="button" data-route="order-detail">
+            <span class="mt-1 size-3 rounded-full bg-black" aria-label="Unread"></span>
+            <span>
+              <strong class="block">Your order has shipped</strong>
+              <span class="mt-2 block text-sm text-[var(--wire-muted)]">Order #LS-1048 is on the way.</span>
+            </span>
+            <time class="text-sm text-[var(--wire-muted)]">2 hours ago</time>
+          </button>
+
+          <button class="grid w-full gap-4 bg-[var(--wire-soft)] p-5 text-left sm:grid-cols-[16px_minmax(0,1fr)_auto]" type="button" data-route="return-detail">
+            <span class="mt-1 size-3 rounded-full bg-black" aria-label="Unread"></span>
+            <span>
+              <strong class="block">Return approved</strong>
+              <span class="mt-2 block text-sm text-[var(--wire-muted)]">Return #RT-0038 is ready to ship.</span>
+            </span>
+            <time class="text-sm text-[var(--wire-muted)]">Yesterday</time>
+          </button>
+
+          <button class="grid w-full gap-4 bg-[var(--wire-soft)] p-5 text-left sm:grid-cols-[16px_minmax(0,1fr)_auto]" type="button" data-route="security">
+            <span class="mt-1 size-3 rounded-full bg-black" aria-label="Unread"></span>
+            <span>
+              <strong class="block">New sign-in detected</strong>
+              <span class="mt-2 block text-sm text-[var(--wire-muted)]">Chrome on Windows · Lagos</span>
+            </span>
+            <time class="text-sm text-[var(--wire-muted)]">2 days ago</time>
+          </button>
+
+          <button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[16px_minmax(0,1fr)_auto]" type="button" data-route="support">
+            <span></span>
+            <span>
+              <strong class="block">Support replied to ticket #SP-0119</strong>
+              <span class="mt-2 block text-sm text-[var(--wire-muted)]">Open the ticket to read the reply.</span>
+            </span>
+            <time class="text-sm text-[var(--wire-muted)]">5 days ago</time>
+          </button>
+        </div>
+      </section>
+
+      <!-- PREFERENCES -->
+      <section class="account-page" data-page="preferences" hidden>
+        <header>
+          <p class="wire-label text-[var(--wire-muted)]">Communication and personalization</p>
+          <h1 class="mt-3 text-4xl font-black">Preferences</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Transactional and security messages remain enabled where required.</p>
+        </header>
+
+        <form id="preferences-form" class="mt-6 space-y-6">
+          <section class="wire-surface">
+            <div class="border-b-2 border-black p-5">
+              <h2 class="text-2xl font-black">Communication</h2>
+            </div>
+
+            <div class="divide-y divide-[var(--wire-line)]">
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Order and delivery updates</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Required transactional messages</span></span>
+                <input type="checkbox" checked disabled class="size-5" />
+              </label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Security alerts</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Required for account protection</span></span>
+                <input type="checkbox" checked disabled class="size-5" />
+              </label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">New-drop marketing</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Email about new products</span></span>
+                <input type="checkbox" class="size-5" />
+              </label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Saved-product updates</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Availability or price changes</span></span>
+                <input type="checkbox" checked class="size-5" />
+              </label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Recommendations</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Personalized product suggestions</span></span>
+                <input type="checkbox" class="size-5" />
+              </label>
+            </div>
+          </section>
+
+          <section class="wire-surface">
+            <div class="border-b-2 border-black p-5">
+              <h2 class="text-2xl font-black">Shopping preferences</h2>
+            </div>
+            <div class="grid gap-5 p-5 sm:grid-cols-2">
+              <label>
+                <span class="font-bold">Preferred department</span>
+                <select class="wire-input mt-2">
+                  <option>All departments</option>
+                  <option>Women</option>
+                  <option>Men</option>
+                  <option>Unisex</option>
+                </select>
+              </label>
+              <label>
+                <span class="font-bold">Typical size</span>
+                <select class="wire-input mt-2">
+                  <option>Not set</option>
+                  <option>Small</option>
+                  <option selected>Medium</option>
+                  <option>Large</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <div class="flex flex-wrap justify-end gap-3">
+            <button class="wire-button wire-button--secondary" type="reset">Reset</button>
+            <button class="wire-button" type="submit">Save preferences</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- SECURITY -->
+      <section class="account-page" data-page="security" hidden>
+        <header>
+          <p class="wire-label text-[var(--wire-muted)]">Authentication and devices</p>
+          <h1 class="mt-3 text-4xl font-black">Security</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Protect sign-in methods and review active sessions.</p>
+        </header>
+
+        <div class="mt-6 space-y-5">
+          <section class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-5 p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Password</p>
+                <h2 class="mt-3 text-2xl font-black">Password last changed 4 months ago</h2>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">For social-only accounts, show Set password instead.</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-open-dialog="password-dialog">Change password</button>
+            </div>
+          </section>
+
+          <section class="wire-surface">
+            <div class="flex flex-wrap items-center justify-between gap-5 p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Two-factor authentication</p>
+                <h2 class="mt-3 text-2xl font-black">Not enabled</h2>
+                <p class="mt-2 text-sm text-[var(--wire-muted)]">Only show when the authentication backend supports it.</p>
+              </div>
+              <button class="wire-button" type="button" data-info="2FA setup would require recent authentication and code verification.">Enable 2FA</button>
+            </div>
+          </section>
+
+          <section class="wire-surface">
+            <div class="flex flex-wrap items-end justify-between gap-5 border-b-2 border-black p-5">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Sessions and devices</p>
+                <h2 class="mt-3 text-2xl font-black">Where you are signed in</h2>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-open-dialog="signout-all-dialog">Sign out other sessions</button>
+            </div>
+
+            <div class="divide-y divide-[var(--wire-line)]">
+              <article class="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <h3 class="font-black">Chrome on Windows</h3>
+                    <span class="status-chip status-chip--success">Current session</span>
+                  </div>
+                  <p class="mt-2 text-sm text-[var(--wire-muted)]">Lagos · Active now · Signed in 10 July</p>
+                </div>
+                <span class="text-sm text-[var(--wire-muted)]">Cannot revoke current session here</span>
+              </article>
+
+              <article class="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div>
+                  <h3 class="font-black">Safari on iPhone</h3>
+                  <p class="mt-2 text-sm text-[var(--wire-muted)]">Lagos · Last active 2 days ago</p>
+                </div>
+                <button class="wire-link text-[var(--wire-danger)]" type="button" data-open-dialog="revoke-session-dialog">Revoke</button>
+              </article>
+            </div>
+          </section>
+
+          <section class="wire-surface">
+            <div class="border-b-2 border-black p-5">
+              <h2 class="text-2xl font-black">Recent security activity</h2>
+            </div>
+            <ol class="divide-y divide-[var(--wire-line)]">
+              <li class="flex flex-wrap justify-between gap-4 p-5"><span>Sign-in from Chrome on Windows</span><time class="text-[var(--wire-muted)]">Today · 09:12</time></li>
+              <li class="flex flex-wrap justify-between gap-4 p-5"><span>Email verification completed</span><time class="text-[var(--wire-muted)]">3 months ago</time></li>
+              <li class="flex flex-wrap justify-between gap-4 p-5"><span>Password changed</span><time class="text-[var(--wire-muted)]">4 months ago</time></li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <!-- PRIVACY -->
+      <section class="account-page" data-page="privacy" hidden>
+        <header>
+          <p class="wire-label text-[var(--wire-muted)]">Data and account control</p>
+          <h1 class="mt-3 text-4xl font-black">Privacy</h1>
+          <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Review data preferences, request an export, or close the account.</p>
+        </header>
+
+        <div class="mt-6 space-y-5">
+          <section class="wire-surface">
+            <div class="border-b-2 border-black p-5">
+              <h2 class="text-2xl font-black">Privacy controls</h2>
+            </div>
+            <div class="divide-y divide-[var(--wire-line)]">
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Personalized recommendations</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Use account activity to improve suggestions</span></span>
+                <input type="checkbox" checked class="size-5" />
+              </label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Analytics consent</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">Only when user-configurable in the real privacy model</span></span>
+                <input type="checkbox" class="size-5" />
+              </label>
+              <div class="flex min-h-20 items-center justify-between gap-5 p-5">
+                <span><strong class="block">Recently viewed history</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">12 products stored</span></span>
+                <button class="wire-link" type="button" data-info="Recently viewed history cleared.">Clear history</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="wire-surface p-5">
+            <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p class="wire-label text-[var(--wire-muted)]">Data export</p>
+                <h2 class="mt-3 text-2xl font-black">Download a copy of your account data</h2>
+                <p class="mt-2 max-w-2xl text-[var(--wire-muted)]">Exports may take time to prepare and use an expiring secure download.</p>
+              </div>
+              <button class="wire-button wire-button--secondary" type="button" data-open-dialog="export-dialog">Request export</button>
+            </div>
+          </section>
+
+          <section class="wire-surface border-l-[8px] border-l-[var(--wire-danger)] p-5">
+            <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p class="wire-label text-[var(--wire-danger)]">Danger zone</p>
+                <h2 class="mt-3 text-2xl font-black">Delete account</h2>
+                <p class="mt-2 max-w-2xl text-[var(--wire-muted)]">Active orders, returns, refunds, disputes, or required records may block or delay deletion.</p>
+              </div>
+              <button class="wire-button wire-button--danger" type="button" data-open-dialog="delete-account-dialog">Review deletion</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- SUPPORT -->
+      <section class="account-page" data-page="support" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Customer support</p>
+            <h1 class="mt-3 text-4xl font-black">Support</h1>
+            <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Connect a request to the correct order or return whenever possible.</p>
+          </div>
+          <button class="wire-button" type="button" data-open-dialog="support-dialog">Start request</button>
+        </header>
+
+        <section class="mt-6 wire-surface p-5">
+          <label>
+            <span class="font-black">Search help</span>
+            <input class="wire-input mt-3" type="search" placeholder="Search delivery, returns, sizing..." />
+          </label>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button class="wire-button wire-button--secondary" type="button" data-info="Delivery help article opened.">Delivery</button>
+            <button class="wire-button wire-button--secondary" type="button" data-info="Returns help article opened.">Returns</button>
+            <button class="wire-button wire-button--secondary" type="button" data-info="Sizing help article opened.">Sizing</button>
+          </div>
+        </section>
+
+        <section class="mt-6">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-black">Recent tickets</h2>
+          </div>
+
+          <div class="mt-4 divide-y-2 divide-black wire-surface">
+            <button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[minmax(0,1fr)_auto]" type="button" data-route="ticket-detail">
+              <span>
+                <span class="wire-label text-[var(--wire-muted)]">Ticket #SP-0119</span>
+                <strong class="mt-2 block">Question about order #LS-1048</strong>
+                <span class="mt-2 block text-sm text-[var(--wire-muted)]">Support replied 5 days ago</span>
+              </span>
+              <span class="status-chip">Waiting for you</span>
+            </button>
+
+            <button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[minmax(0,1fr)_auto]" type="button" data-route="ticket-detail">
+              <span>
+                <span class="wire-label text-[var(--wire-muted)]">Ticket #SP-0084</span>
+                <strong class="mt-2 block">Return pickup completed</strong>
+                <span class="mt-2 block text-sm text-[var(--wire-muted)]">Resolved 2 months ago</span>
+              </span>
+              <span class="status-chip status-chip--success">Resolved</span>
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <!-- TICKET DETAIL -->
+      <section class="account-page" data-page="ticket-detail" hidden>
+        <button class="wire-link mb-5" type="button" data-route="support">← Back to support</button>
+
+        <header class="flex flex-wrap items-start justify-between gap-5">
+          <div>
+            <p class="wire-label text-[var(--wire-muted)]">Support ticket #SP-0119</p>
+            <h1 class="mt-3 text-4xl font-black">Question about order #LS-1048</h1>
+          </div>
+          <span class="status-chip">Waiting for you</span>
+        </header>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <section class="wire-surface">
+            <div class="space-y-5 p-5">
+              <article class="ml-auto max-w-2xl border-2 border-black bg-[var(--wire-soft)] p-4">
+                <p class="wire-label">You · 11 July</p>
+                <p class="mt-3 leading-7">Can the delivery address be changed before dispatch?</p>
+              </article>
+
+              <article class="max-w-2xl border-2 border-black bg-white p-4">
+                <p class="wire-label">Support · 11 July</p>
+                <p class="mt-3 leading-7">The order has not been dispatched yet. Please confirm the replacement address.</p>
+              </article>
+            </div>
+
+            <form id="ticket-reply-form" class="border-t-2 border-black p-5">
+              <label>
+                <span class="font-black">Reply</span>
+                <textarea class="wire-input mt-2 min-h-32" required placeholder="Write a message"></textarea>
+              </label>
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+                <button class="wire-button wire-button--secondary" type="button" data-info="Attachment picker would open with file validation.">Attach file</button>
+                <button class="wire-button" type="submit">Send reply</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="space-y-5">
+            <section class="wire-surface p-5">
+              <h2 class="font-black">Related order</h2>
+              <p class="mt-3">#LS-1048 · Shipped</p>
+              <button class="wire-link mt-3" type="button" data-route="order-detail">View order</button>
+            </section>
+
+            <section class="wire-surface p-5">
+              <h2 class="font-black">Ticket details</h2>
+              <dl class="mt-4 space-y-4 text-sm">
+                <div><dt class="wire-label text-[var(--wire-muted)]">Topic</dt><dd class="mt-2">Order change</dd></div>
+                <div><dt class="wire-label text-[var(--wire-muted)]">Opened</dt><dd class="mt-2">11 July 2026</dd></div>
+                <div><dt class="wire-label text-[var(--wire-muted)]">Status</dt><dd class="mt-2">Waiting for customer</dd></div>
+              </dl>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Shared footer wireframe -->
+  <footer class="border-t-2 border-black bg-white">
+    <div class="mx-auto grid max-w-[1520px] gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+      <div>
+        <p class="font-black uppercase tracking-[0.14em]">Shared footer</p>
+        <p class="mt-3 text-sm text-[var(--wire-muted)]">The account area reuses the storefront footer.</p>
+      </div>
+      <div><p class="font-black">Shop</p><ul class="mt-3 space-y-2 text-sm"><li><a href="#" class="underline">Products</a></li><li><a href="#" class="underline">Collections</a></li></ul></div>
+      <div><p class="font-black">Help</p><ul class="mt-3 space-y-2 text-sm"><li><button data-route="support" class="underline">Support</button></li><li><button data-route="returns" class="underline">Returns</button></li></ul></div>
+      <div><p class="font-black">Account</p><ul class="mt-3 space-y-2 text-sm"><li><button data-route="security" class="underline">Security</button></li><li><button data-route="privacy" class="underline">Privacy</button></li></ul></div>
+    </div>
+  </footer>
+
+  <!-- Mobile account navigation sheet -->
+  <div id="account-menu" class="modal-backdrop fixed inset-0 z-[80] hidden" aria-hidden="true">
+    <section class="mobile-sheet absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-[var(--wire-paper)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" role="dialog" aria-modal="true" aria-labelledby="account-menu-title">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="wire-label text-[var(--wire-muted)]">Signed in as Ada</p>
+          <h2 id="account-menu-title" class="mt-2 text-3xl font-black">Account menu</h2>
+        </div>
+        <button id="account-menu-close" class="grid size-11 place-items-center border-2 border-black" type="button" aria-label="Close account menu">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <nav id="mobile-account-nav" class="mt-5 grid gap-1" aria-label="Mobile account">
+        <button class="nav-item" type="button" data-route="overview">Overview</button>
+        <button class="nav-item" type="button" data-route="profile">Profile</button>
+        <button class="nav-item" type="button" data-route="orders">Orders</button>
+        <button class="nav-item" type="button" data-route="returns">Returns</button>
+        <button class="nav-item" type="button" data-route="addresses">Addresses</button>
+        <button class="nav-item" type="button" data-route="payments">Payment methods</button>
+        <button class="nav-item" type="button" data-route="saved">Saved items</button>
+        <button class="nav-item" type="button" data-route="notifications">Notifications</button>
+        <button class="nav-item" type="button" data-route="preferences">Preferences</button>
+        <button class="nav-item" type="button" data-route="security">Security</button>
+        <button class="nav-item" type="button" data-route="privacy">Privacy</button>
+        <button class="nav-item" type="button" data-route="support">Support</button>
+      </nav>
+
+      <button class="wire-button wire-button--danger mt-5 w-full" type="button" data-info="Current session signed out in production.">Sign out</button>
+    </section>
+  </div>
+
+  <!-- Dialog helper template: Verify Email -->
+  <div id="verify-email-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="verify-email-title">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="wire-label text-[var(--wire-muted)]">Account verification</p>
+          <h2 id="verify-email-title" class="mt-2 text-3xl font-black">Verify your email</h2>
+        </div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <p class="mt-5 leading-7 text-[var(--wire-muted)]">A verification link will be sent to ada@example.com. The link expires according to the authentication provider.</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Not now</button>
+        <button class="wire-button" type="button" data-action-success="Verification email sent">Send verification email</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Change email -->
+  <div id="change-email-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="change-email-title">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="wire-label text-[var(--wire-muted)]">Protected change</p>
+          <h2 id="change-email-title" class="mt-2 text-3xl font-black">Change email address</h2>
+        </div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form class="mt-6 space-y-5" data-demo-form="Email change started">
+        <label>
+          <span class="font-bold">New email address</span>
+          <input class="wire-input mt-2" type="email" required autocomplete="email" />
+        </label>
+        <label>
+          <span class="font-bold">Current password</span>
+          <input class="wire-input mt-2" type="password" required autocomplete="current-password" />
+          <span class="mt-2 block text-sm text-[var(--wire-muted)]">Recent authentication may replace this field.</span>
+        </label>
+        <div class="wire-dashed p-4 text-sm">
+          The current email remains active until the new address is verified.
+        </div>
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button>
+          <button class="wire-button" type="submit">Continue</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Address -->
+  <div id="address-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel max-h-[94vh] w-full max-w-2xl overflow-y-auto wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="address-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-muted)]">Shipping and billing</p><h2 id="address-title" class="mt-2 text-3xl font-black">Add or edit address</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+
+      <form class="mt-6 grid gap-5 sm:grid-cols-2" data-demo-form="Address saved">
+        <label class="sm:col-span-2"><span class="font-bold">Recipient name *</span><input class="wire-input mt-2" required autocomplete="name" /></label>
+        <label class="sm:col-span-2"><span class="font-bold">Address line 1 *</span><input class="wire-input mt-2" required autocomplete="address-line1" /></label>
+        <label class="sm:col-span-2"><span class="font-bold">Address line 2</span><input class="wire-input mt-2" autocomplete="address-line2" /></label>
+        <label><span class="font-bold">City *</span><input class="wire-input mt-2" required autocomplete="address-level2" /></label>
+        <label><span class="font-bold">State / region *</span><input class="wire-input mt-2" required autocomplete="address-level1" /></label>
+        <label><span class="font-bold">Postal code</span><input class="wire-input mt-2" autocomplete="postal-code" /></label>
+        <label><span class="font-bold">Country *</span><select class="wire-input mt-2" required autocomplete="country"><option>Nigeria</option><option>Ghana</option><option>United Kingdom</option></select></label>
+        <label class="sm:col-span-2"><span class="font-bold">Phone *</span><input class="wire-input mt-2" type="tel" required autocomplete="tel" /></label>
+        <label class="flex min-h-11 items-center gap-3 sm:col-span-2"><input type="checkbox" class="size-5" /><span>Set as default shipping address</span></label>
+        <label class="flex min-h-11 items-center gap-3 sm:col-span-2"><input type="checkbox" class="size-5" /><span>Set as default billing address</span></label>
+        <div class="flex flex-col-reverse gap-3 border-t-2 border-black pt-5 sm:col-span-2 sm:flex-row sm:justify-end">
+          <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button>
+          <button class="wire-button" type="submit">Save address</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Delete address -->
+  <div id="delete-address-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="delete-address-title">
+      <h2 id="delete-address-title" class="text-3xl font-black">Delete this address?</h2>
+      <p class="mt-4 text-[var(--wire-muted)]">This does not change any address recorded on an existing order.</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Keep address</button>
+        <button class="wire-button wire-button--danger" type="button" data-action-success="Address deleted">Delete address</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Payment -->
+  <div id="payment-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-muted)]">Secure provider boundary</p><h2 id="payment-title" class="mt-2 text-3xl font-black">Add payment method</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="wire-dashed mt-6 min-h-36 p-5">
+        <p class="font-black">Payment-provider hosted fields</p>
+        <p class="mt-2 text-sm text-[var(--wire-muted)]">Card number, expiry, CVV, provider loading, authentication challenge, decline and setup success live inside the provider integration.</p>
+      </div>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button>
+        <button class="wire-button" type="button" data-action-success="Provider setup completed">Continue securely</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Remove payment -->
+  <div id="remove-payment-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="remove-payment-title">
+      <h2 id="remove-payment-title" class="text-3xl font-black">Remove Visa ending 4242?</h2>
+      <p class="mt-4 text-[var(--wire-muted)]">Another saved payment method must become the default first when required.</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Keep method</button>
+        <button class="wire-button wire-button--danger" type="button" data-action-success="Payment method removed">Remove method</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Cancel order -->
+  <div id="cancel-order-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="cancel-order-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-danger)]">Eligibility rechecked on submit</p><h2 id="cancel-order-title" class="mt-2 text-3xl font-black">Cancel this item?</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+      <form class="mt-6 space-y-5" data-demo-form="Cancellation request submitted">
+        <div class="wire-card p-4"><p class="font-black">Broken-in Leather Moto</p><p class="mt-1 text-sm text-[var(--wire-muted)]">Order #LS-1048 · ₦41,000</p></div>
+        <label><span class="font-bold">Reason</span><select class="wire-input mt-2" required><option value="">Select a reason</option><option>Ordered by mistake</option><option>Need to change delivery details</option><option>Other</option></select></label>
+        <div class="wire-dashed p-4 text-sm">The refund timing and method must come from the payment backend. Do not promise an instant refund.</div>
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Keep item</button>
+          <button class="wire-button wire-button--danger" type="submit">Request cancellation</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- RETURN WIZARD -->
+  <div id="return-dialog" class="modal-backdrop fixed inset-0 z-[95] hidden items-center justify-center p-0 sm:p-4" aria-hidden="true">
+    <section class="modal-panel flex h-full w-full max-w-4xl flex-col overflow-hidden bg-[var(--wire-paper)] sm:h-auto sm:max-h-[94vh] sm:border-2 sm:border-black" role="dialog" aria-modal="true" aria-labelledby="return-title">
+      <div class="flex items-start justify-between gap-4 border-b-2 border-black p-5">
+        <div><p class="wire-label text-[var(--wire-muted)]">Return request</p><h2 id="return-title" class="mt-2 text-3xl font-black">Start a return</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close return flow"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+
+      <div class="border-b border-[var(--wire-line)] bg-white p-4">
+        <ol class="grid grid-cols-5 gap-2" aria-label="Return steps">
+          <li class="text-center"><span class="step-dot mx-auto is-active" data-step-dot="1">1</span><span class="mt-2 hidden text-xs font-bold sm:block">Items</span></li>
+          <li class="text-center"><span class="step-dot mx-auto" data-step-dot="2">2</span><span class="mt-2 hidden text-xs font-bold sm:block">Reason</span></li>
+          <li class="text-center"><span class="step-dot mx-auto" data-step-dot="3">3</span><span class="mt-2 hidden text-xs font-bold sm:block">Evidence</span></li>
+          <li class="text-center"><span class="step-dot mx-auto" data-step-dot="4">4</span><span class="mt-2 hidden text-xs font-bold sm:block">Method</span></li>
+          <li class="text-center"><span class="step-dot mx-auto" data-step-dot="5">5</span><span class="mt-2 hidden text-xs font-bold sm:block">Review</span></li>
+        </ol>
+      </div>
+
+      <div class="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+        <section class="return-step is-active" data-return-step="1">
+          <h3 class="text-2xl font-black">Select eligible items</h3>
+          <p class="mt-2 text-[var(--wire-muted)]">Already returned quantities and ineligible items are excluded.</p>
+
+          <label class="mt-5 grid gap-4 border-2 border-black p-4 sm:grid-cols-[24px_100px_minmax(0,1fr)_auto] sm:items-center">
+            <input type="checkbox" checked class="size-5" />
+            <span class="wire-image aspect-square border border-black"></span>
+            <span><strong class="block">Boxy Wool City Blazer</strong><span class="mt-1 block text-sm text-[var(--wire-muted)]">XL · Quantity 1 · Delivered 23 May</span></span>
+            <span class="font-black">₦28,500</span>
+          </label>
+
+          <div class="mt-4 wire-dashed p-4">
+            <p class="font-black">Broken-in Leather Moto</p>
+            <p class="mt-2 text-sm text-[var(--wire-muted)]">Not yet delivered. A return cannot start until delivery is confirmed.</p>
+          </div>
+        </section>
+
+        <section class="return-step" data-return-step="2">
+          <h3 class="text-2xl font-black">Reason and resolution</h3>
+          <div class="mt-5 grid gap-5">
+            <label><span class="font-bold">Return reason</span><select class="wire-input mt-2"><option>Fit was not right</option><option>Item did not match expectations</option><option>Item arrived damaged</option><option>Other</option></select></label>
+            <label><span class="font-bold">Additional details</span><textarea class="wire-input mt-2 min-h-28" placeholder="Optional context"></textarea></label>
+            <fieldset>
+              <legend class="font-bold">Preferred resolution</legend>
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                <label class="wire-card flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" checked /><span>Refund</span></label>
+                <label class="wire-card flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" /><span>Exchange</span></label>
+                <label class="wire-card flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" /><span>Store credit</span></label>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="return-step" data-return-step="3">
+          <h3 class="text-2xl font-black">Condition evidence</h3>
+          <p class="mt-2 text-[var(--wire-muted)]">Required only for relevant reasons or policies.</p>
+          <button class="wire-dashed mt-5 flex min-h-52 w-full flex-col items-center justify-center p-6 text-center" type="button" data-info="File picker opened. Validate file type, count and size.">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 17v3h16v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <strong class="mt-4">Add item or packaging photos</strong>
+            <span class="mt-2 text-sm text-[var(--wire-muted)]">JPG, PNG or WEBP · Maximum size determined by backend</span>
+          </button>
+        </section>
+
+        <section class="return-step" data-return-step="4">
+          <h3 class="text-2xl font-black">Choose return method</h3>
+          <div class="mt-5 grid gap-3">
+            <label class="wire-card flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" checked class="mt-1" /><span><strong class="block">Courier pickup</strong><span class="mt-2 block text-sm text-[var(--wire-muted)]">Pickup fee and schedule come from the backend.</span></span></label>
+            <label class="wire-card flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" class="mt-1" /><span><strong class="block">Customer drop-off</strong><span class="mt-2 block text-sm text-[var(--wire-muted)]">Use the generated label and approved location.</span></span></label>
+            <label class="wire-card flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" class="mt-1" /><span><strong class="block">Customer shipment</strong><span class="mt-2 block text-sm text-[var(--wire-muted)]">Tracking must be added after dispatch.</span></span></label>
+          </div>
+        </section>
+
+        <section class="return-step" data-return-step="5">
+          <h3 class="text-2xl font-black">Review request</h3>
+          <dl class="mt-5 divide-y divide-[var(--wire-line)] wire-surface">
+            <div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-black">Item</dt><dd>Boxy Wool City Blazer · XL · Quantity 1</dd></div>
+            <div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-black">Reason</dt><dd>Fit was not right</dd></div>
+            <div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-black">Resolution</dt><dd>Refund to original payment method</dd></div>
+            <div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-black">Method</dt><dd>Courier pickup</dd></div>
+            <div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-black">Estimated refund</dt><dd>₦28,500, subject to inspection</dd></div>
+          </dl>
+          <label class="mt-5 flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>I confirm the item remains in the condition required by the return policy.</span></label>
+        </section>
+      </div>
+
+      <div class="mobile-sticky-action flex flex-wrap items-center justify-between gap-3 border-t-2 border-black bg-white p-4">
+        <button id="return-back" class="wire-button wire-button--secondary" type="button" disabled>Back</button>
+        <p id="return-step-label" class="text-sm font-bold">Step 1 of 5</p>
+        <button id="return-next" class="wire-button" type="button">Continue</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Password -->
+  <div id="password-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="password-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-muted)]">Protected change</p><h2 id="password-title" class="mt-2 text-3xl font-black">Change password</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+      <form class="mt-6 space-y-5" data-demo-form="Password changed">
+        <label><span class="font-bold">Current password</span><input class="wire-input mt-2" type="password" required autocomplete="current-password" /></label>
+        <label><span class="font-bold">New password</span><input class="wire-input mt-2" type="password" required autocomplete="new-password" /><span class="mt-2 block text-sm text-[var(--wire-muted)]">Use backend password requirements and breach checks.</span></label>
+        <label><span class="font-bold">Confirm new password</span><input class="wire-input mt-2" type="password" required autocomplete="new-password" /></label>
+        <label class="flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>Sign out all other sessions after changing the password</span></label>
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button><button class="wire-button" type="submit">Change password</button></div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Revoke session -->
+  <div id="revoke-session-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="revoke-session-title">
+      <h2 id="revoke-session-title" class="text-3xl font-black">Revoke this session?</h2>
+      <p class="mt-4 text-[var(--wire-muted)]">Safari on iPhone will need to sign in again.</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="wire-button wire-button--secondary" type="button" data-close-dialog>Keep session</button><button class="wire-button wire-button--danger" type="button" data-action-success="Session revoked">Revoke session</button></div>
+    </section>
+  </div>
+
+  <!-- Sign out all -->
+  <div id="signout-all-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-lg wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="signout-all-title">
+      <h2 id="signout-all-title" class="text-3xl font-black">Sign out other sessions?</h2>
+      <p class="mt-4 text-[var(--wire-muted)]">Other devices will need to sign in again. The current browser remains active.</p>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button><button class="wire-button wire-button--danger" type="button" data-action-success="Other sessions signed out">Sign out other sessions</button></div>
+    </section>
+  </div>
+
+  <!-- Data export -->
+  <div id="export-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel w-full max-w-xl wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="export-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-muted)]">Asynchronous request</p><h2 id="export-title" class="mt-2 text-3xl font-black">Request account data export</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+      <p class="mt-5 leading-7 text-[var(--wire-muted)]">The export may include profile, addresses, orders, returns, preferences and support records. Payment credentials and security secrets are excluded.</p>
+      <div class="wire-dashed mt-5 p-4 text-sm">The production system must show pending, processing, ready, expired, failed and rate-limited states.</div>
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button><button class="wire-button" type="button" data-action-success="Data export requested">Request export</button></div>
+    </section>
+  </div>
+
+  <!-- Delete account -->
+  <div id="delete-account-dialog" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-0 sm:p-4" aria-hidden="true">
+    <section class="modal-panel h-full w-full max-w-2xl overflow-y-auto bg-[var(--wire-paper)] p-5 sm:h-auto sm:max-h-[94vh] sm:border-2 sm:border-black sm:p-6" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-danger)]">High-risk action</p><h2 id="delete-account-title" class="mt-2 text-3xl font-black">Review account deletion</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+
+      <div class="mt-6 border-l-[8px] border-l-[var(--wire-danger)] wire-surface p-5">
+        <h3 class="text-xl font-black">Deletion is currently blocked</h3>
+        <ul class="mt-4 list-disc space-y-2 pl-5 text-[var(--wire-muted)]">
+          <li>Order #LS-1048 is still in transit.</li>
+          <li>Return #RT-0038 is awaiting shipment.</li>
+        </ul>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <button class="wire-button wire-button--secondary" type="button" data-route="orders" data-close-dialog>View active order</button>
+          <button class="wire-button wire-button--secondary" type="button" data-route="return-detail" data-close-dialog>View return</button>
+        </div>
+      </div>
+
+      <section class="mt-6">
+        <h3 class="text-xl font-black">When deletion becomes available</h3>
+        <ul class="mt-4 list-disc space-y-2 pl-5 text-[var(--wire-muted)]">
+          <li>Profile and preferences may be deleted or anonymized.</li>
+          <li>Saved products and account sessions are removed.</li>
+          <li>Transaction records may be retained when legally required.</li>
+          <li>Existing orders, refunds and support history follow the real retention policy.</li>
+        </ul>
+      </section>
+
+      <fieldset class="mt-6 border-2 border-black p-4" disabled>
+        <legend class="px-2 font-black">Final confirmation</legend>
+        <label class="mt-2 block"><span class="font-bold">Type DELETE to confirm</span><input class="wire-input mt-2" placeholder="DELETE" /></label>
+        <label class="mt-4 flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>I understand the deletion consequences and retention policy.</span></label>
+      </fieldset>
+
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Close</button>
+        <button class="wire-button wire-button--danger" type="button" disabled>Delete account</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Support request -->
+  <div id="support-dialog" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal-panel max-h-[94vh] w-full max-w-2xl overflow-y-auto wire-surface p-5 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="support-title">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="wire-label text-[var(--wire-muted)]">New support request</p><h2 id="support-title" class="mt-2 text-3xl font-black">How can support help?</h2></div>
+        <button class="grid size-11 place-items-center border-2 border-black" type="button" data-close-dialog aria-label="Close"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+
+      <form class="mt-6 grid gap-5" data-demo-form="Support request created">
+        <label><span class="font-bold">Topic</span><select class="wire-input mt-2" required><option>Order question</option><option>Return or refund</option><option>Product information</option><option>Account and security</option><option>Other</option></select></label>
+        <label><span class="font-bold">Related order or return</span><select class="wire-input mt-2"><option>None</option><option>Order #LS-1048</option><option>Return #RT-0038</option></select></label>
+        <label><span class="font-bold">Subject</span><input class="wire-input mt-2" required /></label>
+        <label><span class="font-bold">Message</span><textarea class="wire-input mt-2 min-h-32" required></textarea></label>
+        <button class="wire-dashed min-h-28 p-4 text-left" type="button" data-info="Attachment picker opened with file validation."><strong>Attach files</strong><span class="mt-2 block text-sm text-[var(--wire-muted)]">Only supported file types and sizes.</span></button>
+        <div class="flex flex-col-reverse gap-3 border-t-2 border-black pt-5 sm:flex-row sm:justify-end">
+          <button class="wire-button wire-button--secondary" type="button" data-close-dialog>Cancel</button>
+          <button class="wire-button" type="submit">Submit request</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-region" class="fixed bottom-5 left-1/2 z-[140] w-[min(92vw,480px)] -translate-x-1/2" aria-live="polite" aria-atomic="true">
+    <div id="toast" class="toast border-2 border-black bg-black px-5 py-3 text-center font-bold text-white" hidden></div>
+  </div>
+
+  <script>
+    (() => {
+      const routeTitles = {
+        overview: "Overview",
+        profile: "Profile",
+        orders: "Orders",
+        "order-detail": "Order #LS-1048",
+        returns: "Returns",
+        "return-detail": "Return #RT-0038",
+        addresses: "Addresses",
+        payments: "Payment methods",
+        saved: "Saved items",
+        notifications: "Notifications",
+        preferences: "Preferences",
+        security: "Security",
+        privacy: "Privacy",
+        support: "Support",
+        "ticket-detail": "Ticket #SP-0119"
+      };
+
+      const emptyMessages = {
+        overview: ["No account activity yet", "Orders, returns, saved products, and support updates will appear here.", "Browse products"],
+        profile: ["Profile details unavailable", "No profile record was returned. Retry before editing.", "Retry"],
+        orders: ["No orders yet", "Your purchases will appear here after checkout.", "Browse products"],
+        "order-detail": ["Order unavailable", "This order could not be found or does not belong to the current account.", "Back to orders"],
+        returns: ["No returns", "Eligible return requests and refund progress will appear here.", "View orders"],
+        "return-detail": ["Return unavailable", "This return could not be found or is no longer accessible.", "Back to returns"],
+        addresses: ["No saved addresses", "Add a delivery address to make checkout faster.", "Add address"],
+        payments: ["No saved payment methods", "Add a method only through the supported payment provider.", "Add method"],
+        saved: ["No saved products", "Save products from the storefront to find them here.", "Browse products"],
+        notifications: ["You are all caught up", "There are no account notifications to review.", "Back to overview"],
+        preferences: ["Preferences unavailable", "Communication settings could not be loaded.", "Retry"],
+        security: ["Security details unavailable", "Session and sign-in information could not be loaded.", "Retry"],
+        privacy: ["Privacy controls unavailable", "Your privacy settings could not be loaded.", "Retry"],
+        support: ["No support tickets", "Start a request when self-service help is not enough.", "Start request"],
+        "ticket-detail": ["Ticket unavailable", "This ticket could not be found or does not belong to this account.", "Back to support"]
+      };
+
+      let currentRoute = "overview";
+      let lastFocused = null;
+      let toastTimer = null;
+      let returnStep = 1;
+
+      const pages = [...document.querySelectorAll("[data-page]")];
+      const stateSelector = document.getElementById("state-selector");
+      const stateOverlay = document.getElementById("state-overlay");
+      const breadcrumbCurrent = document.getElementById("breadcrumb-current");
+      const mobileRouteTitle = document.getElementById("mobile-route-title");
+      const accountMenu = document.getElementById("account-menu");
+      const accountMenuPanel = accountMenu.querySelector(".mobile-sheet");
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add("is-visible"));
+        toastTimer = window.setTimeout(() => {
+          toast.classList.remove("is-visible");
+          window.setTimeout(() => {
+            toast.hidden = true;
+          }, 190);
+        }, 2700);
+      }
+
+      function renderState() {
+        const state = stateSelector.value;
+        if (state === "default") {
+          stateOverlay.hidden = true;
+          pages.find((page) => page.dataset.page === currentRoute).hidden = false;
+          return;
+        }
+
+        pages.forEach((page) => {
+          page.hidden = page.dataset.page === currentRoute ? false : true;
+        });
+
+        const [emptyTitle, emptyDescription, emptyAction] =
+          emptyMessages[currentRoute] || emptyMessages.overview;
+
+        const stateTemplates = {
+          empty: `
+            <div class="mx-auto max-w-2xl py-8 text-center">
+              <p class="wire-label text-[var(--wire-muted)]">Empty state</p>
+              <div class="wire-dashed mx-auto mt-5 grid size-24 place-items-center text-3xl">∅</div>
+              <h2 class="mt-5 text-3xl font-black">${emptyTitle}</h2>
+              <p class="mt-3 text-[var(--wire-muted)]">${emptyDescription}</p>
+              <button class="wire-button mt-6" type="button" data-state-action>${emptyAction}</button>
+            </div>
+          `,
+          loading: `
+            <div aria-label="Loading ${routeTitles[currentRoute]}">
+              <div class="skeleton h-4 w-32"></div>
+              <div class="skeleton mt-4 h-11 w-2/3"></div>
+              <div class="skeleton mt-3 h-5 w-1/2"></div>
+              <div class="mt-8 grid gap-4 md:grid-cols-2">
+                <div class="skeleton h-48"></div>
+                <div class="skeleton h-48"></div>
+                <div class="skeleton h-36 md:col-span-2"></div>
+              </div>
+            </div>
+          `,
+          error: `
+            <div class="border-l-[8px] border-l-[var(--wire-danger)]">
+              <p class="wire-label text-[var(--wire-danger)]">Load error</p>
+              <h2 class="mt-3 text-3xl font-black">We could not load ${routeTitles[currentRoute].toLowerCase()}.</h2>
+              <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">The message identifies the failed section without exposing internal provider or database errors.</p>
+              <div class="mt-5 flex flex-wrap gap-3">
+                <button class="wire-button" type="button" data-state-action>Retry</button>
+                <button class="wire-button wire-button--secondary" type="button" data-route="support">Contact support</button>
+              </div>
+            </div>
+          `,
+          expired: `
+            <div class="border-l-[8px] border-l-[var(--wire-danger)]">
+              <p class="wire-label text-[var(--wire-danger)]">Authentication state</p>
+              <h2 class="mt-3 text-3xl font-black">Your session expired.</h2>
+              <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Sign in again, then return safely to this exact account route.</p>
+              <button class="wire-button mt-5" type="button" data-state-action>Sign in and return</button>
+            </div>
+          `,
+          restricted: `
+            <div class="border-l-[8px] border-l-[var(--wire-danger)]">
+              <p class="wire-label text-[var(--wire-danger)]">Restricted account</p>
+              <h2 class="mt-3 text-3xl font-black">Some account actions are unavailable.</h2>
+              <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Use the repository’s established restricted-account message without exposing sensitive enforcement details.</p>
+              <button class="wire-button mt-5" type="button" data-route="support">Contact support</button>
+            </div>
+          `,
+          deleting: `
+            <div class="border-l-[8px] border-l-[var(--wire-danger)]">
+              <p class="wire-label text-[var(--wire-danger)]">Pending deletion</p>
+              <h2 class="mt-3 text-3xl font-black">Account deletion is scheduled.</h2>
+              <p class="mt-3 max-w-2xl text-[var(--wire-muted)]">Normal account use may be restricted. Offer cancellation only when the backend supports a reversal window.</p>
+              <button class="wire-button wire-button--secondary mt-5" type="button" data-state-action>Cancel deletion request</button>
+            </div>
+          `
+        };
+
+        stateOverlay.innerHTML = stateTemplates[state];
+        stateOverlay.hidden = false;
+
+        stateOverlay.querySelectorAll("[data-state-action]").forEach((button) => {
+          button.addEventListener("click", () => showToast(`${button.textContent.trim()} selected`));
+        });
+
+        stateOverlay.querySelectorAll("[data-route]").forEach((button) => {
+          button.addEventListener("click", () => navigate(button.dataset.route));
+        });
+      }
+
+      function closeAccountMenu() {
+        accountMenuPanel.classList.remove("is-open");
+        document.getElementById("account-menu-trigger").setAttribute("aria-expanded", "false");
+        window.setTimeout(() => {
+          accountMenu.classList.add("hidden");
+          accountMenu.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 220);
+      }
+
+      function navigate(route) {
+        if (!routeTitles[route]) return;
+        currentRoute = route;
+        window.location.hash = route;
+
+        pages.forEach((page) => {
+          page.hidden = page.dataset.page !== route;
+        });
+
+        document.querySelectorAll(".nav-item[data-route]").forEach((item) => {
+          if (item.dataset.route === route) {
+            item.setAttribute("aria-current", "page");
+          } else {
+            item.removeAttribute("aria-current");
+          }
+        });
+
+        const title = routeTitles[route];
+        breadcrumbCurrent.textContent = title;
+        mobileRouteTitle.textContent = title;
+        document.title = `${title} — Account Workspace Wireframe`;
+        closeAccountMenu();
+        renderState();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        const visiblePage = pages.find((page) => page.dataset.page === route);
+        const heading = visiblePage?.querySelector("h1");
+        heading?.setAttribute("tabindex", "-1");
+        window.setTimeout(() => heading?.focus(), 120);
+      }
+
+      function openAccountMenu() {
+        lastFocused = document.activeElement;
+        accountMenu.classList.remove("hidden");
+        accountMenu.setAttribute("aria-hidden", "false");
+        document.getElementById("account-menu-trigger").setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+        requestAnimationFrame(() => accountMenuPanel.classList.add("is-open"));
+        window.setTimeout(() => document.getElementById("account-menu-close").focus(), 80);
+      }
+
+      function openDialog(id) {
+        const dialog = document.getElementById(id);
+        if (!dialog) return;
+        lastFocused = document.activeElement;
+        dialog.classList.remove("hidden");
+        dialog.classList.add("flex");
+        dialog.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        const panel = dialog.querySelector(".modal-panel");
+        requestAnimationFrame(() => panel?.classList.add("is-open"));
+        window.setTimeout(() => dialog.querySelector("button, input, select, textarea")?.focus(), 90);
+      }
+
+      function closeDialog(dialog) {
+        if (!dialog) return;
+        const panel = dialog.querySelector(".modal-panel");
+        panel?.classList.remove("is-open");
+        window.setTimeout(() => {
+          dialog.classList.add("hidden");
+          dialog.classList.remove("flex");
+          dialog.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 190);
+      }
+
+      document.querySelectorAll("[data-route]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          navigate(button.dataset.route);
+        });
+      });
+
+      document.querySelectorAll("[data-open-dialog]").forEach((button) => {
+        button.addEventListener("click", () => openDialog(button.dataset.openDialog));
+      });
+
+      document.querySelectorAll("[data-close-dialog]").forEach((button) => {
+        button.addEventListener("click", () => closeDialog(button.closest(".modal-backdrop")));
+      });
+
+      document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+        backdrop.addEventListener("click", (event) => {
+          if (event.target === backdrop) closeDialog(backdrop);
+        });
+      });
+
+      document.getElementById("account-menu-trigger").addEventListener("click", openAccountMenu);
+      document.getElementById("account-menu-close").addEventListener("click", closeAccountMenu);
+      accountMenu.addEventListener("click", (event) => {
+        if (event.target === accountMenu) closeAccountMenu();
+      });
+
+      stateSelector.addEventListener("change", renderState);
+
+      document.querySelectorAll("[data-info]").forEach((button) => {
+        button.addEventListener("click", () => showToast(button.dataset.info));
+      });
+
+      document.querySelectorAll("[data-action-success]").forEach((button) => {
+        button.addEventListener("click", () => {
+          showToast(button.dataset.actionSuccess);
+          closeDialog(button.closest(".modal-backdrop"));
+        });
+      });
+
+      document.querySelectorAll("[data-demo-form]").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          showToast(form.dataset.demoForm);
+          closeDialog(form.closest(".modal-backdrop"));
+        });
+      });
+
+      document.getElementById("preferences-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        showToast("Preferences saved");
+      });
+
+      document.getElementById("ticket-reply-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!event.currentTarget.checkValidity()) {
+          event.currentTarget.reportValidity();
+          return;
+        }
+        showToast("Reply sent");
+        event.currentTarget.reset();
+      });
+
+      const profileForm = document.getElementById("profile-form");
+      const profileSave = document.getElementById("profile-save");
+      const profileStatus = document.getElementById("profile-status");
+
+      profileForm.addEventListener("input", () => {
+        profileSave.disabled = false;
+        profileStatus.textContent = "Unsaved changes.";
+      });
+
+      profileForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!profileForm.checkValidity()) {
+          profileForm.reportValidity();
+          return;
+        }
+        profileSave.disabled = true;
+        profileStatus.textContent = "Changes saved.";
+        showToast("Profile updated");
+      });
+
+      document.getElementById("desktop-signout").addEventListener("click", () => {
+        showToast("Current-session sign-out selected");
+      });
+
+      function renderReturnStep() {
+        document.querySelectorAll("[data-return-step]").forEach((section) => {
+          section.classList.toggle("is-active", Number(section.dataset.returnStep) === returnStep);
+        });
+
+        document.querySelectorAll("[data-step-dot]").forEach((dot) => {
+          const number = Number(dot.dataset.stepDot);
+          dot.classList.toggle("is-active", number === returnStep);
+          dot.classList.toggle("is-complete", number < returnStep);
+        });
+
+        const back = document.getElementById("return-back");
+        const next = document.getElementById("return-next");
+        back.disabled = returnStep === 1;
+        next.textContent = returnStep === 5 ? "Submit return" : "Continue";
+        document.getElementById("return-step-label").textContent = `Step ${returnStep} of 5`;
+      }
+
+      document.getElementById("return-back").addEventListener("click", () => {
+        returnStep = Math.max(1, returnStep - 1);
+        renderReturnStep();
+      });
+
+      document.getElementById("return-next").addEventListener("click", () => {
+        if (returnStep < 5) {
+          returnStep += 1;
+          renderReturnStep();
+          return;
+        }
+        showToast("Return request submitted");
+        closeDialog(document.getElementById("return-dialog"));
+        returnStep = 1;
+        renderReturnStep();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+
+        const openDialog = [...document.querySelectorAll(".modal-backdrop:not(.hidden)")].pop();
+        if (openDialog) {
+          closeDialog(openDialog);
+          return;
+        }
+
+        if (!accountMenu.classList.contains("hidden")) closeAccountMenu();
+      });
+
+      window.addEventListener("hashchange", () => {
+        const hash = window.location.hash.replace("#", "");
+        if (routeTitles[hash]) navigate(hash);
+      });
+
+      renderReturnStep();
+      navigate(window.location.hash.replace("#", "") || "overview");
+    })();
+  </script>
+</body>
+</html>

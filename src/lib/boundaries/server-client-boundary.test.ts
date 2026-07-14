@@ -9,6 +9,10 @@ const FORBIDDEN_CLIENT_IMPORTS = [
   "@/lib/middleware",
   "@/lib/supabase/server",
   "@/lib/supabase/proxy",
+  // Prisma is server-only (ADR-05 §4.1 #1): the client + generated code must
+  // never reach the browser bundle.
+  "@/lib/prisma",
+  "prisma/generated",
 ] as const;
 
 describe("server/client boundaries", () => {

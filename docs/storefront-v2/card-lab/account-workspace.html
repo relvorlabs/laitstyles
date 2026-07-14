@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account — Laitstyle</title>
+  <meta name="description" content="High-fidelity Laitstyle consumer account, orders, returns, settings and privacy workspace." />
+  <meta name="theme-color" content="#f3f0e8" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      --bone: #f3f0e8;
+      --bone-2: #e9e4d9;
+      --surface: #faf8f2;
+      --ink: #191a17;
+      --muted: #727267;
+      --sage: #d6e4a6;
+      --sage-deep: #35533b;
+      --oxblood: #682631;
+      --danger: #8a332d;
+      --warning: #8b5a26;
+      --line: rgba(25, 26, 23, .16);
+      --line-strong: rgba(25, 26, 23, .34);
+      --focus: #682631;
+      --shadow-sm: 0 10px 30px rgba(25, 26, 23, .07);
+      --shadow-md: 0 30px 80px rgba(25, 26, 23, .14);
+      --radius-sm: 10px;
+      --radius-card: 14px;
+      --radius-modal: 18px;
+      --radius-pill: 999px;
+      --ease: cubic-bezier(.22,.8,.24,1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bone);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(214, 228, 166, .38), transparent 30rem),
+        var(--bone);
+      color: var(--ink);
+      font-family: "Geist", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: .18;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    h1, h2, h3, .display {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+    }
+
+    .mono {
+      font-family: "Geist Mono", monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    button, a, input, select, textarea, summary {
+      touch-action: manipulation;
+    }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    [hidden] { display: none !important; }
+
+    .glass {
+      background: rgba(243, 240, 232, .88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      font-family: "Geist Mono", monospace;
+      font-size: .69rem;
+      font-weight: 600;
+      letter-spacing: .13em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .hairline { border-color: var(--line); }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: rgba(250, 248, 242, .88);
+    }
+
+    .panel-elevated {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .soft {
+      background: var(--bone-2);
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+      min-height: 48px;
+      border-radius: var(--radius-pill);
+      padding: .75rem 1.1rem;
+      font-weight: 650;
+      transition:
+        transform .18s var(--ease),
+        border-color .18s ease,
+        background .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .btn-primary {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--bone);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(25, 26, 23, .14);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--ink);
+      background: var(--bone-2);
+    }
+
+    .btn-danger {
+      border: 1px solid var(--oxblood);
+      background: var(--oxblood);
+      color: var(--bone);
+    }
+
+    .btn-primary:disabled,
+    .btn-secondary:disabled,
+    .btn-danger:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      background: rgba(250, 248, 242, .86);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--ink);
+      background: var(--surface);
+    }
+
+    .field {
+      min-height: 48px;
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      padding: .78rem .9rem;
+      color: var(--ink);
+    }
+
+    .field::placeholder { color: rgba(114, 114, 103, .75); }
+
+    .field:focus {
+      border-color: var(--focus);
+      outline: 2px solid color-mix(in srgb, var(--focus) 25%, transparent);
+      outline-offset: 0;
+    }
+
+    .status {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      gap: .35rem;
+      border-radius: var(--radius-pill);
+      padding: .3rem .7rem;
+      font-family: "Geist Mono", monospace;
+      font-size: .67rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status--neutral { background: var(--bone-2); }
+    .status--success { background: var(--sage); color: var(--sage-deep); }
+    .status--warning { background: #ead8bd; color: var(--warning); }
+    .status--danger { background: #ead0d0; color: var(--danger); }
+
+    .sidebar-link {
+      position: relative;
+      min-height: 46px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      border-radius: 10px;
+      padding: .7rem .8rem;
+      color: var(--muted);
+      text-align: left;
+      font-size: .92rem;
+      font-weight: 560;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .sidebar-link:hover {
+      background: var(--bone-2);
+      color: var(--ink);
+      transform: translateX(2px);
+    }
+
+    .sidebar-link[aria-current="page"] {
+      background: var(--ink);
+      color: var(--bone);
+    }
+
+    .route-page {
+      animation: page-in .34s var(--ease) both;
+    }
+
+    @keyframes page-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-track {
+      position: relative;
+    }
+
+    .progress-track::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 22px;
+      bottom: 22px;
+      width: 1px;
+      background: var(--line-strong);
+    }
+
+    .timeline-dot {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 31px;
+      height: 31px;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    .timeline-dot.is-complete {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--bone);
+    }
+
+    .product-media {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius-card);
+      background: var(--bone-2);
+      border: 1px solid var(--line);
+    }
+
+    .product-media svg {
+      transition: transform .5s var(--ease);
+    }
+
+    .product-card:hover .product-media svg {
+      transform: scale(1.035);
+    }
+
+    .order-thumb {
+      overflow: hidden;
+      border-radius: 10px;
+      background: var(--bone-2);
+      border: 1px solid var(--line);
+    }
+
+    details summary::-webkit-details-marker { display: none; }
+    details summary { list-style: none; }
+    details[open] .accordion-icon { transform: rotate(45deg); }
+    .accordion-icon { transition: transform .18s ease; }
+
+    .drawer-backdrop,
+    .modal-backdrop {
+      background: rgba(25, 26, 23, .52);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+
+    .sheet {
+      transform: translateY(102%);
+      transition: transform .3s var(--ease);
+    }
+
+    .sheet.is-open { transform: translateY(0); }
+
+    .modal {
+      opacity: 0;
+      transform: scale(.97) translateY(10px);
+      transition: opacity .2s ease, transform .27s var(--ease);
+    }
+
+    .modal.is-open {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .toast {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity .18s ease, transform .22s var(--ease);
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .return-step { display: none; }
+    .return-step.is-active {
+      display: block;
+      animation: page-in .28s var(--ease) both;
+    }
+
+    .step-node {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-family: "Geist Mono", monospace;
+      font-size: .7rem;
+    }
+
+    .step-node.is-active,
+    .step-node.is-complete {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--bone);
+    }
+
+    .skeleton {
+      position: relative;
+      overflow: hidden;
+      background: var(--bone-2);
+    }
+
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+
+    .mobile-action {
+      padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+    }
+
+    @media (max-width: 767px) {
+      .desktop-only { display: none !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="#account-content" class="fixed left-4 top-4 z-[120] -translate-y-24 rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--bone)] transition focus:translate-y-0">
+    Skip to account
+  </a>
+
+  <div class="border-b border-white/10 bg-[var(--ink)] text-[var(--bone)]">
+    <div class="mx-auto flex min-h-9 max-w-[1520px] items-center justify-center gap-5 px-4 text-center text-[10px] font-semibold uppercase tracking-[.16em]">
+      <span>Account prototype</span>
+      <span class="hidden sm:inline text-white/35">·</span>
+      <span class="hidden sm:inline">Lifecycle coverage</span>
+      <span class="hidden lg:inline text-white/35">·</span>
+      <span class="hidden lg:inline">Orders · Returns · Security · Privacy</span>
+    </div>
+  </div>
+
+  <header class="glass sticky top-0 z-40">
+    <div class="mx-auto flex h-[72px] max-w-[1520px] items-center gap-5 px-4 sm:px-6 lg:px-8">
+      <button id="store-menu-trigger" type="button" class="icon-btn lg:hidden" aria-label="Open storefront navigation">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+
+      <a href="#" class="flex items-center gap-3" aria-label="Laitstyle home">
+        <span class="grid size-9 place-items-center rounded-full border border-[var(--ink)]">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4v16h12M8.5 4v11.5h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="text-sm font-bold tracking-[.22em]">LAITSTYLE</span>
+      </a>
+
+      <nav class="ml-5 hidden items-center gap-7 text-sm lg:flex" aria-label="Storefront">
+        <a href="#" class="hover:opacity-60">New in</a>
+        <a href="#" class="hover:opacity-60">Shop</a>
+        <a href="#" class="hover:opacity-60">One-of-one</a>
+        <a href="#" class="hover:opacity-60">Women</a>
+        <a href="#" class="hover:opacity-60">Men</a>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-2">
+        <button class="icon-btn" type="button" aria-label="Search">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn hidden sm:grid" type="button" aria-label="Saved items">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.2S4.5 15.9 4.5 9.7A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.5 2.7c0 6.2-7.5 10.5-7.5 10.5Z" stroke="currentColor" stroke-width="1.7"/></svg>
+        </button>
+        <button class="relative icon-btn" type="button" aria-label="Open bag">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.7 8.2h10.6l1 11.1H5.7l1-11.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 9V6.8a3 3 0 0 1 6 0V9" stroke="currentColor" stroke-width="1.7"/></svg>
+          <span class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-[var(--sage-deep)] text-[10px] font-bold text-white">1</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-[1520px] px-4 py-5 sm:px-6 lg:px-8">
+    <nav class="text-sm text-[var(--muted)]" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2">
+        <li><a href="#" class="hover:text-[var(--ink)]">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><button type="button" data-route="overview" class="hover:text-[var(--ink)]">Account</button></li>
+        <li id="breadcrumb-tail" class="flex items-center gap-2"><span aria-hidden="true">/</span><span id="breadcrumb-current" class="text-[var(--ink)]">Overview</span></li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="mx-auto grid max-w-[1520px] gap-6 px-4 pb-16 sm:px-6 md:grid-cols-[230px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)] lg:px-8">
+    <aside class="hidden md:block">
+      <div class="sticky top-24 panel-elevated overflow-hidden">
+        <div class="border-b border-[var(--line)] p-5">
+          <div class="flex items-center gap-3">
+            <span class="grid size-12 place-items-center rounded-full bg-[var(--sage)] text-sm font-bold text-[var(--sage-deep)]">AO</span>
+            <div class="min-w-0">
+              <p class="font-semibold">Ada Okafor</p>
+              <p class="mt-1 truncate text-sm text-[var(--muted)]">Customer since 2024</p>
+            </div>
+          </div>
+        </div>
+
+        <nav id="desktop-nav" class="p-2.5" aria-label="Account">
+          <button class="sidebar-link" type="button" data-route="overview" aria-current="page"><span>Overview</span></button>
+          <button class="sidebar-link" type="button" data-route="profile"><span>Profile</span></button>
+          <button class="sidebar-link" type="button" data-route="orders"><span>Orders</span><span class="mono ml-auto text-[10px]">03</span></button>
+          <button class="sidebar-link" type="button" data-route="returns"><span>Returns</span><span class="mono ml-auto text-[10px]">01</span></button>
+          <button class="sidebar-link" type="button" data-route="addresses"><span>Addresses</span></button>
+          <button class="sidebar-link" type="button" data-route="payments"><span>Payment methods</span></button>
+          <button class="sidebar-link" type="button" data-route="saved"><span>Saved items</span><span class="mono ml-auto text-[10px]">05</span></button>
+          <button class="sidebar-link" type="button" data-route="notifications"><span>Notifications</span><span class="ml-auto size-2 rounded-full bg-[var(--oxblood)]" aria-label="Unread notifications"></span></button>
+          <button class="sidebar-link" type="button" data-route="preferences"><span>Preferences</span></button>
+          <button class="sidebar-link" type="button" data-route="security"><span>Security</span></button>
+          <button class="sidebar-link" type="button" data-route="privacy"><span>Privacy</span></button>
+          <button class="sidebar-link" type="button" data-route="support"><span>Support</span></button>
+        </nav>
+
+        <div class="border-t border-[var(--line)] p-2.5">
+          <button id="signout-trigger" class="sidebar-link text-[var(--oxblood)]" type="button"><span>Sign out</span></button>
+        </div>
+      </div>
+    </aside>
+
+    <main id="account-content" class="min-w-0">
+      <div class="mb-5 flex items-center justify-between gap-4 md:hidden">
+        <div>
+          <p class="eyebrow text-[var(--muted)]">Account</p>
+          <h1 id="mobile-title" class="mt-2 text-4xl leading-none">Overview</h1>
+        </div>
+        <button id="account-menu-trigger" type="button" class="btn-secondary flex items-center gap-2" aria-expanded="false">
+          Menu
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section class="route-page" data-page="overview">
+        <header class="hidden md:block">
+          <p class="eyebrow text-[var(--sage-deep)]">Account overview</p>
+          <h1 class="mt-4 max-w-4xl text-[clamp(3rem,6vw,5.5rem)] leading-[.91] tracking-[-.035em]">
+            Good afternoon, <em>Ada.</em>
+          </h1>
+          <p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">The account surfaces the thing that needs attention first, then gets out of the way.</p>
+        </header>
+
+        <section class="mt-7 border-l-[5px] border-[var(--oxblood)] panel p-5 sm:p-6">
+          <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p class="eyebrow text-[var(--oxblood)]">Action required</p>
+              <h2 class="mt-3 text-3xl leading-tight">Verify your email address.</h2>
+              <p class="mt-3 max-w-2xl leading-7 text-[var(--muted)]">Verification protects order updates and sensitive account changes.</p>
+            </div>
+            <button class="btn-primary" type="button" data-open="verify-email-modal">Verify email</button>
+          </div>
+        </section>
+
+        <section class="mt-6 panel-elevated overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] p-5 sm:p-6">
+            <div>
+              <p class="eyebrow text-[var(--muted)]">Current order</p>
+              <h2 class="mt-3 text-3xl">Order <span class="mono text-2xl">#LS-1048</span></h2>
+            </div>
+            <span class="status status--success">Shipped</span>
+          </div>
+
+          <div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[170px_minmax(0,1fr)_auto] lg:items-center">
+            <div class="order-thumb aspect-[4/3]">
+              <svg viewBox="0 0 320 240" width="100%" height="100%" role="img" aria-label="Two garments from the current order">
+                <rect width="320" height="240" fill="#e9e4d9"/>
+                <path d="M54 52 95 30h31l41 22 40 63-38 29-22-25v99H75v-99l-22 25-38-29Z" fill="#4b372f"/>
+                <path d="M204 65 238 46h26l34 19 29 51-29 23-18-21v81h-58v-81l-18 21-29-23Z" fill="#536977"/>
+              </svg>
+            </div>
+
+            <div>
+              <p class="text-xl font-semibold">2 pieces · <span class="mono">₦63,000</span></p>
+              <p class="mt-2 text-[var(--muted)]">Estimated arrival Friday, 17 July</p>
+
+              <div class="mt-6 grid grid-cols-4 gap-2">
+                <div><span class="block h-1.5 rounded-full bg-[var(--ink)]"></span><p class="mt-2 text-xs font-semibold">Placed</p></div>
+                <div><span class="block h-1.5 rounded-full bg-[var(--ink)]"></span><p class="mt-2 text-xs font-semibold">Paid</p></div>
+                <div><span class="block h-1.5 rounded-full bg-[var(--sage-deep)]"></span><p class="mt-2 text-xs font-semibold">Shipped</p></div>
+                <div><span class="block h-1.5 rounded-full bg-[var(--line-strong)]"></span><p class="mt-2 text-xs text-[var(--muted)]">Delivered</p></div>
+              </div>
+            </div>
+
+            <div class="grid gap-3">
+              <button class="btn-primary" type="button" data-info="Carrier tracking would open with real fulfillment events.">Track order</button>
+              <button class="btn-secondary" type="button" data-route="order-detail">View order</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-10 grid gap-8 xl:grid-cols-[.75fr_1.25fr]">
+          <div>
+            <p class="eyebrow text-[var(--sage-deep)]">Quick actions</p>
+            <h2 class="mt-3 text-4xl leading-none">The useful parts, first.</h2>
+            <div class="mt-6 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+              <button class="flex min-h-16 w-full items-center justify-between gap-4 text-left" type="button" data-route="orders"><span>View all orders</span><span>→</span></button>
+              <button class="flex min-h-16 w-full items-center justify-between gap-4 text-left" type="button" data-open="return-modal"><span>Start an eligible return</span><span>→</span></button>
+              <button class="flex min-h-16 w-full items-center justify-between gap-4 text-left" type="button" data-route="addresses"><span>Manage addresses</span><span>→</span></button>
+              <button class="flex min-h-16 w-full items-center justify-between gap-4 text-left" type="button" data-route="support"><span>Contact support</span><span>→</span></button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-end justify-between gap-4">
+              <div>
+                <p class="eyebrow text-[var(--muted)]">Purchase history</p>
+                <h2 class="mt-3 text-4xl">Recent orders</h2>
+              </div>
+              <button class="text-sm font-semibold underline underline-offset-4" type="button" data-route="orders">View all</button>
+            </div>
+
+            <div class="mt-5 divide-y divide-[var(--line)] panel overflow-hidden">
+              <article class="grid gap-4 p-5 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
+                <div class="order-thumb aspect-square">
+                  <svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true"><rect width="120" height="120" fill="#e9e4d9"/><path d="M36 28 54 18h12l18 10 17 30-15 12-10-12v47H44V58L34 70 19 58Z" fill="#4b372f"/></svg>
+                </div>
+                <div><p class="font-semibold mono">#LS-1048</p><p class="mt-1 text-sm text-[var(--muted)]">2 items · 12 Jul · ₦63,000</p></div>
+                <button class="btn-secondary" type="button" data-route="order-detail">View</button>
+              </article>
+              <article class="grid gap-4 p-5 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
+                <div class="order-thumb aspect-square">
+                  <svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true"><rect width="120" height="120" fill="#dce0d1"/><path d="M36 28 54 18h12l18 10 17 30-15 12-10-12v47H44V58L34 70 19 58Z" fill="#657054"/></svg>
+                </div>
+                <div><p class="font-semibold mono">#LS-0977</p><p class="mt-1 text-sm text-[var(--muted)]">1 item · 18 May · ₦28,500</p></div>
+                <span class="status status--neutral">Delivered</span>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-12">
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p class="eyebrow text-[var(--sage-deep)]">Saved pieces</p>
+              <h2 class="mt-3 text-[clamp(2.5rem,5vw,4rem)] leading-none">Still thinking about these.</h2>
+            </div>
+            <button class="text-sm font-semibold underline underline-offset-4" type="button" data-route="saved">Open saved items</button>
+          </div>
+
+          <div class="mt-7 grid auto-cols-[78%] grid-flow-col gap-4 overflow-x-auto pb-3 sm:auto-cols-[44%] lg:grid-flow-row lg:grid-cols-3 lg:overflow-visible">
+            <article class="product-card">
+              <a href="#" class="block">
+                <div class="product-media">
+                  <svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Reworked indigo denim jacket">
+                    <rect width="400" height="500" fill="#d4d6d0"/>
+                    <path d="M125 105 178 76h44l53 29 48 79-48 35-28-30v214H153V189l-28 30-48-35Z" fill="#3f5965"/>
+                    <path d="M178 76l22 52 22-52M153 190l94 213M247 190 153 403" stroke="#8ba2ac" stroke-width="5"/>
+                  </svg>
+                </div>
+                <div class="px-1 pt-4"><p class="font-semibold">Reworked Indigo Denim</p><div class="mt-2 flex justify-between gap-4 text-sm"><span class="text-[var(--muted)]">W 32 · Excellent</span><span class="mono">₦22,000</span></div></div>
+              </a>
+            </article>
+
+            <article class="product-card">
+              <a href="#" class="block">
+                <div class="product-media">
+                  <svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Boxy wool blazer">
+                    <rect width="400" height="500" fill="#dad3c8"/>
+                    <path d="M118 102 170 70h60l52 32 48 80-52 37-23-37v221H145V182l-23 37-52-37Z" fill="#6c6259"/>
+                    <path d="m170 70 30 72 30-72 32 67-62 78-62-78Z" fill="#4c453f"/>
+                  </svg>
+                  <span class="status status--danger absolute left-3 top-3">Sold</span>
+                </div>
+                <div class="px-1 pt-4"><p class="font-semibold">Boxy Wool City Blazer</p><div class="mt-2 flex justify-between gap-4 text-sm"><span class="text-[var(--muted)]">One of one</span><span class="text-[var(--muted)]">Unavailable</span></div></div>
+              </a>
+            </article>
+
+            <article class="product-card">
+              <a href="#" class="block">
+                <div class="product-media">
+                  <svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Cropped utility jacket">
+                    <rect width="400" height="500" fill="#dce0d1"/>
+                    <path d="M122 109 173 81h54l51 28 47 73-48 35-25-32v175H148V185l-25 32-48-35Z" fill="#657054"/>
+                    <path d="M200 83v277M148 206h104" stroke="#9caa88" stroke-width="5"/>
+                  </svg>
+                </div>
+                <div class="px-1 pt-4"><p class="font-semibold">Cropped Utility Jacket</p><div class="mt-2 flex justify-between gap-4 text-sm"><span class="text-[var(--muted)]">M · Excellent</span><span class="mono">₦25,000</span></div></div>
+              </a>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="route-page" data-page="profile" hidden>
+        <header>
+          <p class="eyebrow text-[var(--sage-deep)]">Identity and contact</p>
+          <h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93] tracking-[-.03em]">Profile.</h1>
+          <p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Keep the personal information used for sign-in, delivery updates and account communication accurate.</p>
+        </header>
+
+        <form id="profile-form" class="mt-7 panel-elevated overflow-hidden">
+          <div class="border-b border-[var(--line)] p-5 sm:p-6">
+            <h2 class="text-3xl">Personal information</h2>
+          </div>
+          <div class="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+            <label><span class="text-sm font-semibold">First name</span><input class="field mt-2" name="firstName" value="Ada" required /></label>
+            <label><span class="text-sm font-semibold">Last name</span><input class="field mt-2" name="lastName" value="Okafor" required /></label>
+            <label class="sm:col-span-2"><span class="text-sm font-semibold">Preferred name</span><input class="field mt-2" name="preferredName" value="Ada" /><span class="mt-2 block text-sm text-[var(--muted)]">Used in account greetings only.</span></label>
+          </div>
+
+          <div class="grid gap-4 border-t border-[var(--line)] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+            <div><p class="text-sm font-semibold">Email address</p><p class="mt-1">ada@example.com</p><p class="mt-2 text-sm text-[var(--muted)]">Verified · Used for sign-in and order updates</p></div>
+            <button class="btn-secondary" type="button" data-open="email-modal">Change email</button>
+          </div>
+
+          <div class="grid gap-4 border-t border-[var(--line)] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+            <div><p class="text-sm font-semibold">Phone number</p><p class="mt-1 mono">+234 801 234 5678</p><p class="mt-2 text-sm text-[var(--muted)]">Verified · Used for delivery updates</p></div>
+            <button class="btn-secondary" type="button" data-info="Phone verification flow would open.">Change phone</button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--line)] p-5 sm:p-6">
+            <p id="profile-state" class="text-sm text-[var(--muted)]">No unsaved changes.</p>
+            <button id="profile-save" class="btn-primary" type="submit" disabled>Save changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ORDERS -->
+      <section class="route-page" data-page="orders" hidden>
+        <header>
+          <p class="eyebrow text-[var(--sage-deep)]">Purchase history</p>
+          <h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93] tracking-[-.03em]">Orders.</h1>
+          <p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Payment and fulfillment stay separate, so the current state is always clear.</p>
+        </header>
+
+        <div class="mt-7 panel p-4">
+          <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_170px_auto]">
+            <input class="field" type="search" placeholder="Search order or product" aria-label="Search orders" />
+            <select class="field" aria-label="Filter by status"><option>All statuses</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>Refunded</option></select>
+            <select class="field" aria-label="Sort orders"><option>Newest first</option><option>Oldest first</option></select>
+            <button class="btn-secondary" type="button" data-info="Order filters applied.">Apply</button>
+          </div>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <article class="panel-elevated overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] p-5">
+              <div><p class="eyebrow text-[var(--muted)]">Order <span class="mono">#LS-1048</span></p><p class="mt-2 text-sm text-[var(--muted)]">12 July 2026 · <span class="mono">₦63,000</span></p></div>
+              <div class="flex gap-2"><span class="status status--neutral">Paid</span><span class="status status--success">Shipped</span></div>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="order-thumb aspect-square"><svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><rect width="100" height="100" fill="#e9e4d9"/><path d="M29 25 44 16h12l15 9 14 24-13 10-8-9v40H36V50l-8 9-13-10Z" fill="#4b372f"/></svg></div>
+                <div class="order-thumb aspect-square"><svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><rect width="100" height="100" fill="#d4d6d0"/><path d="M29 25 44 16h12l15 9 14 24-13 10-8-9v40H36V50l-8 9-13-10Z" fill="#3f5965"/></svg></div>
+              </div>
+              <div><p class="text-lg font-semibold">2 items</p><p class="mt-2 text-[var(--muted)]">Estimated arrival Friday, 17 July</p><p class="mt-2 text-sm text-[var(--muted)]">DHL Express · Shipment 1 of 1</p></div>
+              <div class="grid gap-3"><button class="btn-primary" type="button" data-info="Carrier tracking would open.">Track</button><button class="btn-secondary" type="button" data-route="order-detail">Details</button></div>
+            </div>
+          </article>
+
+          <article class="panel overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] p-5">
+              <div><p class="eyebrow text-[var(--muted)]">Order <span class="mono">#LS-0977</span></p><p class="mt-2 text-sm text-[var(--muted)]">18 May 2026 · <span class="mono">₦28,500</span></p></div>
+              <div class="flex gap-2"><span class="status status--neutral">Paid</span><span class="status status--neutral">Delivered</span></div>
+            </div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="order-thumb aspect-[4/3]"><svg viewBox="0 0 180 135" width="100%" height="100%" aria-hidden="true"><rect width="180" height="135" fill="#dad3c8"/><path d="M54 33 80 20h20l26 13 23 37-23 18-12-17v56H66V71L54 88 31 70Z" fill="#6c6259"/></svg></div>
+              <div><p class="text-lg font-semibold">1 item</p><p class="mt-2 text-[var(--muted)]">Delivered 23 May 2026</p><p class="mt-2 text-sm text-[var(--warning)]">Return window closes in 2 days</p></div>
+              <div class="grid gap-3"><button class="btn-primary" type="button" data-open="return-modal">Start return</button><button class="btn-secondary" type="button" data-route="order-detail">Details</button></div>
+            </div>
+          </article>
+
+          <article class="panel overflow-hidden border-l-[5px] border-l-[var(--oxblood)]">
+            <div class="flex flex-wrap items-center justify-between gap-4 p-5">
+              <div><p class="eyebrow text-[var(--muted)]">Order <span class="mono">#LS-0891</span></p><h2 class="mt-3 text-2xl">Payment needs attention.</h2><p class="mt-2 text-[var(--muted)]">This order has not entered fulfillment.</p></div>
+              <div class="flex flex-wrap gap-3"><button class="btn-primary" type="button" data-info="Retry payment would use the existing provider.">Retry payment</button><button class="btn-secondary" type="button" data-route="order-detail">Details</button></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ORDER DETAIL -->
+      <section class="route-page" data-page="order-detail" hidden>
+        <button class="mb-5 text-sm font-semibold underline underline-offset-4" type="button" data-route="orders">← Back to orders</button>
+        <header class="flex flex-wrap items-start justify-between gap-5">
+          <div><p class="eyebrow text-[var(--sage-deep)]">Order detail</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Order <span class="mono text-[.6em]">#LS-1048</span></h1><p class="mt-4 text-[var(--muted)]">Placed 12 July 2026 · Total <span class="mono">₦63,000</span></p></div>
+          <div class="flex flex-wrap gap-3"><button class="btn-secondary" type="button" data-info="Receipt download would start.">Receipt</button><button class="btn-primary" type="button" data-info="Carrier tracking would open.">Track shipment</button></div>
+        </header>
+
+        <section class="mt-7 panel-elevated p-5 sm:p-6">
+          <div class="flex items-center justify-between gap-4"><h2 class="text-3xl">Progress</h2><span class="status status--success">Shipped</span></div>
+          <ol class="progress-track mt-6 space-y-5">
+            <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">✓</span><div><p class="font-semibold">Order placed</p><p class="mt-1 text-sm text-[var(--muted)]">12 Jul · 10:04</p></div></li>
+            <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">✓</span><div><p class="font-semibold">Payment confirmed</p><p class="mt-1 text-sm text-[var(--muted)]">12 Jul · 10:06</p></div></li>
+            <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">✓</span><div><p class="font-semibold">Shipped with DHL Express</p><p class="mt-1 text-sm text-[var(--muted)]">14 Jul · 16:42</p></div></li>
+            <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot">4</span><div><p class="font-semibold text-[var(--muted)]">Delivered</p><p class="mt-1 text-sm text-[var(--muted)]">Pending real carrier event</p></div></li>
+          </ol>
+        </section>
+
+        <section class="mt-6 panel overflow-hidden">
+          <div class="border-b border-[var(--line)] p-5"><h2 class="text-3xl">Items</h2></div>
+          <article class="grid gap-5 border-b border-[var(--line)] p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
+            <a href="#" class="order-thumb aspect-[4/5]"><svg viewBox="0 0 120 150" width="100%" height="100%" aria-label="Broken-in Leather Moto"><rect width="120" height="150" fill="#e9e4d9"/><path d="M35 31 53 20h14l18 11 17 28-16 13-10-12v77H44V60L34 72 18 59Z" fill="#4b372f"/></svg></a>
+            <div><a href="#" class="font-semibold underline underline-offset-4">Broken-in Leather Moto</a><p class="mt-2 text-sm text-[var(--muted)]">Large · Quantity 1</p><p class="mt-2 mono">₦41,000</p><p class="mt-3 text-sm text-[var(--muted)]">Eligible for return after delivery.</p></div>
+            <button class="text-sm font-semibold text-[var(--oxblood)] underline underline-offset-4" type="button" data-open="cancel-modal">Cancel item</button>
+          </article>
+          <article class="grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
+            <a href="#" class="order-thumb aspect-[4/5]"><svg viewBox="0 0 120 150" width="100%" height="100%" aria-label="Reworked Indigo Denim"><rect width="120" height="150" fill="#d4d6d0"/><path d="M35 31 53 20h14l18 11 17 28-16 13-10-12v77H44V60L34 72 18 59Z" fill="#3f5965"/></svg></a>
+            <div><a href="#" class="font-semibold underline underline-offset-4">Reworked Indigo Denim</a><p class="mt-2 text-sm text-[var(--muted)]">W 32 · Quantity 1</p><p class="mt-2 mono">₦22,000</p><p class="mt-3 text-sm text-[var(--muted)]">Already with carrier; cancellation unavailable.</p></div>
+            <span class="text-sm text-[var(--muted)]">Not cancellable</span>
+          </article>
+        </section>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+          <section class="panel p-5 sm:p-6"><p class="eyebrow text-[var(--muted)]">Delivery</p><h2 class="mt-3 text-3xl">Lekki, Lagos</h2><address class="mt-4 not-italic leading-7 text-[var(--muted)]">Ada Okafor<br>18 Example Road<br>Lekki Phase 1, Lagos<br>Nigeria</address><p class="mt-5 border-t border-[var(--line)] pt-4 text-sm"><strong>DHL Express</strong><br><span class="mono text-[var(--muted)]">DHL-83920102</span></p></section>
+          <section class="panel p-5 sm:p-6"><p class="eyebrow text-[var(--muted)]">Payment summary</p><dl class="mt-4 space-y-3"><div class="flex justify-between gap-4"><dt>Subtotal</dt><dd class="mono">₦63,000</dd></div><div class="flex justify-between gap-4"><dt>Delivery</dt><dd class="mono">₦0</dd></div><div class="flex justify-between gap-4"><dt>Tax</dt><dd>Included</dd></div><div class="flex justify-between gap-4 border-t border-[var(--line)] pt-4 text-lg font-semibold"><dt>Total</dt><dd class="mono">₦63,000</dd></div></dl><p class="mt-5 text-sm text-[var(--muted)]">Visa ending 4242 · Payment confirmed</p></section>
+        </div>
+      </section>
+
+      <!-- RETURNS -->
+      <section class="route-page" data-page="returns" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5">
+          <div><p class="eyebrow text-[var(--sage-deep)]">Post-purchase</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Returns.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Every request stays connected to the order, item, outcome and refund method.</p></div>
+          <button class="btn-primary" type="button" data-open="return-modal">Start a return</button>
+        </header>
+
+        <div class="mt-7 space-y-4">
+          <article class="panel-elevated overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--line)] p-5"><div><p class="eyebrow text-[var(--muted)]">Return <span class="mono">#RT-0038</span></p><h2 class="mt-3 text-3xl">Ship this item by 20 July.</h2></div><span class="status status--warning">Awaiting shipment</span></div>
+            <div class="grid gap-5 p-5 lg:grid-cols-[120px_minmax(0,1fr)_auto] lg:items-center">
+              <div class="order-thumb aspect-square"><svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true"><rect width="120" height="120" fill="#d4d6d0"/><path d="M36 28 54 18h12l18 10 17 30-15 12-10-12v47H44V58L34 70 19 58Z" fill="#3f5965"/></svg></div>
+              <div><p class="font-semibold">1 item · Refund requested</p><p class="mt-2 text-[var(--muted)]">Estimated refund <span class="mono">₦24,000</span></p></div>
+              <button class="btn-primary" type="button" data-route="return-detail">View instructions</button>
+            </div>
+          </article>
+
+          <article class="panel overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-4 p-5"><div><p class="eyebrow text-[var(--muted)]">Return <span class="mono">#RT-0021</span></p><h2 class="mt-3 text-3xl">Refund complete.</h2><p class="mt-2 text-[var(--muted)]">₦18,500 returned to Visa ending 4242.</p></div><span class="status status--success">Refunded</span></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- RETURN DETAIL -->
+      <section class="route-page" data-page="return-detail" hidden>
+        <button class="mb-5 text-sm font-semibold underline underline-offset-4" type="button" data-route="returns">← Back to returns</button>
+        <header><p class="eyebrow text-[var(--sage-deep)]">Return detail</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Return <span class="mono text-[.6em]">#RT-0038</span></h1><p class="mt-4 text-[var(--muted)]">Related order <span class="mono">#LS-0924</span></p></header>
+
+        <section class="mt-7 border-l-[5px] border-[var(--warning)] panel-elevated p-5 sm:p-6">
+          <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><p class="eyebrow text-[var(--warning)]">Next action</p><h2 class="mt-3 text-3xl">Send the item by 20 July.</h2><p class="mt-3 text-[var(--muted)]">Use the generated label or arrange pickup through support.</p></div><button class="btn-primary" type="button" data-info="Return label download would begin.">Download label</button></div>
+        </section>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
+          <section class="panel p-5 sm:p-6">
+            <h2 class="text-3xl">Progress</h2>
+            <ol class="progress-track mt-6 space-y-5">
+              <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">✓</span><div><p class="font-semibold">Request submitted</p><p class="mt-1 text-sm text-[var(--muted)]">15 Jul · 11:20</p></div></li>
+              <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">✓</span><div><p class="font-semibold">Approved</p><p class="mt-1 text-sm text-[var(--muted)]">15 Jul · 16:45</p></div></li>
+              <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot is-complete">!</span><div><p class="font-semibold">Awaiting shipment</p><p class="mt-1 text-sm text-[var(--warning)]">Action required</p></div></li>
+              <li class="grid grid-cols-[31px_1fr] gap-4"><span class="timeline-dot">4</span><div><p class="font-semibold text-[var(--muted)]">Inspection and refund</p><p class="mt-1 text-sm text-[var(--muted)]">Pending</p></div></li>
+            </ol>
+          </section>
+          <section class="panel p-5 sm:p-6"><p class="eyebrow text-[var(--muted)]">Request summary</p><dl class="mt-5 space-y-5"><div><dt class="text-sm font-semibold">Reason</dt><dd class="mt-1 text-[var(--muted)]">Fit was smaller than expected</dd></div><div><dt class="text-sm font-semibold">Resolution</dt><dd class="mt-1 text-[var(--muted)]">Refund to original method</dd></div><div><dt class="text-sm font-semibold">Estimated refund</dt><dd class="mt-1 mono text-xl">₦24,000</dd></div><div><dt class="text-sm font-semibold">Method</dt><dd class="mt-1 text-[var(--muted)]">Customer drop-off</dd></div></dl></section>
+        </div>
+      </section>
+
+      <!-- ADDRESSES -->
+      <section class="route-page" data-page="addresses" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="eyebrow text-[var(--sage-deep)]">Delivery and billing</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Addresses.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Changes apply to future checkouts, never silently to an order already placed.</p></div><button class="btn-primary" type="button" data-open="address-modal">Add address</button></header>
+        <div class="mt-7 grid gap-5 xl:grid-cols-2">
+          <article class="panel-elevated p-5 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div class="flex gap-2"><span class="status status--success">Default shipping</span><span class="status status--neutral">Billing</span></div><button class="text-sm font-semibold underline underline-offset-4" type="button" data-open="address-modal">Edit</button></div><address class="mt-6 not-italic leading-8"><strong>Ada Okafor</strong><br>18 Example Road<br>Lekki Phase 1<br>Lagos, Nigeria<br><span class="mono text-sm">+234 801 234 5678</span></address><div class="mt-6 border-t border-[var(--line)] pt-4 text-sm text-[var(--muted)]">This address cannot be deleted until another default exists.</div></article>
+          <article class="panel p-5 sm:p-6"><div class="flex items-center justify-between gap-3"><span class="status status--neutral">Additional</span><button class="text-sm font-semibold underline underline-offset-4" type="button" data-open="address-modal">Edit</button></div><address class="mt-6 not-italic leading-8"><strong>Ada Okafor</strong><br>2 Sample Avenue<br>Ikeja<br>Lagos, Nigeria<br><span class="mono text-sm">+234 801 234 5678</span></address><div class="mt-6 flex flex-wrap gap-3 border-t border-[var(--line)] pt-4"><button class="btn-secondary" type="button" data-info="Address set as default shipping.">Make default</button><button class="text-sm font-semibold text-[var(--oxblood)] underline underline-offset-4" type="button" data-open="delete-address-modal">Delete</button></div></article>
+        </div>
+      </section>
+
+      <!-- PAYMENTS -->
+      <section class="route-page" data-page="payments" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="eyebrow text-[var(--sage-deep)]">Tokenized methods only</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Payment methods.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">The provider owns card collection. The account stores safe descriptors only.</p></div><button class="btn-primary" type="button" data-open="payment-modal">Add method</button></header>
+        <div class="mt-7 grid gap-5 xl:grid-cols-2">
+          <article class="panel-elevated p-5 sm:p-6"><div class="flex justify-between gap-4"><div><p class="eyebrow text-[var(--muted)]">Visa</p><h2 class="mt-4 text-4xl mono">•••• 4242</h2><p class="mt-2 text-[var(--muted)]">Expires 08/28</p></div><span class="status status--success">Default</span></div><p class="mt-6 text-sm text-[var(--muted)]">Billing address: 18 Example Road, Lagos</p><div class="mt-6 flex flex-wrap gap-4 border-t border-[var(--line)] pt-4"><button class="text-sm font-semibold underline underline-offset-4" type="button" data-info="Billing address editor would open.">Update billing</button><button class="text-sm font-semibold text-[var(--oxblood)] underline underline-offset-4" type="button" data-open="remove-payment-modal">Remove</button></div></article>
+          <article class="panel border-l-[5px] border-l-[var(--warning)] p-5 sm:p-6"><div class="flex justify-between gap-4"><div><p class="eyebrow text-[var(--muted)]">Mastercard</p><h2 class="mt-4 text-4xl mono">•••• 8910</h2><p class="mt-2 text-[var(--warning)]">Expired 04/26</p></div><span class="status status--warning">Action required</span></div><p class="mt-6 text-sm text-[var(--muted)]">Replace this method before using it in a future checkout.</p><button class="btn-secondary mt-6" type="button" data-open="payment-modal">Replace method</button></article>
+        </div>
+      </section>
+
+      <!-- SAVED -->
+      <section class="route-page" data-page="saved" hidden>
+        <header><p class="eyebrow text-[var(--sage-deep)]">Wishlist</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Saved pieces.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">One-of-one availability can change before you come back.</p></header>
+        <div class="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <article class="product-card"><a href="#" class="block"><div class="product-media"><svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Indigo denim jacket"><rect width="400" height="500" fill="#d4d6d0"/><path d="M125 105 178 76h44l53 29 48 79-48 35-28-30v214H153V189l-28 30-48-35Z" fill="#3f5965"/></svg><span class="status status--success absolute left-3 top-3">Available</span></div></a><div class="pt-4"><div class="flex justify-between gap-4"><div><a href="#" class="font-semibold underline-offset-4 hover:underline">Reworked Indigo Denim</a><p class="mt-1 text-sm text-[var(--muted)]">W 32 · Excellent</p></div><span class="mono">₦22,000</span></div><button class="btn-secondary mt-4 w-full" type="button" data-info="Saved item removed.">Remove</button></div></article>
+          <article class="product-card"><div class="product-media opacity-70"><svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Boxy blazer"><rect width="400" height="500" fill="#dad3c8"/><path d="M118 102 170 70h60l52 32 48 80-52 37-23-37v221H145V182l-23 37-52-37Z" fill="#6c6259"/></svg><span class="status status--danger absolute left-3 top-3">Sold</span></div><div class="pt-4"><div class="flex justify-between gap-4"><div><p class="font-semibold">Boxy Wool City Blazer</p><p class="mt-1 text-sm text-[var(--muted)]">One of one</p></div><span class="text-sm text-[var(--muted)]">Unavailable</span></div><button class="btn-secondary mt-4 w-full" type="button">Find similar</button></div></article>
+          <article class="product-card"><a href="#" class="block"><div class="product-media"><svg viewBox="0 0 400 500" width="100%" height="100%" role="img" aria-label="Utility jacket"><rect width="400" height="500" fill="#dce0d1"/><path d="M122 109 173 81h54l51 28 47 73-48 35-25-32v175H148V185l-25 32-48-35Z" fill="#657054"/></svg><span class="status status--neutral absolute left-3 top-3">Price changed</span></div></a><div class="pt-4"><div class="flex justify-between gap-4"><div><a href="#" class="font-semibold underline-offset-4 hover:underline">Cropped Utility Jacket</a><p class="mt-1 text-sm text-[var(--muted)]">M · Excellent</p></div><span class="mono">₦21,500</span></div><button class="btn-secondary mt-4 w-full" type="button" data-info="Saved item removed.">Remove</button></div></article>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="route-page" data-page="notifications" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="eyebrow text-[var(--sage-deep)]">Account inbox</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Notifications.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Only transactional, support and security events with real backend records.</p></div><button class="btn-secondary" type="button" data-info="All notifications marked as read.">Mark all read</button></header>
+        <div class="mt-7 divide-y divide-[var(--line)] panel-elevated overflow-hidden">
+          <button class="grid w-full gap-4 bg-[var(--bone-2)]/75 p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]" type="button" data-route="order-detail"><span class="mt-1.5 size-2.5 rounded-full bg-[var(--oxblood)]" aria-label="Unread"></span><span><strong>Your order has shipped</strong><span class="mt-1 block text-sm text-[var(--muted)]">Order #LS-1048 is on the way.</span></span><time class="text-sm text-[var(--muted)]">2h</time></button>
+          <button class="grid w-full gap-4 bg-[var(--bone-2)]/75 p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]" type="button" data-route="return-detail"><span class="mt-1.5 size-2.5 rounded-full bg-[var(--oxblood)]" aria-label="Unread"></span><span><strong>Return approved</strong><span class="mt-1 block text-sm text-[var(--muted)]">Return #RT-0038 is ready to ship.</span></span><time class="text-sm text-[var(--muted)]">1d</time></button>
+          <button class="grid w-full gap-4 bg-[var(--bone-2)]/75 p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]" type="button" data-route="security"><span class="mt-1.5 size-2.5 rounded-full bg-[var(--oxblood)]" aria-label="Unread"></span><span><strong>New sign-in detected</strong><span class="mt-1 block text-sm text-[var(--muted)]">Chrome on Windows · Lagos</span></span><time class="text-sm text-[var(--muted)]">2d</time></button>
+          <button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]" type="button" data-route="support"><span></span><span><strong>Support replied</strong><span class="mt-1 block text-sm text-[var(--muted)]">Ticket #SP-0119 has a new reply.</span></span><time class="text-sm text-[var(--muted)]">5d</time></button>
+        </div>
+      </section>
+
+      <!-- PREFERENCES -->
+      <section class="route-page" data-page="preferences" hidden>
+        <header><p class="eyebrow text-[var(--sage-deep)]">Communication and personalization</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Preferences.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Transactional and security messages remain enabled where service operation requires them.</p></header>
+        <form id="preferences-form" class="mt-7 space-y-6">
+          <section class="panel-elevated overflow-hidden">
+            <div class="border-b border-[var(--line)] p-5 sm:p-6"><h2 class="text-3xl">Communication</h2></div>
+            <div class="divide-y divide-[var(--line)]">
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Order and delivery updates</strong><span class="mt-1 block text-sm text-[var(--muted)]">Required transactional messages</span></span><input type="checkbox" checked disabled class="size-5 accent-[var(--ink)]" /></label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Security alerts</strong><span class="mt-1 block text-sm text-[var(--muted)]">Required for account protection</span></span><input type="checkbox" checked disabled class="size-5 accent-[var(--ink)]" /></label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">New-drop notes</strong><span class="mt-1 block text-sm text-[var(--muted)]">Editorial product updates</span></span><input type="checkbox" class="size-5 accent-[var(--ink)]" /></label>
+              <label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Saved-product changes</strong><span class="mt-1 block text-sm text-[var(--muted)]">Availability or price changes</span></span><input type="checkbox" checked class="size-5 accent-[var(--ink)]" /></label>
+            </div>
+          </section>
+          <section class="panel p-5 sm:p-6"><h2 class="text-3xl">Shopping preferences</h2><div class="mt-5 grid gap-5 sm:grid-cols-2"><label><span class="text-sm font-semibold">Preferred department</span><select class="field mt-2"><option>All departments</option><option>Women</option><option>Men</option><option>Unisex</option></select></label><label><span class="text-sm font-semibold">Typical size</span><select class="field mt-2"><option>Not set</option><option selected>Medium</option><option>Large</option></select></label></div></section>
+          <div class="flex justify-end"><button class="btn-primary" type="submit">Save preferences</button></div>
+        </form>
+      </section>
+
+      <!-- SECURITY -->
+      <section class="route-page" data-page="security" hidden>
+        <header><p class="eyebrow text-[var(--sage-deep)]">Authentication and devices</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Security.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Protect sign-in methods and remove access you no longer recognize.</p></header>
+        <div class="mt-7 space-y-5">
+          <section class="panel-elevated p-5 sm:p-6"><div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><p class="eyebrow text-[var(--muted)]">Password</p><h2 class="mt-3 text-3xl">Changed four months ago.</h2><p class="mt-2 text-[var(--muted)]">Social-only accounts should see Set password instead.</p></div><button class="btn-secondary" type="button" data-open="password-modal">Change password</button></div></section>
+          <section class="panel p-5 sm:p-6"><div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><p class="eyebrow text-[var(--muted)]">Two-factor authentication</p><h2 class="mt-3 text-3xl">Not enabled.</h2><p class="mt-2 text-[var(--muted)]">Only offer this when the authentication backend supports the complete lifecycle.</p></div><button class="btn-primary" type="button" data-info="2FA setup would require recent authentication and code verification.">Enable 2FA</button></div></section>
+          <section class="panel overflow-hidden">
+            <div class="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--line)] p-5 sm:p-6"><div><p class="eyebrow text-[var(--muted)]">Sessions and devices</p><h2 class="mt-3 text-3xl">Where you are signed in.</h2></div><button class="btn-secondary" type="button" data-open="signout-all-modal">Sign out others</button></div>
+            <div class="divide-y divide-[var(--line)]">
+              <article class="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6"><div><div class="flex flex-wrap items-center gap-3"><p class="font-semibold">Chrome on Windows</p><span class="status status--success">Current</span></div><p class="mt-2 text-sm text-[var(--muted)]">Lagos · Active now · Signed in 10 July</p></div><span class="text-sm text-[var(--muted)]">This browser</span></article>
+              <article class="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6"><div><p class="font-semibold">Safari on iPhone</p><p class="mt-2 text-sm text-[var(--muted)]">Lagos · Last active 2 days ago</p></div><button class="text-sm font-semibold text-[var(--oxblood)] underline underline-offset-4" type="button" data-open="revoke-modal">Revoke</button></article>
+            </div>
+          </section>
+          <section class="panel overflow-hidden"><div class="border-b border-[var(--line)] p-5 sm:p-6"><h2 class="text-3xl">Recent activity</h2></div><ol class="divide-y divide-[var(--line)]"><li class="flex flex-wrap justify-between gap-4 p-5"><span>Sign-in from Chrome on Windows</span><time class="mono text-sm text-[var(--muted)]">Today 09:12</time></li><li class="flex flex-wrap justify-between gap-4 p-5"><span>Email verification completed</span><time class="text-sm text-[var(--muted)]">3 months ago</time></li><li class="flex flex-wrap justify-between gap-4 p-5"><span>Password changed</span><time class="text-sm text-[var(--muted)]">4 months ago</time></li></ol></section>
+        </div>
+      </section>
+
+      <!-- PRIVACY -->
+      <section class="route-page" data-page="privacy" hidden>
+        <header><p class="eyebrow text-[var(--sage-deep)]">Data and account control</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Privacy.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Make data controls explicit, honest and separate from marketing preferences.</p></header>
+        <div class="mt-7 space-y-5">
+          <section class="panel-elevated overflow-hidden"><div class="border-b border-[var(--line)] p-5 sm:p-6"><h2 class="text-3xl">Privacy controls</h2></div><div class="divide-y divide-[var(--line)]"><label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Personalized recommendations</strong><span class="mt-1 block text-sm text-[var(--muted)]">Use account activity to improve suggestions</span></span><input type="checkbox" checked class="size-5 accent-[var(--ink)]" /></label><label class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Analytics consent</strong><span class="mt-1 block text-sm text-[var(--muted)]">Only when the privacy model allows user control</span></span><input type="checkbox" class="size-5 accent-[var(--ink)]" /></label><div class="flex min-h-20 items-center justify-between gap-5 p-5 sm:p-6"><span><strong class="block">Recently viewed history</strong><span class="mt-1 block text-sm text-[var(--muted)]">12 products stored</span></span><button class="text-sm font-semibold underline underline-offset-4" type="button" data-info="Recently viewed history cleared.">Clear</button></div></div></section>
+          <section class="panel p-5 sm:p-6"><div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><p class="eyebrow text-[var(--muted)]">Data export</p><h2 class="mt-3 text-3xl">Download a copy of your account data.</h2><p class="mt-3 max-w-2xl text-[var(--muted)]">Exports should be prepared asynchronously and delivered through a secure, expiring link.</p></div><button class="btn-secondary" type="button" data-open="export-modal">Request export</button></div></section>
+          <section class="panel border-l-[5px] border-l-[var(--oxblood)] p-5 sm:p-6"><div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><p class="eyebrow text-[var(--oxblood)]">Danger zone</p><h2 class="mt-3 text-3xl">Delete account.</h2><p class="mt-3 max-w-2xl text-[var(--muted)]">Active orders, returns, refunds or disputes can block the request until they resolve.</p></div><button class="btn-danger" type="button" data-open="delete-modal">Review deletion</button></div></section>
+        </div>
+      </section>
+
+      <!-- SUPPORT -->
+      <section class="route-page" data-page="support" hidden>
+        <header class="flex flex-wrap items-end justify-between gap-5"><div><p class="eyebrow text-[var(--sage-deep)]">Customer support</p><h1 class="mt-4 text-[clamp(3rem,6vw,5rem)] leading-[.93]">Support.</h1><p class="mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]">Attach the right order or return before the conversation starts.</p></div><button class="btn-primary" type="button" data-open="support-modal">Start request</button></header>
+        <section class="mt-7 panel p-5 sm:p-6"><label><span class="text-sm font-semibold">Search help</span><input class="field mt-2" type="search" placeholder="Delivery, returns, measurements…" /></label><div class="mt-4 flex flex-wrap gap-2"><button class="btn-secondary" type="button" data-info="Delivery help article opened.">Delivery</button><button class="btn-secondary" type="button" data-info="Returns help article opened.">Returns</button><button class="btn-secondary" type="button" data-info="Sizing help article opened.">Sizing</button></div></section>
+        <section class="mt-6"><p class="eyebrow text-[var(--muted)]">Recent tickets</p><div class="mt-4 divide-y divide-[var(--line)] panel-elevated overflow-hidden"><button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[1fr_auto]" type="button" data-route="ticket-detail"><span><span class="eyebrow text-[var(--muted)]">Ticket <span class="mono">#SP-0119</span></span><strong class="mt-3 block">Question about order #LS-1048</strong><span class="mt-2 block text-sm text-[var(--muted)]">Support replied 5 days ago</span></span><span class="status status--warning">Waiting for you</span></button><button class="grid w-full gap-4 p-5 text-left sm:grid-cols-[1fr_auto]" type="button" data-route="ticket-detail"><span><span class="eyebrow text-[var(--muted)]">Ticket <span class="mono">#SP-0084</span></span><strong class="mt-3 block">Return pickup completed</strong><span class="mt-2 block text-sm text-[var(--muted)]">Resolved 2 months ago</span></span><span class="status status--success">Resolved</span></button></div></section>
+      </section>
+
+      <!-- TICKET DETAIL -->
+      <section class="route-page" data-page="ticket-detail" hidden>
+        <button class="mb-5 text-sm font-semibold underline underline-offset-4" type="button" data-route="support">← Back to support</button>
+        <header class="flex flex-wrap items-start justify-between gap-5"><div><p class="eyebrow text-[var(--sage-deep)]">Ticket <span class="mono">#SP-0119</span></p><h1 class="mt-4 text-[clamp(3rem,6vw,4.8rem)] leading-[.93]">Question about order #LS-1048.</h1></div><span class="status status--warning">Waiting for you</span></header>
+        <div class="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_310px]">
+          <section class="panel-elevated overflow-hidden">
+            <div class="space-y-5 p-5 sm:p-6">
+              <article class="ml-auto max-w-2xl rounded-[var(--radius-card)] bg-[var(--ink)] p-5 text-[var(--bone)]"><p class="eyebrow text-white/55">You · 11 July</p><p class="mt-3 leading-7">Can the delivery address be changed before dispatch?</p></article>
+              <article class="max-w-2xl rounded-[var(--radius-card)] bg-[var(--bone-2)] p-5"><p class="eyebrow text-[var(--muted)]">Support · 11 July</p><p class="mt-3 leading-7">The order has not been dispatched yet. Please confirm the replacement address.</p></article>
+            </div>
+            <form id="ticket-form" class="border-t border-[var(--line)] p-5 sm:p-6"><label><span class="text-sm font-semibold">Reply</span><textarea class="field mt-2 min-h-32" required placeholder="Write a message"></textarea></label><div class="mt-4 flex flex-wrap items-center justify-between gap-4"><button class="btn-secondary" type="button" data-info="Attachment picker would open with validation.">Attach file</button><button class="btn-primary" type="submit">Send reply</button></div></form>
+          </section>
+          <aside class="space-y-5"><section class="panel p-5"><p class="eyebrow text-[var(--muted)]">Related order</p><h2 class="mt-3 text-3xl mono">#LS-1048</h2><p class="mt-2 text-[var(--muted)]">Shipped</p><button class="mt-4 text-sm font-semibold underline underline-offset-4" type="button" data-route="order-detail">View order</button></section><section class="panel p-5"><p class="eyebrow text-[var(--muted)]">Ticket detail</p><dl class="mt-4 space-y-4 text-sm"><div><dt class="font-semibold">Topic</dt><dd class="mt-1 text-[var(--muted)]">Order change</dd></div><div><dt class="font-semibold">Opened</dt><dd class="mt-1 text-[var(--muted)]">11 July 2026</dd></div><div><dt class="font-semibold">Status</dt><dd class="mt-1 text-[var(--muted)]">Waiting for customer</dd></div></dl></section></aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="border-t border-[var(--line)] bg-[var(--surface)]">
+    <div class="mx-auto grid max-w-[1520px] gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+      <div><div class="flex items-center gap-3"><span class="grid size-10 place-items-center rounded-full border border-[var(--ink)]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4v16h12M8.5 4v11.5h8" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="text-sm font-bold tracking-[.22em]">LAITSTYLE</span></div><p class="mt-5 max-w-sm leading-7 text-[var(--muted)]">Curated pre-owned fashion, measured by hand and selected with opinions.</p></div>
+      <div><p class="font-semibold">Shop</p><ul class="mt-4 space-y-3 text-sm text-[var(--muted)]"><li><a href="#">New in</a></li><li><a href="#">Jackets</a></li><li><a href="#">One-of-one archive</a></li></ul></div>
+      <div><p class="font-semibold">Help</p><ul class="mt-4 space-y-3 text-sm text-[var(--muted)]"><li><button data-route="support">Support</button></li><li><button data-route="returns">Returns</button></li><li><button data-route="security">Security</button></li></ul></div>
+      <div><p class="font-semibold">Account</p><ul class="mt-4 space-y-3 text-sm text-[var(--muted)]"><li><button data-route="profile">Profile</button></li><li><button data-route="privacy">Privacy</button></li><li><button data-route="preferences">Preferences</button></li></ul></div>
+    </div>
+  </footer>
+
+  <!-- Mobile Account Navigation -->
+  <div id="account-menu" class="drawer-backdrop fixed inset-0 z-[80] hidden" aria-hidden="true">
+    <section class="sheet absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-[24px] bg-[var(--surface)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" role="dialog" aria-modal="true" aria-labelledby="account-menu-title">
+      <div class="flex items-center justify-between gap-4"><div><p class="eyebrow text-[var(--muted)]">Signed in as Ada</p><h2 id="account-menu-title" class="mt-2 text-4xl">Account</h2></div><button id="account-menu-close" class="icon-btn" type="button" aria-label="Close account menu"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <nav class="mt-6 grid gap-1" aria-label="Mobile account">
+        <button class="sidebar-link" type="button" data-route="overview">Overview</button>
+        <button class="sidebar-link" type="button" data-route="profile">Profile</button>
+        <button class="sidebar-link" type="button" data-route="orders">Orders</button>
+        <button class="sidebar-link" type="button" data-route="returns">Returns</button>
+        <button class="sidebar-link" type="button" data-route="addresses">Addresses</button>
+        <button class="sidebar-link" type="button" data-route="payments">Payment methods</button>
+        <button class="sidebar-link" type="button" data-route="saved">Saved items</button>
+        <button class="sidebar-link" type="button" data-route="notifications">Notifications</button>
+        <button class="sidebar-link" type="button" data-route="preferences">Preferences</button>
+        <button class="sidebar-link" type="button" data-route="security">Security</button>
+        <button class="sidebar-link" type="button" data-route="privacy">Privacy</button>
+        <button class="sidebar-link" type="button" data-route="support">Support</button>
+      </nav>
+      <button class="btn-danger mt-6 w-full" type="button" data-info="Current-session sign-out selected.">Sign out</button>
+    </section>
+  </div>
+
+  <!-- Simple reusable modal blocks -->
+  <div id="verify-email-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-lg rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="verify-email-title">
+      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--sage-deep)]">Verification</p><h2 id="verify-email-title" class="mt-3 text-4xl">Verify your email.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <p class="mt-5 leading-7 text-[var(--muted)]">A verification link will be sent to ada@example.com. The authentication provider controls expiry and resend limits.</p>
+      <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Not now</button><button class="btn-primary" type="button" data-success="Verification email sent">Send link</button></div>
+    </section>
+  </div>
+
+  <div id="email-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-xl rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="email-title">
+      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--oxblood)]">Protected change</p><h2 id="email-title" class="mt-3 text-4xl">Change email.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <form class="mt-6 space-y-5" data-demo="Email change started"><label><span class="text-sm font-semibold">New email address</span><input class="field mt-2" type="email" required /></label><label><span class="text-sm font-semibold">Current password</span><input class="field mt-2" type="password" required /><span class="mt-2 block text-sm text-[var(--muted)]">Recent reauthentication may replace this field.</span></label><div class="soft p-4 text-sm text-[var(--muted)]">The current address remains active until the new address is verified.</div><div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="submit">Continue</button></div></form>
+    </section>
+  </div>
+
+  <div id="address-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="address-title">
+      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--sage-deep)]">Delivery and billing</p><h2 id="address-title" class="mt-3 text-4xl">Add or edit address.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <form class="mt-6 grid gap-5 sm:grid-cols-2" data-demo="Address saved">
+        <label class="sm:col-span-2"><span class="text-sm font-semibold">Recipient name</span><input class="field mt-2" required /></label>
+        <label class="sm:col-span-2"><span class="text-sm font-semibold">Address line 1</span><input class="field mt-2" required /></label>
+        <label class="sm:col-span-2"><span class="text-sm font-semibold">Address line 2</span><input class="field mt-2" /></label>
+        <label><span class="text-sm font-semibold">City</span><input class="field mt-2" required /></label>
+        <label><span class="text-sm font-semibold">State / region</span><input class="field mt-2" required /></label>
+        <label><span class="text-sm font-semibold">Postal code</span><input class="field mt-2" /></label>
+        <label><span class="text-sm font-semibold">Country</span><select class="field mt-2"><option>Nigeria</option><option>Ghana</option><option>United Kingdom</option></select></label>
+        <label class="sm:col-span-2"><span class="text-sm font-semibold">Phone</span><input class="field mt-2" type="tel" required /></label>
+        <label class="flex min-h-11 items-center gap-3 sm:col-span-2"><input type="checkbox" class="size-5 accent-[var(--ink)]" /><span>Set as default shipping address</span></label>
+        <div class="flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-5 sm:col-span-2 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="submit">Save address</button></div>
+      </form>
+    </section>
+  </div>
+
+  <div id="delete-address-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-lg rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="delete-address-title"><h2 id="delete-address-title" class="text-4xl">Delete this address?</h2><p class="mt-4 leading-7 text-[var(--muted)]">This does not change an address recorded on an existing order.</p><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Keep address</button><button class="btn-danger" type="button" data-success="Address deleted">Delete</button></div></section>
+  </div>
+
+  <div id="payment-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-xl rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="payment-title"><div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--sage-deep)]">Secure provider boundary</p><h2 id="payment-title" class="mt-3 text-4xl">Add payment method.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><div class="mt-6 rounded-[var(--radius-card)] border border-dashed border-[var(--line-strong)] bg-[var(--bone-2)] p-6"><p class="font-semibold">Payment-provider hosted fields</p><p class="mt-3 leading-7 text-[var(--muted)]">Card number, expiry, CVV, setup challenge and provider errors belong inside the provider integration.</p></div><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="button" data-success="Provider setup completed">Continue securely</button></div></section>
+  </div>
+
+  <div id="remove-payment-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-lg rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="remove-payment-title"><h2 id="remove-payment-title" class="text-4xl">Remove Visa ending 4242?</h2><p class="mt-4 leading-7 text-[var(--muted)]">A replacement default may be required before removal.</p><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Keep method</button><button class="btn-danger" type="button" data-success="Payment method removed">Remove</button></div></section>
+  </div>
+
+  <div id="cancel-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal w-full max-w-xl rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="cancel-title"><div><p class="eyebrow text-[var(--oxblood)]">Eligibility rechecked on submit</p><h2 id="cancel-title" class="mt-3 text-4xl">Cancel this item?</h2></div><form class="mt-6 space-y-5" data-demo="Cancellation request submitted"><div class="soft p-4"><p class="font-semibold">Broken-in Leather Moto</p><p class="mt-1 text-sm text-[var(--muted)]">Order #LS-1048 · ₦41,000</p></div><label><span class="text-sm font-semibold">Reason</span><select class="field mt-2" required><option value="">Choose a reason</option><option>Ordered by mistake</option><option>Need to change delivery details</option><option>Other</option></select></label><p class="text-sm leading-6 text-[var(--muted)]">Refund timing and method must come from the payment backend.</p><div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Keep item</button><button class="btn-danger" type="submit">Request cancellation</button></div></form></section>
+  </div>
+
+  <!-- Return wizard -->
+  <div id="return-modal" class="modal-backdrop fixed inset-0 z-[95] hidden items-center justify-center p-0 sm:p-4" aria-hidden="true">
+    <section class="modal flex h-full w-full max-w-4xl flex-col overflow-hidden bg-[var(--surface)] sm:h-auto sm:max-h-[94vh] sm:rounded-[var(--radius-modal)] sm:shadow-[var(--shadow-md)]" role="dialog" aria-modal="true" aria-labelledby="return-title">
+      <div class="flex items-start justify-between gap-4 border-b border-[var(--line)] p-5 sm:p-6"><div><p class="eyebrow text-[var(--sage-deep)]">Return request</p><h2 id="return-title" class="mt-3 text-4xl">Start a return.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close return flow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <div class="border-b border-[var(--line)] bg-[var(--bone)] p-4"><ol class="grid grid-cols-5 gap-2" aria-label="Return steps"><li class="text-center"><span class="step-node mx-auto is-active" data-step-node="1">1</span><span class="mt-2 hidden text-xs sm:block">Items</span></li><li class="text-center"><span class="step-node mx-auto" data-step-node="2">2</span><span class="mt-2 hidden text-xs sm:block">Reason</span></li><li class="text-center"><span class="step-node mx-auto" data-step-node="3">3</span><span class="mt-2 hidden text-xs sm:block">Evidence</span></li><li class="text-center"><span class="step-node mx-auto" data-step-node="4">4</span><span class="mt-2 hidden text-xs sm:block">Method</span></li><li class="text-center"><span class="step-node mx-auto" data-step-node="5">5</span><span class="mt-2 hidden text-xs sm:block">Review</span></li></ol></div>
+      <div class="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+        <section class="return-step is-active" data-return-step="1"><h3 class="text-3xl">Select eligible items.</h3><p class="mt-3 text-[var(--muted)]">Delivered quantities only. Already returned quantities stay excluded.</p><label class="mt-6 grid gap-4 rounded-[var(--radius-card)] border border-[var(--line-strong)] p-4 sm:grid-cols-[24px_96px_minmax(0,1fr)_auto] sm:items-center"><input type="checkbox" checked class="size-5 accent-[var(--ink)]" /><span class="order-thumb aspect-square"><svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><rect width="100" height="100" fill="#dad3c8"/><path d="M29 25 44 16h12l15 9 14 24-13 10-8-9v40H36V50l-8 9-13-10Z" fill="#6c6259"/></svg></span><span><strong class="block">Boxy Wool City Blazer</strong><span class="mt-1 block text-sm text-[var(--muted)]">XL · Quantity 1 · Delivered 23 May</span></span><span class="mono">₦28,500</span></label><div class="mt-4 soft p-4"><p class="font-semibold">Broken-in Leather Moto</p><p class="mt-2 text-sm text-[var(--muted)]">Not delivered yet, so a return cannot start.</p></div></section>
+        <section class="return-step" data-return-step="2"><h3 class="text-3xl">Reason and resolution.</h3><div class="mt-6 grid gap-5"><label><span class="text-sm font-semibold">Return reason</span><select class="field mt-2"><option>Fit was not right</option><option>Item did not match expectations</option><option>Item arrived damaged</option><option>Other</option></select></label><label><span class="text-sm font-semibold">Additional details</span><textarea class="field mt-2 min-h-28"></textarea></label><fieldset><legend class="text-sm font-semibold">Preferred resolution</legend><div class="mt-3 grid gap-3 sm:grid-cols-3"><label class="panel flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" checked />Refund</label><label class="panel flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" />Exchange</label><label class="panel flex min-h-20 items-center gap-3 p-4"><input type="radio" name="resolution" />Store credit</label></div></fieldset></div></section>
+        <section class="return-step" data-return-step="3"><h3 class="text-3xl">Condition evidence.</h3><p class="mt-3 text-[var(--muted)]">Required only when the policy or reason needs it.</p><button class="mt-6 flex min-h-56 w-full flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed border-[var(--line-strong)] bg-[var(--bone-2)] p-6 text-center" type="button" data-info="File picker opened with type, count and size validation."><svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 17v3h16v-3" stroke="currentColor" stroke-width="1.7"/></svg><strong class="mt-4">Add item or packaging photos</strong><span class="mt-2 text-sm text-[var(--muted)]">JPG, PNG or WEBP · Backend limits apply</span></button></section>
+        <section class="return-step" data-return-step="4"><h3 class="text-3xl">Choose return method.</h3><div class="mt-6 grid gap-3"><label class="panel flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" checked class="mt-1" /><span><strong class="block">Courier pickup</strong><span class="mt-2 block text-sm text-[var(--muted)]">Fees and available dates come from the backend.</span></span></label><label class="panel flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" class="mt-1" /><span><strong class="block">Customer drop-off</strong><span class="mt-2 block text-sm text-[var(--muted)]">Use the generated label and approved location.</span></span></label><label class="panel flex min-h-24 items-start gap-3 p-4"><input type="radio" name="returnMethod" class="mt-1" /><span><strong class="block">Customer shipment</strong><span class="mt-2 block text-sm text-[var(--muted)]">Tracking must be added after dispatch.</span></span></label></div></section>
+        <section class="return-step" data-return-step="5"><h3 class="text-3xl">Review request.</h3><dl class="mt-6 divide-y divide-[var(--line)] panel"><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-semibold">Item</dt><dd>Boxy Wool City Blazer · XL</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-semibold">Reason</dt><dd>Fit was not right</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-semibold">Resolution</dt><dd>Refund to original method</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-semibold">Method</dt><dd>Courier pickup</dd></div><div class="grid gap-2 p-4 sm:grid-cols-[180px_1fr]"><dt class="font-semibold">Estimated refund</dt><dd class="mono">₦28,500, subject to inspection</dd></div></dl><label class="mt-5 flex items-start gap-3"><input type="checkbox" class="mt-1 size-5 accent-[var(--ink)]" /><span>I confirm the item remains in the condition required by the return policy.</span></label></section>
+      </div>
+      <div class="mobile-action flex items-center justify-between gap-3 border-t border-[var(--line)] bg-[var(--surface)] p-4"><button id="return-back" class="btn-secondary" type="button" disabled>Back</button><p id="return-label" class="mono text-xs">1 / 5</p><button id="return-next" class="btn-primary" type="button">Continue</button></div>
+    </section>
+  </div>
+
+  <div id="password-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal w-full max-w-xl rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="password-title"><div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--oxblood)]">Protected change</p><h2 id="password-title" class="mt-3 text-4xl">Change password.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><form class="mt-6 space-y-5" data-demo="Password changed"><label><span class="text-sm font-semibold">Current password</span><input class="field mt-2" type="password" required /></label><label><span class="text-sm font-semibold">New password</span><input class="field mt-2" type="password" required /></label><label><span class="text-sm font-semibold">Confirm new password</span><input class="field mt-2" type="password" required /></label><label class="flex items-start gap-3"><input type="checkbox" class="mt-1 size-5 accent-[var(--ink)]" /><span>Sign out all other sessions</span></label><div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="submit">Change password</button></div></form></section></div>
+
+  <div id="revoke-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal w-full max-w-lg rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="revoke-title"><h2 id="revoke-title" class="text-4xl">Revoke this session?</h2><p class="mt-4 leading-7 text-[var(--muted)]">Safari on iPhone will need to sign in again.</p><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Keep session</button><button class="btn-danger" type="button" data-success="Session revoked">Revoke</button></div></section></div>
+
+  <div id="signout-all-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal w-full max-w-lg rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="signout-all-title"><h2 id="signout-all-title" class="text-4xl">Sign out other sessions?</h2><p class="mt-4 leading-7 text-[var(--muted)]">Other devices will need to sign in again. This browser remains active.</p><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-danger" type="button" data-success="Other sessions signed out">Sign out others</button></div></section></div>
+
+  <div id="export-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true"><section class="modal w-full max-w-xl rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="export-title"><div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--sage-deep)]">Asynchronous request</p><h2 id="export-title" class="mt-3 text-4xl">Export account data.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div><p class="mt-5 leading-7 text-[var(--muted)]">The export may include profile, orders, returns, addresses, preferences and support records. Security secrets and payment credentials stay excluded.</p><div class="mt-6 soft p-4 text-sm text-[var(--muted)]">Production states: pending, processing, ready, expired, failed and rate-limited.</div><div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="button" data-success="Data export requested">Request export</button></div></section></div>
+
+  <div id="delete-modal" class="modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-0 sm:p-4" aria-hidden="true">
+    <section class="modal h-full w-full max-w-2xl overflow-y-auto bg-[var(--surface)] p-5 sm:h-auto sm:max-h-[94vh] sm:rounded-[var(--radius-modal)] sm:p-7 sm:shadow-[var(--shadow-md)]" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--oxblood)]">High-risk action</p><h2 id="delete-title" class="mt-3 text-4xl">Review account deletion.</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <div class="mt-6 border-l-[5px] border-[var(--oxblood)] panel p-5"><p class="eyebrow text-[var(--oxblood)]">Currently blocked</p><h3 class="mt-3 text-3xl">Two commerce tasks remain open.</h3><ul class="mt-4 list-disc space-y-2 pl-5 text-[var(--muted)]"><li>Order #LS-1048 is still in transit.</li><li>Return #RT-0038 is awaiting shipment.</li></ul><div class="mt-5 flex flex-wrap gap-3"><button class="btn-secondary" type="button" data-route="orders" data-close>View order</button><button class="btn-secondary" type="button" data-route="return-detail" data-close>View return</button></div></div>
+      <section class="mt-7"><h3 class="text-3xl">When deletion becomes available.</h3><ul class="mt-4 list-disc space-y-2 pl-5 leading-7 text-[var(--muted)]"><li>Profile and preferences may be deleted or anonymized.</li><li>Saved products and active sessions are removed.</li><li>Transaction records may be retained where required.</li><li>Support and refund history follows the real retention policy.</li></ul></section>
+      <fieldset class="mt-7 rounded-[var(--radius-card)] border border-[var(--line-strong)] p-5 opacity-55" disabled><legend class="px-2 text-sm font-semibold">Final confirmation</legend><label class="block"><span class="text-sm font-semibold">Type DELETE</span><input class="field mt-2" placeholder="DELETE" /></label><label class="mt-4 flex items-start gap-3"><input type="checkbox" class="mt-1 size-5" /><span>I understand the deletion and retention consequences.</span></label></fieldset>
+      <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Close</button><button class="btn-danger" type="button" disabled>Delete account</button></div>
+    </section>
+  </div>
+
+  <div id="support-modal" class="modal-backdrop fixed inset-0 z-[90] hidden items-center justify-center p-4" aria-hidden="true">
+    <section class="modal max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-[var(--radius-modal)] bg-[var(--surface)] p-5 shadow-[var(--shadow-md)] sm:p-7" role="dialog" aria-modal="true" aria-labelledby="support-title">
+      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow text-[var(--sage-deep)]">New support request</p><h2 id="support-title" class="mt-3 text-4xl">How can support help?</h2></div><button class="icon-btn" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8"/></svg></button></div>
+      <form class="mt-6 grid gap-5" data-demo="Support request created"><label><span class="text-sm font-semibold">Topic</span><select class="field mt-2"><option>Order question</option><option>Return or refund</option><option>Product information</option><option>Account and security</option></select></label><label><span class="text-sm font-semibold">Related order or return</span><select class="field mt-2"><option>None</option><option>Order #LS-1048</option><option>Return #RT-0038</option></select></label><label><span class="text-sm font-semibold">Subject</span><input class="field mt-2" required /></label><label><span class="text-sm font-semibold">Message</span><textarea class="field mt-2 min-h-32" required></textarea></label><button class="rounded-[var(--radius-card)] border border-dashed border-[var(--line-strong)] bg-[var(--bone-2)] p-5 text-left" type="button" data-info="Attachment picker opened with validation."><strong>Attach files</strong><span class="mt-2 block text-sm text-[var(--muted)]">Only supported file types and sizes.</span></button><div class="flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-5 sm:flex-row sm:justify-end"><button class="btn-secondary" type="button" data-close>Cancel</button><button class="btn-primary" type="submit">Submit request</button></div></form>
+    </section>
+  </div>
+
+  <div id="toast-region" class="fixed bottom-5 left-1/2 z-[130] w-[min(92vw,440px)] -translate-x-1/2" aria-live="polite" aria-atomic="true">
+    <div id="toast" class="toast rounded-full bg-[var(--ink)] px-5 py-3 text-center text-sm font-semibold text-[var(--bone)] shadow-xl" hidden></div>
+  </div>
+
+  <script>
+    (() => {
+      const routeTitles = {
+        overview: "Overview",
+        profile: "Profile",
+        orders: "Orders",
+        "order-detail": "Order #LS-1048",
+        returns: "Returns",
+        "return-detail": "Return #RT-0038",
+        addresses: "Addresses",
+        payments: "Payment methods",
+        saved: "Saved items",
+        notifications: "Notifications",
+        preferences: "Preferences",
+        security: "Security",
+        privacy: "Privacy",
+        support: "Support",
+        "ticket-detail": "Ticket #SP-0119"
+      };
+
+      let currentRoute = "overview";
+      let returnStep = 1;
+      let lastFocused = null;
+      let toastTimer = null;
+
+      const pages = [...document.querySelectorAll("[data-page]")];
+      const menu = document.getElementById("account-menu");
+      const menuPanel = menu.querySelector(".sheet");
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add("is-visible"));
+        toastTimer = setTimeout(() => {
+          toast.classList.remove("is-visible");
+          setTimeout(() => { toast.hidden = true; }, 220);
+        }, 2600);
+      }
+
+      function closeMenu() {
+        menuPanel.classList.remove("is-open");
+        document.getElementById("account-menu-trigger").setAttribute("aria-expanded", "false");
+        setTimeout(() => {
+          menu.classList.add("hidden");
+          menu.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 300);
+      }
+
+      function navigate(route) {
+        if (!routeTitles[route]) return;
+        currentRoute = route;
+        pages.forEach(page => page.hidden = page.dataset.page !== route);
+        document.querySelectorAll(".sidebar-link[data-route]").forEach(link => {
+          if (link.dataset.route === route) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+
+        const title = routeTitles[route];
+        document.getElementById("breadcrumb-current").textContent = title;
+        document.getElementById("mobile-title").textContent = title;
+        document.title = `${title} — Laitstyle Account`;
+        history.replaceState(null, "", `#${route}`);
+        closeMenu();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        const heading = pages.find(page => page.dataset.page === route)?.querySelector("h1");
+        heading?.setAttribute("tabindex", "-1");
+        setTimeout(() => heading?.focus(), 100);
+      }
+
+      function openMenu() {
+        lastFocused = document.activeElement;
+        menu.classList.remove("hidden");
+        menu.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        document.getElementById("account-menu-trigger").setAttribute("aria-expanded", "true");
+        requestAnimationFrame(() => menuPanel.classList.add("is-open"));
+        setTimeout(() => document.getElementById("account-menu-close").focus(), 80);
+      }
+
+      function openModal(id) {
+        const backdrop = document.getElementById(id);
+        if (!backdrop) return;
+        lastFocused = document.activeElement;
+        backdrop.classList.remove("hidden");
+        backdrop.classList.add("flex");
+        backdrop.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        const panel = backdrop.querySelector(".modal");
+        requestAnimationFrame(() => panel?.classList.add("is-open"));
+        setTimeout(() => backdrop.querySelector("button, input, select, textarea")?.focus(), 80);
+      }
+
+      function closeModal(backdrop) {
+        if (!backdrop) return;
+        const panel = backdrop.querySelector(".modal");
+        panel?.classList.remove("is-open");
+        setTimeout(() => {
+          backdrop.classList.add("hidden");
+          backdrop.classList.remove("flex");
+          backdrop.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          lastFocused?.focus();
+        }, 220);
+      }
+
+      document.querySelectorAll("[data-route]").forEach(el => {
+        el.addEventListener("click", event => {
+          event.preventDefault();
+          navigate(el.dataset.route);
+          const modal = el.closest(".modal-backdrop");
+          if (modal) closeModal(modal);
+        });
+      });
+
+      document.getElementById("account-menu-trigger").addEventListener("click", openMenu);
+      document.getElementById("account-menu-close").addEventListener("click", closeMenu);
+      menu.addEventListener("click", event => { if (event.target === menu) closeMenu(); });
+
+      document.querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openModal(el.dataset.open)));
+      document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => closeModal(el.closest(".modal-backdrop"))));
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.addEventListener("click", event => { if (event.target === backdrop) closeModal(backdrop); }));
+
+      document.querySelectorAll("[data-info]").forEach(el => el.addEventListener("click", () => showToast(el.dataset.info)));
+      document.querySelectorAll("[data-success]").forEach(el => el.addEventListener("click", () => {
+        showToast(el.dataset.success);
+        closeModal(el.closest(".modal-backdrop"));
+      }));
+
+      document.querySelectorAll("[data-demo]").forEach(form => form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        showToast(form.dataset.demo);
+        closeModal(form.closest(".modal-backdrop"));
+      }));
+
+      const profileForm = document.getElementById("profile-form");
+      const profileSave = document.getElementById("profile-save");
+      const profileState = document.getElementById("profile-state");
+      profileForm.addEventListener("input", () => {
+        profileSave.disabled = false;
+        profileState.textContent = "Unsaved changes.";
+      });
+      profileForm.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!profileForm.checkValidity()) return profileForm.reportValidity();
+        profileSave.disabled = true;
+        profileState.textContent = "Changes saved.";
+        showToast("Profile updated");
+      });
+
+      document.getElementById("preferences-form").addEventListener("submit", event => {
+        event.preventDefault();
+        showToast("Preferences saved");
+      });
+
+      document.getElementById("ticket-form").addEventListener("submit", event => {
+        event.preventDefault();
+        if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
+        event.currentTarget.reset();
+        showToast("Reply sent");
+      });
+
+      function renderReturnStep() {
+        document.querySelectorAll("[data-return-step]").forEach(step => step.classList.toggle("is-active", Number(step.dataset.returnStep) === returnStep));
+        document.querySelectorAll("[data-step-node]").forEach(node => {
+          const number = Number(node.dataset.stepNode);
+          node.classList.toggle("is-active", number === returnStep);
+          node.classList.toggle("is-complete", number < returnStep);
+        });
+        document.getElementById("return-back").disabled = returnStep === 1;
+        document.getElementById("return-next").textContent = returnStep === 5 ? "Submit return" : "Continue";
+        document.getElementById("return-label").textContent = `${returnStep} / 5`;
+      }
+
+      document.getElementById("return-back").addEventListener("click", () => {
+        returnStep = Math.max(1, returnStep - 1);
+        renderReturnStep();
+      });
+
+      document.getElementById("return-next").addEventListener("click", () => {
+        if (returnStep < 5) {
+          returnStep += 1;
+          renderReturnStep();
+        } else {
+          showToast("Return request submitted");
+          closeModal(document.getElementById("return-modal"));
+          returnStep = 1;
+          renderReturnStep();
+        }
+      });
+
+      document.getElementById("signout-trigger").addEventListener("click", () => showToast("Current-session sign-out selected"));
+
+      document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        const modal = [...document.querySelectorAll(".modal-backdrop:not(.hidden)")].pop();
+        if (modal) closeModal(modal);
+        else if (!menu.classList.contains("hidden")) closeMenu();
+      });
+
+      renderReturnStep();
+      const initial = location.hash.replace("#", "");
+      navigate(routeTitles[initial] ? initial : "overview");
+    })();
+  </script>
+</body>
+</html>
