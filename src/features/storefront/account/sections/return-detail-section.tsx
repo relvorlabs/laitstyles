@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -17,13 +18,14 @@ export function ReturnDetailSection() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={() => navigate("returns")}
-        className="mb-5 text-sm font-semibold underline underline-offset-4"
+        className="mb-5 h-auto p-0 text-sm font-semibold"
+        variant="link"
       >
         ← Back to returns
-      </button>
+      </Button>
 
       <header>
         <Eyebrow className="text-[var(--acc-sage-deep)]">Return detail</Eyebrow>
@@ -49,7 +51,8 @@ export function ReturnDetailSection() {
               Use the generated label or arrange pickup through support.
             </p>
           </div>
-          <AcctButton onClick={() => toast("Return label download would begin.")}>
+          {/* TODO(button-action): Download a signed return label after the returns service exposes a label endpoint. */}
+          <AcctButton onClick={() => toast("Return label download is not available yet.")}>
             Download label
           </AcctButton>
         </div>
