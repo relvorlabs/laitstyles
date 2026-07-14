@@ -45,18 +45,21 @@ export function HoldsMobileList({
                   <HoldRiskBadge risk={item.risk} />
                   <Badge variant="outline">{holdStageLabels[hold.stage]}</Badge>
                 </div>
-                <button
-                  className="mt-3 block max-w-full rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Button
+                  className="mt-3 h-auto max-w-full justify-start p-0 text-left"
                   onClick={() => onOpen(hold.id)}
                   type="button"
+                  variant="link"
                 >
-                  <h3 className="truncate font-serif text-[22px] font-medium leading-tight">
-                    {item.productName}
-                  </h3>
-                  <p className="mt-1 truncate text-[10.5px] text-muted-foreground">
-                    {item.variantLabel ?? item.productReference}
-                  </p>
-                </button>
+                  <span className="min-w-0">
+                    <span className="block truncate font-serif text-[22px] font-medium leading-tight">
+                      {item.productName}
+                    </span>
+                    <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
+                      {item.variantLabel ?? item.productReference}
+                    </span>
+                  </span>
+                </Button>
                 <p className="mt-3 truncate text-[11.5px] font-semibold">{item.customerName}</p>
                 <p className="mt-1 text-[10.5px] text-muted-foreground">
                   {holdSourceLabels[hold.source]} · {hold.quantity} unit
