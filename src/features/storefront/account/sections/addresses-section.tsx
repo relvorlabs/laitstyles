@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -36,13 +37,14 @@ export function AddressesSection() {
               <StatusBadge variant="success">Default shipping</StatusBadge>
               <StatusBadge variant="neutral">Billing</StatusBadge>
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => openModal("address")}
-              className="text-sm font-semibold underline underline-offset-4"
+              className="h-auto p-0 text-sm font-semibold"
+              variant="link"
             >
               Edit
-            </button>
+            </Button>
           </div>
           <address className="mt-6 not-italic leading-8">
             <strong>Ada Okafor</strong>
@@ -63,13 +65,14 @@ export function AddressesSection() {
         <article className={cn("p-5 sm:p-6", panelClass)}>
           <div className="flex items-center justify-between gap-3">
             <StatusBadge variant="neutral">Additional</StatusBadge>
-            <button
+            <Button
               type="button"
               onClick={() => openModal("address")}
-              className="text-sm font-semibold underline underline-offset-4"
+              className="h-auto p-0 text-sm font-semibold"
+              variant="link"
             >
               Edit
-            </button>
+            </Button>
           </div>
           <address className="mt-6 not-italic leading-8">
             <strong>Ada Okafor</strong>
@@ -82,19 +85,21 @@ export function AddressesSection() {
             <span className={cn(monoClass, "text-sm")}>+234 801 234 5678</span>
           </address>
           <div className="mt-6 flex flex-wrap gap-3 border-t border-[var(--acc-line)] pt-4">
+            {/* TODO(button-action): Persist the default shipping address after the account address mutation is available. */}
             <AcctButton
               variant="secondary"
-              onClick={() => toast("Address set as default shipping.")}
+              onClick={() => toast("Changing the default address is not available yet.")}
             >
               Make default
             </AcctButton>
-            <button
+            <Button
               type="button"
               onClick={() => openModal("delete-address")}
-              className="text-sm font-semibold acc-fg-oxblood underline underline-offset-4"
+              className="h-auto p-0 text-sm font-semibold acc-fg-oxblood"
+              variant="link"
             >
               Delete
-            </button>
+            </Button>
           </div>
         </article>
       </div>
