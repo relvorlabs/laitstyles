@@ -3,7 +3,7 @@ import type {
   PaymentMethod,
   PaymentStatus,
   SalesChannel,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export const recordSaleSteps = ["item", "customer", "payment", "review"] as const;
 export type RecordSaleStep = (typeof recordSaleSteps)[number];
