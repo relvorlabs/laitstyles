@@ -8,14 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
   formatIntakeStage,
   getAdjacentIntakeStages,
-} from "@/lib/control-room/product-editor-actions";
-import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/control-room/types";
+} from "@/lib/admin/product-editor-actions";
+import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/types";
 
 const stageOrder: IntakeStage[] = [
   "received",
@@ -27,7 +27,7 @@ const stageOrder: IntakeStage[] = [
 ];
 
 export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) {
-  const { state, transitionIntake } = useControlRoom();
+  const { state, transitionIntake } = useAdmin();
   const { openExistingProduct } = useProductEditorController();
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error";
@@ -137,7 +137,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                     type="button"
                     variant="outline"
                   >
-                    <ControlRoomIcon icon={Edit02Icon} size={16} />
+                    <AdminIcon icon={Edit02Icon} size={16} />
                     Continue product
                   </Button>
                   {adjacent.previous ? (
@@ -147,7 +147,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                       type="button"
                       variant="ghost"
                     >
-                      <ControlRoomIcon icon={ArrowLeft01Icon} size={16} />
+                      <AdminIcon icon={ArrowLeft01Icon} size={16} />
                       Previous stage
                     </Button>
                   ) : null}
@@ -158,7 +158,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                       type="button"
                     >
                       Next stage
-                      <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                      <AdminIcon icon={ArrowRight01Icon} size={16} />
                     </Button>
                   ) : null}
                 </div>
