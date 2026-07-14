@@ -7,9 +7,9 @@ import { FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   EditorSelectField,
   EditorTextField,
-} from "@/features/control-room/product-editor/product-editor-fields";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+} from "@/features/admin/product-editor/product-editor-fields";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function UniqueStockFields() {
   const { control } = useFormContext<ProductEditorValues>();
@@ -65,7 +65,7 @@ export function UniqueStockFields() {
             type="button"
             variant="outline"
           >
-            <ControlRoomIcon icon={Add01Icon} size={16} />
+            <AdminIcon icon={Add01Icon} size={16} />
             Add measurement
           </Button>
         </div>
@@ -95,7 +95,7 @@ export function UniqueStockFields() {
                   type="button"
                   variant="ghost"
                 >
-                  <ControlRoomIcon icon={Delete02Icon} size={16} />
+                  <AdminIcon icon={Delete02Icon} size={16} />
                 </Button>
               </div>
             ))}
