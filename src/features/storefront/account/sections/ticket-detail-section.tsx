@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
@@ -29,13 +30,14 @@ export function TicketDetailSection() {
 
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={() => navigate("support")}
-        className="mb-5 text-sm font-semibold underline underline-offset-4"
+        className="mb-5 h-auto p-0 text-sm font-semibold"
+        variant="link"
       >
         ← Back to support
-      </button>
+      </Button>
 
       <header className="flex flex-wrap items-start justify-between gap-5">
         <div>
@@ -74,10 +76,11 @@ export function TicketDetailSection() {
               />
             </label>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+              {/* TODO(button-action): Open an attachment picker after support uploads, file validation and storage are connected. */}
               <AcctButton
                 variant="secondary"
                 type="button"
-                onClick={() => toast("Attachment picker would open with validation.")}
+                onClick={() => toast("File attachments are not available yet.")}
               >
                 Attach file
               </AcctButton>
@@ -91,13 +94,14 @@ export function TicketDetailSection() {
             <Eyebrow className="text-[var(--acc-muted)]">Related order</Eyebrow>
             <h2 className={cn("mt-3 text-3xl", monoClass)}>#LS-1048</h2>
             <p className="mt-2 text-[var(--acc-muted)]">Shipped</p>
-            <button
+            <Button
               type="button"
               onClick={() => navigate("order-detail")}
-              className="mt-4 text-sm font-semibold underline underline-offset-4"
+              className="mt-4 h-auto p-0 text-sm font-semibold"
+              variant="link"
             >
               View order
-            </button>
+            </Button>
           </section>
           <section className={cn("p-5", panelClass)}>
             <Eyebrow className="text-[var(--acc-muted)]">Ticket detail</Eyebrow>
