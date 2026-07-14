@@ -3,27 +3,27 @@
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { CustomerControls } from "@/features/control-room/customers/customer-controls";
-import { CustomerDetailSheet } from "@/features/control-room/customers/customer-detail-sheet";
-import { CustomerSavedViews } from "@/features/control-room/customers/customer-saved-views";
+import { CustomerControls } from "@/features/admin/customers/customer-controls";
+import { CustomerDetailSheet } from "@/features/admin/customers/customer-detail-sheet";
+import { CustomerSavedViews } from "@/features/admin/customers/customer-saved-views";
 import {
   defaultCustomerQuery,
   getCustomerSavedViewCounts,
   getCustomerWorkspaceSummary,
   queryCustomers,
-} from "@/features/control-room/customers/customer-selectors";
+} from "@/features/admin/customers/customer-selectors";
 import type {
   CustomerActionFeedback,
   CustomerQuery,
-} from "@/features/control-room/customers/customer-types";
-import { CustomersEmptyState } from "@/features/control-room/customers/customers-empty-state";
-import { CustomersHeader } from "@/features/control-room/customers/customers-header";
-import { CustomersMobileList } from "@/features/control-room/customers/customers-mobile-list";
-import { CustomersSummaryStrip } from "@/features/control-room/customers/customers-summary-strip";
-import { CustomersTable } from "@/features/control-room/customers/customers-table";
-import { buildCustomersHref } from "@/features/control-room/customers/customers-url";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import { getCustomerRelationshipProfiles } from "@/lib/control-room/customer-selectors";
+} from "@/features/admin/customers/customer-types";
+import { CustomersEmptyState } from "@/features/admin/customers/customers-empty-state";
+import { CustomersHeader } from "@/features/admin/customers/customers-header";
+import { CustomersMobileList } from "@/features/admin/customers/customers-mobile-list";
+import { CustomersSummaryStrip } from "@/features/admin/customers/customers-summary-strip";
+import { CustomersTable } from "@/features/admin/customers/customers-table";
+import { buildCustomersHref } from "@/features/admin/customers/customers-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { getCustomerRelationshipProfiles } from "@/lib/admin/customer-selectors";
 
 export function CustomersWorkspace({
   initialQuery,
@@ -33,7 +33,7 @@ export function CustomersWorkspace({
   initialOpenCustomerId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, addCustomerNote } = useControlRoom();
+  const { state, addCustomerNote } = useAdmin();
   const [query, setQuery] = useState(initialQuery);
   const [openCustomerId, setOpenCustomerId] = useState<string | null>(initialOpenCustomerId);
   const [feedback, setFeedback] = useState<CustomerActionFeedback | null>(null);

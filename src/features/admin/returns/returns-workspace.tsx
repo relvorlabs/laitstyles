@@ -3,28 +3,28 @@
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { CreateReturnDialog } from "@/features/control-room/returns/create-return-dialog";
-import { ReturnControls } from "@/features/control-room/returns/return-controls";
-import { ReturnDetailSheet } from "@/features/control-room/returns/return-detail-sheet";
-import { ReturnSavedViews } from "@/features/control-room/returns/return-saved-views";
+import { CreateReturnDialog } from "@/features/admin/returns/create-return-dialog";
+import { ReturnControls } from "@/features/admin/returns/return-controls";
+import { ReturnDetailSheet } from "@/features/admin/returns/return-detail-sheet";
+import { ReturnSavedViews } from "@/features/admin/returns/return-saved-views";
 import {
   defaultReturnQuery,
   getReturnSavedViewCounts,
   getReturnWorkspaceSummary,
   queryReturns,
-} from "@/features/control-room/returns/return-selectors";
+} from "@/features/admin/returns/return-selectors";
 import type {
   ReturnActionFeedback,
   ReturnQuery,
-} from "@/features/control-room/returns/return-types";
-import { ReturnsEmptyState } from "@/features/control-room/returns/returns-empty-state";
-import { ReturnsHeader } from "@/features/control-room/returns/returns-header";
-import { ReturnsMobileList } from "@/features/control-room/returns/returns-mobile-list";
-import { ReturnsSummaryStrip } from "@/features/control-room/returns/returns-summary-strip";
-import { ReturnsTable } from "@/features/control-room/returns/returns-table";
-import { buildReturnsHref } from "@/features/control-room/returns/returns-url";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { CreateReturnInput, ReturnStatus } from "@/lib/control-room/types";
+} from "@/features/admin/returns/return-types";
+import { ReturnsEmptyState } from "@/features/admin/returns/returns-empty-state";
+import { ReturnsHeader } from "@/features/admin/returns/returns-header";
+import { ReturnsMobileList } from "@/features/admin/returns/returns-mobile-list";
+import { ReturnsSummaryStrip } from "@/features/admin/returns/returns-summary-strip";
+import { ReturnsTable } from "@/features/admin/returns/returns-table";
+import { buildReturnsHref } from "@/features/admin/returns/returns-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { CreateReturnInput, ReturnStatus } from "@/lib/admin/types";
 
 export function ReturnsWorkspace({
   initialQuery,
@@ -34,7 +34,7 @@ export function ReturnsWorkspace({
   initialOpenReturnId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, createReturn, transitionReturn } = useControlRoom();
+  const { state, createReturn, transitionReturn } = useAdmin();
   const [query, setQuery] = useState(initialQuery);
   const [openReturnId, setOpenReturnId] = useState<string | null>(initialOpenReturnId);
   const [createOpen, setCreateOpen] = useState(false);
