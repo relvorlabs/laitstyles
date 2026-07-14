@@ -2,8 +2,9 @@
   "name": "laitstyle",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.13.0",
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "portless run next dev",
@@ -14,6 +15,8 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "audit:buttons": "node scripts/audit-buttons.mjs",
+    "test:e2e": "playwright test",
     "supabase:bootstrap-owner": "node scripts/bootstrap-owner.mjs",
     "supabase:types": "npx --yes supabase@latest gen types typescript --local > src/lib/supabase/types.ts",
     "prisma:generate": "prisma generate",
@@ -23,7 +26,7 @@
     "test:styles:e2e": "node scripts/checks/non-admin-style-smoke.mjs",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "test": "vitest run --passWithNoTests",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "verify": "pnpm audit:buttons && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
