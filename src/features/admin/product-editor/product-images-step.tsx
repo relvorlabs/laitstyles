@@ -13,9 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { getProductEditorFieldError } from "@/features/control-room/product-editor/product-editor-errors";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ProductEditorValues } from "@/lib/control-room/types";
+import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ProductEditorValues } from "@/lib/admin/types";
 
 const MAX_IMAGES = 12;
 
@@ -211,7 +211,7 @@ export function ProductImagesStep() {
           type="button"
           variant="outline"
         >
-          <ControlRoomIcon icon={ImageAdd01Icon} size={17} />
+          <AdminIcon icon={ImageAdd01Icon} size={17} />
           Add image
         </Button>
       </div>
@@ -268,7 +268,7 @@ export function ProductImagesStep() {
                       type="button"
                       variant="ghost"
                     >
-                      <ControlRoomIcon icon={Delete02Icon} size={16} />
+                      <AdminIcon icon={Delete02Icon} size={16} />
                     </Button>
                   </div>
                 </div>
@@ -338,7 +338,7 @@ export function ProductImagesStep() {
                         type="button"
                         variant="ghost"
                       >
-                        <ControlRoomIcon icon={ArrowUp01Icon} size={16} />
+                        <AdminIcon icon={ArrowUp01Icon} size={16} />
                       </Button>
                       <Button
                         aria-label="Move image later"
@@ -349,7 +349,7 @@ export function ProductImagesStep() {
                         type="button"
                         variant="ghost"
                       >
-                        <ControlRoomIcon icon={ArrowDown01Icon} size={16} />
+                        <AdminIcon icon={ArrowDown01Icon} size={16} />
                       </Button>
                     </span>
                   </div>
@@ -362,7 +362,7 @@ export function ProductImagesStep() {
         <div className="grid min-h-52 place-items-center rounded-[18px] border border-dashed border-border bg-card p-8 text-center">
           <div>
             <span className="mx-auto grid size-12 place-items-center rounded-full bg-secondary">
-              <ControlRoomIcon icon={ImageAdd01Icon} size={22} />
+              <AdminIcon icon={ImageAdd01Icon} size={22} />
             </span>
             <p className="mt-4 font-serif text-[22px] font-medium">No product images yet</p>
             <p className="mt-2 max-w-[420px] text-[12.5px] leading-5 text-muted-foreground">
