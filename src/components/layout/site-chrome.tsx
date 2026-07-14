@@ -48,14 +48,16 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <StorefrontProvider>
       <QueryProvider>
-        <SiteHeader
-          onGoHome={() => router.push("/")}
-          onNavNew={() => navigateShop({ collection: "new" })}
-          onNavShop={navigateShop}
-        />
-        {children}
-        <SiteFooter onNavShop={navigateShop} />
-        <Analytics />
+        <div className="lst-lab flex min-h-full flex-1 flex-col">
+          <SiteHeader
+            onGoHome={() => router.push("/")}
+            onNavNew={() => navigateShop({ collection: "new" })}
+            onNavShop={navigateShop}
+          />
+          {children}
+          <SiteFooter onNavShop={navigateShop} />
+          <Analytics />
+        </div>
       </QueryProvider>
     </StorefrontProvider>
   );
