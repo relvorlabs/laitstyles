@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
-import type { CatalogueTaxonomyKind } from "@/lib/control-room/types";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import type { CatalogueTaxonomyKind } from "@/lib/admin/types";
 
 type TaxonomyValueEvent = {
   kind: CatalogueTaxonomyKind;
@@ -42,7 +42,7 @@ export function CatalogueTaxonomyManager({
   onDelete?: (event: TaxonomyValueEvent) => void;
 }) {
   const { state, createCatalogueTaxonomy, renameCatalogueTaxonomy, deleteCatalogueTaxonomy } =
-    useControlRoom();
+    useAdmin();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<CatalogueTaxonomyKind>(initialKind);
   const [newName, setNewName] = useState("");
