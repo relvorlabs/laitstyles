@@ -4,12 +4,12 @@ import {
   PackageIcon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
-import type { ControlRoomIconData } from "@/features/control-room/shared/control-room-icon";
+import type { AdminIconData } from "@/features/admin/shared/admin-icon";
 
 export type AdminNavigationItem = {
   label: string;
   href: string;
-  icon: ControlRoomIconData;
+  icon: AdminIconData;
   description: string;
 };
 

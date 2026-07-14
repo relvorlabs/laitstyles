@@ -21,8 +21,8 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { settingsSections } from "@/features/control-room/settings/settings-config";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
 import { useControlRoom } from "@/features/control-room/state/control-room-provider";
 import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
 
@@ -97,7 +97,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
           <CommandEmpty>
             <div className="px-5 py-10 text-center">
               <span className="mx-auto grid size-11 place-items-center rounded-full bg-surface-sunken text-muted-foreground">
-                <ControlRoomIcon icon={Search01Icon} size={19} />
+                <AdminIcon icon={Search01Icon} size={19} />
               </span>
               <p className="mt-3 font-medium">No matching store record.</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -185,7 +185,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
           <CommandGroup heading="Storefront">
             <CommandItem onSelect={() => choose("/")} value="Preview storefront">
               <span className="grid size-9 place-items-center rounded-[10px] bg-surface-interactive text-surface-interactive-foreground">
-                <ControlRoomIcon icon={ArrowUpRight01Icon} size={17} />
+                <AdminIcon icon={ArrowUpRight01Icon} size={17} />
               </span>
               <span className="font-medium">Preview storefront</span>
               <CommandShortcut>↗</CommandShortcut>
@@ -205,7 +205,7 @@ function CommandRecord({
   value,
 }: {
   detail: string;
-  icon: Parameters<typeof ControlRoomIcon>[0]["icon"];
+  icon: Parameters<typeof AdminIcon>[0]["icon"];
   label: string;
   onSelect: () => void;
   value: string;
@@ -213,7 +213,7 @@ function CommandRecord({
   return (
     <CommandItem className="min-h-14 gap-3 rounded-xl px-2.5 py-2" onSelect={onSelect} value={value}>
       <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-surface-interactive text-surface-interactive-foreground">
-        <ControlRoomIcon icon={icon} size={17} />
+        <AdminIcon icon={icon} size={17} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">{label}</span>

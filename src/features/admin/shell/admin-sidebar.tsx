@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
-import {
-  ControlRoomIcon,
-  type ControlRoomIconData,
-} from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon, type AdminIconData } from "@/features/admin/shared/admin-icon";
 import {
   type AdminNavigationItem,
   adminExternalLinks,
@@ -86,7 +83,7 @@ export function AdminSidebar({
                   onClick={onNavigate}
                 >
                   <span className="grid size-8 place-items-center rounded-[9px] bg-sidebar-accent text-sidebar-foreground/78 group-hover:text-sidebar-foreground">
-                    <ControlRoomIcon icon={item.icon} size={16} />
+                    <AdminIcon icon={item.icon} size={16} />
                   </span>
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
                 </Link>
@@ -101,7 +98,7 @@ export function AdminSidebar({
 
 type SidebarLinkProps = {
   active: boolean;
-  icon: ControlRoomIconData;
+  icon: AdminIconData;
   item: AdminNavigationItem;
   onNavigate?: () => void;
 };
@@ -127,7 +124,7 @@ function SidebarLink({ active, icon, item, onNavigate }: SidebarLinkProps) {
             : "bg-sidebar-accent text-sidebar-foreground/78 group-hover:text-sidebar-foreground",
         )}
       >
-        <ControlRoomIcon icon={icon} size={18} />
+        <AdminIcon icon={icon} size={18} />
       </span>
       <span className="min-w-0">
         <span className="block font-semibold">{item.label}</span>

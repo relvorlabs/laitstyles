@@ -12,10 +12,10 @@ import {
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { getAdminPage } from "@/features/admin/shell/navigation";
 import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
 import { useRecordSaleController } from "@/features/control-room/record-sale/record-sale-controller";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { getAdminPage } from "@/features/admin/shell/navigation";
 
 type AdminTopbarProps = {
   pathname: string;
@@ -44,7 +44,7 @@ export function AdminTopbar({
           type="button"
           variant="outline"
         >
-          <ControlRoomIcon icon={Menu01Icon} size={19} />
+          <AdminIcon icon={Menu01Icon} size={19} />
         </Button>
 
         <div className="min-w-0 flex-1">
@@ -64,7 +64,7 @@ export function AdminTopbar({
           variant="outline"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-selected text-surface-selected-foreground">
-            <ControlRoomIcon icon={Search01Icon} size={17} />
+            <AdminIcon icon={Search01Icon} size={17} />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -87,7 +87,7 @@ export function AdminTopbar({
           type="button"
           variant="outline"
         >
-          <ControlRoomIcon icon={Search01Icon} size={18} />
+          <AdminIcon icon={Search01Icon} size={18} />
         </Button>
 
         <ThemeToggle className="hidden sm:inline-flex" />
@@ -101,7 +101,7 @@ export function AdminTopbar({
             type="submit"
             variant="outline"
           >
-            <ControlRoomIcon icon={Logout03Icon} size={18} />
+            <AdminIcon icon={Logout03Icon} size={18} />
           </Button>
         </form>
 
@@ -114,7 +114,7 @@ export function AdminTopbar({
           })}
           href={attentionHref}
         >
-          <ControlRoomIcon icon={Notification03Icon} size={18} />
+          <AdminIcon icon={Notification03Icon} size={18} />
           <span className="absolute right-2 top-2 size-2 rounded-full border-2 border-background bg-destructive" />
         </Link>
 
@@ -127,7 +127,7 @@ export function AdminTopbar({
           href="/"
         >
           Preview storefront
-          <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
+          <AdminIcon icon={ArrowUpRight01Icon} size={16} />
         </Link>
 
         <Button
@@ -137,7 +137,7 @@ export function AdminTopbar({
           type="button"
           variant="outline"
         >
-          <ControlRoomIcon icon={Add01Icon} size={17} />
+          <AdminIcon icon={Add01Icon} size={17} />
           <span className="hidden sm:inline">Add product</span>
         </Button>
 
@@ -147,7 +147,7 @@ export function AdminTopbar({
           onClick={openRecordSale}
           type="button"
         >
-          <ControlRoomIcon icon={Store01Icon} size={17} />
+          <AdminIcon icon={Store01Icon} size={17} />
           <span className="hidden sm:inline">Record sale</span>
         </Button>
       </div>
