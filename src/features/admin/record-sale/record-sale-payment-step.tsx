@@ -2,7 +2,13 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -12,8 +18,8 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { RecordSaleValues } from "@/features/control-room/record-sale/record-sale-types";
-import type { PaymentMethod } from "@/lib/control-room/types";
+import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
+import type { PaymentMethod } from "@/lib/admin/types";
 
 const paymentMethodLabels: Record<PaymentMethod, string> = {
   cash: "Cash",
