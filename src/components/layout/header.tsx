@@ -8,12 +8,11 @@ import { type FormEvent, useState } from "react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { CartSheet } from "@/components/layout/cart-sheet";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-// Phase 2 shell nav points at real destinations. Category/collection routes
-// arrive in Phase 3 (discovery); until then these resolve to /shop.
 const primaryNav: { label: string; href: string }[] = [
   { label: "New in", href: "/shop" },
   { label: "Coats", href: "/shop" },
@@ -37,12 +36,10 @@ function SearchField({ id }: { id: string }) {
       onSubmit={onSubmit}
       role="search"
     >
-      <label className="sr-only" htmlFor={id}>
-        Search pieces
-      </label>
-      <button aria-label="Search" className="flex text-muted-foreground" type="submit">
+      <label className="sr-only" htmlFor={id}>Search pieces</label>
+      <Button aria-label="Search" className="size-7 rounded-full p-0 text-muted-foreground" size="icon-sm" type="submit" variant="ghost">
         <HugeiconsIcon aria-hidden="true" icon={Search01Icon} size={18} strokeWidth={1.6} />
-      </button>
+      </Button>
       <Input
         className="h-auto border-0 bg-transparent p-0 text-[13.5px] shadow-none focus-visible:ring-0"
         id={id}
@@ -69,12 +66,9 @@ function IconLink({ href, label, icon }: { href: string; label: string; icon: ty
 export function Header() {
   return (
     <>
-      {/* Desktop */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/86 backdrop-blur-[14px] max-md:hidden">
         <div className="mx-auto flex max-w-[1240px] items-center gap-7 px-8 py-4">
-          <Link aria-label="Laitstyle home" href="/">
-            <BrandMark />
-          </Link>
+          <Link aria-label="Laitstyle home" href="/"><BrandMark /></Link>
           <nav className="ml-2 flex items-center gap-[26px]">
             {primaryNav.map((item, index) => (
               <Link
@@ -90,9 +84,7 @@ export function Header() {
             ))}
           </nav>
           <div className="flex-1" />
-          <div className="w-[230px]">
-            <SearchField id="header-search-desktop" />
-          </div>
+          <div className="w-[230px]"><SearchField id="header-search-desktop" /></div>
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
             <IconLink href="/account/saved" icon={FavouriteIcon} label="Saved items" />
@@ -102,20 +94,19 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/92 backdrop-blur-[14px] md:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Sheet>
             <SheetTrigger
-              render={<button aria-label="Open menu" className="flex p-1" type="button" />}
+              render={
+                <Button aria-label="Open menu" className="size-10 rounded-full p-0" size="icon-lg" type="button" variant="ghost" />
+              }
             >
               <HugeiconsIcon aria-hidden="true" icon={Menu02Icon} size={24} strokeWidth={1.6} />
             </SheetTrigger>
             <SheetContent className="w-[80%] max-w-[320px] gap-0 bg-card p-0" side="left">
               <SheetHeader className="flex-row items-center justify-between border-b border-border p-4">
-                <SheetTitle>
-                  <BrandMark compact />
-                </SheetTitle>
+                <SheetTitle><BrandMark compact /></SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col px-1.5 py-2">
                 {primaryNav.map((item) => (
@@ -127,24 +118,18 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
-                <Link className="px-3.5 py-3.5 text-[16px]" href="/account">
-                  My account
-                </Link>
+                <Link className="px-3.5 py-3.5 text-[16px]" href="/account">My account</Link>
               </nav>
             </SheetContent>
           </Sheet>
-          <Link aria-label="Laitstyle home" href="/">
-            <BrandMark compact />
-          </Link>
+          <Link aria-label="Laitstyle home" href="/"><BrandMark compact /></Link>
           <div className="flex items-center gap-1">
             <ThemeToggle className="size-10" />
             <IconLink href="/account" icon={UserIcon} label="Account" />
             <CartSheet />
           </div>
         </div>
-        <div className="px-4 pb-3">
-          <SearchField id="header-search-mobile" />
-        </div>
+        <div className="px-4 pb-3"><SearchField id="header-search-mobile" /></div>
       </header>
     </>
   );
