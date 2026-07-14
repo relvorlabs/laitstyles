@@ -5,7 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
+import { Button } from "@/components/ui/button";
 import { naira } from "@/lib/catalogue";
+import { cn } from "@/lib/utils";
 
 const USD_RATE = 1600;
 
@@ -158,18 +160,18 @@ export default function CartPage() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                               <Clock aria-hidden="true" className="size-3" />
-                              Held ·{" "}
-                              <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
+                              Held · <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
                             </span>
                           )}
-                          <button
-                            className="inline-flex items-center gap-1.5 px-0.5 py-1 text-[12.5px] text-[#A7A59B] hover:text-[#B4453C] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C8C63]"
+                          <Button
+                            className="h-auto gap-1.5 px-0.5 py-1 text-[12.5px] text-[#A7A59B] hover:text-[#B4453C]"
                             onClick={() => release(product.id)}
                             type="button"
+                            variant="link"
                           >
                             <Trash2 aria-hidden="true" className="size-[13px]" />
                             Remove
-                          </button>
+                          </Button>
                         </div>
 
                         {expired ? (
@@ -178,13 +180,13 @@ export default function CartPage() {
                             <span className="flex-1 text-[12px] leading-[1.45] text-[#8A362F]">
                               Your hold released, but this piece is still available.
                             </span>
-                            <button
-                              className="h-8 shrink-0 rounded-full bg-[#1B1A17] px-3.5 text-[12px] font-semibold text-white"
+                            <Button
+                              className="h-8 shrink-0 rounded-full bg-[#1B1A17] px-3.5 text-[12px] font-semibold text-white hover:bg-[#1B1A17]/86"
                               onClick={() => rehold(product.id)}
                               type="button"
                             >
                               Re-hold
-                            </button>
+                            </Button>
                           </div>
                         ) : null}
                       </div>
@@ -202,14 +204,10 @@ export default function CartPage() {
             </section>
 
             <aside className="sticky top-[26px] min-w-[280px] flex-[1_1_320px] rounded-[16px] bg-white px-7 pb-8 pt-7 shadow-[0_30px_80px_rgba(0,0,0,.10)] max-md:static">
-              <h2 className="mb-[18px] text-[16px] font-semibold tracking-[.02em]">
-                Order summary
-              </h2>
+              <h2 className="mb-[18px] text-[16px] font-semibold tracking-[.02em]">Order summary</h2>
 
               <div className="mb-2 flex gap-2.5">
-                <label className="sr-only" htmlFor="discount-code">
-                  Discount code
-                </label>
+                <label className="sr-only" htmlFor="discount-code">Discount code</label>
                 <input
                   className="h-[46px] min-w-0 flex-1 rounded-[9px] border border-[#E4E2DA] px-3.5 text-[13.5px] outline-none focus:border-[#1B1A17]"
                   id="discount-code"
@@ -218,29 +216,22 @@ export default function CartPage() {
                   placeholder="Discount code"
                   value={discountInput}
                 />
-                <button
-                  className="h-[46px] rounded-full bg-[#1B1A17] px-[18px] text-[13px] font-medium text-white"
+                <Button
+                  className="h-[46px] rounded-full bg-[#1B1A17] px-[18px] text-[13px] font-medium text-white hover:bg-[#1B1A17]/86"
                   onClick={applyDiscount}
                   type="button"
                 >
                   Apply
-                </button>
+                </Button>
               </div>
               <p
                 aria-live="polite"
-                className={
-                  discountApplied
-                    ? "mb-4 text-[11.5px] text-[#5F7043]"
-                    : "mb-4 text-[11.5px] text-[#8A887E]"
-                }
+                className={discountApplied ? "mb-4 text-[11.5px] text-[#5F7043]" : "mb-4 text-[11.5px] text-[#8A887E]"}
               >
                 {discountMessage || "Preview code: LAIT10"}
               </p>
 
-              <SummaryRow
-                label={`Subtotal · ${activeItems.length} items`}
-                value={money(totals.subtotal)}
-              />
+              <SummaryRow label={`Subtotal · ${activeItems.length} items`} value={money(totals.subtotal)} />
               {totals.discount ? (
                 <SummaryRow label="Discount · LAIT10" value={`−${money(totals.discount)}`} accent />
               ) : null}
@@ -260,13 +251,14 @@ export default function CartPage() {
                   Review &amp; check out
                 </Link>
               ) : (
-                <button
+                <Button
                   className="mt-[22px] h-[54px] w-full cursor-not-allowed rounded-full bg-[#D8D6CF] text-[15px] font-semibold text-[#8A887E]"
                   disabled
                   type="button"
+                  variant="secondary"
                 >
                   Re-hold a piece to continue
-                </button>
+                </Button>
               )}
 
               <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[12px] text-[#8A887E]">
@@ -282,8 +274,7 @@ export default function CartPage() {
             </div>
             <h1 className="mt-6 font-serif text-[34px] font-medium">Your bag is waiting</h1>
             <p className="mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll
-              hold it while you decide.
+              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll hold it while you decide.
             </p>
             <Link
               className="mt-6 flex h-[52px] items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14.5px] font-semibold text-white"
@@ -308,18 +299,20 @@ function CurrencyButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       aria-pressed={active}
-      className={
+      className={cn(
+        "h-[34px] rounded-full border px-3.5 text-[12.5px] font-semibold",
         active
-          ? "h-[34px] rounded-full border border-[#1B1A17] bg-[#1B1A17] px-3.5 text-[12.5px] font-semibold text-white"
-          : "h-[34px] rounded-full border border-[#D6D4CB] bg-transparent px-3.5 text-[12.5px] font-semibold text-[#57554E]"
-      }
+          ? "border-[#1B1A17] bg-[#1B1A17] text-white hover:bg-[#1B1A17]/86"
+          : "border-[#D6D4CB] bg-transparent text-[#57554E]",
+      )}
       onClick={onClick}
       type="button"
+      variant={active ? "default" : "outline"}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
