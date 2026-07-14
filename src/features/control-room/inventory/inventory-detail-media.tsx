@@ -4,6 +4,7 @@ import { Expand } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ProductMediaViewer } from "@/features/control-room/inventory/product-media-viewer";
 import type { InventoryListItem } from "@/lib/control-room/types";
 
@@ -18,11 +19,12 @@ export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
             className="overflow-hidden rounded-[16px] border border-border bg-card"
             key={media.id}
           >
-            <button
+            <Button
               aria-label={`View ${media.alt}`}
-              className="group relative block aspect-[4/5] w-full overflow-hidden bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="group relative block aspect-[4/5] h-auto w-full overflow-hidden rounded-none bg-secondary p-0"
               onClick={() => setOpenMediaId(media.id)}
               type="button"
+              variant="ghost"
             >
               <Image
                 alt={media.alt}
@@ -35,7 +37,7 @@ export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
                 <Expand aria-hidden="true" className="size-4" />
                 View image
               </span>
-            </button>
+            </Button>
             <figcaption className="flex items-center justify-between gap-3 px-4 py-3 text-[11px] text-muted-foreground">
               <span className="min-w-0 truncate">{media.alt}</span>
               <Badge variant="outline">{media.kind}</Badge>
