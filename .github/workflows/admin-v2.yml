@@ -1,4 +1,4 @@
-name: Control Room V2 checks
+name: Admin checks
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: control-room-v2-${{ github.event.pull_request.number || github.ref }}
+  group: admin-v2-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -27,16 +27,23 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11.13.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Strict button audit
+        if: always()
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm audit:buttons 2>&1 | tee button-audit.log
 
       - name: Lint
         if: always()
@@ -50,21 +57,21 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pnpm exec tsc --noEmit 2>&1 | tee typescript.log
+          pnpm typecheck 2>&1 | tee typescript.log
 
       - name: Tests
         if: always()
         shell: bash
         run: |
           set -o pipefail
-          pnpm exec vitest run --passWithNoTests 2>&1 | tee tests.log
+          pnpm test 2>&1 | tee tests.log
 
       - name: Theme token audit
         if: always()
         shell: bash
         run: |
           set -o pipefail
-          node scripts/control-room-phase7-theme-audit.mjs 2>&1 | tee theme-audit.log
+          node scripts/admin-phase7-theme-audit.mjs 2>&1 | tee theme-audit.log
 
       - name: Production build
         if: always()
@@ -78,10 +85,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p control-room-screenshots
-          npm install --prefix /tmp/control-room-browser playwright@latest --no-save --omit=optional 2>&1 | tee browser.log
-          PLAYWRIGHT=/tmp/control-room-browser/node_modules/.bin/playwright
-          "$PLAYWRIGHT" install --with-deps chromium 2>&1 | tee -a browser.log
+          mkdir -p admin-screenshots
+          pnpm exec playwright install --with-deps chromium 2>&1 | tee browser.log
+          PLAYWRIGHT=./node_modules/.bin/playwright
 
           ./node_modules/.bin/next start >> browser.log 2>&1 &
           SERVER_PID=$!
@@ -134,7 +140,7 @@ jobs:
                 --wait-for-timeout 1500 \
                 --full-page \
                 "http://127.0.0.1:3000${route}" \
-                "control-room-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
+                "admin-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
             done
           done
 
@@ -156,27 +162,28 @@ jobs:
                 --wait-for-timeout 1500 \
                 --full-page \
                 "http://127.0.0.1:3000${route}" \
-                "control-room-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
+                "admin-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
             done
           done
 
           scripts=(
-            "control-room-phase3-check.mjs"
-            "control-room-phase4-orders-check.mjs"
-            "control-room-phase4-holds-check.mjs"
-            "control-room-phase4-sales-returns-check.mjs"
-            "control-room-phase5-customers-check.mjs"
-            "control-room-phase6-settings-check.mjs"
-            "control-room-phase7-theme-media-check.mjs"
-            "control-room-phase7-theme-routes-check.mjs"
-            "control-room-phase8-check.mjs"
-            "control-room-inventory-catalogue-check.mjs"
+            "admin-phase3-check.mjs"
+            "admin-phase4-orders-check.mjs"
+            "admin-phase4-holds-check.mjs"
+            "admin-phase4-sales-returns-check.mjs"
+            "admin-phase5-customers-check.mjs"
+            "admin-phase6-settings-check.mjs"
+            "admin-phase7-theme-media-check.mjs"
+            "admin-phase7-theme-routes-check.mjs"
+            "admin-phase8-check.mjs"
+            "admin-inventory-catalogue-check.mjs"
           )
           for script in "${scripts[@]}"; do
-            cp "scripts/${script}" "/tmp/control-room-browser/${script}"
-            CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-              CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/control-room-screenshots" \
-              node "/tmp/control-room-browser/${script}" 2>&1 | tee -a browser.log
+            ADMIN_BASE_URL=http://127.0.0.1:3000 \
+              ADMIN_SCREENSHOT_DIR="$GITHUB_WORKSPACE/admin-screenshots" \
+              CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
+              CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/admin-screenshots" \
+              node "scripts/${script}" 2>&1 | tee -a browser.log
           done
 
           cleanup
@@ -194,8 +201,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: control-room-v2-logs
+          name: admin-v2-logs
           path: |
+            button-audit.log
             lint.log
             typescript.log
             tests.log
@@ -210,7 +218,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: control-room-v2-screenshots
-          path: control-room-screenshots
+          name: admin-v2-screenshots
+          path: admin-screenshots
           if-no-files-found: warn
           retention-days: 7
