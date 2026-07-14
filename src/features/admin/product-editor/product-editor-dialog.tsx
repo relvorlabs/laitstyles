@@ -2,7 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
-import { type FieldPath, FormProvider, type Resolver, useForm, useWatch } from "react-hook-form";
+import {
+  type FieldPath,
+  FormProvider,
+  type Resolver,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -21,22 +27,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProductEditorFooter } from "@/features/control-room/product-editor/product-editor-footer";
-import { ProductEditorStepContent } from "@/features/control-room/product-editor/product-editor-step-content";
-import { ProductEditorStepper } from "@/features/control-room/product-editor/product-editor-stepper";
-import { useControlRoom } from "@/features/control-room/state/control-room-provider";
+import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
+import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
+import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
+import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
   createProductEditorValues,
-} from "@/lib/control-room/product-editor-defaults";
+} from "@/lib/admin/product-editor-defaults";
 import {
   productEditorDraftSchema,
   validateProductEditorStep,
   validateProductForPublish,
   validateProductForSchedule,
-} from "@/lib/control-room/product-editor-schema";
-import { productEditorSteps } from "@/lib/control-room/product-editor-types";
+} from "@/lib/admin/product-editor-schema";
+import { productEditorSteps } from "@/lib/admin/product-editor-types";
 import type {
   InventoryMode,
   ProductEditorActionSuccess,
@@ -44,7 +50,7 @@ import type {
   ProductEditorIssue,
   ProductEditorStep,
   ProductEditorValues,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export function ProductEditorDialog({
   open,
@@ -57,7 +63,7 @@ export function ProductEditorDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
-  const { state } = useControlRoom();
+  const { state } = useAdmin();
   const product = productId ? state.products.find((item) => item.id === productId) : undefined;
 
   if (!open) return null;
@@ -86,7 +92,7 @@ function ProductEditorForm({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
-  const { saveProduct } = useControlRoom();
+  const { saveProduct } = useAdmin();
   const [activeStep, setActiveStep] = useState<ProductEditorStep>("type");
   const [highestVisited, setHighestVisited] = useState(0);
   const [discardOpen, setDiscardOpen] = useState(false);
