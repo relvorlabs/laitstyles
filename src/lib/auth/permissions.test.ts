@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  canAccessControlRoom,
+  canAccessAdmin,
   canManageStaff,
   getCapabilitiesForRole,
   getStaffRolesByCapability,
@@ -13,8 +13,8 @@ describe("role capabilities", () => {
     expect(getCapabilitiesForRole("owner")).toEqual(STAFF_CAPABILITIES);
   });
 
-  it("keeps consumers out of the control room", () => {
-    expect(canAccessControlRoom("consumer")).toBe(false);
+  it("keeps consumers out of Admin", () => {
+    expect(canAccessAdmin("consumer")).toBe(false);
     expect(hasCapability("consumer", "storefront:purchase")).toBe(true);
   });
 

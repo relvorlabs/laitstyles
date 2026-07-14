@@ -2,7 +2,7 @@ import type { AuthDeniedReason } from "@/lib/auth/auth-errors";
 import type { AuthPrincipal, StoreMembership } from "@/lib/auth/guards";
 import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 
-export type ControlRoomAccess =
+export type AdminAccess =
   | {
       ok: true;
       membership: StoreMembership;
@@ -13,11 +13,11 @@ export type ControlRoomAccess =
       reason: AuthDeniedReason;
     };
 
-export function resolveControlRoomAccess(
+export function resolveAdminAccess(
   principal: AuthPrincipal,
-  capability: StaffCapability = "control-room:access",
+  capability: StaffCapability = "admin:access",
   preferredStoreId?: string | null,
-): ControlRoomAccess {
+): AdminAccess {
   if (!principal.profileId) {
     return { ok: false, reason: "signed-out" };
   }

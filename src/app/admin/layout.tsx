@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
-import { getControlRoomAccess } from "@/lib/auth/server/control-room";
+import { getAdminAccess } from "@/lib/auth/server/admin";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const access = await getControlRoomAccess();
+  const access = await getAdminAccess();
 
   if (!access.ok) {
     if (access.reason === "signed-out") {

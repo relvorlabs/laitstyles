@@ -1,7 +1,7 @@
 import { type AccountRole, STAFF_ROLES, type StaffRole } from "@/lib/auth/roles";
 
 export const STAFF_CAPABILITIES = [
-  "control-room:access",
+  "admin:access",
   "storefront:read",
   "inventory:read",
   "inventory:create",
@@ -37,7 +37,7 @@ export type ConsumerCapability = (typeof CONSUMER_CAPABILITIES)[number];
 export type AccountCapability = StaffCapability | ConsumerCapability;
 
 const MANAGER_CAPABILITIES = [
-  "control-room:access",
+  "admin:access",
   "storefront:read",
   "inventory:read",
   "inventory:create",
@@ -58,7 +58,7 @@ const MANAGER_CAPABILITIES = [
 ] as const satisfies readonly StaffCapability[];
 
 const OPERATOR_CAPABILITIES = [
-  "control-room:access",
+  "admin:access",
   "storefront:read",
   "inventory:read",
   "inventory:update",
@@ -94,8 +94,8 @@ export function getCapabilitiesForRole(role: AccountRole) {
   return ROLE_CAPABILITIES[role];
 }
 
-export function canAccessControlRoom(role: AccountRole) {
-  return hasCapability(role, "control-room:access");
+export function canAccessAdmin(role: AccountRole) {
+  return hasCapability(role, "admin:access");
 }
 
 export function canManageStaff(role: StaffRole) {
