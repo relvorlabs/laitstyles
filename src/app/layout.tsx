@@ -4,8 +4,7 @@ import { AppProviders } from "@/components/providers/app-providers";
 // Geist Mono), loaded once here via next/font and exposed as --font-lab-* for the whole app.
 import { labFontClassName } from "@/features/storefront/home-lab/fonts";
 import { cn } from "@/lib/utils";
-import "./globals.css";
-import "@/features/storefront/home-lab/home-lab.css";
+import "./theme-entry.css";
 
 export const metadata: Metadata = {
   title: "Laitstyle",
