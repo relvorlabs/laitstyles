@@ -7,7 +7,7 @@ import { getControlRoomAccess } from "@/lib/auth/server/control-room";
 import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 export const metadata: Metadata = {
-  title: "Control Room",
+  title: "Admin",
   description: "Operate Laitstyle inventory, sales and customer fulfilment.",
 };
 
