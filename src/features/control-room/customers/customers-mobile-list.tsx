@@ -31,10 +31,11 @@ export function CustomersMobileList({
           <Card className="gap-0 overflow-hidden py-0" key={customer.id}>
             <div className="border-b border-border bg-secondary/45 px-4 py-4">
               <div className="flex items-start justify-between gap-3">
-                <button
-                  className="flex min-w-0 items-center gap-3 rounded-[10px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Button
+                  className="h-auto min-w-0 justify-start gap-3 rounded-[10px] p-0 text-left"
                   onClick={() => onOpen(customer.id)}
                   type="button"
+                  variant="link"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card font-serif text-base font-semibold shadow-sm">
                     {getCustomerInitials(customer.name)}
@@ -48,7 +49,7 @@ export function CustomersMobileList({
                       {customer.email || customer.phone || "No contact"}
                     </span>
                   </span>
-                </button>
+                </Button>
                 <CustomerTypeBadge type={customer.type} />
               </div>
             </div>
