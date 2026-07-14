@@ -1,4 +1,4 @@
-import type { ProductEditorStep } from "@/lib/control-room/types";
+import type { ProductEditorStep } from "@/lib/admin/types";
 
 export const productEditorStepLabels: Record<ProductEditorStep, string> = {
   type: "Product type",
