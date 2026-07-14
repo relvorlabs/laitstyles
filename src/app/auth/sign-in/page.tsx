@@ -46,7 +46,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <span>
                 <span className="block font-serif text-2xl leading-none">Laitstyle</span>
                 <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
-                  {surface === "staff" ? "Control room access" : "Customer account"}
+                  {surface === "staff" ? "Admin access" : "Customer account"}
                 </span>
               </span>
             </Link>
@@ -122,8 +122,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               </form>
 
               <p className="rounded-xl border border-border bg-muted/35 p-4 text-xs leading-5 text-muted-foreground">
-                This page is reserved for Control Room staff. Customer sign-in and account creation
-                happen in the storefront dialog.
+                This page is reserved for Admin staff. Customer sign-in and account creation happen
+                in the storefront dialog.
               </p>
             </div>
           </section>
