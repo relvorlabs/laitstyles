@@ -9,7 +9,7 @@ import type {
   CustomerTypeFilter,
 } from "@/features/admin/customers/customer-types";
 import { CustomersWorkspace } from "@/features/admin/customers/customers-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 
 type CustomersPageProps = {
   searchParams: Promise<{
@@ -34,7 +34,7 @@ const sortValues = new Set<CustomerSortKey>(customerSortOptions.map((option) => 
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const params = await searchParams;
   const requestedCustomer = first(params.customer);
-  const initialOpenCustomerId = activeControlRoomSeed.customers.some(
+  const initialOpenCustomerId = activeAdminSeed.customers.some(
     (customer) => customer.id === requestedCustomer,
   )
     ? (requestedCustomer ?? null)

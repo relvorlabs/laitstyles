@@ -5,8 +5,8 @@ import {
 } from "@/features/admin/returns/return-selectors";
 import type { ReturnSavedView, ReturnSortKey } from "@/features/admin/returns/return-types";
 import { ReturnsWorkspace } from "@/features/admin/returns/returns-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { ReturnStatus } from "@/lib/control-room/types";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import type { ReturnStatus } from "@/lib/admin/types";
 
 type ReturnsPageProps = {
   searchParams: Promise<{
@@ -25,7 +25,7 @@ const sortValues = new Set<ReturnSortKey>(["updated-desc", "requested-desc", "va
 export default async function ReturnsPage({ searchParams }: ReturnsPageProps) {
   const params = await searchParams;
   const requestedReturn = first(params.return);
-  const initialOpenReturnId = (activeControlRoomSeed.returns ?? []).some(
+  const initialOpenReturnId = (activeAdminSeed.returns ?? []).some(
     (record) => record.id === requestedReturn,
   )
     ? (requestedReturn ?? null)

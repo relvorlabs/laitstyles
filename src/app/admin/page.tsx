@@ -1,6 +1,6 @@
 import { NewStoreOverview } from "@/features/admin/overview/new-store-overview";
 import { OverviewPage } from "@/features/admin/overview/overview-page";
-import { activeControlRoomSeed, newStoreControlRoomSeed } from "@/lib/control-room/seed";
+import { activeAdminSeed, newStoreAdminSeed } from "@/lib/admin/admin-seed";
 
 type AdminOverviewPageProps = {
   searchParams: Promise<{ view?: string | string[] }>;
@@ -11,8 +11,8 @@ export default async function AdminOverviewPage({ searchParams }: AdminOverviewP
   const view = Array.isArray(params.view) ? params.view[0] : params.view;
 
   if (view === "new-store") {
-    return <NewStoreOverview state={newStoreControlRoomSeed} />;
+    return <NewStoreOverview state={newStoreAdminSeed} />;
   }
 
-  return <OverviewPage state={activeControlRoomSeed} />;
+  return <OverviewPage state={activeAdminSeed} />;
 }

@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import { getAdminAccess } from "@/lib/auth/server/admin";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -22,5 +22,5 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     return <AdminAccessDenied reason={access.reason} />;
   }
 
-  return <AdminShell initialState={activeControlRoomSeed}>{children}</AdminShell>;
+  return <AdminShell initialState={activeAdminSeed}>{children}</AdminShell>;
 }

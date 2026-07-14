@@ -10,7 +10,7 @@ import type {
   OrderSortKey,
 } from "@/features/admin/orders/order-types";
 import { OrdersWorkspace } from "@/features/admin/orders/orders-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 
 type OrdersPageProps = {
   searchParams: Promise<{
@@ -38,7 +38,7 @@ const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
   const requestedOrder = first(params.order);
-  const initialOpenOrderId = activeControlRoomSeed.orders.some(
+  const initialOpenOrderId = activeAdminSeed.orders.some(
     (order) => order.id === requestedOrder,
   )
     ? (requestedOrder ?? null)

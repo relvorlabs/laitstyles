@@ -10,7 +10,7 @@ import type {
   HoldStageFilter,
 } from "@/features/admin/holds/hold-types";
 import { HoldsWorkspace } from "@/features/admin/holds/holds-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 
 type HoldsPageProps = {
   searchParams: Promise<{
@@ -31,7 +31,7 @@ const sortValues = new Set<HoldSortKey>(holdSortOptions.map((option) => option.v
 export default async function HoldsPage({ searchParams }: HoldsPageProps) {
   const params = await searchParams;
   const requestedHold = first(params.hold);
-  const initialOpenHoldId = activeControlRoomSeed.holds.some((hold) => hold.id === requestedHold)
+  const initialOpenHoldId = activeAdminSeed.holds.some((hold) => hold.id === requestedHold)
     ? (requestedHold ?? null)
     : null;
 
