@@ -14,7 +14,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   SettingsTextareaField,
   SettingsTextField,
-} from "@/features/control-room/settings/settings-fields";
+} from "@/features/admin/settings/settings-fields";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 export function PickupLocationList() {
