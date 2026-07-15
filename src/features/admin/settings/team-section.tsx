@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
-import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
+import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
 import {
   SettingsSelectField,
   SettingsTextareaField,
   SettingsTextField,
-} from "@/features/control-room/settings/settings-fields";
-import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
+} from "@/features/admin/settings/settings-fields";
+import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type {
   SaveStoreSettingsInput,
   TeamMemberBoundary,
@@ -218,7 +218,7 @@ function TeamBoundaryPreview({ members }: { members: TeamMemberBoundary[] }) {
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
         This map helps the operator communicate ownership. Actual staff access is checked from the
-        Supabase membership records before Control Room data is shown.
+        Supabase membership records before Admin data is shown.
       </p>
     </Card>
   );
