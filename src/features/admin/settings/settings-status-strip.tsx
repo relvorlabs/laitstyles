@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { settingsSections } from "@/features/control-room/settings/settings-config";
+import { settingsSections } from "@/features/admin/settings/settings-config";
 import type { SettingsSection } from "@/lib/control-room/types";
 
 export function SettingsStatusStrip({
