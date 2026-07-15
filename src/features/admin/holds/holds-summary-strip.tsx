@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import type { HoldWorkspaceSummary } from "@/features/control-room/holds/hold-types";
+import type { HoldWorkspaceSummary } from "@/features/admin/holds/hold-types";
 
 export function HoldsSummaryStrip({ summary }: { summary: HoldWorkspaceSummary }) {
   const metrics = [
