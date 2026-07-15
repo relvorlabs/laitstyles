@@ -22,13 +22,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { returnStatusLabels } from "@/features/control-room/returns/return-labels";
-import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
-import type { ReturnActionFeedback } from "@/features/control-room/returns/return-types";
-import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
-import { getPermittedReturnTransitions } from "@/lib/control-room/sales-selectors";
-import type { ControlRoomReturn, ControlRoomState, ReturnStatus } from "@/lib/control-room/types";
+import { returnStatusLabels } from "@/features/admin/returns/return-labels";
+import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors";
+import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
+import type { ReturnActionFeedback } from "@/features/admin/returns/return-types";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
+import { getPermittedReturnTransitions } from "@/lib/admin/sales-selectors";
+import type { AdminState, ControlRoomReturn, ReturnStatus } from "@/lib/admin/types";
 
 const confirmationStatuses = new Set<ReturnStatus>(["refunded", "damaged", "rejected"]);
 
@@ -39,7 +39,7 @@ export function ReturnDetailSheet({
   onOpenChange,
   onTransition,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   returnRecord: ControlRoomReturn | null;
   feedback: ReturnActionFeedback | null;
   onOpenChange: (open: boolean) => void;
