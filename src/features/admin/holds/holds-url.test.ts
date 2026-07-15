@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultHoldQuery } from "@/features/control-room/holds/hold-selectors";
-import { buildHoldsHref } from "@/features/control-room/holds/holds-url";
+import { defaultHoldQuery } from "@/features/admin/holds/hold-selectors";
+import { buildHoldsHref } from "@/features/admin/holds/holds-url";
 
 describe("Holds URL state", () => {
   it("omits default values", () => {
