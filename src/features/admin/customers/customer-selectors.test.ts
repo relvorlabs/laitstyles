@@ -4,12 +4,12 @@ import {
   getCustomerSavedViewCounts,
   getCustomerWorkspaceSummary,
   queryCustomers,
-} from "@/features/control-room/customers/customer-selectors";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/customers/customer-selectors";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { activeAdminSeed } from "@/lib/admin/seed";
 
 function getState() {
-  return createControlRoomStore(activeControlRoomSeed).getSnapshot();
+  return createAdminStore(activeAdminSeed).getSnapshot();
 }
 
 describe("Customers workspace selectors", () => {
