@@ -9,21 +9,21 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CustomerDeliveryPanel } from "@/features/control-room/customers/customer-delivery-panel";
+import { CustomerDeliveryPanel } from "@/features/admin/customers/customer-delivery-panel";
 import {
   customerTypeLabels,
   getCustomerInitials,
-} from "@/features/control-room/customers/customer-labels";
-import { CustomerOverviewPanel } from "@/features/control-room/customers/customer-overview-panel";
-import { CustomerProductsPanel } from "@/features/control-room/customers/customer-products-panel";
+} from "@/features/admin/customers/customer-labels";
+import { CustomerOverviewPanel } from "@/features/admin/customers/customer-overview-panel";
+import { CustomerProductsPanel } from "@/features/admin/customers/customer-products-panel";
 import {
   CustomerAttentionBadges,
   CustomerSegmentBadges,
-} from "@/features/control-room/customers/customer-status-badges";
-import { CustomerTimelinePanel } from "@/features/control-room/customers/customer-timeline-panel";
-import type { CustomerActionFeedback } from "@/features/control-room/customers/customer-types";
-import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
-import type { ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/customers/customer-status-badges";
+import { CustomerTimelinePanel } from "@/features/admin/customers/customer-timeline-panel";
+import type { CustomerActionFeedback } from "@/features/admin/customers/customer-types";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import type { AdminState } from "@/lib/admin/types";
 
 export function CustomerDetailSheet({
   state,
@@ -32,7 +32,7 @@ export function CustomerDetailSheet({
   onOpenChange,
   onAddNote,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   profile: CustomerRelationshipProfile | null;
   feedback: CustomerActionFeedback | null;
   onOpenChange: (open: boolean) => void;
