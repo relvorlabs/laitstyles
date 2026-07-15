@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultOrderQuery } from "@/features/control-room/orders/order-selectors";
-import { buildOrdersHref } from "@/features/control-room/orders/orders-url";
+import { defaultOrderQuery } from "@/features/admin/orders/order-selectors";
+import { buildOrdersHref } from "@/features/admin/orders/orders-url";
 
 describe("Orders URL state", () => {
   it("omits default values", () => {
