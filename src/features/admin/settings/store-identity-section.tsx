@@ -7,8 +7,8 @@ import { Card } from "@/components/ui/card";
 import {
   SettingsTextareaField,
   SettingsTextField,
-} from "@/features/control-room/settings/settings-fields";
-import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
+} from "@/features/admin/settings/settings-fields";
+import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 const approvedLogoPath = "/brand/laitstyle-symbol.svg";
@@ -29,7 +29,7 @@ export function StoreIdentitySection() {
         <div className="sm:col-span-2">
           <SettingsTextField
             autoComplete="organization"
-            description="This appears in the Control Room and customer-facing store preview."
+            description="This appears in Admin and the customer-facing store preview."
             label="Store name"
             name="identity.storeName"
             placeholder="Laitstyle"
