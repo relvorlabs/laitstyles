@@ -14,16 +14,16 @@ import {
   channelLabels,
   formatOrderDate,
   paymentStatusLabels,
-} from "@/features/control-room/orders/order-labels";
-import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
+} from "@/features/admin/orders/order-labels";
+import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
-} from "@/features/control-room/orders/order-status-badge";
-import { OrderTimeline } from "@/features/control-room/orders/order-timeline";
-import { OrderTransitionControls } from "@/features/control-room/orders/order-transition-controls";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { ControlRoomOrder, ControlRoomState, OrderStatus } from "@/lib/control-room/types";
+} from "@/features/admin/orders/order-status-badge";
+import { OrderTimeline } from "@/features/admin/orders/order-timeline";
+import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/types";
 
 export function OrderDetailSheet({
   state,
@@ -31,7 +31,7 @@ export function OrderDetailSheet({
   onOpenChange,
   onTransition,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   order: ControlRoomOrder | null;
   onOpenChange: (open: boolean) => void;
   onTransition: (orderId: string, status: OrderStatus) => void;
