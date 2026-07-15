@@ -1,4 +1,4 @@
-import type { OrderStatus, PaymentStatus, SalesChannel } from "@/lib/control-room/types";
+import type { OrderStatus, PaymentStatus, SalesChannel } from "@/lib/admin/types";
 
 const orderDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",
