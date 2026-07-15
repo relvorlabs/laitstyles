@@ -1,7 +1,7 @@
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
-import { formatOrderDate, orderStatusLabels } from "@/features/control-room/orders/order-labels";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ControlRoomOrder } from "@/lib/control-room/types";
+import { formatOrderDate, orderStatusLabels } from "@/features/admin/orders/order-labels";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ControlRoomOrder } from "@/lib/admin/types";
 
 export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
   const timeline = order.timeline?.length
@@ -22,7 +22,7 @@ export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
         <li className="grid grid-cols-[28px_minmax(0,1fr)] gap-3" key={event.id}>
           <div className="flex flex-col items-center">
             <span className="grid size-7 place-items-center rounded-full border border-chip-border bg-surface-selected-muted text-surface-selected-foreground">
-              <ControlRoomIcon icon={CheckmarkCircle02Icon} size={15} />
+              <AdminIcon icon={CheckmarkCircle02Icon} size={15} />
             </span>
             {index < timeline.length - 1 ? (
               <span className="min-h-10 w-px flex-1 bg-border" />
@@ -38,7 +38,7 @@ export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
               </time>
             </div>
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-              {event.note} · {event.actor}
+              {event.actor} · {event.note}
             </p>
           </div>
         </li>
