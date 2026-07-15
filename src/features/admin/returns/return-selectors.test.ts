@@ -6,9 +6,9 @@ import {
   getReturnSavedViewCounts,
   getReturnWorkspaceSummary,
   queryReturns,
-} from "@/features/control-room/returns/return-selectors";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/returns/return-selectors";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
+import { activeAdminSeed } from "@/lib/admin/seed";
 
 const now = "2026-07-09T17:45:00+01:00";
 
@@ -19,7 +19,7 @@ function idFactory() {
 
 function stateWithReturn() {
   const result = applyCreateReturn(
-    activeControlRoomSeed,
+    activeAdminSeed,
     {
       orderId: "LS-20472",
       reason: "Fit did not work",
@@ -35,9 +35,9 @@ function stateWithReturn() {
 
 describe("Returns workspace selectors", () => {
   it("offers only delivered order lines with remaining eligible quantity", () => {
-    const orders = getEligibleReturnOrders(activeControlRoomSeed);
+    const orders = getEligibleReturnOrders(activeAdminSeed);
     expect(orders.map((order) => order.id)).toEqual(["LS-20472"]);
-    expect(getEligibleReturnQuantity(activeControlRoomSeed, orders[0]!, "line-20472-1")).toBe(1);
+    expect(getEligibleReturnQuantity(activeAdminSeed, orders[0]!, "line-20472-1")).toBe(1);
   });
 
   it("queries and summarizes connected return records", () => {
