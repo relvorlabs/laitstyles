@@ -3,12 +3,12 @@ import {
   customerAttentionLabels,
   customerSegmentLabels,
   customerTypeLabels,
-} from "@/features/control-room/customers/customer-labels";
+} from "@/features/admin/customers/customer-labels";
 import type {
   CustomerAttentionReason,
   CustomerSegment,
   CustomerType,
-} from "@/lib/control-room/customer-types";
+} from "@/lib/admin/customer-types";
 
 export function CustomerTypeBadge({ type }: { type: CustomerType | undefined }) {
   const value = type ?? "individual";
