@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { formatCustomerDate } from "@/features/control-room/customers/customer-labels";
-import type { ControlRoomState, CustomerProductRelationship } from "@/lib/control-room/types";
+import { formatCustomerDate } from "@/features/admin/customers/customer-labels";
+import type { AdminState, CustomerProductRelationship } from "@/lib/admin/types";
 
 export function CustomerProductsPanel({
   state,
   relationships,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   relationships: CustomerProductRelationship[];
 }) {
   const productById = new Map(state.products.map((product) => [product.id, product]));
