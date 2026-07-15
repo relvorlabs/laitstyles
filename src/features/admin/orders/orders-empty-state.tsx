@@ -1,7 +1,7 @@
 import { PackageIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export function OrdersEmptyState({
   hasOrders,
@@ -13,7 +13,7 @@ export function OrdersEmptyState({
   return (
     <Card className="items-center px-6 py-16 text-center">
       <span className="grid size-14 place-items-center rounded-full bg-secondary text-muted-foreground">
-        <ControlRoomIcon icon={PackageIcon} size={23} />
+        <AdminIcon icon={PackageIcon} size={23} />
       </span>
       <h2 className="mt-5 font-serif text-[28px] font-medium">
         {hasOrders ? "No orders match this view" : "No orders yet"}
