@@ -10,18 +10,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
-import type { ControlRoomReturn, ControlRoomState } from "@/lib/control-room/types";
+import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors";
+import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
+import type { AdminState, ControlRoomReturn } from "@/lib/admin/types";
 
 export function ReturnsTable({
   state,
   returns,
   onOpen,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   returns: ControlRoomReturn[];
   onOpen: (returnId: string) => void;
 }) {
@@ -47,16 +47,19 @@ export function ReturnsTable({
             return (
               <TableRow key={record.id}>
                 <TableCell>
-                  <button
-                    className="rounded-[8px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  <Button
+                    className="h-auto justify-start rounded-[8px] p-0 text-left"
                     onClick={() => onOpen(record.id)}
                     type="button"
+                    variant="link"
                   >
-                    <span className="block text-[12.5px] font-semibold">{record.id}</span>
-                    <span className="mt-1 block text-[10.5px] text-muted-foreground">
-                      {record.orderId} · {formatRelativeTime(state.asOf, record.updatedAt)}
+                    <span>
+                      <span className="block text-[12.5px] font-semibold">{record.id}</span>
+                      <span className="mt-1 block text-[10.5px] text-muted-foreground">
+                        {record.orderId} · {formatRelativeTime(state.asOf, record.updatedAt)}
+                      </span>
                     </span>
-                  </button>
+                  </Button>
                 </TableCell>
                 <TableCell className="overflow-hidden">
                   <span className="block truncate text-[12px] font-medium">
@@ -85,7 +88,7 @@ export function ReturnsTable({
                     type="button"
                     variant="ghost"
                   >
-                    <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                    <AdminIcon icon={ArrowRight01Icon} size={16} />
                   </Button>
                 </TableCell>
               </TableRow>
