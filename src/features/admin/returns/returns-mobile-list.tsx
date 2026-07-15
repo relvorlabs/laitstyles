@@ -3,18 +3,18 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { toReturnWorkspaceItem } from "@/features/control-room/returns/return-selectors";
-import { ReturnStatusBadge } from "@/features/control-room/returns/return-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
-import type { ControlRoomReturn, ControlRoomState } from "@/lib/control-room/types";
+import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors";
+import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
+import type { AdminState, ControlRoomReturn } from "@/lib/admin/types";
 
 export function ReturnsMobileList({
   state,
   returns,
   onOpen,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   returns: ControlRoomReturn[];
   onOpen: (returnId: string) => void;
 }) {
@@ -56,7 +56,7 @@ export function ReturnsMobileList({
                   type="button"
                   variant="outline"
                 >
-                  <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                  <AdminIcon icon={ArrowRight01Icon} size={16} />
                 </Button>
               </div>
             </CardContent>
