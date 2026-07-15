@@ -6,15 +6,15 @@ import { Card } from "@/components/ui/card";
 import {
   formatCustomerDate,
   getCustomerInitials,
-} from "@/features/control-room/customers/customer-labels";
+} from "@/features/admin/customers/customer-labels";
 import {
   CustomerAttentionBadges,
   CustomerSegmentBadges,
   CustomerTypeBadge,
-} from "@/features/control-room/customers/customer-status-badges";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
-import { formatNaira } from "@/lib/control-room/formatters";
+} from "@/features/admin/customers/customer-status-badges";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import { formatNaira } from "@/lib/admin/formatters";
 
 export function CustomersMobileList({
   profiles,
@@ -87,7 +87,7 @@ export function CustomersMobileList({
                   type="button"
                   variant="outline"
                 >
-                  <ControlRoomIcon icon={ArrowRight01Icon} size={17} />
+                  <AdminIcon icon={ArrowRight01Icon} size={17} />
                 </Button>
               </div>
             </div>
