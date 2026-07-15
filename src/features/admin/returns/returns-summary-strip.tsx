@@ -1,5 +1,5 @@
-import type { ReturnWorkspaceSummary } from "@/features/control-room/returns/return-types";
-import { formatCompactNaira } from "@/lib/control-room/formatters";
+import type { ReturnWorkspaceSummary } from "@/features/admin/returns/return-types";
+import { formatCompactNaira } from "@/lib/admin/formatters";
 import { cn } from "@/lib/utils";
 
 export function ReturnsSummaryStrip({ summary }: { summary: ReturnWorkspaceSummary }) {
