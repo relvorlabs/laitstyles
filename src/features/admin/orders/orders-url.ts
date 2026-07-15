@@ -1,5 +1,5 @@
-import { defaultOrderQuery } from "@/features/control-room/orders/order-selectors";
-import type { OrderQuery } from "@/features/control-room/orders/order-types";
+import { defaultOrderQuery } from "@/features/admin/orders/order-selectors";
+import type { OrderQuery } from "@/features/admin/orders/order-types";
 
 export function buildOrdersHref(
   pathname: string,
