@@ -3,7 +3,7 @@ import type {
   CustomerSegment,
   CustomerTimelineKind,
   CustomerType,
-} from "@/lib/control-room/customer-types";
+} from "@/lib/admin/customer-types";
 
 export const customerTypeLabels: Record<CustomerType, string> = {
   individual: "Individual",
@@ -62,6 +62,6 @@ export function getCustomerInitials(name: string) {
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
+    .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 }
