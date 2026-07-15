@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { returnSavedViews } from "@/features/control-room/returns/return-selectors";
-import type { ReturnSavedView } from "@/features/control-room/returns/return-types";
+import { returnSavedViews } from "@/features/admin/returns/return-selectors";
+import type { ReturnSavedView } from "@/features/admin/returns/return-types";
 
 export function ReturnSavedViews({
   value,
