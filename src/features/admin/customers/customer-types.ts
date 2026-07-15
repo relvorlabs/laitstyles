@@ -2,7 +2,7 @@ import type {
   CustomerAttentionReason,
   CustomerSegment,
   CustomerType,
-} from "@/lib/control-room/customer-types";
+} from "@/lib/admin/customer-types";
 
 export type CustomerSavedView = "all" | "needs-attention" | "returning" | "high-value" | "new";
 
