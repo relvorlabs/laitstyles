@@ -5,13 +5,13 @@ import {
   getHoldWorkspaceSummary,
   queryHolds,
   toHoldWorkspaceItem,
-} from "@/features/control-room/holds/hold-selectors";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-selectors";
+import { activeAdminSeed } from "@/lib/admin/seed";
+import type { AdminState } from "@/lib/admin/types";
 
-const holdsState: ControlRoomState = {
-  ...activeControlRoomSeed,
-  holds: activeControlRoomSeed.holds.map((hold) => {
+const holdsState: AdminState = {
+  ...activeAdminSeed,
+  holds: activeAdminSeed.holds.map((hold) => {
     if (hold.id === "hold-tank") {
       return { ...hold, source: "whatsapp" as const };
     }
