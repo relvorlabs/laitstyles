@@ -14,8 +14,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { getAdminPage } from "@/features/admin/shell/navigation";
-import { useProductEditorController } from "@/features/control-room/product-editor/product-editor-controller";
-import { useRecordSaleController } from "@/features/control-room/record-sale/record-sale-controller";
+import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useRecordSaleController } from "@/features/admin/record-sale/record-sale-controller";
 
 type AdminTopbarProps = {
   pathname: string;

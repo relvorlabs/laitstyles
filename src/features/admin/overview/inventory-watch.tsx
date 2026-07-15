@@ -2,10 +2,10 @@ import { PackageIcon } from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { SectionHeading } from "@/features/control-room/shared/section-heading";
-import { getProductStock } from "@/lib/control-room/selectors";
-import type { InventoryProduct } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { SectionHeading } from "@/features/admin/shared/section-heading";
+import { getProductStock } from "@/lib/admin/selectors";
+import type { InventoryProduct } from "@/lib/admin/types";
 
 export function InventoryWatch({
   lowStock,
@@ -134,7 +134,7 @@ function InventoryClearState({ message }: { message: string }) {
   return (
     <div className="flex min-h-[220px] flex-col items-center justify-center px-5 text-center">
       <span className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
-        <ControlRoomIcon icon={PackageIcon} size={21} />
+        <AdminIcon icon={PackageIcon} size={21} />
       </span>
       <p className="mt-4 max-w-[320px] text-[13px] leading-5 text-muted-foreground">{message}</p>
     </div>

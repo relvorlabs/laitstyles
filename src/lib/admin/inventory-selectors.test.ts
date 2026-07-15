@@ -8,13 +8,13 @@ import {
   queryInventory,
   validateInventoryDataset,
   validateInventoryProduct,
-} from "@/lib/control-room/inventory-selectors";
+} from "@/lib/admin/inventory-selectors";
 import type {
   InventoryProduct,
   UniqueProduct,
   VariantProduct,
-} from "@/lib/control-room/inventory-types";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/lib/admin/inventory-types";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 function productById(id: string) {
   const product = activeControlRoomSeed.products.find((item) => item.id === id);

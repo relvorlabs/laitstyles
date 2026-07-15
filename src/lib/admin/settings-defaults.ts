@@ -1,4 +1,4 @@
-import type { SaveStoreSettingsInput, StoreSettings } from "@/lib/control-room/settings-types";
+import type { SaveStoreSettingsInput, StoreSettings } from "@/lib/admin/settings-types";
 
 export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
   identity: {

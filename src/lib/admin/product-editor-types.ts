@@ -3,7 +3,7 @@ import type {
   InventoryMode,
   InventoryProduct,
   ProductMediaKind,
-} from "@/lib/control-room/inventory-types";
+} from "@/lib/admin/inventory-types";
 
 export const productEditorSteps = [
   "type",

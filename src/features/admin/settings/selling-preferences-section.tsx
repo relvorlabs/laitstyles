@@ -11,7 +11,7 @@ import {
   SettingsTextField,
 } from "@/features/admin/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
-import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 const productModeOptions = [
   ["unique", "Unique piece"],

@@ -1,9 +1,9 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { isHoldActive } from "@/lib/control-room/sales-selectors";
+import { err, ok, type Result } from "@/lib/admin/result";
+import { isHoldActive } from "@/lib/admin/sales-selectors";
 import {
   applySalesStockMutation,
   type SalesStockMutationKind,
-} from "@/lib/control-room/sales-stock";
+} from "@/lib/admin/sales-stock";
 import type {
   ControlRoomCustomer,
   ControlRoomOrder,
@@ -12,7 +12,7 @@ import type {
   OfflineSaleSuccess,
   SalesActionError,
   StockMovement,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export type OfflineSaleStateResult = {
   state: ControlRoomState;

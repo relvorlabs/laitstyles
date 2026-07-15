@@ -3,12 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { OrderStatusBadge } from "@/features/control-room/orders/order-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { SectionHeading } from "@/features/control-room/shared/section-heading";
-import { formatNaira, formatRelativeTime } from "@/lib/control-room/formatters";
-import { getCustomerName } from "@/lib/control-room/selectors";
-import type { ControlRoomOrder, ControlRoomState } from "@/lib/control-room/types";
+import { OrderStatusBadge } from "@/features/admin/orders/order-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { SectionHeading } from "@/features/admin/shared/section-heading";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
+import { getCustomerName } from "@/lib/admin/selectors";
+import type { ControlRoomOrder, ControlRoomState } from "@/lib/admin/types";
 
 const terminalStatuses = new Set(["delivered", "cancelled", "refunded", "returned"]);
 
@@ -47,7 +47,7 @@ export function OpenOrdersPreview({ state }: { state: ControlRoomState }) {
           ) : (
             <div className="px-5 py-10 text-center sm:px-6">
               <span className="mx-auto grid size-12 place-items-center rounded-full bg-surface-sunken text-muted-foreground">
-                <ControlRoomIcon icon={PackageIcon} size={21} />
+                <AdminIcon icon={PackageIcon} size={21} />
               </span>
               <h3 className="mt-4 font-serif text-[23px] font-medium">No open fulfilment work.</h3>
               <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-5 text-muted-foreground">
@@ -84,7 +84,7 @@ function OpenOrderRow({ order, state }: { order: ControlRoomOrder; state: Contro
           />
         ) : (
           <span className="grid size-full place-items-center text-muted-foreground">
-            <ControlRoomIcon icon={PackageIcon} size={18} />
+            <AdminIcon icon={PackageIcon} size={18} />
           </span>
         )}
       </span>
@@ -103,7 +103,7 @@ function OpenOrderRow({ order, state }: { order: ControlRoomOrder; state: Contro
       <span className="flex flex-col items-end gap-2">
         <span className="text-[12.5px] font-semibold tabular-nums">{formatNaira(order.total)}</span>
         <span className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground">
-          <ControlRoomIcon icon={ArrowRight01Icon} size={15} />
+          <AdminIcon icon={ArrowRight01Icon} size={15} />
         </span>
       </span>
     </Link>

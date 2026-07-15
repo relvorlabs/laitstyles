@@ -6,12 +6,12 @@ import {
   sellingPreferencesSettingsSchema,
   storeIdentitySettingsSchema,
   teamSettingsSchema,
-} from "@/lib/control-room/settings-section-schemas";
+} from "@/lib/admin/settings-section-schemas";
 import type {
   SaveStoreSettingsInput,
   SettingsSection,
   SettingsValidationIssue,
-} from "@/lib/control-room/settings-types";
+} from "@/lib/admin/settings-types";
 
 export {
   deliverySettingsSchema,
@@ -20,7 +20,7 @@ export {
   sellingPreferencesSettingsSchema,
   storeIdentitySettingsSchema,
   teamSettingsSchema,
-} from "@/lib/control-room/settings-section-schemas";
+} from "@/lib/admin/settings-section-schemas";
 
 export const storeSettingsInputSchema = z
   .object({

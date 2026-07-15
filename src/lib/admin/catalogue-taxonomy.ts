@@ -1,6 +1,6 @@
-import type { InventoryProduct } from "@/lib/control-room/inventory-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { ControlRoomState } from "@/lib/control-room/types";
+import type { InventoryProduct } from "@/lib/admin/inventory-types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { ControlRoomState } from "@/lib/admin/types";
 
 export type CatalogueTaxonomyKind = "category" | "collection";
 

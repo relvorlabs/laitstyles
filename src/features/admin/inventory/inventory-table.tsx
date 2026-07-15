@@ -18,11 +18,11 @@ import {
   channelLabels,
   formatInventoryDate,
   inventoryModeLabels,
-} from "@/features/control-room/inventory/inventory-labels";
-import { InventoryStatusBadge } from "@/features/control-room/inventory/inventory-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { InventoryListItem } from "@/lib/control-room/types";
+} from "@/features/admin/inventory/inventory-labels";
+import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 type InventoryTableProps = {
   items: InventoryListItem[];
@@ -166,7 +166,7 @@ export function InventoryTable({
                     type="button"
                     variant="ghost"
                   >
-                    <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                    <AdminIcon icon={ArrowRight01Icon} size={16} />
                   </Button>
                 </TableCell>
               </TableRow>

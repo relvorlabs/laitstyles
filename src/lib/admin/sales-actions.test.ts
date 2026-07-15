@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { applyHoldConversion, applyHoldRelease } from "@/lib/control-room/hold-actions";
-import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
-import { applyOrderTransition } from "@/lib/control-room/order-actions";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/control-room/return-actions";
-import { getRevenueByChannel } from "@/lib/control-room/sales-selectors";
-import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { applyHoldConversion, applyHoldRelease } from "@/lib/admin/hold-actions";
+import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
+import { applyOrderTransition } from "@/lib/admin/order-actions";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
+import { getRevenueByChannel } from "@/lib/admin/sales-selectors";
+import { applySalesStockMutation } from "@/lib/admin/sales-stock";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 import type {
   ControlRoomOrder,
   ControlRoomState,
   InventoryProduct,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const now = "2026-07-09T17:30:00+01:00";
 

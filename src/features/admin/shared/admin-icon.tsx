@@ -26,8 +26,3 @@ export function AdminIcon({
     />
   );
 }
-
-/** @deprecated Use AdminIconData while remaining Admin modules are renamed. */
-export type ControlRoomIconData = AdminIconData;
-/** @deprecated Use AdminIcon while remaining Admin modules are renamed. */
-export const ControlRoomIcon = AdminIcon;

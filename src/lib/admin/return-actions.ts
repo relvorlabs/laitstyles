@@ -1,13 +1,13 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
+import { err, ok, type Result } from "@/lib/admin/result";
 import {
   canTransitionReturn,
   getReturnedQuantityForOrderLine,
   inferOrderLineStockState,
-} from "@/lib/control-room/sales-selectors";
+} from "@/lib/admin/sales-selectors";
 import {
   applySalesStockMutation,
   type SalesStockMutationKind,
-} from "@/lib/control-room/sales-stock";
+} from "@/lib/admin/sales-stock";
 import type {
   ControlRoomOrder,
   ControlRoomReturn,
@@ -17,7 +17,7 @@ import type {
   ReturnStatus,
   SalesActionError,
   StockMovement,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const physicallyReturnedStatuses = new Set<ReturnStatus>([
   "received",

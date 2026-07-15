@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { inventoryHealthLabels } from "@/features/control-room/inventory/inventory-labels";
-import type { InventoryHealth } from "@/lib/control-room/types";
+import { inventoryHealthLabels } from "@/features/admin/inventory/inventory-labels";
+import type { InventoryHealth } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 const healthStyles: Record<InventoryHealth, string> = {

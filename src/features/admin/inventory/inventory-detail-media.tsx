@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ProductMediaViewer } from "@/features/control-room/inventory/product-media-viewer";
-import type { InventoryListItem } from "@/lib/control-room/types";
+import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
   const [openMediaId, setOpenMediaId] = useState<string | null>(null);

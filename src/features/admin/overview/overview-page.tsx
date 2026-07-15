@@ -10,9 +10,9 @@ import { OpenOrdersPreview } from "@/features/admin/overview/open-orders-preview
 import { SalesPulse } from "@/features/admin/overview/sales-pulse";
 import { TodayStrip } from "@/features/admin/overview/today-strip";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatReportingDate } from "@/lib/control-room/formatters";
-import { getOverviewSnapshot } from "@/lib/control-room/selectors";
-import type { ControlRoomState } from "@/lib/control-room/types";
+import { formatReportingDate } from "@/lib/admin/formatters";
+import { getOverviewSnapshot } from "@/lib/admin/selectors";
+import type { ControlRoomState } from "@/lib/admin/types";
 
 export function OverviewPage({ state }: { state: ControlRoomState }) {
   const snapshot = getOverviewSnapshot(state);

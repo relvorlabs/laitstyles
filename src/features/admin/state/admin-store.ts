@@ -206,8 +206,3 @@ function createSessionClock(anchor: string) {
 
   return () => new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }
-
-/** @deprecated Use AdminStore. */
-export type ControlRoomStore = AdminStore;
-/** @deprecated Use createAdminStore. */
-export const createControlRoomStore = createAdminStore;

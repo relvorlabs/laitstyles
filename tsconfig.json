@@ -19,9 +19,6 @@
       }
     ],
     "paths": {
-      "@/features/control-room/shared/control-room-icon": ["./src/features/admin/shared/admin-icon"],
-      "@/features/control-room/inventory/*": ["./src/features/admin/inventory/*"],
-      "@/lib/control-room/*": ["./src/lib/admin/*"],
       "@/*": ["./src/*"]
     }
   },

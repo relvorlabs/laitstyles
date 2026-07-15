@@ -2,15 +2,15 @@ import { Children, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { formatInventoryDate } from "@/features/control-room/inventory/inventory-labels";
-import { formatNaira } from "@/lib/control-room/formatters";
+import { formatInventoryDate } from "@/features/admin/inventory/inventory-labels";
+import { formatNaira } from "@/lib/admin/formatters";
 import type {
   ControlRoomActivity,
   ControlRoomHold,
   ControlRoomOrder,
   ProductReview,
   StockMovement,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export function ProductOrdersPanel({
   orders,

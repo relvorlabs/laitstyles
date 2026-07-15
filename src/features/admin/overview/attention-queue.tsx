@@ -7,9 +7,9 @@ import {
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { SectionHeading } from "@/features/control-room/shared/section-heading";
-import type { AttentionItem, AttentionTone } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { SectionHeading } from "@/features/admin/shared/section-heading";
+import type { AttentionItem, AttentionTone } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type AttentionQueueProps = {
@@ -66,7 +66,7 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
           ) : (
             <div className="px-5 py-10 text-center sm:px-6">
               <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
-                <ControlRoomIcon icon={PackageIcon} size={21} />
+                <AdminIcon icon={PackageIcon} size={21} />
               </span>
               <h3 className="mt-4 font-serif text-[24px] font-medium">The queue is clear.</h3>
               <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-5 text-muted-foreground">
@@ -98,7 +98,7 @@ function AttentionRow({ item }: { item: AttentionItem }) {
       href={item.href}
     >
       <span className={cn("grid size-10 place-items-center rounded-[12px]", tone.icon)}>
-        <ControlRoomIcon icon={icon} size={18} />
+        <AdminIcon icon={icon} size={18} />
       </span>
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
@@ -112,7 +112,7 @@ function AttentionRow({ item }: { item: AttentionItem }) {
         </span>
       </span>
       <span className="grid size-9 place-items-center rounded-full border border-border text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground">
-        <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+        <AdminIcon icon={ArrowRight01Icon} size={16} />
       </span>
     </Link>
   );

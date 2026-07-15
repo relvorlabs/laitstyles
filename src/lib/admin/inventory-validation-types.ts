@@ -2,7 +2,7 @@ import type {
   InventoryProduct,
   ProductReview,
   StockMovement,
-} from "@/lib/control-room/inventory-types";
+} from "@/lib/admin/inventory-types";
 
 export type InventoryValidationIssue = {
   path: string;

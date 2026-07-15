@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { InventoryListItem } from "@/lib/control-room/types";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 export function ProductPricingPanel({ item }: { item: InventoryListItem }) {
   const { product } = item;

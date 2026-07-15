@@ -1,9 +1,9 @@
-import { getProductStock } from "@/lib/control-room/inventory-selectors";
+import { getProductStock } from "@/lib/admin/inventory-selectors";
 import {
   getActiveSalesHolds,
   getPaidOrders,
   getRevenueByChannel,
-} from "@/lib/control-room/sales-selectors";
+} from "@/lib/admin/sales-selectors";
 import type {
   AttentionItem,
   ControlRoomHold,
@@ -12,9 +12,9 @@ import type {
   FulfilmentLaneItem,
   InventoryProduct,
   OverviewSnapshot,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
-export { getProductStock } from "@/lib/control-room/inventory-selectors";
+export { getProductStock } from "@/lib/admin/inventory-selectors";
 
 export function getCustomerName(state: ControlRoomState, customerId: string | null) {
   if (!customerId) return "Guest customer";

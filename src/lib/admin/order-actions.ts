@@ -1,9 +1,9 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { canTransitionOrder, inferOrderLineStockState } from "@/lib/control-room/sales-selectors";
+import { err, ok, type Result } from "@/lib/admin/result";
+import { canTransitionOrder, inferOrderLineStockState } from "@/lib/admin/sales-selectors";
 import {
   applySalesStockMutation,
   type SalesStockMutationKind,
-} from "@/lib/control-room/sales-stock";
+} from "@/lib/admin/sales-stock";
 import type {
   ControlRoomOrder,
   ControlRoomState,
@@ -15,7 +15,7 @@ import type {
   SalesActionError,
   StockMovement,
   StockMovementKind,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export type OrderTransitionStateResult = {
   state: ControlRoomState;

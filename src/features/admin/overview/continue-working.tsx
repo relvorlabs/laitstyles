@@ -10,8 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ContinueTask } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ContinueTask } from "@/lib/admin/types";
 
 export function ContinueWorking({ task }: { task?: ContinueTask }) {
   if (!task) {
@@ -35,7 +35,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
       <CardHeader>
         <div className="mb-2 flex items-center justify-between gap-3">
           <span className="grid size-11 place-items-center rounded-[13px] bg-card text-accent-foreground ring-1 ring-foreground/10">
-            <ControlRoomIcon icon={PackageIcon} size={20} />
+            <AdminIcon icon={PackageIcon} size={20} />
           </span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-foreground/78">
             Continue working
@@ -65,7 +65,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
           href={task.href}
         >
           Review what is missing
-          <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+          <AdminIcon icon={ArrowRight01Icon} size={16} />
         </Link>
       </CardFooter>
     </Card>

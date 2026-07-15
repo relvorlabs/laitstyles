@@ -1,15 +1,15 @@
-import { createProductEditorValues } from "@/lib/control-room/product-editor-defaults";
-import { validateProductForPublish } from "@/lib/control-room/product-editor-schema";
-import { replaceOrAppendProduct } from "@/lib/control-room/product-editor-state-utils";
+import { createProductEditorValues } from "@/lib/admin/product-editor-defaults";
+import { validateProductForPublish } from "@/lib/admin/product-editor-schema";
+import { replaceOrAppendProduct } from "@/lib/admin/product-editor-state-utils";
 import type {
   IntakeRecord,
   IntakeStage,
   IntakeTransitionSuccess,
   ProductEditorActionError,
   ProductEditorIntent,
-} from "@/lib/control-room/product-editor-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { ControlRoomState, InventoryProduct } from "@/lib/control-room/types";
+} from "@/lib/admin/product-editor-types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { ControlRoomState, InventoryProduct } from "@/lib/admin/types";
 
 export type IntakeStateResult = {
   state: ControlRoomState;

@@ -1,7 +1,7 @@
 "use client";
 
-import { InventoryProductCard } from "@/features/control-room/inventory/inventory-product-card";
-import type { InventoryListItem } from "@/lib/control-room/types";
+import { InventoryProductCard } from "@/features/admin/inventory/inventory-product-card";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 type InventoryGridProps = {
   items: InventoryListItem[];

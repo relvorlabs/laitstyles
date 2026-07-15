@@ -5,10 +5,10 @@ import {
   getCustomerProductRelationships,
   getCustomerRelationshipProfile,
   getCustomerTimeline,
-} from "@/lib/control-room/customer-selectors";
-import { applyOfflineSale } from "@/lib/control-room/offline-sale-actions";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { ControlRoomState } from "@/lib/control-room/types";
+} from "@/lib/admin/customer-selectors";
+import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
+import type { ControlRoomState } from "@/lib/admin/types";
 
 describe("customer relationship selectors", () => {
   it("derives spend, orders and active holds from connected records", () => {

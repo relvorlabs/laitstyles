@@ -1,4 +1,4 @@
-import type { InventoryQuery } from "@/lib/control-room/types";
+import type { InventoryQuery } from "@/lib/admin/types";
 
 export type InventoryListKeyInput = {
   query: InventoryQuery;

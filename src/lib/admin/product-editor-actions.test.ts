@@ -3,18 +3,18 @@ import {
   applyIntakeTransition,
   applyProductEditorAction,
   createInitialIntakeRecords,
-} from "@/lib/control-room/product-editor-actions";
+} from "@/lib/admin/product-editor-actions";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
   createProductEditorValues,
-} from "@/lib/control-room/product-editor-defaults";
+} from "@/lib/admin/product-editor-defaults";
 import {
   validateProductEditorStep,
   validateProductForPublish,
-} from "@/lib/control-room/product-editor-schema";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
-import type { ControlRoomState, ProductEditorValues } from "@/lib/control-room/types";
+} from "@/lib/admin/product-editor-schema";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
+import type { ControlRoomState, ProductEditorValues } from "@/lib/admin/types";
 
 const now = "2026-07-09T14:00:00+01:00";
 

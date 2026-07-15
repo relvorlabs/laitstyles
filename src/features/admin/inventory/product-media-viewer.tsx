@@ -8,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProductMediaSidebar } from "@/features/control-room/inventory/product-media-sidebar";
-import { ProductMediaStage } from "@/features/control-room/inventory/product-media-stage";
-import type { ProductMedia } from "@/lib/control-room/types";
+import { ProductMediaSidebar } from "@/features/admin/inventory/product-media-sidebar";
+import { ProductMediaStage } from "@/features/admin/inventory/product-media-stage";
+import type { ProductMedia } from "@/lib/admin/types";
 
 type ProductMediaViewerProps = {
   media: ProductMedia[];

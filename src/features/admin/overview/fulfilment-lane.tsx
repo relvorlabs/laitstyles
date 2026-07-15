@@ -1,8 +1,8 @@
 import { TruckDeliveryIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { FulfilmentLaneItem } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { FulfilmentLaneItem } from "@/lib/admin/types";
 
 export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
   const total = items.reduce((sum, item) => sum + item.count, 0);
@@ -20,7 +20,7 @@ export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
             </span>
           </span>
           <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
-            <ControlRoomIcon icon={TruckDeliveryIcon} size={20} />
+            <AdminIcon icon={TruckDeliveryIcon} size={20} />
           </span>
         </CardTitle>
         <CardDescription className="mt-2 text-[12.5px] leading-5">

@@ -1,5 +1,5 @@
 import type { FieldErrors, FieldPath } from "react-hook-form";
-import type { SaveStoreSettingsInput, SettingsSection } from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput, SettingsSection } from "@/lib/admin/types";
 
 export function getSettingsFieldError(
   errors: FieldErrors<SaveStoreSettingsInput>,

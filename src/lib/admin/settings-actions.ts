@@ -1,11 +1,11 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { parseStoreSettingsInput } from "@/lib/control-room/settings-schema";
+import { err, ok, type Result } from "@/lib/admin/result";
+import { parseStoreSettingsInput } from "@/lib/admin/settings-schema";
 import type {
   ControlRoomState,
   SaveStoreSettingsInput,
   StoreSettingsActionError,
   StoreSettingsActionSuccess,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export type StoreSettingsStateResult = {
   state: ControlRoomState;

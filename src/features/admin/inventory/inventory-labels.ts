@@ -3,7 +3,7 @@ import type {
   InventoryHealth,
   InventoryMode,
   InventoryProduct,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const inventoryDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { applyAddCustomerNote } from "@/lib/control-room/customer-actions";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { applyAddCustomerNote } from "@/lib/admin/customer-actions";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 describe("Customer note actions", () => {
   it("adds a session note and customer activity through the shared store", () => {
     const now = "2026-07-09T11:40:00+01:00";
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const result = store.addCustomerNote({
       customerId: "customer-amara",
       body: "  Prefers the longer inseam when both cuts are available.  ",

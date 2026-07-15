@@ -1,4 +1,4 @@
-import type { ControlRoomCustomer } from "@/lib/control-room/customer-types";
+import type { ControlRoomCustomer } from "@/lib/admin/customer-types";
 
 const customerProfileSeed: Record<string, Partial<ControlRoomCustomer>> = {
   "customer-amara": {

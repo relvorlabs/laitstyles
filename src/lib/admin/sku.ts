@@ -1,4 +1,4 @@
-import type { InventoryMode } from "@/lib/control-room/inventory-types";
+import type { InventoryMode } from "@/lib/admin/inventory-types";
 
 export type GenerateProductSkuInput = {
   mode: InventoryMode;

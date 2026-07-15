@@ -1,27 +1,27 @@
 import {
   createInitialIntakeRecords,
   updateIntakeAfterEditorAction,
-} from "@/lib/control-room/intake-actions";
-import { convertEditorValuesToProduct } from "@/lib/control-room/product-editor-conversion";
+} from "@/lib/admin/intake-actions";
+import { convertEditorValuesToProduct } from "@/lib/admin/product-editor-conversion";
 import {
   productEditorDraftSchema,
   validateProductForPublish,
   validateProductForSchedule,
-} from "@/lib/control-room/product-editor-schema";
+} from "@/lib/admin/product-editor-schema";
 import {
   getProductReferences,
   normalizeProductReference,
   replaceOrAppendProduct,
-} from "@/lib/control-room/product-editor-state-utils";
-import { validateCommittedStockEdit } from "@/lib/control-room/product-editor-stock-guard";
+} from "@/lib/admin/product-editor-state-utils";
+import { validateCommittedStockEdit } from "@/lib/admin/product-editor-stock-guard";
 import type {
   ProductEditorActionError,
   ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
-} from "@/lib/control-room/product-editor-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/control-room/types";
+} from "@/lib/admin/product-editor-types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/admin/types";
 
 export type ProductEditorStateResult = {
   state: ControlRoomState;

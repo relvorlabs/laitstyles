@@ -1,7 +1,7 @@
-import { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
-import type { InventoryCounts, InventoryProduct } from "@/lib/control-room/inventory-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { SalesActionError } from "@/lib/control-room/sales-types";
+import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
+import type { InventoryCounts, InventoryProduct } from "@/lib/admin/inventory-types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { SalesActionError } from "@/lib/admin/sales-types";
 
 export type SalesStockMutationKind =
   | "reserve"

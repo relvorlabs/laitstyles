@@ -5,9 +5,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { InventoryStatusBadge } from "@/features/control-room/inventory/inventory-status-badge";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { InventoryListItem } from "@/lib/control-room/types";
+import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 type InventoryProductCardProps = {
   item: InventoryListItem;

@@ -12,13 +12,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { InventoryFilterFields } from "@/features/control-room/inventory/inventory-filter-fields";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { InventoryFilterFields } from "@/features/admin/inventory/inventory-filter-fields";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type {
   InventoryFacetOptions,
   InventoryPresentation,
   InventoryQuery,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type InventoryControlsProps = {
@@ -54,7 +54,7 @@ export function InventoryControls({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <InputGroup className="h-11 bg-card lg:max-w-[420px]">
           <InputGroupAddon>
-            <ControlRoomIcon icon={Search01Icon} size={17} />
+            <AdminIcon icon={Search01Icon} size={17} />
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Search Inventory"
@@ -82,7 +82,7 @@ export function InventoryControls({
                 />
               }
             >
-              <ControlRoomIcon icon={Settings01Icon} size={17} />
+              <AdminIcon icon={Settings01Icon} size={17} />
               Filters
             </SheetTrigger>
             <SheetContent className="w-[min(92vw,420px)] overscroll-contain" side="right">
@@ -156,7 +156,7 @@ export function InventoryControls({
           product{resultCount === 1 ? "" : "s"} in this view
         </span>
         <span className="hidden items-center gap-2 sm:inline-flex">
-          <ControlRoomIcon icon={PackageIcon} size={15} />
+          <AdminIcon icon={PackageIcon} size={15} />
           Grid, table and mobile cards share this result set
         </span>
       </div>

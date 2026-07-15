@@ -3,8 +3,8 @@
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 export function DeliveryPreview() {
   const { control } = useFormContext<SaveStoreSettingsInput>();

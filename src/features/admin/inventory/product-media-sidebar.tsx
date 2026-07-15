@@ -3,7 +3,7 @@
 import { Check, Copy, ExternalLink, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
-import type { ProductMedia } from "@/lib/control-room/types";
+import type { ProductMedia } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type CopyFeedback = "copied" | "error" | null;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
-import { applyProductEditorAction } from "@/lib/control-room/product-editor-actions";
-import { createEmptyProductEditorValues } from "@/lib/control-room/product-editor-defaults";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
+import { applyProductEditorAction } from "@/lib/admin/product-editor-actions";
+import { createEmptyProductEditorValues } from "@/lib/admin/product-editor-defaults";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 const now = "2026-07-09T14:00:00+01:00";
 

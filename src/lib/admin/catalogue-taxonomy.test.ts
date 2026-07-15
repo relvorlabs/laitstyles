@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 const now = "2026-07-10T12:00:00+01:00";
 
 describe("Catalogue taxonomy management", () => {
   it("hydrates product categories and collections into managed choices", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const taxonomy = store.getSnapshot().catalogueTaxonomy ?? [];
 
     expect(taxonomy.some((item) => item.kind === "category")).toBe(true);
@@ -14,7 +14,7 @@ describe("Catalogue taxonomy management", () => {
   });
 
   it("creates and deletes an unused collection", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const created = store.createCatalogueTaxonomy({
       kind: "collection",
       name: "Weekend Denim",
@@ -36,7 +36,7 @@ describe("Catalogue taxonomy management", () => {
   });
 
   it("renames a category across connected products, timestamps them and blocks deletion while used", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const current = store.getSnapshot().catalogueTaxonomy?.find((item) => item.kind === "category");
     if (!current) throw new Error("Expected a seeded category");
 
@@ -60,7 +60,7 @@ describe("Catalogue taxonomy management", () => {
   });
 
   it("rejects duplicate names without changing the store", () => {
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const current = store.getSnapshot().catalogueTaxonomy?.find((item) => item.kind === "category");
     if (!current) throw new Error("Expected a seeded category");
     const before = store.getSnapshot().catalogueTaxonomy?.length;

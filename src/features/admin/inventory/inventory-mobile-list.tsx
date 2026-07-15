@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getProductDescriptor } from "@/features/control-room/inventory/inventory-labels";
-import { InventoryStatusBadge } from "@/features/control-room/inventory/inventory-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { InventoryListItem } from "@/lib/control-room/types";
+import { getProductDescriptor } from "@/features/admin/inventory/inventory-labels";
+import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 type InventoryMobileListProps = {
   items: InventoryListItem[];
@@ -106,7 +106,7 @@ export function InventoryMobileList({
                   variant="outline"
                 >
                   Open product record
-                  <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                  <AdminIcon icon={ArrowRight01Icon} size={16} />
                 </Button>
               </div>
             </div>

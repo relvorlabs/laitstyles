@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { inventorySavedViews } from "@/lib/control-room/inventory-selectors";
-import type { InventorySavedView } from "@/lib/control-room/types";
+import { inventorySavedViews } from "@/lib/admin/inventory-selectors";
+import type { InventorySavedView } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type InventorySavedViewsProps = {

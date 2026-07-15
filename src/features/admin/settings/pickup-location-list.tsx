@@ -15,7 +15,7 @@ import {
   SettingsTextareaField,
   SettingsTextField,
 } from "@/features/admin/settings/settings-fields";
-import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 export function PickupLocationList() {
   const { control } = useFormContext<SaveStoreSettingsInput>();

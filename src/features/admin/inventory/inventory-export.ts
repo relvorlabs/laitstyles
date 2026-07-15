@@ -1,4 +1,4 @@
-import type { InventoryListItem } from "@/lib/control-room/types";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 export function downloadInventoryCsv(items: InventoryListItem[], reportingDate: string) {
   const csv = createInventoryCsv(items);

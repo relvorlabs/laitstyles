@@ -1,11 +1,11 @@
-import { getCustomerHolds, getCustomerOrders } from "@/lib/control-room/customer-metrics";
-import { getPaidOrders } from "@/lib/control-room/sales-selectors";
+import { getCustomerHolds, getCustomerOrders } from "@/lib/admin/customer-metrics";
+import { getPaidOrders } from "@/lib/admin/sales-selectors";
 import type {
   ControlRoomCustomer,
   ControlRoomState,
   CustomerDeliveryHistoryItem,
   CustomerProductRelationship,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export function getCustomerProductRelationships(
   state: ControlRoomState,

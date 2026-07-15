@@ -12,7 +12,7 @@ import {
   SettingsTextareaField,
 } from "@/features/admin/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
-import type { AcceptedPaymentMethod, SaveStoreSettingsInput } from "@/lib/control-room/types";
+import type { AcceptedPaymentMethod, SaveStoreSettingsInput } from "@/lib/admin/types";
 
 const paymentMethods: ReadonlyArray<{
   value: AcceptedPaymentMethod;

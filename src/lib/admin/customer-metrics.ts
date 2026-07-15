@@ -3,7 +3,7 @@ import {
   getOrderNetRevenue,
   getPaidOrders,
   isHoldActive,
-} from "@/lib/control-room/sales-selectors";
+} from "@/lib/admin/sales-selectors";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
@@ -12,7 +12,7 @@ import type {
   CustomerAttentionReason,
   CustomerMetrics,
   CustomerSegment,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const highValueThreshold = 50_000;
 

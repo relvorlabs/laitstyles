@@ -1,6 +1,6 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
-import { isHoldActive } from "@/lib/control-room/sales-selectors";
-import { applySalesStockMutation } from "@/lib/control-room/sales-stock";
+import { err, ok, type Result } from "@/lib/admin/result";
+import { isHoldActive } from "@/lib/admin/sales-selectors";
+import { applySalesStockMutation } from "@/lib/admin/sales-stock";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
@@ -10,7 +10,7 @@ import type {
   PaymentStatus,
   SalesActionError,
   StockMovement,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export type HoldActionStateResult = {
   state: ControlRoomState;

@@ -5,9 +5,9 @@ import {
   Store01Icon,
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatCompactNaira, formatNaira } from "@/lib/control-room/formatters";
-import type { OverviewSnapshot } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatCompactNaira, formatNaira } from "@/lib/admin/formatters";
+import type { OverviewSnapshot } from "@/lib/admin/types";
 
 type TodayStripProps = {
   snapshot: OverviewSnapshot;
@@ -81,7 +81,7 @@ export function TodayStrip({ snapshot, reportingLabel }: TodayStripProps) {
 }
 
 type PulseMetricProps = {
-  icon: Parameters<typeof ControlRoomIcon>[0]["icon"];
+  icon: Parameters<typeof AdminIcon>[0]["icon"];
   label: string;
   value: string;
 };
@@ -90,7 +90,7 @@ function PulseMetric({ icon, label, value }: PulseMetricProps) {
   return (
     <div className="min-w-0">
       <span className="grid size-9 place-items-center rounded-[11px] bg-primary-foreground/10 text-brand-sage-soft">
-        <ControlRoomIcon icon={icon} size={17} />
+        <AdminIcon icon={icon} size={17} />
       </span>
       <div className="mt-3 font-serif text-[28px] font-medium leading-none tabular-nums">
         {value}

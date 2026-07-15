@@ -2,7 +2,7 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 type InventorySelectionBarProps = {
   selectedCount: number;
@@ -38,7 +38,7 @@ export function InventorySelectionBar({
             variant="outline"
           >
             Open selected
-            <ControlRoomIcon icon={ArrowRight01Icon} size={15} />
+            <AdminIcon icon={ArrowRight01Icon} size={15} />
           </Button>
         ) : null}
         <Button

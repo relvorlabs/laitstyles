@@ -3,11 +3,11 @@ import type {
   InventoryProduct,
   ProductMedia,
   PublicationState,
-} from "@/lib/control-room/inventory-types";
+} from "@/lib/admin/inventory-types";
 import type {
   ProductEditorIntent,
   ProductEditorValues,
-} from "@/lib/control-room/product-editor-types";
+} from "@/lib/admin/product-editor-types";
 
 export type ProductConversionOptions = {
   intent: ProductEditorIntent;

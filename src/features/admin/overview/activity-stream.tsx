@@ -5,9 +5,9 @@ import {
   TruckDeliveryIcon,
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatRelativeTime } from "@/lib/control-room/formatters";
-import type { ActivityKind, ControlRoomActivity } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatRelativeTime } from "@/lib/admin/formatters";
+import type { ActivityKind, ControlRoomActivity } from "@/lib/admin/types";
 
 export function ActivityStream({
   activities,
@@ -33,7 +33,7 @@ export function ActivityStream({
                 key={activity.id}
               >
                 <span className="grid size-9 place-items-center rounded-[11px] bg-accent text-accent-foreground">
-                  <ControlRoomIcon icon={activityIcon(activity.kind)} size={17} />
+                  <AdminIcon icon={activityIcon(activity.kind)} size={17} />
                 </span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { defaultStoreSettingsInput } from "@/lib/control-room/settings-defaults";
+import { defaultStoreSettingsInput } from "@/lib/admin/settings-defaults";
 import {
   parseStoreSettingsInput,
   validateSettingsSection,
-} from "@/lib/control-room/settings-schema";
+} from "@/lib/admin/settings-schema";
 
 function cloneDefaults() {
   return structuredClone(defaultStoreSettingsInput);

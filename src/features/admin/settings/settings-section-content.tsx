@@ -4,7 +4,7 @@ import { PaymentsSection } from "@/features/admin/settings/payments-section";
 import { SellingPreferencesSection } from "@/features/admin/settings/selling-preferences-section";
 import { StoreIdentitySection } from "@/features/admin/settings/store-identity-section";
 import { TeamSection } from "@/features/admin/settings/team-section";
-import type { SettingsSection } from "@/lib/control-room/types";
+import type { SettingsSection } from "@/lib/admin/types";
 
 export function SettingsSectionContent({ section }: { section: SettingsSection }) {
   switch (section) {

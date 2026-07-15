@@ -1,8 +1,8 @@
-import type { InventoryProduct } from "@/lib/control-room/inventory-types";
+import type { InventoryProduct } from "@/lib/admin/inventory-types";
 import type {
   ProductEditorIssue,
   ProductEditorValues,
-} from "@/lib/control-room/product-editor-types";
+} from "@/lib/admin/product-editor-types";
 
 export function validateCommittedStockEdit(
   existingProduct: InventoryProduct | undefined,

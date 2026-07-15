@@ -7,7 +7,7 @@ import { DeliveryZoneList } from "@/features/admin/settings/delivery-zone-list";
 import { PickupLocationList } from "@/features/admin/settings/pickup-location-list";
 import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
-import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 export function DeliverySection() {
   const {

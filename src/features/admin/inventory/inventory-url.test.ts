@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildInventoryHref,
   defaultInventoryPageSize,
-} from "@/features/control-room/inventory/inventory-url";
-import { defaultInventoryQuery } from "@/lib/control-room/inventory-selectors";
+} from "@/features/admin/inventory/inventory-url";
+import { defaultInventoryQuery } from "@/lib/admin/inventory-selectors";
 
 describe("Inventory URL state", () => {
   it("omits every default value", () => {

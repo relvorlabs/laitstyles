@@ -5,8 +5,8 @@ import {
   ShoppingBag01Icon,
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { InventorySummary } from "@/lib/control-room/types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { InventorySummary } from "@/lib/admin/types";
 
 export function InventorySummaryStrip({ summary }: { summary: InventorySummary }) {
   const metrics = [
@@ -45,7 +45,7 @@ export function InventorySummaryStrip({ summary }: { summary: InventorySummary }
             key={metric.label}
           >
             <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
-              <ControlRoomIcon icon={metric.icon} size={20} />
+              <AdminIcon icon={metric.icon} size={20} />
             </span>
             <div className="min-w-0">
               <div className="font-serif text-[30px] font-medium leading-none tabular-nums">

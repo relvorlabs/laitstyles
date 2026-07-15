@@ -1,11 +1,11 @@
-import { inventorySavedViews } from "@/lib/control-room/inventory-constants";
-import { toInventoryListItem } from "@/lib/control-room/inventory-derivations";
+import { inventorySavedViews } from "@/lib/admin/inventory-constants";
+import { toInventoryListItem } from "@/lib/admin/inventory-derivations";
 import type {
   InventoryListItem,
   InventoryProduct,
   InventoryQuery,
   InventorySavedView,
-} from "@/lib/control-room/inventory-types";
+} from "@/lib/admin/inventory-types";
 
 export function queryInventory(
   products: InventoryProduct[],

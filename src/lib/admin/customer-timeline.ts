@@ -2,12 +2,12 @@ import {
   getCustomerHolds,
   getCustomerOrders,
   getCustomerReturns,
-} from "@/lib/control-room/customer-metrics";
+} from "@/lib/admin/customer-metrics";
 import type {
   ControlRoomState,
   CustomerTimelineEvent,
   OrderStatus,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const deliveryStatuses = new Set<OrderStatus>(["dispatched", "out-for-delivery", "delivered"]);
 

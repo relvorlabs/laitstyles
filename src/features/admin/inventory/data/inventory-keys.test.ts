@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { inventoryKeys, productKeys } from "@/features/control-room/inventory/data/inventory-keys";
-import type { InventoryQuery } from "@/lib/control-room/types";
+import { inventoryKeys, productKeys } from "@/features/admin/inventory/data/inventory-keys";
+import type { InventoryQuery } from "@/lib/admin/types";
 
 const query: InventoryQuery = {
   search: "  denim  ",

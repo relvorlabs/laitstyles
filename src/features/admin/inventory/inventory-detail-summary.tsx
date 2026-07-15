@@ -5,9 +5,9 @@ import {
   channelLabels,
   getProductDescriptor,
   inventoryModeLabels,
-} from "@/features/control-room/inventory/inventory-labels";
-import { InventoryStatusBadge } from "@/features/control-room/inventory/inventory-status-badge";
-import type { InventoryListItem } from "@/lib/control-room/types";
+} from "@/features/admin/inventory/inventory-labels";
+import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
+import type { InventoryListItem } from "@/lib/admin/types";
 
 export function ProductSummaryPanel({ item }: { item: InventoryListItem }) {
   const { product, stock } = item;

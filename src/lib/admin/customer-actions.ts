@@ -3,9 +3,9 @@ import type {
   CustomerActionError,
   CustomerNote,
   CustomerNoteActionSuccess,
-} from "@/lib/control-room/customer-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { ControlRoomState } from "@/lib/control-room/types";
+} from "@/lib/admin/customer-types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { ControlRoomState } from "@/lib/admin/types";
 
 export type CustomerNoteStateResult = {
   state: ControlRoomState;

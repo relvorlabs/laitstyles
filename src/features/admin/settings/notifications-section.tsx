@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SettingsCheckboxField } from "@/features/admin/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
-import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 const notificationOptions = [
   {

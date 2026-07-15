@@ -8,7 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export function InventoryEmptyState({
   hasProducts,
@@ -21,7 +21,7 @@ export function InventoryEmptyState({
     <Empty className="min-h-[420px] border border-dashed border-border bg-card">
       <EmptyHeader>
         <EmptyMedia className="grid size-14 place-items-center rounded-full bg-accent text-accent-foreground">
-          <ControlRoomIcon icon={hasProducts ? Search01Icon : PackageIcon} size={24} />
+          <AdminIcon icon={hasProducts ? Search01Icon : PackageIcon} size={24} />
         </EmptyMedia>
         <EmptyTitle className="font-serif text-[28px] font-medium">
           {hasProducts ? "No products match this view" : "Inventory is ready for its first product"}

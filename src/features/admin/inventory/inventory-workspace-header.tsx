@@ -1,8 +1,8 @@
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { CatalogueTaxonomyManager } from "@/features/control-room/inventory/catalogue-taxonomy-manager";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export function InventoryWorkspaceHeader() {
   return (
@@ -33,7 +33,7 @@ export function InventoryWorkspaceHeader() {
           href="/shop"
         >
           Preview catalogue
-          <ControlRoomIcon icon={ArrowUpRight01Icon} size={16} />
+          <AdminIcon icon={ArrowUpRight01Icon} size={16} />
         </Link>
       </div>
     </section>

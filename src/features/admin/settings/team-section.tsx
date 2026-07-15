@@ -16,7 +16,7 @@ import type {
   SaveStoreSettingsInput,
   TeamMemberBoundary,
   TeamRole,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 const roleOptions = [
   ["owner", "Owner"],

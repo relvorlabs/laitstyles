@@ -1,4 +1,4 @@
-import type { SettingsSection } from "@/lib/control-room/types";
+import type { SettingsSection } from "@/lib/admin/types";
 
 export type SettingsSectionDefinition = {
   value: SettingsSection;

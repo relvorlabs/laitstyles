@@ -19,8 +19,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductMediaPanel } from "@/features/control-room/inventory/inventory-detail-media";
-import { ProductPricingPanel } from "@/features/control-room/inventory/inventory-detail-pricing";
+import { ProductMediaPanel } from "@/features/admin/inventory/inventory-detail-media";
+import { ProductPricingPanel } from "@/features/admin/inventory/inventory-detail-pricing";
 import {
   ProductActivityPanel,
   ProductHoldsPanel,
@@ -28,12 +28,12 @@ import {
   ProductOrdersPanel,
   ProductReturnsPanel,
   ProductReviewsPanel,
-} from "@/features/control-room/inventory/inventory-detail-records";
-import { ProductStockPanel } from "@/features/control-room/inventory/inventory-detail-stock";
-import { ProductSummaryPanel } from "@/features/control-room/inventory/inventory-detail-summary";
-import { InventoryProductLifecycleActions } from "@/features/control-room/inventory/inventory-product-lifecycle-actions";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ControlRoomState, InventoryListItem } from "@/lib/control-room/types";
+} from "@/features/admin/inventory/inventory-detail-records";
+import { ProductStockPanel } from "@/features/admin/inventory/inventory-detail-stock";
+import { ProductSummaryPanel } from "@/features/admin/inventory/inventory-detail-summary";
+import { InventoryProductLifecycleActions } from "@/features/admin/inventory/inventory-product-lifecycle-actions";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { ControlRoomState, InventoryListItem } from "@/lib/admin/types";
 
 type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
@@ -117,7 +117,7 @@ export function InventoryDetailSheet({
                   type="button"
                   variant="outline"
                 >
-                  <ControlRoomIcon icon={Edit02Icon} size={16} />
+                  <AdminIcon icon={Edit02Icon} size={16} />
                   Edit product
                 </Button>
               </div>

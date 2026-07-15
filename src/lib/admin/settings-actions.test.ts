@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createControlRoomStore } from "@/features/control-room/state/control-room-store";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+import { createAdminStore } from "@/features/admin/state/admin-store";
+import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 describe("Store settings action", () => {
   it("hydrates deterministic settings into the shared store", () => {
-    const store = createControlRoomStore(activeControlRoomSeed);
+    const store = createAdminStore(activeControlRoomSeed);
 
     expect(store.getSnapshot().settings).toEqual(
       expect.objectContaining({
@@ -16,7 +16,7 @@ describe("Store settings action", () => {
 
   it("saves settings, updates connected store identity and notifies subscribers", () => {
     const now = "2026-07-10T11:00:00+01:00";
-    const store = createControlRoomStore(activeControlRoomSeed, () => now);
+    const store = createAdminStore(activeControlRoomSeed, () => now);
     const listener = vi.fn();
     store.subscribe(listener);
     const current = store.getSnapshot().settings;
@@ -55,7 +55,7 @@ describe("Store settings action", () => {
   });
 
   it("rejects invalid settings without changing subscribers or state", () => {
-    const store = createControlRoomStore(activeControlRoomSeed);
+    const store = createAdminStore(activeControlRoomSeed);
     const listener = vi.fn();
     store.subscribe(listener);
     const before = store.getSnapshot();

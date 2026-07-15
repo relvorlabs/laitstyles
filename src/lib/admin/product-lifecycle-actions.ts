@@ -1,5 +1,5 @@
-import { err, ok, type Result } from "@/lib/control-room/result";
-import type { ControlRoomState } from "@/lib/control-room/types";
+import { err, ok, type Result } from "@/lib/admin/result";
+import type { ControlRoomState } from "@/lib/admin/types";
 
 export type ProductLifecycleActionError = {
   code: "product-not-found" | "product-in-use";

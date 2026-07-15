@@ -2,7 +2,7 @@ export {
   defaultInventoryQuery,
   inventorySavedViews,
   inventorySortOptions,
-} from "@/lib/control-room/inventory-constants";
+} from "@/lib/admin/inventory-constants";
 
 export {
   getInventoryAttention,
@@ -16,16 +16,16 @@ export {
   isLowStock,
   isOutOfStock,
   toInventoryListItem,
-} from "@/lib/control-room/inventory-derivations";
-export { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
+} from "@/lib/admin/inventory-derivations";
+export { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
 export {
   getActiveInventoryFilterCount,
   getInventoryViewCounts,
   matchesSavedView,
   queryInventory,
-} from "@/lib/control-room/inventory-query";
-export { validateInventoryDataset } from "@/lib/control-room/inventory-validation";
+} from "@/lib/admin/inventory-query";
+export { validateInventoryDataset } from "@/lib/admin/inventory-validation";
 export type {
   InventoryDataset,
   InventoryValidationIssue,
-} from "@/lib/control-room/inventory-validation-types";
+} from "@/lib/admin/inventory-validation-types";

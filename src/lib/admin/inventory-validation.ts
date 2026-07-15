@@ -1,10 +1,10 @@
-import { validateInventoryProduct } from "@/lib/control-room/inventory-product-validation";
-import type { InventoryProduct } from "@/lib/control-room/inventory-types";
+import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
+import type { InventoryProduct } from "@/lib/admin/inventory-types";
 import type {
   InventoryDataset,
   InventoryValidationIssue,
-} from "@/lib/control-room/inventory-validation-types";
-import { err, ok, type Result } from "@/lib/control-room/result";
+} from "@/lib/admin/inventory-validation-types";
+import { err, ok, type Result } from "@/lib/admin/result";
 
 export function validateInventoryDataset(
   dataset: InventoryDataset,

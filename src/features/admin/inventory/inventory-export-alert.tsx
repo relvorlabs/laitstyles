@@ -3,7 +3,7 @@
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export function InventoryExportAlert({
   count,
@@ -16,7 +16,7 @@ export function InventoryExportAlert({
 
   return (
     <Alert aria-live="polite" className="border-success/35 bg-success/10 text-foreground">
-      <ControlRoomIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
+      <AdminIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
       <AlertTitle>Inventory export created</AlertTitle>
       <AlertDescription className="text-muted-foreground">
         {count} selected product{count === 1 ? "" : "s"} were exported as a CSV file.

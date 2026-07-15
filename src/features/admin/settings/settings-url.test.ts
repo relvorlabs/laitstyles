@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSettingsHref } from "@/features/control-room/settings/settings-url";
+import { buildSettingsHref } from "@/features/admin/settings/settings-url";
 
 describe("buildSettingsHref", () => {
   it("keeps Store identity at the clean route", () => {
