@@ -1,4 +1,4 @@
-import type { ReturnStatus } from "@/lib/control-room/types";
+import type { ReturnStatus } from "@/lib/admin/types";
 
 export const returnStatusLabels: Record<ReturnStatus, string> = {
   requested: "Requested",
