@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { orderSavedViews } from "@/features/control-room/orders/order-selectors";
-import type { OrderSavedView } from "@/features/control-room/orders/order-types";
+import { orderSavedViews } from "@/features/admin/orders/order-selectors";
+import type { OrderSavedView } from "@/features/admin/orders/order-types";
 import { cn } from "@/lib/utils";
 
 export function OrderSavedViews({
