@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
-import { getSettingsSectionDefinition } from "@/features/control-room/settings/settings-config";
+import { getSettingsSectionDefinition } from "@/features/admin/settings/settings-config";
 import type { SettingsSection } from "@/lib/control-room/types";
 
 export function SettingsSectionFrame({
