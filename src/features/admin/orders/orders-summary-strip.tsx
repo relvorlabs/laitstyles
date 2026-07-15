@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
-import type { OrderWorkspaceSummary } from "@/features/control-room/orders/order-types";
-import { formatCompactNaira } from "@/lib/control-room/formatters";
+import type { OrderWorkspaceSummary } from "@/features/admin/orders/order-types";
+import { formatCompactNaira } from "@/lib/admin/formatters";
 
 export function OrdersSummaryStrip({ summary }: { summary: OrderWorkspaceSummary }) {
   const metrics = [
