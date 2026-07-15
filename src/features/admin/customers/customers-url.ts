@@ -1,5 +1,5 @@
-import { defaultCustomerQuery } from "@/features/control-room/customers/customer-selectors";
-import type { CustomerQuery } from "@/features/control-room/customers/customer-types";
+import { defaultCustomerQuery } from "@/features/admin/customers/customer-selectors";
+import type { CustomerQuery } from "@/features/admin/customers/customer-types";
 
 export function buildCustomersHref(
   pathname: string,
