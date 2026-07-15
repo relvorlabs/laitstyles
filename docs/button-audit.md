@@ -2,7 +2,7 @@
 
 ## Status
 
-- **Audit date:** 2026-07-14
+- **Audit date:** 2026-07-15
 - **Branch:** `chore/admin-theme-button-audit`
 - **Base commit:** `cb17f749a6145b9e2085d0d65b69fe243706e642`
 - **Primary route:** `/admin`
@@ -17,7 +17,7 @@ Executable repository-wide verification is still unavailable because the current
 
 | Metric | Before | After | Evidence |
 |---|---:|---:|---|
-| Raw application `<button>` tags in remediated source patterns | 87 | 0 | Changed source and branch file inspection |
+| Raw application `<button>` tags in remediated source patterns | 88 | 0 | Changed source and branch file inspection |
 | Direct Base UI account button wrappers | 2 | 0 | Both account wrappers delegate to shared shadcn `Button` |
 | Explicit `TODO(button-action)` dependencies | 0 | 13 | Changed account/storefront source |
 | Real sign-out actions replacing toast-only placeholders | 0 | 1 | Account sidebar posts to `/auth/sign-out` |
@@ -30,8 +30,8 @@ Executable repository-wide verification is still unavailable because the current
 | Shared shell | 4 | 0 | theme toggle, cart trigger, account entry |
 | Storefront | 54 | 0 | header, catalogue, product cards, product detail, cart, auth, overlays, filters and feedback |
 | Account | 16 | 0 | sidebar, breadcrumb, support, addresses, payments, privacy, security, notifications and order/return detail |
-| Admin | 13 | 0 | topbar, inventory, orders, holds, customers, product editor and record sale controls |
-| **Total mapped source tags** | **87** | **0** | Source-tag count, not rendered instance count |
+| Admin | 14 | 0 | topbar, inventory, orders, holds, customers, returns table, product editor and record sale controls |
+| **Total mapped source tags** | **88** | **0** | Source-tag count, not rendered instance count |
 
 ## Direct branch inspection
 
@@ -46,7 +46,10 @@ The following former blocker files were read from the PR branch through their fu
 - `src/components/theme/theme-toggle.tsx`
 - `src/app/admin/error.tsx`
 - `src/app/auth/error/page.tsx`
+- `src/features/admin/returns/returns-table.tsx`
 - account support, payments, addresses, sidebar and breadcrumb modules
+
+The Returns desktop table was discovered during the canonical Admin import pass after the original mapped count was documented. Its record-opening native control was replaced with the shared `Button`, raising the grounded remediated count from 87 to 88. This does not substitute for an executable repository-wide audit.
 
 ## Button contract
 
