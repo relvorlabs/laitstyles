@@ -3,14 +3,14 @@ import type {
   ReturnSavedView,
   ReturnWorkspaceItem,
   ReturnWorkspaceSummary,
-} from "@/features/control-room/returns/return-types";
-import { getReturnedQuantityForOrderLine } from "@/lib/control-room/sales-selectors";
+} from "@/features/admin/returns/return-types";
+import { getReturnedQuantityForOrderLine } from "@/lib/admin/sales-selectors";
 import type {
+  AdminState,
   ControlRoomOrder,
   ControlRoomReturn,
-  ControlRoomState,
   ReturnStatus,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/types";
 
 export const defaultReturnQuery: ReturnQuery = {
   view: "all",
@@ -45,7 +45,7 @@ export const returnStatuses: ReturnStatus[] = [
 
 const resolvedStatuses = new Set<ReturnStatus>(["restocked", "damaged", "rejected", "closed"]);
 
-export function queryReturns(state: ControlRoomState, query: ReturnQuery) {
+export function queryReturns(state: AdminState, query: ReturnQuery) {
   const normalized = normalize(query.search);
 
   return (state.returns ?? [])
@@ -55,7 +55,7 @@ export function queryReturns(state: ControlRoomState, query: ReturnQuery) {
     .toSorted((left, right) => compareReturns(left, right, query.sort));
 }
 
-export function getReturnSavedViewCounts(state: ControlRoomState) {
+export function getReturnSavedViewCounts(state: AdminState) {
   return Object.fromEntries(
     returnSavedViews.map((view) => [
       view.value,
@@ -64,7 +64,7 @@ export function getReturnSavedViewCounts(state: ControlRoomState) {
   ) as Record<ReturnSavedView, number>;
 }
 
-export function getReturnWorkspaceSummary(state: ControlRoomState): ReturnWorkspaceSummary {
+export function getReturnWorkspaceSummary(state: AdminState): ReturnWorkspaceSummary {
   const records = state.returns ?? [];
   return {
     totalReturns: records.length,
@@ -82,7 +82,7 @@ export function getReturnWorkspaceSummary(state: ControlRoomState): ReturnWorksp
 }
 
 export function toReturnWorkspaceItem(
-  state: ControlRoomState,
+  state: AdminState,
   record: ControlRoomReturn,
 ): ReturnWorkspaceItem {
   const order = state.orders.find((entry) => entry.id === record.orderId);
@@ -108,7 +108,7 @@ export function toReturnWorkspaceItem(
   };
 }
 
-export function getEligibleReturnOrders(state: ControlRoomState) {
+export function getEligibleReturnOrders(state: AdminState) {
   return state.orders.filter(
     (order) =>
       order.fulfilmentStatus === "delivered" &&
@@ -117,7 +117,7 @@ export function getEligibleReturnOrders(state: ControlRoomState) {
 }
 
 export function getEligibleReturnQuantity(
-  state: ControlRoomState,
+  state: AdminState,
   order: ControlRoomOrder,
   orderLineId: string,
 ) {
@@ -146,7 +146,7 @@ function matchesView(record: ControlRoomReturn, view: ReturnSavedView) {
   }
 }
 
-function matchesSearch(state: ControlRoomState, record: ControlRoomReturn, normalized: string) {
+function matchesSearch(state: AdminState, record: ControlRoomReturn, normalized: string) {
   if (!normalized) return true;
   const item = toReturnWorkspaceItem(state, record);
   const searchable = normalize(
