@@ -4,22 +4,22 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { channelLabels, formatOrderDate } from "@/features/control-room/orders/order-labels";
-import { toOrderWorkspaceItem } from "@/features/control-room/orders/order-selectors";
+import { channelLabels, formatOrderDate } from "@/features/admin/orders/order-labels";
+import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import {
   OrderStatusBadge,
   PaymentStatusBadge,
-} from "@/features/control-room/orders/order-status-badge";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { ControlRoomOrder, ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/orders/order-status-badge";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { AdminState, ControlRoomOrder } from "@/lib/admin/types";
 
 export function OrdersMobileList({
   state,
   orders,
   onOpen,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   orders: ControlRoomOrder[];
   onOpen: (orderId: string) => void;
 }) {
@@ -94,7 +94,7 @@ export function OrdersMobileList({
                   type="button"
                   variant="outline"
                 >
-                  <ControlRoomIcon icon={ArrowRight01Icon} size={17} />
+                  <AdminIcon icon={ArrowRight01Icon} size={17} />
                 </Button>
               </div>
             </div>
