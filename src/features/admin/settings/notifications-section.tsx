@@ -3,8 +3,8 @@
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { SettingsCheckboxField } from "@/features/control-room/settings/settings-fields";
-import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
+import { SettingsCheckboxField } from "@/features/admin/settings/settings-fields";
+import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 const notificationOptions = [
@@ -63,8 +63,8 @@ export function NotificationsSection() {
         ))}
       </div>
       <div className="rounded-xl border border-border bg-muted/30 p-4 text-xs leading-5 text-muted-foreground">
-        These choices decide what should appear inside the Control Room. They do not send email,
-        SMS, push or WhatsApp messages.
+        These choices decide what should appear inside Admin. They do not send email, SMS, push or
+        WhatsApp messages.
       </div>
     </SettingsSectionFrame>
   );
