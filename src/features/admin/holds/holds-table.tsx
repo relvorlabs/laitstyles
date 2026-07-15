@@ -10,21 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { holdSourceLabels, holdStageLabels } from "@/features/control-room/holds/hold-labels";
-import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
+import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-labels";
+import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
-} from "@/features/control-room/holds/hold-selectors";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-selectors";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
 
 export function HoldsTable({
   state,
   holds,
   onOpen,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   holds: ControlRoomHold[];
   onOpen: (holdId: string) => void;
 }) {
@@ -96,7 +96,7 @@ export function HoldsTable({
                     type="button"
                     variant="ghost"
                   >
-                    <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                    <AdminIcon icon={ArrowRight01Icon} size={16} />
                   </Button>
                 </TableCell>
               </TableRow>
