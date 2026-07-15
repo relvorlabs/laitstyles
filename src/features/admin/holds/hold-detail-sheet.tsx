@@ -23,20 +23,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { HoldConversionDialog } from "@/features/control-room/holds/hold-conversion-dialog";
+import { HoldConversionDialog } from "@/features/admin/holds/hold-conversion-dialog";
 import {
   formatHoldDate,
   holdSourceLabels,
   holdStageLabels,
   holdStatusLabels,
-} from "@/features/control-room/holds/hold-labels";
-import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
+} from "@/features/admin/holds/hold-labels";
+import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
-} from "@/features/control-room/holds/hold-selectors";
-import type { HoldActionFeedback } from "@/features/control-room/holds/holds-workspace";
-import type { ControlRoomHold, ControlRoomState, ConvertHoldInput } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-selectors";
+import type { HoldActionFeedback } from "@/features/admin/holds/holds-workspace";
+import type { AdminState, ControlRoomHold, ConvertHoldInput } from "@/lib/admin/types";
 
 export function HoldDetailSheet({
   state,
@@ -47,7 +47,7 @@ export function HoldDetailSheet({
   onRelease,
   onConvert,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   hold: ControlRoomHold | null;
   feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
