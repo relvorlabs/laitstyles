@@ -1,5 +1,5 @@
-import { defaultHoldQuery } from "@/features/control-room/holds/hold-selectors";
-import type { HoldQuery } from "@/features/control-room/holds/hold-types";
+import { defaultHoldQuery } from "@/features/admin/holds/hold-selectors";
+import type { HoldQuery } from "@/features/admin/holds/hold-types";
 
 export function buildHoldsHref(
   pathname: string,
