@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultReturnQuery } from "@/features/control-room/returns/return-selectors";
-import { buildReturnsHref } from "@/features/control-room/returns/returns-url";
+import { defaultReturnQuery } from "@/features/admin/returns/return-selectors";
+import { buildReturnsHref } from "@/features/admin/returns/returns-url";
 
 describe("Returns URL state", () => {
   it("keeps the default workspace URL clean", () => {
