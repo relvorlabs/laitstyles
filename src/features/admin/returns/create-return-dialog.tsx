@@ -24,9 +24,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   getEligibleReturnOrders,
   getEligibleReturnQuantity,
-} from "@/features/control-room/returns/return-selectors";
-import { formatNaira } from "@/lib/control-room/formatters";
-import type { ControlRoomState, CreateReturnInput } from "@/lib/control-room/types";
+} from "@/features/admin/returns/return-selectors";
+import { formatNaira } from "@/lib/admin/formatters";
+import type { AdminState, CreateReturnInput } from "@/lib/admin/types";
 
 type ReturnFormError = {
   field: "selection" | "quantity" | "reason" | "form";
@@ -39,7 +39,7 @@ export function CreateReturnDialog({
   onOpenChange,
   onSubmit,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: CreateReturnInput) => string | null;
