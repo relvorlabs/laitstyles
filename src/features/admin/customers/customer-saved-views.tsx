@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { customerSavedViews } from "@/features/control-room/customers/customer-selectors";
-import type { CustomerSavedView } from "@/features/control-room/customers/customer-types";
+import { customerSavedViews } from "@/features/admin/customers/customer-selectors";
+import type { CustomerSavedView } from "@/features/admin/customers/customer-types";
 import { cn } from "@/lib/utils";
 
 export function CustomerSavedViews({
