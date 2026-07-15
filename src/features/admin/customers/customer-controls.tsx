@@ -11,10 +11,10 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { customerTypeLabels } from "@/features/control-room/customers/customer-labels";
-import { customerSortOptions } from "@/features/control-room/customers/customer-selectors";
-import type { CustomerQuery } from "@/features/control-room/customers/customer-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { customerTypeLabels } from "@/features/admin/customers/customer-labels";
+import { customerSortOptions } from "@/features/admin/customers/customer-selectors";
+import type { CustomerQuery } from "@/features/admin/customers/customer-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const typeFilterLabels: Record<CustomerQuery["type"], string> = {
   all: "All customer types",
@@ -44,7 +44,7 @@ export function CustomerControls({
       <div className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_minmax(170px,auto)_minmax(180px,auto)]">
         <InputGroup className="h-11 bg-card">
           <InputGroupAddon>
-            <ControlRoomIcon icon={Search01Icon} size={17} />
+            <AdminIcon icon={Search01Icon} size={17} />
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Search customers"
