@@ -4,10 +4,10 @@ import type {
   HoldWorkspaceItem,
   HoldWorkspaceRisk,
   HoldWorkspaceSummary,
-} from "@/features/control-room/holds/hold-types";
-import { getProductCover, getProductReference } from "@/lib/control-room/inventory-selectors";
-import { getHoldRisk, isHoldActive } from "@/lib/control-room/sales-selectors";
-import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-types";
+import { getProductCover, getProductReference } from "@/lib/admin/inventory-selectors";
+import { getHoldRisk, isHoldActive } from "@/lib/admin/sales-selectors";
+import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
 
 export const defaultHoldQuery: HoldQuery = {
   view: "all",
@@ -55,7 +55,7 @@ export const holdSortOptions: Array<{
   { value: "quantity-desc", label: "Highest quantity" },
 ];
 
-export function queryHolds(state: ControlRoomState, query: HoldQuery): ControlRoomHold[] {
+export function queryHolds(state: AdminState, query: HoldQuery): ControlRoomHold[] {
   const normalizedSearch = normalize(query.search);
 
   return state.holds
@@ -71,7 +71,7 @@ export function queryHolds(state: ControlRoomState, query: HoldQuery): ControlRo
     .toSorted((left, right) => compareHolds(left, right, query.sort));
 }
 
-export function getHoldSavedViewCounts(state: ControlRoomState): Record<HoldSavedView, number> {
+export function getHoldSavedViewCounts(state: AdminState): Record<HoldSavedView, number> {
   return Object.fromEntries(
     holdSavedViews.map((view) => [
       view.value,
@@ -80,7 +80,7 @@ export function getHoldSavedViewCounts(state: ControlRoomState): Record<HoldSave
   ) as Record<HoldSavedView, number>;
 }
 
-export function getHoldWorkspaceSummary(state: ControlRoomState): HoldWorkspaceSummary {
+export function getHoldWorkspaceSummary(state: AdminState): HoldWorkspaceSummary {
   const items = state.holds.map((hold) => toHoldWorkspaceItem(state, hold));
 
   return {
@@ -96,7 +96,7 @@ export function getHoldWorkspaceSummary(state: ControlRoomState): HoldWorkspaceS
 }
 
 export function toHoldWorkspaceItem(
-  state: ControlRoomState,
+  state: AdminState,
   hold: ControlRoomHold,
 ): HoldWorkspaceItem {
   const product = state.products.find((entry) => entry.id === hold.productId);
@@ -140,7 +140,7 @@ export function toHoldWorkspaceItem(
 }
 
 export function matchesSavedView(
-  state: ControlRoomState,
+  state: AdminState,
   hold: ControlRoomHold,
   view: HoldSavedView,
 ) {
@@ -171,7 +171,7 @@ export function formatHoldCountdown(seconds: number) {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
-function getOperationalRisk(state: ControlRoomState, hold: ControlRoomHold): HoldWorkspaceRisk {
+function getOperationalRisk(state: AdminState, hold: ControlRoomHold): HoldWorkspaceRisk {
   const status = hold.status ?? "active";
   if (status === "released") return "released";
   if (status === "converted") return "converted";
@@ -183,7 +183,7 @@ function getSecondsRemaining(asOf: string, expiresAt: string) {
   return Math.max(0, Math.floor((new Date(expiresAt).getTime() - new Date(asOf).getTime()) / 1000));
 }
 
-function matchesSearch(state: ControlRoomState, hold: ControlRoomHold, normalizedSearch: string) {
+function matchesSearch(state: AdminState, hold: ControlRoomHold, normalizedSearch: string) {
   if (!normalizedSearch) return true;
   const item = toHoldWorkspaceItem(state, hold);
   const searchable = normalize(
