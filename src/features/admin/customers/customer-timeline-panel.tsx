@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   customerTimelineLabels,
   formatCustomerDateTime,
-} from "@/features/control-room/customers/customer-labels";
-import type { CustomerTimelineEvent } from "@/lib/control-room/customer-types";
+} from "@/features/admin/customers/customer-labels";
+import type { CustomerTimelineEvent } from "@/lib/admin/customer-types";
 
 export function CustomerTimelinePanel({ events }: { events: CustomerTimelineEvent[] }) {
   if (!events.length) {
