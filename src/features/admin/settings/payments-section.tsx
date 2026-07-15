@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
+import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
 import {
   SettingsNumberField,
   SettingsSelectField,
   SettingsTextareaField,
-} from "@/features/control-room/settings/settings-fields";
-import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
+} from "@/features/admin/settings/settings-fields";
+import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { AcceptedPaymentMethod, SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 const paymentMethods: ReadonlyArray<{
