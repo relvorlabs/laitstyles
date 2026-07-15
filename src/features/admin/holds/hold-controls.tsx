@@ -11,10 +11,10 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { holdStageLabels } from "@/features/control-room/holds/hold-labels";
-import { holdSortOptions } from "@/features/control-room/holds/hold-selectors";
-import type { HoldQuery } from "@/features/control-room/holds/hold-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { holdStageLabels } from "@/features/admin/holds/hold-labels";
+import { holdSortOptions } from "@/features/admin/holds/hold-selectors";
+import type { HoldQuery } from "@/features/admin/holds/hold-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const sourceLabels: Record<HoldQuery["source"], string> = {
   all: "All sources",
@@ -47,7 +47,7 @@ export function HoldControls({
       <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_repeat(3,minmax(150px,auto))]">
         <InputGroup className="h-11 bg-card">
           <InputGroupAddon>
-            <ControlRoomIcon icon={Search01Icon} size={17} />
+            <AdminIcon icon={Search01Icon} size={17} />
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Search holds"
