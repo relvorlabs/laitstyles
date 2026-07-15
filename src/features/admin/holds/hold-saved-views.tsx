@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { holdSavedViews } from "@/features/control-room/holds/hold-selectors";
-import type { HoldSavedView } from "@/features/control-room/holds/hold-types";
+import { holdSavedViews } from "@/features/admin/holds/hold-selectors";
+import type { HoldSavedView } from "@/features/admin/holds/hold-types";
 import { cn } from "@/lib/utils";
 
 export function HoldSavedViews({
