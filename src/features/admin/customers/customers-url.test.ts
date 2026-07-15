@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultCustomerQuery } from "@/features/control-room/customers/customer-selectors";
-import { buildCustomersHref } from "@/features/control-room/customers/customers-url";
+import { defaultCustomerQuery } from "@/features/admin/customers/customer-selectors";
+import { buildCustomersHref } from "@/features/admin/customers/customers-url";
 
 describe("Customers workspace URL state", () => {
   it("keeps the default workspace URL clean", () => {
