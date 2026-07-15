@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getSettingsFieldError } from "@/features/control-room/settings/settings-errors";
+import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 export type SettingsFieldName = FieldPath<SaveStoreSettingsInput>;
