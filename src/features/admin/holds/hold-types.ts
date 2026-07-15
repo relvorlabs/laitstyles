@@ -1,4 +1,4 @@
-import type { HoldSource, HoldStage, HoldStatus } from "@/lib/control-room/types";
+import type { HoldSource, HoldStage, HoldStatus } from "@/lib/admin/types";
 
 export type HoldSavedView = "all" | "active" | "expiring" | "payment-risk" | "expired";
 
