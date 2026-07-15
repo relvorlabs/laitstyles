@@ -11,10 +11,10 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { returnStatusLabels } from "@/features/control-room/returns/return-labels";
-import { returnStatuses } from "@/features/control-room/returns/return-selectors";
-import type { ReturnQuery, ReturnSortKey } from "@/features/control-room/returns/return-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { returnStatusLabels } from "@/features/admin/returns/return-labels";
+import { returnStatuses } from "@/features/admin/returns/return-selectors";
+import type { ReturnQuery, ReturnSortKey } from "@/features/admin/returns/return-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const sortLabels: Record<ReturnSortKey, string> = {
   "updated-desc": "Recently updated",
@@ -38,7 +38,7 @@ export function ReturnControls({
   return (
     <div className="flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center">
       <div className="relative flex-1">
-        <ControlRoomIcon
+        <AdminIcon
           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           icon={Search01Icon}
           size={17}
