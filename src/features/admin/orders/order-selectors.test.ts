@@ -4,24 +4,24 @@ import {
   getOrderSavedViewCounts,
   getOrderWorkspaceSummary,
   queryOrders,
-} from "@/features/control-room/orders/order-selectors";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/orders/order-selectors";
+import { activeAdminSeed } from "@/lib/admin/seed";
 
 describe("Orders workspace selectors", () => {
   it("sorts all orders newest first by default", () => {
-    const orders = queryOrders(activeControlRoomSeed, defaultOrderQuery);
+    const orders = queryOrders(activeAdminSeed, defaultOrderQuery);
 
-    expect(orders).toHaveLength(activeControlRoomSeed.orders.length);
+    expect(orders).toHaveLength(activeAdminSeed.orders.length);
     expect(orders[0]?.id).toBe("LS-20481");
     expect(orders.at(-1)?.id).toBe("LS-20412");
   });
 
   it("filters payment exceptions and fulfilment work", () => {
-    const payment = queryOrders(activeControlRoomSeed, {
+    const payment = queryOrders(activeAdminSeed, {
       ...defaultOrderQuery,
       view: "pending-payment",
     });
-    const fulfilment = queryOrders(activeControlRoomSeed, {
+    const fulfilment = queryOrders(activeAdminSeed, {
       ...defaultOrderQuery,
       view: "fulfilment",
     });
@@ -37,14 +37,14 @@ describe("Orders workspace selectors", () => {
 
   it("searches across customer, product and city context", () => {
     expect(
-      queryOrders(activeControlRoomSeed, {
+      queryOrders(activeAdminSeed, {
         ...defaultOrderQuery,
         search: "sage tomi",
       }).map((order) => order.id),
     ).toEqual(["LS-20480"]);
 
     expect(
-      queryOrders(activeControlRoomSeed, {
+      queryOrders(activeAdminSeed, {
         ...defaultOrderQuery,
         search: "enugu canvas",
       }).map((order) => order.id),
@@ -52,8 +52,8 @@ describe("Orders workspace selectors", () => {
   });
 
   it("reports connected view counts and summary metrics", () => {
-    const counts = getOrderSavedViewCounts(activeControlRoomSeed.orders);
-    const summary = getOrderWorkspaceSummary(activeControlRoomSeed);
+    const counts = getOrderSavedViewCounts(activeAdminSeed.orders);
+    const summary = getOrderWorkspaceSummary(activeAdminSeed);
 
     expect(counts).toMatchObject({
       all: 6,
