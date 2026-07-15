@@ -4,9 +4,10 @@ import type {
   CustomerSavedViewDefinition,
   CustomerSortKey,
   CustomerWorkspaceSummary,
-} from "@/features/control-room/customers/customer-types";
-import { getCustomerRelationshipProfiles } from "@/lib/control-room/customer-selectors";
-import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/control-room/types";
+} from "@/features/admin/customers/customer-types";
+import { getCustomerRelationshipProfiles } from "@/lib/admin/customer-selectors";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import type { AdminState } from "@/lib/admin/types";
 
 export const customerSavedViews: CustomerSavedViewDefinition[] = [
   {
@@ -58,7 +59,7 @@ export const defaultCustomerQuery: CustomerQuery = {
 };
 
 export function queryCustomers(
-  state: ControlRoomState,
+  state: AdminState,
   query: CustomerQuery,
   profiles = getCustomerRelationshipProfiles(state),
 ): CustomerRelationshipProfile[] {
@@ -92,7 +93,7 @@ export function getCustomerSavedViewCounts(
 }
 
 export function getCustomerWorkspaceSummary(
-  state: ControlRoomState,
+  state: AdminState,
   profiles = getCustomerRelationshipProfiles(state),
 ): CustomerWorkspaceSummary {
   return {
