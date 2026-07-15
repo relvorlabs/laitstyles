@@ -1,4 +1,4 @@
-import type { ReturnQuery } from "@/features/control-room/returns/return-types";
+import type { ReturnQuery } from "@/features/admin/returns/return-types";
 
 export function buildReturnsHref(
   pathname: string,
