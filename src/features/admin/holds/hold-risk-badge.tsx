@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { holdRiskLabels } from "@/features/control-room/holds/hold-labels";
-import type { HoldWorkspaceRisk } from "@/features/control-room/holds/hold-types";
+import { holdRiskLabels } from "@/features/admin/holds/hold-labels";
+import type { HoldWorkspaceRisk } from "@/features/admin/holds/hold-types";
 import { cn } from "@/lib/utils";
 
 const riskClasses: Record<HoldWorkspaceRisk, string> = {
