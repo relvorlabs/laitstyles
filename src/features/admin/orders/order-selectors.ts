@@ -3,9 +3,9 @@ import type {
   OrderSavedView,
   OrderWorkspaceItem,
   OrderWorkspaceSummary,
-} from "@/features/control-room/orders/order-types";
-import { getOrderNetRevenue } from "@/lib/control-room/sales-selectors";
-import type { ControlRoomOrder, ControlRoomState, OrderStatus } from "@/lib/control-room/types";
+} from "@/features/admin/orders/order-types";
+import { getOrderNetRevenue } from "@/lib/admin/sales-selectors";
+import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/types";
 
 export const defaultOrderQuery: OrderQuery = {
   view: "all",
@@ -69,7 +69,7 @@ const fulfilmentStatuses = new Set<OrderStatus>([
 
 const closedStatuses = new Set<OrderStatus>(["cancelled", "refunded", "returned"]);
 
-export function queryOrders(state: ControlRoomState, query: OrderQuery): ControlRoomOrder[] {
+export function queryOrders(state: AdminState, query: OrderQuery): ControlRoomOrder[] {
   const normalizedSearch = normalize(query.search);
 
   return state.orders
@@ -94,7 +94,7 @@ export function getOrderSavedViewCounts(
   ) as Record<OrderSavedView, number>;
 }
 
-export function getOrderWorkspaceSummary(state: ControlRoomState): OrderWorkspaceSummary {
+export function getOrderWorkspaceSummary(state: AdminState): OrderWorkspaceSummary {
   return {
     totalOrders: state.orders.length,
     needsAttention: state.orders.filter((order) => Boolean(order.attention)).length,
@@ -108,7 +108,7 @@ export function getOrderWorkspaceSummary(state: ControlRoomState): OrderWorkspac
 }
 
 export function toOrderWorkspaceItem(
-  state: ControlRoomState,
+  state: AdminState,
   order: ControlRoomOrder,
 ): OrderWorkspaceItem {
   const customer = order.customerId
@@ -146,7 +146,7 @@ export function matchesSavedView(order: ControlRoomOrder, view: OrderSavedView) 
   }
 }
 
-function matchesSearch(state: ControlRoomState, order: ControlRoomOrder, normalizedSearch: string) {
+function matchesSearch(state: AdminState, order: ControlRoomOrder, normalizedSearch: string) {
   if (!normalizedSearch) return true;
   const item = toOrderWorkspaceItem(state, order);
   const searchable = normalize(
