@@ -3,10 +3,10 @@ import { Separator } from "@/components/ui/separator";
 import {
   customerTypeLabels,
   formatCustomerDateTime,
-} from "@/features/control-room/customers/customer-labels";
-import { CustomerNoteForm } from "@/features/control-room/customers/customer-note-form";
-import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
-import { formatNaira } from "@/lib/control-room/formatters";
+} from "@/features/admin/customers/customer-labels";
+import { CustomerNoteForm } from "@/features/admin/customers/customer-note-form";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import { formatNaira } from "@/lib/admin/formatters";
 
 export function CustomerOverviewPanel({
   profile,
