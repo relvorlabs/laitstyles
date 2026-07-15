@@ -13,15 +13,15 @@ import {
 import {
   formatCustomerDate,
   getCustomerInitials,
-} from "@/features/control-room/customers/customer-labels";
+} from "@/features/admin/customers/customer-labels";
 import {
   CustomerAttentionBadges,
   CustomerSegmentBadges,
   CustomerTypeBadge,
-} from "@/features/control-room/customers/customer-status-badges";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { CustomerRelationshipProfile } from "@/lib/control-room/customer-types";
-import { formatNaira } from "@/lib/control-room/formatters";
+} from "@/features/admin/customers/customer-status-badges";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import { formatNaira } from "@/lib/admin/formatters";
 
 export function CustomersTable({
   profiles,
@@ -110,7 +110,7 @@ export function CustomersTable({
                     type="button"
                     variant="ghost"
                   >
-                    <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+                    <AdminIcon icon={ArrowRight01Icon} size={16} />
                   </Button>
                 </TableCell>
               </TableRow>
