@@ -11,9 +11,9 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { orderSortOptions } from "@/features/control-room/orders/order-selectors";
-import type { OrderQuery } from "@/features/control-room/orders/order-types";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { orderSortOptions } from "@/features/admin/orders/order-selectors";
+import type { OrderQuery } from "@/features/admin/orders/order-types";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 const channelFilterLabels: Record<OrderQuery["channel"], string> = {
   all: "All channels",
@@ -54,7 +54,7 @@ export function OrderControls({
       <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_repeat(3,minmax(150px,auto))]">
         <InputGroup className="h-11 bg-card">
           <InputGroupAddon>
-            <ControlRoomIcon icon={Search01Icon} size={17} />
+            <AdminIcon icon={Search01Icon} size={17} />
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Search orders"
