@@ -19,8 +19,7 @@ export function CustomersHeader() {
         </p>
       </div>
       <p className="max-w-sm text-pretty text-xs leading-5 text-muted-foreground md:text-right">
-        Spend, orders, holds, returns and reviews are derived from the same connected Control Room
-        records.
+        Spend, orders, holds, returns and reviews are derived from the same connected Admin records.
       </p>
     </header>
   );
