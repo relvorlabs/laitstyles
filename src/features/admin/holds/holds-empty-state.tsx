@@ -1,13 +1,13 @@
 import { TimeQuarter02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export function HoldsEmptyState({ hasHolds, onReset }: { hasHolds: boolean; onReset: () => void }) {
   return (
     <Card className="items-center px-6 py-16 text-center">
       <span className="grid size-14 place-items-center rounded-full bg-secondary text-muted-foreground">
-        <ControlRoomIcon icon={TimeQuarter02Icon} size={23} />
+        <AdminIcon icon={TimeQuarter02Icon} size={23} />
       </span>
       <h2 className="mt-5 font-serif text-[28px] font-medium">
         {hasHolds ? "No holds match this view" : "No holds yet"}
