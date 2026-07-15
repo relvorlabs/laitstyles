@@ -9,8 +9,8 @@ import {
   SettingsNumberField,
   SettingsSelectField,
   SettingsTextField,
-} from "@/features/control-room/settings/settings-fields";
-import { SettingsSectionFrame } from "@/features/control-room/settings/settings-section-frame";
+} from "@/features/admin/settings/settings-fields";
+import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/control-room/types";
 
 const productModeOptions = [
