@@ -20,7 +20,6 @@
     ],
     "paths": {
       "@/features/control-room/shared/control-room-icon": ["./src/features/admin/shared/admin-icon"],
-      "@/features/control-room/orders/*": ["./src/features/admin/orders/*"],
       "@/features/control-room/holds/*": ["./src/features/admin/holds/*"],
       "@/features/control-room/customers/*": ["./src/features/admin/customers/*"],
       "@/features/control-room/returns/*": ["./src/features/admin/returns/*"],
