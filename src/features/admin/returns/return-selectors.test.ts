@@ -7,8 +7,8 @@ import {
   getReturnWorkspaceSummary,
   queryReturns,
 } from "@/features/admin/returns/return-selectors";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
-import { activeAdminSeed } from "@/lib/admin/seed";
 
 const now = "2026-07-09T17:45:00+01:00";
 

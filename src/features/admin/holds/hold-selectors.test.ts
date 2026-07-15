@@ -6,7 +6,7 @@ import {
   queryHolds,
   toHoldWorkspaceItem,
 } from "@/features/admin/holds/hold-selectors";
-import { activeAdminSeed } from "@/lib/admin/seed";
+import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import type { AdminState } from "@/lib/admin/types";
 
 const holdsState: AdminState = {

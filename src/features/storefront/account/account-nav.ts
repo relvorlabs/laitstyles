@@ -63,6 +63,32 @@ export const routeTitles: Record<AccountRoute, string> = {
   "ticket-detail": "Ticket #SP-0119",
 };
 
-export function isAccountRoute(value: string): value is AccountRoute {
-  return value in routeTitles;
+// URL for each route under the app-router `/account` tree. Detail routes have
+// no dynamic id in the prototype (the seed data is a single hardcoded order,
+// return and ticket), so they're static segments rather than `[id]` routes.
+export const routePaths: Record<AccountRoute, string> = {
+  overview: "/account",
+  profile: "/account/profile",
+  orders: "/account/orders",
+  "order-detail": "/account/orders/detail",
+  returns: "/account/returns",
+  "return-detail": "/account/returns/detail",
+  addresses: "/account/addresses",
+  payments: "/account/payments",
+  saved: "/account/saved",
+  notifications: "/account/notifications",
+  preferences: "/account/preferences",
+  security: "/account/security",
+  privacy: "/account/privacy",
+  support: "/account/support",
+  "ticket-detail": "/account/support/detail",
+};
+
+const pathToRoute = new Map<string, AccountRoute>(
+  (Object.entries(routePaths) as [AccountRoute, string][]).map(([route, path]) => [path, route]),
+);
+
+/** Resolve the current section from `usePathname()`, defaulting to overview. */
+export function routeFromPathname(pathname: string): AccountRoute {
+  return pathToRoute.get(pathname) ?? "overview";
 }

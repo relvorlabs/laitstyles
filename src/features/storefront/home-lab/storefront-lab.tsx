@@ -268,14 +268,13 @@ function HomeApp() {
                     Premium pre-owned fashion selected for condition, fit and lasting wardrobe value.
                   </p>
                   <div className="hero-actions">
-                    <Button className="button" type="button" onClick={() => openShop({ collection: "new" })}>
+                    <Button className="button button-secondary" type="button" onClick={() => openShop({ collection: "new" })}>
                       Shop new arrivals
                     </Button>
                     <Button
                       className="button button-secondary"
                       type="button"
                       onClick={() => storefront.openQuick("p4")}
-                      variant="outline"
                     >
                       Shop the blazer
                     </Button>
