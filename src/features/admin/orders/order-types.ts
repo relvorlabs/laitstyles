@@ -1,4 +1,4 @@
-import type { PaymentStatus, SalesChannel } from "@/lib/control-room/types";
+import type { PaymentStatus, SalesChannel } from "@/lib/admin/types";
 
 export type OrderSavedView =
   | "all"
