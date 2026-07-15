@@ -5,21 +5,21 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { holdSourceLabels, holdStageLabels } from "@/features/control-room/holds/hold-labels";
-import { HoldRiskBadge } from "@/features/control-room/holds/hold-risk-badge";
+import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-labels";
+import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import {
   formatHoldCountdown,
   toHoldWorkspaceItem,
-} from "@/features/control-room/holds/hold-selectors";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
-import type { ControlRoomHold, ControlRoomState } from "@/lib/control-room/types";
+} from "@/features/admin/holds/hold-selectors";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
 
 export function HoldsMobileList({
   state,
   holds,
   onOpen,
 }: {
-  state: ControlRoomState;
+  state: AdminState;
   holds: ControlRoomHold[];
   onOpen: (holdId: string) => void;
 }) {
@@ -85,7 +85,7 @@ export function HoldsMobileList({
                 type="button"
                 variant="outline"
               >
-                <ControlRoomIcon icon={ArrowRight01Icon} size={17} />
+                <AdminIcon icon={ArrowRight01Icon} size={17} />
               </Button>
             </div>
           </Card>
