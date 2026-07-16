@@ -22,7 +22,6 @@ export function CustomerSavedViews({
           return (
             <Button
               aria-pressed={active}
-              className="min-h-10 touch-manipulation rounded-full px-3.5 text-[11.5px] font-semibold"
               key={view.value}
               onClick={() => onChange(view.value)}
               title={view.description}

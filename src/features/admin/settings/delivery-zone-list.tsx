@@ -11,10 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import {
-  SettingsNumberField,
-  SettingsTextField,
-} from "@/features/admin/settings/settings-fields";
+import { SettingsNumberField, SettingsTextField } from "@/features/admin/settings/settings-fields";
 import type { SaveStoreSettingsInput } from "@/lib/admin/types";
 
 export function DeliveryZoneList() {
@@ -39,7 +36,6 @@ export function DeliveryZoneList() {
           </p>
         </div>
         <Button
-          className="h-11"
           onClick={() =>
             zones.append({
               id: `delivery-zone-${crypto.randomUUID()}`,

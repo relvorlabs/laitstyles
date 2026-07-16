@@ -11,10 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import {
-  formatIntakeStage,
-  getAdjacentIntakeStages,
-} from "@/lib/admin/product-editor-actions";
+import { formatIntakeStage, getAdjacentIntakeStages } from "@/lib/admin/product-editor-actions";
 import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/types";
 
 const stageOrder: IntakeStage[] = [
@@ -132,7 +129,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
 
                 <div className="flex flex-wrap gap-2 md:max-w-[190px] md:justify-end">
                   <Button
-                    className="h-10 rounded-full px-4"
+                    size="lg"
                     onClick={() => openExistingProduct(record.productId)}
                     type="button"
                     variant="outline"
@@ -142,7 +139,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                   </Button>
                   {adjacent.previous ? (
                     <Button
-                      className="h-10 rounded-full px-4"
+                      size="lg"
                       onClick={() => move(record, adjacent.previous as IntakeStage)}
                       type="button"
                       variant="ghost"
@@ -153,7 +150,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                   ) : null}
                   {adjacent.next ? (
                     <Button
-                      className="h-10 rounded-full px-4"
+                      size="lg"
                       onClick={() => move(record, adjacent.next as IntakeStage)}
                       type="button"
                     >

@@ -157,29 +157,3 @@ export const notificationSettingsSchema = z.object({
   deliveryExceptions: z.boolean(),
 });
 
-const teamMemberBoundarySchema = z.object({
-  id: z.string().trim().min(1),
-  name: z.string().trim().min(2, "Enter the team member name."),
-  email: z.string().trim().email("Enter a valid team email."),
-  role: z.enum(["owner", "manager", "operations"]),
-  status: z.enum(["active", "prototype-invite"]),
-  responsibility: z
-    .string()
-    .trim()
-    .min(10, "Describe the person’s store responsibility.")
-    .max(180, "Keep the responsibility within 180 characters."),
-});
-
-export const teamSettingsSchema = z
-  .object({
-    members: z.array(teamMemberBoundarySchema).min(1),
-  })
-  .superRefine((team, context) => {
-    if (!team.members.some((member) => member.role === "owner")) {
-      context.addIssue({
-        code: "custom",
-        path: ["members"],
-        message: "Keep at least one store owner in the team boundary.",
-      });
-    }
-  });

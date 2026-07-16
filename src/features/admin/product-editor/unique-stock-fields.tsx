@@ -54,7 +54,7 @@ export function UniqueStockFields() {
             </FieldDescription>
           </div>
           <Button
-            className="h-10 rounded-full px-4"
+            size="lg"
             onClick={() =>
               append({
                 id: `measurement-${crypto.randomUUID()}`,
@@ -89,7 +89,6 @@ export function UniqueStockFields() {
                 />
                 <Button
                   aria-label={`Remove measurement ${index + 1}`}
-                  className="size-10 rounded-full"
                   onClick={() => remove(index)}
                   size="icon"
                   type="button"

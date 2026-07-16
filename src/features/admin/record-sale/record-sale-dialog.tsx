@@ -217,7 +217,7 @@ function RecordSaleForm({
 
               <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-background px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
                 <Button
-                  className="h-11 rounded-full px-5"
+                  size="lg"
                   disabled={activeIndex === 0}
                   onClick={goBack}
                   type="button"
@@ -226,11 +226,11 @@ function RecordSaleForm({
                   Back
                 </Button>
                 {activeStep === "review" ? (
-                  <Button className="h-11 rounded-full px-6" onClick={confirmSale} type="button">
+                  <Button size="lg" onClick={confirmSale} type="button">
                     Confirm sale
                   </Button>
                 ) : (
-                  <Button className="h-11 rounded-full px-6" onClick={goNext} type="button">
+                  <Button size="lg" onClick={goNext} type="button">
                     Continue
                   </Button>
                 )}

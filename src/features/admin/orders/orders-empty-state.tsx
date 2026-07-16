@@ -24,12 +24,7 @@ export function OrdersEmptyState({
           : "Connected online, assisted and offline orders will appear here when they exist in this session."}
       </p>
       {hasOrders ? (
-        <Button
-          className="mt-6 h-11 rounded-full px-5"
-          onClick={onReset}
-          type="button"
-          variant="outline"
-        >
+        <Button size="lg" className="mt-6" onClick={onReset} type="button" variant="outline">
           Reset filters
         </Button>
       ) : null}

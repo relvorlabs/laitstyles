@@ -48,7 +48,7 @@ export function ReturnsTable({
               <TableRow key={record.id}>
                 <TableCell>
                   <Button
-                    className="h-auto justify-start rounded-[8px] p-0 text-left"
+                    className="h-auto justify-start p-0 text-left"
                     onClick={() => onOpen(record.id)}
                     type="button"
                     variant="link"
@@ -82,7 +82,6 @@ export function ReturnsTable({
                 <TableCell className="px-1 text-right">
                   <Button
                     aria-label={`Open ${record.id}`}
-                    className="size-9 rounded-full"
                     onClick={() => onOpen(record.id)}
                     size="icon"
                     type="button"

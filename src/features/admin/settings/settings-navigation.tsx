@@ -73,7 +73,7 @@ export function SettingsNavigation({
             return (
               <Button
                 aria-current={active ? "page" : undefined}
-                className="h-auto min-h-16 justify-start rounded-xl px-3 py-3 text-left"
+                className="h-auto justify-start text-left"
                 key={section.value}
                 onClick={() => onChange(section.value)}
                 type="button"

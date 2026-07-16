@@ -23,11 +23,7 @@ type AdminTopbarProps = {
   onOpenSearch: () => void;
 };
 
-export function AdminTopbar({
-  pathname,
-  onOpenNavigation,
-  onOpenSearch,
-}: AdminTopbarProps) {
+export function AdminTopbar({ pathname, onOpenNavigation, onOpenSearch }: AdminTopbarProps) {
   const page = getAdminPage(pathname);
   const { openNewProduct } = useProductEditorController();
   const { openRecordSale } = useRecordSaleController();
@@ -38,7 +34,7 @@ export function AdminTopbar({
       <div className="flex min-h-[76px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <Button
           aria-label="Open Admin navigation"
-          className="size-11 rounded-full lg:hidden"
+          className="lg:hidden"
           onClick={onOpenNavigation}
           size="icon-lg"
           type="button"
@@ -58,7 +54,7 @@ export function AdminTopbar({
 
         <Button
           aria-label="Search products, orders, customers and store tasks"
-          className="group hidden min-h-12 min-w-[300px] items-center justify-start gap-3 rounded-2xl border border-border bg-surface-raised px-3.5 text-left shadow-laitstyle-sm transition-colors hover:border-border-strong hover:bg-surface-interactive xl:flex 2xl:min-w-[360px]"
+          className="group hidden min-w-[300px] items-center justify-start gap-3 text-left xl:flex 2xl:min-w-[360px]"
           onClick={onOpenSearch}
           type="button"
           variant="outline"
@@ -81,7 +77,7 @@ export function AdminTopbar({
 
         <Button
           aria-label="Search Admin"
-          className="size-11 rounded-full xl:hidden"
+          className="xl:hidden"
           onClick={onOpenSearch}
           size="icon-lg"
           type="button"
@@ -94,13 +90,7 @@ export function AdminTopbar({
 
         <form action="/auth/sign-out" className="hidden sm:block" method="post">
           <input name="next" type="hidden" value="/auth/sign-in?next=/admin" />
-          <Button
-            aria-label="Sign out of Admin"
-            className="size-11 rounded-full"
-            size="icon-lg"
-            type="submit"
-            variant="outline"
-          >
+          <Button aria-label="Sign out of Admin" size="icon-lg" type="submit" variant="outline">
             <AdminIcon icon={Logout03Icon} size={18} />
           </Button>
         </form>
@@ -110,7 +100,7 @@ export function AdminTopbar({
           className={buttonVariants({
             variant: "outline",
             size: "icon-lg",
-            className: "relative hidden size-11 rounded-full sm:inline-flex",
+            className: "relative hidden sm:inline-flex",
           })}
           href={attentionHref}
         >
@@ -122,7 +112,7 @@ export function AdminTopbar({
           className={buttonVariants({
             variant: "outline",
             size: "lg",
-            className: "hidden h-11 rounded-full px-4 text-[12px] 2xl:inline-flex",
+            className: "hidden 2xl:inline-flex",
           })}
           href="/"
         >
@@ -132,7 +122,7 @@ export function AdminTopbar({
 
         <Button
           aria-label="Add product"
-          className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-4"
+          className="sm:w-auto"
           onClick={openNewProduct}
           type="button"
           variant="outline"
@@ -143,7 +133,7 @@ export function AdminTopbar({
 
         <Button
           aria-label="Record sale"
-          className="size-11 rounded-full sm:h-11 sm:w-auto sm:px-5"
+          className="sm:w-auto"
           onClick={openRecordSale}
           type="button"
         >

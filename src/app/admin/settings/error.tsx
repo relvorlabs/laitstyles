@@ -22,7 +22,7 @@ export default function SettingsError({
         <p className="mt-4 max-w-[620px] text-[12.5px] leading-6 text-muted-foreground">
           {error.message || "The connected store settings encountered an unexpected error."}
         </p>
-        <Button className="mt-6 h-11 rounded-full px-5" onClick={reset} type="button">
+        <Button size="lg" className="mt-6" onClick={reset} type="button">
           Try again
         </Button>
       </Card>

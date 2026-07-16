@@ -21,7 +21,7 @@ export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
           >
             <Button
               aria-label={`View ${media.alt}`}
-              className="group relative block aspect-[4/5] h-auto w-full overflow-hidden rounded-none bg-secondary p-0"
+              className="group relative block aspect-[4/5] h-auto w-full overflow-hidden p-0"
               onClick={() => setOpenMediaId(media.id)}
               type="button"
               variant="ghost"

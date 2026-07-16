@@ -96,13 +96,7 @@ export function ProductIdentityStep() {
               name="internalReference"
               placeholder="LS-STK-ADI-JEA-ARDJ"
             />
-            <Button
-              className="h-9 rounded-full"
-              onClick={generateReference}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
+            <Button onClick={generateReference} size="sm" type="button" variant="outline">
               <Sparkles aria-hidden="true" className="size-4" />
               Auto-generate reference
             </Button>

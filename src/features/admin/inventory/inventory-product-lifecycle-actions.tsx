@@ -64,7 +64,6 @@ export function InventoryProductLifecycleActions({
       <div className="flex flex-wrap gap-2">
         {lifecycle === "archived" ? (
           <Button
-            className="h-10 rounded-full px-4"
             onClick={() => {
               setFeedback(null);
               setPendingAction("restore");
@@ -77,7 +76,6 @@ export function InventoryProductLifecycleActions({
           </Button>
         ) : (
           <Button
-            className="h-10 rounded-full px-4"
             onClick={() => {
               setFeedback(null);
               setPendingAction("archive");
@@ -90,7 +88,6 @@ export function InventoryProductLifecycleActions({
           </Button>
         )}
         <Button
-          className="h-10 rounded-full px-4"
           onClick={() => {
             setFeedback(null);
             setPendingAction("delete");

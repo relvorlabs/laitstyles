@@ -70,7 +70,6 @@ export function InventoryPagination({
       <div className="flex items-center gap-1">
         <Button
           aria-label="Previous inventory page"
-          className="size-10 rounded-full"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
           size="icon"
@@ -93,7 +92,6 @@ export function InventoryPagination({
             <Button
               aria-current={entry === safePage ? "page" : undefined}
               aria-label={`Go to inventory page ${entry}`}
-              className="size-10 rounded-full"
               key={entry}
               onClick={() => onPageChange(entry)}
               size="icon"
@@ -107,7 +105,6 @@ export function InventoryPagination({
 
         <Button
           aria-label="Next inventory page"
-          className="size-10 rounded-full"
           disabled={safePage >= totalPages}
           onClick={() => onPageChange(safePage + 1)}
           size="icon"

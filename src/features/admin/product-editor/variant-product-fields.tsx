@@ -130,7 +130,6 @@ export function VariantProductFields() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
-              className="h-10 rounded-full px-4"
               disabled={!referenceSeed.trim()}
               onClick={generateAllSkus}
               type="button"
@@ -140,7 +139,7 @@ export function VariantProductFields() {
               Generate all SKUs
             </Button>
             <Button
-              className="h-10 rounded-full px-4"
+              size="lg"
               onClick={() =>
                 append({
                   id: `variant-${crypto.randomUUID()}`,
@@ -185,7 +184,6 @@ export function VariantProductFields() {
                   </div>
                   <Button
                     aria-label={`Remove variant ${index + 1}`}
-                    className="size-10 rounded-full"
                     disabled={fields.length === 1}
                     onClick={() => remove(index)}
                     size="icon"
@@ -209,7 +207,6 @@ export function VariantProductFields() {
                       placeholder="LS-VAR-ADI-JEA-CRM-M"
                     />
                     <Button
-                      className="h-9 rounded-full"
                       disabled={!referenceSeed.trim()}
                       onClick={() => generateSkuFor(index)}
                       size="sm"

@@ -45,7 +45,7 @@ export function applySaveStoreSettings(
           kind: "settings",
           title: "Store settings updated",
           detail:
-            "Store identity, selling, delivery, payment, notification and team preferences were updated.",
+            "Store identity, selling, delivery, payment and notification preferences were updated.",
           occurredAt: now,
         },
         ...state.activities,

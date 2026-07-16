@@ -66,8 +66,6 @@ export function NewStoreOverview({ state }: { state: ControlRoomState }) {
               <Link
                 className={buttonVariants({
                   size: "lg",
-                  className:
-                    "h-11 rounded-full bg-accent px-5 text-accent-foreground hover:bg-accent/85",
                 })}
                 href="/"
               >

@@ -10,11 +10,7 @@ import { EditorTextField } from "@/features/admin/product-editor/product-editor-
 import { getProductEditorStepLabel } from "@/features/admin/product-editor/product-editor-step-labels";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/formatters";
-import type {
-  ProductEditorIssue,
-  ProductEditorStep,
-  ProductEditorValues,
-} from "@/lib/admin/types";
+import type { ProductEditorIssue, ProductEditorStep, ProductEditorValues } from "@/lib/admin/types";
 
 export function ProductReviewStep({
   issues,
@@ -59,7 +55,7 @@ export function ProductReviewStep({
           <div className="col-start-2 mt-3 flex flex-col gap-2">
             {issues.slice(0, 8).map((issue) => (
               <Button
-                className="h-auto w-full justify-start rounded-[10px] border border-destructive/25 bg-background/60 px-3 py-2 text-left text-[11.5px] leading-5"
+                className="h-auto w-full justify-start text-left"
                 key={`${issue.step}:${issue.path}:${issue.message}`}
                 onClick={() => onStepChange(issue.step)}
                 type="button"

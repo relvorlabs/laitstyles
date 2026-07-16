@@ -24,6 +24,7 @@ import {
 import { SettingsSectionContent } from "@/features/admin/settings/settings-section-content";
 import { SettingsStatusStrip } from "@/features/admin/settings/settings-status-strip";
 import { buildSettingsHref } from "@/features/admin/settings/settings-url";
+import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
 import { storeSettingsInputSchema } from "@/lib/admin/settings-schema";
@@ -35,6 +36,8 @@ import type {
 
 export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {
   const pathname = usePathname();
+  const { can } = useAdminAccess();
+  const canEdit = can("settings:update");
   const { state, saveStoreSettings } = useAdmin();
   const persistedSettings = state.settings ?? createDefaultStoreSettings(state.asOf);
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
@@ -100,6 +103,7 @@ export function SettingsWorkspace({ initialSection }: { initialSection: Settings
   }
 
   async function save(values: SaveStoreSettingsInput) {
+    if (!canEdit) return;
     setFeedback(null);
     const result = saveStoreSettings(values);
     if (!result.ok) {
@@ -167,6 +171,7 @@ export function SettingsWorkspace({ initialSection }: { initialSection: Settings
           <div className="min-w-0">
             <SettingsSectionContent section={activeSection} />
             <SettingsSaveBar
+              canEdit={canEdit}
               dirty={methods.formState.isDirty}
               discardOpen={discardOpen}
               feedback={feedback}
@@ -187,7 +192,5 @@ function createSettingsInput(settings: StoreSettings): SaveStoreSettingsInput {
     selling: settings.selling,
     delivery: settings.delivery,
     payments: settings.payments,
-    notifications: settings.notifications,
-    team: settings.team,
-  });
+    notifications: settings.notifications,  });
 }

@@ -31,10 +31,7 @@ import {
   holdStatusLabels,
 } from "@/features/admin/holds/hold-labels";
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
-import {
-  formatHoldCountdown,
-  toHoldWorkspaceItem,
-} from "@/features/admin/holds/hold-selectors";
+import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import type { HoldActionFeedback } from "@/features/admin/holds/holds-workspace";
 import type { AdminState, ControlRoomHold, ConvertHoldInput } from "@/lib/admin/types";
 
@@ -155,7 +152,7 @@ export function HoldDetailSheet({
                     <div className="mt-2 flex flex-wrap gap-2">
                       {[15, 30, 60].map((minutes) => (
                         <Button
-                          className="h-10 rounded-full px-4"
+                          size="lg"
                           key={minutes}
                           onClick={() => onExtend(hold.id, minutes)}
                           type="button"
@@ -167,15 +164,11 @@ export function HoldDetailSheet({
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      className="h-11 rounded-full px-5"
-                      onClick={() => setConversionOpen(true)}
-                      type="button"
-                    >
+                    <Button size="lg" onClick={() => setConversionOpen(true)} type="button">
                       Convert to order
                     </Button>
                     <Button
-                      className="h-11 rounded-full px-5"
+                      size="lg"
                       onClick={() => setReleaseOpen(true)}
                       type="button"
                       variant="outline"

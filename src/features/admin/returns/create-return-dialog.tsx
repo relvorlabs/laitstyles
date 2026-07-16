@@ -242,15 +242,10 @@ export function CreateReturnDialog({
             <FieldError aria-live="polite">{error?.message}</FieldError>
 
             <DialogFooter className="mx-0 mb-0 px-0 pb-[max(0rem,env(safe-area-inset-bottom))]">
-              <Button
-                className="h-11 rounded-full px-5"
-                onClick={() => onOpenChange(false)}
-                type="button"
-                variant="outline"
-              >
+              <Button size="lg" onClick={() => onOpenChange(false)} type="button" variant="outline">
                 Cancel
               </Button>
-              <Button className="h-11 rounded-full px-5" type="submit">
+              <Button size="lg" type="submit">
                 Open return
               </Button>
             </DialogFooter>

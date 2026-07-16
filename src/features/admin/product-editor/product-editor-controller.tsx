@@ -58,13 +58,7 @@ export function ProductEditorControllerProvider({ children }: { children: ReactN
             prototype.
           </AlertDescription>
           <AlertAction>
-            <Button
-              className="h-8 rounded-full px-3"
-              onClick={() => setResult(null)}
-              size="sm"
-              type="button"
-              variant="ghost"
-            >
+            <Button onClick={() => setResult(null)} size="sm" type="button" variant="ghost">
               Dismiss
             </Button>
           </AlertAction>

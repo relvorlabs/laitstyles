@@ -13,13 +13,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { money, products } from "@/features/storefront/home-lab/data";
-import { useStorefront } from "@/features/storefront/home-lab/storefront-context";
+import { money } from "@/features/storefront/shared/catalogue-data";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
 
 export function StorefrontCartSheet({ className }: { className?: string }) {
   const storefront = useStorefront();
-  const recommendations = products
+  const recommendations = storefront.products
     .filter(
       (product) =>
         product.status === "available" && !storefront.cart.some((line) => line.id === product.id),
@@ -35,10 +35,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
         render={
           <Button
             aria-label={`Bag, ${storefront.cartCount} ${storefront.cartCount === 1 ? "item" : "items"}`}
-            className={cn(
-              "relative flex size-11 items-center justify-center rounded-full text-[var(--ink)] transition-colors hover:bg-[var(--sage-light)]",
-              className,
-            )}
+            className={cn("relative flex items-center justify-center", className)}
             size="icon"
             variant="ghost"
           />
@@ -53,7 +50,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
       </SheetTrigger>
 
       <SheetContent
-        className="lst-lab flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[470px]"
+        className="lst-storefront flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[470px]"
         side="right"
       >
         <SheetHeader className="border-b border-[var(--line)] px-6 py-5 text-left">
@@ -88,8 +85,8 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
               </p>
             </div>
             <Link
-              className={cn(buttonVariants({ size: "lg" }), "rounded-full px-7")}
-              href="/shop"
+              className={buttonVariants({ size: "lg" })}
+              href="/products"
               onClick={storefront.closeAll}
             >
               Shop the archive
@@ -125,7 +122,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
                           <Button
                             aria-label={`Decrease ${product.name} quantity`}
-                            className="grid size-8 place-items-center rounded-full hover:bg-[var(--sage-light)]"
+                            className="grid place-items-center"
                             onClick={() => storefront.changeQty(product.id, -1)}
                             size="icon"
                             variant="ghost"
@@ -135,7 +132,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                           <span className="min-w-6 text-center font-mono text-xs">{lineQty}</span>
                           <Button
                             aria-label={`Increase ${product.name} quantity`}
-                            className="grid size-8 place-items-center rounded-full hover:bg-[var(--sage-light)]"
+                            className="grid place-items-center"
                             onClick={() => storefront.changeQty(product.id, 1)}
                             size="icon"
                             variant="ghost"
@@ -146,9 +143,11 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                       )}
                       <div className="flex items-center gap-3 text-xs">
                         <Button
-                          className="h-auto gap-1.5 p-0 text-[var(--muted)] hover:text-[var(--ink)]"
+                          size="lg"
+                          className="gap-1.5"
                           onClick={() => {
-                            if (!storefront.saved.has(product.id)) storefront.toggleSaved(product.id);
+                            if (!storefront.saved.has(product.id))
+                              storefront.toggleSaved(product.id);
                             storefront.removeFromCart(product.id);
                           }}
                           type="button"
@@ -158,7 +157,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                           Save
                         </Button>
                         <Button
-                          className="h-auto p-0 text-[var(--muted)] hover:text-[var(--ink)]"
+                          size="lg"
                           onClick={() => storefront.removeFromCart(product.id)}
                           type="button"
                           variant="link"
@@ -179,7 +178,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     {recommendations.map((product) => (
                       <Button
-                        className="group h-auto min-w-0 justify-start rounded-sm p-0 text-left"
+                        className="group h-auto min-w-0 justify-start p-0 text-left"
                         key={product.id}
                         onClick={() => storefront.addToCart(product.id)}
                         type="button"
@@ -213,7 +212,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 <span className="text-sm text-[var(--muted)]">Subtotal</span>
                 <span className="font-serif text-2xl">{money(storefront.subtotal)}</span>
               </div>
-              <Button className="h-12 w-full rounded-full" render={<Link href="/checkout" />}>
+              <Button className="w-full" nativeButton={false} render={<Link href="/checkout" />}>
                 Continue to checkout
               </Button>
               <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">

@@ -90,7 +90,7 @@ export function InventoryTable({
                   <div className="flex min-w-0 items-center gap-3">
                     <Button
                       aria-label={`Preview images for ${item.product.name}`}
-                      className="group/media relative aspect-[4/5] h-auto w-14 shrink-0 overflow-hidden rounded-[10px] bg-surface-sunken p-0"
+                      className="group/media relative aspect-[4/5] h-auto w-14 shrink-0 overflow-hidden p-0"
                       onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                       type="button"
                       variant="ghost"
@@ -107,7 +107,7 @@ export function InventoryTable({
                       </span>
                     </Button>
                     <Button
-                      className="h-auto min-w-0 justify-start rounded-lg p-0 text-left"
+                      className="h-auto min-w-0 justify-start p-0 text-left"
                       onClick={() => onOpen(item.product.id)}
                       type="button"
                       variant="link"
@@ -160,7 +160,6 @@ export function InventoryTable({
                 <TableCell className="text-right">
                   <Button
                     aria-label={`Open ${item.product.name}`}
-                    className="size-9 rounded-full"
                     onClick={() => onOpen(item.product.id)}
                     size="icon"
                     type="button"

@@ -34,7 +34,7 @@ export function InventoryEmptyState({
       </EmptyHeader>
       {hasProducts ? (
         <EmptyContent>
-          <Button className="h-11 rounded-full px-5" onClick={onReset} type="button">
+          <Button size="lg" onClick={onReset} type="button">
             Reset Inventory view
           </Button>
         </EmptyContent>

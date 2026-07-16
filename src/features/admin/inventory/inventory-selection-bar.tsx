@@ -31,29 +31,15 @@ export function InventorySelectionBar({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {selectedCount === 1 ? (
-          <Button
-            className="h-10 rounded-full border-primary-foreground/20 px-4 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            onClick={onOpenSelected}
-            type="button"
-            variant="outline"
-          >
+          <Button size="lg" onClick={onOpenSelected} type="button" variant="outline">
             Open selected
             <AdminIcon icon={ArrowRight01Icon} size={15} />
           </Button>
         ) : null}
-        <Button
-          className="h-10 rounded-full bg-accent px-4 text-accent-foreground hover:bg-accent/85"
-          onClick={onExport}
-          type="button"
-        >
+        <Button size="lg" onClick={onExport} type="button">
           Export selection
         </Button>
-        <Button
-          className="h-10 rounded-full px-3 text-primary-foreground/72 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-          onClick={onClear}
-          type="button"
-          variant="ghost"
-        >
+        <Button size="lg" onClick={onClear} type="button" variant="ghost">
           Clear
         </Button>
       </div>

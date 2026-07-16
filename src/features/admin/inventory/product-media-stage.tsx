@@ -47,7 +47,7 @@ export function ProductMediaStage({
         <>
           <Button
             aria-label="Show previous image"
-            className="absolute left-5 top-1/2 size-11 -translate-y-1/2 rounded-full bg-background/90 shadow-lg sm:left-8"
+            className="absolute left-5 top-1/2 -translate-y-1/2 sm:left-8"
             onClick={onPrevious}
             size="icon-lg"
             type="button"
@@ -57,7 +57,7 @@ export function ProductMediaStage({
           </Button>
           <Button
             aria-label="Show next image"
-            className="absolute right-5 top-1/2 size-11 -translate-y-1/2 rounded-full bg-background/90 shadow-lg sm:right-8"
+            className="absolute right-5 top-1/2 -translate-y-1/2 sm:right-8"
             onClick={onNext}
             size="icon-lg"
             type="button"

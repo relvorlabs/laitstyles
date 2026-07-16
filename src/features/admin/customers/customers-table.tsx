@@ -53,7 +53,7 @@ export function CustomersTable({
               <TableRow key={customer.id}>
                 <TableCell className="overflow-hidden">
                   <Button
-                    className="h-auto max-w-full justify-start gap-3 rounded-[10px] p-0 text-left"
+                    className="h-auto max-w-full justify-start gap-3 p-0 text-left"
                     onClick={() => onOpen(customer.id)}
                     type="button"
                     variant="link"
@@ -62,7 +62,9 @@ export function CustomersTable({
                       {getCustomerInitials(customer.name)}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold">{customer.name}</span>
+                      <span className="block truncate text-[13px] font-semibold">
+                        {customer.name}
+                      </span>
                       <span className="mt-1 block truncate text-[10.5px] text-muted-foreground">
                         {customer.email || customer.phone || "No contact captured"}
                       </span>
@@ -76,7 +78,9 @@ export function CustomersTable({
                   </div>
                 </TableCell>
                 <TableCell className="overflow-hidden text-right font-semibold tabular-nums">
-                  <span className="block truncate">{formatNaira(profile.metrics.lifetimeSpend)}</span>
+                  <span className="block truncate">
+                    {formatNaira(profile.metrics.lifetimeSpend)}
+                  </span>
                   <span className="mt-1 block truncate text-[10px] font-normal text-muted-foreground">
                     AOV {formatNaira(profile.metrics.averageOrderValue)}
                   </span>
@@ -89,7 +93,9 @@ export function CustomersTable({
                   </span>
                 </TableCell>
                 <TableCell className="overflow-hidden text-[11.5px]">
-                  <span className="block truncate">{formatCustomerDate(profile.metrics.lastPurchaseAt)}</span>
+                  <span className="block truncate">
+                    {formatCustomerDate(profile.metrics.lastPurchaseAt)}
+                  </span>
                   <span className="mt-1 block truncate text-[10px] text-muted-foreground">
                     {customer.city || "No city captured"}
                   </span>
@@ -104,7 +110,6 @@ export function CustomersTable({
                 <TableCell className="px-1 text-right">
                   <Button
                     aria-label={`Open ${customer.name}`}
-                    className="size-9 rounded-full"
                     onClick={() => onOpen(customer.id)}
                     size="icon"
                     type="button"

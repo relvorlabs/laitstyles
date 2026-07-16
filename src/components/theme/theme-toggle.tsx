@@ -4,7 +4,6 @@ import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export function ThemeToggle({
   className,
@@ -18,10 +17,7 @@ export function ThemeToggle({
   return (
     <Button
       aria-label={dark ? "Use light theme" : "Use dark theme"}
-      className={cn(
-        "size-11 rounded-full text-foreground transition-colors hover:bg-surface-selected",
-        className,
-      )}
+      className={className}
       disabled={!mounted}
       onClick={() => setTheme(dark ? "light" : "dark")}
       size="icon-lg"

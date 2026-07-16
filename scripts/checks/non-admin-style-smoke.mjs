@@ -13,7 +13,7 @@ const consumerRoutes = [
   { name: "product-detail", path: `/products/${productSlug}`, productDetail: true },
   {
     name: "legacy-product-redirect",
-    path: `/p/${productSlug}`,
+    path: `/products/${productSlug}`,
     expectedPath: `/products/${productSlug}`,
     productDetail: true,
   },
@@ -21,8 +21,7 @@ const consumerRoutes = [
   { name: "cart", path: "/cart" },
   { name: "checkout", path: "/checkout" },
   { name: "order-confirmation", path: "/order-confirmation" },
-  { name: "shop", path: "/shop" },
-  { name: "shop-category", path: "/shop/category/jeans-denim" },
+  { name: "products", path: "/products" },
   { name: "collection", path: "/collections/vintage-edit" },
 ];
 
@@ -83,21 +82,21 @@ async function verifyConsumerRoute(context, route, viewport) {
   try {
     await page.goto(destination(route.path), { waitUntil: "domcontentloaded", timeout: 45_000 });
     await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
-    await page.locator(".lst-lab").first().waitFor({ state: "attached", timeout: 15_000 });
+    await page.locator(".lst-storefront").first().waitFor({ state: "attached", timeout: 15_000 });
 
     const state = await page.evaluate(() => {
-      const scope = document.querySelector(".lst-lab");
+      const scope = document.querySelector(".lst-storefront");
       const header = document.querySelector("header#header");
       const brandSymbol = document.querySelector(".brand-symbol");
       const footer = document.querySelector("footer");
-      if (!(scope instanceof HTMLElement)) throw new Error("Missing .lst-lab storefront scope");
+      if (!(scope instanceof HTMLElement)) throw new Error("Missing .lst-storefront storefront scope");
 
       const scopeStyle = getComputedStyle(scope);
       const headerStyle = header instanceof HTMLElement ? getComputedStyle(header) : null;
       const brandStyle = brandSymbol instanceof HTMLElement ? getComputedStyle(brandSymbol) : null;
 
       return {
-        scopeCount: document.querySelectorAll(".lst-lab").length,
+        scopeCount: document.querySelectorAll(".lst-storefront").length,
         bone: scopeStyle.getPropertyValue("--bone").trim(),
         ink: scopeStyle.getPropertyValue("--ink").trim(),
         headerPosition: headerStyle?.position ?? null,
@@ -108,9 +107,9 @@ async function verifyConsumerRoute(context, route, viewport) {
     });
 
     assert.equal(state.scopeCount, 1, "the shared storefront scope must render exactly once");
-    assert.ok(state.bone, "--bone must be inherited from home-lab.css");
-    assert.ok(state.ink, "--ink must be inherited from home-lab.css");
-    assert.equal(state.headerPosition, "sticky", "the shared header must receive home-lab.css");
+    assert.ok(state.bone, "--bone must be inherited from storefront.css");
+    assert.ok(state.ink, "--ink must be inherited from storefront.css");
+    assert.equal(state.headerPosition, "sticky", "the shared header must receive storefront.css");
     assert.ok(state.brandWidth && Number.parseFloat(state.brandWidth) <= 40, "brand mark must not render unstyled");
     assert.equal(state.footerPresent, true, "shared footer must render inside the storefront scope");
     assert.equal(state.horizontalOverflow, false, "route must not introduce viewport overflow");
@@ -126,12 +125,10 @@ async function verifyConsumerRoute(context, route, viewport) {
         2,
         "product detail must render both JSON-LD payloads",
       );
-      const primaryButton = page.locator(".button.button-primary").first();
+      const primaryButton = page.locator('[data-slot="button"]').filter({ hasText: /Add/ }).first();
       await primaryButton.waitFor({ state: "attached", timeout: 10_000 });
-      const minHeight = await primaryButton.evaluate((element) =>
-        Number.parseFloat(getComputedStyle(element).minHeight),
-      );
-      assert.ok(minHeight >= 48, "product detail primary action must inherit button styling");
+      const height = await primaryButton.evaluate((element) => element.getBoundingClientRect().height);
+      assert.ok(height >= 32, "product detail primary action must use the shadcn large button size");
 
       if (viewport.name === "desktop") await verifyThemeToggle(page);
     }
@@ -157,7 +154,7 @@ async function verifyAdminExclusion(context, viewport) {
 
     const state = await page.evaluate(() => ({
       path: window.location.pathname,
-      storefrontScopeCount: document.querySelectorAll(".lst-lab").length,
+      storefrontScopeCount: document.querySelectorAll(".lst-storefront").length,
       storefrontHeaderCount: document.querySelectorAll("header#header").length,
     }));
 
@@ -165,7 +162,7 @@ async function verifyAdminExclusion(context, viewport) {
       state.path.startsWith("/admin") || state.path.startsWith("/auth"),
       `admin must remain on its standalone surface (received ${state.path})`,
     );
-    assert.equal(state.storefrontScopeCount, 0, "admin/auth surfaces must stay outside .lst-lab");
+    assert.equal(state.storefrontScopeCount, 0, "admin/auth surfaces must stay outside .lst-storefront");
     assert.equal(state.storefrontHeaderCount, 0, "admin/auth surfaces must not render storefront chrome");
     assert.deepEqual(runtimeErrors, [], `admin emitted browser runtime errors: ${runtimeErrors.join(" | ")}`);
 

@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-labels";
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
-import {
-  formatHoldCountdown,
-  toHoldWorkspaceItem,
-} from "@/features/admin/holds/hold-selectors";
+import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
 
@@ -79,7 +76,6 @@ export function HoldsMobileList({
               </div>
               <Button
                 aria-label={`Open ${hold.id}`}
-                className="size-11 rounded-full"
                 onClick={() => onOpen(hold.id)}
                 size="icon-lg"
                 type="button"

@@ -50,7 +50,7 @@ export function ReturnsMobileList({
                 </p>
                 <Button
                   aria-label={`Open ${record.id}`}
-                  className="size-10 shrink-0 rounded-full"
+                  className="shrink-0"
                   onClick={() => onOpen(record.id)}
                   size="icon"
                   type="button"

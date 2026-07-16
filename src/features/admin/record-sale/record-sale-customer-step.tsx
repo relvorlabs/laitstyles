@@ -2,13 +2,7 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -95,7 +89,6 @@ export function RecordSaleCustomerStep() {
         <FieldLabel>Customer record</FieldLabel>
         <div className="grid grid-cols-2 gap-2 rounded-[14px] border border-border bg-secondary/40 p-1.5">
           <Button
-            className="h-11 rounded-[10px]"
             onClick={() => setCustomerMode("existing")}
             type="button"
             variant={customerMode === "existing" ? "default" : "ghost"}
@@ -103,7 +96,6 @@ export function RecordSaleCustomerStep() {
             Existing customer
           </Button>
           <Button
-            className="h-11 rounded-[10px]"
             onClick={() => setCustomerMode("new")}
             type="button"
             variant={customerMode === "new" ? "default" : "ghost"}

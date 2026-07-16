@@ -111,12 +111,7 @@ export function InventoryDetailSheet({
                     Catalogue, stock and operational history for this product.
                   </SheetDescription>
                 </div>
-                <Button
-                  className="h-10 rounded-full px-4"
-                  onClick={() => onEdit(productId)}
-                  type="button"
-                  variant="outline"
-                >
+                <Button size="lg" onClick={() => onEdit(productId)} type="button" variant="outline">
                   <AdminIcon icon={Edit02Icon} size={16} />
                   Edit product
                 </Button>

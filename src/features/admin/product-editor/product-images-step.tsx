@@ -205,7 +205,7 @@ export function ProductImagesStep() {
           />
         </Field>
         <Button
-          className="h-11 rounded-full px-5"
+          size="lg"
           disabled={!imageUrl.trim() || fields.length >= MAX_IMAGES}
           onClick={addUrlPreview}
           type="button"
@@ -262,7 +262,6 @@ export function ProductImagesStep() {
                     </Badge>
                     <Button
                       aria-label={`Remove image ${index + 1}`}
-                      className="size-10 rounded-full bg-surface-raised/92"
                       onClick={() => removePreview(index)}
                       size="icon"
                       type="button"
@@ -305,7 +304,6 @@ export function ProductImagesStep() {
 
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
-                      className="rounded-full"
                       disabled={kind === "cover"}
                       onClick={() => setCover(index)}
                       size="sm"
@@ -315,7 +313,6 @@ export function ProductImagesStep() {
                       Set as featured cover
                     </Button>
                     <Button
-                      className="rounded-full"
                       disabled={kind === "cover"}
                       onClick={() =>
                         setValue(`media.${index}.kind`, kind === "defect" ? "detail" : "defect", {
@@ -331,7 +328,6 @@ export function ProductImagesStep() {
                     <span className="ml-auto flex gap-1">
                       <Button
                         aria-label="Move image earlier"
-                        className="size-10 rounded-full"
                         disabled={index === 0}
                         onClick={() => movePreview(index, index - 1)}
                         size="icon"
@@ -342,7 +338,6 @@ export function ProductImagesStep() {
                       </Button>
                       <Button
                         aria-label="Move image later"
-                        className="size-10 rounded-full"
                         disabled={index === fields.length - 1}
                         onClick={() => movePreview(index, index + 1)}
                         size="icon"

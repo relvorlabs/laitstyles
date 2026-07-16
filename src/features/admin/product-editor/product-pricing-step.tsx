@@ -104,13 +104,7 @@ export function ProductPricingStep() {
             value={desiredDiscount}
           />
         </Field>
-        <Button
-          className="h-11 rounded-full px-5"
-          disabled={!desiredDiscount}
-          onClick={applyDiscount}
-          type="button"
-          variant="outline"
-        >
+        <Button disabled={!desiredDiscount} onClick={applyDiscount} type="button" variant="outline">
           <Calculator aria-hidden="true" className="size-4" />
           Calculate price
         </Button>

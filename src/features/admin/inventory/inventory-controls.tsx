@@ -19,7 +19,6 @@ import type {
   InventoryPresentation,
   InventoryQuery,
 } from "@/lib/admin/types";
-import { cn } from "@/lib/utils";
 
 type InventoryControlsProps = {
   query: InventoryQuery;
@@ -74,13 +73,7 @@ export function InventoryControls({
         <div className="flex items-center justify-between gap-2">
           <Sheet>
             <SheetTrigger
-              render={
-                <Button
-                  className="h-11 rounded-full px-4 lg:hidden"
-                  type="button"
-                  variant="outline"
-                />
-              }
+              render={<Button size="lg" className="lg:hidden" type="button" variant="outline" />}
             >
               <AdminIcon icon={Settings01Icon} size={17} />
               Filters
@@ -101,13 +94,7 @@ export function InventoryControls({
                 />
               </div>
               <SheetFooter>
-                <Button
-                  className="h-11 rounded-full"
-                  disabled={!hasFilters}
-                  onClick={onReset}
-                  type="button"
-                  variant="outline"
-                >
+                <Button disabled={!hasFilters} onClick={onReset} type="button" variant="outline">
                   Reset Filters
                 </Button>
               </SheetFooter>
@@ -116,7 +103,8 @@ export function InventoryControls({
 
           {hasFilters ? (
             <Button
-              className="hidden h-11 rounded-full px-4 sm:inline-flex"
+              size="lg"
+              className="hidden sm:inline-flex"
               onClick={onReset}
               type="button"
               variant="ghost"
@@ -133,10 +121,6 @@ export function InventoryControls({
             {(["grid", "table"] as const).map((option) => (
               <Button
                 aria-pressed={presentation === option}
-                className={cn(
-                  "min-h-9 rounded-full px-3 text-[11px] font-semibold capitalize",
-                  presentation === option ? "shadow-sm" : "text-muted-foreground",
-                )}
                 key={option}
                 onClick={() => onPresentationChange(option)}
                 size="sm"

@@ -2,7 +2,6 @@
 
 import { Alert02Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -12,6 +11,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export default function AdminOverviewError({
   reset,
@@ -35,15 +35,10 @@ export default function AdminOverviewError({
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="mt-2 flex-row flex-wrap justify-center">
-          <Button className="h-11 rounded-full px-5" onClick={reset} size="lg" type="button">
+          <Button onClick={reset} size="lg" type="button">
             Retry Overview
           </Button>
-          <Button
-            className="h-11 rounded-full px-5"
-            render={<Link href="/" />}
-            size="lg"
-            variant="outline"
-          >
+          <Button nativeButton={false} render={<Link href="/" />} size="lg" variant="outline">
             Preview storefront
             <AdminIcon icon={ArrowRight01Icon} size={16} />
           </Button>

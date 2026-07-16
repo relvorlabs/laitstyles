@@ -4,12 +4,19 @@ import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { ShopProvider } from "@/components/shop/shop-provider";
-import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/home-lab/site-header";
-import { StorefrontProvider } from "@/features/storefront/home-lab/storefront-context";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
+import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 import { QueryProvider } from "@/lib/query/query-provider";
+import type { StorefrontCatalogPayload } from "@/lib/storefront/catalog-data";
 
-export function SiteChrome({ children }: { children: React.ReactNode }) {
+export function SiteChrome({
+  catalog,
+  children,
+}: {
+  catalog: StorefrontCatalogPayload;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { actions } = useStorefrontExperience();
@@ -21,7 +28,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       if (category) params.set("category", category);
       if (collection) params.set("collection", collection);
       const query = params.toString();
-      router.push(query ? `/shop?${query}` : "/shop");
+      router.push(query ? `/products?${query}` : "/products");
     },
     [router],
   );
@@ -47,8 +54,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   if (isStandaloneSurface) return <>{children}</>;
 
   return (
-    <ShopProvider>
-      <StorefrontProvider>
+    <ShopProvider products={catalog.products}>
+      <StorefrontProvider catalog={catalog}>
         <QueryProvider>
           <SiteHeader
             onGoHome={() => router.push("/")}

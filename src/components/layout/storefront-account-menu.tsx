@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStorefront } from "@/features/storefront/home-lab/storefront-context";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 
 export function StorefrontAccountMenu() {
@@ -41,7 +41,7 @@ export function StorefrontAccountMenu() {
   if (!state.signedIn) {
     return (
       <Button
-        className="group h-11 gap-2 rounded-full border-[var(--line)] px-3 text-left max-[700px]:size-11 max-[700px]:px-0"
+        className="group gap-2 text-left max-[700px]:px-0"
         onClick={() => actions.openSignin(() => router.push("/account"))}
         type="button"
         variant="outline"

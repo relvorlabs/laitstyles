@@ -45,9 +45,18 @@ function readMainVersion(file) {
 const files = walk(sourceRoot).filter((file) => /\.(?:tsx|jsx)$/.test(file));
 const rows = [];
 const violations = [];
+const customizationViolations = [];
+const forbiddenButtonSystems = [
+  /\bbutton-(?:primary|secondary|ghost|sage)\b/,
+  /\b(?:control-button|filter-chip|page-button|quick-link|close-button|utility-dismiss|icon-button)\b/,
+];
 
 for (const file of files) {
-  const current = countRawButtons(readFileSync(path.join(root, file), "utf8"));
+  const content = readFileSync(path.join(root, file), "utf8");
+  const current = countRawButtons(content);
+  if (forbiddenButtonSystems.some((pattern) => pattern.test(content))) {
+    customizationViolations.push(file);
+  }
   if (current === 0) continue;
 
   if (nativeAllowlist.has(file)) {
@@ -65,6 +74,13 @@ for (const file of files) {
   }
 }
 
+for (const file of walk(sourceRoot).filter((file) => file.endsWith(".css"))) {
+  const content = readFileSync(path.join(root, file), "utf8");
+  if (forbiddenButtonSystems.some((pattern) => pattern.test(content))) {
+    customizationViolations.push(file);
+  }
+}
+
 console.log("Application raw-button audit");
 console.log(`Mode: ${strict ? "strict (zero application raw buttons)" : "no-regression baseline"}`);
 for (const row of rows.sort((a, b) => a.file.localeCompare(b.file))) {
@@ -74,10 +90,13 @@ for (const row of rows.sort((a, b) => a.file.localeCompare(b.file))) {
   );
 }
 
-if (violations.length > 0) {
+if (violations.length > 0 || customizationViolations.length > 0) {
   console.error("\nRaw application buttons require shadcn <Button> migration:");
   for (const violation of violations) {
     console.error(`  ${violation.file}: current=${violation.current}, allowed=${strict ? 0 : violation.baseline}`);
+  }
+  for (const file of [...new Set(customizationViolations)].sort()) {
+    console.error(`  ${file}: legacy custom button system detected`);
   }
   process.exit(1);
 }

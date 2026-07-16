@@ -66,9 +66,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
 
   const view = pick(requestedView, savedViewValues, "all");
   const presentation: InventoryPresentation = requestedPresentation === "table" ? "table" : "grid";
-  const productId = activeAdminSeed.products.some(
-    (product) => product.id === requestedProduct,
-  )
+  const productId = activeAdminSeed.products.some((product) => product.id === requestedProduct)
     ? (requestedProduct ?? null)
     : null;
   const requestedPage = Number(first(params.page));

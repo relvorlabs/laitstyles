@@ -45,14 +45,7 @@ export function ProductEditorStepper({
               <li key={step}>
                 <Button
                   aria-current={active ? "step" : undefined}
-                  className={cn(
-                    "min-h-12 w-full justify-start gap-3 rounded-[12px] px-3 text-left",
-                    active
-                      ? "bg-primary text-primary-foreground hover:bg-primary"
-                      : available
-                        ? "text-foreground hover:bg-background"
-                        : "cursor-not-allowed text-muted-foreground/55",
-                  )}
+                  className="w-full justify-start gap-3 text-left"
                   disabled={!available}
                   onClick={() => onStepChange(step)}
                   type="button"

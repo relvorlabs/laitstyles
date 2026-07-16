@@ -44,13 +44,6 @@ export const settingsSections: readonly SettingsSectionDefinition[] = [
     description: "The operating events that need attention.",
     outcome: "Which store changes should be surfaced promptly.",
   },
-  {
-    value: "team",
-    label: "Team",
-    shortLabel: "Team",
-    description: "People, roles and responsibility boundaries.",
-    outcome: "Who is expected to handle each part of the store.",
-  },
 ] as const;
 
 export const settingsSectionValues = new Set<SettingsSection>(

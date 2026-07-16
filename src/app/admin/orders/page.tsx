@@ -38,9 +38,7 @@ const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
   const requestedOrder = first(params.order);
-  const initialOpenOrderId = activeAdminSeed.orders.some(
-    (order) => order.id === requestedOrder,
-  )
+  const initialOpenOrderId = activeAdminSeed.orders.some((order) => order.id === requestedOrder)
     ? (requestedOrder ?? null)
     : null;
 

@@ -21,10 +21,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  conversionPaymentLabels,
-  paymentMethodLabels,
-} from "@/features/admin/holds/hold-labels";
+import { conversionPaymentLabels, paymentMethodLabels } from "@/features/admin/holds/hold-labels";
 import type { ConvertHoldInput, PaymentMethod, PaymentStatus } from "@/lib/admin/types";
 
 const paymentStatuses: Array<Extract<PaymentStatus, "pending" | "paid" | "deposit">> = [
@@ -193,15 +190,10 @@ export function HoldConversionDialog({
           ) : null}
 
           <DialogFooter className="mx-0 mb-0 px-0 pb-0">
-            <Button
-              className="h-11 rounded-full px-5"
-              onClick={() => onOpenChange(false)}
-              type="button"
-              variant="outline"
-            >
+            <Button size="lg" onClick={() => onOpenChange(false)} type="button" variant="outline">
               Keep as hold
             </Button>
-            <Button className="h-11 rounded-full px-5" type="submit">
+            <Button size="lg" type="submit">
               Create order
             </Button>
           </DialogFooter>

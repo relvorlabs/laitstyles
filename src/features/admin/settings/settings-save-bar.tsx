@@ -20,6 +20,7 @@ export type SettingsFeedback = {
 };
 
 export function SettingsSaveBar({
+  canEdit,
   dirty,
   submitting,
   feedback,
@@ -27,6 +28,7 @@ export function SettingsSaveBar({
   onDiscardOpenChange,
   onDiscard,
 }: {
+  canEdit: boolean;
   dirty: boolean;
   submitting: boolean;
   feedback: SettingsFeedback | null;
@@ -39,7 +41,12 @@ export function SettingsSaveBar({
       <Card className="sticky bottom-3 z-30 mt-6 gap-4 border-border/80 bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div aria-live="polite" className="min-w-0">
           <p className="text-sm font-medium">
-            {feedback?.title ?? (dirty ? "Unsaved store changes" : "Store settings are up to date")}
+            {feedback?.title ??
+              (!canEdit
+                ? "Store settings are read-only for managers"
+                : dirty
+                  ? "Unsaved store changes"
+                  : "Store settings are up to date")}
           </p>
           <p
             className={
@@ -49,22 +56,23 @@ export function SettingsSaveBar({
             }
           >
             {feedback?.message ??
-              (dirty
+              (!canEdit
+                ? "Only the admin / store owner can change these settings."
+                : dirty
                 ? "Save once to apply every changed section."
                 : "Saved changes remain until the page is refreshed.")}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button
-            className="h-11"
-            disabled={!dirty || submitting}
+            disabled={!canEdit || !dirty || submitting}
             onClick={() => onDiscardOpenChange(true)}
             type="button"
             variant="outline"
           >
             Discard changes
           </Button>
-          <Button className="h-11" disabled={!dirty || submitting} type="submit">
+          <Button disabled={!canEdit || !dirty || submitting} type="submit">
             {submitting ? "Saving…" : "Save store settings"}
           </Button>
         </div>
@@ -75,8 +83,7 @@ export function SettingsSaveBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard all unsaved settings?</AlertDialogTitle>
             <AlertDialogDescription>
-              Every change made across Store identity, Selling, Delivery, Payments, Notifications
-              and Team will return to the last saved values.
+              Every change made across Store identity, Selling, Delivery, Payments, Notifications will return to the last saved values.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

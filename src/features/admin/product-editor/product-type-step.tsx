@@ -65,16 +65,11 @@ export function ProductTypeStep({ onModeChange }: { onModeChange: (mode: Invento
           return (
             <Button
               aria-pressed={selected}
-              className={cn(
-                "group min-h-[220px] w-full flex-col items-stretch justify-start whitespace-normal rounded-[18px] border bg-card p-5 text-left transition-all",
-                selected
-                  ? "border-primary shadow-laitstyle"
-                  : "border-border hover:-translate-y-0.5 hover:border-foreground/30 motion-reduce:hover:translate-y-0",
-              )}
+              className="group h-auto w-full flex-col items-stretch justify-start whitespace-normal py-4 text-left"
               key={type.value}
               onClick={() => onModeChange(type.value)}
               type="button"
-              variant="ghost"
+              variant={selected ? "secondary" : "outline"}
             >
               <span className="flex items-start justify-between gap-3">
                 <span

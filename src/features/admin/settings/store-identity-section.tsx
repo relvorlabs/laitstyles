@@ -28,7 +28,7 @@ export function StoreIdentitySection() {
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <SettingsTextField
-            autoComplete="organization"
+            autoComplete="off"
             description="This appears in Admin and the customer-facing store preview."
             label="Store name"
             name="identity.storeName"

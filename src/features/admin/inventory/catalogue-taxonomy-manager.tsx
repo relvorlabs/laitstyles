@@ -178,7 +178,7 @@ export function CatalogueTaxonomyManager({
               placeholder={kind === "category" ? "e.g. Jeans" : "e.g. Weekend Denim"}
               value={newName}
             />
-            <Button className="h-11" disabled={!newName.trim()} onClick={createItem} type="button">
+            <Button disabled={!newName.trim()} onClick={createItem} type="button">
               <Plus aria-hidden="true" className="size-4" />
               Add {kind}
             </Button>
@@ -261,7 +261,6 @@ export function CatalogueTaxonomyManager({
                         <>
                           <Button
                             aria-label={`Rename ${item.name}`}
-                            className="size-10"
                             onClick={() => {
                               setEditingId(item.id);
                               setEditingName(item.name);
@@ -276,7 +275,6 @@ export function CatalogueTaxonomyManager({
                           </Button>
                           <Button
                             aria-label={`${confirmDeleteId === item.id ? "Confirm delete" : "Delete"} ${item.name}`}
-                            className="size-10"
                             onClick={() => deleteItem(item.id)}
                             size="icon"
                             type="button"

@@ -70,18 +70,6 @@ export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
     paymentIssues: true,
     deliveryExceptions: true,
   },
-  team: {
-    members: [
-      {
-        id: "team-owner",
-        name: "Store owner",
-        email: "owner@laitstyle.example",
-        role: "owner",
-        status: "active",
-        responsibility: "Full store oversight and final approvals.",
-      },
-    ],
-  },
 };
 
 export function createDefaultStoreSettings(asOf: string): StoreSettings {

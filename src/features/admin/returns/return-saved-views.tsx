@@ -19,7 +19,6 @@ export function ReturnSavedViews({
         {returnSavedViews.map((view) => (
           <Button
             aria-selected={value === view.value}
-            className="h-9 rounded-full px-3 text-xs"
             key={view.value}
             onClick={() => onChange(view.value)}
             role="tab"

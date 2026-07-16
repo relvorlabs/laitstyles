@@ -12,7 +12,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 
 // Phase 2 shell: the cart trigger + sheet scaffold with a real empty state.
 // Live cart lines (server-truth holds) are wired in Phase 5 — no fake data here.
@@ -26,7 +25,7 @@ export function CartSheet() {
         render={
           <Button
             aria-label={`Bag, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}
-            className="relative size-11 rounded-full"
+            className="relative"
             size="icon-lg"
             type="button"
             variant="ghost"
@@ -64,14 +63,7 @@ export function CartSheet() {
               decide.
             </p>
           </div>
-          <SheetClose
-            render={
-              <Link
-                className={cn(buttonVariants({ size: "lg" }), "rounded-full px-7")}
-                href="/shop"
-              />
-            }
-          >
+          <SheetClose render={<Link className={buttonVariants({ size: "lg" })} href="/products" />}>
             Shop the archive
           </SheetClose>
         </div>

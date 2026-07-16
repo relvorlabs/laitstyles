@@ -192,7 +192,7 @@ export function ReturnDetailSheet({
                 <div className="mt-4 flex flex-wrap gap-2">
                   {permitted.map((status, index) => (
                     <Button
-                      className="h-11 rounded-full px-5"
+                      size="lg"
                       key={status}
                       onClick={() => requestTransition(status)}
                       type="button"

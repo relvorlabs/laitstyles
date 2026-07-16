@@ -41,7 +41,7 @@ export function RecordSaleStepper({
             <li key={step}>
               <Button
                 aria-current={selected ? "step" : undefined}
-                className="h-auto min-h-11 w-full justify-start rounded-[12px] px-3 py-2 text-left"
+                className="h-auto w-full justify-start text-left"
                 disabled={!reachable}
                 onClick={() => onStepChange(step)}
                 type="button"
@@ -49,11 +49,7 @@ export function RecordSaleStepper({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="grid size-6 shrink-0 place-items-center rounded-full border border-current text-[11px]">
-                    {completed ? (
-                      <AdminIcon icon={CheckmarkCircle02Icon} size={15} />
-                    ) : (
-                      index + 1
-                    )}
+                    {completed ? <AdminIcon icon={CheckmarkCircle02Icon} size={15} /> : index + 1}
                   </span>
                   <span className="hidden truncate text-sm sm:inline">{labels[step]}</span>
                 </span>

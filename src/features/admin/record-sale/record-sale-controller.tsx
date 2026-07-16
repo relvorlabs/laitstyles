@@ -42,7 +42,6 @@ export function RecordSaleControllerProvider({ children }: { children: ReactNode
               className={buttonVariants({
                 variant: "ghost",
                 size: "sm",
-                className: "h-8 rounded-full px-3",
               })}
               href={`/admin/orders?order=${encodeURIComponent(result.orderId)}`}
               onClick={() => setResult(null)}

@@ -38,7 +38,7 @@ export function InventoryMobileList({
             <div className="grid grid-cols-[96px_minmax(0,1fr)]">
               <Button
                 aria-label={`View images for ${item.product.name}`}
-                className="group relative min-h-[150px] rounded-none bg-secondary p-0"
+                className="group relative p-0"
                 onClick={() => onOpenMedia(item.product.id, item.coverImage.id)}
                 type="button"
                 variant="ghost"
@@ -100,7 +100,8 @@ export function InventoryMobileList({
                 </div>
 
                 <Button
-                  className="h-10 w-full justify-between rounded-full px-4"
+                  size="lg"
+                  className="w-full justify-between"
                   onClick={() => onOpen(item.product.id)}
                   type="button"
                   variant="outline"

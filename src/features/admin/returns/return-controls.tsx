@@ -102,7 +102,7 @@ export function ReturnControls({
           {resultCount} return{resultCount === 1 ? "" : "s"} in this view
         </p>
         {filtered ? (
-          <Button className="h-9 rounded-full px-3" onClick={onReset} type="button" variant="ghost">
+          <Button size="lg" onClick={onReset} type="button" variant="ghost">
             Reset
           </Button>
         ) : null}

@@ -60,7 +60,6 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
         <Link
           className={buttonVariants({
             size: "lg",
-            className: "h-10 rounded-full px-4",
           })}
           href={task.href}
         >

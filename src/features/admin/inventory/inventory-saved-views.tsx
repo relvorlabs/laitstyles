@@ -24,14 +24,11 @@ export function InventorySavedViews({ value, counts, onChange }: InventorySavedV
           return (
             <Button
               aria-current={active ? "page" : undefined}
-              className={cn(
-                "relative min-h-12 touch-manipulation gap-2 rounded-none px-3 text-[12px] font-semibold",
-                active ? "text-foreground" : "text-muted-foreground",
-              )}
+              className="relative gap-2"
               key={view.value}
               onClick={() => onChange(view.value)}
               type="button"
-              variant="ghost"
+              variant={active ? "secondary" : "ghost"}
             >
               <span>{view.label}</span>
               <span

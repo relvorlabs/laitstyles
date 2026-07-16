@@ -18,12 +18,7 @@ export function HoldsEmptyState({ hasHolds, onReset }: { hasHolds: boolean; onRe
           : "Storefront and staff-assisted reservations will appear here when stock is held."}
       </p>
       {hasHolds ? (
-        <Button
-          className="mt-6 h-11 rounded-full px-5"
-          onClick={onReset}
-          type="button"
-          variant="outline"
-        >
+        <Button size="lg" className="mt-6" onClick={onReset} type="button" variant="outline">
           Reset filters
         </Button>
       ) : null}

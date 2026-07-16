@@ -35,7 +35,7 @@ export function InventoryProductCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-sunken">
         <Button
           aria-label={`View images for ${product.name}`}
-          className="absolute inset-0 block size-full rounded-none p-0"
+          className="absolute inset-0 block p-0"
           onClick={onOpenMedia}
           type="button"
           variant="ghost"
@@ -84,7 +84,7 @@ export function InventoryProductCard({
           </Button>
           <Button
             aria-label={`Open ${product.name} record`}
-            className="size-8 shrink-0 rounded-full"
+            className="shrink-0"
             onClick={onOpen}
             size="icon"
             type="button"

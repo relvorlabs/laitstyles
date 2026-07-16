@@ -43,7 +43,7 @@ export function OrderTransitionControls({
           const destructive = destructiveStatuses.has(status);
           return (
             <Button
-              className="h-10 rounded-full px-4"
+              size="lg"
               key={status}
               onClick={() => {
                 if (destructive) setPendingDestructive(status);

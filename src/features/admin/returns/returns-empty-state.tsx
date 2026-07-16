@@ -26,11 +26,11 @@ export function ReturnsEmptyState({
       </EmptyHeader>
       <div className="flex flex-wrap justify-center gap-2">
         {hasReturns ? (
-          <Button className="rounded-full" onClick={onReset} type="button" variant="outline">
+          <Button onClick={onReset} type="button" variant="outline">
             Reset filters
           </Button>
         ) : null}
-        <Button className="rounded-full" onClick={onCreate} type="button">
+        <Button onClick={onCreate} type="button">
           Start return
         </Button>
       </div>

@@ -28,9 +28,8 @@ export function InventoryWorkspaceHeader() {
           className={buttonVariants({
             variant: "outline",
             size: "lg",
-            className: "h-11 rounded-full px-5",
           })}
-          href="/shop"
+          href="/products"
         >
           Preview catalogue
           <AdminIcon icon={ArrowUpRight01Icon} size={16} />

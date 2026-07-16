@@ -9,14 +9,13 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 // Phase 2 shell footer — real destinations only. Help/policy/track-order links
 // are added in Phase 3 when those routes exist; newsletter capture lands in
 // Phase 9 (Resend). No dead links, no fake form.
 const shopLinks = [
-  { label: "New in", href: "/shop" },
-  { label: "Shop all", href: "/shop" },
+  { label: "New in", href: "/products" },
+  { label: "Shop all", href: "/products" },
 ];
 const accountLinks = [
   { label: "My account", href: "/account" },
@@ -47,13 +46,7 @@ export function Footer() {
               Hand-picked pre-owned and vintage — inspected, cleaned and honestly graded. Ready to
               wear, at a fraction of new.
             </div>
-            <Link
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "rounded-full bg-brand-bone px-7 text-brand-ink hover:bg-brand-bone-strong",
-              )}
-              href="/shop"
-            >
+            <Link className={buttonVariants({ size: "lg" })} href="/products">
               Shop new in
             </Link>
           </div>

@@ -19,10 +19,10 @@ export function AdminAccessDenied({ reason }: { reason: AuthDeniedReason }) {
         </div>
         <p className="text-sm leading-6 text-muted-foreground">{AUTH_DENIED_MESSAGES[reason]}</p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button className="rounded-full px-5" render={<Link href="/auth/sign-in?next=/admin" />}>
+          <Button size="lg" nativeButton={false} render={<Link href="/auth/sign-in?next=/admin" />}>
             Sign in as staff
           </Button>
-          <Button className="rounded-full px-5" render={<Link href="/" />} variant="outline">
+          <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
             Back to storefront
           </Button>
         </div>

@@ -22,13 +22,7 @@ export function InventoryExportAlert({
         {count} selected product{count === 1 ? "" : "s"} were exported as a CSV file.
       </AlertDescription>
       <AlertAction>
-        <Button
-          className="h-8 rounded-full px-3"
-          onClick={onDismiss}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
+        <Button onClick={onDismiss} size="sm" type="button" variant="ghost">
           Dismiss
         </Button>
       </AlertAction>

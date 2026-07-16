@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { channelLabels, formatOrderDate } from "@/features/admin/orders/order-labels";
 import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
-import {
-  OrderStatusBadge,
-  PaymentStatusBadge,
-} from "@/features/admin/orders/order-status-badge";
+import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/formatters";
 import type { AdminState, ControlRoomOrder } from "@/lib/admin/types";
@@ -88,7 +85,6 @@ export function OrdersMobileList({
                 </div>
                 <Button
                   aria-label={`Open ${order.id}`}
-                  className="size-11 rounded-full"
                   onClick={() => onOpen(order.id)}
                   size="icon-lg"
                   type="button"

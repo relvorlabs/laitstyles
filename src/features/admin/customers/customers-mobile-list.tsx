@@ -32,7 +32,7 @@ export function CustomersMobileList({
             <div className="border-b border-border bg-secondary/45 px-4 py-4">
               <div className="flex items-start justify-between gap-3">
                 <Button
-                  className="h-auto min-w-0 justify-start gap-3 rounded-[10px] p-0 text-left"
+                  className="h-auto min-w-0 justify-start gap-3 p-0 text-left"
                   onClick={() => onOpen(customer.id)}
                   type="button"
                   variant="link"
@@ -81,7 +81,6 @@ export function CustomersMobileList({
                 </p>
                 <Button
                   aria-label={`Open ${customer.name}`}
-                  className="size-11 rounded-full"
                   onClick={() => onOpen(customer.id)}
                   size="icon-lg"
                   type="button"

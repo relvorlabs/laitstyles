@@ -17,7 +17,7 @@ export function ReturnsHeader({ onCreate }: { onCreate: () => void }) {
           disposition.
         </p>
       </div>
-      <Button className="h-11 rounded-full px-5" onClick={onCreate} type="button">
+      <Button size="lg" onClick={onCreate} type="button">
         Start return
       </Button>
     </header>

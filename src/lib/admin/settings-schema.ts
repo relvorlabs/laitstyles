@@ -5,7 +5,6 @@ import {
   paymentSettingsSchema,
   sellingPreferencesSettingsSchema,
   storeIdentitySettingsSchema,
-  teamSettingsSchema,
 } from "@/lib/admin/settings-section-schemas";
 import type {
   SaveStoreSettingsInput,
@@ -19,7 +18,6 @@ export {
   paymentSettingsSchema,
   sellingPreferencesSettingsSchema,
   storeIdentitySettingsSchema,
-  teamSettingsSchema,
 } from "@/lib/admin/settings-section-schemas";
 
 export const storeSettingsInputSchema = z
@@ -29,7 +27,6 @@ export const storeSettingsInputSchema = z
     delivery: deliverySettingsSchema,
     payments: paymentSettingsSchema,
     notifications: notificationSettingsSchema,
-    team: teamSettingsSchema,
   })
   .superRefine((settings, context) => {
     const payOnDeliveryAccepted = settings.payments.acceptedMethods.includes("pay-on-delivery");
@@ -49,7 +46,6 @@ const settingsSectionSchemas = {
   delivery: deliverySettingsSchema,
   payments: paymentSettingsSchema,
   notifications: notificationSettingsSchema,
-  team: teamSettingsSchema,
 } as const;
 
 export function parseStoreSettingsInput(
@@ -88,8 +84,7 @@ function getSettingsSection(value: PropertyKey | undefined): SettingsSection {
     value === "selling" ||
     value === "delivery" ||
     value === "payments" ||
-    value === "notifications" ||
-    value === "team"
+    value === "notifications"
   ) {
     return value;
   }

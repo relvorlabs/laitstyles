@@ -5,12 +5,19 @@ import { SiteChrome } from "@/components/layout/site-chrome";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { StorefrontExperienceProvider } from "@/features/storefront/shared/storefront-experience-provider";
+import type { StorefrontCatalogPayload } from "@/lib/storefront/catalog-data";
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({
+  catalog,
+  children,
+}: {
+  catalog: StorefrontCatalogPayload;
+  children: ReactNode;
+}) {
   return (
     <ThemeProvider>
-      <StorefrontExperienceProvider>
-        <SiteChrome>{children}</SiteChrome>
+      <StorefrontExperienceProvider products={catalog.products}>
+        <SiteChrome catalog={catalog}>{children}</SiteChrome>
       </StorefrontExperienceProvider>
       <Toaster
         position="bottom-right"

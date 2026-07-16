@@ -39,7 +39,6 @@ export function PickupLocationList() {
           </p>
         </div>
         <Button
-          className="h-11"
           onClick={() =>
             pickups.append({
               id: `pickup-location-${crypto.randomUUID()}`,

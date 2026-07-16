@@ -135,7 +135,7 @@ export function RecordSalePaymentStep() {
       <Alert>
         <AlertTitle>No payment provider is contacted</AlertTitle>
         <AlertDescription>
-          This records the operator’s stated payment status. It does not charge a card, confirm a
+          This records the staff member’s stated payment status. It does not charge a card, confirm a
           transfer, or settle funds.
         </AlertDescription>
       </Alert>

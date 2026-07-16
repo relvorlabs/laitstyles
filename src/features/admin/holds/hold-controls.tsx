@@ -128,7 +128,7 @@ export function HoldControls({
           {resultCount === 1 ? "" : "s"} in this view
         </span>
         {hasFilters ? (
-          <Button className="h-8 rounded-full px-3" onClick={onReset} type="button" variant="ghost">
+          <Button size="lg" onClick={onReset} type="button" variant="ghost">
             Reset filters
           </Button>
         ) : null}

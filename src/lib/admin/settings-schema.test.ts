@@ -102,13 +102,4 @@ describe("Store settings validation", () => {
       ]),
     );
   });
-
-  it("keeps at least one owner in the truthful team boundary", () => {
-    const input = cloneDefaults();
-    input.team.members[0]!.role = "manager";
-
-    expect(validateSettingsSection(input, "team")).toEqual(
-      expect.arrayContaining([expect.objectContaining({ section: "team" })]),
-    );
-  });
 });

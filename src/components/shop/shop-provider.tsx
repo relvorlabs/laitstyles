@@ -9,7 +9,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import { canonicalizeProduct, canonicalProductId, feedItems, type Product } from "@/lib/catalogue";
+import type { Product as StorefrontProduct } from "@/features/storefront/shared/catalogue-data";
+import {
+  canonicalizeProduct,
+  canonicalProductId,
+  type Product,
+  projectLegacyCatalogue,
+} from "@/lib/catalogue";
 
 const STORAGE_KEY = "laitstyle-held-items-v1";
 const DEFAULT_HOLD_SECONDS = 15 * 60;
@@ -29,21 +35,14 @@ type ShopContextValue = {
   secondsFor: (productId: string) => number;
 };
 
-const initialHeldItems: HeldItem[] = feedItems
-  .filter((product) => product.state === "resYou")
-  .map((product) => ({
-    product: canonicalizeProduct(product),
-    secondsLeft: product.secondsLeft ?? DEFAULT_HOLD_SECONDS,
-  }));
-
 const ShopContext = createContext<ShopContextValue | null>(null);
 
-function normalizeHeldItems(items: HeldItem[]) {
+function normalizeHeldItems(items: HeldItem[], catalogue: readonly Product[]) {
   const byProduct = new Map<string, HeldItem>();
 
   for (const item of items) {
     if (!item?.product?.id) continue;
-    const product = canonicalizeProduct(item.product);
+    const product = canonicalizeProduct(catalogue, item.product);
     const canonicalId = canonicalProductId(product.id);
     const existing = byProduct.get(canonicalId);
 
@@ -58,8 +57,22 @@ function normalizeHeldItems(items: HeldItem[]) {
   return Array.from(byProduct.values());
 }
 
-export function ShopProvider({ children }: { children: ReactNode }) {
-  const [heldItems, setHeldItems] = useState<HeldItem[]>(initialHeldItems);
+export function ShopProvider({
+  children,
+  products,
+}: {
+  children: ReactNode;
+  products: readonly StorefrontProduct[];
+}) {
+  const catalogue = useMemo(() => projectLegacyCatalogue(products), [products]);
+  const [heldItems, setHeldItems] = useState<HeldItem[]>(() =>
+    catalogue
+      .filter((product) => product.state === "resYou")
+      .map((product) => ({
+        product: canonicalizeProduct(catalogue, product),
+        secondsLeft: product.secondsLeft ?? DEFAULT_HOLD_SECONDS,
+      })),
+  );
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -69,7 +82,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         if (stored) {
           const parsed = JSON.parse(stored) as HeldItem[];
           if (Array.isArray(parsed)) {
-            setHeldItems(normalizeHeldItems(parsed));
+            setHeldItems(normalizeHeldItems(parsed, catalogue));
           }
         }
       } catch {
@@ -80,7 +93,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [catalogue]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -104,37 +117,40 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const reserve = useCallback((incomingProduct: Product) => {
-    if (incomingProduct.state === "sold" || incomingProduct.state === "resOthers") {
-      return false;
-    }
-
-    const product = canonicalizeProduct(incomingProduct);
-    const canonicalId = canonicalProductId(product.id);
-
-    setHeldItems((current) => {
-      if (current.some((item) => canonicalProductId(item.product.id) === canonicalId)) {
-        return current.map((item) =>
-          canonicalProductId(item.product.id) === canonicalId
-            ? {
-                product: { ...product, id: canonicalId, state: "resYou" },
-                secondsLeft: DEFAULT_HOLD_SECONDS,
-              }
-            : item,
-        );
+  const reserve = useCallback(
+    (incomingProduct: Product) => {
+      if (incomingProduct.state === "sold" || incomingProduct.state === "resOthers") {
+        return false;
       }
 
-      return [
-        ...current,
-        {
-          product: { ...product, id: canonicalId, state: "resYou" },
-          secondsLeft: DEFAULT_HOLD_SECONDS,
-        },
-      ];
-    });
+      const product = canonicalizeProduct(catalogue, incomingProduct);
+      const canonicalId = canonicalProductId(product.id);
 
-    return true;
-  }, []);
+      setHeldItems((current) => {
+        if (current.some((item) => canonicalProductId(item.product.id) === canonicalId)) {
+          return current.map((item) =>
+            canonicalProductId(item.product.id) === canonicalId
+              ? {
+                  product: { ...product, id: canonicalId, state: "resYou" },
+                  secondsLeft: DEFAULT_HOLD_SECONDS,
+                }
+              : item,
+          );
+        }
+
+        return [
+          ...current,
+          {
+            product: { ...product, id: canonicalId, state: "resYou" },
+            secondsLeft: DEFAULT_HOLD_SECONDS,
+          },
+        ];
+      });
+
+      return true;
+    },
+    [catalogue],
+  );
 
   const release = useCallback((productId: string) => {
     const canonicalId = canonicalProductId(productId);

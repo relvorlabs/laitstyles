@@ -30,14 +30,13 @@ export default function InventoryError({ reset }: { reset: () => void }) {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="mt-2 flex-row flex-wrap justify-center">
-          <Button className="h-11 rounded-full px-5" onClick={reset} size="lg" type="button">
+          <Button onClick={reset} size="lg" type="button">
             Retry Inventory
           </Button>
           <Link
             className={buttonVariants({
               variant: "outline",
               size: "lg",
-              className: "h-11 rounded-full px-5",
             })}
             href="/admin"
           >

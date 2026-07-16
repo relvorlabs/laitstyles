@@ -5,8 +5,7 @@ export type SettingsSection =
   | "selling"
   | "delivery"
   | "payments"
-  | "notifications"
-  | "team";
+  | "notifications";
 
 export type StoreIdentitySettings = {
   storeName: string;
@@ -69,30 +68,12 @@ export type NotificationSettings = {
   deliveryExceptions: boolean;
 };
 
-export type TeamRole = "owner" | "manager" | "operations";
-export type TeamMemberStatus = "active" | "prototype-invite";
-
-export type TeamMemberBoundary = {
-  id: string;
-  name: string;
-  email: string;
-  role: TeamRole;
-  status: TeamMemberStatus;
-  responsibility: string;
-};
-
-export type TeamSettings = {
-  members: TeamMemberBoundary[];
-};
-
 export type StoreSettings = {
   identity: StoreIdentitySettings;
   selling: SellingPreferencesSettings;
   delivery: DeliverySettings;
   payments: PaymentSettings;
-  notifications: NotificationSettings;
-  team: TeamSettings;
-  updatedAt: string;
+  notifications: NotificationSettings;  updatedAt: string;
 };
 
 export type SaveStoreSettingsInput = Omit<StoreSettings, "updatedAt">;

@@ -4,7 +4,6 @@ import { Check, Copy, ExternalLink, RotateCcw, ZoomIn, ZoomOut } from "lucide-re
 import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { ProductMedia } from "@/lib/admin/types";
-import { cn } from "@/lib/utils";
 
 type CopyFeedback = "copied" | "error" | null;
 
@@ -67,18 +66,14 @@ export function ProductMediaSidebar({
 
       <div className="flex min-h-0 flex-1 gap-2 overflow-x-auto p-3 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:p-4">
         {media.map((item, index) => (
-          <button
+          <Button
             aria-label={`Show ${item.alt}`}
             aria-pressed={index === activeIndex}
-            className={cn(
-              "group relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-lg border bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:w-full",
-              index === activeIndex
-                ? "border-brand-sage-strong ring-2 ring-brand-sage/30"
-                : "border-border",
-            )}
+            className="group relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden p-0 lg:w-full"
             key={item.id}
             onClick={() => onMediaChange(index)}
             type="button"
+            variant={index === activeIndex ? "secondary" : "outline"}
           >
             <Image
               alt=""
@@ -90,7 +85,7 @@ export function ProductMediaSidebar({
             <span className="absolute inset-x-1 bottom-1 rounded bg-background/88 px-1.5 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground backdrop-blur">
               {item.kind}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -98,7 +93,6 @@ export function ProductMediaSidebar({
         <a
           className={buttonVariants({
             variant: "outline",
-            className: "min-h-11 justify-center",
           })}
           href={activeMedia.url}
           rel="noreferrer"
@@ -107,7 +101,7 @@ export function ProductMediaSidebar({
           <ExternalLink aria-hidden="true" />
           Open original
         </a>
-        <Button className="min-h-11" onClick={onCopy} type="button" variant="outline">
+        <Button onClick={onCopy} type="button" variant="outline">
           {copyFeedback === "copied" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
           {copyFeedback === "copied" ? "Link copied" : "Copy image link"}
         </Button>

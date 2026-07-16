@@ -151,10 +151,6 @@ export type {
   StoreSettingsActionError,
   StoreSettingsActionErrorCode,
   StoreSettingsActionSuccess,
-  TeamMemberBoundary,
-  TeamMemberStatus,
-  TeamRole,
-  TeamSettings,
 } from "@/lib/admin/settings-types";
 
 export type ActivityKind =
