@@ -1,85 +1,27 @@
 import { describe, expect, it } from "vitest";
-import {
-  type AuthPrincipal,
-  canAccessOwnCustomerRecord,
-  canUseStoreCapability,
-  requireStoreCapability,
-} from "@/lib/auth/guards";
+import { canAccessOwnCustomerRecord, canUseCapability, requireCapability, type AuthPrincipal } from "@/lib/auth/guards";
 
-const activeManager: AuthPrincipal = {
-  profileId: "profile_1",
-  storeMemberships: [
-    {
-      storeId: "store_laitstyle",
-      role: "manager",
-      status: "active",
-    },
-  ],
-};
+const manager: AuthPrincipal = { profileId: "profile_1", role: "manager" };
 
 describe("auth guards", () => {
-  it("allows active staff members to use role capabilities", () => {
-    expect(canUseStoreCapability(activeManager, "store_laitstyle", "inventory:update")).toBe(true);
+  it("allows managers to use their operational capabilities", () => {
+    expect(canUseCapability(manager, "inventory:update")).toBe(true);
   });
 
-  it("rejects signed-out principals before membership checks", () => {
-    expect(
-      requireStoreCapability(
-        { ...activeManager, profileId: null },
-        "store_laitstyle",
-        "orders:read",
-      ),
-    ).toEqual({ ok: false, reason: "signed-out" });
+  it("rejects signed-out principals", () => {
+    expect(requireCapability({ profileId: null, role: null }, "orders:read")).toEqual({ ok: false, reason: "signed-out" });
   });
 
-  it("rejects inactive store memberships", () => {
-    expect(
-      requireStoreCapability(
-        {
-          profileId: "profile_2",
-          storeMemberships: [
-            {
-              storeId: "store_laitstyle",
-              role: "operator",
-              status: "suspended",
-            },
-          ],
-        },
-        "store_laitstyle",
-        "sales:record",
-      ),
-    ).toEqual({ ok: false, reason: "inactive-membership" });
+  it("fails closed when the role could not be loaded", () => {
+    expect(requireCapability({ profileId: "profile_2", role: null, authorizationLoaded: false }, "sales:record")).toEqual({ ok: false, reason: "authorization-unavailable" });
   });
 
-  it("rejects access when membership data cannot be verified", () => {
-    expect(
-      requireStoreCapability(
-        {
-          authorizationError: "relation does not exist",
-          authorizationLoaded: false,
-          profileId: "profile_2",
-          storeMemberships: [],
-        },
-        "store_laitstyle",
-        "sales:record",
-      ),
-    ).toEqual({ ok: false, reason: "membership-unavailable" });
+  it("rejects owner-only capabilities for managers", () => {
+    expect(requireCapability(manager, "settings:update")).toEqual({ ok: false, reason: "missing-capability" });
   });
 
-  it("rejects capabilities outside the active role", () => {
-    expect(requireStoreCapability(activeManager, "store_laitstyle", "team:manage")).toEqual({
-      ok: false,
-      reason: "missing-capability",
-    });
-  });
-
-  it("keeps storefront consumer records owner-scoped", () => {
-    const consumer: AuthPrincipal = {
-      profileId: "profile_3",
-      storeMemberships: [],
-      consumerCustomerIds: ["customer_1"],
-    };
-
+  it("keeps consumer records owner-scoped", () => {
+    const consumer: AuthPrincipal = { profileId: "profile_3", role: "consumer", consumerCustomerIds: ["customer_1"] };
     expect(canAccessOwnCustomerRecord(consumer, "customer_1")).toBe(true);
     expect(canAccessOwnCustomerRecord(consumer, "customer_2")).toBe(false);
   });

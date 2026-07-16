@@ -1,47 +1,17 @@
 import { describe, expect, it } from "vitest";
-import type { AuthPrincipal } from "@/lib/auth/guards";
 import { resolveAdminAccess } from "@/lib/auth/server/access";
 
-const principal: AuthPrincipal = {
-  profileId: "profile_1",
-  storeMemberships: [
-    {
-      role: "operator",
-      status: "active",
-      storeId: "store_floor",
-    },
-    {
-      role: "owner",
-      status: "active",
-      storeId: "store_owner",
-    },
-  ],
-};
-
 describe("Admin access resolver", () => {
-  it("selects an active membership that has the required capability", () => {
-    expect(resolveAdminAccess(principal, "team:manage")).toEqual({
-      membership: {
-        role: "owner",
-        status: "active",
-        storeId: "store_owner",
-      },
-      ok: true,
-      storeId: "store_owner",
-    });
+  it("allows the admin to use owner-only capabilities", () => {
+    expect(resolveAdminAccess({ profileId: "profile_1", role: "admin" }, "settings:update")).toEqual({ ok: true, role: "admin" });
   });
 
-  it("respects the configured store boundary", () => {
-    expect(resolveAdminAccess(principal, "team:manage", "store_floor")).toEqual({
-      ok: false,
-      reason: "missing-capability",
-    });
+  it("allows managers into operational Admin surfaces", () => {
+    expect(resolveAdminAccess({ profileId: "profile_2", role: "manager" }, "inventory:update")).toEqual({ ok: true, role: "manager" });
   });
 
-  it("keeps signed-out visitors out before membership checks", () => {
-    expect(resolveAdminAccess({ profileId: null, storeMemberships: [] }, "admin:access")).toEqual({
-      ok: false,
-      reason: "signed-out",
-    });
+  it("keeps consumers and signed-out visitors out", () => {
+    expect(resolveAdminAccess({ profileId: "profile_3", role: "consumer" })).toEqual({ ok: false, reason: "missing-capability" });
+    expect(resolveAdminAccess({ profileId: null, role: null })).toEqual({ ok: false, reason: "signed-out" });
   });
 });

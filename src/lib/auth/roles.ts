@@ -1,23 +1,19 @@
-export const STAFF_ROLES = ["owner", "manager", "operator"] as const;
+export const ACCOUNT_ROLES = ["consumer", "admin", "manager"] as const;
+export const STAFF_ROLES = ["admin", "manager"] as const;
 
-export const CONSUMER_ROLE = "consumer" as const;
-
+export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 export type StaffRole = (typeof STAFF_ROLES)[number];
-export type ConsumerRole = typeof CONSUMER_ROLE;
-export type AccountRole = StaffRole | ConsumerRole;
 
-export type MembershipStatus = "invited" | "active" | "suspended";
+export const ACCOUNT_ROLE_LABELS = {
+  consumer: "Consumer",
+  admin: "Admin / store owner",
+  manager: "Store manager",
+} satisfies Record<AccountRole, string>;
 
-export const STAFF_ROLE_LABELS = {
-  owner: "Owner / CEO",
-  manager: "Manager",
-  operator: "Operator / sales staff",
-} satisfies Record<StaffRole, string>;
+export function isAccountRole(value: unknown): value is AccountRole {
+  return typeof value === "string" && (ACCOUNT_ROLES as readonly string[]).includes(value);
+}
 
 export function isStaffRole(value: unknown): value is StaffRole {
   return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
-}
-
-export function isAccountRole(value: unknown): value is AccountRole {
-  return value === CONSUMER_ROLE || isStaffRole(value);
 }

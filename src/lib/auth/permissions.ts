@@ -1,4 +1,4 @@
-import { type AccountRole, STAFF_ROLES, type StaffRole } from "@/lib/auth/roles";
+import type { AccountRole, StaffRole } from "@/lib/auth/roles";
 
 export const STAFF_CAPABILITIES = [
   "admin:access",
@@ -19,8 +19,6 @@ export const STAFF_CAPABILITIES = [
   "customers:note",
   "settings:read",
   "settings:update",
-  "team:read",
-  "team:manage",
   "reports:export",
   "audit:read",
 ] as const;
@@ -53,36 +51,18 @@ const MANAGER_CAPABILITIES = [
   "customers:read",
   "customers:note",
   "settings:read",
-  "settings:update",
-  "team:read",
-] as const satisfies readonly StaffCapability[];
-
-const OPERATOR_CAPABILITIES = [
-  "admin:access",
-  "storefront:read",
-  "inventory:read",
-  "inventory:update",
-  "orders:read",
-  "orders:update",
-  "holds:read",
-  "holds:update",
-  "sales:record",
-  "returns:read",
-  "customers:read",
-  "customers:note",
+  "reports:export",
 ] as const satisfies readonly StaffCapability[];
 
 export const ROLE_CAPABILITIES = {
-  owner: STAFF_CAPABILITIES,
+  admin: STAFF_CAPABILITIES,
   manager: MANAGER_CAPABILITIES,
-  operator: OPERATOR_CAPABILITIES,
   consumer: CONSUMER_CAPABILITIES,
 } satisfies Record<AccountRole, readonly AccountCapability[]>;
 
 const roleCapabilitySets: Record<AccountRole, ReadonlySet<AccountCapability>> = {
-  owner: new Set(ROLE_CAPABILITIES.owner),
+  admin: new Set(ROLE_CAPABILITIES.admin),
   manager: new Set(ROLE_CAPABILITIES.manager),
-  operator: new Set(ROLE_CAPABILITIES.operator),
   consumer: new Set(ROLE_CAPABILITIES.consumer),
 };
 
@@ -98,10 +78,6 @@ export function canAccessAdmin(role: AccountRole) {
   return hasCapability(role, "admin:access");
 }
 
-export function canManageStaff(role: StaffRole) {
-  return hasCapability(role, "team:manage");
-}
-
-export function getStaffRolesByCapability(capability: StaffCapability) {
-  return STAFF_ROLES.filter((role) => hasCapability(role, capability));
+export function canUpdateSettings(role: StaffRole) {
+  return hasCapability(role, "settings:update");
 }

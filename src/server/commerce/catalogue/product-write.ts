@@ -1,6 +1,9 @@
 import "server-only";
 
 import { err, forbidden, ok, type Result, type StorefrontError } from "@/lib/errors";
+import { hasCapability } from "@/lib/auth/permissions";
+import type { StaffCapability } from "@/lib/auth/permissions";
+import { isStaffRole } from "@/lib/auth/roles";
 import { Prisma, prisma } from "@/lib/prisma";
 
 // Minimal admin -> DB write path (docs/storefront-v2/06 Phase 1, D2). The admin
@@ -8,11 +11,9 @@ import { Prisma, prisma } from "@/lib/prisma";
 // closing the "one product truth" loop. Enforces the inventory:create capability
 // in-transaction and writes an audit event (ADR-05 §4.1 #6, #9). This service is
 // the authorization boundary; callers pass a server-resolved actor, never a
-// client-supplied storeId/profileId.
+// client-supplied profile identifiers.
 
-export interface ProductWriteActor {
-  storeId: string;
-  profileId: string;
+export interface ProductWriteActor {  profileId: string;
 }
 
 export interface CreatePublishedProductInput {
@@ -66,21 +67,12 @@ export interface CreatePublishedProductInput {
 
 const koboToDecimalString = (kobo: number): string => (kobo / 100).toFixed(2);
 
-async function hasCapability(
-  storeId: string,
+async function actorHasCapability(
   profileId: string,
-  capability: string,
+  capability: StaffCapability,
 ): Promise<boolean> {
-  const membership = await prisma.store_memberships.findFirst({
-    where: { store_id: storeId, profile_id: profileId, status: "active" },
-    select: { role: true },
-  });
-  if (!membership) return false;
-  const grant = await prisma.role_capabilities.findFirst({
-    where: { role: membership.role, capability },
-    select: { role: true },
-  });
-  return grant !== null;
+  const profile = await prisma.profiles.findUnique({ where: { id: profileId }, select: { role: true } });
+  return Boolean(profile && isStaffRole(profile.role) && hasCapability(profile.role, capability));
 }
 
 export async function createPublishedProduct(
@@ -88,16 +80,14 @@ export async function createPublishedProduct(
   input: CreatePublishedProductInput,
 ): Promise<Result<{ id: string; slug: string }, StorefrontError>> {
   // Fail-closed authorization — re-checked inside the transaction below too.
-  if (!(await hasCapability(actor.storeId, actor.profileId, "inventory:create"))) {
+  if (!(await actorHasCapability(actor.profileId, "inventory:create"))) {
     return err(forbidden("You don't have permission to create products."));
   }
 
   try {
     const created = await prisma.$transaction(async (tx) => {
       const product = await tx.products.create({
-        data: {
-          store_id: actor.storeId,
-          slug: input.slug,
+        data: {          slug: input.slug,
           name: input.name,
           description: input.description,
           brand: input.brand ?? null,
@@ -125,11 +115,9 @@ export async function createPublishedProduct(
       });
 
       const asset = await tx.cloudinary_assets.upsert({
-        where: { store_id_public_id: { store_id: actor.storeId, public_id: input.cover.publicId } },
+        where: { public_id: input.cover.publicId },
         update: {},
-        create: {
-          store_id: actor.storeId,
-          kind: "product_cover",
+        create: {          kind: "product_cover",
           public_id: input.cover.publicId,
           secure_url: input.cover.secureUrl,
           alt: input.cover.alt,
@@ -139,9 +127,7 @@ export async function createPublishedProduct(
       });
 
       await tx.product_media.create({
-        data: {
-          store_id: actor.storeId,
-          product_id: product.id,
+        data: {          product_id: product.id,
           asset_id: asset.id,
           kind: "product_cover",
           position: 0,
@@ -157,12 +143,10 @@ export async function createPublishedProduct(
           const galleryKind = item.kind === "defect" ? "product_defect" : "product_detail";
           const galleryAsset = await tx.cloudinary_assets.upsert({
             where: {
-              store_id_public_id: { store_id: actor.storeId, public_id: item.publicId },
+              public_id: item.publicId,
             },
             update: {},
-            create: {
-              store_id: actor.storeId,
-              kind: galleryKind,
+            create: {              kind: galleryKind,
               public_id: item.publicId,
               secure_url: item.secureUrl,
               alt: item.alt,
@@ -171,9 +155,7 @@ export async function createPublishedProduct(
             },
           });
           await tx.product_media.create({
-            data: {
-              store_id: actor.storeId,
-              product_id: product.id,
+            data: {              product_id: product.id,
               asset_id: galleryAsset.id,
               kind: galleryKind,
               position: index + 1,
@@ -209,9 +191,7 @@ export async function createPublishedProduct(
             },
           });
           await tx.stock_levels.create({
-            data: {
-              store_id: actor.storeId,
-              product_id: product.id,
+            data: {              product_id: product.id,
               variant_id: createdVariant.id,
               total_received: variant.stock,
               available: variant.stock,
@@ -221,9 +201,7 @@ export async function createPublishedProduct(
       } else {
         const stock = input.stock ?? (input.mode === "unique" ? 1 : 0);
         await tx.stock_levels.create({
-          data: {
-            store_id: actor.storeId,
-            product_id: product.id,
+          data: {            product_id: product.id,
             total_received: stock,
             available: stock,
           },
@@ -232,9 +210,7 @@ export async function createPublishedProduct(
 
       // Sensitive mutation — audited (ADR-05 §4.1 #9).
       await tx.audit_events.create({
-        data: {
-          store_id: actor.storeId,
-          actor_profile_id: actor.profileId,
+        data: {          actor_profile_id: actor.profileId,
           action: "inventory:create",
           target_table: "products",
           target_id: product.id,

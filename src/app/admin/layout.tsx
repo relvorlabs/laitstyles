@@ -22,5 +22,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     return <AdminAccessDenied reason={access.reason} />;
   }
 
-  return <AdminShell initialState={activeAdminSeed}>{children}</AdminShell>;
+  return (
+    <AdminShell initialState={activeAdminSeed} role={access.role}>
+      {children}
+    </AdminShell>
+  );
 }
