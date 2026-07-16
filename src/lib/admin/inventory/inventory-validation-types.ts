@@ -1,4 +1,8 @@
-import type { InventoryProduct, ProductReview, StockMovement } from "@/lib/admin/inventory-types";
+import type {
+  InventoryProduct,
+  ProductReview,
+  StockMovement,
+} from "@/lib/admin/inventory/inventory-types";
 
 export type InventoryValidationIssue = {
   path: string;

@@ -2,7 +2,7 @@ import type {
   InventoryQuery,
   InventorySavedView,
   InventorySortKey,
-} from "@/lib/admin/inventory-types";
+} from "@/lib/admin/inventory/inventory-types";
 
 export const defaultInventoryQuery: InventoryQuery = {
   search: "",

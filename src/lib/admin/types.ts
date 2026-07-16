@@ -1,6 +1,10 @@
-import type { CatalogueTaxonomyItem } from "@/lib/admin/catalogue-taxonomy";
 import type { ControlRoomCustomer } from "@/lib/admin/customer-types";
-import type { InventoryProduct, ProductReview, StockMovement } from "@/lib/admin/inventory-types";
+import type { CatalogueTaxonomyItem } from "@/lib/admin/inventory/catalogue-taxonomy";
+import type {
+  InventoryProduct,
+  ProductReview,
+  StockMovement,
+} from "@/lib/admin/inventory/inventory-types";
 import type { IntakeRecord } from "@/lib/admin/product-editor-types";
 import type {
   ControlRoomHold,
@@ -10,14 +14,6 @@ import type {
   FulfilmentStatus,
 } from "@/lib/admin/sales-types";
 import type { StoreSettings } from "@/lib/admin/settings-types";
-
-export type {
-  CatalogueTaxonomyActionError,
-  CatalogueTaxonomyActionSuccess,
-  CatalogueTaxonomyInput,
-  CatalogueTaxonomyItem,
-  CatalogueTaxonomyKind,
-} from "@/lib/admin/catalogue-taxonomy";
 
 export type {
   AddCustomerNoteInput,
@@ -39,6 +35,13 @@ export type {
   CustomerTimelineKind,
   CustomerType,
 } from "@/lib/admin/customer-types";
+export type {
+  CatalogueTaxonomyActionError,
+  CatalogueTaxonomyActionSuccess,
+  CatalogueTaxonomyInput,
+  CatalogueTaxonomyItem,
+  CatalogueTaxonomyKind,
+} from "@/lib/admin/inventory/catalogue-taxonomy";
 
 export type {
   CatalogueChannel,
@@ -70,7 +73,7 @@ export type {
   StockMovementKind,
   UniqueProduct,
   VariantProduct,
-} from "@/lib/admin/inventory-types";
+} from "@/lib/admin/inventory/inventory-types";
 
 export type {
   IntakeRecord,

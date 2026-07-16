@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
+import { validateInventoryProduct } from "@/lib/admin/inventory/inventory-product-validation";
 import { applyProductEditorAction } from "@/lib/admin/product-editor-actions";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor-defaults";
 import { activeControlRoomSeed } from "@/lib/admin/seed";

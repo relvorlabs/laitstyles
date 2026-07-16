@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateProductSku, generateVariantSku } from "@/lib/admin/sku";
+import { generateProductSku, generateVariantSku } from "@/lib/admin/inventory/sku";
 
 describe("SKU generation", () => {
   it("creates a stocked catalogue SKU without assigning one SKU per unit", () => {

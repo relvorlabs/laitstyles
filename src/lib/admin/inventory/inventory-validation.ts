@@ -1,9 +1,9 @@
-import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
-import type { InventoryProduct } from "@/lib/admin/inventory-types";
+import { validateInventoryProduct } from "@/lib/admin/inventory/inventory-product-validation";
+import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import type {
   InventoryDataset,
   InventoryValidationIssue,
-} from "@/lib/admin/inventory-validation-types";
+} from "@/lib/admin/inventory/inventory-validation-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 
 export function validateInventoryDataset(

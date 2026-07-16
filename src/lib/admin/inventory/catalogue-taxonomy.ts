@@ -1,4 +1,4 @@
-import type { InventoryProduct } from "@/lib/admin/inventory-types";
+import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 import type { ControlRoomState } from "@/lib/admin/types";
 

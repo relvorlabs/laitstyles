@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { inventorySortOptions } from "@/lib/admin/inventory-selectors";
+import { inventorySortOptions } from "@/lib/admin/inventory/inventory-selectors";
 import type { InventoryFacetOptions, InventoryQuery } from "@/lib/admin/types";
 
 type InventoryFilterFieldsProps = {

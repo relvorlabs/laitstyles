@@ -7,7 +7,7 @@ import type {
   InventoryProduct,
   InventorySummary,
   ProductMedia,
-} from "@/lib/admin/inventory-types";
+} from "@/lib/admin/inventory/inventory-types";
 
 const emptyStock: InventoryCounts = {
   totalReceived: 0,

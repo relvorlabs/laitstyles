@@ -3,7 +3,7 @@ import type {
   InventoryProduct,
   ProductMedia,
   PublicationState,
-} from "@/lib/admin/inventory-types";
+} from "@/lib/admin/inventory/inventory-types";
 import type { ProductEditorIntent, ProductEditorValues } from "@/lib/admin/product-editor-types";
 
 export type ProductConversionOptions = {

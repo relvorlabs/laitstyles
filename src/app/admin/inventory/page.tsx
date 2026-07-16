@@ -6,7 +6,7 @@ import {
   getInventoryFacetOptions,
   inventorySavedViews,
   inventorySortOptions,
-} from "@/lib/admin/inventory-selectors";
+} from "@/lib/admin/inventory/inventory-selectors";
 import type {
   CatalogueChannel,
   InventoryModeFilter,

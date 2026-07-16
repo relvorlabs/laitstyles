@@ -1,4 +1,4 @@
-import type { InventoryProduct } from "@/lib/admin/inventory-types";
+import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 
 export function replaceOrAppendProduct(products: InventoryProduct[], product: InventoryProduct) {
   const index = products.findIndex((item) => item.id === product.id);

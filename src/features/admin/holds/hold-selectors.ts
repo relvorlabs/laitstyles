@@ -5,7 +5,7 @@ import type {
   HoldWorkspaceRisk,
   HoldWorkspaceSummary,
 } from "@/features/admin/holds/hold-types";
-import { getProductCover, getProductReference } from "@/lib/admin/inventory-selectors";
+import { getProductCover, getProductReference } from "@/lib/admin/inventory/inventory-selectors";
 import { getHoldRisk, isHoldActive } from "@/lib/admin/sales-selectors";
 import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
 

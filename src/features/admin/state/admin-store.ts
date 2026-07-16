@@ -1,12 +1,3 @@
-import {
-  applyCreateCatalogueTaxonomy,
-  applyDeleteCatalogueTaxonomy,
-  applyRenameCatalogueTaxonomy,
-  type CatalogueTaxonomyActionError,
-  type CatalogueTaxonomyActionSuccess,
-  type CatalogueTaxonomyInput,
-  hydrateCatalogueTaxonomy,
-} from "@/lib/admin/catalogue-taxonomy";
 import { applyAddCustomerNote } from "@/lib/admin/customer-actions";
 import { hydrateCustomerProfiles } from "@/lib/admin/customer-profile-seed";
 import type {
@@ -19,6 +10,22 @@ import {
   applyHoldExtension,
   applyHoldRelease,
 } from "@/lib/admin/hold-actions";
+import {
+  applyCreateCatalogueTaxonomy,
+  applyDeleteCatalogueTaxonomy,
+  applyRenameCatalogueTaxonomy,
+  type CatalogueTaxonomyActionError,
+  type CatalogueTaxonomyActionSuccess,
+  type CatalogueTaxonomyInput,
+  hydrateCatalogueTaxonomy,
+} from "@/lib/admin/inventory/catalogue-taxonomy";
+import {
+  applyArchiveProduct,
+  applyDeleteProduct,
+  applyRestoreProduct,
+  type ProductLifecycleActionError,
+  type ProductLifecycleActionSuccess,
+} from "@/lib/admin/inventory/product-lifecycle-reducer";
 import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
 import { applyOrderTransition } from "@/lib/admin/order-actions";
 import {
@@ -26,13 +33,6 @@ import {
   applyProductEditorAction,
   createInitialIntakeRecords,
 } from "@/lib/admin/product-editor-actions";
-import {
-  applyArchiveProduct,
-  applyDeleteProduct,
-  applyRestoreProduct,
-  type ProductLifecycleActionError,
-  type ProductLifecycleActionSuccess,
-} from "@/lib/admin/product-lifecycle-actions";
 import type { Result } from "@/lib/admin/result";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
 import { applySaveStoreSettings } from "@/lib/admin/settings-actions";

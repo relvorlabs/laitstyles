@@ -1,4 +1,4 @@
-import type { InventoryMode } from "@/lib/admin/inventory-types";
+import type { InventoryMode } from "@/lib/admin/inventory/inventory-types";
 
 export type SettingsSection = "identity" | "selling" | "delivery" | "payments" | "notifications";
 

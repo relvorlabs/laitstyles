@@ -12,7 +12,7 @@ import {
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { generateProductSku } from "@/lib/admin/sku";
+import { generateProductSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function ProductIdentityStep() {

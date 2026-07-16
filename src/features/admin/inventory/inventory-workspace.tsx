@@ -28,7 +28,7 @@ import {
   getInventoryViewCounts,
   queryInventory,
   toInventoryListItem,
-} from "@/lib/admin/inventory-selectors";
+} from "@/lib/admin/inventory/inventory-selectors";
 import type {
   InventoryFacetOptions,
   InventoryPresentation,

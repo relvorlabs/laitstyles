@@ -1,4 +1,4 @@
-import { getProductStock } from "@/lib/admin/inventory-selectors";
+import { getProductStock } from "@/lib/admin/inventory/inventory-selectors";
 import {
   getActiveSalesHolds,
   getPaidOrders,
@@ -14,7 +14,7 @@ import type {
   OverviewSnapshot,
 } from "@/lib/admin/types";
 
-export { getProductStock } from "@/lib/admin/inventory-selectors";
+export { getProductStock } from "@/lib/admin/inventory/inventory-selectors";
 
 export function getCustomerName(state: ControlRoomState, customerId: string | null) {
   if (!customerId) return "Guest customer";

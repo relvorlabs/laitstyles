@@ -3,7 +3,7 @@ import {
   buildInventoryHref,
   defaultInventoryPageSize,
 } from "@/features/admin/inventory/inventory-url";
-import { defaultInventoryQuery } from "@/lib/admin/inventory-selectors";
+import { defaultInventoryQuery } from "@/lib/admin/inventory/inventory-selectors";
 
 describe("Inventory URL state", () => {
   it("omits every default value", () => {

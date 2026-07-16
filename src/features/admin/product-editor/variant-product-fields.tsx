@@ -14,7 +14,7 @@ import {
 } from "@/features/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { generateVariantSku } from "@/lib/admin/sku";
+import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/types";
 
 export function VariantProductFields() {

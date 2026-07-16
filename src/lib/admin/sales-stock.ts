@@ -1,5 +1,5 @@
-import { validateInventoryProduct } from "@/lib/admin/inventory-product-validation";
-import type { InventoryCounts, InventoryProduct } from "@/lib/admin/inventory-types";
+import { validateInventoryProduct } from "@/lib/admin/inventory/inventory-product-validation";
+import type { InventoryCounts, InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 import type { SalesActionError } from "@/lib/admin/sales-types";
 

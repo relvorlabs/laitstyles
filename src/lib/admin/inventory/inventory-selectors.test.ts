@@ -8,8 +8,12 @@ import {
   queryInventory,
   validateInventoryDataset,
   validateInventoryProduct,
-} from "@/lib/admin/inventory-selectors";
-import type { InventoryProduct, UniqueProduct, VariantProduct } from "@/lib/admin/inventory-types";
+} from "@/lib/admin/inventory/inventory-selectors";
+import type {
+  InventoryProduct,
+  UniqueProduct,
+  VariantProduct,
+} from "@/lib/admin/inventory/inventory-types";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 function productById(id: string) {
