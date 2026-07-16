@@ -9,7 +9,7 @@ import {
   applyHoldConversion,
   applyHoldExtension,
   applyHoldRelease,
-} from "@/lib/admin/hold-actions";
+} from "@/lib/admin/holds/hold-reducer";
 import {
   applyCreateCatalogueTaxonomy,
   applyDeleteCatalogueTaxonomy,

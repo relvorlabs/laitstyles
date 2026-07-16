@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyHoldConversion, applyHoldRelease } from "@/lib/admin/hold-actions";
+import { applyHoldConversion, applyHoldRelease } from "@/lib/admin/holds/hold-reducer";
 import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
 import { applyOrderTransition } from "@/lib/admin/orders/order-reducer";
 import { getRevenueByChannel } from "@/lib/admin/orders/sales-selectors";
