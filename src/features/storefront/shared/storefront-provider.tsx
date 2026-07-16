@@ -11,10 +11,7 @@ import {
   useState,
 } from "react";
 import { toast as sonnerToast } from "sonner";
-import type {
-  StorefrontCatalogPayload,
-  StorefrontCategory,
-} from "@/lib/storefront/catalog-data";
+import type { StorefrontCatalogPayload, StorefrontCategory } from "@/lib/storefront/catalog-data";
 import {
   collectionTitle,
   filteredProducts,

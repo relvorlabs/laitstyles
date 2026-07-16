@@ -95,7 +95,8 @@ function catalogueOrderBy(sort?: CatalogueSort): Prisma.productsOrderByWithRelat
 // Public catalogue reads — always scoped by the single publishedProductWhere.
 // There is no unscoped variant (docs/storefront-v2/04 §4.1 #5).
 export async function listPublishedProducts(query: CatalogueQuery = {}): Promise<ProductSummary[]> {
-  if (useStyleSmokeCatalogue) return [];
+  if (useStyleSmokeCatalogue) return [];
+
   const rows = await prisma.products.findMany({
     where: catalogueWhere(query),
     include: productSummaryInclude,
@@ -107,12 +108,14 @@ export async function listPublishedProducts(query: CatalogueQuery = {}): Promise
 }
 
 export async function countPublishedProducts(filters: CatalogueFilters = {}): Promise<number> {
-  if (useStyleSmokeCatalogue) return 0;
+  if (useStyleSmokeCatalogue) return 0;
+
   return prisma.products.count({ where: catalogueWhere(filters) });
 }
 
 export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
-  if (useStyleSmokeCatalogue) return null;
+  if (useStyleSmokeCatalogue) return null;
+
   const row = await prisma.products.findFirst({
     where: { ...publishedProductWhere(), slug },
     include: productDetailInclude,
@@ -123,7 +126,8 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
 // Categories that contain at least one storefront-visible product, with a real
 // (never fabricated) count. Small catalogue → per-category count is fine.
 export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
-  if (useStyleSmokeCatalogue) return [{ ...styleSmokeCategory, productCount: 0 }];
+  if (useStyleSmokeCatalogue) return [{ ...styleSmokeCategory, productCount: 0 }];
+
   const categories = await prisma.catalogue_categories.findMany({
     orderBy: { position: "asc" },
     select: { id: true, slug: true, name: true },
@@ -144,7 +148,8 @@ export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
 export async function getStorefrontCategoryBySlug(slug: string): Promise<TaxonomyRef | null> {
   if (useStyleSmokeCatalogue) {
     return slug === styleSmokeCategory.slug ? styleSmokeCategory : null;
-  }
+  }
+
   return prisma.catalogue_categories.findFirst({
     where: { slug },
     select: { id: true, slug: true, name: true },
@@ -154,7 +159,8 @@ export async function getStorefrontCategoryBySlug(slug: string): Promise<Taxonom
 export async function getStorefrontCollectionBySlug(slug: string): Promise<TaxonomyRef | null> {
   if (useStyleSmokeCatalogue) {
     return slug === styleSmokeCollection.slug ? styleSmokeCollection : null;
-  }
+  }
+
   return prisma.catalogue_collections.findFirst({
     where: { slug },
     select: { id: true, slug: true, name: true },
@@ -173,7 +179,8 @@ export interface StorefrontFacetOptions {
 export async function getStorefrontFacets(): Promise<StorefrontFacetOptions> {
   if (useStyleSmokeCatalogue) {
     return { brands: [], conditions: [], colours: [], sizes: [] };
-  }
+  }
+
   const rows = await prisma.products.findMany({
     where: publishedProductWhere(),
     select: { brand: true, condition: true, colour: true, size_label: true },

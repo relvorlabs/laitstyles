@@ -96,9 +96,7 @@ export function getHomeCategories(
 ): [string, string, number][] {
   return categories
     .filter((category) =>
-      ["Jackets", "Denim", "Shirts", "Dresses", "Trousers", "Accessories"].includes(
-        category.name,
-      ),
+      ["Jackets", "Denim", "Shirts", "Dresses", "Trousers", "Accessories"].includes(category.name),
     )
     .map((category) => [category.name, category.imageUrl, category.productCount]);
 }

@@ -3,9 +3,7 @@ import type { AuthPrincipal } from "@/lib/auth/guards";
 import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 
-export type AdminAccess =
-  | { ok: true; role: StaffRole }
-  | { ok: false; reason: AuthDeniedReason };
+export type AdminAccess = { ok: true; role: StaffRole } | { ok: false; reason: AuthDeniedReason };
 
 export function resolveAdminAccess(
   principal: AuthPrincipal,

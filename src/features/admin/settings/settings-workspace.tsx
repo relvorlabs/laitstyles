@@ -28,11 +28,7 @@ import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
 import { storeSettingsInputSchema } from "@/lib/admin/settings-schema";
-import type {
-  SaveStoreSettingsInput,
-  SettingsSection,
-  StoreSettings,
-} from "@/lib/admin/types";
+import type { SaveStoreSettingsInput, SettingsSection, StoreSettings } from "@/lib/admin/types";
 
 export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {
   const pathname = usePathname();
@@ -192,5 +188,6 @@ function createSettingsInput(settings: StoreSettings): SaveStoreSettingsInput {
     selling: settings.selling,
     delivery: settings.delivery,
     payments: settings.payments,
-    notifications: settings.notifications,  });
+    notifications: settings.notifications,
+  });
 }

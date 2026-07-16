@@ -6,12 +6,12 @@ import { useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import {
   type EditorFieldName,
   EditorNumberField,
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
-import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { generateVariantSku } from "@/lib/admin/sku";

@@ -1,10 +1,6 @@
 import type { CatalogueTaxonomyItem } from "@/lib/admin/catalogue-taxonomy";
 import type { ControlRoomCustomer } from "@/lib/admin/customer-types";
-import type {
-  InventoryProduct,
-  ProductReview,
-  StockMovement,
-} from "@/lib/admin/inventory-types";
+import type { InventoryProduct, ProductReview, StockMovement } from "@/lib/admin/inventory-types";
 import type { IntakeRecord } from "@/lib/admin/product-editor-types";
 import type {
   ControlRoomHold,

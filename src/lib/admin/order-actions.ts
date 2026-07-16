@@ -1,9 +1,6 @@
 import { err, ok, type Result } from "@/lib/admin/result";
 import { canTransitionOrder, inferOrderLineStockState } from "@/lib/admin/sales-selectors";
-import {
-  applySalesStockMutation,
-  type SalesStockMutationKind,
-} from "@/lib/admin/sales-stock";
+import { applySalesStockMutation, type SalesStockMutationKind } from "@/lib/admin/sales-stock";
 import type {
   ControlRoomOrder,
   ControlRoomState,

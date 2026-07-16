@@ -18,8 +18,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function StorefrontAccountMenu() {
   const router = useRouter();

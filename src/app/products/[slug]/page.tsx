@@ -81,10 +81,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
 
   return (
     <>
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be injected as raw
+          script text; serializeJsonLd escapes `<` so the payload cannot break out of the tag. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: see above. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}

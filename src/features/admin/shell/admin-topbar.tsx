@@ -12,10 +12,10 @@ import {
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { getAdminPage } from "@/features/admin/shell/navigation";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { useRecordSaleController } from "@/features/admin/record-sale/record-sale-controller";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { getAdminPage } from "@/features/admin/shell/navigation";
 
 type AdminTopbarProps = {
   pathname: string;

@@ -33,7 +33,12 @@ export default function ProductError({
             <Button onClick={reset} size="lg" type="button">
               Try again
             </Button>
-            <Button nativeButton={false} render={<Link href="/products" />} size="lg" variant="outline">
+            <Button
+              nativeButton={false}
+              render={<Link href="/products" />}
+              size="lg"
+              variant="outline"
+            >
               Back to the catalogue
             </Button>
           </div>

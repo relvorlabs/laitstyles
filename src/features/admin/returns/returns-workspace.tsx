@@ -13,10 +13,7 @@ import {
   getReturnWorkspaceSummary,
   queryReturns,
 } from "@/features/admin/returns/return-selectors";
-import type {
-  ReturnActionFeedback,
-  ReturnQuery,
-} from "@/features/admin/returns/return-types";
+import type { ReturnActionFeedback, ReturnQuery } from "@/features/admin/returns/return-types";
 import { ReturnsEmptyState } from "@/features/admin/returns/returns-empty-state";
 import { ReturnsHeader } from "@/features/admin/returns/returns-header";
 import { ReturnsMobileList } from "@/features/admin/returns/returns-mobile-list";

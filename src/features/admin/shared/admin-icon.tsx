@@ -10,12 +10,7 @@ type AdminIconProps = {
   strokeWidth?: number;
 };
 
-export function AdminIcon({
-  icon,
-  className,
-  size = 18,
-  strokeWidth = 1.6,
-}: AdminIconProps) {
+export function AdminIcon({ icon, className, size = 18, strokeWidth = 1.6 }: AdminIconProps) {
   return (
     <HugeiconsIcon
       aria-hidden="true"

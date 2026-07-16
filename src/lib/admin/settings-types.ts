@@ -1,11 +1,6 @@
 import type { InventoryMode } from "@/lib/admin/inventory-types";
 
-export type SettingsSection =
-  | "identity"
-  | "selling"
-  | "delivery"
-  | "payments"
-  | "notifications";
+export type SettingsSection = "identity" | "selling" | "delivery" | "payments" | "notifications";
 
 export type StoreIdentitySettings = {
   storeName: string;
@@ -73,7 +68,8 @@ export type StoreSettings = {
   selling: SellingPreferencesSettings;
   delivery: DeliverySettings;
   payments: PaymentSettings;
-  notifications: NotificationSettings;  updatedAt: string;
+  notifications: NotificationSettings;
+  updatedAt: string;
 };
 
 export type SaveStoreSettingsInput = Omit<StoreSettings, "updatedAt">;

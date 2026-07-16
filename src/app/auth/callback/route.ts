@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { ensureConsumerProfile } from "@/lib/auth/server/profile";
+import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {

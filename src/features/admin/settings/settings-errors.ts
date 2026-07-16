@@ -29,7 +29,8 @@ export function getFirstSettingsErrorSection(
     "selling",
     "delivery",
     "payments",
-    "notifications",  ];
+    "notifications",
+  ];
   return sections.find((section) => countSettingsSectionErrors(errors, section) > 0) ?? null;
 }
 

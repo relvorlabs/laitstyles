@@ -59,8 +59,8 @@ export function SettingsSaveBar({
               (!canEdit
                 ? "Only the admin / store owner can change these settings."
                 : dirty
-                ? "Save once to apply every changed section."
-                : "Saved changes remain until the page is refreshed.")}
+                  ? "Save once to apply every changed section."
+                  : "Saved changes remain until the page is refreshed.")}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
@@ -83,7 +83,8 @@ export function SettingsSaveBar({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard all unsaved settings?</AlertDialogTitle>
             <AlertDialogDescription>
-              Every change made across Store identity, Selling, Delivery, Payments, Notifications will return to the last saved values.
+              Every change made across Store identity, Selling, Delivery, Payments, Notifications
+              will return to the last saved values.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

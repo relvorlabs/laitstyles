@@ -18,7 +18,12 @@ export default function NotFound() {
           <p className="mt-4 text-muted-foreground">
             It may have sold, or the link is out of date. One-of-one pieces don’t come back.
           </p>
-          <Button className="mt-8" nativeButton={false} render={<Link href="/products" />} size="lg">
+          <Button
+            className="mt-8"
+            nativeButton={false}
+            render={<Link href="/products" />}
+            size="lg"
+          >
             Back to the catalogue
           </Button>
         </div>

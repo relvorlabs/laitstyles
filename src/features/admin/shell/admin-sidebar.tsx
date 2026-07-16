@@ -14,11 +14,7 @@ type AdminSidebarProps = {
   compact?: boolean;
 };
 
-export function AdminSidebar({
-  pathname,
-  onNavigate,
-  compact = false,
-}: AdminSidebarProps) {
+export function AdminSidebar({ pathname, onNavigate, compact = false }: AdminSidebarProps) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div

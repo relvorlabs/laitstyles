@@ -156,4 +156,3 @@ export const notificationSettingsSchema = z.object({
   paymentIssues: z.boolean(),
   deliveryExceptions: z.boolean(),
 });
-

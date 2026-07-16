@@ -7,6 +7,8 @@ describe("buildSettingsHref", () => {
   });
 
   it("writes another section into the query string", () => {
-    expect(buildSettingsHref("/admin/settings", "payments")).toBe("/admin/settings?section=payments");
+    expect(buildSettingsHref("/admin/settings", "payments")).toBe(
+      "/admin/settings?section=payments",
+    );
   });
 });

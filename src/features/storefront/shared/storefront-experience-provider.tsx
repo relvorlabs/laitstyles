@@ -128,13 +128,15 @@ export function StorefrontExperienceProvider({
         setUserName(readUserName(user?.user_metadata));
         setAuthReady(true);
       });
-      const { data } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-        const user = session?.user ?? null;
-        setSignedIn(!!user);
-        setUserEmail(user?.email ?? null);
-        setUserName(readUserName(user?.user_metadata));
-        setAuthReady(true);
-      });
+      const { data } = supabase.auth.onAuthStateChange(
+        (_event: AuthChangeEvent, session: Session | null) => {
+          const user = session?.user ?? null;
+          setSignedIn(!!user);
+          setUserEmail(user?.email ?? null);
+          setUserName(readUserName(user?.user_metadata));
+          setAuthReady(true);
+        },
+      );
       return () => {
         active = false;
         data.subscription.unsubscribe();

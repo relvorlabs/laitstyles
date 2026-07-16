@@ -16,13 +16,7 @@ type AdminAccessContextValue = {
 
 const AdminAccessContext = createContext<AdminAccessContextValue | null>(null);
 
-export function AdminAccessProvider({
-  children,
-  role,
-}: {
-  children: ReactNode;
-  role: StaffRole;
-}) {
+export function AdminAccessProvider({ children, role }: { children: ReactNode; role: StaffRole }) {
   const value = useMemo<AdminAccessContextValue>(
     () => ({
       role,

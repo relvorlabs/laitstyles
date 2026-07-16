@@ -16,10 +16,7 @@ import {
   paymentStatusLabels,
 } from "@/features/admin/orders/order-labels";
 import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
-import {
-  OrderStatusBadge,
-  PaymentStatusBadge,
-} from "@/features/admin/orders/order-status-badge";
+import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { OrderTimeline } from "@/features/admin/orders/order-timeline";
 import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
 import { formatNaira } from "@/lib/admin/formatters";

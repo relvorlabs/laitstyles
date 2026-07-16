@@ -1,9 +1,9 @@
 import "server-only";
 
-import { err, forbidden, ok, type Result, type StorefrontError } from "@/lib/errors";
-import { hasCapability } from "@/lib/auth/permissions";
 import type { StaffCapability } from "@/lib/auth/permissions";
+import { hasCapability } from "@/lib/auth/permissions";
 import { isStaffRole } from "@/lib/auth/roles";
+import { err, forbidden, ok, type Result, type StorefrontError } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
 
 // Minimal admin -> DB write path (docs/storefront-v2/06 Phase 1, D2). The admin
@@ -13,7 +13,8 @@ import { Prisma, prisma } from "@/lib/prisma";
 // the authorization boundary; callers pass a server-resolved actor, never a
 // client-supplied profile identifiers.
 
-export interface ProductWriteActor {  profileId: string;
+export interface ProductWriteActor {
+  profileId: string;
 }
 
 export interface CreatePublishedProductInput {
@@ -71,7 +72,10 @@ async function actorHasCapability(
   profileId: string,
   capability: StaffCapability,
 ): Promise<boolean> {
-  const profile = await prisma.profiles.findUnique({ where: { id: profileId }, select: { role: true } });
+  const profile = await prisma.profiles.findUnique({
+    where: { id: profileId },
+    select: { role: true },
+  });
   return Boolean(profile && isStaffRole(profile.role) && hasCapability(profile.role, capability));
 }
 
@@ -87,7 +91,8 @@ export async function createPublishedProduct(
   try {
     const created = await prisma.$transaction(async (tx) => {
       const product = await tx.products.create({
-        data: {          slug: input.slug,
+        data: {
+          slug: input.slug,
           name: input.name,
           description: input.description,
           brand: input.brand ?? null,
@@ -117,7 +122,8 @@ export async function createPublishedProduct(
       const asset = await tx.cloudinary_assets.upsert({
         where: { public_id: input.cover.publicId },
         update: {},
-        create: {          kind: "product_cover",
+        create: {
+          kind: "product_cover",
           public_id: input.cover.publicId,
           secure_url: input.cover.secureUrl,
           alt: input.cover.alt,
@@ -127,7 +133,8 @@ export async function createPublishedProduct(
       });
 
       await tx.product_media.create({
-        data: {          product_id: product.id,
+        data: {
+          product_id: product.id,
           asset_id: asset.id,
           kind: "product_cover",
           position: 0,
@@ -146,7 +153,8 @@ export async function createPublishedProduct(
               public_id: item.publicId,
             },
             update: {},
-            create: {              kind: galleryKind,
+            create: {
+              kind: galleryKind,
               public_id: item.publicId,
               secure_url: item.secureUrl,
               alt: item.alt,
@@ -155,7 +163,8 @@ export async function createPublishedProduct(
             },
           });
           await tx.product_media.create({
-            data: {              product_id: product.id,
+            data: {
+              product_id: product.id,
               asset_id: galleryAsset.id,
               kind: galleryKind,
               position: index + 1,
@@ -191,7 +200,8 @@ export async function createPublishedProduct(
             },
           });
           await tx.stock_levels.create({
-            data: {              product_id: product.id,
+            data: {
+              product_id: product.id,
               variant_id: createdVariant.id,
               total_received: variant.stock,
               available: variant.stock,
@@ -201,7 +211,8 @@ export async function createPublishedProduct(
       } else {
         const stock = input.stock ?? (input.mode === "unique" ? 1 : 0);
         await tx.stock_levels.create({
-          data: {            product_id: product.id,
+          data: {
+            product_id: product.id,
             total_received: stock,
             available: stock,
           },
@@ -210,7 +221,8 @@ export async function createPublishedProduct(
 
       // Sensitive mutation — audited (ADR-05 §4.1 #9).
       await tx.audit_events.create({
-        data: {          actor_profile_id: actor.profileId,
+        data: {
+          actor_profile_id: actor.profileId,
           action: "inventory:create",
           target_table: "products",
           target_id: product.id,

@@ -3,8 +3,8 @@
 // shop's ProductCard rather than bespoke placeholders.
 
 import type { ComponentProps } from "react";
-import type { Product } from "../../shared/catalogue-data";
 import { cn } from "@/lib/utils";
+import type { Product } from "../../shared/catalogue-data";
 
 /** `.order-thumb` frame; pass an aspect class (e.g. `aspect-square`). */
 export function OrderThumb({ className, children, ...props }: ComponentProps<"div">) {

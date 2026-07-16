@@ -6,11 +6,7 @@ import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-act
 import { getRevenueByChannel } from "@/lib/admin/sales-selectors";
 import { applySalesStockMutation } from "@/lib/admin/sales-stock";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
-import type {
-  ControlRoomOrder,
-  ControlRoomState,
-  InventoryProduct,
-} from "@/lib/admin/types";
+import type { ControlRoomOrder, ControlRoomState, InventoryProduct } from "@/lib/admin/types";
 
 const now = "2026-07-09T17:30:00+01:00";
 

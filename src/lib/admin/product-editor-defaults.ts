@@ -1,8 +1,5 @@
 import type { InventoryMode, InventoryProduct } from "@/lib/admin/inventory-types";
-import type {
-  ProductEditorBase,
-  ProductEditorValues,
-} from "@/lib/admin/product-editor-types";
+import type { ProductEditorBase, ProductEditorValues } from "@/lib/admin/product-editor-types";
 
 const defaultFulfilment = {
   weightKg: null,

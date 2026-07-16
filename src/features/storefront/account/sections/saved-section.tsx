@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
-import { AcctButton, Eyebrow, panelClass } from "../components/account-primitives";
 import { cn } from "@/lib/utils";
+import { AcctButton, Eyebrow, panelClass } from "../components/account-primitives";
+import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
 
 export function SavedSection() {
   const { saved } = useAccountProducts();

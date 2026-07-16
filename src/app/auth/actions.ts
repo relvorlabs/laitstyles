@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { getRequestOrigin } from "@/lib/auth/server/request-origin";
-import { ensureConsumerProfile } from "@/lib/auth/server/profile";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signInWithPassword(formData: FormData) {
@@ -35,7 +34,7 @@ export async function signUpWithPassword(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {

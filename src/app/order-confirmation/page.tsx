@@ -162,7 +162,12 @@ export default function OrderConfirmationPage() {
             </div>
 
             <div className="mt-[22px] flex flex-wrap gap-3">
-              <Button className="min-w-[180px] flex-1" nativeButton={false} render={<Link href="/products" />} size="lg">
+              <Button
+                className="min-w-[180px] flex-1"
+                nativeButton={false}
+                render={<Link href="/products" />}
+                size="lg"
+              >
                 Continue shopping
               </Button>
               <Button
@@ -203,7 +208,12 @@ function MissingReceipt() {
           your account.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button nativeButton={false} render={<Link href="/account?tab=orders" />} size="lg" variant="outline">
+          <Button
+            nativeButton={false}
+            render={<Link href="/account?tab=orders" />}
+            size="lg"
+            variant="outline"
+          >
             View my orders
           </Button>
           <Button nativeButton={false} render={<Link href="/products" />} size="lg">

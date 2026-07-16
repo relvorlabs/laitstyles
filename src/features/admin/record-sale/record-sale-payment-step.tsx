@@ -2,13 +2,7 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -135,8 +129,8 @@ export function RecordSalePaymentStep() {
       <Alert>
         <AlertTitle>No payment provider is contacted</AlertTitle>
         <AlertDescription>
-          This records the staff member’s stated payment status. It does not charge a card, confirm a
-          transfer, or settle funds.
+          This records the staff member’s stated payment status. It does not charge a card, confirm
+          a transfer, or settle funds.
         </AlertDescription>
       </Alert>
     </FieldGroup>

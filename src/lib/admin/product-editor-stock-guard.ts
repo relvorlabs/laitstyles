@@ -1,8 +1,5 @@
 import type { InventoryProduct } from "@/lib/admin/inventory-types";
-import type {
-  ProductEditorIssue,
-  ProductEditorValues,
-} from "@/lib/admin/product-editor-types";
+import type { ProductEditorIssue, ProductEditorValues } from "@/lib/admin/product-editor-types";
 
 export function validateCommittedStockEdit(
   existingProduct: InventoryProduct | undefined,

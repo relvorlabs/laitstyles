@@ -95,10 +95,7 @@ export function getHoldWorkspaceSummary(state: AdminState): HoldWorkspaceSummary
   };
 }
 
-export function toHoldWorkspaceItem(
-  state: AdminState,
-  hold: ControlRoomHold,
-): HoldWorkspaceItem {
+export function toHoldWorkspaceItem(state: AdminState, hold: ControlRoomHold): HoldWorkspaceItem {
   const product = state.products.find((entry) => entry.id === hold.productId);
   if (!product) {
     return {
@@ -139,11 +136,7 @@ export function toHoldWorkspaceItem(
   };
 }
 
-export function matchesSavedView(
-  state: AdminState,
-  hold: ControlRoomHold,
-  view: HoldSavedView,
-) {
+export function matchesSavedView(state: AdminState, hold: ControlRoomHold, view: HoldSavedView) {
   const status = hold.status ?? "active";
   const risk = getOperationalRisk(state, hold);
 
