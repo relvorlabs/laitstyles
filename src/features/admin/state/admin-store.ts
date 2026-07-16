@@ -34,7 +34,7 @@ import {
   createInitialIntakeRecords,
 } from "@/lib/admin/product-editor/product-editor-reducer";
 import type { Result } from "@/lib/admin/result";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/returns/return-reducer";
 import { applySaveStoreSettings } from "@/lib/admin/settings-actions";
 import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
 import type {

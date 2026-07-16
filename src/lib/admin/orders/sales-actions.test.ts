@@ -4,7 +4,7 @@ import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
 import { applyOrderTransition } from "@/lib/admin/orders/order-reducer";
 import { getRevenueByChannel } from "@/lib/admin/orders/sales-selectors";
 import { applySalesStockMutation } from "@/lib/admin/orders/sales-stock";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
+import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/returns/return-reducer";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 import type { ControlRoomOrder, ControlRoomState, InventoryProduct } from "@/lib/admin/types";
 
