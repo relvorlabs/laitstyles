@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
-import type { SaveStoreSettingsInput } from "@/lib/admin/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
 
 export type SettingsFieldName = FieldPath<SaveStoreSettingsInput>;
 

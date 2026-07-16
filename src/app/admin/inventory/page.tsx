@@ -1,12 +1,12 @@
 import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
 import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
   inventorySavedViews,
   inventorySortOptions,
 } from "@/lib/admin/inventory/inventory-selectors";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 import type {
   CatalogueChannel,
   InventoryModeFilter,
@@ -14,7 +14,7 @@ import type {
   InventorySavedView,
   InventorySortKey,
   InventoryStockFilter,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 type InventoryPageProps = {
   searchParams: Promise<{

@@ -21,7 +21,7 @@ import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip
 import { OrdersTable } from "@/features/admin/orders/orders-table";
 import { buildOrdersHref } from "@/features/admin/orders/orders-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { OrderStatus } from "@/lib/admin/types";
+import type { OrderStatus } from "@/lib/admin/shared/types";
 
 export function OrdersWorkspace({
   initialQuery,

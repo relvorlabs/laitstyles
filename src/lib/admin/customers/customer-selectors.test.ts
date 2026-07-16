@@ -7,8 +7,8 @@ import {
   getCustomerTimeline,
 } from "@/lib/admin/customers/customer-selectors";
 import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
-import type { ControlRoomState } from "@/lib/admin/types";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
+import type { ControlRoomState } from "@/lib/admin/shared/types";
 
 describe("customer relationship selectors", () => {
   it("derives spend, orders and active holds from connected records", () => {

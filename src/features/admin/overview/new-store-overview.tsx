@@ -18,7 +18,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ControlRoomState } from "@/lib/admin/types";
+import type { ControlRoomState } from "@/lib/admin/shared/types";
 
 const setupSteps = [
   {

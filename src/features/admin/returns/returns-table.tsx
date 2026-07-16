@@ -13,8 +13,8 @@ import {
 import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors";
 import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
-import type { AdminState, ControlRoomReturn } from "@/lib/admin/types";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
+import type { AdminState, ControlRoomReturn } from "@/lib/admin/shared/types";
 
 export function ReturnsTable({
   state,

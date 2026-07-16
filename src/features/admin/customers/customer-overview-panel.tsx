@@ -6,7 +6,7 @@ import {
 } from "@/features/admin/customers/customer-labels";
 import { CustomerNoteForm } from "@/features/admin/customers/customer-note-form";
 import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
-import { formatNaira } from "@/lib/admin/formatters";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function CustomerOverviewPanel({
   profile,

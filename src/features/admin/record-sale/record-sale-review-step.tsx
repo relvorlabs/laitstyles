@@ -9,7 +9,7 @@ import {
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { formatNaira } from "@/lib/admin/formatters";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function RecordSaleReviewStep() {
   const { state } = useAdmin();

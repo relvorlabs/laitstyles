@@ -9,7 +9,7 @@ import type {
   SalesPulsePoint,
   StockMovement,
   StoreSettings,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export type OverviewResource = {
   snapshot: OverviewSnapshot;

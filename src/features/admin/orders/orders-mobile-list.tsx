@@ -8,8 +8,8 @@ import { channelLabels, formatOrderDate } from "@/features/admin/orders/order-la
 import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { AdminState, ControlRoomOrder } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { AdminState, ControlRoomOrder } from "@/lib/admin/shared/types";
 
 export function OrdersMobileList({
   state,

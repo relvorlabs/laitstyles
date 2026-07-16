@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { inventorySavedViews } from "@/lib/admin/inventory/inventory-selectors";
-import type { InventorySavedView } from "@/lib/admin/types";
+import type { InventorySavedView } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
 
 type InventorySavedViewsProps = {

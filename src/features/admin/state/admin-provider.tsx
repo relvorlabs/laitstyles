@@ -10,7 +10,7 @@ import {
 } from "react";
 import { AdminRepositoryProvider } from "@/features/admin/data/admin-repository-context";
 import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
-import type { AdminState } from "@/lib/admin/types";
+import type { AdminState } from "@/lib/admin/shared/types";
 
 const AdminContext = createContext<AdminStore | null>(null);
 

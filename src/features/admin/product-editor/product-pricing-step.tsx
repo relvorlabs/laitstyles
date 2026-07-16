@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { EditorNumberField } from "@/features/admin/product-editor/product-editor-fields";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function ProductPricingStep() {
   const [desiredDiscount, setDesiredDiscount] = useState("");

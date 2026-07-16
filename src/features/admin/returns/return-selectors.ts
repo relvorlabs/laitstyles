@@ -10,7 +10,7 @@ import type {
   ControlRoomOrder,
   ControlRoomReturn,
   ReturnStatus,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export const defaultReturnQuery: ReturnQuery = {
   view: "all",

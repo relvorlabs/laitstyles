@@ -24,7 +24,7 @@ import {
 import { settingsSections } from "@/features/admin/settings/settings-config";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
 
 const overviewTargets = [
   {

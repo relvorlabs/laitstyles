@@ -6,7 +6,7 @@ import {
   queryCustomers,
 } from "@/features/admin/customers/customer-selectors";
 import { createAdminStore } from "@/features/admin/state/admin-store";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 function getState() {
   return createAdminStore(activeAdminSeed).getSnapshot();

@@ -10,7 +10,7 @@ import type {
   HoldStageFilter,
 } from "@/features/admin/holds/hold-types";
 import { HoldsWorkspace } from "@/features/admin/holds/holds-workspace";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type HoldsPageProps = {
   searchParams: Promise<{

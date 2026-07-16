@@ -9,7 +9,7 @@ import {
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function UniqueStockFields() {
   const { control } = useFormContext<ProductEditorValues>();

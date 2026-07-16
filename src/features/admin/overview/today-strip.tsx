@@ -6,8 +6,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatCompactNaira, formatNaira } from "@/lib/admin/formatters";
-import type { OverviewSnapshot } from "@/lib/admin/types";
+import { formatCompactNaira, formatNaira } from "@/lib/admin/shared/formatters";
+import type { OverviewSnapshot } from "@/lib/admin/shared/types";
 
 type TodayStripProps = {
   snapshot: OverviewSnapshot;

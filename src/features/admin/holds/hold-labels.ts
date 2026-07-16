@@ -5,7 +5,7 @@ import type {
   HoldStatus,
   PaymentMethod,
   PaymentStatus,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 const holdDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",

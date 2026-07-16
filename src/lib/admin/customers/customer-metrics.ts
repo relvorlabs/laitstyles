@@ -12,7 +12,7 @@ import type {
   CustomerAttentionReason,
   CustomerMetrics,
   CustomerSegment,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 const highValueThreshold = 50_000;
 

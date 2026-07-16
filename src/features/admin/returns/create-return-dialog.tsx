@@ -25,8 +25,8 @@ import {
   getEligibleReturnOrders,
   getEligibleReturnQuantity,
 } from "@/features/admin/returns/return-selectors";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { AdminState, CreateReturnInput } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { AdminState, CreateReturnInput } from "@/lib/admin/shared/types";
 
 type ReturnFormError = {
   field: "selection" | "quantity" | "reason" | "form";

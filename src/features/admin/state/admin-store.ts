@@ -33,10 +33,10 @@ import {
   applyProductEditorAction,
   createInitialIntakeRecords,
 } from "@/lib/admin/product-editor/product-editor-reducer";
-import type { Result } from "@/lib/admin/result";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/returns/return-reducer";
 import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
 import { applySaveStoreSettings } from "@/lib/admin/settings/settings-reducer";
+import type { Result } from "@/lib/admin/shared/result";
 import type {
   AdminState,
   ConvertHoldInput,
@@ -58,7 +58,7 @@ import type {
   SaveStoreSettingsInput,
   StoreSettingsActionError,
   StoreSettingsActionSuccess,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;

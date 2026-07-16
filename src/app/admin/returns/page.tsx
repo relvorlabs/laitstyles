@@ -5,8 +5,8 @@ import {
 } from "@/features/admin/returns/return-selectors";
 import type { ReturnSavedView, ReturnSortKey } from "@/features/admin/returns/return-types";
 import { ReturnsWorkspace } from "@/features/admin/returns/returns-workspace";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
-import type { ReturnStatus } from "@/lib/admin/types";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
+import type { ReturnStatus } from "@/lib/admin/shared/types";
 
 type ReturnsPageProps = {
   searchParams: Promise<{

@@ -5,7 +5,11 @@ import { ProductPricingStep } from "@/features/admin/product-editor/product-pric
 import { ProductReviewStep } from "@/features/admin/product-editor/product-review-step";
 import { ProductStockStep } from "@/features/admin/product-editor/product-stock-step";
 import { ProductTypeStep } from "@/features/admin/product-editor/product-type-step";
-import type { InventoryMode, ProductEditorIssue, ProductEditorStep } from "@/lib/admin/types";
+import type {
+  InventoryMode,
+  ProductEditorIssue,
+  ProductEditorStep,
+} from "@/lib/admin/shared/types";
 
 export function ProductEditorStepContent({
   activeStep,

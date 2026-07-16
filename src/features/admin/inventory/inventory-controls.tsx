@@ -18,7 +18,7 @@ import type {
   InventoryFacetOptions,
   InventoryPresentation,
   InventoryQuery,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 type InventoryControlsProps = {
   query: InventoryQuery;

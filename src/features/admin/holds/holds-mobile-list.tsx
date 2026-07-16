@@ -9,7 +9,7 @@ import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-l
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
+import type { AdminState, ControlRoomHold } from "@/lib/admin/shared/types";
 
 export function HoldsMobileList({
   state,

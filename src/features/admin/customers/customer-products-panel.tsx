@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatCustomerDate } from "@/features/admin/customers/customer-labels";
-import type { AdminState, CustomerProductRelationship } from "@/lib/admin/types";
+import type { AdminState, CustomerProductRelationship } from "@/lib/admin/shared/types";
 
 export function CustomerProductsPanel({
   state,

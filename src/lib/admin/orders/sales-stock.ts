@@ -1,7 +1,7 @@
 import { validateInventoryProduct } from "@/lib/admin/inventory/inventory-product-validation";
 import type { InventoryCounts, InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import type { SalesActionError } from "@/lib/admin/orders/sales-types";
-import { err, ok, type Result } from "@/lib/admin/result";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
 
 export type SalesStockMutationKind =
   | "reserve"

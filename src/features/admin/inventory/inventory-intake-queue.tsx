@@ -15,7 +15,7 @@ import {
   formatIntakeStage,
   getAdjacentIntakeStages,
 } from "@/lib/admin/product-editor/product-editor-reducer";
-import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/types";
+import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/shared/types";
 
 const stageOrder: IntakeStage[] = [
   "received",

@@ -20,7 +20,7 @@ import { HoldsSummaryStrip } from "@/features/admin/holds/holds-summary-strip";
 import { HoldsTable } from "@/features/admin/holds/holds-table";
 import { buildHoldsHref } from "@/features/admin/holds/holds-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { ConvertHoldInput } from "@/lib/admin/types";
+import type { ConvertHoldInput } from "@/lib/admin/shared/types";
 
 export type HoldActionFeedback = {
   tone: "success" | "error";

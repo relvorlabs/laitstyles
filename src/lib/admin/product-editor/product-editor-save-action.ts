@@ -20,8 +20,8 @@ import type {
   ProductEditorIntent,
   ProductEditorValues,
 } from "@/lib/admin/product-editor/product-editor-types";
-import { err, ok, type Result } from "@/lib/admin/result";
-import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/admin/types";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
+import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/admin/shared/types";
 
 export type ProductEditorStateResult = {
   state: ControlRoomState;

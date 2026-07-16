@@ -8,8 +8,8 @@ import type {
   ProductEditorActionError,
   ProductEditorIntent,
 } from "@/lib/admin/product-editor/product-editor-types";
-import { err, ok, type Result } from "@/lib/admin/result";
-import type { ControlRoomState, InventoryProduct } from "@/lib/admin/types";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
+import type { ControlRoomState, InventoryProduct } from "@/lib/admin/shared/types";
 
 export type IntakeStateResult = {
   state: ControlRoomState;

@@ -3,14 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatInventoryDate } from "@/features/admin/inventory/inventory-labels";
-import { formatNaira } from "@/lib/admin/formatters";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 import type {
   ControlRoomActivity,
   ControlRoomHold,
   ControlRoomOrder,
   ProductReview,
   StockMovement,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export function ProductOrdersPanel({
   orders,

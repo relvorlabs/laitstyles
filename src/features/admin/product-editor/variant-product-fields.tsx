@@ -15,7 +15,7 @@ import {
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function VariantProductFields() {
   const { state } = useAdmin();

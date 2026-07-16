@@ -2,7 +2,7 @@ import { TruckDeliveryIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { FulfilmentLaneItem } from "@/lib/admin/types";
+import type { FulfilmentLaneItem } from "@/lib/admin/shared/types";
 
 export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
   const total = items.reduce((sum, item) => sum + item.count, 0);

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { settingsSections } from "@/features/admin/settings/settings-config";
-import type { SettingsSection } from "@/lib/admin/types";
+import type { SettingsSection } from "@/lib/admin/shared/types";
 
 export function SettingsNavigation({
   activeSection,

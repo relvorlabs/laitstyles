@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { SectionHeading } from "@/features/admin/shared/section-heading";
-import { getProductStock } from "@/lib/admin/selectors";
-import type { InventoryProduct } from "@/lib/admin/types";
+import { getProductStock } from "@/lib/admin/shared/selectors";
+import type { InventoryProduct } from "@/lib/admin/shared/types";
 
 export function InventoryWatch({
   lowStock,

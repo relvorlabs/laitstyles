@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
 import { applyAddCustomerNote } from "@/lib/admin/customers/customer-reducer";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
 
 describe("Customer note actions", () => {
   it("adds a session note and customer activity through the shared store", () => {

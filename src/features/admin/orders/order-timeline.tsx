@@ -1,7 +1,7 @@
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { formatOrderDate, orderStatusLabels } from "@/features/admin/orders/order-labels";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ControlRoomOrder } from "@/lib/admin/types";
+import type { ControlRoomOrder } from "@/lib/admin/shared/types";
 
 export function OrderTimeline({ order }: { order: ControlRoomOrder }) {
   const timeline = order.timeline?.length

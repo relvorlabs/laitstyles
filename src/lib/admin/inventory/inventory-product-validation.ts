@@ -1,6 +1,6 @@
 import type { InventoryCounts, InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import type { InventoryValidationIssue } from "@/lib/admin/inventory/inventory-validation-types";
-import { err, ok, type Result } from "@/lib/admin/result";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
 
 export function validateInventoryProduct(
   product: InventoryProduct,

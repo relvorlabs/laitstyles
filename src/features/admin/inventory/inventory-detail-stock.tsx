@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { InventoryListItem } from "@/lib/admin/types";
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 export function ProductStockPanel({ item }: { item: InventoryListItem }) {
   const { product } = item;

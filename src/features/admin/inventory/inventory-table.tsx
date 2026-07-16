@@ -21,8 +21,8 @@ import {
 } from "@/features/admin/inventory/inventory-labels";
 import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { InventoryListItem } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 type InventoryTableProps = {
   items: InventoryListItem[];

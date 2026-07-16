@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { ProductEditorStep } from "@/lib/admin/types";
+import type { ProductEditorStep } from "@/lib/admin/shared/types";
 
 export function ProductEditorFooter({
   activeStep,

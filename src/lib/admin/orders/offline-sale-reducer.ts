@@ -3,7 +3,7 @@ import {
   applySalesStockMutation,
   type SalesStockMutationKind,
 } from "@/lib/admin/orders/sales-stock";
-import { err, ok, type Result } from "@/lib/admin/result";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
 import type {
   ControlRoomCustomer,
   ControlRoomOrder,
@@ -12,7 +12,7 @@ import type {
   OfflineSaleSuccess,
   SalesActionError,
   StockMovement,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export type OfflineSaleStateResult = {
   state: ControlRoomState;

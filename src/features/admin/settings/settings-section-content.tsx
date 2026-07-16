@@ -3,7 +3,7 @@ import { NotificationsSection } from "@/features/admin/settings/notifications-se
 import { PaymentsSection } from "@/features/admin/settings/payments-section";
 import { SellingPreferencesSection } from "@/features/admin/settings/selling-preferences-section";
 import { StoreIdentitySection } from "@/features/admin/settings/store-identity-section";
-import type { SettingsSection } from "@/lib/admin/types";
+import type { SettingsSection } from "@/lib/admin/shared/types";
 
 export function SettingsSectionContent({ section }: { section: SettingsSection }) {
   switch (section) {

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
-import type { InventoryListItem } from "@/lib/admin/types";
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
   const [openMediaId, setOpenMediaId] = useState<string | null>(null);

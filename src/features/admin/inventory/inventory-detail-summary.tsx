@@ -7,7 +7,7 @@ import {
   inventoryModeLabels,
 } from "@/features/admin/inventory/inventory-labels";
 import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
-import type { InventoryListItem } from "@/lib/admin/types";
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 export function ProductSummaryPanel({ item }: { item: InventoryListItem }) {
   const { product, stock } = item;

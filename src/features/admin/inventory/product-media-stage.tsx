@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import type { ProductMedia } from "@/lib/admin/types";
+import type { ProductMedia } from "@/lib/admin/shared/types";
 
 export function ProductMediaStage({
   media,

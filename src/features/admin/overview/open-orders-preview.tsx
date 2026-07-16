@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { OrderStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { SectionHeading } from "@/features/admin/shared/section-heading";
-import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
-import { getCustomerName } from "@/lib/admin/selectors";
-import type { ControlRoomOrder, ControlRoomState } from "@/lib/admin/types";
+import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
+import { getCustomerName } from "@/lib/admin/shared/selectors";
+import type { ControlRoomOrder, ControlRoomState } from "@/lib/admin/shared/types";
 
 const terminalStatuses = new Set(["delivered", "cancelled", "refunded", "returned"]);
 

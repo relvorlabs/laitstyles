@@ -5,7 +5,7 @@ import type {
   OrderWorkspaceSummary,
 } from "@/features/admin/orders/order-types";
 import { getOrderNetRevenue } from "@/lib/admin/orders/sales-selectors";
-import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/types";
+import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/shared/types";
 
 export const defaultOrderQuery: OrderQuery = {
   view: "all",

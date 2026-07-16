@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import { createInMemoryAdminRepositories } from "@/lib/admin/data/in-memory/admin-repositories";
-import { getOverviewSnapshot } from "@/lib/admin/selectors";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
+import { getOverviewSnapshot } from "@/lib/admin/shared/selectors";
 
 const now = "2026-07-10T13:00:00+01:00";
 

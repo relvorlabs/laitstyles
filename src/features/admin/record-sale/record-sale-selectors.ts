@@ -1,5 +1,5 @@
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import type { AdminState, InventoryProduct } from "@/lib/admin/types";
+import type { AdminState, InventoryProduct } from "@/lib/admin/shared/types";
 
 export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
   const firstProduct = getSellableProducts(state)[0];

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
 
 describe("Store settings action", () => {
   it("hydrates deterministic settings into the shared store", () => {

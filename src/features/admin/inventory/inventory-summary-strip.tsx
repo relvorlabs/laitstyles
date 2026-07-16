@@ -6,7 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { InventorySummary } from "@/lib/admin/types";
+import type { InventorySummary } from "@/lib/admin/shared/types";
 
 export function InventorySummaryStrip({ summary }: { summary: InventorySummary }) {
   const metrics = [

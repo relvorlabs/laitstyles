@@ -1,6 +1,6 @@
 import { NewStoreOverview } from "@/features/admin/overview/new-store-overview";
 import { OverviewPage } from "@/features/admin/overview/overview-page";
-import { activeAdminSeed, newStoreAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed, newStoreAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type AdminOverviewPageProps = {
   searchParams: Promise<{ view?: string | string[] }>;

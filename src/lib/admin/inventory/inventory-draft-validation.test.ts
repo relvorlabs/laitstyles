@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { validateInventoryProduct } from "@/lib/admin/inventory/inventory-product-validation";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 import { applyProductEditorAction } from "@/lib/admin/product-editor/product-editor-reducer";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
 
 const now = "2026-07-09T14:00:00+01:00";
 

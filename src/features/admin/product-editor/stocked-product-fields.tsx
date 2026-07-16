@@ -7,7 +7,7 @@ import {
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function StockedProductFields() {
   const { state } = useAdmin();

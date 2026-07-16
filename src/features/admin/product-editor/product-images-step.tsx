@@ -15,7 +15,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 const MAX_IMAGES = 12;
 

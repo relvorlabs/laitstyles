@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 describe("Admin store subscriptions", () => {
   it("notifies Inventory subscribers and exposes a saved draft immediately", () => {

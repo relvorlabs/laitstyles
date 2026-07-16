@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ContinueTask } from "@/lib/admin/types";
+import type { ContinueTask } from "@/lib/admin/shared/types";
 
 export function ContinueWorking({ task }: { task?: ContinueTask }) {
   if (!task) {

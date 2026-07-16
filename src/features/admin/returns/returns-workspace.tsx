@@ -21,7 +21,7 @@ import { ReturnsSummaryStrip } from "@/features/admin/returns/returns-summary-st
 import { ReturnsTable } from "@/features/admin/returns/returns-table";
 import { buildReturnsHref } from "@/features/admin/returns/returns-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { CreateReturnInput, ReturnStatus } from "@/lib/admin/types";
+import type { CreateReturnInput, ReturnStatus } from "@/lib/admin/shared/types";
 
 export function ReturnsWorkspace({
   initialQuery,

@@ -12,7 +12,7 @@ import type {
   FulfilmentLaneItem,
   InventoryProduct,
   OverviewSnapshot,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export { getProductStock } from "@/lib/admin/inventory/inventory-selectors";
 

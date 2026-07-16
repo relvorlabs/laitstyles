@@ -9,8 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EditorTextField } from "@/features/admin/product-editor/product-editor-fields";
 import { getProductEditorStepLabel } from "@/features/admin/product-editor/product-editor-step-labels";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { ProductEditorIssue, ProductEditorStep, ProductEditorValues } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type {
+  ProductEditorIssue,
+  ProductEditorStep,
+  ProductEditorValues,
+} from "@/lib/admin/shared/types";
 
 export function ProductReviewStep({
   issues,

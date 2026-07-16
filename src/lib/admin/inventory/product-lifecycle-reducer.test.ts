@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
 
 const now = "2026-07-10T13:00:00+01:00";
 

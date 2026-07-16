@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { SettingsNumberField, SettingsTextField } from "@/features/admin/settings/settings-fields";
-import type { SaveStoreSettingsInput } from "@/lib/admin/types";
+import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
 
 export function DeliveryZoneList() {
   const { control } = useFormContext<SaveStoreSettingsInput>();

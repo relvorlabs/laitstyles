@@ -19,8 +19,8 @@ import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { OrderTimeline } from "@/features/admin/orders/order-timeline";
 import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
-import { formatNaira } from "@/lib/admin/formatters";
-import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/types";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/shared/types";
 
 export function OrderDetailSheet({
   state,

@@ -7,7 +7,7 @@ import type {
   OrderLineStockState,
   OrderStatus,
   ReturnStatus,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 const paidPaymentStates = new Set(["paid", "deposit"] as const);
 

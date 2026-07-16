@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import type { PaymentMethod } from "@/lib/admin/types";
+import type { PaymentMethod } from "@/lib/admin/shared/types";
 
 const paymentMethodLabels: Record<PaymentMethod, string> = {
   cash: "Cash",

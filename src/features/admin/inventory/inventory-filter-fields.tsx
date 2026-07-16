@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inventorySortOptions } from "@/lib/admin/inventory/inventory-selectors";
-import type { InventoryFacetOptions, InventoryQuery } from "@/lib/admin/types";
+import type { InventoryFacetOptions, InventoryQuery } from "@/lib/admin/shared/types";
 
 type InventoryFilterFieldsProps = {
   query: InventoryQuery;

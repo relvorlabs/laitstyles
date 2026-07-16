@@ -23,7 +23,7 @@ import {
 import { CustomerTimelinePanel } from "@/features/admin/customers/customer-timeline-panel";
 import type { CustomerActionFeedback } from "@/features/admin/customers/customer-types";
 import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
-import type { AdminState } from "@/lib/admin/types";
+import type { AdminState } from "@/lib/admin/shared/types";
 
 export function CustomerDetailSheet({
   state,

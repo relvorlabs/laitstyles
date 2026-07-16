@@ -33,7 +33,7 @@ import {
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import type { HoldActionFeedback } from "@/features/admin/holds/holds-workspace";
-import type { AdminState, ControlRoomHold, ConvertHoldInput } from "@/lib/admin/types";
+import type { AdminState, ControlRoomHold, ConvertHoldInput } from "@/lib/admin/shared/types";
 
 export function HoldDetailSheet({
   state,

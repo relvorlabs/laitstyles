@@ -1,7 +1,7 @@
 import type { AdminStore } from "@/features/admin/state/admin-store";
 import type { AdminRepositories } from "@/lib/admin/data/repositories";
-import { getOverviewSnapshot } from "@/lib/admin/selectors";
-import type { AdminState, OrderStatus } from "@/lib/admin/types";
+import { getOverviewSnapshot } from "@/lib/admin/shared/selectors";
+import type { AdminState, OrderStatus } from "@/lib/admin/shared/types";
 
 const closedOrderStatuses = new Set<OrderStatus>([
   "delivered",

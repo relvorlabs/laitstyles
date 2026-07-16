@@ -7,7 +7,7 @@ import type {
 } from "@/features/admin/holds/hold-types";
 import { getProductCover, getProductReference } from "@/lib/admin/inventory/inventory-selectors";
 import { getHoldRisk, isHoldActive } from "@/lib/admin/orders/sales-selectors";
-import type { AdminState, ControlRoomHold } from "@/lib/admin/types";
+import type { AdminState, ControlRoomHold } from "@/lib/admin/shared/types";
 
 export const defaultHoldQuery: HoldQuery = {
   view: "all",

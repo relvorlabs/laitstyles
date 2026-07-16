@@ -10,7 +10,7 @@ import type {
   ProductReview,
   SalesPulsePoint,
   StockMovement,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 const driveImage = (id: string) => `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
 

@@ -6,7 +6,7 @@ import {
   getSelectedSaleProduct,
   getSellableProducts,
 } from "@/features/admin/record-sale/record-sale-selectors";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 describe("Record Sale selectors", () => {
   it("starts from an available published product and existing customer", () => {

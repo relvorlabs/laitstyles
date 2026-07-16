@@ -33,7 +33,7 @@ import { ProductStockPanel } from "@/features/admin/inventory/inventory-detail-s
 import { ProductSummaryPanel } from "@/features/admin/inventory/inventory-detail-summary";
 import { InventoryProductLifecycleActions } from "@/features/admin/inventory/inventory-product-lifecycle-actions";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ControlRoomState, InventoryListItem } from "@/lib/admin/types";
+import type { ControlRoomState, InventoryListItem } from "@/lib/admin/shared/types";
 
 type InventoryDetailSheetProps = {
   item: InventoryListItem | null;

@@ -5,7 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { InventoryMode, ProductEditorValues } from "@/lib/admin/types";
+import type { InventoryMode, ProductEditorValues } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
 
 const productTypes = [

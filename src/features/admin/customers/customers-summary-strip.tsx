@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import type { CustomerWorkspaceSummary } from "@/features/admin/customers/customer-types";
-import { formatNaira } from "@/lib/admin/formatters";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function CustomersSummaryStrip({ summary }: { summary: CustomerWorkspaceSummary }) {
   const items = [

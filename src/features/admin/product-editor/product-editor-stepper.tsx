@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { productEditorStepLabels } from "@/features/admin/product-editor/product-editor-step-labels";
 import { productEditorSteps } from "@/lib/admin/product-editor/product-editor-types";
-import type { ProductEditorStep } from "@/lib/admin/types";
+import type { ProductEditorStep } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
 
 export function ProductEditorStepper({

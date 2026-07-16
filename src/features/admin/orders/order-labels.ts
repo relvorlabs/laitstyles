@@ -1,4 +1,4 @@
-import type { OrderStatus, PaymentStatus, SalesChannel } from "@/lib/admin/types";
+import type { OrderStatus, PaymentStatus, SalesChannel } from "@/lib/admin/shared/types";
 
 const orderDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",

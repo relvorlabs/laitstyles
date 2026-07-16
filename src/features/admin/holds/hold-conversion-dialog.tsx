@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { conversionPaymentLabels, paymentMethodLabels } from "@/features/admin/holds/hold-labels";
-import type { ConvertHoldInput, PaymentMethod, PaymentStatus } from "@/lib/admin/types";
+import type { ConvertHoldInput, PaymentMethod, PaymentStatus } from "@/lib/admin/shared/types";
 
 const paymentStatuses: Array<Extract<PaymentStatus, "pending" | "paid" | "deposit">> = [
   "pending",

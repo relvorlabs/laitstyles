@@ -20,8 +20,8 @@ import {
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { formatNaira } from "@/lib/admin/formatters";
 import { getProductCover } from "@/lib/admin/inventory/inventory-selectors";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function RecordSaleItemStep() {
   const { state } = useAdmin();

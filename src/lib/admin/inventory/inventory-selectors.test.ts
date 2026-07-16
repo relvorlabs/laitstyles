@@ -14,7 +14,7 @@ import type {
   UniqueProduct,
   VariantProduct,
 } from "@/lib/admin/inventory/inventory-types";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
 
 function productById(id: string) {
   const product = activeControlRoomSeed.products.find((item) => item.id === id);

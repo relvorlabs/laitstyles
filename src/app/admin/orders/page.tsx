@@ -10,7 +10,7 @@ import type {
   OrderSortKey,
 } from "@/features/admin/orders/order-types";
 import { OrdersWorkspace } from "@/features/admin/orders/orders-workspace";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type OrdersPageProps = {
   searchParams: Promise<{

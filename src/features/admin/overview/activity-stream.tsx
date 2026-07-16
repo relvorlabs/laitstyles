@@ -6,8 +6,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatRelativeTime } from "@/lib/admin/formatters";
-import type { ActivityKind, ControlRoomActivity } from "@/lib/admin/types";
+import { formatRelativeTime } from "@/lib/admin/shared/formatters";
+import type { ActivityKind, ControlRoomActivity } from "@/lib/admin/shared/types";
 
 export function ActivityStream({
   activities,

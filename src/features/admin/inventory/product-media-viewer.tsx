@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { ProductMediaSidebar } from "@/features/admin/inventory/product-media-sidebar";
 import { ProductMediaStage } from "@/features/admin/inventory/product-media-stage";
-import type { ProductMedia } from "@/lib/admin/types";
+import type { ProductMedia } from "@/lib/admin/shared/types";
 
 type ProductMediaViewerProps = {
   media: ProductMedia[];

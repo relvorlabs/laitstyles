@@ -9,7 +9,7 @@ import type {
   CustomerTypeFilter,
 } from "@/features/admin/customers/customer-types";
 import { CustomersWorkspace } from "@/features/admin/customers/customers-workspace";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type CustomersPageProps = {
   searchParams: Promise<{

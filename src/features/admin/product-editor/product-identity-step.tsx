@@ -13,7 +13,7 @@ import {
 } from "@/features/admin/product-editor/product-editor-fields";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { generateProductSku } from "@/lib/admin/inventory/sku";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function ProductIdentityStep() {
   const { state } = useAdmin();

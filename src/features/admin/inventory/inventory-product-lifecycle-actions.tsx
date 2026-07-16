@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { ProductLifecycle } from "@/lib/admin/types";
+import type { ProductLifecycle } from "@/lib/admin/shared/types";
 
 type PendingAction = "archive" | "restore" | "delete" | null;
 

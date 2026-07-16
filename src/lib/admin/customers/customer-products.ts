@@ -5,7 +5,7 @@ import type {
   ControlRoomState,
   CustomerDeliveryHistoryItem,
   CustomerProductRelationship,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export function getCustomerProductRelationships(
   state: ControlRoomState,

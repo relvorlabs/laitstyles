@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 import { getAdminAccess } from "@/lib/auth/server/admin";
 
 export const metadata: Metadata = {

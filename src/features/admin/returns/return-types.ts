@@ -1,4 +1,4 @@
-import type { ReturnStatus } from "@/lib/admin/types";
+import type { ReturnStatus } from "@/lib/admin/shared/types";
 
 export type ReturnSavedView =
   | "all"

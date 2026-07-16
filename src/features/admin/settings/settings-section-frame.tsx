@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { getSettingsSectionDefinition } from "@/features/admin/settings/settings-config";
-import type { SettingsSection } from "@/lib/admin/types";
+import type { SettingsSection } from "@/lib/admin/shared/types";
 
 export function SettingsSectionFrame({
   section,

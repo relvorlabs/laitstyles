@@ -7,7 +7,7 @@ import {
   applySalesStockMutation,
   type SalesStockMutationKind,
 } from "@/lib/admin/orders/sales-stock";
-import { err, ok, type Result } from "@/lib/admin/result";
+import { err, ok, type Result } from "@/lib/admin/shared/result";
 import type {
   ControlRoomOrder,
   ControlRoomReturn,
@@ -17,7 +17,7 @@ import type {
   ReturnStatus,
   SalesActionError,
   StockMovement,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 const physicallyReturnedStatuses = new Set<ReturnStatus>([
   "received",

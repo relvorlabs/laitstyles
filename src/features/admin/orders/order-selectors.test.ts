@@ -5,7 +5,7 @@ import {
   getOrderWorkspaceSummary,
   queryOrders,
 } from "@/features/admin/orders/order-selectors";
-import { activeAdminSeed } from "@/lib/admin/admin-seed";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 describe("Orders workspace selectors", () => {
   it("sorts all orders newest first by default", () => {

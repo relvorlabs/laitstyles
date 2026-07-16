@@ -6,7 +6,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ProductEditorDialog } from "@/features/admin/product-editor/product-editor-dialog";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ProductEditorActionSuccess } from "@/lib/admin/types";
+import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
 
 type ProductEditorControllerValue = {
   openNewProduct: () => void;

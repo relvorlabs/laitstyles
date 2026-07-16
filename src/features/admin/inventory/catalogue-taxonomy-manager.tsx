@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { CatalogueTaxonomyKind } from "@/lib/admin/types";
+import type { CatalogueTaxonomyKind } from "@/lib/admin/shared/types";
 
 type TaxonomyValueEvent = {
   kind: CatalogueTaxonomyKind;

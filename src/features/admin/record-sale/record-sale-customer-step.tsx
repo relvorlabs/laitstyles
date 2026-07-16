@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import type { SalesChannel } from "@/lib/admin/types";
+import type { SalesChannel } from "@/lib/admin/shared/types";
 
 const channelLabels: Record<Exclude<SalesChannel, "online">, string> = {
   "physical-store": "Physical store",

@@ -7,7 +7,7 @@ import type {
 } from "@/features/admin/customers/customer-types";
 import { getCustomerRelationshipProfiles } from "@/lib/admin/customers/customer-selectors";
 import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
-import type { AdminState } from "@/lib/admin/types";
+import type { AdminState } from "@/lib/admin/shared/types";
 
 export const customerSavedViews: CustomerSavedViewDefinition[] = [
   {

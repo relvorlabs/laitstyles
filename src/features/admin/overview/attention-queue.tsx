@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { SectionHeading } from "@/features/admin/shared/section-heading";
-import type { AttentionItem, AttentionTone } from "@/lib/admin/types";
+import type { AttentionItem, AttentionTone } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
 
 type AttentionQueueProps = {

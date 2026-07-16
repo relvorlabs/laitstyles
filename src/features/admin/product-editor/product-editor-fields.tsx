@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
-import type { ProductEditorValues } from "@/lib/admin/types";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export type EditorFieldName = FieldPath<ProductEditorValues>;
 

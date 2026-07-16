@@ -44,7 +44,7 @@ import type {
   ProductEditorIssue,
   ProductEditorStep,
   ProductEditorValues,
-} from "@/lib/admin/types";
+} from "@/lib/admin/shared/types";
 
 export function ProductEditorDialog({
   open,

@@ -2,8 +2,8 @@ import { ChartIncreaseIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatCompactNaira } from "@/lib/admin/formatters";
-import type { SalesPulsePoint } from "@/lib/admin/types";
+import { formatCompactNaira } from "@/lib/admin/shared/formatters";
+import type { SalesPulsePoint } from "@/lib/admin/shared/types";
 
 type SalesPulseProps = {
   points: SalesPulsePoint[];

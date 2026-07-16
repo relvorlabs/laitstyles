@@ -8,7 +8,7 @@ import {
   getCustomerProductRelationships,
 } from "@/lib/admin/customers/customer-products";
 import { getCustomerTimeline } from "@/lib/admin/customers/customer-timeline";
-import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/admin/types";
+import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/admin/shared/types";
 
 export {
   getCustomerAttentionReasons,

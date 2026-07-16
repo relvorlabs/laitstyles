@@ -21,7 +21,7 @@ import {
 } from "@/features/admin/customers/customer-status-badges";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
-import { formatNaira } from "@/lib/admin/formatters";
+import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function CustomersTable({
   profiles,

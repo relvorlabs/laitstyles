@@ -13,8 +13,8 @@ import {
   validateProductEditorStep,
   validateProductForPublish,
 } from "@/lib/admin/product-editor/product-editor-schema";
-import { activeControlRoomSeed } from "@/lib/admin/seed";
-import type { ControlRoomState, ProductEditorValues } from "@/lib/admin/types";
+import { activeControlRoomSeed } from "@/lib/admin/shared/seed";
+import type { ControlRoomState, ProductEditorValues } from "@/lib/admin/shared/types";
 
 const now = "2026-07-09T14:00:00+01:00";
 

@@ -1,4 +1,4 @@
-import type { SettingsSection } from "@/lib/admin/types";
+import type { SettingsSection } from "@/lib/admin/shared/types";
 
 export type SettingsSectionDefinition = {
   value: SettingsSection;

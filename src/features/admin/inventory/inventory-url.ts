@@ -1,4 +1,4 @@
-import type { InventoryPresentation, InventoryQuery } from "@/lib/admin/types";
+import type { InventoryPresentation, InventoryQuery } from "@/lib/admin/shared/types";
 
 export const defaultInventoryPageSize = 15;
 
