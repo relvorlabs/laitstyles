@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { createContext, type ReactNode, use, useMemo } from "react";
 import {
   getCapabilitiesForRole,
   hasCapability,
@@ -30,7 +30,7 @@ export function AdminAccessProvider({ children, role }: { children: ReactNode; r
 }
 
 export function useAdminAccess() {
-  const context = useContext(AdminAccessContext);
+  const context = use(AdminAccessContext);
   if (!context) throw new Error("useAdminAccess must be used within AdminAccessProvider");
   return context;
 }

@@ -126,6 +126,12 @@ The repository uses Next.js 16 and React 19.
 - Dynamically load heavy editors, charts or drawers only when the bundle benefit is real.
 - If Phase 12 adds Query hydration, use a per-request server QueryClient and a stable browser QueryClient. Do not reuse a server cache across requests.
 - Do not use Server Actions as TanStack Query query functions. Future client queries require a browser-safe API/RPC adapter; Server Actions may be evaluated for mutations where appropriate.
+- Context-consumer hooks (`useAdmin`, `useStorefront`, `useTheme`, and 7 others) stay colocated with
+  their Provider/Context in the same file — the provider is the only place that should know how its
+  state is managed, and splitting the hook into a separate file would only add an indirection, not
+  improve clarity. The single exception was `useAccountProducts`, which was genuinely misplaced
+  inside an unrelated component file; it now lives in `features/storefront/account/hooks/`. Do not
+  "fix" the remaining colocated hooks by force-splitting them.
 
 ## 7. shadcn, Base UI and design-system rules
 

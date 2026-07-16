@@ -3,8 +3,8 @@
 import {
   createContext,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -108,7 +108,7 @@ type StorefrontContextValue = {
 const StorefrontContext = createContext<StorefrontContextValue | null>(null);
 
 export function useStorefront() {
-  const ctx = useContext(StorefrontContext);
+  const ctx = use(StorefrontContext);
   if (!ctx) throw new Error("useStorefront must be used within StorefrontProvider");
   return ctx;
 }

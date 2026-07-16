@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, type ReactNode, use, useState } from "react";
 import type { AdminStore } from "@/features/admin/state/admin-store";
 import { createInMemoryAdminRepositories } from "@/lib/admin/data/in-memory/admin-repositories";
 import type { AdminRepositories } from "@/lib/admin/data/repositories";
@@ -24,7 +24,7 @@ export function AdminRepositoryProvider({
 }
 
 export function useAdminRepositories() {
-  const repositories = useContext(AdminRepositoryContext);
+  const repositories = use(AdminRepositoryContext);
   if (!repositories) {
     throw new Error("useAdminRepositories must be used inside AdminRepositoryProvider");
   }

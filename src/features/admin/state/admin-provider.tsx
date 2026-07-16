@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { createContext, type ReactNode, use, useMemo, useState, useSyncExternalStore } from "react";
 import { AdminRepositoryProvider } from "@/features/admin/data/admin-repository-context";
 import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
 import type { AdminState } from "@/lib/admin/shared/types";
@@ -31,7 +24,7 @@ export function AdminProvider({
 }
 
 export function useAdmin() {
-  const store = useContext(AdminContext);
+  const store = use(AdminContext);
   if (!store) {
     throw new Error("useAdmin must be used inside AdminProvider");
   }

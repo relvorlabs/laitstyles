@@ -3,8 +3,8 @@
 import {
   createContext,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -198,7 +198,7 @@ export function ShopProvider({
 }
 
 export function useShop() {
-  const value = useContext(ShopContext);
+  const value = use(ShopContext);
   if (!value) {
     throw new Error("useShop must be used within ShopProvider");
   }
