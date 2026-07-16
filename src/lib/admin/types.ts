@@ -5,7 +5,7 @@ import type {
   ProductReview,
   StockMovement,
 } from "@/lib/admin/inventory/inventory-types";
-import type { IntakeRecord } from "@/lib/admin/product-editor-types";
+import type { IntakeRecord } from "@/lib/admin/product-editor/product-editor-types";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
@@ -93,7 +93,7 @@ export type {
   StockedProductEditorValues,
   UniqueProductEditorValues,
   VariantProductEditorValues,
-} from "@/lib/admin/product-editor-types";
+} from "@/lib/admin/product-editor/product-editor-types";
 
 export type {
   ControlRoomHold,

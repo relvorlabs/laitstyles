@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { convertEditorValuesToProduct } from "@/lib/admin/product-editor-conversion";
-import { createEmptyProductEditorValues } from "@/lib/admin/product-editor-defaults";
+import { convertEditorValuesToProduct } from "@/lib/admin/product-editor/product-editor-conversion";
+import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 
 const now = "2026-07-10T13:00:00+01:00";
 const idFactory = (prefix: string) => `${prefix}-pricing-test`;

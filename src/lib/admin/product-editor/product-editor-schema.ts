@@ -3,7 +3,7 @@ import type {
   ProductEditorIssue,
   ProductEditorStep,
   ProductEditorValues,
-} from "@/lib/admin/product-editor-types";
+} from "@/lib/admin/product-editor/product-editor-types";
 
 const measurementSchema = z.object({
   id: z.string().min(1),

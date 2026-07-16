@@ -11,7 +11,10 @@ import { Progress } from "@/components/ui/progress";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { formatIntakeStage, getAdjacentIntakeStages } from "@/lib/admin/product-editor-actions";
+import {
+  formatIntakeStage,
+  getAdjacentIntakeStages,
+} from "@/lib/admin/product-editor/product-editor-reducer";
 import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/types";
 
 const stageOrder: IntakeStage[] = [

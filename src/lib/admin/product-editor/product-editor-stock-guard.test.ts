@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { applyProductEditorAction } from "@/lib/admin/product-editor-actions";
 import {
   changeProductEditorMode,
   createProductEditorValues,
-} from "@/lib/admin/product-editor-defaults";
-import { validateProductForPublish } from "@/lib/admin/product-editor-schema";
+} from "@/lib/admin/product-editor/product-editor-defaults";
+import { applyProductEditorAction } from "@/lib/admin/product-editor/product-editor-reducer";
+import { validateProductForPublish } from "@/lib/admin/product-editor/product-editor-schema";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 const now = "2026-07-09T15:00:00+01:00";

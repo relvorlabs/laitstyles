@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createEmptyProductEditorValues } from "@/lib/admin/product-editor-defaults";
-import { validateProductEditorStep } from "@/lib/admin/product-editor-schema";
+import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import { validateProductEditorStep } from "@/lib/admin/product-editor/product-editor-schema";
 
 describe("Product editor catalogue edge cases", () => {
   it("rejects duplicate images and more than one featured cover", () => {

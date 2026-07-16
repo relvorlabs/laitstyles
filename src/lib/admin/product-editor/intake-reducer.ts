@@ -1,13 +1,13 @@
-import { createProductEditorValues } from "@/lib/admin/product-editor-defaults";
-import { validateProductForPublish } from "@/lib/admin/product-editor-schema";
-import { replaceOrAppendProduct } from "@/lib/admin/product-editor-state-utils";
+import { createProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import { validateProductForPublish } from "@/lib/admin/product-editor/product-editor-schema";
+import { replaceOrAppendProduct } from "@/lib/admin/product-editor/product-editor-state-utils";
 import type {
   IntakeRecord,
   IntakeStage,
   IntakeTransitionSuccess,
   ProductEditorActionError,
   ProductEditorIntent,
-} from "@/lib/admin/product-editor-types";
+} from "@/lib/admin/product-editor/product-editor-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 import type { ControlRoomState, InventoryProduct } from "@/lib/admin/types";
 

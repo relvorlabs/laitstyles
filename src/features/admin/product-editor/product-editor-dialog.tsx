@@ -29,14 +29,14 @@ import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
   createProductEditorValues,
-} from "@/lib/admin/product-editor-defaults";
+} from "@/lib/admin/product-editor/product-editor-defaults";
 import {
   productEditorDraftSchema,
   validateProductEditorStep,
   validateProductForPublish,
   validateProductForSchedule,
-} from "@/lib/admin/product-editor-schema";
-import { productEditorSteps } from "@/lib/admin/product-editor-types";
+} from "@/lib/admin/product-editor/product-editor-schema";
+import { productEditorSteps } from "@/lib/admin/product-editor/product-editor-types";
 import type {
   InventoryMode,
   ProductEditorActionSuccess,

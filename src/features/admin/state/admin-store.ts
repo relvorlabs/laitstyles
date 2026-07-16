@@ -32,7 +32,7 @@ import {
   applyIntakeTransition,
   applyProductEditorAction,
   createInitialIntakeRecords,
-} from "@/lib/admin/product-editor-actions";
+} from "@/lib/admin/product-editor/product-editor-reducer";
 import type { Result } from "@/lib/admin/result";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
 import { applySaveStoreSettings } from "@/lib/admin/settings-actions";

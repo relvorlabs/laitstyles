@@ -1,25 +1,25 @@
 import {
   createInitialIntakeRecords,
   updateIntakeAfterEditorAction,
-} from "@/lib/admin/intake-actions";
-import { convertEditorValuesToProduct } from "@/lib/admin/product-editor-conversion";
+} from "@/lib/admin/product-editor/intake-reducer";
+import { convertEditorValuesToProduct } from "@/lib/admin/product-editor/product-editor-conversion";
 import {
   productEditorDraftSchema,
   validateProductForPublish,
   validateProductForSchedule,
-} from "@/lib/admin/product-editor-schema";
+} from "@/lib/admin/product-editor/product-editor-schema";
 import {
   getProductReferences,
   normalizeProductReference,
   replaceOrAppendProduct,
-} from "@/lib/admin/product-editor-state-utils";
-import { validateCommittedStockEdit } from "@/lib/admin/product-editor-stock-guard";
+} from "@/lib/admin/product-editor/product-editor-state-utils";
+import { validateCommittedStockEdit } from "@/lib/admin/product-editor/product-editor-stock-guard";
 import type {
   ProductEditorActionError,
   ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
-} from "@/lib/admin/product-editor-types";
+} from "@/lib/admin/product-editor/product-editor-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 import type { ControlRoomState, InventoryProduct, StockMovement } from "@/lib/admin/types";
 

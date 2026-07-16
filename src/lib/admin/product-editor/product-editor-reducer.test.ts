@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
-  applyIntakeTransition,
-  applyProductEditorAction,
-  createInitialIntakeRecords,
-} from "@/lib/admin/product-editor-actions";
-import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
   createProductEditorValues,
-} from "@/lib/admin/product-editor-defaults";
+} from "@/lib/admin/product-editor/product-editor-defaults";
+import {
+  applyIntakeTransition,
+  applyProductEditorAction,
+  createInitialIntakeRecords,
+} from "@/lib/admin/product-editor/product-editor-reducer";
 import {
   validateProductEditorStep,
   validateProductForPublish,
-} from "@/lib/admin/product-editor-schema";
+} from "@/lib/admin/product-editor/product-editor-schema";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 import type { ControlRoomState, ProductEditorValues } from "@/lib/admin/types";
 

@@ -4,7 +4,10 @@ import type {
   ProductMedia,
   PublicationState,
 } from "@/lib/admin/inventory/inventory-types";
-import type { ProductEditorIntent, ProductEditorValues } from "@/lib/admin/product-editor-types";
+import type {
+  ProductEditorIntent,
+  ProductEditorValues,
+} from "@/lib/admin/product-editor/product-editor-types";
 
 export type ProductConversionOptions = {
   intent: ProductEditorIntent;
