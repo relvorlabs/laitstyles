@@ -8,7 +8,7 @@ Phase 6 was completed under the user’s explicit override while Phase 4 and Pha
 
 ## Goal
 
-Deliver a polished store-configuration experience that lets a non-technical Laitstyle operator understand and change store behaviour using plain business language.
+Deliver a polished store-configuration experience that lets a non-technical Laitstyle admin understand and change store behaviour using plain business language.
 
 Settings is one coherent operating surface with distinct sections rather than six unrelated generic forms. Every section explains the customer or store outcome of a choice and preserves truthful boundaries.
 

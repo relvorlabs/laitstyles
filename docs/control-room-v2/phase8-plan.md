@@ -165,7 +165,7 @@ Implementation record: `docs/control-room-v2/phase8-overview-audit.md`.
 
 ## Explicit exclusions preserved
 
-- TanStack Query or server-state migration; that now belongs to Phase 12 after the Supabase readiness/auth/schema phases.
+- TanStack Query or server-state migration; that belongs to Phase 12 after authentication and Prisma schema readiness.
 - Real API routes, database persistence, authentication, object storage or production caching.
 - Per-unit serial numbers for interchangeable stocked units.
 - Restoring the legacy catch-all Admin page.

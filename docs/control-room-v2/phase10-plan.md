@@ -1,115 +1,33 @@
-# Laitstyle Control Room V2 — Phase 10 Supabase Auth and Organization Permissions
+# Laitstyle Control Room V2 — Phase 10 Authentication and Role Permissions
 
-## Status
+## Objective
 
-**In progress.**
+Use Supabase Auth for identity and sessions while keeping authorization in the application database through `profiles.role`.
 
-Phase 10 started after the user explicitly approved moving past the Phase 9 React Doctor timeout
-blocker.
+## Account model
 
-## Goal
+- `consumer`: storefront registration, sign-in and self-service access to owned customer records.
+- `admin`: the single store owner, created only by the email/password bootstrap command.
+- `manager`: staff sign-in with operational permissions and owner-only settings excluded.
 
-Implement end-to-end Supabase Auth for Laitstyle staff and storefront consumers, including Google OAuth, server-side session handling, organization/store membership and role-based permission gates.
+There is one store. Authorization never resolves through a store selector, tenant identifier, membership record or database-managed capability table. The backend loads the authenticated profile through Prisma and checks the static capability matrix in `src/lib/auth/permissions.ts`. The admin layout passes the resolved staff role to a client provider so the interface can hide or disable unavailable actions.
 
-## Source requirements
+## Authentication flows
 
-- Current Supabase changelog checked for auth/database breaking changes.
-- Current Supabase SSR client docs checked.
-- Current Supabase Google OAuth docs checked.
-- Current Next.js 16 docs checked for proxy, route handlers and async request APIs where used.
+- Consumers may register and sign in through storefront authentication and receive a `consumer` profile.
+- Staff use the dedicated staff sign-in surface. There is no public staff registration.
+- Bootstrap the admin with `pnpm auth:bootstrap-admin -- --email <email> --password <password>`.
+- Managers are provisioned through an owner-controlled backend process and then use staff sign-in.
+- Redirect targets are validated before use; server authorization remains authoritative.
 
-## Identity model
+## Capability boundary
 
-Supabase Auth owns sign-in identity. Application tables own authorization.
+The admin has the full staff capability set. Managers can read and update inventory, orders, holds, returns and customer operations, record sales, read settings and export reports. Managers cannot update settings, delete inventory or read the audit log. Consumers have only storefront and own-account capabilities.
 
-- `auth.users` remains the identity source.
-- `public.profiles` stores app profile information for every authenticated user.
-- `public.organizations` groups one or more stores under an owner.
-- `public.stores` is the operational tenant boundary for Control Room data.
-- `public.store_memberships` assigns a profile to a store with a role.
-- `public.role_capabilities` maps roles to named permissions.
-- `public.customers` links consumer profiles to storefront customer records where applicable.
+## Acceptance
 
-Authorization must not rely on user-editable metadata.
-
-## Staff roles
-
-| Role | Purpose | Capability boundary |
-| --- | --- | --- |
-| `owner` | CEO/store owner | Full store control, team management, destructive product actions, export, ownership-only settings |
-| `manager` | Senior operator | Catalogue, orders, holds, returns, customers and most store settings; no owner transfer or owner-only destructive actions |
-| `operator` | Sales staff | Daily sales, holds, fulfilment and assigned customer work; no team management, exports, owner settings or final destructive actions |
-
-Use capability names such as:
-
-- `store:view`
-- `settings:update`
-- `team:manage`
-- `inventory:create`
-- `inventory:update`
-- `inventory:archive`
-- `inventory:delete`
-- `orders:update`
-- `holds:update`
-- `sales:record`
-- `returns:update`
-- `customers:view`
-- `customers:note`
-- `reports:export`
-
-## Consumer permissions
-
-Consumers can:
-
-- sign in with email or Google
-- manage their own profile and addresses
-- view their own orders, holds, returns and reviews
-- save products and submit reviews
-- check out or place holds through storefront flows
-- read public published storefront catalogue data
-
-Consumers cannot access Control Room routes, internal notes, staff activity, cost/margin data, stock movement internals, unpublished products or store team settings.
-
-## Implementation scope
-
-- Add Supabase SSR clients in `src/lib/supabase/`.
-- Add auth role/capability contracts in `src/lib/auth/`.
-- Add a Next.js `proxy.ts` session refresh path using Supabase SSR cookies.
-- Add `src/app/auth/callback/route.ts` for OAuth code exchange.
-- Add `src/app/auth/google/route.ts` as the route-handler entry point for Google OAuth initiation so the flow is browser-native and directly smoke-testable outside React Server Action internals.
-- Add an auth error page/route.
-- Add sign-in and sign-out flows for staff and consumers.
-- Add server guards for Control Room route access.
-- Add role/capability helpers for action-level checks.
-- Add permission-restricted states to Control Room surfaces.
-- Add storefront account boundaries for signed-out, signed-in and denied states.
-- Add deterministic tests for role capability mapping and guard behavior.
-
-## Out of scope
-
-- Full production catalogue/order persistence.
-- Supabase schema/RLS migrations beyond minimal auth tables if Phase 11 has not started.
-- TanStack Query.
-- Payment provider, courier provider and messaging provider integration.
-- Multi-store enterprise workflows beyond the single-organization/store foundation.
-
-## Acceptance criteria
-
-- Google OAuth redirects through Supabase and returns through the callback route locally.
-- Sessions are read and refreshed through server-side cookie handling.
-- Server protection uses `getClaims()` or `getUser()` and does not trust `getSession()` for authorization.
-- Staff roles map to capability checks in one shared contract.
-- Control Room routes reject signed-out and unauthorized users.
-- Consumer routes expose only consumer capabilities.
-- Permission-restricted UI states are clear and accessible.
-- Service role and secret keys never appear in client bundles or `NEXT_PUBLIC_` variables.
-- Lint, TypeScript, Vitest, build, React Doctor and browser auth smoke checks pass.
-
-## Resume verification notes — 2026-07-11
-
-- `POST /auth/google` and `GET /auth/google?next=/admin` now return 303 redirects to Supabase OAuth with PKCE and a local `/auth/callback?next=/admin` return target.
-- `/auth/sign-in?next=/admin` returns 200 after a clean dev-server restart.
-- Signed-out `/admin` still redirects to `/auth/sign-in?next=/admin`.
-- `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm exec vitest run --passWithNoTests` and `pnpm build` passed.
-- Required React Doctor command `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out after 5 minutes. The supported changed-scope fallback with `--scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` passed with no issues.
-- Full browser OAuth completion remains blocked until browser automation or an interactive Google account session is available.
+- Only `consumer`, `admin` and `manager` are valid roles.
+- A consumer cannot enter `/admin`.
+- A manager can operate approved workflows but cannot update store settings or perform owner-only actions.
+- Only one profile can have the `admin` role.
+- No membership, invitation, store-switching or elevated platform-admin surface exists.

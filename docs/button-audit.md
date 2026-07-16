@@ -9,9 +9,9 @@
 - **Button primitive:** `src/components/ui/button.tsx`
 - **Strict command:** `pnpm audit:buttons`
 
-The application-button migration is implemented across the mapped storefront, account and Admin surfaces. The package command invokes `scripts/audit-buttons.mjs --strict`, so any non-allowlisted application `<button>` fails the audit.
+The application-button migration is implemented across the mapped storefront, account and Admin surfaces. The shared primitive uses the shadcn `base-mira` Button contract and one ergonomic application size scale. Feature code selects its built-in variants and sizes; call-site classes are limited to positioning and composite-content layout.
 
-Executable repository-wide verification is still unavailable because the current GitHub Actions jobs finish with `steps: null` and no logs URL. Counts below are therefore limited to source patterns remediated or directly inspected in this PR; no unobserved repository-wide total is invented.
+The package command invokes `scripts/audit-buttons.mjs --strict`, so any non-allowlisted application `<button>` or legacy custom button class system fails the audit.
 
 ## Grounded counts
 
@@ -21,7 +21,7 @@ Executable repository-wide verification is still unavailable because the current
 | Direct Base UI account button wrappers | 2 | 0 | Both account wrappers delegate to shared shadcn `Button` |
 | Explicit `TODO(button-action)` dependencies | 0 | 13 | Changed account/storefront source |
 | Real sign-out actions replacing toast-only placeholders | 0 | 1 | Account sidebar posts to `/auth/sign-out` |
-| Repository-wide strict audit result | Unavailable | Unverified | Runner exposes no executable step/log evidence |
+| Repository-wide strict audit result | Unavailable | Passing locally | `pnpm audit:buttons` on 2026-07-15 |
 
 ## Remediated surfaces
 
@@ -37,8 +37,8 @@ Executable repository-wide verification is still unavailable because the current
 
 The following former blocker files were read from the PR branch through their full line ranges and contain shared `Button` controls rather than application-native button tags:
 
-- `src/features/storefront/home-lab/storefront-lab.tsx`
-- `src/features/storefront/home-lab/storefront-overlays.tsx`
+- `src/features/storefront/home/storefront-home.tsx`
+- `src/features/storefront/shared/storefront-overlays.tsx`
 - `src/features/storefront/shared/storefront-auth-dialog.tsx`
 - `src/features/storefront/shared/storefront-feedback.tsx`
 - `src/features/storefront/catalogue/mobile-filters.tsx`
@@ -53,14 +53,9 @@ The Returns desktop table was discovered during the canonical Admin import pass 
 
 ## Button contract
 
-`src/components/ui/button.tsx` is the authoritative application interaction primitive. It provides:
+`src/components/ui/button.tsx` is the authoritative application interaction primitive. It keeps the shadcn `base-mira` default, outline, secondary, ghost, destructive and link variants. Its central size scale is deliberately roomier: text controls run from 32px to 44px high and icon controls from 32px to 44px, with consistent padding and icon gaps. Application-level foreground guards, `data-variant`/`data-size` hooks, duplicate account CVA styles and storefront CSS button systems have been removed.
 
-- semantic foregrounds for default, outline, secondary, ghost, destructive and link variants;
-- filled destructive styling with `destructive-foreground`;
-- SVG inheritance through `currentColor`;
-- visible focus and active states;
-- readable disabled opacity;
-- `data-variant` and `data-size` hooks for computed-style tests.
+Button state is selected through the primitive's `variant` and `size` props. Custom classes may position a control or lay out complex child content, but may not redefine button color, hover, border, radius, typography or theme behavior.
 
 ## Intentional native exceptions
 
@@ -81,7 +76,7 @@ These primitives may render a native button internally. Application feature file
 | BTN-SHARED-002 | Shared | `src/components/theme/theme-toggle.tsx` | Toggle light/dark theme | `Button` | migrated |
 | BTN-SHARED-003 | Shared | `src/components/layout/cart-sheet.tsx` | Open bag sheet | `Button` through `SheetTrigger` | migrated |
 | BTN-STOREFRONT-001 | Storefront | home/header/footer | Navigate, search, save and open sheets | `Button` | migrated |
-| BTN-STOREFRONT-002 | Storefront | `storefront-lab.tsx` | Hero, category, catalogue and newsletter actions | `Button` | full branch scan clean |
+| BTN-STOREFRONT-002 | Storefront | `storefront-home.tsx` | Hero, category, catalogue and newsletter actions | `Button` | full branch scan clean |
 | BTN-STOREFRONT-003 | Storefront | `storefront-overlays.tsx` | Search, quick view, viewer, drawers, filters and support | `Button` | full branch scan clean |
 | BTN-STOREFRONT-004 | Storefront | product card/detail/cart | Save, hold, quantity, media and checkout controls | `Button` | migrated |
 | BTN-ACCOUNT-001 | Account | account primitives | Reusable account actions | shared `Button` | duplicate wrappers removed |
@@ -109,8 +104,8 @@ These controls intentionally report that their dependency is unavailable rather 
 | `src/features/storefront/account/sections/overview-section.tsx` | Track order | Trusted fulfilment tracking URL |
 | `src/features/storefront/account/sections/order-detail-section.tsx` | Download receipt | Signed receipt endpoint/file |
 | `src/features/storefront/account/sections/order-detail-section.tsx` | Track shipment | Trusted fulfilment tracking URL |
-| `src/features/storefront/home-lab/site-header.tsx` | Open Instagram | Verified public profile URL |
-| `src/features/storefront/home-lab/site-header.tsx` | Open TikTok | Verified public profile URL |
+| `src/features/storefront/shell/site-header.tsx` | Open Instagram | Verified public profile URL |
+| `src/features/storefront/shell/site-header.tsx` | Open TikTok | Verified public profile URL |
 
 ## Verification commands
 
@@ -125,4 +120,15 @@ pnpm exec playwright install --with-deps chromium
 pnpm test:e2e
 ```
 
-The workflows currently fail before exposing step or log evidence, so no command is represented as passing. The PR remains draft until these commands execute successfully in a working runner or local checkout.
+Local evidence on 2026-07-15:
+
+- The shadcn registry comparison confirmed the variant/theme implementation before the shared ergonomic size scale was applied.
+- `pnpm audit:buttons`: passed.
+- Targeted Playwright verification: passed in light and dark at 375 × 812, 768 × 1024 and 1280 × 800, including horizontal overflow, accessible names and the corrected checkout-link contrast.
+- `pnpm lint`: blocked by existing repository-wide Biome errors outside the button scope.
+- `pnpm typecheck`: timed out in this OneDrive checkout after six minutes; an earlier isolated run passed before the final link-semantics patch.
+- `pnpm test`: the server/client boundary test failed, then Vitest hung during teardown.
+- `pnpm build`: first failed because Prisma could not unlink a generated client file (`EPERM`); the elevated retry timed out after ten minutes.
+- React Doctor: timed out after five minutes without a report.
+
+These blocked repository-wide gates are not represented as passing.

@@ -2,13 +2,13 @@
 
 **Status:** Locked for phased implementation  
 **Branch:** `feat/control-room-v2`  
-**Primary user:** Laitstyle owner/operator  
+**Primary user:** Laitstyle admin/store owner  
 **Secondary user:** Store staff member with limited operational responsibility  
 **Implementation rule:** Finish and verify one phase before starting another.
 
 ## 1. Product statement
 
-Control Room V2 is the operating workspace for running a fashion resale and stocked-clothing business. It must help a non-technical store operator understand what is happening, decide what needs attention, and complete daily work without navigating a collection of database-like tables.
+Control Room V2 is the operating workspace for running a fashion resale and stocked-clothing business. It must help a non-technical store owner or manager understand what is happening, decide what needs attention, and complete daily work without navigating a collection of database-like tables.
 
 The interface should feel like a modern fashion operations studio: editorial in presentation, operational in density, visual where products matter, and calm under pressure.
 
@@ -52,7 +52,7 @@ Desktop may use dense workspaces. Tablet must preserve core comparison and actio
 
 ## 4. Core jobs to be done
 
-The owner/operator must be able to:
+The admin/store owner must be able to:
 
 1. Understand today’s store health and priorities.
 2. Add, edit, publish and archive products.
@@ -108,7 +108,7 @@ Overview is a daily command centre. It must answer:
 - Which orders or deliveries are at risk?
 - Which holds are close to release?
 - How much revenue came from online and offline channels?
-- What should the operator do next?
+- What should the staff member do next?
 
 ### Active-store overview
 
@@ -290,7 +290,7 @@ The flow is a seven-step wizard:
 ### Wizard requirements
 
 - Progress is preserved while the dialog remains open.
-- The operator can move backward without losing entered values.
+- The staff member can move backward without losing entered values.
 - Each step validates locally and shows errors next to the relevant field.
 - The final step distinguishes blocking requirements from optional improvements.
 - Closing with unsaved work requires confirmation.
@@ -608,101 +608,40 @@ State demonstrations must not appear as development controls in the production-f
 - Long inventories should be prepared for pagination or virtualization; do not implement virtualization before the data volume requires it
 - Avoid unnecessary context subscriptions and page-wide client rendering
 
-## 21. Authentication, organization and permission direction
+## 21. Authentication, roles and permissions
 
-The next implementation phases introduce real Supabase-backed identity and authorization before TanStack Query owns server-state reads.
+Supabase Auth owns identity and sessions. Prisma profiles own application authorization. The supported roles are:
 
-### 21.1 Identity surfaces
+- **Consumer** — storefront browsing, purchasing and access to their own account, orders and saved products.
+- **Admin / store owner** — the one owner account with all operations, settings, audit and destructive-action capabilities.
+- **Store manager** — operational inventory, order, hold, return, sales and customer capabilities without admin-only settings, audit or destructive inventory deletion.
 
-Laitstyle needs two authenticated surfaces:
+Consumers may register through the storefront. Staff cannot self-register. The admin is created only by the email/password bootstrap command; managers are provisioned through an owner-controlled backend process.
 
-1. **Control Room staff** — owner, managers and operators working inside a store organization.
-2. **Storefront consumers** — shoppers who browse, save, hold, order, review and manage their own account history.
+Server checks are authoritative. Client role controls use the same typed capability map for visibility and disabled states. Roles are never accepted from client input or user-editable auth metadata.
 
-Staff and consumers may share one Supabase Auth identity, but permissions come from store-scoped database records, not from user-editable metadata.
+## 22. Prisma data model direction
 
-### 21.2 Staff roles
+Prisma is the only database management layer. `prisma/schema.prisma` and `prisma/migrations` define profiles, catalogue, inventory, sales, returns, customers, reviews, settings, assets and audit data.
 
-The staff role model is store-scoped:
+Every business row belongs to the single Laitstyle store, so there is no store or tenant foreign key. `store_settings` is a singleton. `catalogue_categories.image_url` supplies the storefront category artwork.
 
-- **Owner / CEO** — owns the organization and store. Can manage all Control Room data, team membership, roles, settings, destructive product actions, exports and future billing boundaries.
-- **Manager** — can manage day-to-day catalogue, orders, holds, returns, customers and most store settings. Cannot transfer ownership, remove the owner, change owner-only permissions or perform final destructive account/store actions.
-- **Operator / sales staff** — can process daily operations such as record sale, update fulfilment, manage holds, view assigned customer context and update non-destructive stock workflow states. Cannot manage team permissions, high-risk settings, exports or destructive product/store actions.
+Database workflow:
 
-Permissions must be represented as named capabilities so UI gating, server checks and RLS policies can agree without duplicating hand-written role logic in every component.
+1. edit and format the Prisma schema;
+2. validate it;
+3. create and review a Prisma migration;
+4. regenerate Prisma Client;
+5. deploy committed Prisma migrations.
 
-### 21.3 Consumer role
+Supabase database tooling is not part of this workflow.
 
-Consumers can:
+## 23. Non-goals before production integration
 
-- manage their own profile, contact preferences and addresses
-- view their own orders, holds, returns, saved products and reviews
-- create storefront checkout, hold and review records that belong to their profile
-- read published storefront catalogue data according to publication and channel visibility rules
-
-Consumers must not see Control Room routes, staff-only customer notes, internal activity, cost/margin data, stock movement internals, unpublished products or staff settings.
-
-### 21.4 Auth implementation requirements
-
-- Use Supabase Auth with server-side cookie handling for Next.js.
-- Support Google OAuth through Supabase Auth with the PKCE callback route.
-- Add a dedicated auth callback and auth error route before protecting staff or consumer screens.
-- Use `getClaims()` or `getUser()` appropriately on the server. Do not trust `getSession()` for authorization decisions.
-- Keep the service role key out of browser code.
-- Do not store authorization decisions in `raw_user_meta_data`.
-- Keep team membership, store roles and permissions in database tables protected by RLS.
-- Add a permission-restricted state to Control Room pages and actions when auth is active.
-- Add consumer account states for signed-out, signed-in and permission-denied storefront flows.
-
-## 22. Supabase data model direction
-
-The Supabase schema must map to the current Control Room domains instead of creating a parallel vocabulary.
-
-### 22.1 Required database domains
-
-- Identity: profiles, organizations, stores, store memberships, invitations, role capabilities and audit events
-- Catalogue: products, product variants, media, measurements, categories, collections and channel visibility
-- Inventory: stock levels, stock movements, intake records and lifecycle/publication state
-- Sales: carts or checkout sessions where needed, holds, orders, order lines, payment events, fulfilment events and offline sales
-- Returns: return requests, return lines, dispositions and refund tracking
-- Customers: customer profiles, addresses, preferences, notes, saved products and relationship history
-- Reviews: product reviews linked to the consumer/customer and product
-- Settings: store identity, selling preferences, delivery zones, pickup locations, payment preferences and notification preferences
-- Storage: product media and store brand assets
-
-### 22.2 RLS and access rules
-
-- Enable RLS on every table in exposed schemas.
-- Use explicit `TO anon` and `TO authenticated` policy targets.
-- Public storefront policies may expose only published storefront-visible catalogue records.
-- Consumer policies must restrict rows to the authenticated consumer/customer relationship.
-- Staff policies must require active store membership and the needed role or capability.
-- Owner-only operations must remain owner-only in database policies and server-side mutation checks.
-- Policy predicates must use indexed `store_id`, `organization_id`, `profile_id`, `customer_id` and stable business IDs where relevant.
-- Views exposed to browser clients must use `security_invoker = true` on supported Postgres versions or remain outside exposed schemas.
-
-### 22.3 Migration and generated types
-
-- Create migrations through the Supabase CLI migration workflow.
-- Do not hand-invent migration timestamps.
-- Add local seed data only when it is deterministic and clearly marked as development data.
-- Generate TypeScript database types after migrations are applied.
-- Align repository adapters with generated database types before moving UI reads to TanStack Query.
-
-See `docs/control-room-v2/supabase-schema-plan.md` for the table and policy blueprint.
-
-## 23. Non-goals before the Supabase phases
-
-- Payment-provider integration
-- Courier integration
-- Messaging integration
-- Full analytics warehouse
-- Accounting or tax platform
-- Supplier/vendor management
-- Multi-store or warehouse management
-
-The UI may define clear integration boundaries for these, but must not represent them as complete before their dedicated phase. Real authentication, staff permissions, database persistence and file storage become in-scope only in the Supabase phases and remain incomplete until those phase gates pass.
-
+- Payment settlement, courier and messaging-provider implementation
+- Supplier, warehouse, accounting and tax systems
+- Realtime updates without a proven operational need
+- Production claims while a domain still uses deterministic prototype data
 ## 24. Definition of done for each implementation phase
 
 A phase is complete only when:
@@ -720,6 +659,6 @@ A phase is complete only when:
 
 ## 25. Final success criteria
 
-Control Room V2 is successful when a store operator can understand daily priorities, manage both unique and multi-unit inventory, complete core sales operations and configure the store without needing to understand the application’s technical architecture.
+Control Room V2 is successful when the store owner or manager can understand daily priorities, manage both unique and multi-unit inventory, complete core sales operations and configure the store without needing to understand the application’s technical architecture.
 
 The result should feel recognisably Laitstyle, visually considered and operationally trustworthy—not like a styled database or generic admin template.

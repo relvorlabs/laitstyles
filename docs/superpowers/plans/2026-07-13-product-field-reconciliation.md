@@ -4,15 +4,15 @@
 
 **Goal:** Make one neutral product-domain contract carry every shopper-relevant field end-to-end (DB → mappers → shared domain → storefront card & detail) and let the Control Room editor enter, validate and round-trip those fields — closing the gap where the storefront prototype shows attributes (material, fit, style, care, disclosed flaws) that exist nowhere in the real pipeline.
 
-**Architecture:** The repo already has the neutral shared domain (`src/lib/storefront/types.ts`), Prisma→domain mappers (`src/server/commerce/catalogue/mappers.ts`), a read repository, a minimal admin→DB write path (`product-write.ts`), and a real storefront card that consumes `ProductSummary`. The frozen `home-lab` prototype does NOT use any of it. This plan (1) adds the genuinely-missing persisted columns, (2) threads them through the write path, mappers and shared domain, (3) extends the Control Room editor input/validation/conversion + UI to collect them, then (4) migrates the `home-lab` card & detail onto the shared contracts and points the live routes at the real repository.
+**Architecture:** The repo already has the neutral shared domain (`src/lib/storefront/types.ts`), Prisma→domain mappers (`src/server/commerce/catalogue/mappers.ts`), a read repository, a minimal admin→DB write path (`product-write.ts`), and a real storefront card that consumes `ProductSummary`. The frozen `storefront prototype` prototype does NOT use any of it. This plan (1) adds the genuinely-missing persisted columns, (2) threads them through the write path, mappers and shared domain, (3) extends the Control Room editor input/validation/conversion + UI to collect them, then (4) migrates the `storefront prototype` card & detail onto the shared contracts and points the live routes at the real repository.
 
-**Tech Stack:** Next.js 16, React 19, TypeScript 5, Prisma 7 with **Prisma-managed migrations against hosted Supabase** (CLI/migrate use `DIRECT_URL` via `prisma.config.ts`; runtime client uses `DATABASE_URL` through the `@prisma/adapter-pg` driver adapter). No Supabase CLI, no local Postgres. Zod 4, React Hook Form 7, Vitest 4, Biome 2.
+**Tech Stack:** Next.js 16, React 19, TypeScript 5 and Prisma 7 with Prisma-managed PostgreSQL migrations. Prisma commands use `DIRECT_URL`; the runtime client uses `DATABASE_URL` through `@prisma/adapter-pg`. Supabase is authentication-only. Zod 4, React Hook Form 7, Vitest 4 and Biome 2.
 
 ## Global Constraints
 
-- **Branch (CORRECTED 2026-07-13):** All parts run on **`feat/storefront-v2-spec`** — it is the only branch containing BOTH the storefront pipeline (`server/commerce/catalogue`, `lib/storefront/types.ts`, `home-lab`) AND the merged Control Room editor. `feat/control-room-v2` lacks the storefront pipeline, so Parts B/C/E cannot run there. The earlier per-part "(feat/control-room-v2)" labels below are superseded by this line. This diverges from AGENTS.md §3's control-room-PR isolation by necessity (user-confirmed) since the reconciliation requires both surfaces in one tree.
-- **Phase-2-3N freeze:** `home-lab/data.ts` is a deliberately frozen prototype ("Do not swap these for the real catalogue"). Part E lifts that freeze — it is gated on explicit user confirmation before execution (already granted: "full reconciliation, correct branches").
-- **Migrations are Prisma-managed against hosted Supabase.** Edit `prisma/schema.prisma` to add fields, then run `pnpm exec prisma migrate dev --name <name>` (reads `DIRECT_URL` from `.env.local` via `prisma.config.ts`, writes a migration folder under `prisma/migrations/`, applies it to the hosted DB, and regenerates the client). Do NOT hand-write `supabase/migrations/*.sql` and do NOT use the Supabase CLI. **The migrate step mutates the shared hosted database — it is outward-facing and gated on explicit user go-ahead before each run.**
+- **Branch (CORRECTED 2026-07-13):** All parts run on **`feat/storefront-v2-spec`** — it is the only branch containing BOTH the storefront pipeline (`server/commerce/catalogue`, `lib/storefront/types.ts`, `storefront prototype`) AND the merged Control Room editor. `feat/control-room-v2` lacks the storefront pipeline, so Parts B/C/E cannot run there. The earlier per-part "(feat/control-room-v2)" labels below are superseded by this line. This diverges from AGENTS.md §3's control-room-PR isolation by necessity (user-confirmed) since the reconciliation requires both surfaces in one tree.
+- **Phase-2-3N freeze:** `shared/catalogue-data.ts` is a deliberately frozen prototype ("Do not swap these for the real catalogue"). Part E lifts that freeze — it is gated on explicit user confirmation before execution (already granted: "full reconciliation, correct branches").
+- **Migrations are Prisma-managed.** Edit `prisma/schema.prisma`, create the migration with Prisma, review the generated SQL, and regenerate Prisma Client. The Supabase CLI is not part of database management. Applying a migration to a shared database is outward-facing and requires explicit user approval.
 - **New columns MUST be nullable or defaulted** so existing product rows load unchanged. No non-nullable column without a default.
 - **Never expose internal fields to the storefront.** `cost`, supplier data, `fulfilment.packagingNotes`, `fulfilment.deliveryRestrictions` must never enter `src/lib/storefront/types.ts` or any client component. The mappers are the enforcement boundary.
 - **No `any`, no broad index signatures, no unvalidated JSON casts.**
@@ -27,7 +27,7 @@
 
 **Part A — DB (feat/control-room-v2)**
 - Modify: `prisma/schema.prisma` (`model products`) — add the columns, then `prisma migrate dev` generates the SQL.
-- Create: `prisma/migrations/<ts>_product_shopper_attributes/migration.sql` — generated + applied to hosted Supabase via `DIRECT_URL`.
+- Create: `prisma/migrations/<ts>_product_shopper_attributes/migration.sql` — generated by Prisma and applied only after explicit target-database approval.
 
 **Part B — Write path + read mappers (feat/control-room-v2)**
 - Modify: `src/server/commerce/catalogue/product-write.ts` — extend `CreatePublishedProductInput`, persist new columns + gallery media + measurements.
@@ -44,10 +44,10 @@
 - Test: `src/lib/control-room/product-editor-conversion.test.ts`, `product-editor-schema.test.ts` (extend existing).
 
 **Part E — Storefront unification (feat/storefront-v2-spec)**
-- Create: `src/features/storefront/home-lab/product-view-adapter.ts` — maps `ProductDetail`/`ProductSummary` → the home-lab render shape (bridge; keeps design JSX intact).
-- Modify: `src/features/storefront/home-lab/product-card.tsx`, `product-detail-lab.tsx` — accept shared-domain-derived props.
+- Create: `src/features/storefront/shared/product-view-adapter.ts` — maps `ProductDetail`/`ProductSummary` → the storefront prototype render shape (bridge; keeps design JSX intact).
+- Modify: `src/features/storefront/shared/product-card.tsx`, `product-detail.tsx` — accept shared-domain-derived props.
 - Modify: `src/app/products/[slug]/page.tsx`, `src/app/products/page.tsx`, `src/app/(home)/page.tsx` — read from `catalog-repository`, add `revalidateTag`/route revalidation.
-- Test: `src/features/storefront/home-lab/product-view-adapter.test.ts` (create).
+- Test: `src/features/storefront/shared/product-view-adapter.test.ts` (create).
 
 **Part F — Editor→DB persistence wiring (feat/control-room-v2, Phase-12 gated)**
 - Modify: Control Room save action to call `createPublishedProduct`/an `updateProduct` sibling. Flagged as the largest risk; execute only after Parts A–E land and the Phase-12 data boundary is opened.
@@ -65,7 +65,7 @@
 **Interfaces:**
 - Produces: `products.material String?`, `products.fit String?`, `products.style String?`, `products.care_instructions String?`, `products.flaw_notes String?`, `products.weight_grams Int?`, `products.pickup_available Boolean @default(true)`, `products.delivery_restrictions String @default("")`, `products.packaging_notes String @default("")`. Consumed by Parts B, C, D.
 
-**Note:** `prisma migrate dev` applies to the **shared hosted Supabase DB** via `DIRECT_URL`. This is outward-facing — obtain explicit user go-ahead before Step 3, and do not run it over an unstable shell (a half-applied remote migration is hard to reverse).
+**Note:** `prisma migrate dev` applies to the database configured by `DIRECT_URL`. Obtain explicit user approval before applying it to a shared database.
 
 - [ ] **Step 1: Edit `prisma/schema.prisma`**
 
@@ -90,7 +90,7 @@ In `model products`, after `condition String?`, add:
 Run: `pnpm exec prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script`
 Expected: prints `ALTER TABLE "public"."products" ADD COLUMN …` for the nine columns and nothing else. Review it before applying.
 
-- [ ] **Step 3: Apply the migration to hosted Supabase (GATED — user go-ahead first)**
+- [ ] **Step 3: Apply the Prisma migration to the target database (GATED — user go-ahead first)**
 
 Run: `pnpm exec prisma migrate dev --name product_shopper_attributes`
 Expected: creates `prisma/migrations/<ts>_product_shopper_attributes/migration.sql`, applies the ADD COLUMNs to the hosted DB, regenerates the client. If the project has drift from prior out-of-band changes, STOP and escalate rather than accepting a reset.
@@ -132,8 +132,7 @@ const created: Record<string, unknown[]> = { products: [], measurements: [] };
 vi.mock("@/lib/prisma", () => ({
   Prisma: { PrismaClientKnownRequestError: class {} },
   prisma: {
-    store_memberships: { findFirst: vi.fn().mockResolvedValue({ role: "owner" }) },
-    role_capabilities: { findFirst: vi.fn().mockResolvedValue({ role: "owner" }) },
+    profiles: { findUnique: vi.fn().mockResolvedValue({ role: "admin" }) },
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({
         products: { create: async ({ data }: { data: Record<string, unknown> }) => { created.products.push(data); return { id: "p1", slug: data.slug }; } },
@@ -152,7 +151,7 @@ import { createPublishedProduct } from "./product-write";
 describe("createPublishedProduct", () => {
   it("persists shopper attributes and measurements", async () => {
     const result = await createPublishedProduct(
-      { storeId: "s1", profileId: "u1" },
+      { profileId: "u1" },
       {
         slug: "test", name: "Test", description: "d", mode: "unique", priceKobo: 1000,
         cover: { publicId: "c", secureUrl: "u", alt: "a" },
@@ -214,10 +213,9 @@ After the cover `product_media.create` call, before the channel create, add gall
       if (input.gallery?.length) {
         for (const [index, item] of input.gallery.entries()) {
           const galleryAsset = await tx.cloudinary_assets.upsert({
-            where: { store_id_public_id: { store_id: actor.storeId, public_id: item.publicId } },
+            where: { public_id: item.publicId },
             update: {},
             create: {
-              store_id: actor.storeId,
               kind: item.kind === "defect" ? "product_defect" : "product_detail",
               public_id: item.publicId, secure_url: item.secureUrl, alt: item.alt,
               width: item.width ?? null, height: item.height ?? null,
@@ -225,7 +223,7 @@ After the cover `product_media.create` call, before the channel create, add gall
           });
           await tx.product_media.create({
             data: {
-              store_id: actor.storeId, product_id: product.id, asset_id: galleryAsset.id,
+              product_id: product.id, asset_id: galleryAsset.id,
               kind: item.kind === "defect" ? "product_defect" : "product_detail", position: index + 1,
             },
           });
@@ -550,19 +548,19 @@ git commit -m "feat(control-room): identity step fields for fabric, fit, care an
 
 ## Part E — Storefront unification (branch: `feat/storefront-v2-spec`)
 
-> **STATUS (2026-07-13): DEFERRED by user decision** to a dedicated, separately-reviewed pass. Scope confirmed larger than "two files": the home-lab prototype references `Product`/`products` 82× across 9 coupled files (cart/quick-view context, overlays, catalogue, home, card, detail), so migrating card+detail requires rewiring the whole home-lab data/state/cart layer + live routes + retiring `data.ts`, and changes live homepage behavior. Not started. Parts A–D (the backend/domain/admin reconciliation) are complete and independently valuable.
+> **STATUS (2026-07-13): DEFERRED by user decision** to a dedicated, separately-reviewed pass. Scope confirmed larger than "two files": the storefront prototype prototype references `Product`/`products` 82× across 9 coupled files (cart/quick-view context, overlays, catalogue, home, card, detail), so migrating card+detail requires rewiring the whole storefront prototype data/state/cart layer + live routes + retiring `data.ts`, and changes live homepage behavior. Not started. Parts A–D (the backend/domain/admin reconciliation) are complete and independently valuable.
 
-> **Gate:** This lifts the Phase-2-3N `home-lab/data.ts` freeze (user-approved). It swaps the hardcoded prototype catalogue on `/`, `/products`, `/products/[slug]` for the real repository. Land Parts A–C first (the shared domain must already carry the new fields). Do NOT delete `home-lab/data.ts` until every consumer is migrated and the build is green.
+> **Gate:** This lifts the Phase-2-3N `shared/catalogue-data.ts` freeze (user-approved). It swaps the hardcoded prototype catalogue on `/`, `/products`, `/products/[slug]` for the real repository. Land Parts A–C first (the shared domain must already carry the new fields). Do NOT delete `shared/catalogue-data.ts` until every consumer is migrated and the build is green.
 
-### Task E1: Build a domain→home-lab render adapter
+### Task E1: Build a domain→storefront prototype render adapter
 
 **Files:**
-- Create: `src/features/storefront/home-lab/product-view-adapter.ts`
-- Test: `src/features/storefront/home-lab/product-view-adapter.test.ts`
+- Create: `src/features/storefront/shared/product-view-adapter.ts`
+- Test: `src/features/storefront/shared/product-view-adapter.test.ts`
 
 **Interfaces:**
 - Consumes: `ProductDetail`, `ProductSummary`, `conditionDisplay` from `@/lib/storefront/types`; `formatNaira` from `@/lib/money`.
-- Produces: `toCardView(summary: ProductSummary)` and `toDetailView(detail: ProductDetail)` returning the exact shape the existing `product-card.tsx` / `product-detail-lab.tsx` JSX reads (name, priceLabel, images[], sizeLabel, conditionLabel/score, mode, availability, material, fit, style, careInstructions, flawNotes, measurements, variants). This bridge lets the design JSX stay byte-for-byte where possible — only the prop *source* changes.
+- Produces: `toCardView(summary: ProductSummary)` and `toDetailView(detail: ProductDetail)` returning the exact shape the existing `product-card.tsx` / `product-detail.tsx` JSX reads (name, priceLabel, images[], sizeLabel, conditionLabel/score, mode, availability, material, fit, style, careInstructions, flawNotes, measurements, variants). This bridge lets the design JSX stay byte-for-byte where possible — only the prop *source* changes.
 
 - [ ] **Step 1: Write the failing adapter test**
 
@@ -594,7 +592,7 @@ describe("toDetailView", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm exec vitest run src/features/storefront/home-lab/product-view-adapter.test.ts`
+Run: `pnpm exec vitest run src/features/storefront/shared/product-view-adapter.test.ts`
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement the adapter**
@@ -603,31 +601,31 @@ Create `product-view-adapter.ts` mapping the shared domain to the render shape, 
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pnpm exec vitest run src/features/storefront/home-lab/product-view-adapter.test.ts`
+Run: `pnpm exec vitest run src/features/storefront/shared/product-view-adapter.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/storefront/home-lab/product-view-adapter.ts src/features/storefront/home-lab/product-view-adapter.test.ts
-git commit -m "feat(storefront): domain→home-lab render adapter"
+git add src/features/storefront/shared/product-view-adapter.ts src/features/storefront/shared/product-view-adapter.test.ts
+git commit -m "feat(storefront): domain→storefront prototype render adapter"
 ```
 
 ### Task E2: Point the detail route at the real repository
 
 **Files:**
-- Modify: `src/features/storefront/home-lab/product-detail-lab.tsx`, `src/app/products/[slug]/page.tsx`
+- Modify: `src/features/storefront/product/product-detail.tsx`, `src/app/products/[slug]/page.tsx`
 
 **Interfaces:**
 - Consumes: `getPublishedProductBySlug` from `@/server/commerce/catalogue/catalog-repository`; `toDetailView` (Task E1).
 
 - [ ] **Step 1: Change the detail component's prop type**
 
-In `product-detail-lab.tsx`, replace `product: Product` (from `./data`) with a `view: DetailView` prop (the adapter's output type). Update the JSX field reads to the view fields (`view.name`, `view.priceLabel`, `view.material`, `view.fit`, `view.style`, `view.conditionLabel`, `view.conditionScore`, `view.flawNotes`, `view.careInstructions`, `view.measurements`, `view.variants`, `view.availability`). Preserve ALL layout/motion/JSX — this is a data-source swap, not a redesign. Render measurements from `view.measurements` (real data) instead of the global `measurementsCm` constant. Guard optional sections: render the flaw section only when `view.flawNotes`, the Care accordion body from `view.careInstructions ?? <global fallback>`.
+In `product-detail.tsx`, replace `product: Product` (from `./data`) with a `view: DetailView` prop (the adapter's output type). Update the JSX field reads to the view fields (`view.name`, `view.priceLabel`, `view.material`, `view.fit`, `view.style`, `view.conditionLabel`, `view.conditionScore`, `view.flawNotes`, `view.careInstructions`, `view.measurements`, `view.variants`, `view.availability`). Preserve ALL layout/motion/JSX — this is a data-source swap, not a redesign. Render measurements from `view.measurements` (real data) instead of the global `measurementsCm` constant. Guard optional sections: render the flaw section only when `view.flawNotes`, the Care accordion body from `view.careInstructions ?? <global fallback>`.
 
 - [ ] **Step 2: Update the route to fetch + adapt + revalidate**
 
-In `src/app/products/[slug]/page.tsx`, replace `productBySlug` (home-lab data) with `await getPublishedProductBySlug(slug)`; `notFound()` when null; pass `view={toDetailView(product)}`. Keep the JSON-LD but source it from the domain product. Replace `generateStaticParams` over prototype data with either dynamic rendering or params from `listPublishedProducts`. Add `export const revalidate` / a `revalidateTag` consistent with the repo's caching (mirror `(shop)` routes).
+In `src/app/products/[slug]/page.tsx`, replace `productBySlug` (storefront prototype data) with `await getPublishedProductBySlug(slug)`; `notFound()` when null; pass `view={toDetailView(product)}`. Keep the JSON-LD but source it from the domain product. Replace `generateStaticParams` over prototype data with either dynamic rendering or params from `listPublishedProducts`. Add `export const revalidate` / a `revalidateTag` consistent with the repo's caching (mirror `(shop)` routes).
 
 - [ ] **Step 3: Typecheck + build**
 
@@ -641,22 +639,22 @@ Load a real product's PDP; confirm gallery, price, condition bar, measurements, 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/storefront/home-lab/product-detail-lab.tsx src/app/products/[slug]/page.tsx
+git add src/features/storefront/product/product-detail.tsx src/app/products/[slug]/page.tsx
 git commit -m "feat(storefront): PDP reads the real catalogue via shared domain"
 ```
 
 ### Task E3: Migrate the card + listing + home routes, then retire prototype data
 
 **Files:**
-- Modify: `src/features/storefront/home-lab/product-card.tsx`, `src/app/products/page.tsx`, `src/app/(home)/page.tsx`, `catalogue-lab.tsx`/`storefront-lab.tsx` as needed
-- Modify/Delete: `src/features/storefront/home-lab/data.ts` (remove `products`/`Product` once unused; keep any genuinely-shared pure helpers by relocating them)
+- Modify: `src/features/storefront/shared/product-card.tsx`, `src/app/products/page.tsx`, `src/app/(home)/page.tsx`, `product-catalogue.tsx`/`storefront-home.tsx` as needed
+- Modify/Delete: `src/features/storefront/shared/catalogue-data.ts` (remove `products`/`Product` once unused; keep any genuinely-shared pure helpers by relocating them)
 
 **Interfaces:**
 - Consumes: `ProductSummary`, `toCardView`, `listPublishedProducts`.
 
 - [ ] **Step 1: Change the card prop type to the card view**
 
-In `home-lab/product-card.tsx`, replace `product: Product` with `view: CardView` (adapter output) and update field reads. Preserve the design, badges, hover, save/quick-add controls and the `/products/[slug]` link (now `view.slug`).
+In `shared/product-card.tsx`, replace `product: Product` with `view: CardView` (adapter output) and update field reads. Preserve the design, badges, hover, save/quick-add controls and the `/products/[slug]` link (now `view.slug`).
 
 - [ ] **Step 2: Feed listing + home from the repository**
 
@@ -664,7 +662,7 @@ Update `products/page.tsx` and `(home)/page.tsx` (and the lab wrappers) to fetch
 
 - [ ] **Step 3: Remove the duplicate `Product` type + prototype array**
 
-Delete the `Product` type and `products` array from `home-lab/data.ts`; relocate any still-used pure helpers (`money`, `slugify`, `inventoryLabel`) to a neutral util or replace with `@/lib/money`/domain equivalents. Fix all imports.
+Delete the `Product` type and `products` array from `shared/catalogue-data.ts`; relocate any still-used pure helpers (`money`, `slugify`, `inventoryLabel`) to a neutral util or replace with `@/lib/money`/domain equivalents. Fix all imports.
 
 - [ ] **Step 4: Full gate**
 
@@ -716,4 +714,4 @@ Two execution options:
 1. **Subagent-Driven (recommended)** — a fresh subagent per task with review between tasks. Best for the branch-switching discipline this plan requires.
 2. **Inline Execution** — batch execution in this session with checkpoints.
 
-Note: execution requires the Bash classifier (currently intermittently unavailable) for `pnpm`/`git`/`supabase` steps.
+Note: execution requires a stable shell for pnpm, Git and Prisma steps.

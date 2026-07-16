@@ -1,38 +1,7 @@
 /*
  * Single root CSS entrypoint. globals.css owns all application theme tokens;
- * home-lab.css remains a scoped storefront component stylesheet because it contains
+ * storefront.css remains a scoped storefront component stylesheet because it contains
  * the large prototype layout/animation port rather than a second theme foundation.
  */
 @import "./globals.css";
-@import "../features/storefront/home-lab/home-lab.css";
-
-/*
- * Unlayered semantic foreground guards. The scoped storefront prototype resets
- * native button color to inherit; these more-specific data attributes preserve the
- * filled and bordered shadcn Button contracts without blanket text-white overrides.
- * Ghost/link controls intentionally inherit their contextual foreground so they stay
- * readable on inverse banners, cards and ordinary page surfaces.
- */
-[data-slot="button"] svg {
-  color: currentColor;
-}
-
-.lst-lab [data-slot="button"][data-variant="default"] {
-  color: var(--primary-foreground);
-}
-
-.lst-lab [data-slot="button"][data-variant="destructive"] {
-  color: var(--destructive-foreground);
-}
-
-.lst-lab [data-slot="button"][data-variant="secondary"] {
-  color: var(--secondary-foreground);
-}
-
-.lst-lab [data-slot="button"][data-variant="outline"] {
-  color: var(--control-foreground);
-}
-
-.lst-lab [data-slot="button"]:disabled {
-  opacity: 0.6;
-}
+@import "../features/storefront/shared/storefront.css";

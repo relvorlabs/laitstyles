@@ -15,7 +15,7 @@ Before changing code:
 1. Identify the active task and branch.
 2. Read the relevant specification, implementation plan, active phase plan and progress tracker.
 3. Load `using-superpowers` first.
-4. Load every relevant current skill from `relvorlabs/agent-controller/tree/main/skills`; do not rely on memory because skills change.
+4. only Load every relevant current skill from `relvorlabs/agent-controller/tree/main/skills` if lical skills doesn't exist; do not rely on memory because skills change.
 5. Use `find-skills` when a requested capability is not found under the expected name.
 6. Record missing skills or tools honestly. Never claim a skill, MCP or validation tool was applied when it was not actually loaded or run.
 7. Inspect the repository package manager, Next.js version, shadcn configuration, primitive base and existing component contracts before implementation.
@@ -54,8 +54,10 @@ Load the current versions of these skills before the phase where they apply.
 - `vercel-react-best-practices`
 - `vercel-composition-patterns`
 - `react-doctor`
-- `supabase-postgres-best-practices`
-- `supabase`
+
+### Database and authentication
+- `prisma`
+- `supabase` only for Supabase Auth and session work; never for database management
 
 ### Components, types and resilience
 
@@ -90,34 +92,9 @@ Control Room V2 is implemented one phase at a time on `feat/control-room-v2` and
 - Update the tracker, decisions and PR description after every completed phase.
 - Keep the PR draft until the final executable, visual and merge-integration gates pass.
 
-## 4. Control Room architecture rules
-
-The legacy `src/app/admin/[[...section]]/page.tsx` must not receive new Control Room behavior. Its version on `main` may be inspected as an information-architecture reference, but it must not be restored as a monolith.
-
-Use route-level pages and focused feature folders:
-
-```text
-src/app/admin/
-src/features/control-room/
-src/lib/control-room/
-```
-
-Rules:
-
-- Route files compose features; they do not own seed data, repository implementations, domain models or large interaction state.
-- Keep domain types, deterministic records, selectors, typed actions and Result utilities under `src/lib/control-room/` until a domain-specific data boundary is introduced.
-- Phase 9 reviews and fixes codebase structure for Supabase readiness. Phase 10 owns Supabase Auth, Google OAuth and organization permissions. Phase 11 owns Supabase schema, storage, RLS and generated types. Phase 12 owns TanStack Query repository interfaces and adapters under a clear data boundary, not inside page components.
-- Keep feature components in focused folders such as `shell`, `overview`, `inventory`, `product-editor`, `orders`, `holds`, `returns`, `record-sale`, `customers` and `settings`.
-- Split a component when it accumulates unrelated responsibilities. Roughly 200–250 lines is a review signal, not permission to create arbitrary fragments.
-- Do not replace the old monolith with one universal dashboard, query or provider file.
-- Avoid boolean-prop proliferation. Prefer explicit variants, compound composition and feature-specific components.
-- Client Component boundaries must be as narrow as practical.
-- Do not duplicate derived values in component state.
-- Connected actions must preserve cross-domain inventory, sales, customer and activity invariants through one typed domain boundary.
-
 ## 5. Product truth and scope rules
 
-Control Room V2 supports:
+Admin supports:
 
 - unique one-of-one pieces
 - stocked products with quantities
@@ -131,7 +108,7 @@ Until real integrations exist:
 - do not claim production persistence, payments, courier updates, uploads, authentication or inventory locking
 - do not add random timers, random state transitions, fake network delays or fake background jobs as normal product behavior
 - keep user-facing prototype boundaries explicit
-- do not expand into supplier management, accounting, multi-store, warehouses, marketing automation or technical platform administration unless the user explicitly changes the specification
+- do not expand into supplier management, accounting, warehouses, marketing automation or technical platform administration unless the user explicitly changes the specification
 
 ## 6. Next.js and React rules
 
@@ -197,7 +174,7 @@ Control Room rules:
 
 ## 9. TanStack Query rule
 
-TanStack Query is approved only for Phase 12 or a later explicit user-approved scope. Phase 9 through Phase 11 must complete the codebase readiness, Supabase Auth/Google OAuth, organization permissions, database schema, storage, RLS and generated type foundations before TanStack Query runtime work resumes.
+TanStack Query is approved only for Phase 12 or a later explicit user-approved scope. Phase 9 through Phase 11 must complete the codebase readiness, Supabase Auth/Google OAuth, profile-role permissions, Prisma database schema and generated-client foundations before TanStack Query runtime work resumes.
 
 ### Packages
 
