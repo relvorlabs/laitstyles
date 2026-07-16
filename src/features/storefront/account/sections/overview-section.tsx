@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
+import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
-import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
 import {
   AcctButton,
   Eyebrow,
@@ -14,15 +13,16 @@ import {
   panelElevatedClass,
   StatusBadge,
 } from "../components/account-primitives";
+import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
 
 export function OverviewSection() {
+  const { products } = useStorefront();
   const { navigate, openModal, toast } = useAccountUi();
   const { saved } = useAccountProducts();
 
-  const railProducts = (saved.length ? saved : products.filter((p) => p.status === "available")).slice(
-    0,
-    3,
-  );
+  const railProducts = (
+    saved.length ? saved : products.filter((p) => p.status === "available")
+  ).slice(0, 3);
 
   return (
     <>
@@ -125,7 +125,7 @@ export function OverviewSection() {
                 key={item.label}
                 type="button"
                 onClick={item.action}
-                className="min-h-16 w-full justify-between rounded-none px-0 text-left"
+                className="w-full justify-between text-left"
                 variant="ghost"
               >
                 <span>{item.label}</span>
@@ -141,12 +141,7 @@ export function OverviewSection() {
               <Eyebrow className="text-[var(--acc-muted)]">Purchase history</Eyebrow>
               <h2 className="mt-3 font-serif text-4xl font-normal">Recent orders</h2>
             </div>
-            <Button
-              type="button"
-              onClick={() => navigate("orders")}
-              className="h-auto p-0 text-sm font-semibold"
-              variant="link"
-            >
+            <Button size="lg" type="button" onClick={() => navigate("orders")} variant="link">
               View all
             </Button>
           </div>
@@ -182,12 +177,7 @@ export function OverviewSection() {
               Still thinking about these.
             </h2>
           </div>
-          <Button
-            type="button"
-            onClick={() => navigate("saved")}
-            className="h-auto p-0 text-sm font-semibold"
-            variant="link"
-          >
+          <Button size="lg" type="button" onClick={() => navigate("saved")} variant="link">
             Open saved items
           </Button>
         </div>

@@ -19,9 +19,10 @@ export function ReturnDetailSection() {
   return (
     <>
       <Button
+        size="lg"
         type="button"
         onClick={() => navigate("returns")}
-        className="mb-5 h-auto p-0 text-sm font-semibold"
+        className="mb-5"
         variant="link"
       >
         ← Back to returns

@@ -43,56 +43,20 @@ export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 }
 
 // ---- Buttons -------------------------------------------------------------
-// Account buttons keep their original pill dimensions and role-specific palette,
-// but use the same shadcn Button implementation as storefront and Admin.
-const acctButton = cva(
-  "min-h-12 rounded-full px-[1.1rem] py-3 text-base font-[650] whitespace-normal transition-[transform,border-color,background-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(.22,.8,.24,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] disabled:cursor-not-allowed disabled:opacity-60",
-  {
-    variants: {
-      accountVariant: {
-        primary:
-          "border border-[var(--acc-ink)] bg-[var(--acc-ink)] enabled:hover:-translate-y-0.5 enabled:hover:bg-[var(--acc-ink)] enabled:hover:shadow-[0_12px_24px_var(--shadow-color)]",
-        secondary:
-          "border border-[var(--acc-line-strong)] bg-transparent enabled:hover:border-[var(--acc-ink)] enabled:hover:bg-[var(--acc-bone-2)]",
-        danger:
-          "border border-[var(--acc-danger)] bg-[var(--acc-danger)] enabled:hover:bg-[var(--acc-danger)]",
-      },
-    },
-    defaultVariants: { accountVariant: "primary" },
-  },
-);
-
-export type AcctButtonProps = Omit<ComponentProps<typeof Button>, "variant"> &
-  VariantProps<typeof acctButton> & {
-    variant?: "primary" | "secondary" | "danger";
-  };
+export type AcctButtonProps = Omit<ComponentProps<typeof Button>, "variant"> & {
+  variant?: "primary" | "secondary" | "danger";
+};
 
 export function AcctButton({ className, variant = "primary", ...props }: AcctButtonProps) {
   const shadcnVariant =
     variant === "secondary" ? "outline" : variant === "danger" ? "destructive" : "default";
 
-  return (
-    <Button
-      className={cn(acctButton({ accountVariant: variant, className }))}
-      variant={shadcnVariant}
-      {...props}
-    />
-  );
+  return <Button className={className} variant={shadcnVariant} {...props} />;
 }
 
 /** `.icon-btn` — 44px round control (used for modal close, mobile menu). */
 export function IconButton({ className, ...props }: ComponentProps<typeof Button>) {
-  return (
-    <Button
-      className={cn(
-        "size-11 shrink-0 rounded-full border-[var(--acc-line)] bg-[color-mix(in_srgb,var(--acc-surface)_86%,transparent)] hover:-translate-y-0.5 hover:border-[var(--acc-ink)] hover:bg-[var(--acc-surface)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)]",
-        className,
-      )}
-      size="icon-lg"
-      variant="outline"
-      {...props}
-    />
-  );
+  return <Button className={className} size="icon-lg" variant="outline" {...props} />;
 }
 
 // ---- Status pill ---------------------------------------------------------

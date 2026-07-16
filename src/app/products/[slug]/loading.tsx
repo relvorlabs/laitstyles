@@ -1,10 +1,10 @@
-import "@/features/storefront/home-lab/home-lab.css";
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
+import "@/features/storefront/shared/storefront.css";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 
 // Route-level skeleton mirroring the final product-detail geometry (no centered spinner).
 export default function Loading() {
   return (
-    <div className={`lst-lab lst-catalogue ${labFontClassName}`}>
+    <div className={`lst-storefront lst-catalogue ${storefrontFontClassName}`}>
       <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8">
         <div className="h-4 w-56 rounded bg-surface-sunken" />
         <section className="mt-6 grid gap-10 pb-16 lg:grid-cols-[minmax(0,1.18fr)_minmax(390px,0.82fr)] xl:gap-16">

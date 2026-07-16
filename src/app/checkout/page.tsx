@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
 
 type Currency = "NGN" | "USD";
@@ -35,29 +36,13 @@ type FormErrors = Partial<
 >;
 type CheckoutSnapshot = ReturnType<typeof buildCheckoutSnapshot>;
 
-const checkoutItems = [
-  {
-    name: "Sage Field Vest",
-    meta: "Size M \u00B7 Sage \u00B7 Excellent",
-    seller: "Ada O.",
-    priceNum: 28000,
-    img: "https://drive.google.com/thumbnail?id=1a_gBKr983vl3VEPy5mT-oC6M4kMmiipy&sz=w1000",
-  },
-  {
-    name: "Wool Herringbone Blazer",
-    meta: "Size L \u00B7 Charcoal \u00B7 Good",
-    seller: "Tunde A.",
-    priceNum: 31000,
-    img: "https://drive.google.com/thumbnail?id=1TRkBEXRzM9TkK7UhzAqcywy5sgfbQoAQ&sz=w1000",
-  },
-  {
-    name: "Pleated Tailored Trousers",
-    meta: "Size 32 \u00B7 Olive \u00B7 Excellent",
-    seller: "Zainab M.",
-    priceNum: 22000,
-    img: "https://drive.google.com/thumbnail?id=1RbUrJyyoo6nkKfK6NJwdHO0zIHY2n04D&sz=w1000",
-  },
-];
+type CheckoutItem = {
+  name: string;
+  meta: string;
+  seller: string;
+  priceNum: number;
+  img: string;
+};
 
 const zones = [
   {
@@ -107,6 +92,16 @@ const initialForm = {
 };
 
 export default function CheckoutPage() {
+  const storefront = useStorefront();
+  const checkoutItems: CheckoutItem[] = storefront.products.slice(0, 3).map((product) => ({
+    name: product.name,
+    meta: `Size ${product.size} · ${product.colour} · ${
+      product.condition === "A+" ? "Excellent" : product.condition === "B+" ? "Fair" : "Good"
+    }`,
+    seller: "Laitstyles",
+    priceNum: product.price,
+    img: product.images[0] ?? "",
+  }));
   const [currency, setCurrency] = useState<Currency>("NGN");
   const [zone, setZone] = useState<ZoneId>("lagos");
   const [method, setMethod] = useState<PaymentId>("paystack");
@@ -127,8 +122,8 @@ export default function CheckoutPage() {
   }, []);
 
   const vals = useMemo(
-    () => buildCheckoutSnapshot(currency, zone, method, secondsLeft),
-    [currency, method, secondsLeft, zone],
+    () => buildCheckoutSnapshot(currency, zone, method, secondsLeft, checkoutItems),
+    [checkoutItems, currency, method, secondsLeft, zone],
   );
 
   function setField(name: keyof typeof form, value: string) {
@@ -190,7 +185,7 @@ export default function CheckoutPage() {
     <main className="flex min-h-screen w-full justify-center bg-[#ECEBE6] px-5 py-[26px]">
       <Card className="w-full max-w-[1120px] gap-0 overflow-hidden rounded-lg bg-card p-0 shadow-laitstyle ring-0">
         <div className="flex items-center justify-between border-b border-[#F0EEE8] px-[34px] py-[22px] max-sm:px-5">
-          <Link className="flex items-center gap-[9px]" href="/shop">
+          <Link className="flex items-center gap-[9px]" href="/products">
             <Home className="size-5" strokeWidth={1.9} />
             <span className="text-[15px] font-semibold tracking-[.26em]">LAITSTYLE</span>
           </Link>
@@ -217,10 +212,7 @@ export default function CheckoutPage() {
                     Good news &mdash; your pieces are still available. Re-hold them to finish
                     checking out. Nothing was lost.
                   </AlertDescription>
-                  <Button
-                    className="mt-2.5 h-9 rounded-full px-4 text-[12.5px] font-semibold"
-                    onClick={() => setSecondsLeft(852)}
-                  >
+                  <Button size="lg" className="mt-2.5" onClick={() => setSecondsLeft(852)}>
                     Re-hold my pieces
                   </Button>
                 </div>
@@ -244,7 +236,7 @@ export default function CheckoutPage() {
                   value={form.email}
                 />
                 <Button
-                  className="mt-4 flex h-auto items-center gap-2.5 rounded-none bg-transparent p-0 text-left font-normal hover:bg-transparent"
+                  className="mt-4 flex h-auto items-center gap-2.5 p-0 text-left"
                   onClick={() => setNews((value) => !value)}
                   variant="ghost"
                 >
@@ -371,7 +363,7 @@ export default function CheckoutPage() {
                         key={item.id}
                       >
                         <Button
-                          className="flex h-auto w-full items-center gap-[13px] rounded-none bg-transparent px-4 py-3.5 text-left font-normal hover:bg-transparent"
+                          className="flex h-auto w-full items-center gap-[13px] text-left"
                           onClick={() => setMethod(item.id)}
                           variant="ghost"
                         >
@@ -435,19 +427,12 @@ export default function CheckoutPage() {
 
             <div className="mt-7 flex gap-3">
               {step > 0 ? (
-                <Button
-                  className="h-14 rounded-full border-[1.5px] border-primary bg-card px-6 text-[14.5px] font-medium text-primary hover:bg-card"
-                  onClick={back}
-                  variant="outline"
-                >
+                <Button size="lg" onClick={back} variant="outline">
                   Back
                 </Button>
               ) : null}
               {step < 3 ? (
-                <Button
-                  className="h-14 flex-1 rounded-full text-[15px] font-semibold transition-transform hover:-translate-y-0.5"
-                  onClick={next}
-                >
+                <Button className="flex-1" onClick={next}>
                   {step === 0
                     ? "Continue to delivery"
                     : step === 1
@@ -455,10 +440,7 @@ export default function CheckoutPage() {
                       : "Review order"}
                 </Button>
               ) : (
-                <Button
-                  className="h-14 flex-1 rounded-full text-[15px] font-semibold transition-transform hover:-translate-y-0.5"
-                  onClick={payNow}
-                >
+                <Button className="flex-1" onClick={payNow}>
                   {vals.payLabel}
                 </Button>
               )}
@@ -554,7 +536,7 @@ function OrderSummary({
           className="h-12 flex-1 rounded-[9px] bg-card px-[15px] text-[13.5px]"
           placeholder="Discount code or gift card"
         />
-        <Button className="h-12 rounded-full px-[22px] text-[13.5px] font-medium">Apply</Button>
+        <Button size="lg">Apply</Button>
       </div>
 
       <SummaryRows
@@ -691,13 +673,15 @@ function ConfirmationScreen({ form, vals }: { form: typeof initialForm; vals: Ch
           </Alert>
           <div className="mt-[22px] flex flex-wrap gap-3">
             <Button
-              className="h-[52px] min-w-[180px] flex-1 rounded-full text-[14.5px] font-semibold"
-              render={<Link href="/shop" />}
+              className="min-w-[180px] flex-1"
+              nativeButton={false}
+              render={<Link href="/products" />}
             >
               Back to the archive
             </Button>
             <Button
-              className="h-[52px] min-w-[180px] flex-1 rounded-full border border-[#D6D4CB] bg-card text-[14.5px] font-semibold text-primary hover:bg-card"
+              className="min-w-[180px] flex-1"
+              nativeButton={false}
               render={<Link href="/account" />}
               variant="outline"
             >
@@ -737,7 +721,7 @@ function StepIndicator({
               />
             ) : null}
             <Button
-              className="flex h-auto shrink-0 items-center gap-2 rounded-none bg-transparent p-0 font-normal hover:bg-transparent"
+              className="flex h-auto shrink-0 items-center gap-2 p-0"
               onClick={() => goStep(index as CheckoutStep)}
               variant="ghost"
               aria-label={label}
@@ -828,12 +812,9 @@ function ChoiceRow({
 }) {
   return (
     <Button
-      className={cn(
-        "flex h-auto items-center gap-[13px] rounded-[11px] border px-4 py-3.5 text-left font-normal hover:bg-[#F7F7F3]",
-        active ? "border-primary bg-[#F7F7F3]" : "border-input bg-card",
-      )}
+      className="flex h-auto items-center gap-[13px] text-left"
       onClick={onClick}
-      variant="ghost"
+      variant={active ? "secondary" : "ghost"}
     >
       <RadioDot active={active} />
       <span className="flex-1">
@@ -882,11 +863,7 @@ function ReviewRow({ label, onEdit, value }: { label: string; onEdit: () => void
           {value}
         </div>
       </div>
-      <Button
-        className="h-auto shrink-0 self-start rounded-none p-0 text-[12.5px] font-semibold text-accent underline underline-offset-2 hover:bg-transparent"
-        onClick={onEdit}
-        variant="ghost"
-      >
+      <Button size="lg" className="shrink-0 self-start" onClick={onEdit} variant="ghost">
         Edit
       </Button>
     </div>
@@ -969,17 +946,10 @@ function ProcessingDialog({
           Complete your payment in the secure {gatewayName} window. Your pieces stay held until
           you&apos;re back.
         </p>
-        <Button
-          className="mb-2.5 h-12 w-full rounded-full text-sm font-semibold"
-          onClick={markPlaced}
-        >
+        <Button size="lg" className="mb-2.5 w-full" onClick={markPlaced}>
           I&apos;ve completed payment
         </Button>
-        <Button
-          className="h-auto rounded-none p-0 text-[12.5px] font-normal text-[#A7A59B] hover:bg-transparent"
-          onClick={simulateDecline}
-          variant="ghost"
-        >
+        <Button size="lg" onClick={simulateDecline} variant="ghost">
           Payment failed? Simulate a declined card
         </Button>
       </div>
@@ -1014,14 +984,10 @@ function DeclinedDialog({
           right away.
         </p>
         <div className="mb-[22px] text-xs text-[#8A887E]">Held for {timer} more</div>
-        <Button className="mb-2.5 h-12 w-full rounded-full text-sm font-semibold" onClick={payNow}>
+        <Button size="lg" className="mb-2.5 w-full" onClick={payNow}>
           Try payment again
         </Button>
-        <Button
-          className="h-auto rounded-none p-0 text-[13px] font-normal text-[#8A887E] hover:bg-transparent"
-          onClick={dismiss}
-          variant="ghost"
-        >
+        <Button size="lg" onClick={dismiss} variant="ghost">
           Choose another method
         </Button>
       </div>
@@ -1063,16 +1029,7 @@ function CurrencyButton({
   onClick: () => void;
 }) {
   return (
-    <Button
-      className={cn(
-        "h-8 rounded-full border px-[13px] text-xs font-semibold",
-        active
-          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/86"
-          : "border-[#D6D4CB] bg-card text-[#57554E] hover:bg-card",
-      )}
-      onClick={onClick}
-      variant="ghost"
-    >
+    <Button size="lg" onClick={onClick} variant={active ? "default" : "outline"}>
       {children}
     </Button>
   );
@@ -1113,6 +1070,7 @@ function buildCheckoutSnapshot(
   zone: ZoneId,
   method: PaymentId,
   secondsLeft: number,
+  checkoutItems: CheckoutItem[],
 ) {
   const activeZone = zones.find((item) => item.id === zone) || zones[0];
   const activeMethod = paymentMethods.find((item) => item.id === method) || paymentMethods[0];

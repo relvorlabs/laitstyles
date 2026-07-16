@@ -20,12 +20,7 @@ export function AccountBreadcrumb() {
         </li>
         <li aria-hidden="true">/</li>
         <li>
-          <Button
-            type="button"
-            onClick={() => navigate("overview")}
-            className="h-auto p-0 text-[var(--acc-muted)] hover:text-[var(--acc-ink)]"
-            variant="link"
-          >
+          <Button size="lg" type="button" onClick={() => navigate("overview")} variant="link">
             Account
           </Button>
         </li>

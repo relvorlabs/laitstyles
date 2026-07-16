@@ -102,13 +102,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
         </CardContent>
 
         <CardFooter className="border-0 bg-transparent px-3 pb-3 pt-2">
-          <Link
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "h-11 w-full rounded-[7px] text-sm transition-[transform,background-color,color,border-color] duration-200 hover:-translate-y-px motion-reduce:transform-none motion-reduce:transition-none",
-            )}
-            href={productHref}
-          >
+          <Link className={cn(buttonVariants({ size: "lg" }), "w-full")} href={productHref}>
             {isSold ? "View piece" : "Quick pick"}
           </Link>
         </CardFooter>

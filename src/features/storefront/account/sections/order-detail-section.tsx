@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
+import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import {
   AcctButton,
@@ -20,14 +20,16 @@ const thumbLinkClass =
   "block overflow-hidden rounded-[10px] border border-[var(--acc-line)] bg-[var(--acc-bone-2)]";
 
 export function OrderDetailSection() {
+  const { products } = useStorefront();
   const { navigate, openModal, toast } = useAccountUi();
 
   return (
     <>
       <Button
+        size="lg"
         type="button"
         onClick={() => navigate("orders")}
-        className="mb-5 h-auto p-0 text-sm font-semibold"
+        className="mb-5"
         variant="link"
       >
         ← Back to orders
@@ -118,9 +120,10 @@ export function OrderDetailSection() {
             </p>
           </div>
           <Button
+            size="lg"
             type="button"
             onClick={() => openModal("cancel")}
-            className="h-auto justify-self-start p-0 text-sm font-semibold acc-fg-oxblood sm:justify-self-end"
+            className="justify-self-start sm:justify-self-end"
             variant="link"
           >
             Cancel item

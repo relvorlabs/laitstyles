@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/features/storefront/catalogue/product-card";
 import type { ProductSummary } from "@/lib/storefront/types";
-import { cn } from "@/lib/utils";
 import type { CatalogueSort } from "@/server/commerce/catalogue/catalog-repository";
 
 const SORTS: { value: CatalogueSort; label: string }[] = [
@@ -11,7 +11,7 @@ const SORTS: { value: CatalogueSort; label: string }[] = [
   { value: "price_desc", label: "Price: high to low" },
 ];
 
-// Shared listing body (sort chips + grid + designed empty state) used by /shop,
+// Shared listing body (sort chips + grid + designed empty state) used by
 // category and collection landings — one contract, no per-surface duplicates.
 export function CatalogueResults({
   products,
@@ -45,18 +45,14 @@ export function CatalogueResults({
       <div className="flex flex-wrap items-center gap-2 py-5">
         <span className="mr-1 text-[12.5px] text-muted-foreground">Sort</span>
         {SORTS.map((option) => (
-          <Link
-            className={cn(
-              "rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors",
-              option.value === sort
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-control text-muted-foreground hover:bg-control-hover",
-            )}
-            href={hrefForSort(option.value)}
+          <Button
+            nativeButton={false}
+            render={<Link href={hrefForSort(option.value)} />}
             key={option.value}
+            variant={option.value === sort ? "default" : "outline"}
           >
             {option.label}
-          </Link>
+          </Button>
         ))}
       </div>
 

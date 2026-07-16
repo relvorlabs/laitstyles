@@ -1,12 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import { type AccountNavItem, type AccountRoute, accountNavItems } from "../account-nav";
-
-const sidebarLinkBase =
-  "relative min-h-[46px] w-full justify-start gap-3 rounded-[10px] px-[.8rem] py-[.7rem] text-left text-[.92rem] font-[560] transition-[background-color,color,transform] duration-200";
 
 export function SidebarLink({
   item,
@@ -27,14 +23,7 @@ export function SidebarLink({
       aria-current={active ? "page" : undefined}
       onClick={() => onSelect(item.route)}
       variant={active ? "default" : "ghost"}
-      className={cn(
-        // `acc-sidebar-link` carries contextual account colours while the Button
-        // variant supplies focus, disabled and icon behaviour consistently.
-        sidebarLinkBase,
-        "acc-sidebar-link",
-        active ? "bg-[var(--acc-ink)]" : "hover:translate-x-0.5 hover:bg-[var(--acc-bone-2)]",
-        className,
-      )}
+      className={className ?? "w-full justify-start gap-3 text-left"}
     >
       <span>{item.label}</span>
       {showMeta && item.count ? (
@@ -83,14 +72,7 @@ export function AccountSidebar() {
         <div className="border-t border-[var(--acc-line)] p-2.5">
           <form action="/auth/sign-out" method="post">
             <input name="next" type="hidden" value="/" />
-            <Button
-              type="submit"
-              variant="ghost"
-              className={cn(
-                sidebarLinkBase,
-                "acc-fg-oxblood hover:translate-x-0.5 hover:bg-[var(--acc-bone-2)]",
-              )}
-            >
+            <Button type="submit" variant="ghost" className="w-full justify-start gap-3 text-left">
               <span>Sign out</span>
             </Button>
           </form>

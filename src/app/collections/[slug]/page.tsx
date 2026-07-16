@@ -45,7 +45,7 @@ export default async function CollectionPage({
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-6 pb-16 max-sm:px-4">
       <nav className="flex items-center gap-2 pt-6 text-[12.5px] text-muted-foreground">
-        <Link className="hover:text-foreground" href="/shop">
+        <Link className="hover:text-foreground" href="/products">
           Shop
         </Link>
         <span>/</span>
@@ -67,7 +67,7 @@ export default async function CollectionPage({
         emptyAction={
           <Link
             className="rounded-full bg-primary px-6 py-2.5 text-[13.5px] font-semibold text-primary-foreground"
-            href="/shop"
+            href="/products"
           >
             Browse everything
           </Link>

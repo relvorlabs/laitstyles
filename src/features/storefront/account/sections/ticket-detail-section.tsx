@@ -31,9 +31,10 @@ export function TicketDetailSection() {
   return (
     <>
       <Button
+        size="lg"
         type="button"
         onClick={() => navigate("support")}
-        className="mb-5 h-auto p-0 text-sm font-semibold"
+        className="mb-5"
         variant="link"
       >
         ← Back to support
@@ -95,9 +96,10 @@ export function TicketDetailSection() {
             <h2 className={cn("mt-3 text-3xl", monoClass)}>#LS-1048</h2>
             <p className="mt-2 text-[var(--acc-muted)]">Shipped</p>
             <Button
+              size="lg"
               type="button"
               onClick={() => navigate("order-detail")}
-              className="mt-4 h-auto p-0 text-sm font-semibold"
+              className="mt-4"
               variant="link"
             >
               View order

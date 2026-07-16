@@ -33,14 +33,16 @@ export function StorefrontHoldAlert({
           {count === 1 ? "it releases" : "they release"}.
         </span>
         <Button
-          className="h-[38px] shrink-0 rounded-full px-5 text-[13px] font-semibold"
+          size="lg"
+          className="shrink-0"
+          nativeButton={false}
           render={<Link href="/checkout" />}
         >
           Checkout
         </Button>
         <Button
           aria-label="Dismiss hold alert"
-          className="size-8 shrink-0 rounded-full hover:bg-white/10"
+          className="shrink-0"
           onClick={onDismiss}
           size="icon-sm"
           type="button"
@@ -84,7 +86,7 @@ export function StorefrontToast({
       </div>
       <Button
         aria-label="Dismiss notification"
-        className="size-7 shrink-0 rounded-full text-muted-foreground"
+        className="shrink-0"
         onClick={dismiss}
         size="icon-sm"
         type="button"

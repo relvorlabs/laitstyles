@@ -117,17 +117,17 @@ export function PaymentsSection() {
                   <>
                     {/* TODO(button-action): Open the billing-address editor after the payment provider exposes its update flow. */}
                     <Button
+                      size="lg"
                       type="button"
                       onClick={() => toast("Billing address updates are not available yet.")}
-                      className="h-auto p-0 text-sm font-semibold"
                       variant="link"
                     >
                       Update billing
                     </Button>
                     <Button
+                      size="lg"
                       type="button"
                       onClick={() => openModal("remove-payment")}
-                      className="h-auto p-0 text-sm font-semibold acc-fg-oxblood"
                       variant="link"
                     >
                       Remove

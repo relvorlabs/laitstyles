@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
 import { Button } from "@/components/ui/button";
 import { naira } from "@/lib/catalogue";
-import { cn } from "@/lib/utils";
 
 const USD_RATE = 1600;
 
@@ -123,7 +122,7 @@ export default function CartPage() {
                     >
                       <Link
                         className="relative h-28 w-[88px] shrink-0 overflow-hidden rounded-[11px] bg-[#E4E5DE]"
-                        href={`/p/${product.id}`}
+                        href={`/products/${product.id}`}
                       >
                         <Image
                           alt={product.name}
@@ -137,7 +136,10 @@ export default function CartPage() {
                       <div className="flex min-w-0 flex-1 flex-col">
                         <div className="flex justify-between gap-3">
                           <div className="min-w-0">
-                            <Link className="text-[15px] font-medium" href={`/p/${product.id}`}>
+                            <Link
+                              className="text-[15px] font-medium"
+                              href={`/products/${product.id}`}
+                            >
                               {product.name}
                             </Link>
                             <div className="mt-1 text-[12.5px] text-[#8A887E]">
@@ -160,11 +162,12 @@ export default function CartPage() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                               <Clock aria-hidden="true" className="size-3" />
-                              Held · <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
+                              Held ·{" "}
+                              <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
                             </span>
                           )}
                           <Button
-                            className="h-auto gap-1.5 px-0.5 py-1 text-[12.5px] text-[#A7A59B] hover:text-[#B4453C]"
+                            className="h-auto gap-1.5"
                             onClick={() => release(product.id)}
                             type="button"
                             variant="link"
@@ -181,7 +184,8 @@ export default function CartPage() {
                               Your hold released, but this piece is still available.
                             </span>
                             <Button
-                              className="h-8 shrink-0 rounded-full bg-[#1B1A17] px-3.5 text-[12px] font-semibold text-white hover:bg-[#1B1A17]/86"
+                              size="lg"
+                              className="shrink-0"
                               onClick={() => rehold(product.id)}
                               type="button"
                             >
@@ -197,17 +201,21 @@ export default function CartPage() {
 
               <Link
                 className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-[#7C8C63]"
-                href="/shop"
+                href="/products"
               >
                 ← Keep browsing the drop
               </Link>
             </section>
 
             <aside className="sticky top-[26px] min-w-[280px] flex-[1_1_320px] rounded-[16px] bg-white px-7 pb-8 pt-7 shadow-[0_30px_80px_rgba(0,0,0,.10)] max-md:static">
-              <h2 className="mb-[18px] text-[16px] font-semibold tracking-[.02em]">Order summary</h2>
+              <h2 className="mb-[18px] text-[16px] font-semibold tracking-[.02em]">
+                Order summary
+              </h2>
 
               <div className="mb-2 flex gap-2.5">
-                <label className="sr-only" htmlFor="discount-code">Discount code</label>
+                <label className="sr-only" htmlFor="discount-code">
+                  Discount code
+                </label>
                 <input
                   className="h-[46px] min-w-0 flex-1 rounded-[9px] border border-[#E4E2DA] px-3.5 text-[13.5px] outline-none focus:border-[#1B1A17]"
                   id="discount-code"
@@ -216,22 +224,25 @@ export default function CartPage() {
                   placeholder="Discount code"
                   value={discountInput}
                 />
-                <Button
-                  className="h-[46px] rounded-full bg-[#1B1A17] px-[18px] text-[13px] font-medium text-white hover:bg-[#1B1A17]/86"
-                  onClick={applyDiscount}
-                  type="button"
-                >
+                <Button size="lg" onClick={applyDiscount} type="button">
                   Apply
                 </Button>
               </div>
               <p
                 aria-live="polite"
-                className={discountApplied ? "mb-4 text-[11.5px] text-[#5F7043]" : "mb-4 text-[11.5px] text-[#8A887E]"}
+                className={
+                  discountApplied
+                    ? "mb-4 text-[11.5px] text-[#5F7043]"
+                    : "mb-4 text-[11.5px] text-[#8A887E]"
+                }
               >
                 {discountMessage || "Preview code: LAIT10"}
               </p>
 
-              <SummaryRow label={`Subtotal · ${activeItems.length} items`} value={money(totals.subtotal)} />
+              <SummaryRow
+                label={`Subtotal · ${activeItems.length} items`}
+                value={money(totals.subtotal)}
+              />
               {totals.discount ? (
                 <SummaryRow label="Discount · LAIT10" value={`−${money(totals.discount)}`} accent />
               ) : null}
@@ -252,7 +263,8 @@ export default function CartPage() {
                 </Link>
               ) : (
                 <Button
-                  className="mt-[22px] h-[54px] w-full cursor-not-allowed rounded-full bg-[#D8D6CF] text-[15px] font-semibold text-[#8A887E]"
+                  size="lg"
+                  className="mt-[22px] w-full"
                   disabled
                   type="button"
                   variant="secondary"
@@ -274,11 +286,12 @@ export default function CartPage() {
             </div>
             <h1 className="mt-6 font-serif text-[34px] font-medium">Your bag is waiting</h1>
             <p className="mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll hold it while you decide.
+              Every Laitstyle piece is one-of-one. Reserve something from the drop and we&apos;ll
+              hold it while you decide.
             </p>
             <Link
               className="mt-6 flex h-[52px] items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14.5px] font-semibold text-white"
-              href="/shop"
+              href="/products"
             >
               Browse one-of-one pieces
             </Link>
@@ -300,13 +313,8 @@ function CurrencyButton({
 }) {
   return (
     <Button
+      size="lg"
       aria-pressed={active}
-      className={cn(
-        "h-[34px] rounded-full border px-3.5 text-[12.5px] font-semibold",
-        active
-          ? "border-[#1B1A17] bg-[#1B1A17] text-white hover:bg-[#1B1A17]/86"
-          : "border-[#D6D4CB] bg-transparent text-[#57554E]",
-      )}
       onClick={onClick}
       type="button"
       variant={active ? "default" : "outline"}

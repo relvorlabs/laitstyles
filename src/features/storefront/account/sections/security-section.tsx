@@ -90,9 +90,10 @@ export function SecuritySection() {
                 </p>
               </div>
               <Button
+                size="lg"
                 type="button"
                 onClick={() => openModal("revoke")}
-                className="h-auto justify-self-start p-0 text-sm font-semibold acc-fg-oxblood sm:justify-self-end"
+                className="justify-self-start sm:justify-self-end"
                 variant="link"
               >
                 Revoke

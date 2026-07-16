@@ -111,7 +111,7 @@ src/server/                        # SERVER-ONLY (import "server-only")
 │   ├── catalogue/ inventory/ cart/ holds/ checkout/ payments/
 │   ├── orders/ fulfilment/ reviews/ returns/
 ├── repositories/                  # Prisma-backed implementations of domain repos
-├── authorization/                 # session resolution + ownership scoping (RLS re-impl)
+├── authorization/                 # session resolution + ownership scoping
 └── validation/                    # Zod schemas for inputs (shared with client via type-only import)
 
 src/lib/
@@ -184,6 +184,6 @@ The earlier draft never specified this. Below is the connection graph (entry →
 
 ## 8. SEO & metadata (per route)
 - Per-route `generateMetadata`: title/description, **canonical URL**, Open Graph, product social cards.
-- **JSON-LD:** `Product` + `Offer`/availability mapping on PDP; `AggregateRating` **only from real published reviews**; `BreadcrumbList` on PDP/category/collection; `Organization`/`Store` sitewide.
+- **JSON-LD:** `Product` + `Offer`/availability mapping on PDP; `AggregateRating` **only from real published reviews**; `BreadcrumbList` on PDP/category/collection; `WebSite`/`LocalBusiness` sitewide.
 - Collection/category metadata; **sitemap** (published products/categories/collections only) + **robots**; **noindex** for account, cart, checkout, and internal search combinations.
 - **Sold/discontinued products:** retain URL, mark unavailable in JSON-LD (`Offer` availability `SoldOut`/`Discontinued`), show alternatives; only 404 for never-existed/hard-removed. Slug change → keep old slug → 301 to new.

@@ -1,6 +1,6 @@
 # 08 — Integrations & Environments
 
-Concrete configuration for payments (Paystack), email (Resend), image/file storage (Cloudinary + Supabase Storage), the three deployment environments, and two reinforced engineering rules. Supplements [`04`](04-prisma-supabase-architecture.md). All secrets are **server-only**; none may enter a client bundle.
+Concrete configuration for payments, email, Cloudinary-backed imagery, private assets, deployment environments and reinforced engineering rules. Supplements [`04`](04-prisma-supabase-architecture.md). All secrets are server-only.
 
 ## 1. Environments & URLs
 
@@ -55,18 +55,18 @@ Server-only `RESEND_API_KEY`. Provider behind an `EmailProvider` adapter (swappa
 ### 3.1 Tests
 Domain-verified check (or BLOCKED); receipt sent on `charge.success` (mocked Resend in CI); reset/verify flow; notification dedupe + expiry; unsubscribe honored; no secret in bundle.
 
-## 4. Image & file storage — Cloudinary primary, Supabase Storage for private uploads
+## 4. Image and file storage
 
-**Decision (ADR-13):** product/brand imagery = **Cloudinary** (already wired via `next-cloudinary`; schema models `cloudinary_assets` metadata; "blob uploads to Supabase storage are forbidden" for product media stands). Rationale verified: Supabase Storage **free tier = 1 GB storage / 50 MB per file / 5 GB egress, and image transformations are NOT free** — an image-led fashion store needs on-the-fly responsive transforms (Nigerian-mobile performance), which Cloudinary provides and the free Supabase tier does not.
+**Decision:** product and brand imagery use Cloudinary through the existing asset boundary. PostgreSQL stores metadata and URLs, never image blobs.
 
 - **Prisma + Cloudinary:** Prisma reads/writes **metadata rows only** (`cloudinary_assets`, `product_media`) — public_id, secure_url, dimensions, alt, position. The binary lives in Cloudinary; the storefront renders via `next/image` + Cloudinary transforms with accurate `sizes`. Uploads are **signed** server-side (Cloudinary API secret server-only); the browser never holds the signing secret.
-- **Supabase Storage (use it where free + good):**适 for **private, non-transformed files** where 1 GB suffices — e.g. **return-evidence uploads** and possibly generated **PDF receipts**. Access via signed URLs + RLS on the storage bucket; not used for product imagery. Enable only when Phase 9 (returns) needs evidence upload.
-- **Never** expose Cloudinary API secret, Supabase service-role, or signed-upload secrets to the browser.
+- Private return evidence or generated receipts must use an explicit private asset provider when implemented.
+- Never expose Cloudinary API secrets, the Supabase Auth service-role key or signed-upload secrets to the browser.
 
 ## 4b. Account provisioning & operational scripts
 
 ### 4b.1 Who may create which account (binding)
-- **Staff / owner / admin accounts are created ONLY by a service-role CLI script — never from a web page.** This is the codebase's existing standard (`scripts/bootstrap-owner.mjs` runs with `SUPABASE_SERVICE_ROLE_KEY`) and is **schema-enforced**: `store_memberships_owner_cli_only` requires `role <> 'owner' OR created_by_cli`, and RLS forbids browser clients from inserting owner rows. The storefront (and admin UI) must **never** expose a staff/owner sign-up. New staff below owner come through the existing invitation flow (`staff_invitations`), not open signup.
+- **The one admin account is created only by `pnpm auth:bootstrap-admin -- --email <email> --password <password>`, never from a web page.** The command uses `SUPABASE_SERVICE_ROLE_KEY`, accepts no profile or store setup fields, and writes `profiles.role = 'admin'` through Prisma. The database permits only one admin. The storefront and admin UI never expose staff registration; managers are provisioned through an owner-controlled backend process.
 - **Customer accounts are self-service** via the storefront (`/auth/sign-up`, Google OAuth) — a `customers` row is provisioned on first authenticated shopper request (`profile_id = auth.uid()`). Customers never gain staff capability (capability separation, `04` §4.1 #6).
 
 ### 4b.2 Google sign-in
@@ -104,7 +104,7 @@ Every meaningful state is reachable by URL. Overlays (sheets/dialogs) never hold
 | `DATABASE_URL` | server | Prisma runtime (pooler `:6543?pgbouncer=true`) |
 | `DIRECT_URL` | server | Prisma CLI/migrations (`:5432`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | server | privileged paths only (rare) |
-| `NEXT_PUBLIC_SUPABASE_URL` / publishable key | **public** | existing auth (RLS-scoped) |
+| `NEXT_PUBLIC_SUPABASE_URL` / publishable key | **public** | Supabase Auth |
 | `PAYSTACK_SECRET_KEY` | server | init + verify + webhook HMAC |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | **public** | client init/redirect only |
 | `RESEND_API_KEY` | server | transactional + notification email |
@@ -115,6 +115,5 @@ Every meaningful state is reachable by URL. Overlays (sheets/dialogs) never hold
 The `server-client-boundary` test (extended in `06` Phase 1) fails if any non-`NEXT_PUBLIC_` var or `src/server/**`/`src/lib/prisma/**` module is reachable from a `"use client"` file.
 
 ## Sources
-- Supabase Storage free tier / pricing: https://supabase.com/pricing · https://supabase.com/docs/guides/storage/pricing · https://supabase.com/docs/guides/storage/uploads/file-limits
 - Paystack webhooks (verify `x-paystack-signature` = HMAC-SHA512 with secret key; act on `charge.success`; webhook authoritative): https://paystack.com/docs/payments/webhooks/ · https://paystack.com/docs/payments/verify-payments/ *(re-confirm exact snippet at implementation.)*
 - Resend + domain auth (SPF/DKIM/DMARC): https://resend.com/docs/dashboard/domains/introduction

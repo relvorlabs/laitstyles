@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -380,16 +381,17 @@ export function AccountModals({
           <LabeledField label="Message">
             <Textarea required className={cn(fieldClass, "min-h-32")} />
           </LabeledField>
-          <button
+          <Button
             type="button"
             onClick={() => toast("Attachment picker opened with validation.")}
-            className="rounded-[14px] border border-dashed border-[var(--acc-line-strong)] bg-[var(--acc-bone-2)] p-5 text-left"
+            className="text-left"
+            variant="ghost"
           >
             <strong>Attach files</strong>
             <span className="mt-2 block text-sm text-[var(--acc-muted)]">
               Only supported file types and sizes.
             </span>
-          </button>
+          </Button>
           <div className="flex flex-col-reverse gap-3 border-t border-[var(--acc-line)] pt-5 sm:flex-row sm:justify-end">
             <AcctButton variant="secondary" type="button" onClick={onClose}>
               Cancel

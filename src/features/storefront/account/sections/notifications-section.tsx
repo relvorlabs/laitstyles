@@ -77,9 +77,8 @@ export function NotificationsSection() {
             onClick={() => navigate(item.route)}
             variant="ghost"
             className={cn(
-              "grid min-h-0 w-full justify-stretch gap-4 rounded-none p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]",
-              item.unread &&
-                "bg-[color-mix(in_srgb,var(--acc-bone-2)_75%,transparent)] hover:bg-[var(--acc-bone-2)]",
+              "grid w-full justify-stretch gap-4 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]",
+              item.unread && "",
             )}
           >
             {item.unread ? (

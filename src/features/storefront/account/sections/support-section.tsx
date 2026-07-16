@@ -76,7 +76,7 @@ export function SupportSection() {
           <Button
             type="button"
             onClick={() => navigate("ticket-detail")}
-            className="grid min-h-0 w-full justify-stretch gap-4 rounded-none p-5 text-left sm:grid-cols-[1fr_auto]"
+            className="grid w-full justify-stretch gap-4 text-left sm:grid-cols-[1fr_auto]"
             variant="ghost"
           >
             <span>
@@ -93,7 +93,7 @@ export function SupportSection() {
           <Button
             type="button"
             onClick={() => navigate("ticket-detail")}
-            className="grid min-h-0 w-full justify-stretch gap-4 rounded-none p-5 text-left sm:grid-cols-[1fr_auto]"
+            className="grid w-full justify-stretch gap-4 text-left sm:grid-cols-[1fr_auto]"
             variant="ghost"
           >
             <span>

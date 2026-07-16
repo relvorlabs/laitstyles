@@ -9,7 +9,7 @@ Binding verification for every phase. Nothing is "done" without executed evidenc
 - `pnpm exec vitest run`
 - `pnpm build`
 - React Doctor (changed scope)
-- From Phase 1: `prisma format`, `prisma validate`, migration status, generated-client freshness, generated Supabase-type freshness (`pnpm supabase:types` diff)
+- From Phase 1: `prisma format`, `prisma validate`, migration status and generated Prisma-client freshness
 - **eslint-plugin-query rules** → manual review checklist (Biome can't run the plugin): stable keys; no missing deps in keys; no unstable `queryFn`; correct `enabled`; no optimistic stock.
 - **Token-only check** — no raw hex / inline style colour literals in `src/features/**`, `src/components/**` (fails the phase; `08` §5.1).
 - **shadcn-first review** — no hand-rolled primitive where a shadcn/Base UI component exists; custom components compose shadcn (`08` §5.2).
@@ -18,7 +18,7 @@ Binding verification for every phase. Nothing is "done" without executed evidenc
 ### 1a. Integrations (Paystack / Resend / storage — see `08`)
 - **Paystack webhook:** valid `x-paystack-signature` (HMAC-SHA512) accepted, invalid/replayed rejected; `charge.success` finalizes exactly one order; duplicate webhook idempotent; webhook-before-redirect handled; amount/currency mismatch rejected; **callback route never finalizes**; no Paystack secret in client bundle.
 - **Resend:** domain-verified or BLOCKED; receipt sent on `charge.success` (mocked in CI); verify/reset flow; notification dedupe + expiry; unsubscribe honored; no `RESEND_API_KEY` in bundle.
-- **Storage:** product imagery from Cloudinary (signed upload, secret server-only); return-evidence via Supabase Storage signed URLs + bucket RLS; no signing secret in bundle.
+- **Storage:** product imagery comes from Cloudinary; private return evidence uses the configured private asset provider; no signing secret enters the browser bundle.
 - **Environments/origins:** redirect/callback/webhook URLs derived per-request (no hardcoded origin); host-scoped cookies; the three origins allow-listed in Supabase Auth + Google OAuth.
 
 ## 2. Integration tests (data correctness & authorization)
@@ -30,8 +30,8 @@ Binding verification for every phase. Nothing is "done" without executed evidenc
 - **Horizontal-privilege (IDOR) — mandatory (ADR-05 §4.1 #11):** User A cannot **read, update, cancel, or track** User B's order, address, cart/hold, profile, review, or return. Ownership is enforced **inside** the query (`where: { id, customerId }`), never post-fetch.
 - **Fail-closed authorization:** a missing/failed identity or ownership check **denies by default**; no code path reaches Prisma for private data without a resolved scope.
 - **Capability separation:** a customer session cannot reach staff/admin capabilities (and vice-versa); staff/owner accounts are unreachable via web signup (CLI-only).
-- **Least-privilege runtime role:** the app's `BYPASSRLS` runtime role is distinct from the migration role and holds only needed privileges; Prisma is unreachable from any `"use client"` module (boundary test).
-- **RLS / Data API:** RLS remains enabled on any Data-API/Realtime/Storage/browser-reachable table; for Prisma-only tables the unused Data API is disabled (verify).
+- **Least-privilege runtime role:** the app runtime database role holds only needed privileges; Prisma is unreachable from any `"use client"` module.
+- **Database boundary:** application tables are accessed through Prisma server repositories and protected by server authorization.
 - **Sensitive mutations** (checkout, order status, refund, stock adjustment, staff action) re-authorize **inside the transaction** and write an `audit_events` row.
 - Public tracking privacy: only safe timeline fields; no PII leak; enumeration-resistant.
 - Review eligibility (verified purchase, eligible status, one per line). Return eligibility rules.
@@ -61,7 +61,7 @@ Also: guest checkout · sign-in cart merge · email/password auth · Google OAut
 - Core Web Vitals budgets; Cloudinary responsive transforms; **no full-res images in listing grids**; priority-image limits; image placeholders; bundle boundaries + dynamic imports where useful; font loading; streaming/Suspense; skeleton layout stability (no CLS); **no duplicate catalogue fetch** (RSC + client); no interval polling where expiry/event refresh suffices; low-bandwidth Nigerian-mobile consideration.
 
 ## 7. Security
-Supabase session verification on every non-public op · safe redirects · authorization on every customer-owned record · RLS enabled (defense-in-depth) · **app-layer Prisma authorization tested** (ADR-05) · input validation (Zod) · output DTO filtering · IDOR prevention · CSRF considerations · **webhook signature verification** · payment amount/currency verification · idempotency · rate limiting (tracking, search, review, newsletter) · order-tracking enumeration resistance · review/newsletter abuse · signed asset uploads · **no secrets in client bundle** · **no client-controlled price/fee/stock/customerId/storeId/order ownership** · PII minimization · audit events for sensitive ops.
+Supabase session verification on every non-public operation · safe redirects · authorization on every customer-owned record · **server-side Prisma authorization tested** · input validation · output DTO filtering · IDOR prevention · CSRF considerations · webhook signature verification · payment amount/currency verification · idempotency · rate limiting · order-tracking enumeration resistance · signed asset uploads · **no secrets in client bundle** · **no client-controlled price/fee/stock/customer or order ownership** · PII minimization · audit events for sensitive operations.
 
 ## 8. Analytics events (no PII / no payment data in payloads)
 homepage viewed · collection viewed · category viewed · search submitted · zero-result search · filter applied · product viewed · variant selected · product saved · hold attempted/succeeded/failed · cart viewed · checkout started · delivery selected · payment initiated · payment failed · purchase completed · order tracked · review submitted · return requested.
@@ -70,7 +70,7 @@ homepage viewed · collection viewed · category viewed · search submitted · z
 No products exist · products exist but none published · product has no valid cover image · scheduled product not yet public · category empty · collection unpublished · product slug changes · duplicate slug · unique item held by another shopper · unique item sells while viewed · stocked quantity drops · selected variant becomes unavailable · hold expires with cart open · hold expires during checkout · payment succeeds but return redirect fails · webhook delivered twice · webhook before browser redirect · payment declined · payment pending · customer refreshes success page · guest signs in mid-checkout · guest email already exists · cart merge duplicate lines · delivery zone disabled · pickup location disabled · address outside supported region · delivery rate changes · product price changes · compare-at price invalid · order contains now-archived product · order partially refunded · review product later archived · return for ineligible item · Cloudinary image fails · Supabase session expires · Prisma/DB connection fails · JS slow/unavailable.
 
 ## 10. Anti-pattern ban list (a phase fails if any appear in changed scope)
-`src/lib/catalogue.ts` product import · hardcoded production products · hardcoded reviews · hardcoded checkout products · fake `signedIn` state · fake account orders/addresses · fake client-side stock transitions · random simulated reservations/sales · placeholder `href="#"` · dead navigation · client timers as availability truth · hardcoded payment URL · payment success controlled by browser state · duplicated product truth admin↔storefront · duplicated cart state across pages · cost fields exposed publicly · giant multi-domain route components · unverified RLS/authorization · missing loading/empty/error/success states · desktop-only interactions · inaccessible dialogs/sheets · undocumented migration drift · **claims of completion without executed evidence**.
+`src/lib/catalogue.ts` product import · hardcoded production products · hardcoded reviews · hardcoded checkout products · fake `signedIn` state · fake account orders/addresses · fake client-side stock transitions · random simulated reservations/sales · placeholder `href="#"` · dead navigation · client timers as availability truth · hardcoded payment URL · payment success controlled by browser state · duplicated product truth admin↔storefront · duplicated cart state across pages · cost fields exposed publicly · giant multi-domain route components · unverified authorization · missing loading/empty/error/success states · desktop-only interactions · inaccessible dialogs/sheets · undocumented migration drift · **claims of completion without executed evidence**.
 
 ## 11. Definition of done (per surface)
 All five states implemented · real data · authorization enforced & tested · a11y (keyboard/labels/contrast/reduced-motion/focus) · responsive across 6 viewports with no overflow · wired per `02` §6 (no dead links) · analytics events emitted · SEO rules applied · gate green with executed evidence · PR body updated · no ban-list item present.

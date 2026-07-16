@@ -1,9 +1,9 @@
 // Order/return line thumbnails for the account. Product imagery comes from the
-// shared storefront catalogue (home-lab/data) so it stays consistent with the
+// shared storefront catalogue (shared/catalogue-data) so it stays consistent with the
 // shop's ProductCard rather than bespoke placeholders.
 
 import type { ComponentProps } from "react";
-import type { Product } from "../../home-lab/data";
+import type { Product } from "../../shared/catalogue-data";
 import { cn } from "@/lib/utils";
 
 /** `.order-thumb` frame; pass an aspect class (e.g. `aspect-square`). */

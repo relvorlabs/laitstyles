@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  inventoryLabel,
-  money,
-  productBySlug,
-  productSlug,
-  products,
-} from "@/features/storefront/home-lab/data";
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
-import { ProductDetailLab } from "@/features/storefront/home-lab/product-detail-lab";
+import { ProductDetail } from "@/features/storefront/product/product-detail";
+import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
+import { loadStorefrontCatalog, loadStorefrontProductBySlug } from "@/lib/storefront/catalog-data";
 
 type Params = { slug: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = productBySlug(slug);
+  const product = await loadStorefrontProductBySlug(slug);
   if (!product) return { title: "Not found — Laitstyles" };
   const title = `${product.name} — Laitstyles`;
   const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
@@ -42,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function ProductDetailPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const product = productBySlug(slug);
+  const product = await loadStorefrontProductBySlug(slug);
   if (!product) notFound();
 
   const availability =
@@ -94,7 +89,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
       />
-      <ProductDetailLab product={product} fontClassName={labFontClassName} />
+      <ProductDetail product={product} fontClassName={storefrontFontClassName} />
     </>
   );
 }
@@ -104,6 +99,7 @@ function serializeJsonLd(value: unknown) {
 }
 
 // Pre-render all prototype product detail pages at build time.
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: productSlug(p) }));
+export async function generateStaticParams() {
+  const catalog = await loadStorefrontCatalog();
+  return catalog.products.map((product) => ({ slug: productSlug(product) }));
 }

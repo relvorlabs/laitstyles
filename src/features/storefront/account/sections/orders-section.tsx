@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
+import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
 import {
@@ -15,6 +15,7 @@ import {
 } from "../components/account-primitives";
 
 export function OrdersSection() {
+  const { products } = useStorefront();
   const { navigate, openModal, toast } = useAccountUi();
 
   return (

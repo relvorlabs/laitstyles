@@ -37,12 +37,7 @@ export function AddressesSection() {
               <StatusBadge variant="success">Default shipping</StatusBadge>
               <StatusBadge variant="neutral">Billing</StatusBadge>
             </div>
-            <Button
-              type="button"
-              onClick={() => openModal("address")}
-              className="h-auto p-0 text-sm font-semibold"
-              variant="link"
-            >
+            <Button size="lg" type="button" onClick={() => openModal("address")} variant="link">
               Edit
             </Button>
           </div>
@@ -65,12 +60,7 @@ export function AddressesSection() {
         <article className={cn("p-5 sm:p-6", panelClass)}>
           <div className="flex items-center justify-between gap-3">
             <StatusBadge variant="neutral">Additional</StatusBadge>
-            <Button
-              type="button"
-              onClick={() => openModal("address")}
-              className="h-auto p-0 text-sm font-semibold"
-              variant="link"
-            >
+            <Button size="lg" type="button" onClick={() => openModal("address")} variant="link">
               Edit
             </Button>
           </div>
@@ -93,9 +83,9 @@ export function AddressesSection() {
               Make default
             </AcctButton>
             <Button
+              size="lg"
               type="button"
               onClick={() => openModal("delete-address")}
-              className="h-auto p-0 text-sm font-semibold acc-fg-oxblood"
               variant="link"
             >
               Delete

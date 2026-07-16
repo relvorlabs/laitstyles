@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { CatalogueLab } from "@/features/storefront/home-lab/catalogue-lab";
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
+import { ProductCatalogue } from "@/features/storefront/catalogue/product-catalogue";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 
 export const metadata: Metadata = {
   title: "Shop all pieces — Laitstyles",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProductsPage() {
-  return <CatalogueLab fontClassName={labFontClassName} />;
+  return <ProductCatalogue fontClassName={storefrontFontClassName} />;
 }

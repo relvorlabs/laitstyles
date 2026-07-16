@@ -4,6 +4,7 @@ import { Check, Home, MapPin, PackageCheck, Truck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
+import { Button } from "@/components/ui/button";
 import { naira } from "@/lib/catalogue";
 import {
   getClientReadySnapshot,
@@ -161,18 +162,18 @@ export default function OrderConfirmationPage() {
             </div>
 
             <div className="mt-[22px] flex flex-wrap gap-3">
-              <Link
-                className="flex h-[52px] min-w-[180px] flex-1 items-center justify-center rounded-full bg-[#1B1A17] text-[14.5px] font-semibold text-white"
-                href="/shop"
-              >
+              <Button className="min-w-[180px] flex-1" nativeButton={false} render={<Link href="/products" />} size="lg">
                 Continue shopping
-              </Link>
-              <Link
-                className="flex h-[52px] min-w-[180px] flex-1 items-center justify-center rounded-full border border-[#D6D4CB] bg-white text-[14.5px] font-semibold"
-                href="/account?tab=orders"
+              </Button>
+              <Button
+                className="min-w-[180px] flex-1"
+                nativeButton={false}
+                render={<Link href="/account?tab=orders" />}
+                size="lg"
+                variant="outline"
               >
                 View my orders
-              </Link>
+              </Button>
             </div>
           </section>
         </article>
@@ -202,18 +203,12 @@ function MissingReceipt() {
           your account.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            className="flex h-[50px] items-center rounded-full border border-[#D6D4CB] px-6 text-[14px] font-semibold"
-            href="/account?tab=orders"
-          >
+          <Button nativeButton={false} render={<Link href="/account?tab=orders" />} size="lg" variant="outline">
             View my orders
-          </Link>
-          <Link
-            className="flex h-[50px] items-center rounded-full bg-[#1B1A17] px-6 text-[14px] font-semibold text-white"
-            href="/shop"
-          >
+          </Button>
+          <Button nativeButton={false} render={<Link href="/products" />} size="lg">
             Continue shopping
-          </Link>
+          </Button>
         </div>
       </section>
     </main>

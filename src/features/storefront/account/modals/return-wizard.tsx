@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
+import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
 import {
@@ -29,6 +29,7 @@ const steps = [
 ];
 
 export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { products } = useStorefront();
   const { toast } = useAccountUi();
   const [step, setStep] = useState(1);
 
@@ -60,7 +61,9 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
         <div className="flex items-start justify-between gap-4 border-b border-[var(--acc-line)] p-5 sm:p-6">
           <div>
             <Eyebrow className="text-[var(--acc-sage-deep)]">Return request</Eyebrow>
-            <DialogTitle className="mt-3 font-serif text-4xl font-normal">Start a return.</DialogTitle>
+            <DialogTitle className="mt-3 font-serif text-4xl font-normal">
+              Start a return.
+            </DialogTitle>
           </div>
           <IconButton onClick={onClose} aria-label="Close return flow">
             <XIcon className="size-[18px]" />
@@ -155,7 +158,7 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
               <Button
                 type="button"
                 onClick={() => toast("Return evidence uploads are not available yet.")}
-                className="mt-6 min-h-56 w-full flex-col rounded-[14px] border border-dashed border-[var(--acc-line-strong)] bg-[var(--acc-bone-2)] p-6 text-center"
+                className="mt-6 w-full flex-col text-center"
                 variant="ghost"
               >
                 <UploadIcon className="size-[34px]" strokeWidth={1.7} />
@@ -200,7 +203,9 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
                     />
                     <span>
                       <strong className="block">{method.title}</strong>
-                      <span className="mt-2 block text-sm text-[var(--acc-muted)]">{method.desc}</span>
+                      <span className="mt-2 block text-sm text-[var(--acc-muted)]">
+                        {method.desc}
+                      </span>
                     </span>
                   </label>
                 ))}
@@ -230,7 +235,9 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
               </dl>
               <label className="mt-5 flex items-start gap-3">
                 <input type="checkbox" className="mt-1 size-5 accent-[var(--acc-ink)]" />
-                <span>I confirm the item remains in the condition required by the return policy.</span>
+                <span>
+                  I confirm the item remains in the condition required by the return policy.
+                </span>
               </label>
             </section>
           ) : null}

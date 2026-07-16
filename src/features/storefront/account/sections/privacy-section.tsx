@@ -58,9 +58,9 @@ export function PrivacySection() {
               </span>
               {/* TODO(button-action): Clear recently viewed history after the account history mutation is available. */}
               <Button
+                size="lg"
                 type="button"
                 onClick={() => toast("Clearing recently viewed history is not available yet.")}
-                className="h-auto p-0 text-sm font-semibold"
                 variant="link"
               >
                 Clear
