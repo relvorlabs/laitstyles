@@ -23,7 +23,7 @@ import { CustomersSummaryStrip } from "@/features/admin/customers/customers-summ
 import { CustomersTable } from "@/features/admin/customers/customers-table";
 import { buildCustomersHref } from "@/features/admin/customers/customers-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { getCustomerRelationshipProfiles } from "@/lib/admin/customer-selectors";
+import { getCustomerRelationshipProfiles } from "@/lib/admin/customers/customer-selectors";
 
 export function CustomersWorkspace({
   initialQuery,

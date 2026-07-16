@@ -3,7 +3,7 @@ import type {
   CustomerActionError,
   CustomerNote,
   CustomerNoteActionSuccess,
-} from "@/lib/admin/customer-types";
+} from "@/lib/admin/customers/customer-types";
 import { err, ok, type Result } from "@/lib/admin/result";
 import type { ControlRoomState } from "@/lib/admin/types";
 

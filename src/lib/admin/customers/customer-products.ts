@@ -1,4 +1,4 @@
-import { getCustomerHolds, getCustomerOrders } from "@/lib/admin/customer-metrics";
+import { getCustomerHolds, getCustomerOrders } from "@/lib/admin/customers/customer-metrics";
 import { getPaidOrders } from "@/lib/admin/orders/sales-selectors";
 import type {
   ControlRoomCustomer,

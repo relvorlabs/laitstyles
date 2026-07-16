@@ -5,8 +5,8 @@ import type {
   CustomerSortKey,
   CustomerWorkspaceSummary,
 } from "@/features/admin/customers/customer-types";
-import { getCustomerRelationshipProfiles } from "@/lib/admin/customer-selectors";
-import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import { getCustomerRelationshipProfiles } from "@/lib/admin/customers/customer-selectors";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
 import type { AdminState } from "@/lib/admin/types";
 
 export const customerSavedViews: CustomerSavedViewDefinition[] = [

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createAdminStore } from "@/features/admin/state/admin-store";
-import { applyAddCustomerNote } from "@/lib/admin/customer-actions";
+import { applyAddCustomerNote } from "@/lib/admin/customers/customer-reducer";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 
 describe("Customer note actions", () => {

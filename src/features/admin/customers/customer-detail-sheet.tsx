@@ -22,7 +22,7 @@ import {
 } from "@/features/admin/customers/customer-status-badges";
 import { CustomerTimelinePanel } from "@/features/admin/customers/customer-timeline-panel";
 import type { CustomerActionFeedback } from "@/features/admin/customers/customer-types";
-import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
 import type { AdminState } from "@/lib/admin/types";
 
 export function CustomerDetailSheet({

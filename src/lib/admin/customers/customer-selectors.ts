@@ -2,12 +2,12 @@ import {
   getCustomerAttentionReasons,
   getCustomerMetrics,
   getCustomerSegments,
-} from "@/lib/admin/customer-metrics";
+} from "@/lib/admin/customers/customer-metrics";
 import {
   getCustomerDeliveryHistory,
   getCustomerProductRelationships,
-} from "@/lib/admin/customer-products";
-import { getCustomerTimeline } from "@/lib/admin/customer-timeline";
+} from "@/lib/admin/customers/customer-products";
+import { getCustomerTimeline } from "@/lib/admin/customers/customer-timeline";
 import type { ControlRoomState, CustomerRelationshipProfile } from "@/lib/admin/types";
 
 export {
@@ -17,12 +17,12 @@ export {
   getCustomerOrders,
   getCustomerReturns,
   getCustomerSegments,
-} from "@/lib/admin/customer-metrics";
+} from "@/lib/admin/customers/customer-metrics";
 export {
   getCustomerDeliveryHistory,
   getCustomerProductRelationships,
-} from "@/lib/admin/customer-products";
-export { getCustomerTimeline } from "@/lib/admin/customer-timeline";
+} from "@/lib/admin/customers/customer-products";
+export { getCustomerTimeline } from "@/lib/admin/customers/customer-timeline";
 
 export function getCustomerRelationshipProfile(
   state: ControlRoomState,

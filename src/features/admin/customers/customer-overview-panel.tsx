@@ -5,7 +5,7 @@ import {
   formatCustomerDateTime,
 } from "@/features/admin/customers/customer-labels";
 import { CustomerNoteForm } from "@/features/admin/customers/customer-note-form";
-import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
 import { formatNaira } from "@/lib/admin/formatters";
 
 export function CustomerOverviewPanel({

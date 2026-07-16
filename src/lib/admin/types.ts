@@ -1,4 +1,4 @@
-import type { ControlRoomCustomer } from "@/lib/admin/customer-types";
+import type { ControlRoomCustomer } from "@/lib/admin/customers/customer-types";
 import type { CatalogueTaxonomyItem } from "@/lib/admin/inventory/catalogue-taxonomy";
 import type {
   InventoryProduct,
@@ -34,7 +34,7 @@ export type {
   CustomerTimelineEvent,
   CustomerTimelineKind,
   CustomerType,
-} from "@/lib/admin/customer-types";
+} from "@/lib/admin/customers/customer-types";
 export type {
   CatalogueTaxonomyActionError,
   CatalogueTaxonomyActionSuccess,

@@ -1,10 +1,10 @@
-import { applyAddCustomerNote } from "@/lib/admin/customer-actions";
-import { hydrateCustomerProfiles } from "@/lib/admin/customer-profile-seed";
+import { hydrateCustomerProfiles } from "@/lib/admin/customers/customer-profile-seed";
+import { applyAddCustomerNote } from "@/lib/admin/customers/customer-reducer";
 import type {
   AddCustomerNoteInput,
   CustomerActionError,
   CustomerNoteActionSuccess,
-} from "@/lib/admin/customer-types";
+} from "@/lib/admin/customers/customer-types";
 import {
   applyHoldConversion,
   applyHoldExtension,

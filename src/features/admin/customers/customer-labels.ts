@@ -3,7 +3,7 @@ import type {
   CustomerSegment,
   CustomerTimelineKind,
   CustomerType,
-} from "@/lib/admin/customer-types";
+} from "@/lib/admin/customers/customer-types";
 
 export const customerTypeLabels: Record<CustomerType, string> = {
   individual: "Individual",

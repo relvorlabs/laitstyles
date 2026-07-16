@@ -20,7 +20,7 @@ import {
   CustomerTypeBadge,
 } from "@/features/admin/customers/customer-status-badges";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { CustomerRelationshipProfile } from "@/lib/admin/customer-types";
+import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
 import { formatNaira } from "@/lib/admin/formatters";
 
 export function CustomersTable({

@@ -4,7 +4,7 @@ import {
   customerTimelineLabels,
   formatCustomerDateTime,
 } from "@/features/admin/customers/customer-labels";
-import type { CustomerTimelineEvent } from "@/lib/admin/customer-types";
+import type { CustomerTimelineEvent } from "@/lib/admin/customers/customer-types";
 
 export function CustomerTimelinePanel({ events }: { events: CustomerTimelineEvent[] }) {
   if (!events.length) {

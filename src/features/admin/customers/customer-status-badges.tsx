@@ -8,7 +8,7 @@ import type {
   CustomerAttentionReason,
   CustomerSegment,
   CustomerType,
-} from "@/lib/admin/customer-types";
+} from "@/lib/admin/customers/customer-types";
 
 export function CustomerTypeBadge({ type }: { type: CustomerType | undefined }) {
   const value = type ?? "individual";

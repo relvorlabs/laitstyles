@@ -5,7 +5,7 @@ import {
   getCustomerProductRelationships,
   getCustomerRelationshipProfile,
   getCustomerTimeline,
-} from "@/lib/admin/customer-selectors";
+} from "@/lib/admin/customers/customer-selectors";
 import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 import type { ControlRoomState } from "@/lib/admin/types";
