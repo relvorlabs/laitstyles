@@ -1,7 +1,8 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
+import { createQueryClient } from "@/lib/query/create-query-client";
 
 /**
  * Admin server-state boundary.
@@ -17,14 +18,10 @@ import { type ReactNode, useState } from "react";
  * wired yet because generated types and RLS remain prerequisites.
  */
 function createAdminQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 30_000,
-        retry: false,
-        refetchOnWindowFocus: false,
-      },
-    },
+  return createQueryClient({
+    staleTime: 30_000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 

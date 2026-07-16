@@ -1,22 +1,15 @@
-import { defaultShouldDehydrateQuery, isServer, QueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
+import { defaultShouldDehydrateQuery, isServer } from "@tanstack/react-query";
+import { createQueryClient } from "@/lib/query/create-query-client";
 
 // Per-request QueryClient on the server, stable singleton in the browser — the
 // official TanStack Query App Router hydration pattern. Never reuse a server
 // client across requests. See docs/storefront-v2/04 §8.
 export function makeQueryClient(): QueryClient {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        // Conservative default; per-domain stale times are set at the
-        // query-options level (catalogue ~30s, PDP ~15s, cart 0, etc.).
-        staleTime: 30_000,
-      },
-      dehydrate: {
-        // Include still-pending queries so streamed prefetches hydrate.
-        shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) || query.state.status === "pending",
-      },
-    },
+  return createQueryClient({
+    staleTime: 30_000,
+    shouldDehydrateQuery: (query) =>
+      defaultShouldDehydrateQuery(query) || query.state.status === "pending",
   });
 }
 
