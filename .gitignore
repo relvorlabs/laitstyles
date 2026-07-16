@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/output/
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -23,6 +26,12 @@
 # misc
 .DS_Store
 *.pem
+
+# editor / local tooling scratch
+/.idea/
+/.vscode/
+/.ai/
+/.codex-tmp/
 
 # debug
 npm-debug.log*
