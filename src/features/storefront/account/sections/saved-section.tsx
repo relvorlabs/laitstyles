@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AcctButton, Eyebrow, panelClass } from "../components/account-primitives";
-import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
+import { AccountProductGrid } from "../components/account-product-grid";
+import { useAccountProducts } from "../hooks/use-account-products";
 
 export function SavedSection() {
   const { saved } = useAccountProducts();

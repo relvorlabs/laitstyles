@@ -13,12 +13,6 @@ import { useStorefrontExperience } from "@/features/storefront/shared/storefront
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
 
-/** Saved + recently-viewed product lists from the shared storefront state. */
-export function useAccountProducts() {
-  const s = useStorefront();
-  return { saved: s.savedList, recent: s.recentList };
-}
-
 /**
  * Grid of shared storefront ProductCards, wired to the same save/hold/quick-view/
  * add-to-bag handlers used across the storefront. `columns` adapts the grid to the

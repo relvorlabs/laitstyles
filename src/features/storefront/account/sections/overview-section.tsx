@@ -13,7 +13,8 @@ import {
   panelElevatedClass,
   StatusBadge,
 } from "../components/account-primitives";
-import { AccountProductGrid, useAccountProducts } from "../components/account-product-grid";
+import { AccountProductGrid } from "../components/account-product-grid";
+import { useAccountProducts } from "../hooks/use-account-products";
 
 export function OverviewSection() {
   const { products } = useStorefront();
