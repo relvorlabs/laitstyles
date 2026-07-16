@@ -35,8 +35,8 @@ import {
 } from "@/lib/admin/product-editor/product-editor-reducer";
 import type { Result } from "@/lib/admin/result";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/returns/return-reducer";
-import { applySaveStoreSettings } from "@/lib/admin/settings-actions";
-import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
+import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
+import { applySaveStoreSettings } from "@/lib/admin/settings/settings-reducer";
 import type {
   AdminState,
   ConvertHoldInput,

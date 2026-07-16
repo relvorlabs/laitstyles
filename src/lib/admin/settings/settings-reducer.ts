@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "@/lib/admin/result";
-import { parseStoreSettingsInput } from "@/lib/admin/settings-schema";
+import { parseStoreSettingsInput } from "@/lib/admin/settings/settings-schema";
 import type {
   ControlRoomState,
   SaveStoreSettingsInput,

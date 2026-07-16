@@ -13,7 +13,7 @@ import type {
   FulfilmentStatus,
 } from "@/lib/admin/orders/sales-types";
 import type { IntakeRecord } from "@/lib/admin/product-editor/product-editor-types";
-import type { StoreSettings } from "@/lib/admin/settings-types";
+import type { StoreSettings } from "@/lib/admin/settings/settings-types";
 
 export type {
   AddCustomerNoteInput,
@@ -148,7 +148,7 @@ export type {
   StoreSettingsActionError,
   StoreSettingsActionErrorCode,
   StoreSettingsActionSuccess,
-} from "@/lib/admin/settings-types";
+} from "@/lib/admin/settings/settings-types";
 
 export type ActivityKind =
   | "order"

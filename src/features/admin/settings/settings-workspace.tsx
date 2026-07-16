@@ -26,8 +26,8 @@ import { SettingsStatusStrip } from "@/features/admin/settings/settings-status-s
 import { buildSettingsHref } from "@/features/admin/settings/settings-url";
 import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
 import { useAdmin } from "@/features/admin/state/admin-provider";
-import { createDefaultStoreSettings } from "@/lib/admin/settings-defaults";
-import { storeSettingsInputSchema } from "@/lib/admin/settings-schema";
+import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
+import { storeSettingsInputSchema } from "@/lib/admin/settings/settings-schema";
 import type { SaveStoreSettingsInput, SettingsSection, StoreSettings } from "@/lib/admin/types";
 
 export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {

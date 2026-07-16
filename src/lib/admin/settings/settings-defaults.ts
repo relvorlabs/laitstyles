@@ -1,4 +1,4 @@
-import type { SaveStoreSettingsInput, StoreSettings } from "@/lib/admin/settings-types";
+import type { SaveStoreSettingsInput, StoreSettings } from "@/lib/admin/settings/settings-types";
 
 export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
   identity: {
