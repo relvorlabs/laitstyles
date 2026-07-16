@@ -1,6 +1,9 @@
+import { isHoldActive } from "@/lib/admin/orders/sales-selectors";
+import {
+  applySalesStockMutation,
+  type SalesStockMutationKind,
+} from "@/lib/admin/orders/sales-stock";
 import { err, ok, type Result } from "@/lib/admin/result";
-import { isHoldActive } from "@/lib/admin/sales-selectors";
-import { applySalesStockMutation, type SalesStockMutationKind } from "@/lib/admin/sales-stock";
 import type {
   ControlRoomCustomer,
   ControlRoomOrder,

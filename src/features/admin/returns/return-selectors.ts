@@ -4,7 +4,7 @@ import type {
   ReturnWorkspaceItem,
   ReturnWorkspaceSummary,
 } from "@/features/admin/returns/return-types";
-import { getReturnedQuantityForOrderLine } from "@/lib/admin/sales-selectors";
+import { getReturnedQuantityForOrderLine } from "@/lib/admin/orders/sales-selectors";
 import type {
   AdminState,
   ControlRoomOrder,

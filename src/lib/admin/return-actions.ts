@@ -1,10 +1,13 @@
-import { err, ok, type Result } from "@/lib/admin/result";
 import {
   canTransitionReturn,
   getReturnedQuantityForOrderLine,
   inferOrderLineStockState,
-} from "@/lib/admin/sales-selectors";
-import { applySalesStockMutation, type SalesStockMutationKind } from "@/lib/admin/sales-stock";
+} from "@/lib/admin/orders/sales-selectors";
+import {
+  applySalesStockMutation,
+  type SalesStockMutationKind,
+} from "@/lib/admin/orders/sales-stock";
+import { err, ok, type Result } from "@/lib/admin/result";
 import type {
   ControlRoomOrder,
   ControlRoomReturn,

@@ -3,7 +3,7 @@ import {
   getOrderNetRevenue,
   getPaidOrders,
   isHoldActive,
-} from "@/lib/admin/sales-selectors";
+} from "@/lib/admin/orders/sales-selectors";
 import type {
   ControlRoomHold,
   ControlRoomOrder,

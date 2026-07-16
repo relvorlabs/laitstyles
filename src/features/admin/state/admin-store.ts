@@ -26,8 +26,8 @@ import {
   type ProductLifecycleActionError,
   type ProductLifecycleActionSuccess,
 } from "@/lib/admin/inventory/product-lifecycle-reducer";
-import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
-import { applyOrderTransition } from "@/lib/admin/order-actions";
+import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
+import { applyOrderTransition } from "@/lib/admin/orders/order-reducer";
 import {
   applyIntakeTransition,
   applyProductEditorAction,

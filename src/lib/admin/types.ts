@@ -5,14 +5,14 @@ import type {
   ProductReview,
   StockMovement,
 } from "@/lib/admin/inventory/inventory-types";
-import type { IntakeRecord } from "@/lib/admin/product-editor/product-editor-types";
 import type {
   ControlRoomHold,
   ControlRoomOrder,
   ControlRoomReturn,
   CurrencyCode,
   FulfilmentStatus,
-} from "@/lib/admin/sales-types";
+} from "@/lib/admin/orders/sales-types";
+import type { IntakeRecord } from "@/lib/admin/product-editor/product-editor-types";
 import type { StoreSettings } from "@/lib/admin/settings-types";
 
 export type {
@@ -74,27 +74,6 @@ export type {
   UniqueProduct,
   VariantProduct,
 } from "@/lib/admin/inventory/inventory-types";
-
-export type {
-  IntakeRecord,
-  IntakeStage,
-  IntakeTransitionSuccess,
-  ProductEditorActionError,
-  ProductEditorActionSuccess,
-  ProductEditorBase,
-  ProductEditorFulfilment,
-  ProductEditorIntent,
-  ProductEditorIssue,
-  ProductEditorMeasurement,
-  ProductEditorMedia,
-  ProductEditorStep,
-  ProductEditorValues,
-  ProductEditorVariant,
-  StockedProductEditorValues,
-  UniqueProductEditorValues,
-  VariantProductEditorValues,
-} from "@/lib/admin/product-editor/product-editor-types";
-
 export type {
   ControlRoomHold,
   ControlRoomOrder,
@@ -131,7 +110,26 @@ export type {
   SalesActionError,
   SalesActionErrorCode,
   SalesChannel,
-} from "@/lib/admin/sales-types";
+} from "@/lib/admin/orders/sales-types";
+export type {
+  IntakeRecord,
+  IntakeStage,
+  IntakeTransitionSuccess,
+  ProductEditorActionError,
+  ProductEditorActionSuccess,
+  ProductEditorBase,
+  ProductEditorFulfilment,
+  ProductEditorIntent,
+  ProductEditorIssue,
+  ProductEditorMeasurement,
+  ProductEditorMedia,
+  ProductEditorStep,
+  ProductEditorValues,
+  ProductEditorVariant,
+  StockedProductEditorValues,
+  UniqueProductEditorValues,
+  VariantProductEditorValues,
+} from "@/lib/admin/product-editor/product-editor-types";
 
 export type {
   AcceptedPaymentMethod,

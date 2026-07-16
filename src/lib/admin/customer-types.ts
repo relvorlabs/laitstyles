@@ -1,4 +1,4 @@
-import type { DeliveryAddress, OrderStatus } from "@/lib/admin/sales-types";
+import type { DeliveryAddress, OrderStatus } from "@/lib/admin/orders/sales-types";
 
 export type CustomerType = "individual" | "stylist" | "reseller" | "walk-in";
 

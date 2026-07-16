@@ -3,7 +3,7 @@ import {
   getActiveSalesHolds,
   getPaidOrders,
   getRevenueByChannel,
-} from "@/lib/admin/sales-selectors";
+} from "@/lib/admin/orders/sales-selectors";
 import type {
   AttentionItem,
   ControlRoomHold,

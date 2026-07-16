@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { orderStatusLabels } from "@/features/admin/orders/order-labels";
-import { getPermittedOrderTransitions } from "@/lib/admin/sales-selectors";
+import { getPermittedOrderTransitions } from "@/lib/admin/orders/sales-selectors";
 import type { ControlRoomOrder, OrderStatus } from "@/lib/admin/types";
 
 const destructiveStatuses = new Set<OrderStatus>(["cancelled", "refunded"]);

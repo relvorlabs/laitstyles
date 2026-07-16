@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { applyHoldConversion, applyHoldRelease } from "@/lib/admin/hold-actions";
-import { applyOfflineSale } from "@/lib/admin/offline-sale-actions";
-import { applyOrderTransition } from "@/lib/admin/order-actions";
+import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
+import { applyOrderTransition } from "@/lib/admin/orders/order-reducer";
+import { getRevenueByChannel } from "@/lib/admin/orders/sales-selectors";
+import { applySalesStockMutation } from "@/lib/admin/orders/sales-stock";
 import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/return-actions";
-import { getRevenueByChannel } from "@/lib/admin/sales-selectors";
-import { applySalesStockMutation } from "@/lib/admin/sales-stock";
 import { activeControlRoomSeed } from "@/lib/admin/seed";
 import type { ControlRoomOrder, ControlRoomState, InventoryProduct } from "@/lib/admin/types";
 

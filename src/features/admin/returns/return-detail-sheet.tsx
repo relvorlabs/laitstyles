@@ -27,7 +27,7 @@ import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors
 import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
 import type { ReturnActionFeedback } from "@/features/admin/returns/return-types";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/formatters";
-import { getPermittedReturnTransitions } from "@/lib/admin/sales-selectors";
+import { getPermittedReturnTransitions } from "@/lib/admin/orders/sales-selectors";
 import type { AdminState, ControlRoomReturn, ReturnStatus } from "@/lib/admin/types";
 
 const confirmationStatuses = new Set<ReturnStatus>(["refunded", "damaged", "rejected"]);
