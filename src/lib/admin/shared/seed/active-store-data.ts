@@ -1,76 +1,16 @@
+import { driveImage, productMedia, stock } from "@/lib/admin/shared/seed/helpers";
 import type {
   ControlRoomActivity,
   ControlRoomCustomer,
   ControlRoomHold,
   ControlRoomOrder,
-  ControlRoomState,
-  InventoryCounts,
   InventoryProduct,
-  ProductMedia,
   ProductReview,
   SalesPulsePoint,
   StockMovement,
 } from "@/lib/admin/shared/types";
 
-const driveImage = (id: string) => `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-
-const stock = (
-  totalReceived: number,
-  available: number,
-  reserved: number,
-  sold: number,
-  returned = 0,
-  damaged = 0,
-): InventoryCounts => ({
-  totalReceived,
-  available,
-  reserved,
-  sold,
-  returned,
-  damaged,
-});
-
-const productMedia = (
-  productId: string,
-  name: string,
-  coverId: string,
-  detailId?: string,
-  defectId?: string,
-): ProductMedia[] => {
-  const media: ProductMedia[] = [
-    {
-      id: `${productId}-cover`,
-      url: driveImage(coverId),
-      alt: `${name} front view`,
-      kind: "cover",
-      position: 0,
-    },
-  ];
-
-  if (detailId) {
-    media.push({
-      id: `${productId}-detail`,
-      url: driveImage(detailId),
-      alt: `${name} fabric and construction detail`,
-      kind: "detail",
-      position: 1,
-    });
-  }
-
-  if (defectId) {
-    media.push({
-      id: `${productId}-defect`,
-      url: driveImage(defectId),
-      alt: `${name} condition detail`,
-      kind: "defect",
-      position: media.length,
-    });
-  }
-
-  return media;
-};
-
-const products: InventoryProduct[] = [
+export const products: InventoryProduct[] = [
   {
     id: "botanical-jeans",
     slug: "botanical-jeans",
@@ -571,7 +511,7 @@ const products: InventoryProduct[] = [
   },
 ];
 
-const customers: ControlRoomCustomer[] = [
+export const customers: ControlRoomCustomer[] = [
   {
     id: "customer-amara",
     name: "Amara Okafor",
@@ -602,7 +542,7 @@ const customers: ControlRoomCustomer[] = [
   },
 ];
 
-const orders: ControlRoomOrder[] = [
+export const orders: ControlRoomOrder[] = [
   {
     id: "LS-20481",
     customerId: "customer-amara",
@@ -724,7 +664,7 @@ const orders: ControlRoomOrder[] = [
   },
 ];
 
-const holds: ControlRoomHold[] = [
+export const holds: ControlRoomHold[] = [
   {
     id: "hold-botanical",
     customerId: "customer-amara",
@@ -760,7 +700,7 @@ const holds: ControlRoomHold[] = [
   },
 ];
 
-const activities: ControlRoomActivity[] = [
+export const activities: ControlRoomActivity[] = [
   {
     id: "activity-1",
     kind: "hold",
@@ -822,7 +762,7 @@ const activities: ControlRoomActivity[] = [
   },
 ];
 
-const stockMovements: StockMovement[] = [
+export const stockMovements: StockMovement[] = [
   {
     id: "movement-1",
     productId: "botanical-jeans",
@@ -915,7 +855,7 @@ const stockMovements: StockMovement[] = [
   },
 ];
 
-const reviews: ProductReview[] = [
+export const reviews: ProductReview[] = [
   {
     id: "review-1",
     productId: "botanical-jeans",
@@ -958,7 +898,7 @@ const reviews: ProductReview[] = [
   },
 ];
 
-const salesPulse: SalesPulsePoint[] = [
+export const salesPulse: SalesPulsePoint[] = [
   { date: "2026-07-03", label: "Fri", online: 76000, offline: 18000 },
   { date: "2026-07-04", label: "Sat", online: 98000, offline: 42000 },
   { date: "2026-07-05", label: "Sun", online: 34000, offline: 12000 },
@@ -967,55 +907,3 @@ const salesPulse: SalesPulsePoint[] = [
   { date: "2026-07-08", label: "Wed", online: 87000, offline: 29000 },
   { date: "2026-07-09", label: "Thu", online: 43000, offline: 55500 },
 ];
-
-export const activeControlRoomSeed: ControlRoomState = {
-  storeName: "Laitstyle",
-  reportingDate: "2026-07-09",
-  asOf: "2026-07-09T11:35:00+01:00",
-  currency: "NGN",
-  isNewStore: false,
-  products,
-  orders,
-  holds,
-  customers,
-  activities,
-  stockMovements,
-  reviews,
-  salesPulse,
-  continueTasks: [
-    {
-      id: "continue-wrap-skirt",
-      type: "draft",
-      title: "Finish the Ivory Linen Wrap Skirt",
-      detail: "Add measurements, confirm condition and set a selling price.",
-      href: "/admin/inventory?view=intake",
-      progress: 62,
-    },
-  ],
-};
-
-export const newStoreControlRoomSeed: ControlRoomState = {
-  storeName: "Laitstyle",
-  reportingDate: "2026-07-09",
-  asOf: "2026-07-09T11:35:00+01:00",
-  currency: "NGN",
-  isNewStore: true,
-  products: [],
-  orders: [],
-  holds: [],
-  customers: [],
-  activities: [],
-  stockMovements: [],
-  reviews: [],
-  salesPulse: [],
-  continueTasks: [
-    {
-      id: "setup-store",
-      type: "setup",
-      title: "Set up the store foundation",
-      detail: "Add the first product, delivery options and accepted payments.",
-      href: "/admin?view=new-store",
-      progress: 20,
-    },
-  ],
-};
