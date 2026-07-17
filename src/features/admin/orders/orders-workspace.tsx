@@ -21,6 +21,7 @@ import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip
 import { OrdersTable } from "@/features/admin/orders/orders-table";
 import { buildOrdersHref } from "@/features/admin/orders/orders-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useTransitionOrder } from "@/lib/admin/orders/orders-mutations";
 import type { OrderStatus } from "@/lib/admin/shared/types";
 
 export function OrdersWorkspace({
@@ -31,7 +32,8 @@ export function OrdersWorkspace({
   initialOpenOrderId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, transitionOrder } = useAdmin();
+  const { state } = useAdmin();
+  const transitionOrderMutation = useTransitionOrder();
   const [query, setQuery] = useState(initialQuery);
   const [openOrderId, setOpenOrderId] = useState<string | null>(initialOpenOrderId);
   const [feedback, setFeedback] = useState<{
@@ -80,8 +82,8 @@ export function OrdersWorkspace({
     replaceUrl(query, null);
   }
 
-  function moveOrder(orderId: string, status: OrderStatus) {
-    const result = transitionOrder(orderId, status);
+  async function moveOrder(orderId: string, status: OrderStatus) {
+    const result = await transitionOrderMutation.mutateAsync({ orderId, nextStatus: status });
     if (!result.ok) {
       setFeedback({
         tone: "error",
