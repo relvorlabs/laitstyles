@@ -48,9 +48,9 @@ export function HoldDetailSheet({
   hold: ControlRoomHold | null;
   feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onExtend: (holdId: string, minutes: number) => string | null;
-  onRelease: (holdId: string) => string | null;
-  onConvert: (input: ConvertHoldInput) => string | null;
+  onExtend: (holdId: string, minutes: number) => Promise<string | null>;
+  onRelease: (holdId: string) => Promise<string | null>;
+  onConvert: (input: ConvertHoldInput) => Promise<string | null>;
 }) {
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [conversionOpen, setConversionOpen] = useState(false);
@@ -249,8 +249,8 @@ export function HoldDetailSheet({
         initialCity={customer?.city ?? "Lagos"}
         key={`${hold.id}-${conversionOpen ? "open" : "closed"}`}
         onOpenChange={setConversionOpen}
-        onSubmit={(input) => {
-          const actionError = onConvert(input);
+        onSubmit={async (input) => {
+          const actionError = await onConvert(input);
           if (!actionError) setConversionOpen(false);
           return actionError;
         }}

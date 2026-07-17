@@ -54,7 +54,7 @@ export function HoldConversionDialog({
   initialCity: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (input: ConvertHoldInput) => string | null;
+  onSubmit: (input: ConvertHoldInput) => Promise<string | null>;
 }) {
   const [paymentStatus, setPaymentStatus] =
     useState<Extract<PaymentStatus, "pending" | "paid" | "deposit">>("paid");
@@ -63,14 +63,14 @@ export function HoldConversionDialog({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!deliveryCity.trim()) {
       setError("Enter the delivery or pickup city before creating the order.");
       return;
     }
 
-    const actionError = onSubmit({
+    const actionError = await onSubmit({
       holdId,
       paymentStatus,
       paymentMethod,

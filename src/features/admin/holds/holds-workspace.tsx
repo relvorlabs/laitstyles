@@ -20,6 +20,7 @@ import { HoldsSummaryStrip } from "@/features/admin/holds/holds-summary-strip";
 import { HoldsTable } from "@/features/admin/holds/holds-table";
 import { buildHoldsHref } from "@/features/admin/holds/holds-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useConvertHold, useExtendHold, useReleaseHold } from "@/lib/admin/holds/holds-mutations";
 import type { ConvertHoldInput } from "@/lib/admin/shared/types";
 
 export type HoldActionFeedback = {
@@ -36,7 +37,10 @@ export function HoldsWorkspace({
   initialOpenHoldId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, extendHold, releaseHold, convertHold } = useAdmin();
+  const { state } = useAdmin();
+  const extendHoldMutation = useExtendHold();
+  const releaseHoldMutation = useReleaseHold();
+  const convertHoldMutation = useConvertHold();
   const [query, setQuery] = useState(initialQuery);
   const [openHoldId, setOpenHoldId] = useState<string | null>(initialOpenHoldId);
   const [feedback, setFeedback] = useState<HoldActionFeedback | null>(null);
@@ -83,10 +87,11 @@ export function HoldsWorkspace({
   }
 
   function showResult(
-    result:
-      | ReturnType<typeof extendHold>
-      | ReturnType<typeof releaseHold>
-      | ReturnType<typeof convertHold>,
+    result: Awaited<
+      | ReturnType<typeof extendHoldMutation.mutateAsync>
+      | ReturnType<typeof releaseHoldMutation.mutateAsync>
+      | ReturnType<typeof convertHoldMutation.mutateAsync>
+    >,
     successTitle: string,
   ) {
     if (!result.ok) {
@@ -106,16 +111,16 @@ export function HoldsWorkspace({
     return null;
   }
 
-  function extend(holdId: string, minutes: number) {
-    return showResult(extendHold(holdId, minutes), "Hold extended");
+  async function extend(holdId: string, minutes: number) {
+    return showResult(await extendHoldMutation.mutateAsync({ holdId, minutes }), "Hold extended");
   }
 
-  function release(holdId: string) {
-    return showResult(releaseHold(holdId), "Hold released");
+  async function release(holdId: string) {
+    return showResult(await releaseHoldMutation.mutateAsync(holdId), "Hold released");
   }
 
-  function convert(input: ConvertHoldInput) {
-    return showResult(convertHold(input), "Order created from hold");
+  async function convert(input: ConvertHoldInput) {
+    return showResult(await convertHoldMutation.mutateAsync(input), "Order created from hold");
   }
 
   return (
