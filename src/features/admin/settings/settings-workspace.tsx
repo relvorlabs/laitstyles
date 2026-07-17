@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   type Resolver,
   useForm,
 } from "react-hook-form";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { settingsSections } from "@/features/admin/settings/settings-config";
 import {
   countSettingsSectionErrors,
@@ -27,6 +29,8 @@ import { buildSettingsHref } from "@/features/admin/settings/settings-url";
 import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
+import { useSaveStoreSettings } from "@/lib/admin/settings/settings-mutations";
+import { settingsQueryOptions } from "@/lib/admin/settings/settings-query-options";
 import { storeSettingsInputSchema } from "@/lib/admin/settings/settings-schema";
 import type {
   SaveStoreSettingsInput,
@@ -38,8 +42,11 @@ export function SettingsWorkspace({ initialSection }: { initialSection: Settings
   const pathname = usePathname();
   const { can } = useAdminAccess();
   const canEdit = can("settings:update");
-  const { state, saveStoreSettings } = useAdmin();
-  const persistedSettings = state.settings ?? createDefaultStoreSettings(state.asOf);
+  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: settings } = useQuery(settingsQueryOptions(repositories));
+  const saveSettingsMutation = useSaveStoreSettings();
+  const persistedSettings = settings ?? createDefaultStoreSettings(state.asOf);
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [feedback, setFeedback] = useState<SettingsFeedback | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -105,7 +112,7 @@ export function SettingsWorkspace({ initialSection }: { initialSection: Settings
   async function save(values: SaveStoreSettingsInput) {
     if (!canEdit) return;
     setFeedback(null);
-    const result = saveStoreSettings(values);
+    const result = await saveSettingsMutation.mutateAsync(values);
     if (!result.ok) {
       const issues = result.error.issues ?? [];
       applyIssues(issues);
