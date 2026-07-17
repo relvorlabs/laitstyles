@@ -281,20 +281,71 @@ Foundation started 2026-07-11 under Decision 011 override.
 - [x] Promote paused preliminary repository/key foundation to active Phase 12 material (`repositories.ts`, in-memory adapter, mounted `ControlRoomRepositoryProvider`, `inventoryKeys`/`productKeys`)
 - [x] Add typed domain query-key factories for Orders, Holds, Returns, Customers, Settings and Overview with stability test
 - [x] Decide the `@tanstack/eslint-plugin-query` question: deferred — Biome remains the single lint entrypoint; the ESLint-only plugin is introduced only once real query hooks exist (Decision 011)
-- [ ] Migrate Prisma-backed domain reads/writes into query options and mutations after each repository and role guard is verified
-- [ ] Add targeted invalidation, cache reconciliation and safe optimistic rollback
+- [x] Migrate all six admin domains (Inventory, Orders, Holds, Returns, Customers, Settings) onto `useQuery`/`useMutation` over the existing `AdminRepositories` interface
+- [x] Add targeted invalidation and authoritative cache reconciliation (`queryClient.setQueryData` from each mutation's own success payload; `invalidateQueries` only where the reducer's payload doesn't carry the authoritative updated value)
 - [ ] Devtools (development-only, excluded from production) if/when warranted
 - [ ] Full Phase 4–12 regression and production handoff
 
-Foundation verification returned:
+### 2026-07-17 — Repo restructuring and admin TanStack Query migration landed
+
+Executed per `docs/superpowers/plans/2026-07-16-repo-restructuring-and-admin-query-migration.md`
+and `docs/superpowers/specs/2026-07-16-repo-restructuring-and-admin-query-migration-design.md`,
+under the same Decision 011 / Governance-note override recorded above. **This did not touch
+Phase 10 or Phase 11** — those blockers stay exactly as recorded below; nothing here represents
+them as passing.
+
+Landed:
+
+- [x] Workstream 1 — deleted unused shims, resolved the `session.ts` filename collision, fixed a
+      stray direct `next-themes` import, deleted dead v1 layout components
+- [x] Workstreams 2 & 3 — split `lib/admin/`'s 60 flat files into 8 domain subfolders
+      (`inventory/`, `product-editor/`, `orders/`, `holds/`, `returns/`, `customers/`,
+      `settings/`, `shared/`) and renamed the 9 `*-actions.ts` pure reducers to `*-reducer.ts`
+- [x] Workstream 4 — extracted the one genuinely misplaced hook (`useAccountProducts`); the other
+      10 context-consumer hooks stay colocated with their providers by design; adopted React 19
+      `use()` over `useContext()` repo-wide
+- [x] Workstream 5 — consolidated the admin and storefront `QueryClient` construction onto one
+      shared `createQueryClient` factory; each surface keeps its own provider/mount strategy
+- [x] Workstream 6 — split `app/checkout/page.tsx` (1118 lines) and `lib/admin/shared/seed.ts`
+      (1021 lines) into per-concern files
+- [x] Workstream 7 — enabled Cache Components (`cacheComponents: true`) and added
+      `use cache`/`cacheTag`/`cacheLife` to the four Prisma-backed published-catalogue reads in
+      `server/commerce/catalogue/catalog-repository.ts` — the one read path in the app with a
+      real, current freshness boundary. **This is the only caching added anywhere in this
+      change; nothing else is Prisma-backed or cached.**
+- [x] Workstream 8 — migrated all six admin domains onto TanStack Query, wrapping the existing
+      in-memory `AdminRepositories`/`AdminStore` (unchanged business logic) in a client-cache
+      boundary. **Admin reads/writes remain in-memory-prototype, not Prisma-backed** — this
+      migration is orthogonal to the Prisma/auth work blocked in Phase 10/11 below, per the
+      plan's own explicit constraint against inventing persistence claims. Workspace components
+      whose view models genuinely span multiple domains (e.g. Customers' relationship profiles
+      pulling from orders/holds/returns/reviews, Holds' product-name resolution, Orders'/
+      Returns'/Record Sale's cross-references) keep their read on `useAdmin()`'s synchronous
+      store; only migrations with a single-domain read, or a mutation, moved onto
+      `useQuery`/`useMutation`. Removed the deprecated `ControlRoom*` compatibility aliases now
+      that every domain has migrated off the pattern they existed to ease.
+
+Verification for the full plan:
+
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` (163 tests, 41 files), `pnpm audit:buttons`, and
+      `pnpm build` all passed after every task and at the end of each workstream
+- [x] `npx react-doctor@latest . --verbose --diff` completed with "No issues detected" (its
+      internal lint sub-check exceeded its own 300s budget and was skipped, so the result is
+      marked incomplete by the tool itself — the same limitation this tracker has recorded for
+      every prior phase's React Doctor run)
+- [ ] Manual browser smoke passes for the six migrated domains — not performed; this session had
+      no admin Supabase credentials available and does not enter credentials on the user's
+      behalf. The automated verification above (typecheck/lint/test/build) is the evidence on
+      record; a human pass through each workspace (Settings, Customers, Holds, Returns, Orders,
+      Inventory + Product Editor + Record Sale) is still owed before this is browser-verified.
+
+Foundation verification returned (earlier, 2026-07-11):
 
 - [x] `.\node_modules\.bin\biome.CMD check .` — 0 errors, 48 pre-existing warnings still visible
 - [x] `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
 - [x] `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 35 files and 139 tests passed
 - [x] `node .\node_modules\next\dist\bin\next build` — Next.js 16.2.10 production build passed (exit 0)
 - [x] React Doctor changed-scope fallback: `npx.cmd --yes react-doctor@latest . --verbose --scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` — no issues found
-- [ ] `npx.cmd --yes react-doctor@latest . --verbose --diff` — still not rerun; prior phases recorded this command timing out after 5 minutes
-- [ ] Browser/visual validation — not required for this non-visual provider/data scaffold; deferred to the first domain migration that touches UI states
 
 ## Verification and integration blockers
 
@@ -310,6 +361,12 @@ files. Those findings and all earlier phase gates remain open in the continuatio
 
 ## Next action
 
-The Phase 12 foundation (QueryClient boundary + domain key factories) is in place under the Decision 011 override. Its data-layer body must use the Phase 11 Prisma schema and authenticated profile-role contracts. Apply reviewed Prisma migrations in the intended environment, regenerate Prisma Client, and verify authorization before migrating the first domain onto query options and mutations.
+All six admin domains are now migrated onto TanStack Query (2026-07-17, under the Decision 011 /
+Governance-note override), but over the existing in-memory `AdminRepositories`/`AdminStore` —
+**not** the Phase 11 Prisma schema. That data-layer swap (admin reads/writes moving onto Prisma
+with the Phase 10 authenticated profile-role contracts) remains open and blocked exactly as
+recorded below; this migration only changed the client-side caching boundary in front of the
+still-in-memory prototype store. A manual browser smoke pass across the six domains is also still
+owed (see the 2026-07-17 entry above for why it wasn't done in-session).
 
 Keep Phase 10 and Phase 11 blockers visible, do not represent them as passing, and keep PR #4 draft/non-review-ready until the blocked gates and the branch divergence are resolved.
