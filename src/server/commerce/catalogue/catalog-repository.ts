@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
 import type {
   ProductDetail,
@@ -95,6 +96,10 @@ function catalogueOrderBy(sort?: CatalogueSort): Prisma.productsOrderByWithRelat
 // Public catalogue reads — always scoped by the single publishedProductWhere.
 // There is no unscoped variant (docs/storefront-v2/04 §4.1 #5).
 export async function listPublishedProducts(query: CatalogueQuery = {}): Promise<ProductSummary[]> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
   if (useStyleSmokeCatalogue) return [];
 
   const rows = await prisma.products.findMany({
@@ -108,12 +113,20 @@ export async function listPublishedProducts(query: CatalogueQuery = {}): Promise
 }
 
 export async function countPublishedProducts(filters: CatalogueFilters = {}): Promise<number> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
   if (useStyleSmokeCatalogue) return 0;
 
   return prisma.products.count({ where: catalogueWhere(filters) });
 }
 
 export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
+  "use cache";
+  cacheTag(`product-${slug}`);
+  cacheLife("minutes");
+
   if (useStyleSmokeCatalogue) return null;
 
   const row = await prisma.products.findFirst({
@@ -177,6 +190,10 @@ export interface StorefrontFacetOptions {
 // Available facet values among storefront-visible products (product-level).
 // Small catalogue → derive distinct values in one query.
 export async function getStorefrontFacets(): Promise<StorefrontFacetOptions> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
   if (useStyleSmokeCatalogue) {
     return { brands: [], conditions: [], colours: [], sizes: [] };
   }

@@ -122,6 +122,13 @@ The repository uses Next.js 16 and React 19.
 - Avoid page-wide client rendering when only a subsection is interactive.
 - Avoid waterfalls; start independent work together and stream meaningful sections with Suspense when real async data exists.
 - Do not enable Cache Components or add `use cache` for static prototype seed data.
+- Cache Components are enabled repo-wide as of 2026-07-16. `use cache`/`cacheTag`/`cacheLife` are
+  approved for the Prisma-backed storefront catalogue repository (`server/commerce/catalogue/*`),
+  where a real published/unpublished freshness boundary exists. Do not extend `use cache` to admin
+  in-memory prototype reads or static JSON snapshot reads. No admin write path is Prisma-backed yet,
+  so there is no live mutation calling `revalidateTag`/`updateTag` today — the tag names
+  ('catalogue', `product-${slug}`) are documented so a future Prisma-backed admin write can call
+  `revalidateTag` without re-deriving the convention.
 - Use `next/image` with accurate `sizes` for product imagery.
 - Dynamically load heavy editors, charts or drawers only when the bundle benefit is real.
 - If Phase 12 adds Query hydration, use a per-request server QueryClient and a stable browser QueryClient. Do not reuse a server cache across requests.

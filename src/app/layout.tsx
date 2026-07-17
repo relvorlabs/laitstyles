@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AppProviders } from "@/components/providers/app-providers";
+import { AppShellFallback } from "@/components/providers/app-shell-fallback";
 // The canonical typography is the card-lab storefront set (Geist / Instrument Serif /
 // Geist Mono), loaded once here via next/font and exposed as --font-storefront-* for the whole app.
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
@@ -16,12 +18,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const catalog = await loadStorefrontCatalog();
+  // Started here (not awaited) so the static shell can send immediately;
+  // AppProviders resolves it with use() inside the Suspense boundary below.
+  // See docs/01-app/02-guides/streaming.md "Sharing a promise across the tree".
+  const catalogPromise = loadStorefrontCatalog();
 
   return (
     <html
@@ -30,7 +35,9 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <AppProviders catalog={catalog}>{children}</AppProviders>
+        <Suspense fallback={<AppShellFallback />}>
+          <AppProviders catalogPromise={catalogPromise}>{children}</AppProviders>
+        </Suspense>
       </body>
     </html>
   );

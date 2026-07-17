@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ProductDetail } from "@/features/storefront/product/product-detail";
 import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
-import { loadStorefrontCatalog, loadStorefrontProductBySlug } from "@/lib/storefront/catalog-data";
+import {
+  loadStorefrontProductBySlug,
+  loadStorefrontProductSlugs,
+} from "@/lib/storefront/catalog-data";
+import ProductDetailLoading from "./loading";
 
 type Params = { slug: string };
 
@@ -35,7 +40,18 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<Params> }) {
+// The product read is genuinely per-request (schedule-gated visibility, see
+// catalog-data.ts), so the static shell is just the route's own loading
+// skeleton; the actual content streams in around it.
+export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
+  return (
+    <Suspense fallback={<ProductDetailLoading />}>
+      <ProductDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
   const product = await loadStorefrontProductBySlug(slug);
   if (!product) notFound();
@@ -102,6 +118,6 @@ function serializeJsonLd(value: unknown) {
 
 // Pre-render all prototype product detail pages at build time.
 export async function generateStaticParams() {
-  const catalog = await loadStorefrontCatalog();
-  return catalog.products.map((product) => ({ slug: productSlug(product) }));
+  const slugs = await loadStorefrontProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }

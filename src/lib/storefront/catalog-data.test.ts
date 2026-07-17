@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   loadCatalogProductDetails,
   loadCatalogProductSummaries,
@@ -6,6 +6,15 @@ import {
   loadStorefrontCatalog,
   loadStorefrontProductBySlug,
 } from "@/lib/storefront/catalog-data";
+
+// connection() requires a real Next.js request scope, which a plain Vitest
+// run doesn't have; these tests exercise pure data-mapping, not the request-
+// time dynamism connection() marks, so it's a no-op here (same rationale as
+// the server-only stub in vitest.config.ts).
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  connection: vi.fn(async () => undefined),
+}));
 
 describe("public storefront catalog server repository", () => {
   it("loads every archive relation from one public snapshot", async () => {

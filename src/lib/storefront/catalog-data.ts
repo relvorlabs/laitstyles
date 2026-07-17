@@ -1,5 +1,6 @@
 import "server-only";
 
+import { connection } from "next/server";
 import { cache } from "react";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { nairaToKobo } from "@/lib/money";
@@ -469,7 +470,22 @@ function buildCatalog(now = new Date()) {
   };
 }
 
-const getBuiltCatalog = cache(async () => buildCatalog());
+const getBuiltCatalog = cache(async () => {
+  // Cache Components (next.config.ts) makes reading the current time require an
+  // explicit dynamic marker first; buildCatalog's scheduled-product visibility
+  // check genuinely needs live wall-clock time, so this stays uncached per
+  // AGENTS.md's rule against `use cache` on the static prototype snapshot.
+  await connection();
+  return buildCatalog();
+});
+
+// generateStaticParams runs at build time with no request, so it cannot call
+// connection(); it only needs slugs to enumerate, not schedule-filtered
+// current-time product visibility (the actual page render still enforces
+// that freshly via getBuiltCatalog above).
+export const loadStorefrontProductSlugs = cache(async () =>
+  buildCatalog().storefront.products.map((product) => product.slug),
+);
 
 export async function loadCatalogSnapshot() {
   return (await getBuiltCatalog()).catalogSnapshot;

@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { getConfiguredAssetRemotePatterns } from "./src/lib/assets/remote-patterns";
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   async redirects() {
     return [
       {

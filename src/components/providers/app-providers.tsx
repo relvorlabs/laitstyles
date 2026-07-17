@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, use } from "react";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,12 +8,14 @@ import { StorefrontExperienceProvider } from "@/features/storefront/shared/store
 import type { StorefrontCatalogPayload } from "@/lib/storefront/catalog-data";
 
 export function AppProviders({
-  catalog,
+  catalogPromise,
   children,
 }: {
-  catalog: StorefrontCatalogPayload;
+  catalogPromise: Promise<StorefrontCatalogPayload>;
   children: ReactNode;
 }) {
+  const catalog = use(catalogPromise);
+
   return (
     <ThemeProvider>
       <StorefrontExperienceProvider products={catalog.products}>
