@@ -43,7 +43,7 @@ export function ReturnDetailSheet({
   returnRecord: ControlRoomReturn | null;
   feedback: ReturnActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onTransition: (returnId: string, status: ReturnStatus) => string | null;
+  onTransition: (returnId: string, status: ReturnStatus) => Promise<string | null>;
 }) {
   const [pendingStatus, setPendingStatus] = useState<ReturnStatus | null>(null);
 

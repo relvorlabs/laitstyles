@@ -42,7 +42,7 @@ export function CreateReturnDialog({
   state: AdminState;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (input: CreateReturnInput) => string | null;
+  onSubmit: (input: CreateReturnInput) => Promise<string | null>;
 }) {
   const orders = useMemo(() => getEligibleReturnOrders(state), [state]);
   const [orderId, setOrderId] = useState(orders[0]?.id ?? "");
@@ -68,7 +68,7 @@ export function CreateReturnDialog({
     setError(null);
   }
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!order || !line) {
       setError({
@@ -89,7 +89,7 @@ export function CreateReturnDialog({
       return;
     }
 
-    const actionError = onSubmit({
+    const actionError = await onSubmit({
       orderId: order.id,
       reason: reason.trim(),
       note: note.trim(),

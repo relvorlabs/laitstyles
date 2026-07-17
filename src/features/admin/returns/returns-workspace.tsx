@@ -21,6 +21,7 @@ import { ReturnsSummaryStrip } from "@/features/admin/returns/returns-summary-st
 import { ReturnsTable } from "@/features/admin/returns/returns-table";
 import { buildReturnsHref } from "@/features/admin/returns/returns-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useCreateReturn, useTransitionReturn } from "@/lib/admin/returns/returns-mutations";
 import type { CreateReturnInput, ReturnStatus } from "@/lib/admin/shared/types";
 
 export function ReturnsWorkspace({
@@ -31,7 +32,9 @@ export function ReturnsWorkspace({
   initialOpenReturnId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, createReturn, transitionReturn } = useAdmin();
+  const { state } = useAdmin();
+  const createReturnMutation = useCreateReturn();
+  const transitionReturnMutation = useTransitionReturn();
   const [query, setQuery] = useState(initialQuery);
   const [openReturnId, setOpenReturnId] = useState<string | null>(initialOpenReturnId);
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,8 +86,8 @@ export function ReturnsWorkspace({
     replaceUrl(query, null);
   }
 
-  function create(input: CreateReturnInput) {
-    const result = createReturn(input);
+  async function create(input: CreateReturnInput) {
+    const result = await createReturnMutation.mutateAsync(input);
     if (!result.ok) {
       setFeedback({
         tone: "error",
@@ -105,8 +108,8 @@ export function ReturnsWorkspace({
     return null;
   }
 
-  function transition(returnId: string, status: ReturnStatus) {
-    const result = transitionReturn(returnId, status);
+  async function transition(returnId: string, status: ReturnStatus) {
+    const result = await transitionReturnMutation.mutateAsync({ returnId, nextStatus: status });
     if (!result.ok) {
       setFeedback({
         tone: "error",
