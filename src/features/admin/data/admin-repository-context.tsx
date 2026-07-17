@@ -30,8 +30,3 @@ export function useAdminRepositories() {
   }
   return repositories;
 }
-
-/** @deprecated Use AdminRepositoryProvider. */
-export const ControlRoomRepositoryProvider = AdminRepositoryProvider;
-/** @deprecated Use useAdminRepositories. */
-export const useControlRoomRepositories = useAdminRepositories;

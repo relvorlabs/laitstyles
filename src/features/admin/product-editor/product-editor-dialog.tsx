@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { type FieldPath, FormProvider, type Resolver, useForm, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,10 +22,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
 import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useSaveProduct } from "@/lib/admin/inventory/inventory-mutations";
+import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
@@ -57,8 +60,9 @@ export function ProductEditorDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
-  const { state } = useAdmin();
-  const product = productId ? state.products.find((item) => item.id === productId) : undefined;
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const product = productId ? products.find((item) => item.id === productId) : undefined;
 
   if (!open) return null;
 
@@ -86,7 +90,7 @@ function ProductEditorForm({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
-  const { saveProduct } = useAdmin();
+  const saveProductMutation = useSaveProduct();
   const [activeStep, setActiveStep] = useState<ProductEditorStep>("type");
   const [highestVisited, setHighestVisited] = useState(0);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -160,7 +164,7 @@ function ProductEditorForm({
     onOpenChange(false);
   }
 
-  function commit(intent: ProductEditorIntent) {
+  async function commit(intent: ProductEditorIntent) {
     const values = methods.getValues();
     const issues =
       intent === "draft"
@@ -177,7 +181,7 @@ function ProductEditorForm({
       return;
     }
 
-    const result = saveProduct(values, intent);
+    const result = await saveProductMutation.mutateAsync({ values, intent });
     if (!result.ok) {
       const resultIssues = result.error.issues ?? [];
       applyIssues(resultIssues);

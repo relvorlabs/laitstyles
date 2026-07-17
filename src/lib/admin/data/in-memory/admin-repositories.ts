@@ -64,9 +64,6 @@ export function createInMemoryAdminRepositories(store: AdminStore): AdminReposit
   };
 }
 
-/** @deprecated Use createInMemoryAdminRepositories. */
-export const createInMemoryControlRoomRepositories = createInMemoryAdminRepositories;
-
 function cloneValue<T>(value: T): T {
   return structuredClone(value);
 }

@@ -1,8 +1,10 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { InventoryControls } from "@/features/admin/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/admin/inventory/inventory-detail-sheet";
 import { InventoryEmptyState } from "@/features/admin/inventory/inventory-empty-state";
@@ -21,6 +23,10 @@ import { InventoryWorkspaceHeader } from "@/features/admin/inventory/inventory-w
 import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import {
+  inventoryProductsQueryOptions,
+  inventoryTaxonomyQueryOptions,
+} from "@/lib/admin/inventory/inventory-query-options";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
@@ -52,6 +58,9 @@ export function InventoryWorkspace({
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
   const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
   const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] = useState<InventoryPresentation>(initialPresentation);
@@ -65,25 +74,24 @@ export function InventoryWorkspace({
   } | null>(null);
   const [exportedCount, setExportedCount] = useState<number | null>(null);
 
-  const items = useMemo(() => queryInventory(state.products, query), [query, state.products]);
-  const summary = useMemo(() => getInventorySummary(state.products), [state.products]);
+  const items = useMemo(() => queryInventory(products, query), [query, products]);
+  const summary = useMemo(() => getInventorySummary(products), [products]);
   const facets = useMemo<InventoryFacetOptions>(() => {
-    const productFacets = getInventoryFacetOptions(state.products);
-    const taxonomy = state.catalogueTaxonomy ?? [];
+    const productFacets = getInventoryFacetOptions(products);
     return {
       ...productFacets,
       categories: mergeOptions(
         productFacets.categories,
-        taxonomy.filter((item) => item.kind === "category").map((item) => item.name),
+        catalogueTaxonomy.filter((item) => item.kind === "category").map((item) => item.name),
       ),
       collections: mergeOptions(
         productFacets.collections,
-        taxonomy.filter((item) => item.kind === "collection").map((item) => item.name),
+        catalogueTaxonomy.filter((item) => item.kind === "collection").map((item) => item.name),
       ),
     };
-  }, [state.catalogueTaxonomy, state.products]);
-  const viewCounts = useMemo(() => getInventoryViewCounts(state.products), [state.products]);
-  const allItems = useMemo(() => state.products.map(toInventoryListItem), [state.products]);
+  }, [catalogueTaxonomy, products]);
+  const viewCounts = useMemo(() => getInventoryViewCounts(products), [products]);
+  const allItems = useMemo(() => products.map(toInventoryListItem), [products]);
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(page, 1), totalPages);
   const pageItems = useMemo(
@@ -272,7 +280,7 @@ export function InventoryWorkspace({
           </>
         )
       ) : (
-        <InventoryEmptyState hasProducts={state.products.length > 0} onReset={resetQuery} />
+        <InventoryEmptyState hasProducts={products.length > 0} onReset={resetQuery} />
       )}
 
       {!isIntake ? (

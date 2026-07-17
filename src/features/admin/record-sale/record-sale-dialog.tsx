@@ -44,6 +44,7 @@ import {
   toOfflineSaleInput,
 } from "@/features/admin/record-sale/record-sale-types";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useRecordOfflineSale } from "@/lib/admin/orders/orders-mutations";
 
 export function RecordSaleDialog({
   open,
@@ -79,7 +80,8 @@ function RecordSaleForm({
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
 }) {
-  const { state, recordOfflineSale } = useAdmin();
+  const { state } = useAdmin();
+  const recordOfflineSaleMutation = useRecordOfflineSale();
   const [activeStep, setActiveStep] = useState<RecordSaleStep>("item");
   const [highestVisited, setHighestVisited] = useState(0);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -127,7 +129,7 @@ function RecordSaleForm({
     if (activeStep !== "item" && activeStep !== "review") return true;
 
     const values = methods.getValues();
-    const product = getSelectedSaleProduct(state, values.productId);
+    const product = getSelectedSaleProduct(state.products, values.productId);
     if (!product) {
       methods.setError("productId", {
         type: "manual",
@@ -159,7 +161,9 @@ function RecordSaleForm({
     const valid = await methods.trigger();
     if (!valid || !validateOperationalItem()) return;
 
-    const result = recordOfflineSale(toOfflineSaleInput(methods.getValues()));
+    const result = await recordOfflineSaleMutation.mutateAsync(
+      toOfflineSaleInput(methods.getValues()),
+    );
     if (!result.ok) {
       const conflict = result.error.conflictingHoldIds?.length
         ? ` Active holds: ${result.error.conflictingHoldIds.join(", ")}.`

@@ -56,8 +56,3 @@ export function useAdmin() {
     [state, store],
   );
 }
-
-/** @deprecated Use AdminProvider. */
-export const ControlRoomProvider = AdminProvider;
-/** @deprecated Use useAdmin. */
-export const useControlRoom = useAdmin;

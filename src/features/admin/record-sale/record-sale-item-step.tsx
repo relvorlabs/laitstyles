@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -12,6 +13,7 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   getAvailableForSale,
   getSaleUnitPrice,
@@ -19,24 +21,25 @@ import {
   getSellableProducts,
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { getProductCover } from "@/lib/admin/inventory/inventory-selectors";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function RecordSaleItemStep() {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: allProducts = [] } = useQuery(inventoryProductsQueryOptions(repositories));
   const methods = useFormContext<RecordSaleValues>();
   const productId = useWatch({ control: methods.control, name: "productId" });
   const variantId = useWatch({ control: methods.control, name: "variantId" });
   const quantity = useWatch({ control: methods.control, name: "quantity" });
   const unitPrice = useWatch({ control: methods.control, name: "unitPrice" });
-  const products = getSellableProducts(state);
-  const product = getSelectedSaleProduct(state, productId);
+  const products = getSellableProducts(allProducts);
+  const product = getSelectedSaleProduct(allProducts, productId);
   const available = product ? getAvailableForSale(product, variantId) : 0;
   const cover = product ? getProductCover(product) : null;
 
   function changeProduct(nextProductId: string) {
-    const nextProduct = getSelectedSaleProduct(state, nextProductId);
+    const nextProduct = getSelectedSaleProduct(allProducts, nextProductId);
     const firstVariant =
       nextProduct?.inventoryMode === "variant"
         ? nextProduct.variants.find((variant) => variant.stock.available > 0)

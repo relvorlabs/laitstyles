@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useTransitionIntake } from "@/lib/admin/inventory/inventory-mutations";
 import {
   formatIntakeStage,
   getAdjacentIntakeStages,
@@ -27,7 +28,8 @@ const stageOrder: IntakeStage[] = [
 ];
 
 export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) {
-  const { state, transitionIntake } = useAdmin();
+  const { state } = useAdmin();
+  const transitionIntakeMutation = useTransitionIntake();
   const { openExistingProduct } = useProductEditorController();
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error";
@@ -46,8 +48,11 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
     [items],
   );
 
-  function move(record: IntakeRecord, stage: IntakeStage) {
-    const result = transitionIntake(record.productId, stage);
+  async function move(record: IntakeRecord, stage: IntakeStage) {
+    const result = await transitionIntakeMutation.mutateAsync({
+      productId: record.productId,
+      nextStage: stage,
+    });
     if (!result.ok) {
       setFeedback({ tone: "error", message: result.error.message });
       return;

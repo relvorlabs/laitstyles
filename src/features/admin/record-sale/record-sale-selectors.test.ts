@@ -11,7 +11,7 @@ import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 describe("Record Sale selectors", () => {
   it("starts from an available published product and existing customer", () => {
     const defaults = createRecordSaleDefaults(activeAdminSeed);
-    const product = getSelectedSaleProduct(activeAdminSeed, defaults.productId);
+    const product = getSelectedSaleProduct(activeAdminSeed.products, defaults.productId);
 
     expect(product).not.toBeNull();
     expect(defaults.quantity).toBe(1);
@@ -21,7 +21,7 @@ describe("Record Sale selectors", () => {
   });
 
   it("excludes unavailable and unpublished catalogue records", () => {
-    const products = getSellableProducts(activeAdminSeed);
+    const products = getSellableProducts(activeAdminSeed.products);
     const ids = products.map((product) => product.id);
 
     expect(ids).toContain("botanical-jeans");
@@ -31,7 +31,7 @@ describe("Record Sale selectors", () => {
   });
 
   it("uses the selected variant availability and optional price", () => {
-    const product = getSelectedSaleProduct(activeAdminSeed, "ribbed-studio-tank");
+    const product = getSelectedSaleProduct(activeAdminSeed.products, "ribbed-studio-tank");
 
     expect(getAvailableForSale(product!, "tank-s-cream")).toBe(2);
     expect(getAvailableForSale(product!, "tank-l-ink")).toBe(1);

@@ -1,22 +1,29 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
 import {
   EditorSelectField,
   EditorTextareaField,
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import {
+  inventoryProductsQueryOptions,
+  inventoryTaxonomyQueryOptions,
+} from "@/lib/admin/inventory/inventory-query-options";
 import { generateProductSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function ProductIdentityStep() {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
   const { control, setValue } = useFormContext<ProductEditorValues>();
   const [mode, name, brand, category, collection] = useWatch({
     control,
@@ -27,26 +34,22 @@ export function ProductIdentityStep() {
   const categories = useMemo(
     () =>
       createOptions(
-        (state.catalogueTaxonomy ?? [])
-          .filter((item) => item.kind === "category")
-          .map((item) => item.name),
+        catalogueTaxonomy.filter((item) => item.kind === "category").map((item) => item.name),
         currentCategory,
       ),
-    [currentCategory, state.catalogueTaxonomy],
+    [currentCategory, catalogueTaxonomy],
   );
   const collections = useMemo(
     () =>
       createOptions(
-        (state.catalogueTaxonomy ?? [])
-          .filter((item) => item.kind === "collection")
-          .map((item) => item.name),
+        catalogueTaxonomy.filter((item) => item.kind === "collection").map((item) => item.name),
         currentCollection,
       ),
-    [currentCollection, state.catalogueTaxonomy],
+    [currentCollection, catalogueTaxonomy],
   );
 
   function generateReference() {
-    const existingReferences = state.products.flatMap((product) => {
+    const existingReferences = products.flatMap((product) => {
       if (product.inventoryMode === "unique") return [product.archiveNumber];
       if (product.inventoryMode === "stocked") return [product.sku];
       return product.variants.map((variant) => variant.sku);

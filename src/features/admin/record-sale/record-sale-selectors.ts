@@ -2,7 +2,7 @@ import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-
 import type { AdminState, InventoryProduct } from "@/lib/admin/shared/types";
 
 export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
-  const firstProduct = getSellableProducts(state)[0];
+  const firstProduct = getSellableProducts(state.products)[0];
   const firstVariant =
     firstProduct?.inventoryMode === "variant"
       ? firstProduct.variants.find((variant) => variant.stock.available > 0)
@@ -26,8 +26,8 @@ export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
   };
 }
 
-export function getSellableProducts(state: AdminState) {
-  return state.products.filter(
+export function getSellableProducts(products: InventoryProduct[]) {
+  return products.filter(
     (product) =>
       product.lifecycle === "active" &&
       product.publication === "published" &&
@@ -43,8 +43,8 @@ export function getAvailableForSale(product: InventoryProduct, variantId?: strin
   return product.variants.find((variant) => variant.id === variantId)?.stock.available ?? 0;
 }
 
-export function getSelectedSaleProduct(state: AdminState, productId: string) {
-  return state.products.find((product) => product.id === productId) ?? null;
+export function getSelectedSaleProduct(products: InventoryProduct[], productId: string) {
+  return products.find((product) => product.id === productId) ?? null;
 }
 
 export function getSelectedSaleVariant(product: InventoryProduct | null, variantId: string) {

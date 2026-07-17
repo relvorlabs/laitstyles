@@ -13,7 +13,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import {
+  useArchiveProduct,
+  useDeleteProduct,
+  useRestoreProduct,
+} from "@/lib/admin/inventory/inventory-mutations";
 import type { ProductLifecycle } from "@/lib/admin/shared/types";
 
 type PendingAction = "archive" | "restore" | "delete" | null;
@@ -29,18 +33,20 @@ export function InventoryProductLifecycleActions({
   lifecycle: ProductLifecycle;
   onDeleted: () => void;
 }) {
-  const { archiveProduct, deleteProduct, restoreProduct } = useAdmin();
+  const archiveProductMutation = useArchiveProduct();
+  const restoreProductMutation = useRestoreProduct();
+  const deleteProductMutation = useDeleteProduct();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  function runAction() {
+  async function runAction() {
     if (!pendingAction) return;
     const result =
       pendingAction === "archive"
-        ? archiveProduct(productId)
+        ? await archiveProductMutation.mutateAsync(productId)
         : pendingAction === "restore"
-          ? restoreProduct(productId)
-          : deleteProduct(productId);
+          ? await restoreProductMutation.mutateAsync(productId)
+          : await deleteProductMutation.mutateAsync(productId);
 
     setPendingAction(null);
     if (!result.ok) {

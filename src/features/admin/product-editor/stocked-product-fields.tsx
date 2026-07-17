@@ -1,22 +1,25 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useFormContext, useWatch } from "react-hook-form";
 import { FieldGroup } from "@/components/ui/field";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   EditorNumberField,
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function StockedProductFields() {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
   const { control } = useFormContext<ProductEditorValues>();
   const [productId, quantity] = useWatch({
     control,
     name: ["productId", "stocked.quantity"],
   });
-  const existingProduct = state.products.find((product) => product.id === productId);
+  const existingProduct = products.find((product) => product.id === productId);
   const existing = existingProduct?.inventoryMode === "stocked" ? existingProduct : undefined;
   const committed = existing
     ? existing.stock.reserved +

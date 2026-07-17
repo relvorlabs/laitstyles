@@ -63,6 +63,3 @@ export type AdminRepositories = {
   settings: SettingsRepository;
   overview: OverviewRepository;
 };
-
-/** @deprecated Use AdminRepositories. */
-export type ControlRoomRepositories = AdminRepositories;

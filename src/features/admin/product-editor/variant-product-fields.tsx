@@ -1,11 +1,13 @@
 "use client";
 
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import {
   type EditorFieldName,
@@ -13,12 +15,13 @@ import {
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function VariantProductFields() {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
   const {
     control,
     getValues,
@@ -40,12 +43,12 @@ export function VariantProductFields() {
   );
   const externalSkus = useMemo(
     () =>
-      state.products.flatMap((product) => {
+      products.flatMap((product) => {
         if (product.inventoryMode === "unique") return [product.archiveNumber];
         if (product.inventoryMode === "stocked") return [product.sku];
         return product.variants.map((variant) => variant.sku);
       }),
-    [state.products],
+    [products],
   );
 
   function generateSkuFor(index: number) {

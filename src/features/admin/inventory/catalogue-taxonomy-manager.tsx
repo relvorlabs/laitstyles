@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
+import {
+  useCreateCatalogueTaxonomy,
+  useDeleteCatalogueTaxonomy,
+  useRenameCatalogueTaxonomy,
+} from "@/lib/admin/inventory/inventory-mutations";
+import {
+  inventoryProductsQueryOptions,
+  inventoryTaxonomyQueryOptions,
+} from "@/lib/admin/inventory/inventory-query-options";
 import type { CatalogueTaxonomyKind } from "@/lib/admin/shared/types";
 
 type TaxonomyValueEvent = {
@@ -41,8 +51,12 @@ export function CatalogueTaxonomyManager({
   onRename?: (event: TaxonomyRenameEvent) => void;
   onDelete?: (event: TaxonomyValueEvent) => void;
 }) {
-  const { state, createCatalogueTaxonomy, renameCatalogueTaxonomy, deleteCatalogueTaxonomy } =
-    useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
+  const createCatalogueTaxonomyMutation = useCreateCatalogueTaxonomy();
+  const renameCatalogueTaxonomyMutation = useRenameCatalogueTaxonomy();
+  const deleteCatalogueTaxonomyMutation = useDeleteCatalogueTaxonomy();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<CatalogueTaxonomyKind>(initialKind);
   const [newName, setNewName] = useState("");
@@ -53,14 +67,14 @@ export function CatalogueTaxonomyManager({
 
   const items = useMemo(
     () =>
-      (state.catalogueTaxonomy ?? [])
+      catalogueTaxonomy
         .filter((item) => item.kind === kind)
         .toSorted((left, right) => left.name.localeCompare(right.name, "en-NG")),
-    [kind, state.catalogueTaxonomy],
+    [kind, catalogueTaxonomy],
   );
 
-  function createItem() {
-    const result = createCatalogueTaxonomy({ kind, name: newName });
+  async function createItem() {
+    const result = await createCatalogueTaxonomyMutation.mutateAsync({ kind, name: newName });
     if (!result.ok) {
       setFeedback(result.error.message);
       return;
@@ -75,10 +89,13 @@ export function CatalogueTaxonomyManager({
     setFeedback(result.value.message);
   }
 
-  function saveRename() {
+  async function saveRename() {
     if (!editingId) return;
     const currentItem = items.find((item) => item.id === editingId);
-    const result = renameCatalogueTaxonomy(editingId, editingName);
+    const result = await renameCatalogueTaxonomyMutation.mutateAsync({
+      taxonomyId: editingId,
+      name: editingName,
+    });
     if (!result.ok) {
       setFeedback(result.error.message);
       return;
@@ -95,14 +112,14 @@ export function CatalogueTaxonomyManager({
     setFeedback(result.value.message);
   }
 
-  function deleteItem(id: string) {
+  async function deleteItem(id: string) {
     if (confirmDeleteId !== id) {
       setConfirmDeleteId(id);
       setFeedback("Select Delete again to confirm. Used groups cannot be deleted.");
       return;
     }
     const currentItem = items.find((item) => item.id === id);
-    const result = deleteCatalogueTaxonomy(id);
+    const result = await deleteCatalogueTaxonomyMutation.mutateAsync(id);
     setConfirmDeleteId(null);
     if (!result.ok) {
       setFeedback(result.error.message);
@@ -197,7 +214,7 @@ export function CatalogueTaxonomyManager({
             {items.length ? (
               <div className="divide-y divide-border">
                 {items.map((item) => {
-                  const usageCount = state.products.filter((product) =>
+                  const usageCount = products.filter((product) =>
                     kind === "category"
                       ? product.category === item.name
                       : product.collection === item.name,

@@ -8,6 +8,7 @@ import {
   Search01Icon,
   Store01Icon,
 } from "@hugeicons/core-free-icons";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useMemo } from "react";
 import {
@@ -21,9 +22,14 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { settingsSections } from "@/features/admin/settings/settings-config";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
+import { holdsListQueryOptions } from "@/lib/admin/holds/holds-query-options";
+import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
+import { ordersListQueryOptions } from "@/lib/admin/orders/orders-query-options";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
 
 const overviewTargets = [
@@ -75,29 +81,34 @@ type AdminCommandMenuProps = {
 export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) {
   const router = useRouter();
   const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: allProducts = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: allOrders = [] } = useQuery(ordersListQueryOptions(repositories));
+  const { data: allCustomers = [] } = useQuery(customersListQueryOptions(repositories));
+  const { data: allHolds = [] } = useQuery(holdsListQueryOptions(repositories));
   const toggleOpen = useEffectEvent(() => onOpenChange(!open));
 
   const records = useMemo(() => {
-    const products = state.products
+    const products = allProducts
       .toSorted(
         (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
       )
       .slice(0, 7);
-    const orders = state.orders
+    const orders = allOrders
       .filter((order) => !terminalOrderStatuses.has(order.fulfilmentStatus))
       .toSorted(
         (left, right) => new Date(right.placedAt).getTime() - new Date(left.placedAt).getTime(),
       )
       .slice(0, 6);
-    const customers = state.customers.slice(0, 6);
-    const holds = state.holds
+    const customers = allCustomers.slice(0, 6);
+    const holds = allHolds
       .filter((hold) => !hold.status || hold.status === "active")
       .toSorted(
         (left, right) => new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime(),
       )
       .slice(0, 5);
     return { products, orders, customers, holds };
-  }, [state.customers, state.holds, state.orders, state.products]);
+  }, [allCustomers, allHolds, allOrders, allProducts]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
