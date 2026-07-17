@@ -13,7 +13,7 @@ export function CustomerOverviewPanel({
   onAddNote,
 }: {
   profile: CustomerRelationshipProfile;
-  onAddNote: (body: string) => string | null;
+  onAddNote: (body: string) => Promise<string | null>;
 }) {
   const customer = profile.customer;
   const preferences = customer.preferences;

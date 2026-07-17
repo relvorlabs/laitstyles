@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -12,8 +13,9 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { useAdmin } from "@/features/admin/state/admin-provider";
+import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
 import type { SalesChannel } from "@/lib/admin/shared/types";
 
 const channelLabels: Record<Exclude<SalesChannel, "online">, string> = {
@@ -29,7 +31,8 @@ const channelLabels: Record<Exclude<SalesChannel, "online">, string> = {
 const channels = Object.keys(channelLabels) as Array<Exclude<SalesChannel, "online">>;
 
 export function RecordSaleCustomerStep() {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
   const methods = useFormContext<RecordSaleValues>();
   const customerMode = useWatch({
     control: methods.control,
@@ -37,7 +40,7 @@ export function RecordSaleCustomerStep() {
   });
   const channel = useWatch({ control: methods.control, name: "channel" });
   const customerId = useWatch({ control: methods.control, name: "customerId" });
-  const customer = state.customers.find((item) => item.id === customerId);
+  const customer = customers.find((item) => item.id === customerId);
 
   function setCustomerMode(mode: RecordSaleValues["customerMode"]) {
     methods.setValue("customerMode", mode, { shouldDirty: true });
@@ -125,7 +128,7 @@ export function RecordSaleCustomerStep() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Existing customers</SelectLabel>
-                    {state.customers.map((item) => (
+                    {customers.map((item) => (
                       <SelectItem key={item.id} value={item.id}>
                         {item.name} · {item.city}
                       </SelectItem>

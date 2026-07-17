@@ -10,14 +10,14 @@ export function CustomerNoteForm({
   onSubmit,
 }: {
   customerId: string;
-  onSubmit: (body: string) => string | null;
+  onSubmit: (body: string) => Promise<string | null>;
 }) {
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function submitNote(event: FormEvent<HTMLFormElement>) {
+  async function submitNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const actionError = onSubmit(body);
+    const actionError = await onSubmit(body);
     if (actionError) {
       setError(actionError);
       return;

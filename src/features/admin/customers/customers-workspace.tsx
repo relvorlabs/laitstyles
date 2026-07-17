@@ -24,6 +24,7 @@ import { CustomersTable } from "@/features/admin/customers/customers-table";
 import { buildCustomersHref } from "@/features/admin/customers/customers-url";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { getCustomerRelationshipProfiles } from "@/lib/admin/customers/customer-selectors";
+import { useAddCustomerNote } from "@/lib/admin/customers/customers-mutations";
 
 export function CustomersWorkspace({
   initialQuery,
@@ -33,7 +34,8 @@ export function CustomersWorkspace({
   initialOpenCustomerId: string | null;
 }) {
   const pathname = usePathname();
-  const { state, addCustomerNote } = useAdmin();
+  const { state } = useAdmin();
+  const addNoteMutation = useAddCustomerNote();
   const [query, setQuery] = useState(initialQuery);
   const [openCustomerId, setOpenCustomerId] = useState<string | null>(initialOpenCustomerId);
   const [feedback, setFeedback] = useState<CustomerActionFeedback | null>(null);
@@ -86,8 +88,8 @@ export function CustomersWorkspace({
     replaceUrl(query, null);
   }
 
-  function saveCustomerNote(customerId: string, body: string) {
-    const result = addCustomerNote({ customerId, body });
+  async function saveCustomerNote(customerId: string, body: string) {
+    const result = await addNoteMutation.mutateAsync({ customerId, body });
     if (!result.ok) {
       setFeedback({
         tone: "error",

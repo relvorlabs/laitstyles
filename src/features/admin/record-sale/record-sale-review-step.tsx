@@ -1,25 +1,30 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   getSelectedSaleProduct,
   getSelectedSaleVariant,
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 import { useAdmin } from "@/features/admin/state/admin-provider";
+import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 
 export function RecordSaleReviewStep() {
   const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
   const methods = useFormContext<RecordSaleValues>();
   const values = useWatch({ control: methods.control }) as RecordSaleValues;
   const product = getSelectedSaleProduct(state, values.productId);
   const variant = getSelectedSaleVariant(product, values.variantId);
   const customer =
     values.customerMode === "existing"
-      ? state.customers.find((item) => item.id === values.customerId)
+      ? customers.find((item) => item.id === values.customerId)
       : null;
   const customerName = customer?.name || values.customerName.trim() || "Walk-in customer";
   const total = (Number(values.quantity) || 0) * (Number(values.unitPrice) || 0);

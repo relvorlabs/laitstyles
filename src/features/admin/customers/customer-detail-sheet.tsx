@@ -36,7 +36,7 @@ export function CustomerDetailSheet({
   profile: CustomerRelationshipProfile | null;
   feedback: CustomerActionFeedback | null;
   onOpenChange: (open: boolean) => void;
-  onAddNote: (customerId: string, body: string) => string | null;
+  onAddNote: (customerId: string, body: string) => Promise<string | null>;
 }) {
   if (!profile) {
     return <Sheet onOpenChange={onOpenChange} open={false} />;
