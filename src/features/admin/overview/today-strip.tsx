@@ -1,116 +1,90 @@
-import {
-  Clock01Icon,
-  PackageIcon,
-  ShoppingBag01Icon,
-  Store01Icon,
-} from "@hugeicons/core-free-icons";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { formatCompactNaira, formatNaira } from "@/lib/admin/shared/formatters";
+import { LedgerLeadFigure } from "@/features/admin/overview/ledger-lead-figure";
+import { formatCompactNaira } from "@/lib/admin/shared/formatters";
 import type { OverviewSnapshot } from "@/lib/admin/shared/types";
+import { cn } from "@/lib/utils";
 
 type TodayStripProps = {
   snapshot: OverviewSnapshot;
   reportingLabel: string;
 };
 
+const GRAIN =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E";
+
 export function TodayStrip({ snapshot, reportingLabel }: TodayStripProps) {
   const offlineShare = snapshot.revenue.total
     ? Math.round((snapshot.revenue.offline / snapshot.revenue.total) * 100)
     : 0;
 
+  const figures = [
+    { label: "Orders", value: String(snapshot.ordersToday) },
+    { label: "Units sold", value: String(snapshot.unitsSoldToday) },
+    { label: "Active holds", value: String(snapshot.activeHolds) },
+    { label: "Offline share", value: `${offlineShare}%` },
+  ];
+
   return (
-    <Card
-      className="relative overflow-hidden border-0 bg-primary py-0 text-primary-foreground ring-0"
+    <section
+      aria-labelledby="today-heading"
+      className="relative overflow-hidden border-y border-border bg-surface-sunken/45"
       id="today"
+      style={{ animation: "leemRise 300ms var(--ease) both" }}
     >
       <div
         aria-hidden="true"
-        className="absolute -right-20 -top-24 size-80 rounded-full bg-accent/10 blur-3xl"
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{ backgroundImage: `url("${GRAIN}")` }}
       />
-      <div
-        aria-hidden="true"
-        className="absolute -bottom-28 right-[18%] size-64 rounded-full bg-primary-foreground/5 blur-3xl"
-      />
-      <CardHeader className="relative border-b border-primary-foreground/10 px-5 py-5 sm:px-7 sm:py-6">
-        <CardTitle className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground/68">
-            Today · {reportingLabel}
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/7 px-3 py-1.5 text-[11px] font-medium text-brand-sage-soft">
-            <span className="size-1.5 rounded-full bg-brand-sage-soft" />
-            Storefront live
-          </span>
-        </CardTitle>
-        <CardDescription className="mt-5 max-w-[620px] font-serif text-[34px] font-medium leading-[1.03] text-primary-foreground sm:text-[46px]">
-          {formatNaira(snapshot.revenue.total)} moved through the store today.
-        </CardDescription>
-      </CardHeader>
 
-      <CardContent className="relative px-5 py-6 sm:px-7 sm:py-7">
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr] xl:items-end">
-          <div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
-              <PulseMetric
-                icon={ShoppingBag01Icon}
-                label="Orders"
-                value={String(snapshot.ordersToday)}
-              />
-              <PulseMetric
-                icon={PackageIcon}
-                label="Units sold"
-                value={String(snapshot.unitsSoldToday)}
-              />
-              <PulseMetric
-                icon={Clock01Icon}
-                label="Active holds"
-                value={String(snapshot.activeHolds)}
-              />
-              <PulseMetric icon={Store01Icon} label="Offline share" value={`${offlineShare}%`} />
-            </div>
+      <div className="relative px-5 py-6 sm:px-7 sm:py-8">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          Today — the lead · {reportingLabel}
+        </p>
+        <h2
+          className="mt-3 max-w-[680px] text-balance font-serif text-[30px] font-medium leading-[1.05] sm:text-[40px]"
+          id="today-heading"
+        >
+          <LedgerLeadFigure value={snapshot.revenue.total} /> moved through the store today.
+        </h2>
+
+        <div className="mt-7 grid gap-7 xl:grid-cols-[minmax(0,1.15fr)_minmax(260px,.85fr)] xl:items-end">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-4">
+            {figures.map((figure, index) => (
+              <div
+                className={cn("min-w-0", index > 0 && "sm:border-l sm:border-border sm:pl-5")}
+                key={figure.label}
+              >
+                <div className="font-serif text-[27px] font-medium leading-none tabular-nums">
+                  {figure.value}
+                </div>
+                <div className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {figure.label}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-2 overflow-hidden rounded-[16px] border border-primary-foreground/10 bg-primary-foreground/7">
-            <ChannelMetric label="Online" value={formatCompactNaira(snapshot.revenue.online)} />
-            <ChannelMetric label="Offline" value={formatCompactNaira(snapshot.revenue.offline)} />
+          <div className="grid content-end gap-2.5">
+            <ChannelRow label="Online" value={formatCompactNaira(snapshot.revenue.online)} />
+            <ChannelRow label="Offline" value={formatCompactNaira(snapshot.revenue.offline)} />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
-type PulseMetricProps = {
-  icon: Parameters<typeof AdminIcon>[0]["icon"];
-  label: string;
-  value: string;
-};
-
-function PulseMetric({ icon, label, value }: PulseMetricProps) {
+function ChannelRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <span className="grid size-9 place-items-center rounded-[11px] bg-primary-foreground/10 text-brand-sage-soft">
-        <AdminIcon icon={icon} size={17} />
+    <div className="flex items-baseline gap-3">
+      <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {label}
       </span>
-      <div className="mt-3 font-serif text-[28px] font-medium leading-none tabular-nums">
-        {value}
-      </div>
-      <div className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-foreground/62">
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function ChannelMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border-r border-primary-foreground/10 px-4 py-5 last:border-r-0 sm:px-5">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/62">
-        {label}
-      </div>
-      <div className="mt-2 text-[18px] font-semibold tabular-nums text-primary-foreground sm:text-[21px]">
-        {value}
-      </div>
+      <span
+        aria-hidden="true"
+        className="min-w-6 flex-1 border-b border-dotted border-border-strong/70"
+      />
+      <span className="text-[15px] font-semibold tabular-nums">{value}</span>
     </div>
   );
 }

@@ -2,10 +2,10 @@ import { ArrowRight01Icon, PackageIcon } from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { OrderStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { SectionHeading } from "@/features/admin/shared/section-heading";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
 import { getCustomerName } from "@/lib/admin/shared/selectors";
 import type { ControlRoomOrder, ControlRoomState } from "@/lib/admin/shared/types";
@@ -21,29 +21,45 @@ export function OpenOrdersPreview({ state }: { state: ControlRoomState }) {
     .slice(0, 5);
 
   return (
-    <section aria-labelledby="open-orders-heading" id="open-orders">
-      <SectionHeading
-        description="Current sales that still need payment, packing, dispatch or customer hand-off."
-        eyebrow="Open orders"
-        title="Keep fulfilment moving without leaving the Overview."
-      />
+    <section aria-labelledby="open-orders-heading" className="scroll-mt-24" id="open-orders">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Open orders
+          </p>
+          <h2
+            className="mt-1.5 text-balance font-serif text-[27px] font-medium leading-tight sm:text-[30px]"
+            id="open-orders-heading"
+          >
+            Keep fulfilment moving without leaving the Overview.
+          </h2>
+          <p className="mt-2 max-w-[620px] text-[13px] leading-5 text-muted-foreground sm:text-[13.5px]">
+            Current sales that still need payment, packing, dispatch or customer hand-off.
+          </p>
+        </div>
+        <Badge variant={orders.length ? "secondary" : "outline"}>{orders.length} shown</Badge>
+      </header>
+
       <Card className="mt-5 gap-0 py-0">
-        <CardHeader className="border-b border-border px-5 py-4 sm:px-6">
-          <CardTitle className="flex items-center justify-between gap-3 text-[13px]">
-            <span id="open-orders-heading">Orders still in motion</span>
-            <Badge variant={orders.length ? "secondary" : "outline"}>{orders.length} shown</Badge>
-          </CardTitle>
-          <CardDescription className="text-[12px]">
-            Ordered by the most recently placed record.
-          </CardDescription>
-        </CardHeader>
         <CardContent className="p-0">
           {orders.length ? (
-            <div className="divide-y divide-border">
-              {orders.map((order) => (
-                <OpenOrderRow key={order.id} order={order} state={state} />
-              ))}
-            </div>
+            <>
+              <div className="divide-y divide-border">
+                {orders.map((order) => (
+                  <OpenOrderRow key={order.id} order={order} state={state} />
+                ))}
+              </div>
+              <div className="flex justify-end border-t border-border px-3 py-2">
+                <Link
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                  data-slot="button"
+                  href="/admin/orders"
+                >
+                  All orders
+                  <AdminIcon icon={ArrowRight01Icon} size={15} />
+                </Link>
+              </div>
+            </>
           ) : (
             <div className="px-5 py-10 text-center sm:px-6">
               <span className="mx-auto grid size-12 place-items-center rounded-full bg-surface-sunken text-muted-foreground">
@@ -73,7 +89,7 @@ function OpenOrderRow({ order, state }: { order: ControlRoomOrder; state: Contro
       className="group grid min-h-[94px] grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 text-foreground transition-colors hover:bg-surface-interactive hover:text-foreground sm:px-5"
       href={`/admin/orders?order=${order.id}`}
     >
-      <span className="relative aspect-[4/5] w-14 overflow-hidden rounded-xl bg-surface-sunken">
+      <span className="relative aspect-[4/5] w-14 overflow-hidden rounded-sm bg-surface-sunken">
         {product ? (
           <Image
             alt={product.name}
@@ -90,7 +106,7 @@ function OpenOrderRow({ order, state }: { order: ControlRoomOrder; state: Contro
       </span>
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
-          <span className="text-[12px] font-semibold">{order.id}</span>
+          <span className="font-mono text-[11.5px] font-semibold">{order.id}</span>
           <OrderStatusBadge status={order.fulfilmentStatus} />
         </span>
         <span className="mt-1.5 block truncate text-[13.5px] font-semibold">{customer}</span>

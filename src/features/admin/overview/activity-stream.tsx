@@ -1,13 +1,5 @@
-import {
-  Clock01Icon,
-  PackageIcon,
-  ShoppingBag01Icon,
-  TruckDeliveryIcon,
-} from "@hugeicons/core-free-icons";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatRelativeTime } from "@/lib/admin/shared/formatters";
-import type { ActivityKind, ControlRoomActivity } from "@/lib/admin/shared/types";
+import type { ControlRoomActivity } from "@/lib/admin/shared/types";
 
 export function ActivityStream({
   activities,
@@ -17,56 +9,44 @@ export function ActivityStream({
   asOf: string;
 }) {
   return (
-    <Card className="h-full gap-0 py-0">
-      <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
-        <CardTitle className="font-serif text-[27px] font-medium">What changed recently</CardTitle>
-        <CardDescription className="text-[12.5px] leading-5">
-          A single timeline across stock, sales, holds and delivery.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        {activities.length ? (
-          <ol className="divide-y divide-border">
-            {activities.map((activity) => (
-              <li
-                className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-5 py-4 sm:px-6"
-                key={activity.id}
-              >
-                <span className="grid size-9 place-items-center rounded-[11px] bg-accent text-accent-foreground">
-                  <AdminIcon icon={activityIcon(activity.kind)} size={17} />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <h3 className="text-[13px] font-semibold leading-5 sm:text-[13.5px]">
-                      {activity.title}
-                    </h3>
-                    <time
-                      className="shrink-0 text-[10.5px] font-medium text-muted-foreground"
-                      dateTime={activity.occurredAt}
-                    >
-                      {formatRelativeTime(asOf, activity.occurredAt)}
-                    </time>
-                  </div>
-                  <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground sm:text-[12px]">
-                    {activity.detail}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="flex min-h-[280px] items-center justify-center px-5 text-center text-[13px] leading-5 text-muted-foreground">
-            Product, order and customer activity will appear here as the store begins moving.
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+    <section aria-labelledby="activity-heading" className="border-t border-border pt-6">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        Activity
+      </p>
+      <h2 className="mt-1.5 font-serif text-[24px] font-medium leading-tight" id="activity-heading">
+        What changed recently
+      </h2>
+      <p className="mt-1.5 text-[12.5px] leading-5 text-muted-foreground">
+        A single timeline across stock, sales, holds and delivery.
+      </p>
 
-function activityIcon(kind: ActivityKind) {
-  if (kind === "order") return ShoppingBag01Icon;
-  if (kind === "hold") return Clock01Icon;
-  if (kind === "delivery") return TruckDeliveryIcon;
-  return PackageIcon;
+      {activities.length ? (
+        <ol className="mt-3 divide-y divide-border">
+          {activities.map((activity) => (
+            <li
+              className="grid grid-cols-[minmax(48px,auto)_minmax(0,1fr)] gap-3 py-3"
+              key={activity.id}
+            >
+              <time
+                className="whitespace-nowrap pt-0.5 font-mono text-[10px] font-semibold text-muted-foreground"
+                dateTime={activity.occurredAt}
+              >
+                {formatRelativeTime(asOf, activity.occurredAt)}
+              </time>
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-semibold leading-5">{activity.title}</h3>
+                <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">
+                  {activity.detail}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-3 text-[12.5px] leading-5 text-muted-foreground">
+          Product, order and customer activity will appear here as the store begins moving.
+        </p>
+      )}
+    </section>
+  );
 }

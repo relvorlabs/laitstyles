@@ -6,9 +6,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { SectionHeading } from "@/features/admin/shared/section-heading";
 import type { AttentionItem, AttentionTone } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
 
@@ -18,61 +18,64 @@ type AttentionQueueProps = {
 
 const toneStyles: Record<
   AttentionTone,
-  { badge: "destructive" | "secondary" | "outline"; icon: string; border: string }
+  { badge: "destructive" | "secondary" | "outline"; numeral: string }
 > = {
-  critical: {
-    badge: "destructive",
-    icon: "bg-destructive/10 text-destructive",
-    border: "border-l-destructive",
-  },
-  warning: {
-    badge: "secondary",
-    icon: "bg-warning/18 text-warning-foreground",
-    border: "border-l-warning",
-  },
-  info: {
-    badge: "outline",
-    icon: "bg-accent text-accent-foreground",
-    border: "border-l-brand-sage",
-  },
+  critical: { badge: "destructive", numeral: "text-oxblood" },
+  warning: { badge: "secondary", numeral: "text-warning-surface-foreground" },
+  info: { badge: "outline", numeral: "text-muted-foreground" },
 };
 
 export function AttentionQueue({ items }: AttentionQueueProps) {
   return (
-    <section className="scroll-mt-24" id="attention">
-      <SectionHeading
-        description="The few things most likely to interrupt fulfilment, cash flow or availability today."
-        eyebrow="Owner attention"
-        title="Handle these before they become customer problems."
-      />
+    <section aria-labelledby="attention-heading" className="scroll-mt-24" id="attention">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Needs a decision
+          </p>
+          <h2
+            className="mt-1.5 text-balance font-serif text-[27px] font-medium leading-tight sm:text-[30px]"
+            id="attention-heading"
+          >
+            Handle these before they become customer problems.
+          </h2>
+          <p className="mt-2 max-w-[620px] text-[13px] leading-5 text-muted-foreground sm:text-[13.5px]">
+            Sorted by operational risk, not by when the record was created.
+          </p>
+        </div>
+        <Badge variant={items.length ? "secondary" : "outline"}>{items.length} open</Badge>
+      </header>
 
       <Card className="mt-5 gap-0 py-0">
-        <CardHeader className="border-b border-border px-5 py-4 sm:px-6">
-          <CardTitle className="flex items-center justify-between gap-3 text-[13px]">
-            <span>Priority queue</span>
-            <Badge variant={items.length ? "secondary" : "outline"}>{items.length} open</Badge>
-          </CardTitle>
-          <CardDescription className="text-[12px]">
-            Sorted by operational risk, not by when the record was created.
-          </CardDescription>
-        </CardHeader>
         <CardContent className="p-0">
           {items.length ? (
-            <div className="divide-y divide-border">
-              {items.map((item) => (
-                <AttentionRow item={item} key={item.id} />
+            <ol className="divide-y divide-border">
+              {items.map((item, index) => (
+                <li key={item.id}>
+                  <AttentionRow index={index} item={item} />
+                </li>
               ))}
-            </div>
+            </ol>
           ) : (
-            <div className="px-5 py-10 text-center sm:px-6">
-              <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
+            <div className="bg-accent/50 px-5 py-12 text-center sm:px-6">
+              <span className="mx-auto grid size-12 place-items-center rounded-full bg-card text-accent-foreground ring-1 ring-foreground/10">
                 <AdminIcon icon={PackageIcon} size={21} />
               </span>
-              <h3 className="mt-4 font-serif text-[24px] font-medium">The queue is clear.</h3>
+              <h3 className="mt-4 font-serif text-[24px] font-medium">
+                Nothing needs you right now.
+              </h3>
               <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-5 text-muted-foreground">
                 Payments, holds, delivery exceptions and stock warnings will appear here when they
                 need attention.
               </p>
+              <Link
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "mt-4")}
+                data-slot="button"
+                href="/admin/orders"
+              >
+                Review open orders
+                <AdminIcon icon={ArrowRight01Icon} size={15} />
+              </Link>
             </div>
           )}
         </CardContent>
@@ -81,7 +84,7 @@ export function AttentionQueue({ items }: AttentionQueueProps) {
   );
 }
 
-function AttentionRow({ item }: { item: AttentionItem }) {
+function AttentionRow({ item, index }: { item: AttentionItem; index: number }) {
   const tone = toneStyles[item.tone];
   const icon = item.eyebrow.toLowerCase().includes("hold")
     ? Clock01Icon
@@ -91,18 +94,21 @@ function AttentionRow({ item }: { item: AttentionItem }) {
 
   return (
     <Link
-      className={cn(
-        "group grid min-h-[92px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-l-[3px] px-4 py-4 text-foreground hover:bg-secondary/55 hover:text-foreground sm:gap-4 sm:px-5",
-        tone.border,
-      )}
+      className="group grid min-h-[88px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-4 py-4 text-foreground transition-colors hover:bg-surface-interactive hover:text-foreground sm:px-5"
       href={item.href}
     >
-      <span className={cn("grid size-10 place-items-center rounded-[12px]", tone.icon)}>
-        <AdminIcon icon={icon} size={18} />
+      <span
+        aria-hidden="true"
+        className={cn("font-mono text-[13px] font-semibold tabular-nums", tone.numeral)}
+      >
+        {String(index + 1).padStart(2, "0")}
       </span>
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
-          <Badge variant={tone.badge}>{item.eyebrow}</Badge>
+          <Badge className="gap-1" variant={tone.badge}>
+            <AdminIcon icon={icon} size={11} />
+            {item.eyebrow}
+          </Badge>
         </span>
         <span className="mt-2 block text-[13.5px] font-semibold leading-5 sm:text-[14px]">
           {item.title}

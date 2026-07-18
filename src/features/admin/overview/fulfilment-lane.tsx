@@ -1,65 +1,49 @@
-import { TruckDeliveryIcon } from "@hugeicons/core-free-icons";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { FulfilmentLaneItem } from "@/lib/admin/shared/types";
+import { cn } from "@/lib/utils";
 
 export function FulfilmentLane({ items }: { items: FulfilmentLaneItem[] }) {
   const total = items.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <Card className="h-full scroll-mt-24 gap-0 py-0" id="fulfilment">
-      <CardHeader className="border-b border-border px-5 py-5 sm:px-6">
-        <CardTitle className="flex items-start justify-between gap-4">
-          <span>
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Fulfilment lane
-            </span>
-            <span className="mt-1.5 block font-serif text-[27px] font-medium">
-              Move paid orders forward.
-            </span>
-          </span>
-          <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-accent text-accent-foreground">
-            <AdminIcon icon={TruckDeliveryIcon} size={20} />
-          </span>
-        </CardTitle>
-        <CardDescription className="mt-2 text-[12.5px] leading-5">
-          {total} order{total === 1 ? "" : "s"} currently between payment and dispatch.
-        </CardDescription>
-      </CardHeader>
+    <section
+      aria-labelledby="fulfilment-heading"
+      className="scroll-mt-24 border-t border-border pt-6"
+      id="fulfilment"
+    >
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        Fulfilment lane
+      </p>
+      <h2
+        className="mt-1.5 font-serif text-[24px] font-medium leading-tight"
+        id="fulfilment-heading"
+      >
+        Move paid orders forward.
+      </h2>
+      <p className="mt-1.5 text-[12.5px] leading-5 text-muted-foreground">
+        {total} order{total === 1 ? "" : "s"} currently between payment and dispatch.
+      </p>
 
-      <CardContent className="px-5 py-5 sm:px-6 sm:py-6">
-        <ol className="grid gap-3 sm:grid-cols-4 sm:gap-2" aria-label="Order fulfilment stages">
-          {items.map((item, index) => (
-            <li className="relative" key={item.status}>
-              <div className="flex min-h-[104px] items-center gap-4 rounded-[14px] border border-border bg-secondary/35 p-4 sm:block sm:min-h-[136px]">
-                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-card text-[12px] font-bold tabular-nums ring-1 ring-foreground/10">
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1 sm:mt-5">
-                  <div className="font-serif text-[28px] font-medium leading-none tabular-nums">
-                    {item.count}
-                  </div>
-                  <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    {item.label}
-                  </div>
-                </div>
-                {item.count ? (
-                  <Badge variant="secondary">Active</Badge>
-                ) : (
-                  <Badge variant="outline">Clear</Badge>
-                )}
-              </div>
-              {index < items.length - 1 ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute left-[18px] top-full h-3 w-px bg-border sm:left-full sm:top-[34px] sm:h-px sm:w-2"
-                />
-              ) : null}
-            </li>
-          ))}
-        </ol>
-      </CardContent>
-    </Card>
+      <ol aria-label="Order fulfilment stages, in sequence" className="mt-4">
+        {items.map((item) => (
+          <li className="flex items-baseline gap-3 py-2.5" key={item.status}>
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              {item.label}
+            </span>
+            <span
+              aria-hidden="true"
+              className="min-w-6 flex-1 border-b border-dotted border-border-strong/70"
+            />
+            <span
+              className={cn(
+                "font-serif text-[22px] font-medium leading-none tabular-nums",
+                !item.count && "text-muted-foreground",
+              )}
+            >
+              {item.count}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

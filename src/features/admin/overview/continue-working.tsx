@@ -18,7 +18,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
     return (
       <Card className="self-start">
         <CardHeader>
-          <CardTitle className="font-serif text-[27px] font-medium">Nothing unfinished.</CardTitle>
+          <CardTitle className="font-serif text-[24px] font-medium">Nothing unfinished.</CardTitle>
           <CardDescription>
             Drafts and interrupted operational work will return here.
           </CardDescription>
@@ -29,7 +29,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
 
   return (
     <Card
-      className="self-start scroll-mt-24 border-brand-sage/35 bg-accent/45 ring-brand-sage/25"
+      className="self-start scroll-mt-24 border-brand-sage/35 bg-accent/45 shadow-storefront-1 ring-brand-sage/25"
       id="continue-working"
     >
       <CardHeader>
@@ -37,11 +37,11 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
           <span className="grid size-11 place-items-center rounded-[13px] bg-card text-accent-foreground ring-1 ring-foreground/10">
             <AdminIcon icon={PackageIcon} size={20} />
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-foreground/78">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-accent-foreground/78">
             Continue working
           </span>
         </div>
-        <CardTitle className="font-serif text-[28px] font-medium leading-tight">
+        <CardTitle className="font-serif text-[24px] font-medium leading-tight">
           {task.title}
         </CardTitle>
         <CardDescription className="mt-2 max-w-[460px] text-[13px] leading-5 text-muted-foreground">
@@ -50,7 +50,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
       </CardHeader>
       <CardContent>
         <Progress value={task.progress}>
-          <ProgressLabel className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          <ProgressLabel className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Readiness
           </ProgressLabel>
           <ProgressValue className="text-muted-foreground" />
@@ -61,6 +61,7 @@ export function ContinueWorking({ task }: { task?: ContinueTask }) {
           className={buttonVariants({
             size: "lg",
           })}
+          data-slot="button"
           href={task.href}
         >
           Review what is missing
