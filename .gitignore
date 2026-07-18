@@ -32,6 +32,7 @@
 /.vscode/
 /.ai/
 /.codex-tmp/
+/.worktrees/
 
 # debug
 npm-debug.log*
