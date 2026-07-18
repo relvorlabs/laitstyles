@@ -5,6 +5,7 @@ import {
   loadCatalogSnapshot,
   loadStorefrontCatalog,
   loadStorefrontProductBySlug,
+  loadStorefrontProductPageBySlug,
 } from "@/lib/storefront/catalog-data";
 
 // connection() requires a real Next.js request scope, which a plain Vitest
@@ -89,5 +90,14 @@ describe("public storefront catalog server repository", () => {
       storefront.products[0],
     );
     expect(await loadStorefrontProductBySlug("missing-product")).toBeNull();
+  });
+
+  it("loads matching commerce and canonical detail records for a product page", async () => {
+    const storefront = await loadStorefrontCatalog();
+    const pageData = await loadStorefrontProductPageBySlug(storefront.products[0].slug);
+
+    expect(pageData?.product).toEqual(storefront.products[0]);
+    expect(pageData?.detail.slug).toBe(storefront.products[0].slug);
+    expect(await loadStorefrontProductPageBySlug("missing-product")).toBeNull();
   });
 });

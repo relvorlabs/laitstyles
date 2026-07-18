@@ -507,3 +507,18 @@ export async function loadStorefrontProductBySlug(slug: string) {
   const catalog = await loadStorefrontCatalog();
   return catalog.products.find((product) => product.slug === slug) ?? null;
 }
+
+export interface StorefrontProductPageData {
+  product: Product;
+  detail: ProductDetail;
+}
+
+export async function loadStorefrontProductPageBySlug(
+  slug: string,
+): Promise<StorefrontProductPageData | null> {
+  const catalog = await getBuiltCatalog();
+  const product = catalog.storefront.products.find((candidate) => candidate.slug === slug);
+  const detail = catalog.productDetails.find((candidate) => candidate.slug === slug);
+
+  return product && detail ? { product, detail } : null;
+}

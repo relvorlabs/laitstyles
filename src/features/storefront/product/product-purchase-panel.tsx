@@ -1,259 +1,337 @@
 "use client";
 
-import type { RefObject } from "react";
-import { Button } from "@/components/ui/button";
-import { inventoryLabel, money, type Product } from "@/features/storefront/shared/catalogue-data";
-import { IconHeart } from "@/features/storefront/shared/storefront-icons";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
-import { ProductInfoRow } from "./product-detail-primitives";
+import {
+  ArrowDownRight01Icon,
+  DeliverySecure01Icon,
+  DeliveryTruck01Icon,
+  FavouriteIcon,
+  MinusSignIcon,
+  PackageDeliveredIcon,
+  PackageIcon,
+  PlusSignIcon,
+  RefreshIcon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { type RefObject, useState } from "react";
 
-const conditionRank: Record<string, number> = { "A+": 10, A: 8, "B+": 6 };
-const conditionWord: Record<string, string> = { "A+": "Like new", A: "Excellent", "B+": "Good" };
+import { Button } from "@/components/ui/button";
+import { money, type Product } from "@/features/storefront/shared/catalogue-data";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import type { ProductDetailPresentation } from "./product-detail-presentation";
+
+const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
+
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    block: "start",
+  });
+}
+
+export interface ProductPurchasePanelProps {
+  product: Product;
+  presentation: ProductDetailPresentation;
+  anchorRef: RefObject<HTMLDivElement | null>;
+  canAdd: boolean;
+  quantity: number;
+  onQuantityChange: (nextQuantity: number) => void;
+  onAdd: () => void;
+  onBuyNow: () => void;
+}
 
 export function ProductPurchasePanel({
   product,
+  presentation,
   anchorRef,
   canAdd,
+  quantity,
+  onQuantityChange,
   onAdd,
-  onShare,
-}: {
-  product: Product;
-  anchorRef: RefObject<HTMLDivElement | null>;
-  canAdd: boolean;
-  onAdd: () => void;
-  onShare: () => void;
-}) {
+  onBuyNow,
+}: ProductPurchasePanelProps) {
   const storefront = useStorefront();
-  const { setQuickError } = storefront;
-  const isVariant = product.inventory === "variant";
-  const isOneOfOne = product.inventory === "one-of-one";
+  const [selectedColour, setSelectedColour] = useState(
+    presentation.colours[0] ?? product.colour ?? "Not specified",
+  );
   const available = product.status === "available";
-  const filled = conditionRank[product.condition] ?? 6;
+  const maxQuantity = product.inventory === "one-of-one" ? 1 : Math.max(1, product.stock);
+  const saved = storefront.saved.has(product.id);
+  const reviewLabel =
+    presentation.reviewSummary.count > 0
+      ? `${presentation.reviewSummary.average.toFixed(1)} · ${presentation.reviewSummary.count} reviews`
+      : "No reviews yet";
 
   return (
-    <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-      <div className="rounded-[16px] border border-border bg-surface-raised p-5 sm:p-7 lg:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          {isOneOfOne ? (
-            <span className="badge badge-solid">1 of 1</span>
-          ) : (
-            <span className="badge badge-sage">{inventoryLabel(product.inventory)}</span>
-          )}
-          <span className="badge">{available ? "Available" : product.status}</span>
-          <span className="mono ml-auto text-muted-foreground">LS-{product.id.toUpperCase()}</span>
+    <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start" aria-labelledby="product-title">
+      <div className="flex items-start gap-5">
+        <div>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
+            Laitstyles / {product.new ? "New season" : product.category}
+          </p>
+          <h1
+            id="product-title"
+            className="mt-3 font-serif text-[46px] font-medium leading-[0.95] tracking-[-0.035em] sm:text-[56px]"
+          >
+            {product.name}
+          </h1>
+          <p className="mt-4 max-w-md text-[12px] leading-6 text-muted-foreground">
+            {presentation.description}
+          </p>
         </div>
 
-        <p className="eyebrow mt-7 text-muted-foreground">
-          {product.style} · {product.category}
-        </p>
-        <h1 className="mt-3 font-serif text-[clamp(2.4rem,5vw,4.4rem)] font-medium leading-[0.95] tracking-[-0.03em]">
-          {product.name}
-        </h1>
+        <Button
+          type="button"
+          aria-label={`${saved ? "Remove" : "Add"} ${product.name} ${saved ? "from" : "to"} wishlist`}
+          aria-pressed={saved}
+          onClick={() => storefront.toggleSaved(product.id)}
+          className="ml-auto shrink-0 rounded-full"
+          size="icon-lg"
+          variant={saved ? "default" : "outline"}
+        >
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={FavouriteIcon}
+            size={20}
+            strokeWidth={1.6}
+            fill={saved ? "currentColor" : "none"}
+          />
+        </Button>
+      </div>
 
-        <div className="mt-6 flex flex-wrap items-end justify-between gap-4 border-y border-border py-5">
-          <div>
-            <p className="eyebrow text-muted-foreground">Price</p>
-            <p className="price mt-2 text-3xl font-semibold tracking-[-0.02em] tabular-nums">
-              {money(product.price)}
-            </p>
-          </div>
-          <div className="max-w-[200px] text-right text-sm leading-6 text-muted-foreground">
-            Taxes included. Delivery calculated at checkout.
-          </div>
-        </div>
+      <Button
+        type="button"
+        onClick={() => scrollToSection("reviews-section")}
+        className="mt-4 min-h-11 rounded-full px-1 text-left text-[11px] font-semibold"
+        variant="link"
+        aria-label={`${reviewLabel}. Go to ratings and reviews.`}
+      >
+        <span className="flex gap-0.5 text-star" aria-hidden="true">
+          {STAR_RATINGS.map((star) => (
+            <HugeiconsIcon
+              aria-hidden="true"
+              key={star}
+              icon={StarIcon}
+              size={14}
+              strokeWidth={1.6}
+              fill={
+                star <= Math.round(presentation.reviewSummary.average) ? "currentColor" : "none"
+              }
+            />
+          ))}
+        </span>
+        <span className="underline decoration-border-strong underline-offset-4">{reviewLabel}</span>
+        <HugeiconsIcon aria-hidden="true" icon={ArrowDownRight01Icon} size={16} strokeWidth={1.6} />
+      </Button>
 
-        <p className="mt-6 text-[1.03rem] leading-7 text-muted-foreground">
-          {product.material}. {product.brand !== "Unbranded" ? `${product.brand} · ` : ""}
-          Recommended fit {product.fit}.
-        </p>
-
-        <div className="mt-7 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[9px] border border-border bg-surface-panel p-4">
-            <p className="eyebrow text-muted-foreground">Tagged size</p>
-            <p className="mt-2 text-lg font-semibold">{product.size}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Recommended fit: {product.fit}</p>
-          </div>
-          <div className="rounded-[9px] border border-border bg-surface-panel p-4">
-            <p className="eyebrow text-muted-foreground">Condition</p>
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-lg font-semibold">
-                {conditionWord[product.condition] ?? product.condition}
-              </p>
-              <span className="font-semibold text-brand-sage-strong">
-                Grade {product.condition}
-              </span>
-            </div>
-            <div className="mt-3 flex gap-1" aria-label={`Condition grade ${product.condition}`}>
-              {Array.from({ length: 10 }, (_, index) => (
-                <span
-                  key={index}
-                  className={`h-1.5 flex-1 rounded-full ${index < filled ? "bg-brand-sage" : "bg-border"}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {isOneOfOne ? (
-          <div className="mt-4 rounded-[9px] border border-border bg-surface-sunken p-4">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-brand-sage text-white">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="m7 12 3 3 7-7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <div>
-                <p className="font-semibold">You are buying the exact piece shown.</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  One item only. No restock expected.
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="mt-5 flex flex-wrap items-end gap-3">
+        <span className="text-[34px] font-extrabold tracking-[-0.04em] tabular-nums">
+          {money(product.price)}
+        </span>
+        {product.referencePrice && product.referencePrice > product.price ? (
+          <span className="pb-1 text-sm text-muted-foreground line-through">
+            {money(product.referencePrice)}
+          </span>
         ) : null}
-
-        {isVariant && product.variants ? (
-          <div className="mt-6">
-            <p className="eyebrow mb-2 text-muted-foreground">Select size</p>
-            <div className="flex flex-wrap gap-2">
-              {product.variants.map((variant, index) => {
-                const disabled = index === (product.variants?.length ?? 0) - 1 && product.stock < 5;
-                const selected = storefront.selectedVariant === variant;
-                return (
-                  <Button
-                    size="lg"
-                    key={variant}
-                    type="button"
-                    disabled={disabled}
-                    aria-pressed={selected}
-                    onClick={() => {
-                      storefront.setSelectedVariant(variant);
-                      setQuickError("");
-                    }}
-                    className="min-w-12 disabled:line-through"
-                    variant={selected ? "default" : "outline"}
-                  >
-                    {variant}
-                  </Button>
-                );
-              })}
-            </div>
-            <p className="mt-2 min-h-[19px] text-[13px] text-destructive" role="alert">
-              {storefront.quickError}
-            </p>
-          </div>
+        {presentation.discountPercent ? (
+          <span className="mb-1 rounded-full bg-primary px-3 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-primary-foreground">
+            {presentation.discountPercent}% off
+          </span>
         ) : null}
+      </div>
+      <p className="mt-2 text-[9px] text-muted-foreground">
+        Taxes included. Shipping calculated at checkout.
+      </p>
 
-        <div className="mt-7 grid grid-cols-2 gap-3">
-          <Button type="button" onClick={() => storefront.open("measureModal")} variant="outline">
-            Measurements
-          </Button>
-          <Button type="button" onClick={() => storefront.open("conditionModal")} variant="outline">
-            Condition guide
+      <div className="mt-7 grid grid-cols-3 border-y border-border py-4">
+        <Assurance icon={DeliveryTruck01Icon} title="Fast delivery" body="Lagos 1–2 days" />
+        <Assurance
+          bordered
+          icon={DeliverySecure01Icon}
+          title="Secure payment"
+          body="Protected checkout"
+        />
+        <Assurance bordered icon={RefreshIcon} title="Easy returns" body="Within 7 days" />
+      </div>
+
+      <fieldset className="mt-7">
+        <legend className="text-[11px] font-semibold">
+          Colour: <span>{selectedColour}</span>
+        </legend>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {presentation.colours.map((colour) => {
+            const selected = colour === selectedColour;
+            return (
+              <Button
+                key={colour}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setSelectedColour(colour)}
+                className="min-h-11 rounded-full px-4 text-[10px]"
+                variant={selected ? "default" : "outline"}
+              >
+                {colour}
+              </Button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset className="mt-7">
+        <div className="flex items-center justify-between gap-4">
+          <legend className="text-[11px] font-semibold">
+            Size: <span>{storefront.selectedVariant ?? (product.size || "One size")}</span>
+          </legend>
+          <Button
+            type="button"
+            onClick={() => scrollToSection("size-guide")}
+            className="h-auto px-0 text-[10px] font-semibold"
+            variant="link"
+          >
+            Size guide
           </Button>
         </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {presentation.sizes.map((size) => {
+            const selected =
+              product.inventory === "variant"
+                ? storefront.selectedVariant === size.value
+                : size.value === product.size || presentation.sizes.length === 1;
+            return (
+              <Button
+                key={size.value}
+                type="button"
+                disabled={!size.available}
+                aria-pressed={selected}
+                onClick={() => {
+                  storefront.setSelectedVariant(size.value);
+                  storefront.setQuickError("");
+                }}
+                className="min-h-12 disabled:line-through"
+                variant={selected ? "default" : "outline"}
+              >
+                {size.label}
+              </Button>
+            );
+          })}
+        </div>
+        <p className="mt-3 min-h-4 text-[9px] text-muted-foreground">
+          {product.fit} fit. Choose your usual size unless the measurements suggest otherwise.
+        </p>
+        <p className="mt-1 min-h-4 text-[10px] text-destructive" role="alert">
+          {storefront.quickError}
+        </p>
+      </fieldset>
 
-        <div ref={anchorRef} className="mt-6 grid gap-3">
-          <Button size="lg" type="button" className="w-full" disabled={!canAdd} onClick={onAdd}>
-            {available ? (isOneOfOne ? "Add this exact piece" : "Add to bag") : product.status}
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
+      <div ref={anchorRef} className="mt-6">
+        <div className="flex gap-3">
+          <div className="flex h-14 w-[130px] items-center justify-between rounded-md border border-border bg-control px-2">
             <Button
               type="button"
-              className="gap-2"
-              aria-pressed={storefront.saved.has(product.id)}
-              onClick={() => storefront.toggleSaved(product.id)}
-              variant="outline"
+              aria-label="Decrease quantity"
+              disabled={quantity <= 1}
+              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
+              size="icon"
+              variant="ghost"
             >
-              <IconHeart
-                filled={storefront.saved.has(product.id)}
-                style={{ width: 18, height: 18 }}
-              />
-              {storefront.saved.has(product.id) ? "Saved" : "Save"}
+              <HugeiconsIcon aria-hidden="true" icon={MinusSignIcon} size={16} strokeWidth={1.7} />
             </Button>
-            <Button type="button" className="gap-2" onClick={onShare} variant="outline">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="18" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.6" />
-                <circle cx="6" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.6" />
-                <circle cx="18" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.6" />
-                <path
-                  d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                />
-              </svg>
-              Share
+            <span className="text-[12px] font-semibold tabular-nums">{quantity}</span>
+            <Button
+              type="button"
+              aria-label="Increase quantity"
+              disabled={quantity >= maxQuantity}
+              onClick={() => onQuantityChange(Math.min(maxQuantity, quantity + 1))}
+              size="icon"
+              variant="ghost"
+            >
+              <HugeiconsIcon aria-hidden="true" icon={PlusSignIcon} size={16} strokeWidth={1.7} />
             </Button>
           </div>
+          <Button
+            type="button"
+            disabled={!canAdd}
+            onClick={onAdd}
+            className="h-14 flex-1 text-[12px] font-bold"
+          >
+            {available ? `Add to bag · ${money(product.price * quantity)}` : product.status}
+          </Button>
         </div>
+        <Button
+          type="button"
+          disabled={!canAdd}
+          onClick={onBuyNow}
+          className="mt-3 h-14 w-full text-[12px] font-bold"
+          variant="outline"
+        >
+          Buy now
+        </Button>
+      </div>
 
-        <div className="mt-7 divide-y divide-[color:var(--line)] border-y border-border">
-          <ProductInfoRow
-            title="Delivery from Lagos"
-            body="Lagos 1–2 days · Nationwide 2–5 days"
-            onClick={() => storefront.open("deliveryModal")}
-            icon={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M3 7h11v10H3zM14 10h3l4 4v3h-7z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                />
-                <circle cx="7" cy="18" r="2" stroke="currentColor" strokeWidth="1.6" />
-                <circle cx="18" cy="18" r="2" stroke="currentColor" strokeWidth="1.6" />
-              </svg>
-            }
-          />
-          <ProductInfoRow
-            title="7-day returns"
-            body="Condition and tags must remain unchanged"
-            onClick={() =>
-              storefront.showToast(
-                "Returns accepted within 7 days when the item remains unworn and tagged.",
-              )
-            }
-            icon={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M8 7H4v4M4.5 10.5A8 8 0 1 0 7 5.3"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            }
-          />
-          <ProductInfoRow
-            title="Inspected and cleaned"
-            body="Condition checked by hand"
-            onClick={() => storefront.open("conditionModal")}
-            icon={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6l-7-3Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                />
-                <path
-                  d="m9 12 2 2 4-4"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+      <div className="mt-5 rounded-sm border border-border bg-surface-raised p-5 shadow-storefront-1">
+        <Info
+          icon={PackageDeliveredIcon}
+          title="Estimated delivery"
+          body="Lagos · 1–2 business days"
+        />
+        <div className="mt-4 border-t border-border pt-4">
+          <Info
+            icon={PackageIcon}
+            title={available ? "In stock" : product.status}
+            body={
+              available
+                ? `${product.stock} ${product.stock === 1 ? "piece" : "pieces"} currently available.`
+                : "This piece cannot currently be added to a bag."
             }
           />
         </div>
       </div>
     </aside>
+  );
+}
+
+function Assurance({
+  icon,
+  title,
+  body,
+  bordered = false,
+}: {
+  icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  title: string;
+  body: string;
+  bordered?: boolean;
+}) {
+  return (
+    <div className={bordered ? "border-l border-border px-3" : "pr-3"}>
+      <HugeiconsIcon aria-hidden="true" icon={icon} size={20} strokeWidth={1.5} />
+      <p className="mt-2 text-[10px] font-semibold">{title}</p>
+      <p className="mt-1 text-[9px] leading-4 text-muted-foreground">{body}</p>
+    </div>
+  );
+}
+
+function Info({
+  icon,
+  title,
+  body,
+}: {
+  icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="flex gap-3">
+      <HugeiconsIcon
+        aria-hidden="true"
+        className="mt-0.5 shrink-0"
+        icon={icon}
+        size={20}
+        strokeWidth={1.5}
+      />
+      <div>
+        <p className="text-[11px] font-semibold">{title}</p>
+        <p className="mt-1 text-[10px] leading-5 text-muted-foreground">{body}</p>
+      </div>
+    </div>
   );
 }

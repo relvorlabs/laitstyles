@@ -6,6 +6,7 @@ import { inventoryLabel, money, productSlug } from "@/features/storefront/shared
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import {
   loadStorefrontProductBySlug,
+  loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
 } from "@/lib/storefront/catalog-data";
 import ProductDetailLoading from "./loading";
@@ -53,8 +54,9 @@ export default function ProductDetailPage({ params }: { params: Promise<Params> 
 
 async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const product = await loadStorefrontProductBySlug(slug);
-  if (!product) notFound();
+  const pageData = await loadStorefrontProductPageBySlug(slug);
+  if (!pageData) notFound();
+  const { product, detail } = pageData;
 
   const availability =
     product.status === "available"
@@ -107,7 +109,7 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: see above.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
       />
-      <ProductDetail product={product} fontClassName={storefrontFontClassName} />
+      <ProductDetail detail={detail} product={product} fontClassName={storefrontFontClassName} />
     </>
   );
 }

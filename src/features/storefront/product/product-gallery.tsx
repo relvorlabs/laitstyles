@@ -1,130 +1,140 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ArrowExpand01Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function ProductGallery({ product }: { product: Product }) {
   const storefront = useStorefront();
-  const reduce = useReducedMotion();
+  const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const images = product.images;
   const count = images.length;
-  const go = (nextIndex: number) => setIndex((nextIndex + count) % count);
+  const currentImage = images[index];
+  const go = (nextIndex: number) => {
+    if (count > 0) setIndex((nextIndex + count) % count);
+  };
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[88px_minmax(0,1fr)]">
-      <div
-        className="order-2 flex gap-3 overflow-x-auto pb-1 lg:order-1 lg:flex-col"
-        aria-label="Product media"
-      >
+    <div className="grid gap-3 sm:grid-cols-[84px_minmax(0,1fr)]">
+      <fieldset className="order-2 m-0 flex min-w-0 gap-3 overflow-x-auto border-0 p-0 pb-1 sm:order-1 sm:grid sm:self-start sm:overflow-visible sm:pb-0">
+        <legend className="sr-only">Product media</legend>
         {images.map((src, imageIndex) => (
           <Button
             key={src}
             type="button"
             aria-label={`View image ${imageIndex + 1}`}
-            aria-current={imageIndex === index}
+            aria-current={imageIndex === index ? "true" : undefined}
             aria-pressed={imageIndex === index}
             onClick={() => setIndex(imageIndex)}
-            className="relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden p-0"
-            variant={imageIndex === index ? "secondary" : "outline"}
+            className="relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden rounded-sm p-0 sm:w-full"
+            variant={imageIndex === index ? "default" : "outline"}
           >
-            <Image src={src} alt="" fill sizes="80px" className="object-cover" />
+            <Image src={src} alt="" fill sizes="84px" className="object-cover" />
           </Button>
         ))}
-      </div>
+      </fieldset>
 
-      <div className="order-1 min-w-0 lg:order-2">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[14px] border border-border bg-surface-sunken">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={index}
-              className="absolute inset-0"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
-              transition={{ duration: 0.34, ease: [0.22, 0.8, 0.24, 1] }}
-            >
-              <Image
-                src={images[index]}
-                alt={`${product.name}, view ${index + 1}`}
-                fill
-                priority={index === 0}
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover"
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          {count > 1 ? (
-            <>
-              <Button
-                type="button"
-                aria-label="Previous image"
-                onClick={() => go(index - 1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-0"
-                size="icon-lg"
-                variant="ghost"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="m15 5-7 7 7 7"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+      <div className="order-1 min-w-0 sm:order-2">
+        <div className="relative min-h-[620px] overflow-hidden rounded-sm border border-border bg-surface-sunken shadow-storefront-2 sm:min-h-[760px]">
+          {currentImage ? (
+            <LazyMotion features={domAnimation}>
+              <AnimatePresence initial={false} mode="sync">
+                <m.div
+                  key={currentImage}
+                  className="absolute inset-0"
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.01 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.38, ease: "easeOut" }}
+                >
+                  <Image
+                    src={currentImage}
+                    alt={`${product.name}, view ${index + 1}`}
+                    fill
+                    priority={index === 0}
+                    sizes="(min-width: 1280px) 52vw, (min-width: 640px) 65vw, 100vw"
+                    className="object-cover"
                   />
-                </svg>
-              </Button>
-              <Button
-                type="button"
-                aria-label="Next image"
-                onClick={() => go(index + 1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-0"
-                size="icon-lg"
-                variant="ghost"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="m9 5 7 7-7 7"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                </m.div>
+              </AnimatePresence>
+            </LazyMotion>
+          ) : (
+            <div className="absolute inset-0 grid place-items-center p-8 text-center text-sm text-muted-foreground">
+              Product imagery will appear here when it becomes available.
+            </div>
+          )}
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-4 bg-linear-to-t from-surface-inverse to-transparent p-5 text-surface-inverse-foreground sm:p-7">
+            <div className="border-l border-current pl-3">
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.28em] opacity-70">
+                Product study
+              </p>
+              <p className="mt-1 text-[11px]">
+                Look {String(index + 1).padStart(2, "0")} · {product.colour || "Colour pending"}
+              </p>
+            </div>
+
+            <div className="pointer-events-auto flex gap-2">
+              {count > 1 ? (
+                <>
+                  <Button
+                    type="button"
+                    aria-label="Previous product image"
+                    onClick={() => go(index - 1)}
+                    className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                    size="icon-lg"
+                    variant="outline"
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={ArrowLeft01Icon}
+                      size={20}
+                      strokeWidth={1.6}
+                    />
+                  </Button>
+                  <Button
+                    type="button"
+                    aria-label="Next product image"
+                    onClick={() => go(index + 1)}
+                    className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                    size="icon-lg"
+                    variant="outline"
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={ArrowRight01Icon}
+                      size={20}
+                      strokeWidth={1.6}
+                    />
+                  </Button>
+                </>
+              ) : null}
+              {currentImage ? (
+                <Button
+                  type="button"
+                  aria-label="Enlarge product image"
+                  onClick={() => storefront.openImageViewerFor(product.id, index)}
+                  className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                  size="icon-lg"
+                  variant="outline"
+                >
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    icon={ArrowExpand01Icon}
+                    size={20}
+                    strokeWidth={1.6}
                   />
-                </svg>
-              </Button>
-            </>
-          ) : null}
-
-          <Button
-            type="button"
-            onClick={() => storefront.openImageViewerFor(product.id, index)}
-            aria-label="Open image viewer"
-            className="absolute bottom-4 right-4 gap-2"
-            variant="outline"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            View details
-          </Button>
-        </div>
-
-        <div className="mt-3 flex items-center justify-between gap-4 text-xs uppercase tracking-[0.13em] text-muted-foreground">
-          <span aria-live="polite" className="tabular-nums">
-            {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
-          </span>
-          <span>The exact piece shown</span>
+                </Button>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
     </div>
