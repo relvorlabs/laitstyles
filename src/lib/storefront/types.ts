@@ -37,6 +37,7 @@ export interface ProductImage {
   position: number;
   width: number | null;
   height: number | null;
+  variantId: string | null;
 }
 
 export interface Measurement {
@@ -63,6 +64,7 @@ export interface ProductVariantOption {
   sku: string | null;
   size: string | null;
   colour: string | null;
+  colourHex: string | null;
   /** null → inherits the product price. */
   price: Kobo | null;
   availability: Availability;

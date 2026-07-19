@@ -55,6 +55,44 @@ describe("mapProductDetail", () => {
     expect("cost" in out).toBe(false);
     expect(JSON.stringify(out)).not.toContain("20000");
   });
+
+  it("preserves media variant identity without inventing a variant colour hex", () => {
+    const out = mapProductDetail({
+      ...baseRow(),
+      inventory_mode: "variant",
+      product_media: [
+        {
+          id: "media-1",
+          kind: "product_detail",
+          position: 0,
+          variant_id: "variant-1",
+          cloudinary_assets: {
+            delivery_url: null,
+            secure_url: "https://example.com/detail.jpg",
+            alt: "Variant detail",
+            width: 1200,
+            height: 1500,
+          },
+        },
+      ],
+      product_variants: [
+        {
+          id: "variant-1",
+          label: "Sage / L",
+          sku: null,
+          size: "L",
+          colour: "Sage",
+          price: null,
+          stock_levels: [{ available: 2, reserved: 0 }],
+        },
+      ],
+    } as unknown as DetailRow);
+
+    expect(out.mode).toBe("variant");
+    if (out.mode !== "variant") throw new Error("Expected variant fixture");
+    expect(out.media[0]?.variantId).toBe("variant-1");
+    expect(out.variants[0]?.colourHex).toBeNull();
+  });
 });
 
 describe("mapProductSummary", () => {

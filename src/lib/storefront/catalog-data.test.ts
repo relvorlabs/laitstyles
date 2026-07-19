@@ -100,4 +100,25 @@ describe("public storefront catalog server repository", () => {
     expect(pageData?.detail.slug).toBe(storefront.products[0].slug);
     expect(await loadStorefrontProductPageBySlug("missing-product")).toBeNull();
   });
+
+  it("preserves variant colour hex and media variant identity", async () => {
+    const details = await loadCatalogProductDetails();
+    const product = details.find(
+      (candidate) => candidate.slug === "patterned-office-shirt-capsule",
+    );
+
+    expect(product?.mode).toBe("variant");
+    if (product?.mode !== "variant") throw new Error("Expected variant fixture");
+    expect(product.variants.some((variant) => variant.colourHex !== null)).toBe(true);
+    expect(product.media.every((media) => "variantId" in media)).toBe(true);
+  });
+
+  it("exposes canonical variants to the client catalogue provider", async () => {
+    const catalog = await loadStorefrontCatalog();
+    const product = catalog.products.find(
+      (candidate) => candidate.slug === "patterned-office-shirt-capsule",
+    );
+    expect(product).toBeDefined();
+    expect(catalog.variantOptionsByProductId[product?.id ?? ""]).toHaveLength(9);
+  });
 });

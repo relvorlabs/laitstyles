@@ -78,6 +78,7 @@ function mapImage(media: MediaRow): ProductImage | null {
     position: media.position,
     width: asset.width,
     height: asset.height,
+    variantId: media.variant_id,
   };
 }
 
@@ -138,6 +139,7 @@ function mapVariant(variant: VariantRow, lowStockThreshold: number): ProductVari
     sku: variant.sku,
     size: variant.size,
     colour: variant.colour,
+    colourHex: null,
     price: variant.price ? decimalToKobo(variant.price) : null,
     availability: deriveAvailability("stocked", available, reserved, lowStockThreshold),
   };

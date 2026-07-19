@@ -52,6 +52,7 @@ interface VariantRow {
   title: string;
   size_label: string | null;
   colour: string | null;
+  colour_hex: string | null;
   price_override: number | null;
   status: string;
   created_at: string;
@@ -127,6 +128,7 @@ export interface StorefrontCatalogPayload {
   products: Product[];
   categories: StorefrontCategory[];
   measurementsCm: Record<string, number>;
+  variantOptionsByProductId: Readonly<Record<string, readonly ProductVariantOption[]>>;
 }
 
 export interface StorefrontCategory {
@@ -288,6 +290,7 @@ function buildCatalog(now = new Date()) {
           position: row.position,
           width: asset.width,
           height: asset.height,
+          variantId: row.variant_id,
         };
       });
   const variantsFor = (product: ProductRow): ProductVariantOption[] =>
@@ -302,6 +305,7 @@ function buildCatalog(now = new Date()) {
         sku: row.sku,
         size: row.size_label,
         colour: row.colour,
+        colourHex: row.colour_hex,
         price: row.price_override === null ? null : nairaToKobo(row.price_override),
         availability: availabilityFor(product, row.id),
       }));
@@ -458,6 +462,12 @@ function buildCatalog(now = new Date()) {
       )
       .map((row) => [row.label, row.value]),
   );
+  const variantOptionsByProductId = Object.fromEntries(
+    productDetails.map((product) => [
+      product.id,
+      product.mode === "variant" ? product.variants : [],
+    ]),
+  );
   return {
     catalogSnapshot: snapshot,
     productDetails,
@@ -466,6 +476,7 @@ function buildCatalog(now = new Date()) {
       products,
       categories: storefrontCategories,
       measurementsCm,
+      variantOptionsByProductId,
     } satisfies StorefrontCatalogPayload,
   };
 }
