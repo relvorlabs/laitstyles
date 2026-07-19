@@ -521,6 +521,9 @@ git commit -m "refactor(storefront): key cart lines by canonical variant"
 
 **Files:**
 - Modify: `src/features/storefront/shared/storefront-provider.tsx`
+- Create: `src/features/storefront/shared/cart-persistence.ts`
+- Create: `src/features/storefront/shared/cart-persistence.test.ts`
+- Modify: `src/components/layout/storefront-cart-sheet.tsx`
 - Modify: `src/features/storefront/shared/overlays/legacy-cart-drawer.tsx`
 - Modify: `src/features/storefront/shared/overlays/quick-view-overlay.tsx`
 
@@ -529,21 +532,42 @@ git commit -m "refactor(storefront): key cart lines by canonical variant"
 - Produces provider methods:
 
 ```ts
-addToCart(id: string, selection?: CartSelection, quantity?: number): void;
-removeFromCart(lineKey: string): void;
-changeQty(lineKey: string, delta: number): void;
-openImageViewerFor(id: string, index?: number, images?: readonly string[]): void;
+  addToCart(id: string, selection?: CartSelection, quantity?: number): void;
+  removeFromCart(lineKey: string): void;
+  changeQty(lineKey: string, delta: number): void;
+  openImageViewerFor(id: string, index?: number, images?: readonly string[]): void;
 ```
 
-- [ ] **Step 1: Replace the provider's inline CartLine type**
+- [ ] **Step 1: Write failing persisted-cart normalization tests**
 
-Import Task 3 types/functions. Keep `selectedVariant` temporarily as the quick-view variant ID, not a size string.
+Version the storage key to `laitstyles-storefront:v2:cart`. Cover valid v2 records and a one-time legacy fallback. A legacy non-variant line may migrate to a default line. A legacy variant string may migrate only when exactly one canonical variant matches its old label or size; discard ambiguous, unknown, malformed, unavailable, or non-positive records rather than inventing variant identity.
 
-- [ ] **Step 2: Replace add/remove/quantity logic with pure primitives**
+- [ ] **Step 2: Run persistence tests and record red**
+
+```text
+node_modules/.bin/vitest.CMD run src/features/storefront/shared/cart-persistence.test.ts
+```
+
+Expected: module-not-found failure.
+
+- [ ] **Step 3: Implement and verify the pure persistence adapter**
+
+Keep parsing and normalization outside React. The provider must never cast `JSON.parse()` directly to `CartLine[]`.
+
+```text
+node_modules/.bin/vitest.CMD run src/features/storefront/shared/cart-persistence.test.ts
+node_modules/.bin/biome.CMD check src/features/storefront/shared/cart-persistence.ts src/features/storefront/shared/cart-persistence.test.ts
+```
+
+- [ ] **Step 4: Replace the provider's inline CartLine type**
+
+Import Task 3 types/functions. Introduce `selectedQuickVariantId` for quick view and leave the legacy PDP size state untouched until Task 5 removes it. Never reinterpret the existing `selectedVariant` size string as a canonical ID in an intermediate commit.
+
+- [ ] **Step 5: Replace add/remove/quantity logic with pure primitives**
 
 `addToCart` resolves the product, requires a `CartSelection` for variant inventory, calls `addCartLine`, and emits existing truthful toast feedback. Non-variant calls synthesize the default line from legacy product price/stock.
 
-- [ ] **Step 3: Derive displayed cart lines and subtotal from line data**
+- [ ] **Step 6: Derive displayed cart lines and subtotal from line data**
 
 Expose:
 
@@ -562,9 +586,9 @@ cartLines: Array<{
 
 Use `cartSubtotal(cart)` rather than product-level prices.
 
-- [ ] **Step 4: Update the unchanged cart-drawer presentation to address line keys**
+- [ ] **Step 7: Update both unchanged cart presentations to address line keys**
 
-Keep its layout intact. Show available selection truth as one compact line:
+Keep both `StorefrontCartSheet` and `LegacyCartDrawer` layouts intact. Show available selection truth as one compact line:
 
 ```tsx
 {[colour, size].filter(Boolean).join(" · ") || variantLabel || "Standard"}
@@ -572,7 +596,7 @@ Keep its layout intact. Show available selection truth as one compact line:
 
 Remove and quantity buttons pass `lineKey`.
 
-- [ ] **Step 5: Make quick view resolve canonical variants**
+- [ ] **Step 8: Make quick view resolve canonical variants**
 
 Read `catalog.variantOptionsByProductId[active.id]`. Render existing button geometry using `variant.label`; selection stores `variant.id`. Add passes:
 
@@ -587,23 +611,23 @@ Read `catalog.variantOptionsByProductId[active.id]`. Render existing button geom
 }
 ```
 
-Disable unavailable variants. This is a functional correction only; do not redesign the shared overlay.
+Disable unavailable variants. Store quick-view selection in `selectedQuickVariantId`. This is a functional correction only; do not redesign the shared overlay.
 
 Extend `openImageViewerFor` so a PDP may pass resolved variant image URLs. Clone only the viewer's active product image list for that overlay session; keep the shared image-viewer markup unchanged.
 
-- [ ] **Step 6: Run provider-adjacent tests and static checks**
+- [ ] **Step 9: Run provider-adjacent tests and static checks**
 
 ```text
-node_modules/.bin/vitest.CMD run src/features/storefront/shared/cart-lines.test.ts src/lib/storefront/catalog-data.test.ts
-node_modules/.bin/biome.CMD check src/features/storefront/shared/storefront-provider.tsx src/features/storefront/shared/overlays/legacy-cart-drawer.tsx src/features/storefront/shared/overlays/quick-view-overlay.tsx
+node_modules/.bin/vitest.CMD run src/features/storefront/shared/cart-lines.test.ts src/features/storefront/shared/cart-persistence.test.ts src/lib/storefront/catalog-data.test.ts
+node_modules/.bin/biome.CMD check src/features/storefront/shared/storefront-provider.tsx src/features/storefront/shared/cart-persistence.ts src/features/storefront/shared/cart-persistence.test.ts src/components/layout/storefront-cart-sheet.tsx src/features/storefront/shared/overlays/legacy-cart-drawer.tsx src/features/storefront/shared/overlays/quick-view-overlay.tsx
 ```
 
 Expected: tests pass; no stale product-ID cart mutations remain.
 
-- [ ] **Step 7: Commit provider integration**
+- [ ] **Step 10: Commit provider integration**
 
 ```text
-git add src/features/storefront/shared/storefront-provider.tsx src/features/storefront/shared/overlays/legacy-cart-drawer.tsx src/features/storefront/shared/overlays/quick-view-overlay.tsx
+git add src/features/storefront/shared/storefront-provider.tsx src/features/storefront/shared/cart-persistence.ts src/features/storefront/shared/cart-persistence.test.ts src/components/layout/storefront-cart-sheet.tsx src/features/storefront/shared/overlays/legacy-cart-drawer.tsx src/features/storefront/shared/overlays/quick-view-overlay.tsx
 git commit -m "feat(storefront): preserve exact variants in cart"
 ```
 
