@@ -25,7 +25,7 @@ The database already has real tables built for this (`products`, `product_varian
 
 ## Scope decision (this session)
 
-User chose to keep `/products*` as the customer-facing storefront rather than switching users onto `/shop`. This means the static-JSON catalogue adapter must be replaced with a live Prisma adapter before cart/hold/checkout can be real (there must be a real product row to reserve stock against). `/shop` is left untouched — it keeps its own existing real Prisma repository; both surfaces will now read the same live data through the same underlying repository, just projected into different shapes for their respective UIs.
+User chose to keep `/products*` as the customer-facing storefront. Correction from the first pass of this design: `/shop` is **not** a live route today — it's a permanent-redirect stub in `next.config.ts` (`/shop` → `/products`, `/shop/category/:slug` → `/products?category=:slug`) left over from when the old `(shop)/` route group was retired in favor of `/products`. There is no `/shop` page or UI to touch. The real, live Prisma catalogue repository (`src/server/commerce/catalogue/*`) that this design reuses is actually wired into `/collections/[slug]` today (via `catalogue-results.tsx`) — that route stays exactly as-is and is untouched proof the repository already works end to end. User asked to delete `/shop` entirely: the two now-pointless redirect rules are removed from `next.config.ts` as part of sub-project A (nothing references `/shop` afterward — it 404s like any nonexistent route, which is correct since it's fully retired, not a URL worth preserving).
 
 Checkout's final step does not integrate a payment gateway. It performs the one thing that's real today: creating a genuine pending order from the genuine cart. The button is not labeled or presented as "Pay" in a way that implies money moved — the resulting order/confirmation state is honestly "awaiting payment," matching the already-documented consumer status mapping (`03` §8). Paystack/Flutterwave integration is future work.
 
@@ -39,7 +39,7 @@ Checkout's final step does not integrate a payment gateway. It performs the one 
 
 **Availability must be per-shopper**, not just per-product: the existing `Availability` type already models this (`reserved_by_me` vs `reserved_by_others`), but that requires knowing the current cart-owner id at read time — this is why sub-project A's repository call sites need the resolved owner id threaded in (from sub-project B's session resolver), even though A itself does no writes.
 
-**Files:** `src/lib/storefront/catalog-data.ts` (rewritten adapter), no changes to `src/features/storefront/shared/catalogue-data.ts` (types/helpers stay), no changes to `src/server/commerce/catalogue/*` (reused as-is).
+**Files:** `src/lib/storefront/catalog-data.ts` (rewritten adapter), no changes to `src/features/storefront/shared/catalogue-data.ts` (types/helpers stay), no changes to `src/server/commerce/catalogue/*` (reused as-is). `next.config.ts`: remove the `/shop` and `/shop/category/:slug` redirect rules (dead legacy stub, per user request — `/shop` no longer resolves anywhere).
 
 **DB:** none (read-only). Requires at least one real published product to exist — see Seed below.
 
@@ -120,6 +120,6 @@ Confirmation screen (`ConfirmationScreen` / `/order-confirmation`) reads the rea
 
 - Payment gateway integration (Paystack/Flutterwave/webhooks) — future work, tracked as `06`'s Phase 7.
 - Admin writing products through Prisma (admin stays in-memory per `AGENTS.md` §5 until its own phase) — the dev seed script exists solely to unblock verification of this work, not to substitute for that phase.
-- `/shop`'s own UI or repository — untouched.
+- `/collections/[slug]` and its underlying repository — untouched (already real, already correct).
 - Real delivery-zone/fee data from `delivery_zones` (kept as existing static data this pass; flagged as a follow-up).
 - Order tracking, returns, reviews, notifications.
