@@ -712,3 +712,50 @@ ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_variant_id_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "store_brand_assets" ADD CONSTRAINT "store_brand_assets_asset_id_fkey" FOREIGN KEY ("asset_id") REFERENCES "cloudinary_assets"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+
+-- EnableRowLevelSecurity
+--
+-- Prisma does not model RLS, so this is hand-maintained raw SQL (see the
+-- @@schema doc comments Prisma attaches per table). The app connects through
+-- the `app_runtime` role, which is created with BYPASSRLS
+-- (scripts/db/runtime-role.sql) and is therefore unaffected by any of this —
+-- enabling RLS here is defense-in-depth against Supabase's PostgREST Data API
+-- (`anon`/`authenticated` Postgres roles), which this app does not use for
+-- data access (Supabase is Auth-only, see docs/storefront-v2/04). With RLS
+-- enabled and zero policies, those roles get zero rows on every table below
+-- instead of the Data API being implicitly reachable.
+--
+-- Per-role/per-capability policies mirroring src/lib/auth/permissions.ts are
+-- intentionally not included in this baseline; add them in a follow-up
+-- migration once the storefront's actual public-read requirements are
+-- confirmed, rather than guessing at policy predicates here.
+ALTER TABLE "activity_events" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "audit_events" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "catalogue_categories" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "catalogue_collections" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "cloudinary_assets" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "customer_addresses" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "customer_notes" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "customer_saved_products" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "customers" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "delivery_zones" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "holds" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "intake_records" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "order_lines" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "order_payment_events" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "order_timeline_events" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "orders" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "pickup_locations" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_channels" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_measurements" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_media" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_reviews" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "product_variants" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "products" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "profiles" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "return_lines" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "returns" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "stock_levels" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "stock_movements" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "store_brand_assets" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "store_settings" ENABLE ROW LEVEL SECURITY;

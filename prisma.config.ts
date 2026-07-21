@@ -18,6 +18,9 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // Dev-only deterministic seed (docs/storefront-v2/06 Phase 1). Runs automatically
+    // after `prisma migrate dev` / `prisma migrate reset`, or on demand via `prisma db seed`.
+    seed: "tsx scripts/seed/seed-storefront.ts",
   },
   // DB commands use the direct/session-pooler URL when configured. The runtime
   // Prisma client continues to use DATABASE_URL in src/lib/prisma/client.ts.
