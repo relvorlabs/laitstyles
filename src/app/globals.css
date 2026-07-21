@@ -238,6 +238,7 @@
   --shadow-storefront-1: var(--shadow-1);
   --shadow-storefront-2: var(--shadow-2);
   --shadow-storefront-3: var(--shadow-3);
+  --font-storefront-mono: var(--font-storefront-sans);
   --font-sans: var(--font-storefront-sans);
   --font-serif: var(--font-storefront-serif);
   --font-mono: var(--font-storefront-mono);

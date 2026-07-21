@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppProviders } from "@/components/providers/app-providers";
 import { AppShellFallback } from "@/components/providers/app-shell-fallback";
-// The canonical typography is the card-lab storefront set (Geist / Instrument Serif /
-// Geist Mono), loaded once here via next/font and exposed as --font-storefront-* for the whole app.
+// The canonical Manrope/Newsreader typography is loaded once here via next/font
+// and exposed as --font-storefront-* for the whole app.
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { loadStorefrontCatalog } from "@/lib/storefront/catalog-data";
 import { cn } from "@/lib/utils";
