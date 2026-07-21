@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 const toneClasses = {
   active: "border-brand-sage/40 bg-accent text-accent-foreground",
   success: "border-success/35 bg-success/12 text-foreground",
-  warning: "border-warning/40 bg-warning/18 text-warning-foreground",
+  warning: "border-warning/40 bg-warning-surface text-warning-surface-foreground",
   danger: "border-destructive/35 bg-destructive/12 text-destructive",
   closed: "border-border bg-secondary text-muted-foreground",
 };

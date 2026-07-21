@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 export const fieldClass =
   "min-h-12 h-auto w-full rounded-[10px] border border-[var(--acc-line-strong)] bg-[var(--acc-surface)] px-[.9rem] py-[.78rem] text-base text-[var(--acc-ink)] shadow-none placeholder:text-muted-foreground focus-visible:border-[var(--acc-oxblood)] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[color-mix(in_srgb,var(--acc-oxblood)_25%,transparent)]";
 
-/** `.eyebrow` — Geist Mono, uppercase, tracked. */
+/** `.eyebrow` — Manrope utility role, uppercase, tracked. */
 export const eyebrowClass =
   "font-mono text-[.69rem] font-semibold uppercase leading-none tracking-[.13em]";
 
