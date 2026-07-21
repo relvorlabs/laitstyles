@@ -21,12 +21,12 @@ export function ProductCard({ product }: { product: ProductSummary }) {
   const quickSize = product.sizeLabel?.split("/")[0]?.trim();
 
   return (
-    <article className="group/card min-w-0">
+    <article className="group/card h-full min-w-0">
       <Card
         className="grid h-full min-w-0 grid-rows-[1fr_auto] gap-0 overflow-hidden rounded-[var(--radius)] py-0 shadow-laitstyle-sm transition-transform duration-200 hover:-translate-y-[3px] motion-reduce:transform-none motion-reduce:transition-none"
         size="sm"
       >
-        <CardContent className="p-0">
+        <CardContent className="flex min-h-0 flex-col p-0">
           <Link
             aria-label={`View ${product.name}`}
             className="relative block aspect-[1/1.08] overflow-hidden bg-surface-raised outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"

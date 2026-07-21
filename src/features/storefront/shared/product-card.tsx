@@ -98,7 +98,7 @@ export function ProductCard({
 
   return (
     <article
-      className={`group min-w-0 reveal${visible ? " visible" : ""}`}
+      className={`group flex h-full min-w-0 flex-col reveal${visible ? " visible" : ""}`}
       data-card={product.id}
       ref={ref}
     >
@@ -178,9 +178,9 @@ export function ProductCard({
           </Button>
         )}
       </div>
-      <div className="px-[2px] pt-[13px]">
+      <div className="flex flex-1 flex-col px-[2px] pt-[13px]">
         <div className="flex items-start justify-between gap-[14px]">
-          <h3 className="m-0 max-w-[18rem] text-[0.96rem] font-[560] leading-[1.25] max-[600px]:text-[0.84rem]">
+          <h3 className="m-0 line-clamp-2 min-h-[2.5em] max-w-[18rem] text-[0.96rem] font-[560] leading-[1.25] max-[600px]:text-[0.84rem]">
             <Link href={href}>{product.name}</Link>
           </h3>
           <span className="whitespace-nowrap font-mono text-[0.83rem] font-[550] tabular-nums max-[600px]:text-[0.75rem]">
@@ -190,7 +190,7 @@ export function ProductCard({
         <p className="mt-1.5 text-[0.78rem] text-[var(--muted)] max-[600px]:text-[0.69rem]">
           Size {product.size} · Grade {product.condition}
         </p>
-        <div className="mt-[11px] flex flex-col gap-[9px]">
+        <div className="mt-auto flex flex-col gap-[9px] pt-[11px]">
           <span className="inventory-note">
             {product.inventory === "one-of-one"
               ? "Exact piece"
