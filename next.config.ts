@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production"
+  },
+  allowedDevOrigins: [
+    "https://laitstyle.localhost","https://www.laitstyles.com","http://localhost:3000"
+  ]
 };
 
 export default nextConfig;
