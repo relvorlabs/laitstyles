@@ -1,5 +1,5 @@
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import type { ProductDetail, ReviewSummary } from "@/lib/storefront/types";
+import type { ProductDetail, ProductVariantOption, ReviewSummary } from "@/lib/storefront/types";
 
 export interface ProductOptionPresentation {
   label: string;
@@ -18,14 +18,13 @@ export interface CampaignFramePresentation {
 export interface ProductDetailPresentation {
   description: string;
   discountPercent: number | null;
-  colours: readonly string[];
+  variants: readonly ProductVariantOption[];
+  colours: readonly { name: string; hex: string | null }[];
   sizes: readonly ProductOptionPresentation[];
   measurements: ProductDetail["measurements"];
   reviewSummary: ReviewSummary;
   campaignFrames: readonly CampaignFramePresentation[];
 }
-
-const unique = <Value>(values: readonly Value[]) => [...new Set(values)];
 
 export function wrapCampaignIndex(value: number, frameCount: number) {
   if (frameCount <= 0) return 0;
@@ -54,7 +53,7 @@ export function selectProductRecommendations(
   const matchingIds = new Set(matching.map((candidate) => candidate.id));
 
   return {
-    styledWith: matching.slice(0, 3),
+    styledWith: matching.slice(0, 2),
     related: [
       ...matching,
       ...candidates.filter((candidate) => !matchingIds.has(candidate.id)),
@@ -91,12 +90,20 @@ export function buildProductDetailPresentation(
             available: product.status === "available",
           },
         ];
-  const colours = unique(
-    (detail.mode === "variant"
-      ? variants.map((variant) => variant.colour)
-      : [detail.colour]
-    ).filter((colour): colour is string => Boolean(colour)),
-  );
+  const coloursByName = new Map<string, { name: string; hex: string | null }>();
+  if (detail.mode === "variant") {
+    for (const variant of variants) {
+      if (variant.colour && !coloursByName.has(variant.colour)) {
+        coloursByName.set(variant.colour, {
+          name: variant.colour,
+          hex: variant.colourHex,
+        });
+      }
+    }
+  } else if (detail.colour) {
+    coloursByName.set(detail.colour, { name: detail.colour, hex: null });
+  }
+  const colours = [...coloursByName.values()];
   const frameHeadlines = [
     `${product.fit} form, without compromise.`,
     `${product.material} with presence.`,
@@ -109,7 +116,9 @@ export function buildProductDetailPresentation(
       detail.description.trim() ||
       `${product.material} in a ${product.style.toLowerCase()} silhouette with a ${product.fit.toLowerCase()} fit.`,
     discountPercent,
-    colours: colours.length > 0 ? colours : [product.colour || "Not specified"],
+    variants,
+    colours:
+      colours.length > 0 ? colours : [{ name: product.colour || "Not specified", hex: null }],
     sizes,
     measurements: [...detail.measurements].sort((left, right) => left.position - right.position),
     reviewSummary: detail.reviewSummary,

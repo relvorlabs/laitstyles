@@ -54,6 +54,29 @@ body.lst-locked {
  * the global `.dark` palette through these aliases; the former `.dark .lst-storefront`
  * override block is removed.
  */
+
+/*
+ * Handoff-parity overrides (warm-paper light palette), storefront-scoped only.
+ * Source: laitstyles-product-detail-hifi.html :root (--paper, --paper-deep, --white,
+ * --ink, --line, --muted). globals.css `:root` (shared with admin) is untouched.
+ *
+ * Scoped to `:root:not(.dark) .lst-storefront` — both for the light-only intent and
+ * because storefront.css loads after globals.css, so an unscoped `.lst-storefront`
+ * rule would tie in specificity with `.dark` and win by source order, breaking dark
+ * mode. The `:not(.dark)` selector raises specificity above `.dark` and guarantees
+ * these declarations never apply when `.dark` is active.
+ */
+:root:not(.dark) .lst-storefront {
+  --brand-bone: #f7f4ee; /* --paper: page canvas / --bone */
+  --brand-bone-strong: #eee8dd; /* --paper-deep: sunken surfaces / --bone-2 */
+  --brand-ink: #11110f; /* --ink: foreground / --ink */
+  --surface-panel: #fffdf9; /* --white: cards */
+  --surface-raised: #fffdf9; /* --white: popovers/raised */
+  --surface-sunken: #eee8dd; /* --paper-deep: muted surfaces */
+  --border-subtle: rgba(17, 17, 15, 0.14); /* --line */
+  --muted-foreground: #6f6a62; /* --muted */
+}
+
 .lst-storefront {
   --bone: var(--brand-bone);
   --bone-2: var(--brand-bone-strong);

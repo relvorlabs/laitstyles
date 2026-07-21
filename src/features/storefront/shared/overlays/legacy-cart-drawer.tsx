@@ -38,7 +38,7 @@ export function LegacyCartDrawer() {
         </div>
         <div id="cartList" className="mt-5 grid gap-3">
           {storefront.cartLines.length ? (
-            storefront.cartLines.map(({ product, lineQty, variant }) => (
+            storefront.cartLines.map(({ product, lineQty, size }) => (
               <article
                 key={product.id}
                 className="grid grid-cols-[94px_1fr] gap-[13px] border-b border-[var(--line)] pb-[14px]"
@@ -65,7 +65,7 @@ export function LegacyCartDrawer() {
                     </Button>
                   </div>
                   <p className="mt-[5px] text-[0.72rem] text-[var(--muted)]">
-                    {variant ? `Size ${variant} · ` : ""}
+                    {size ? `Size ${size} · ` : ""}
                     {inventoryLabel(product.inventory)} · Grade {product.condition}
                   </p>
                   <p className="price mt-2 text-[0.78rem] text-[var(--ink)]">

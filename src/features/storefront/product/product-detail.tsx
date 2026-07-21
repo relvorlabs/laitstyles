@@ -12,6 +12,7 @@ import { ProductHero } from "./product-hero";
 import { ProductInformation } from "./product-information";
 import { ProductRecommendations } from "./product-recommendations";
 import { ProductReviews } from "./product-reviews";
+import { Reveal } from "./reveal";
 
 export function ProductDetail({
   product,
@@ -28,11 +29,14 @@ export function ProductDetail({
     <main id="main" className={`${fontClassName} lst-catalogue`}>
       <ProductBreadcrumb product={product} />
 
-      <ProductHero key={product.id} product={product} presentation={presentation}>
+      <ProductHero key={product.id} product={product} detail={detail} presentation={presentation}>
         <ProductHeroEditorial product={product} />
       </ProductHero>
 
-      <section className="mx-auto grid max-w-[1500px] gap-5 px-4 pb-14 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8">
+      <Reveal
+        as="section"
+        className="mx-auto grid max-w-[1500px] gap-5 px-4 pb-14 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8"
+      >
         <ProductInformation product={product} presentation={presentation} />
         <aside className="rounded-sm border border-border bg-surface-panel p-5 sm:p-6">
           <ProductRecommendations
@@ -42,21 +46,21 @@ export function ProductDetail({
             columns="styled"
           />
         </aside>
-      </section>
+      </Reveal>
 
       <ProductCampaign frames={presentation.campaignFrames} />
       <ProductSizeGuide product={product} presentation={presentation} />
       <ProductReviews presentation={presentation} />
       <ServiceStrip />
 
-      <div className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 lg:px-8">
+      <Reveal as="div" className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 lg:px-8">
         <ProductRecommendations
           product={product}
           title="You may also like"
           eyebrow="Continue the edit"
           columns="related"
         />
-      </div>
+      </Reveal>
     </main>
   );
 }

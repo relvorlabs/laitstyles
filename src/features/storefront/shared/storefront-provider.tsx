@@ -11,7 +11,17 @@ import {
   useState,
 } from "react";
 import { toast as sonnerToast } from "sonner";
+import { koboToNaira } from "@/lib/money";
 import type { StorefrontCatalogPayload, StorefrontCategory } from "@/lib/storefront/catalog-data";
+import type { ProductVariantOption } from "@/lib/storefront/types";
+import {
+  addCartLine,
+  cartSubtotal,
+  changeCartLineQuantity,
+  type CartLine,
+  type CartSelection,
+} from "./cart-lines";
+import { CART_STORAGE_KEY, loadPersistedCart } from "./cart-persistence";
 import {
   collectionTitle,
   filteredProducts,
@@ -22,7 +32,6 @@ import {
 } from "./catalogue-data";
 import { StorefrontOverlays } from "./storefront-overlays";
 
-export type CartLine = { id: string; qty: number; variant: string | null };
 export type FilterChip = { type: string; label: string; value?: string };
 
 // Shared interactive layer for every .lst-storefront route. Ported from the storefront.html
@@ -33,10 +42,11 @@ type StorefrontContextValue = {
   products: Product[];
   categories: StorefrontCategory[];
   measurementsCm: Record<string, number>;
+  variantOptionsByProductId: Readonly<Record<string, readonly ProductVariantOption[]>>;
   productById: (id: string) => Product | undefined;
   // Persisted collections.
   saved: Set<string>;
-  cart: CartLine[];
+  cart: readonly CartLine[];
   recent: string[];
   utilityDismissed: boolean;
   dismissUtility: () => void;
@@ -47,6 +57,8 @@ type StorefrontContextValue = {
   activeProduct: Product | null;
   selectedVariant: string | null;
   setSelectedVariant: (v: string | null) => void;
+  selectedQuickVariantId: string | null;
+  setSelectedQuickVariantId: (v: string | null) => void;
   imageIndex: number;
   setImageIndex: React.Dispatch<React.SetStateAction<number>>;
   zoom: number;
@@ -55,8 +67,8 @@ type StorefrontContextValue = {
   setQuickError: (v: string) => void;
   openQuick: (id: string) => void;
   openViewer: (index?: number) => void;
-  openImageViewerFor: (id: string, index?: number) => void;
-  addToCart: (id: string) => void;
+  openImageViewerFor: (id: string, index?: number, images?: readonly string[]) => void;
+  addToCart: (id: string, selection?: CartSelection, quantity?: number) => void;
   addFromQuick: (id: string) => void;
   toggleSaved: (id: string) => void;
   removeFromCart: (id: string) => void;
@@ -97,7 +109,16 @@ type StorefrontContextValue = {
   title: { title: string; em: string; description: string };
   breadcrumb: string;
   activeFilterChips: FilterChip[];
-  cartLines: { product: Product; lineQty: number; variant: string | null }[];
+  cartLines: {
+    product: Product;
+    lineKey: string;
+    lineQty: number;
+    variantId: string | null;
+    variantLabel: string | null;
+    colour: string | null;
+    size: string | null;
+    unitPriceNaira: number;
+  }[];
   cartCount: number;
   subtotal: number;
   savedList: Product[];
@@ -121,7 +142,7 @@ export function StorefrontProvider({
   fontClassName?: string;
   children: ReactNode;
 }) {
-  const { products, categories, measurementsCm } = catalog;
+  const { products, categories, measurementsCm, variantOptionsByProductId } = catalog;
   const findProduct = useCallback((id: string) => productById(products, id), [products]);
   const [category, setCategory] = useState("All");
   const [collection, setCollection] = useState<string | null>(null);
@@ -133,13 +154,14 @@ export function StorefrontProvider({
   const [sort, setSort] = useState("curated");
 
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [cart, setCart] = useState<CartLine[]>([]);
+  const [cart, setCart] = useState<readonly CartLine[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
   const [utilityDismissed, setUtilityDismissed] = useState(false);
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [selectedQuickVariantId, setSelectedQuickVariantId] = useState<string | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [quickError, setQuickError] = useState("");
@@ -158,12 +180,8 @@ export function StorefrontProvider({
         sessionStorage.getItem("laitstyles-storefront:v1:saved") ??
         localStorage.getItem("laitstyles-saved") ??
         "[]";
-      const cartValue =
-        sessionStorage.getItem("laitstyles-storefront:v1:cart") ??
-        localStorage.getItem("laitstyles-cart") ??
-        "[]";
       setSaved(new Set(JSON.parse(savedValue)));
-      setCart(JSON.parse(cartValue));
+      setCart(loadPersistedCart(sessionStorage, localStorage, products, variantOptionsByProductId));
       setRecent(
         JSON.parse(
           sessionStorage.getItem("laitstyles-storefront:v1:recent") ??
@@ -179,7 +197,7 @@ export function StorefrontProvider({
     } finally {
       setStorageReady(true);
     }
-  }, []);
+  }, [products, variantOptionsByProductId]);
 
   useEffect(() => {
     if (storageReady) {
@@ -188,7 +206,7 @@ export function StorefrontProvider({
   }, [saved, storageReady]);
   useEffect(() => {
     if (storageReady) {
-      sessionStorage.setItem("laitstyles-storefront:v1:cart", JSON.stringify(cart));
+      sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
   }, [cart, storageReady]);
   useEffect(() => {
@@ -289,7 +307,7 @@ export function StorefrontProvider({
       const p = findProduct(id);
       if (!p) return;
       setActiveProduct(p);
-      setSelectedVariant(null);
+      setSelectedQuickVariantId(null);
       setImageIndex(0);
       setQuickError("");
       addRecent(id);
@@ -309,10 +327,10 @@ export function StorefrontProvider({
 
   // Open the shared image viewer for a specific product (used by the product-detail gallery).
   const openImageViewerFor = useCallback(
-    (id: string, index = 0) => {
+    (id: string, index = 0, images?: readonly string[]) => {
       const p = findProduct(id);
       if (!p) return;
-      setActiveProduct(p);
+      setActiveProduct(images ? { ...p, images: [...images] } : p);
       setImageIndex(index);
       setZoom(1);
       open("imageViewer");
@@ -321,26 +339,30 @@ export function StorefrontProvider({
   );
 
   const addToCart = useCallback(
-    (id: string) => {
+    (id: string, selection?: CartSelection, quantity = 1) => {
       const p = findProduct(id);
       if (!p) return;
       if (p.status !== "available") {
         showToast(`This piece is currently ${p.status}.`);
         return;
       }
-      const existing = cart.find((x) => x.id === id);
-      if (p.inventory === "one-of-one" && existing) {
-        showToast("This one-of-one piece is already in your bag.");
+      if (p.inventory === "variant" && !selection) {
+        showToast("Choose an available option before adding this piece.");
         return;
       }
-      if (existing) {
-        setCart(cart.map((x) => (x.id === id ? { ...x, qty: Math.min(x.qty + 1, p.stock) } : x)));
-      } else {
-        setCart([...cart, { id, qty: 1, variant: selectedVariant || null }]);
+      const next = addCartLine(cart, p, selection ?? null, quantity);
+      if (next === cart) {
+        showToast(
+          p.inventory === "one-of-one"
+            ? "This one-of-one piece is already in your bag."
+            : "The maximum available quantity is already in your bag.",
+        );
+        return;
       }
+      setCart(next);
       showToast(`${p.name} added to your bag.`);
     },
-    [cart, findProduct, selectedVariant, showToast],
+    [cart, findProduct, showToast],
   );
 
   const toggleSaved = useCallback(
@@ -363,20 +385,39 @@ export function StorefrontProvider({
     (id: string) => {
       const p = findProduct(id);
       if (!p) return;
-      if (p.inventory === "variant" && !selectedVariant) {
-        setQuickError("Choose an available size before adding this piece.");
-        return;
+      if (p.inventory === "variant") {
+        const variant = (variantOptionsByProductId[p.id] ?? []).find(
+          (option) => option.id === selectedQuickVariantId,
+        );
+        if (!variant || variant.availability.available < 1) {
+          setQuickError("Choose an available option before adding this piece.");
+          return;
+        }
+        addToCart(
+          id,
+          {
+            variantId: variant.id,
+            variantLabel: variant.label,
+            colour: variant.colour,
+            size: variant.size,
+            unitPriceNaira: koboToNaira(variant.price ?? p.price * 100),
+            maxQuantity: variant.availability.available,
+          },
+          1,
+        );
+      } else {
+        addToCart(id);
       }
-      addToCart(id);
       open("cartDrawer");
     },
-    [selectedVariant, addToCart, findProduct, open],
+    [selectedQuickVariantId, addToCart, findProduct, open, variantOptionsByProductId],
   );
 
   const removeFromCart = useCallback(
-    (id: string) => {
-      const removed = cart.find((x) => x.id === id);
-      setCart(cart.filter((x) => x.id !== id));
+    (lineKey: string) => {
+      const removed = cart.find((line) => line.key === lineKey);
+      if (!removed) return;
+      setCart(cart.filter((line) => line.key !== lineKey));
       showToast("Item removed.", "Undo", () => {
         if (removed) setCart((c) => [...c, removed]);
       });
@@ -385,16 +426,10 @@ export function StorefrontProvider({
   );
 
   const changeQty = useCallback(
-    (id: string, delta: number) => {
-      const p = findProduct(id);
-      if (!p) return;
-      setCart((prev) =>
-        prev.map((x) =>
-          x.id === id ? { ...x, qty: Math.max(1, Math.min(p.stock, x.qty + delta)) } : x,
-        ),
-      );
+    (lineKey: string, delta: number) => {
+      setCart((previous) => changeCartLineQuantity(previous, lineKey, delta));
     },
-    [findProduct],
+    [],
   );
 
   const applyShop = useCallback((opts: { category?: string; collection?: string | null }) => {
@@ -479,19 +514,29 @@ export function StorefrontProvider({
     () =>
       cart
         .map((line) => ({
-          product: findProduct(line.id),
+          product: findProduct(line.productId),
+          lineKey: line.key,
           lineQty: line.qty,
-          variant: line.variant,
+          variantId: line.variantId,
+          variantLabel: line.variantLabel,
+          colour: line.colour,
+          size: line.size,
+          unitPriceNaira: line.unitPriceNaira,
         }))
         .filter((l) => l.product) as {
         product: Product;
+        lineKey: string;
         lineQty: number;
-        variant: string | null;
+        variantId: string | null;
+        variantLabel: string | null;
+        colour: string | null;
+        size: string | null;
+        unitPriceNaira: number;
       }[],
     [cart, findProduct],
   );
   const cartCount = cartLines.reduce((s, l) => s + l.lineQty, 0);
-  const subtotal = cartLines.reduce((s, l) => s + l.product.price * l.lineQty, 0);
+  const subtotal = cartSubtotal(cart);
   const searchResults = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
     if (!q) return null;
@@ -509,6 +554,7 @@ export function StorefrontProvider({
     products,
     categories,
     measurementsCm,
+    variantOptionsByProductId,
     productById: findProduct,
     saved,
     cart,
@@ -521,6 +567,8 @@ export function StorefrontProvider({
     activeProduct,
     selectedVariant,
     setSelectedVariant,
+    selectedQuickVariantId,
+    setSelectedQuickVariantId,
     imageIndex,
     setImageIndex,
     zoom,

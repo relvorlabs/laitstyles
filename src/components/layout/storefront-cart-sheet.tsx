@@ -22,7 +22,8 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
   const recommendations = storefront.products
     .filter(
       (product) =>
-        product.status === "available" && !storefront.cart.some((line) => line.id === product.id),
+        product.status === "available" &&
+        !storefront.cart.some((line) => line.productId === product.id),
     )
     .slice(0, 2);
 
@@ -95,7 +96,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-6 py-2">
-              {storefront.cartLines.map(({ product, lineQty, variant }) => (
+              {storefront.cartLines.map(({ product, lineQty, variantLabel }) => (
                 <article
                   className="grid grid-cols-[88px_1fr] gap-4 border-b border-[var(--line)] py-5"
                   key={product.id}
@@ -111,7 +112,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                   </div>
                   <div className="min-w-0">
                     <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                      Grade {product.condition} · {variant ?? product.size}
+                      Grade {product.condition} · {variantLabel ?? product.size}
                     </p>
                     <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
                     <p className="mt-1 text-sm font-semibold">{money(product.price)}</p>

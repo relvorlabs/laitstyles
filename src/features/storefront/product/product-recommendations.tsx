@@ -52,7 +52,7 @@ export function ProductRecommendations({
         <div
           className={
             columns === "styled"
-              ? "mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3"
+              ? "mt-5 grid grid-cols-2 gap-3"
               : "mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-6"
           }
         >

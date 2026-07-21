@@ -4,19 +4,35 @@ import { ArrowExpand01Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import type { ProductImage } from "@/lib/storefront/types";
 
-export function ProductGallery({ product }: { product: Product }) {
+export function ProductGallery({
+  product,
+  media,
+  colourLabel,
+}: {
+  product: Product;
+  media: readonly ProductImage[];
+  colourLabel: string;
+}) {
   const storefront = useStorefront();
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
-  const images = product.images;
-  const count = images.length;
-  const currentImage = images[index];
+  const count = media.length;
+  // Reset to the opening look whenever the resolved media set changes (e.g. colour switch).
+  const mediaKey = media.map((image) => image.id).join("|");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset when the resolved set changes.
+  useEffect(() => {
+    setIndex(0);
+  }, [mediaKey]);
+  const safeIndex = count > 0 ? Math.min(index, count - 1) : 0;
+  const currentImage = media[safeIndex];
+  const imageUrls = media.map((image) => image.url);
   const go = (nextIndex: number) => {
     if (count > 0) setIndex((nextIndex + count) % count);
   };
@@ -25,29 +41,47 @@ export function ProductGallery({ product }: { product: Product }) {
     <div className="grid gap-3 sm:grid-cols-[84px_minmax(0,1fr)]">
       <fieldset className="order-2 m-0 flex min-w-0 gap-3 overflow-x-auto border-0 p-0 pb-1 sm:order-1 sm:grid sm:self-start sm:overflow-visible sm:pb-0">
         <legend className="sr-only">Product media</legend>
-        {images.map((src, imageIndex) => (
+        {media.map((image, imageIndex) => (
           <Button
-            key={src}
+            key={image.id}
             type="button"
             aria-label={`View image ${imageIndex + 1}`}
-            aria-current={imageIndex === index ? "true" : undefined}
-            aria-pressed={imageIndex === index}
+            aria-current={imageIndex === safeIndex ? "true" : undefined}
+            aria-pressed={imageIndex === safeIndex}
             onClick={() => setIndex(imageIndex)}
             className="relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden rounded-sm p-0 sm:w-full"
-            variant={imageIndex === index ? "default" : "outline"}
+            variant={imageIndex === safeIndex ? "default" : "outline"}
           >
-            <Image src={src} alt="" fill sizes="84px" className="object-cover" />
+            <Image src={image.url} alt="" fill sizes="84px" className="object-cover" />
           </Button>
         ))}
       </fieldset>
 
-      <div className="order-1 min-w-0 sm:order-2">
+      <div className="group order-1 min-w-0 sm:order-2">
         <div className="relative min-h-[620px] overflow-hidden rounded-sm border border-border bg-surface-sunken shadow-storefront-2 sm:min-h-[760px]">
+          {/* Handoff media texture: soft edge-darkening (multiply) + faint dot grain. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[2] mix-blend-multiply"
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(0,0,0,.07), transparent 13%, transparent 87%, rgba(0,0,0,.07)), linear-gradient(180deg, transparent 65%, rgba(0,0,0,.11))",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[2] opacity-[0.12]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 16% 23%, #111 0 .45px, transparent .6px), radial-gradient(circle at 76% 67%, #111 0 .4px, transparent .55px)",
+              backgroundSize: "8px 8px, 13px 13px",
+            }}
+          />
           {currentImage ? (
             <LazyMotion features={domAnimation}>
               <AnimatePresence initial={false} mode="sync">
                 <m.div
-                  key={currentImage}
+                  key={currentImage.id}
                   className="absolute inset-0"
                   initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -55,10 +89,10 @@ export function ProductGallery({ product }: { product: Product }) {
                   transition={{ duration: reduceMotion ? 0 : 0.38, ease: "easeOut" }}
                 >
                   <Image
-                    src={currentImage}
-                    alt={`${product.name}, view ${index + 1}`}
+                    src={currentImage.url}
+                    alt={currentImage.alt || `${product.name}, view ${safeIndex + 1}`}
                     fill
-                    priority={index === 0}
+                    priority={safeIndex === 0}
                     sizes="(min-width: 1280px) 52vw, (min-width: 640px) 65vw, 100vw"
                     className="object-cover"
                   />
@@ -77,7 +111,7 @@ export function ProductGallery({ product }: { product: Product }) {
                 Product study
               </p>
               <p className="mt-1 text-[11px]">
-                Look {String(index + 1).padStart(2, "0")} · {product.colour || "Colour pending"}
+                Look {String(safeIndex + 1).padStart(2, "0")} · {colourLabel || "Colour pending"}
               </p>
             </div>
 
@@ -87,7 +121,7 @@ export function ProductGallery({ product }: { product: Product }) {
                   <Button
                     type="button"
                     aria-label="Previous product image"
-                    onClick={() => go(index - 1)}
+                    onClick={() => go(safeIndex - 1)}
                     className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
                     size="icon-lg"
                     variant="outline"
@@ -102,7 +136,7 @@ export function ProductGallery({ product }: { product: Product }) {
                   <Button
                     type="button"
                     aria-label="Next product image"
-                    onClick={() => go(index + 1)}
+                    onClick={() => go(safeIndex + 1)}
                     className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
                     size="icon-lg"
                     variant="outline"
@@ -120,7 +154,7 @@ export function ProductGallery({ product }: { product: Product }) {
                 <Button
                   type="button"
                   aria-label="Enlarge product image"
-                  onClick={() => storefront.openImageViewerFor(product.id, index)}
+                  onClick={() => storefront.openImageViewerFor(product.id, safeIndex, imageUrls)}
                   className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
                   size="icon-lg"
                   variant="outline"

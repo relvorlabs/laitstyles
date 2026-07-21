@@ -14,19 +14,21 @@ import Link from "next/link";
 
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
+import { Reveal } from "./reveal";
 
 const SERVICE_ITEMS = [
   { icon: DeliveryTruck01Icon, title: "Delivery", body: "Timing shown at checkout" },
-  { icon: RefreshIcon, title: "Easy returns", body: "Within 7 days" },
-  { icon: LockIcon, title: "Secure checkout", body: "Protected payment" },
-  { icon: HeadphonesIcon, title: "Customer support", body: "Here when needed" },
+  { icon: RefreshIcon, title: "Returns", body: "Eligibility shown before purchase" },
+  { icon: LockIcon, title: "Checkout", body: "Payment details shown at checkout" },
+  { icon: HeadphonesIcon, title: "Customer support", body: "Support options in the storefront" },
 ] as const;
 
 export function ProductBreadcrumb({ product }: { product: Product }) {
   return (
     <nav
-      className="mx-auto max-w-[1500px] px-4 py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground sm:px-6 lg:px-8"
+      className="mx-auto w-full max-w-[1380px] px-3 py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground md:px-4"
       aria-label="Breadcrumb"
+      data-pdp-section="breadcrumb"
     >
       <ol className="flex flex-wrap items-center gap-2">
         <li>
@@ -89,11 +91,14 @@ function ProductTrustStrip({ product }: { product: Product }) {
   ];
 
   return (
-    <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-sm border border-border bg-surface-panel sm:grid-cols-4">
+    <div
+      className="mt-4 grid grid-cols-2 overflow-hidden rounded-sm border border-border bg-surface-panel sm:grid-cols-4"
+      data-pdp-section="trust"
+    >
       {items.map((item, index) => (
         <div
           key={item.title}
-          className={`p-4 ${index % 2 === 0 ? "border-r border-border" : ""} ${index < 2 ? "border-b border-border sm:border-b-0" : ""} ${index > 0 ? "sm:border-l sm:border-border" : ""}`}
+          className={`p-4 ${index % 2 === 0 ? "border-r border-border sm:border-r-0" : ""} ${index < 2 ? "border-b border-border sm:border-b-0" : ""} ${index > 0 ? "sm:border-l sm:border-border" : ""}`}
         >
           <HugeiconsIcon aria-hidden="true" icon={item.icon} size={20} strokeWidth={1.5} />
           <p className="mt-3 text-[11px] font-semibold">{item.title}</p>
@@ -115,7 +120,12 @@ function ProductWhySection({ product }: { product: Product }) {
   ];
 
   return (
-    <section className="mt-4 grid overflow-hidden rounded-sm border border-border bg-surface-panel md:grid-cols-[0.92fr_1.08fr]">
+    <Reveal
+      as="section"
+      aria-labelledby="product-why-title"
+      className="mt-4 grid overflow-hidden rounded-sm border border-border bg-surface-panel md:grid-cols-[0.92fr_1.08fr]"
+      data-pdp-section="why"
+    >
       <div className="relative min-h-[360px] overflow-hidden bg-surface-sunken">
         {image ? (
           <Image
@@ -136,7 +146,7 @@ function ProductWhySection({ product }: { product: Product }) {
         <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
           Why you’ll love it
         </p>
-        <h2 className="mt-3 font-serif text-4xl font-medium leading-[1.02]">
+        <h2 id="product-why-title" className="mt-3 font-serif text-4xl font-medium leading-[1.02]">
           Considered form, clearly described.
         </h2>
         <ul className="mt-7 grid gap-4 text-[12px] leading-6 text-muted-foreground">
@@ -159,7 +169,7 @@ function ProductWhySection({ product }: { product: Product }) {
           <span className="border border-border px-3 py-2">Grade {product.condition}</span>
         </div>
       </div>
-    </section>
+    </Reveal>
   );
 }
 
@@ -170,9 +180,13 @@ export function ProductSizeGuide({
   product: Product;
   presentation: ProductDetailPresentation;
 }) {
-  const sizes = presentation.sizes.length
+  const sizeOptions = presentation.sizes.length
     ? presentation.sizes
     : [{ label: product.size || "One size", value: product.size || "One size", available: true }];
+  const sizes = sizeOptions.filter(
+    (size, index, allSizes) =>
+      allSizes.findIndex((candidate) => candidate.value === size.value) === index,
+  );
   const measurementLabels = presentation.measurements.length
     ? presentation.measurements
     : [
@@ -184,9 +198,12 @@ export function ProductSizeGuide({
   const image = product.images[2] ?? product.images[0];
 
   return (
-    <section
+    <Reveal
+      as="section"
       id="size-guide"
-      className="mx-auto max-w-[1500px] scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8"
+      aria-labelledby="size-guide-title"
+      className="mx-auto w-full max-w-[1380px] scroll-mt-24 px-3 py-14 md:px-4"
+      data-pdp-section="size-guide"
     >
       <div className="overflow-hidden rounded-sm border border-border bg-surface-panel">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border p-6 sm:p-8">
@@ -194,7 +211,9 @@ export function ProductSizeGuide({
             <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
               Fit reference
             </p>
-            <h2 className="mt-2 font-serif text-4xl font-medium">Size guide</h2>
+            <h2 id="size-guide-title" className="mt-2 font-serif text-4xl font-medium">
+              Size guide
+            </h2>
           </div>
           <p className="text-[10px] text-muted-foreground">
             Only catalogue measurements are shown; unavailable values use an em dash.
@@ -260,26 +279,29 @@ export function ProductSizeGuide({
           </div>
         </div>
       </div>
-    </section>
+    </Reveal>
   );
 }
 
 export function ServiceStrip() {
   return (
-    <section
-      className="mx-auto grid max-w-[1436px] grid-cols-2 overflow-hidden rounded-sm border border-border bg-surface-panel md:grid-cols-4"
-      aria-label="Service benefits"
-    >
-      {SERVICE_ITEMS.map((item, index) => (
-        <div
-          key={item.title}
-          className={`p-5 ${index % 2 === 0 ? "border-r border-border" : ""} ${index < 2 ? "border-b border-border md:border-b-0" : ""} ${index > 0 ? "md:border-l md:border-border" : ""}`}
-        >
-          <HugeiconsIcon aria-hidden="true" icon={item.icon} size={20} strokeWidth={1.5} />
-          <p className="mt-3 text-[10px] font-semibold">{item.title}</p>
-          <p className="mt-1 text-[9px] text-muted-foreground">{item.body}</p>
-        </div>
-      ))}
-    </section>
+    <Reveal as="div" className="mx-auto w-full max-w-[1380px] px-3 md:px-4">
+      <section
+        className="grid grid-cols-2 overflow-hidden rounded-sm border border-border bg-surface-panel md:grid-cols-4"
+        aria-label="Service benefits"
+        data-pdp-section="service-benefits"
+      >
+        {SERVICE_ITEMS.map((item, index) => (
+          <div
+            key={item.title}
+            className={`p-5 ${index % 2 === 0 ? "border-r border-border md:border-r-0" : ""} ${index < 2 ? "border-b border-border md:border-b-0" : ""} ${index > 0 ? "md:border-l md:border-border" : ""}`}
+          >
+            <HugeiconsIcon aria-hidden="true" icon={item.icon} size={20} strokeWidth={1.5} />
+            <p className="mt-3 text-[10px] font-semibold">{item.title}</p>
+            <p className="mt-1 text-[9px] text-muted-foreground">{item.body}</p>
+          </div>
+        ))}
+      </section>
+    </Reveal>
   );
 }

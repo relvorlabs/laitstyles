@@ -13,6 +13,7 @@ export function QuickViewOverlay() {
     if (event.target === event.currentTarget) storefront.closeAll();
   };
   const active = storefront.activeProduct;
+  const variants = active ? (storefront.variantOptionsByProductId[active.id] ?? []) : [];
 
   return (
     <div
@@ -129,7 +130,7 @@ export function QuickViewOverlay() {
                     </div>
                   ))}
                 </div>
-                {active.inventory === "variant" && active.variants ? (
+                {active.inventory === "variant" && variants.length > 0 ? (
                   <div className="mt-[23px]">
                     <div className="mb-2.5 flex justify-between gap-5 text-[0.78rem]">
                       <strong>Select size</strong>
@@ -143,25 +144,24 @@ export function QuickViewOverlay() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {active.variants.map((variant, index) => {
-                        const disabled =
-                          index === (active.variants?.length ?? 0) - 1 && active.stock < 5;
-                        const selected = storefront.selectedVariant === variant;
+                      {variants.map((variant) => {
+                        const disabled = variant.availability.available < 1;
+                        const selected = storefront.selectedQuickVariantId === variant.id;
                         return (
                           <Button
                             size="lg"
-                            key={variant}
+                            key={variant.id}
                             className="min-w-12 disabled:line-through"
                             type="button"
                             disabled={disabled}
                             aria-pressed={selected}
                             onClick={() => {
-                              storefront.setSelectedVariant(variant);
+                              storefront.setSelectedQuickVariantId(variant.id);
                               storefront.setQuickError("");
                             }}
                             variant={selected ? "default" : "outline"}
                           >
-                            {variant}
+                            {variant.label}
                           </Button>
                         );
                       })}

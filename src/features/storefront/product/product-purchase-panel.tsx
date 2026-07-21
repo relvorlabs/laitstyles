@@ -13,12 +13,13 @@ import {
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { type RefObject, useState } from "react";
+import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { money, type Product } from "@/features/storefront/shared/catalogue-data";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
+import type { UseProductSelection } from "./use-product-selection";
 
 const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
 
@@ -32,6 +33,7 @@ function scrollToSection(id: string) {
 export interface ProductPurchasePanelProps {
   product: Product;
   presentation: ProductDetailPresentation;
+  selection: UseProductSelection;
   anchorRef: RefObject<HTMLDivElement | null>;
   canAdd: boolean;
   quantity: number;
@@ -43,6 +45,7 @@ export interface ProductPurchasePanelProps {
 export function ProductPurchasePanel({
   product,
   presentation,
+  selection,
   anchorRef,
   canAdd,
   quantity,
@@ -51,10 +54,23 @@ export function ProductPurchasePanel({
   onBuyNow,
 }: ProductPurchasePanelProps) {
   const storefront = useStorefront();
-  const [selectedColour, setSelectedColour] = useState(
-    presentation.colours[0] ?? product.colour ?? "Not specified",
-  );
+  const selectedColour = selection.selectedColour ?? product.colour ?? "Not specified";
   const available = product.status === "available";
+  const displayPrice = selection.displayPrice;
+  const discountPercent =
+    selection.referencePrice && selection.referencePrice > displayPrice
+      ? Math.round((1 - displayPrice / selection.referencePrice) * 100)
+      : presentation.discountPercent;
+  // Sizes compatible with the chosen colour; fall back to the presentation sizes
+  // for non-variant products (single size), never fabricating options.
+  const sizeOptions =
+    selection.compatibleSizes.length > 0
+      ? selection.compatibleSizes.map((variant) => ({
+          label: variant.size ?? variant.label,
+          value: variant.size ?? variant.label,
+          available: variant.availability.available > 0,
+        }))
+      : presentation.sizes;
   const maxQuantity = product.inventory === "one-of-one" ? 1 : Math.max(1, product.stock);
   const saved = storefront.saved.has(product.id);
   const reviewLabel =
@@ -126,16 +142,16 @@ export function ProductPurchasePanel({
 
       <div className="mt-5 flex flex-wrap items-end gap-3">
         <span className="text-[34px] font-extrabold tracking-[-0.04em] tabular-nums">
-          {money(product.price)}
+          {money(displayPrice)}
         </span>
-        {product.referencePrice && product.referencePrice > product.price ? (
+        {selection.referencePrice && selection.referencePrice > displayPrice ? (
           <span className="pb-1 text-sm text-muted-foreground line-through">
-            {money(product.referencePrice)}
+            {money(selection.referencePrice)}
           </span>
         ) : null}
-        {presentation.discountPercent ? (
+        {discountPercent ? (
           <span className="mb-1 rounded-full bg-primary px-3 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-primary-foreground">
-            {presentation.discountPercent}% off
+            {discountPercent}% off
           </span>
         ) : null}
       </div>
@@ -158,20 +174,30 @@ export function ProductPurchasePanel({
         <legend className="text-[11px] font-semibold">
           Colour: <span>{selectedColour}</span>
         </legend>
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-4">
           {presentation.colours.map((colour) => {
-            const selected = colour === selectedColour;
+            const selected = colour.name === selectedColour;
             return (
-              <Button
-                key={colour}
+              <button
+                key={colour.name}
                 type="button"
+                aria-label={colour.name}
                 aria-pressed={selected}
-                onClick={() => setSelectedColour(colour)}
-                className="min-h-11 rounded-full px-4 text-[10px]"
-                variant={selected ? "default" : "outline"}
+                title={colour.name}
+                onClick={() => selection.selectColour(colour.name)}
+                style={colour.hex ? { backgroundColor: colour.hex } : undefined}
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-[outline] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring ${
+                  selected
+                    ? "border-border-strong outline-2 outline-offset-4 outline-foreground"
+                    : "border-border-strong"
+                } ${colour.hex ? "" : "bg-surface-sunken"}`}
               >
-                {colour}
-              </Button>
+                {colour.hex ? null : (
+                  <span className="font-mono text-[8px] font-semibold uppercase tracking-tight text-foreground">
+                    {colour.name.slice(0, 2)}
+                  </span>
+                )}
+              </button>
             );
           })}
         </div>
@@ -180,7 +206,7 @@ export function ProductPurchasePanel({
       <fieldset className="mt-7">
         <div className="flex items-center justify-between gap-4">
           <legend className="text-[11px] font-semibold">
-            Size: <span>{storefront.selectedVariant ?? (product.size || "One size")}</span>
+            Size: <span>{selection.selectedSize ?? (product.size || "One size")}</span>
           </legend>
           <Button
             type="button"
@@ -191,12 +217,12 @@ export function ProductPurchasePanel({
             Size guide
           </Button>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {presentation.sizes.map((size) => {
+        <div className="mt-4 grid grid-cols-5 gap-2">
+          {sizeOptions.map((size) => {
             const selected =
               product.inventory === "variant"
-                ? storefront.selectedVariant === size.value
-                : size.value === product.size || presentation.sizes.length === 1;
+                ? selection.selectedSize === size.value
+                : size.value === product.size || sizeOptions.length === 1;
             return (
               <Button
                 key={size.value}
@@ -204,7 +230,7 @@ export function ProductPurchasePanel({
                 disabled={!size.available}
                 aria-pressed={selected}
                 onClick={() => {
-                  storefront.setSelectedVariant(size.value);
+                  selection.selectSize(size.value);
                   storefront.setQuickError("");
                 }}
                 className="min-h-12 disabled:line-through"
@@ -254,7 +280,7 @@ export function ProductPurchasePanel({
             onClick={onAdd}
             className="h-14 flex-1 text-[12px] font-bold"
           >
-            {available ? `Add to bag · ${money(product.price * quantity)}` : product.status}
+            {available ? `Add to bag · ${money(displayPrice * quantity)}` : product.status}
           </Button>
         </div>
         <Button

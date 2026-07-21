@@ -71,6 +71,7 @@ const detail = {
       sku: null,
       size: "S",
       colour: "Sand",
+      colourHex: null,
       price: null,
       availability: { state: "available", available: 1, isOneOfOne: false },
     },
@@ -80,6 +81,7 @@ const detail = {
       sku: null,
       size: "M",
       colour: "Sand",
+      colourHex: null,
       price: null,
       availability: { state: "sold_out", available: 0, isOneOfOne: false },
     },
@@ -93,7 +95,8 @@ describe("buildProductDetailPresentation", () => {
 
     expect(result.description).toBe("Breathable and relaxed.");
     expect(result.discountPercent).toBe(25);
-    expect(result.colours).toEqual(["Sand"]);
+    expect(result.variants).toEqual(detail.variants);
+    expect(result.colours).toEqual([{ name: "Sand", hex: null }]);
     expect(result.sizes).toEqual([
       { label: "S", value: "S", available: true },
       { label: "M", value: "M", available: false },
@@ -123,6 +126,7 @@ describe("buildProductDetailPresentation", () => {
         position: 2,
         width: null,
         height: null,
+        variantId: null,
       },
       {
         id: "first",
@@ -132,6 +136,7 @@ describe("buildProductDetailPresentation", () => {
         position: 1,
         width: null,
         height: null,
+        variantId: null,
       },
     ] satisfies ProductDetail["media"];
 
@@ -157,9 +162,14 @@ describe("selectProductRecommendations", () => {
       category: "Outerwear",
       type: "Coats",
     };
+    const thirdMatch = {
+      ...product,
+      id: "shirt-3",
+      slug: "linen-shirt-3",
+    };
 
     const result = selectProductRecommendations(
-      [product, sameType, sameCollection, unrelated],
+      [product, sameType, sameCollection, thirdMatch, unrelated],
       product,
     );
 
@@ -167,6 +177,7 @@ describe("selectProductRecommendations", () => {
     expect(result.related.map((candidate) => candidate.id)).toEqual([
       "shirt-2",
       "trouser-1",
+      "shirt-3",
       "coat-1",
     ]);
   });

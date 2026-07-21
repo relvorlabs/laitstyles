@@ -10,6 +10,51 @@ import { Button } from "@/components/ui/button";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import { wrapCampaignIndex } from "./product-detail-presentation";
 
+/**
+ * Ken-Burns "slow zoom" image for the cinematic campaign frame. Starts at
+ * scale(1.025) and drifts to scale(1.09) over ~8s using the handoff's
+ * cubic-bezier easing. Because this is a fresh mount per slide (the parent
+ * <m.article> is keyed by frame id), the zoom state resets to its start
+ * value automatically whenever a new frame becomes active.
+ */
+function CinematicFrameImage({
+  src,
+  alt,
+  reduceMotion,
+}: {
+  src: string;
+  alt: string;
+  reduceMotion: boolean | null;
+}) {
+  const [zoomed, setZoomed] = useState(false);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const frame = requestAnimationFrame(() => setZoomed(true));
+    return () => cancelAnimationFrame(frame);
+  }, [reduceMotion]);
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="100vw"
+      className="object-cover"
+      style={
+        reduceMotion
+          ? undefined
+          : {
+              filter: "saturate(.78) contrast(1.03)",
+              transform: zoomed ? "scale(1.09)" : "scale(1.025)",
+              transition: "transform 8s cubic-bezier(.15,.6,.2,1)",
+              transformOrigin: "center",
+            }
+      }
+    />
+  );
+}
+
 export function ProductCampaign({
   frames,
 }: {
@@ -87,7 +132,8 @@ export function ProductCampaign({
 
           <div
             ref={stageRef}
-            className="relative min-h-[680px] min-w-0 overflow-hidden rounded-sm border border-current bg-surface-inverse"
+            data-testid="campaign-stage"
+            className="relative aspect-[4/5] min-w-0 overflow-hidden rounded-sm border border-current bg-surface-inverse sm:aspect-[4/3] lg:aspect-[16/9]"
           >
             <AnimatePresence initial={false} mode="sync">
               <m.article
@@ -100,15 +146,21 @@ export function ProductCampaign({
                 aria-live="polite"
               >
                 {current.image ? (
-                  <Image
+                  <CinematicFrameImage
                     src={current.image}
                     alt={`${current.caption} for this product`}
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
+                    reduceMotion={reduceMotion}
                   />
                 ) : null}
-                <div className="absolute inset-0 bg-linear-to-t from-surface-inverse via-transparent to-transparent" />
+                {/* Cinematic vignette: darkens the left edge and the bottom so captions stay legible over the moving frame. */}
+                <div
+                  className="pointer-events-none absolute inset-0 z-[5]"
+                  aria-hidden="true"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, rgba(0,0,0,.54), transparent 42%, rgba(0,0,0,.12)), linear-gradient(180deg, rgba(0,0,0,.06), transparent 54%, rgba(0,0,0,.68))",
+                  }}
+                />
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-5 p-6 text-surface-inverse-foreground sm:p-10">
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-[0.3em] opacity-60">
@@ -119,7 +171,7 @@ export function ProductCampaign({
                     </h3>
                   </div>
                   <span
-                    className="hidden text-[88px] font-semibold leading-none opacity-20 sm:block"
+                    className="hidden text-[88px] font-semibold leading-none opacity-[0.12] sm:block"
                     aria-hidden="true"
                   >
                     {String(index + 1).padStart(2, "0")}
@@ -127,6 +179,17 @@ export function ProductCampaign({
                 </div>
               </m.article>
             </AnimatePresence>
+
+            {/* Subtle grain/texture overlay shared across frames, matching the handoff's `.grain::after` treatment. */}
+            <div
+              className="pointer-events-none absolute inset-0 z-[6] opacity-[0.13] mix-blend-screen"
+              aria-hidden="true"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 10% 20%, rgba(255,255,255,.9) 0 .4px, transparent .55px), radial-gradient(circle at 60% 80%, rgba(255,255,255,.7) 0 .35px, transparent .5px)",
+                backgroundSize: "8px 8px, 11px 11px",
+              }}
+            />
 
             {frames.length > 1 ? (
               <div className="absolute left-6 top-1/2 z-20 flex -translate-y-1/2 gap-2 sm:left-10">
@@ -171,7 +234,7 @@ export function ProductCampaign({
                 <button
                   key={frame.id}
                   type="button"
-                  className={`h-1.5 rounded-full bg-current transition-[width,opacity] focus-visible:outline-2 focus-visible:outline-offset-4 ${frameIndex === index ? "w-6 opacity-100" : "w-3 opacity-30"}`}
+                  className={`h-1.5 rounded-full bg-current transition-[width,opacity] duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 ${frameIndex === index ? "w-[42px] opacity-100" : "w-3 opacity-30"}`}
                   aria-current={frameIndex === index ? "true" : undefined}
                   aria-label={`Go to campaign slide ${frameIndex + 1}`}
                   onClick={() => go(frameIndex)}
