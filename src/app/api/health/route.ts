@@ -1,6 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-
-export async function GET(req: NextRequest) {
-    return NextResponse.json({ message: "Health Check" });
+// Liveness probe. Route Handlers are uncached by default, so every request
+// reflects a live server response.
+export async function GET() {
+  return NextResponse.json({ message: "Health Check" });
 }
