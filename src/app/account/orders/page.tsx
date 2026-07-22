@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { OrdersSection } from "@/features/storefront/account/sections/orders-section";
-import { getStorefrontSession } from "@/server/authorization/storefront-session";
+import { getCurrentSession } from "@/server/auth/session";
 import { getAccountOrders } from "@/server/commerce/orders/account-orders";
 
 export default async function AccountOrdersPage() {
-  const session = await getStorefrontSession();
-  if (session?.role !== "consumer") {
+  const session = await getCurrentSession();
+  if (session.kind !== "consumer") {
     redirect("/auth/sign-in?next=/account/orders");
   }
   if (!session.customerId) {

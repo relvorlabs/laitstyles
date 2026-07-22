@@ -7,6 +7,6 @@ export async function ensureConsumerProfile(authUserId: string, email: string | 
     where: { id: authUserId },
     update: { email },
     create: { id: authUserId, email, role: "consumer" },
-    select: { id: true, email: true, role: true },
+    select: { id: true, role: true, status: true },
   });
 }

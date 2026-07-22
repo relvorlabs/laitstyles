@@ -3,7 +3,7 @@ import {
   OrderDetailSection,
   type OrderReviewNotice,
 } from "@/features/storefront/account/sections/order-detail-section";
-import { getStorefrontSession } from "@/server/authorization/storefront-session";
+import { getCurrentSession } from "@/server/auth/session";
 import { getAccountOrder } from "@/server/commerce/orders/account-orders";
 
 export default async function AccountOrderDetailPage({
@@ -20,9 +20,9 @@ export default async function AccountOrderDetailPage({
     ["submitted", "withdrawn", "withdrawal_failed"].includes(reviewParam)
       ? (reviewParam as OrderReviewNotice)
       : undefined;
-  const session = await getStorefrontSession();
+  const session = await getCurrentSession();
 
-  if (session?.role !== "consumer") {
+  if (session.kind !== "consumer") {
     redirect(
       `/auth/sign-in?next=${encodeURIComponent(`/account/orders/${encodeURIComponent(orderNumber)}`)}`,
     );

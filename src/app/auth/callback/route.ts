@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { ensureConsumerProfile } from "@/lib/auth/server/profile";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
+import { ensureConsumerProfile } from "@/server/auth/profile";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
 import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
-import { getAdminAccess } from "@/lib/auth/server/admin";
+import { getStaffAccess } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const access = await getAdminAccess();
+  const access = await getStaffAccess();
 
   if (!access.ok) {
     if (access.reason === "signed-out") {

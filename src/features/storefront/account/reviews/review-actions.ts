@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
 import type { ReviewActionState } from "@/lib/commerce/reviews/review-types";
-import { requireStorefrontSession } from "@/server/authorization/storefront-session";
+import { getCurrentSession } from "@/server/auth/session";
 import {
   type SubmitReviewResult,
   submitReview,
@@ -40,30 +40,31 @@ function readIdentifiers(formData: FormData) {
 async function getCustomerId(): Promise<
   { ok: true; customerId: string } | { ok: false; state: ReviewErrorState }
 > {
-  try {
-    const session = await requireStorefrontSession();
-    if (!session.customerId) {
-      return {
-        ok: false,
-        state: {
-          status: "error",
-          message: "Your customer profile is not ready for reviews yet. Contact support for help.",
-        },
-      };
-    }
-    return { ok: true, customerId: session.customerId };
-  } catch (error) {
-    if (error instanceof Error && error.message === "A consumer account is required.") {
-      return {
-        ok: false,
-        state: {
-          status: "error",
-          message: "Sign in with your customer account to review this item.",
-        },
-      };
-    }
-    throw error;
+  const session = await getCurrentSession();
+  // Session resolution failures (e.g. database outage) are unexpected: surface
+  // them to the error boundary instead of disguising them as an auth error.
+  if (session.kind === "unavailable") {
+    throw new Error(session.error);
   }
+  if (session.kind !== "consumer") {
+    return {
+      ok: false,
+      state: {
+        status: "error",
+        message: "Sign in with your customer account to review this item.",
+      },
+    };
+  }
+  if (!session.customerId) {
+    return {
+      ok: false,
+      state: {
+        status: "error",
+        message: "Your customer profile is not ready for reviews yet. Contact support for help.",
+      },
+    };
+  }
+  return { ok: true, customerId: session.customerId };
 }
 
 export async function submitReviewAction(

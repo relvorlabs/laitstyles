@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  requireSession: vi.fn(),
+  getCurrentSession: vi.fn(),
   submitReview: vi.fn(),
   withdrawReview: vi.fn(),
   revalidatePath: vi.fn(),
   redirect: vi.fn(),
 }));
 
-vi.mock("@/server/authorization/storefront-session", () => ({
-  requireStorefrontSession: mocks.requireSession,
+vi.mock("@/server/auth/session", () => ({
+  getCurrentSession: mocks.getCurrentSession,
 }));
 vi.mock("@/server/commerce/reviews/review-repository", () => ({
   submitReview: mocks.submitReview,
@@ -34,10 +34,10 @@ function validFormData() {
 describe("review Server Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.requireSession.mockResolvedValue({
+    mocks.getCurrentSession.mockResolvedValue({
+      kind: "consumer",
       authUserId: "user-a",
       email: "shopper@example.com",
-      role: "consumer",
       customerId: "customer-a",
     });
     mocks.submitReview.mockResolvedValue({
@@ -52,8 +52,8 @@ describe("review Server Actions", () => {
     });
   });
 
-  it("returns a safe authentication error when a consumer session is unavailable", async () => {
-    mocks.requireSession.mockRejectedValueOnce(new Error("A consumer account is required."));
+  it("returns a safe authentication error when the visitor is not a consumer", async () => {
+    mocks.getCurrentSession.mockResolvedValueOnce({ kind: "anonymous" });
 
     await expect(submitReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
       status: "error",
@@ -63,7 +63,10 @@ describe("review Server Actions", () => {
   });
 
   it("does not disguise unexpected session or database failures as an authentication error", async () => {
-    mocks.requireSession.mockRejectedValueOnce(new Error("Database unavailable"));
+    mocks.getCurrentSession.mockResolvedValueOnce({
+      kind: "unavailable",
+      error: "Database unavailable",
+    });
 
     await expect(submitReviewAction({ status: "idle" }, validFormData())).rejects.toThrow(
       "Database unavailable",
@@ -72,10 +75,10 @@ describe("review Server Actions", () => {
   });
 
   it("requires a linked customer record", async () => {
-    mocks.requireSession.mockResolvedValueOnce({
+    mocks.getCurrentSession.mockResolvedValueOnce({
+      kind: "consumer",
       authUserId: "user-a",
       email: "shopper@example.com",
-      role: "consumer",
       customerId: null,
     });
 

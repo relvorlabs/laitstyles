@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { getSafeNextPath } from "@/lib/auth/server/redirects";
-import { isSignedIn } from "@/lib/auth/server/session";
+import { getCurrentSession, isAuthenticated } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "Sign in | Laitstyle",
@@ -30,7 +30,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     redirect(`/?auth=signin&next=${encodeURIComponent(next)}`);
   }
 
-  if (await isSignedIn()) {
+  if (isAuthenticated(await getCurrentSession())) {
     redirect(next);
   }
 
