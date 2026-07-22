@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   create: vi.fn(),
-  update: vi.fn(),
+  updateMany: vi.fn(),
   transaction: vi.fn(),
 }));
 
@@ -21,7 +21,7 @@ vi.mock("@/lib/prisma", () => {
     Prisma: { PrismaClientKnownRequestError },
     prisma: {
       order_lines: { findFirst: mocks.findFirst },
-      product_reviews: { create: mocks.create, update: mocks.update },
+      product_reviews: { create: mocks.create, updateMany: mocks.updateMany },
       $transaction: mocks.transaction,
     },
   };
@@ -63,11 +63,11 @@ describe("owned review repository", () => {
     mocks.transaction.mockImplementation(async (work: (tx: unknown) => Promise<unknown>) =>
       work({
         order_lines: { findFirst: mocks.findFirst },
-        product_reviews: { create: mocks.create, update: mocks.update },
+        product_reviews: { create: mocks.create, updateMany: mocks.updateMany },
       }),
     );
     mocks.create.mockResolvedValue({ id: "review-a" });
-    mocks.update.mockResolvedValue({ id: "review-a" });
+    mocks.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it("scopes the order-line ownership inside the Prisma query", async () => {
@@ -123,6 +123,79 @@ describe("owned review repository", () => {
 
   it.each([
     [
+      "expired",
+      line({
+        delivered_at: new Date("2026-01-01T12:00:00Z"),
+        product_review: {
+          id: "review-a",
+          rating: 5,
+          title: null,
+          body: input.body,
+          fit: "true_to_size",
+          size_ordered: "UK 12 / Emerald",
+          status: "published",
+          submitted_at: now,
+          rejection_reason: null,
+        },
+      }),
+      "review_window_expired",
+    ],
+    [
+      "returned",
+      line({
+        fulfilment_status: "returned",
+        return_lines: [{ quantity: 1 }],
+        product_review: {
+          id: "review-a",
+          rating: 5,
+          title: null,
+          body: input.body,
+          fit: "true_to_size",
+          size_ordered: "UK 12 / Emerald",
+          status: "rejected",
+          submitted_at: now,
+          rejection_reason: "Needs more detail",
+        },
+      }),
+      "fully_returned",
+    ],
+    [
+      "refunded",
+      line({
+        refund_status: "refunded",
+        product_review: {
+          id: "review-a",
+          rating: 5,
+          title: null,
+          body: input.body,
+          fit: "true_to_size",
+          size_ordered: "UK 12 / Emerald",
+          status: "withdrawn",
+          submitted_at: now,
+          rejection_reason: null,
+        },
+      }),
+      "fully_refunded",
+    ],
+  ])("derives %s resubmission eligibility without losing duplicate-review truth", async (_case, ownedLine, reason) => {
+    mocks.findFirst.mockResolvedValueOnce(ownedLine);
+
+    const result = await getOwnedReviewContext({
+      customerId: "customer-a",
+      orderNumber: "LS-1001",
+      orderLineId: "line-a",
+      now,
+    });
+
+    expect(result).toMatchObject({
+      found: true,
+      eligibility: { eligible: false, reason: "already_reviewed" },
+      resubmissionEligibility: { eligible: false, reason },
+    });
+  });
+
+  it.each([
+    [
       "delivery",
       line({ fulfilment_status: "dispatched", delivered_quantity: 0, delivered_at: null }),
       "awaiting_delivery",
@@ -149,7 +222,7 @@ describe("owned review repository", () => {
       }),
     ).resolves.toEqual({ ok: false, reason });
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.updateMany).not.toHaveBeenCalled();
   });
 
   it("creates a pending review using only server-derived purchase context", async () => {
@@ -182,7 +255,12 @@ describe("owned review repository", () => {
 
   it("maps the order-line unique race to already_reviewed", async () => {
     mocks.findFirst.mockResolvedValueOnce(line());
-    mocks.create.mockRejectedValueOnce(new Prisma.PrismaClientKnownRequestError("P2002"));
+    mocks.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("P2002", {
+        code: "P2002",
+        clientVersion: "7.8.0",
+      }),
+    );
 
     await expect(
       submitReview({
@@ -226,8 +304,8 @@ describe("owned review repository", () => {
       }),
     ).resolves.toEqual({ ok: true, reviewId: "review-a", productSlug: "archive-silk-dress" });
 
-    expect(mocks.update).toHaveBeenCalledWith({
-      where: { id: "review-a" },
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { id: "review-a", status },
       data: expect.objectContaining({
         rating: 5,
         status: "pending",
@@ -237,7 +315,6 @@ describe("owned review repository", () => {
         reviewed_by_profile_id: null,
         rejection_reason: null,
       }),
-      select: { id: true },
     });
   });
 
@@ -274,10 +351,9 @@ describe("owned review repository", () => {
         },
       }),
     );
-    expect(mocks.update).toHaveBeenCalledWith({
-      where: { id: "review-a" },
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { id: "review-a", status: "published" },
       data: { status: "withdrawn" },
-      select: { id: true },
     });
   });
 });

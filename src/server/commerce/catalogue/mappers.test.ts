@@ -38,7 +38,6 @@ function baseRow() {
     product_measurements: [],
     stock_levels: [],
     product_variants: [],
-    product_reviews: [],
   };
 }
 

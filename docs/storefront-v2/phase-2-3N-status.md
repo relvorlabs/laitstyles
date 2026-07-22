@@ -93,3 +93,13 @@ The global storefront prototype palette is active across the codebase (admin/aut
 
 ### Known consequence of this increment
 `/products/[slug]` now serves the **fake prototype** product (user decision: "prototype data + always prototype chrome"). The real Prisma detail page it replaced was linked from the real `/shop` cards (real slugs); those `/shop` detail links will now `notFound()`. The prototype storefront (`/`, `/products`) does not link to `/shop`, so this is not user-facing within the prototype track, but `/shop` detail is a **known regression** to be resolved when the real vs prototype storefront tracks are reconciled (out of scope for this increment).
+
+### 2026-07-22 verified-purchase product reviews increment
+
+- Removed product-detail review creation. Customers now start a review only from an exact item in an authenticated, customer-owned order.
+- Added Prisma-backed line fulfilment/refund and review lifecycle enums, delivery evidence, a unique review-per-order-line constraint, moderation states, fit feedback, and submitted/published timestamps. The migration is created in the repository but has **not** been deployed to a configured database by this implementation pass.
+- Enforced delivered quantity plus delivery timestamp, an inclusive 90-day window, cancellation, completed-return quantities, full-refund state, duplicate prevention, and server-derived product/variant context. Missing and foreign order lines deliberately collapse to the same not-found result.
+- Added serializable, retried review transactions with status-guarded updates, plus active-profile authorization so suspended or disabled sessions cannot read customer orders or mutate reviews.
+- Added account order list/detail states, per-line eligibility and lifecycle treatments, submission/withdrawal feedback, status-specific resubmission copy, a responsive accessible review form, and public verified-purchase reviews. Reviews published before a later full return/refund remain visible with an honest lifecycle marker.
+- Focused verification at this checkpoint: TypeScript passed with zero errors; review/security/order domain tests and the jsdom review-form suite passed in focused runs. Full lint, Vitest, build, React Doctor and browser viewport evidence are recorded separately in the implementation handoff after their final runs.
+- This increment does **not** close the broader Phase 2-3N gate. The unrelated legacy CSS, animation, visual-regression and application-wide theme blockers below remain open.

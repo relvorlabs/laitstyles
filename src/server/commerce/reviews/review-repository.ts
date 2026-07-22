@@ -1,16 +1,15 @@
 import "server-only";
 
-import type { PrismaClient } from "@/lib/prisma";
-import { Prisma, prisma } from "@/lib/prisma";
-
-import { canTransitionReview, getReviewEligibility } from "./review-policy";
 import type {
   ReviewEligibility,
   ReviewEligibilityReason,
   ReviewFit,
   ReviewInput,
   ReviewStatus,
-} from "./review-types";
+} from "@/lib/commerce/reviews/review-types";
+import type { PrismaClient } from "@/lib/prisma";
+import { Prisma, prisma } from "@/lib/prisma";
+import { canTransitionReview, getReviewEligibility } from "./review-policy";
 
 const ownedLineSelect = {
   id: true,
@@ -45,6 +44,26 @@ const ownedLineSelect = {
 type OwnedLineRecord = Prisma.order_linesGetPayload<{ select: typeof ownedLineSelect }>;
 type ReviewReadClient = Pick<PrismaClient, "order_lines">;
 
+async function runSerializable<T>(work: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await prisma.$transaction(work, {
+        isolationLevel: "Serializable",
+      });
+    } catch (error) {
+      const shouldRetry =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2034" &&
+        attempt < maxAttempts;
+      if (!shouldRetry) throw error;
+    }
+  }
+
+  throw new Error("Serializable review transaction exhausted its retry budget.");
+}
+
 export interface OwnedReviewLine {
   id: string;
   productId: string;
@@ -75,6 +94,7 @@ export type OwnedReviewContext =
       line: OwnedReviewLine;
       review: OwnedReviewRecord | null;
       eligibility: ReviewEligibility;
+      resubmissionEligibility: ReviewEligibility;
     };
 
 export type SubmitReviewResult =
@@ -157,7 +177,10 @@ function toContext(line: OwnedLineRecord, now: Date): OwnedReviewContext {
           rejectionReason: line.product_review.rejection_reason,
         }
       : null,
-    eligibility: eligibilityFor(line, now),
+    eligibility: line.product_review
+      ? { eligible: false, reason: "already_reviewed" }
+      : eligibilityFor(line, now),
+    resubmissionEligibility: eligibilityFor(line, now, false),
   };
 }
 
@@ -180,7 +203,7 @@ export async function submitReview(args: {
   const now = args.now ?? new Date();
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    return await runSerializable(async (tx) => {
       // Server Actions are directly reachable. Repeat both ownership and current
       // fulfilment/refund truth in the same transaction as the mutation.
       const line = await findOwnedLine(tx, args);
@@ -204,18 +227,22 @@ export async function submitReview(args: {
         submitted_at: now,
       };
 
+      if (existing) {
+        const mutation = await tx.product_reviews.updateMany({
+          where: { id: existing.id, status: existing.status },
+          data: {
+            ...reviewData,
+            published_at: null,
+            reviewed_at: null,
+            reviewed_by_profile_id: null,
+            rejection_reason: null,
+          },
+        });
+        if (mutation.count !== 1) return { ok: false, reason: "already_reviewed" };
+      }
+
       const review = existing
-        ? await tx.product_reviews.update({
-            where: { id: existing.id },
-            data: {
-              ...reviewData,
-              published_at: null,
-              reviewed_at: null,
-              reviewed_by_profile_id: null,
-              rejection_reason: null,
-            },
-            select: { id: true },
-          })
+        ? { id: existing.id }
         : await tx.product_reviews.create({
             data: { order_line_id: line.id, ...reviewData },
             select: { id: true },
@@ -232,7 +259,7 @@ export async function submitReview(args: {
 }
 
 export async function withdrawReview(args: OwnedLineKey): Promise<WithdrawReviewResult> {
-  return prisma.$transaction(async (tx) => {
+  return runSerializable(async (tx) => {
     const line = await findOwnedLine(tx, args);
     if (!line) return { ok: false, reason: "order_line_not_found" };
     if (!line.product_review) return { ok: false, reason: "review_not_found" };
@@ -240,12 +267,12 @@ export async function withdrawReview(args: OwnedLineKey): Promise<WithdrawReview
       return { ok: false, reason: "already_withdrawn" };
     }
 
-    const review = await tx.product_reviews.update({
-      where: { id: line.product_review.id },
+    const mutation = await tx.product_reviews.updateMany({
+      where: { id: line.product_review.id, status: line.product_review.status },
       data: { status: "withdrawn" },
-      select: { id: true },
     });
+    if (mutation.count !== 1) return { ok: false, reason: "already_withdrawn" };
 
-    return { ok: true, reviewId: review.id, productSlug: line.products.slug };
+    return { ok: true, reviewId: line.product_review.id, productSlug: line.products.slug };
   });
 }

@@ -5,7 +5,7 @@ import type {
   ReviewEligibility,
   ReviewEligibilityInput,
   ReviewStatus,
-} from "./review-types";
+} from "@/lib/commerce/reviews/review-types";
 
 export const REVIEW_WINDOW_DAYS = 90;
 
@@ -22,10 +22,7 @@ const transitions: Readonly<Record<ReviewStatus, readonly ReviewStatus[]>> = {
   withdrawn: ["pending"],
 };
 
-export function getReviewEligibility(
-  input: ReviewEligibilityInput,
-  now: Date,
-): ReviewEligibility {
+export function getReviewEligibility(input: ReviewEligibilityInput, now: Date): ReviewEligibility {
   if (!input.owned) {
     return { eligible: false, reason: "order_line_not_found" };
   }
@@ -35,8 +32,7 @@ export function getReviewEligibility(
   }
 
   if (
-    (!deliveredStatuses.has(input.fulfilmentStatus) &&
-      input.fulfilmentStatus !== "returned") ||
+    (!deliveredStatuses.has(input.fulfilmentStatus) && input.fulfilmentStatus !== "returned") ||
     input.deliveredQuantity <= 0 ||
     input.deliveredAt === null
   ) {

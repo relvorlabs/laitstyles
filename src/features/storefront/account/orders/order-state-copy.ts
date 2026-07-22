@@ -62,13 +62,13 @@ export function reviewStateCopy(state: AccountLineReviewState, locale = "en-NG")
         ? `Your review is published. This item was later ${state.lifecycleMarker}.`
         : "Your review is published.";
     case "rejected":
-      return state.canResubmit
+      return state.resubmission.eligible
         ? `Please revise your review: ${state.reason}`
-        : "This review cannot be revised because the review window has closed.";
+        : `This review cannot be revised. ${ineligibleReviewCopy(state.resubmission.reason)}`;
     case "withdrawn":
-      return state.canResubmit
+      return state.resubmission.eligible
         ? "You withdrew this review. You can submit it again."
-        : "You withdrew this review. The review window has closed.";
+        : `You withdrew this review. ${ineligibleReviewCopy(state.resubmission.reason)}`;
     case "ineligible":
       return ineligibleReviewCopy(state.reason);
     default:

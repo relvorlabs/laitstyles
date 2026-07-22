@@ -106,8 +106,10 @@ function ReviewTreatment({ line, orderNumber }: { line: AccountOrderLine; orderN
 
   if (state.kind === "eligible") actionLabel = "Write a review";
   if (state.kind === "published") actionLabel = "View review";
-  if (state.kind === "rejected" && state.canResubmit) actionLabel = "Revise review";
-  if (state.kind === "withdrawn" && state.canResubmit) actionLabel = "Submit review again";
+  if (state.kind === "rejected" && state.resubmission.eligible) actionLabel = "Revise review";
+  if (state.kind === "withdrawn" && state.resubmission.eligible) {
+    actionLabel = "Submit review again";
+  }
 
   return (
     <div className="space-y-3 sm:text-right">
@@ -142,7 +144,32 @@ function ReviewTreatment({ line, orderNumber }: { line: AccountOrderLine; orderN
   );
 }
 
-export function OrderDetailSection({ order }: { order: AccountOrderDetail }) {
+export type OrderReviewNotice = "submitted" | "withdrawn" | "withdrawal_failed";
+
+const reviewNoticeCopy: Record<OrderReviewNotice, { title: string; description: string }> = {
+  submitted: {
+    title: "Review submitted",
+    description: "Your review is awaiting moderation. We will show it here once it is published.",
+  },
+  withdrawn: {
+    title: "Review withdrawn",
+    description: "The review is no longer visible on the product page.",
+  },
+  withdrawal_failed: {
+    title: "Review not withdrawn",
+    description: "The review changed before we could withdraw it. Refresh and try again.",
+  },
+};
+
+export function OrderDetailSection({
+  order,
+  reviewNotice,
+}: {
+  order: AccountOrderDetail;
+  reviewNotice?: OrderReviewNotice;
+}) {
+  const notice = reviewNotice ? reviewNoticeCopy[reviewNotice] : null;
+
   return (
     <>
       <Link
@@ -151,6 +178,16 @@ export function OrderDetailSection({ order }: { order: AccountOrderDetail }) {
       >
         ← Back to orders
       </Link>
+
+      {notice ? (
+        <Alert
+          className="mb-6"
+          variant={reviewNotice === "withdrawal_failed" ? "destructive" : "default"}
+        >
+          <AlertTitle>{notice.title}</AlertTitle>
+          <AlertDescription>{notice.description}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>

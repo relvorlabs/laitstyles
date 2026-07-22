@@ -114,7 +114,7 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
       />
       <ProductDetail
-        detail={detail}
+        detail={{ ...detail, reviewSummary: reviews.summary }}
         product={product}
         reviews={reviews}
         fontClassName={storefrontFontClassName}

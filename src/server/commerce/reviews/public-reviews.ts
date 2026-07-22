@@ -1,7 +1,7 @@
 import "server-only";
 
+import type { ReviewFit } from "@/lib/commerce/reviews/review-types";
 import { type Prisma, prisma } from "@/lib/prisma";
-import type { ReviewFit } from "./review-types";
 
 const publicReviewSelect = {
   id: true,

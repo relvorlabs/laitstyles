@@ -10,18 +10,11 @@ export type OrderLineFulfilmentStatus =
   | "partially_returned"
   | "returned";
 
-export type OrderLineRefundStatus =
-  | "not_refunded"
-  | "partially_refunded"
-  | "refunded";
+export type OrderLineRefundStatus = "not_refunded" | "partially_refunded" | "refunded";
 
 export type ReviewStatus = "pending" | "published" | "rejected" | "withdrawn";
 
-export type ReviewFit =
-  | "runs_small"
-  | "true_to_size"
-  | "runs_large"
-  | "not_applicable";
+export type ReviewFit = "runs_small" | "true_to_size" | "runs_large" | "not_applicable";
 
 export interface ReviewEligibilityInput {
   owned: boolean;

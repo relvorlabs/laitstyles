@@ -285,9 +285,13 @@ describe("account order reads", () => {
         kind: "rejected",
         reviewId: "r-rejected",
         reason: "Please remove personal information.",
-        canResubmit: false,
+        resubmission: { eligible: false, reason: "fully_refunded" },
       },
-      { kind: "withdrawn", reviewId: "r-withdrawn", canResubmit: true },
+      {
+        kind: "withdrawn",
+        reviewId: "r-withdrawn",
+        resubmission: { eligible: true, expiresAt: "2026-09-29T12:00:00.000Z" },
+      },
     ]);
   });
 

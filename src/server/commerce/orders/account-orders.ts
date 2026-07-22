@@ -215,7 +215,9 @@ function mapReviewState(line: AccountOrderLineRow, now: Date): AccountLineReview
   }
 
   const resubmission = eligibilityFor(line, now, { hasReview: false });
-  const canResubmit = resubmission.eligible;
+  const serializedResubmission = resubmission.eligible
+    ? { eligible: true as const, expiresAt: resubmission.expiresAt.toISOString() }
+    : { eligible: false as const, reason: resubmission.reason };
 
   if (review.status === "rejected") {
     return {
@@ -223,11 +225,11 @@ function mapReviewState(line: AccountOrderLineRow, now: Date): AccountLineReview
       reviewId: review.id,
       reason:
         review.rejection_reason ?? "This review needs changes before it can be submitted again.",
-      canResubmit,
+      resubmission: serializedResubmission,
     };
   }
 
-  return { kind: "withdrawn", reviewId: review.id, canResubmit };
+  return { kind: "withdrawn", reviewId: review.id, resubmission: serializedResubmission };
 }
 
 function mapLine(line: AccountOrderLineRow, now: Date): AccountOrderLine {

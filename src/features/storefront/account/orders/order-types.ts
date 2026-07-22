@@ -1,4 +1,4 @@
-import type { ReviewEligibilityReason } from "@/server/commerce/reviews/review-types";
+import type { ReviewEligibilityReason } from "@/lib/commerce/reviews/review-types";
 
 export type AccountPaymentStatusCode =
   | "pending"
@@ -38,6 +38,10 @@ export interface AccountStatus<TCode extends string> {
   label: string;
 }
 
+export type AccountReviewResubmission =
+  | { eligible: true; expiresAt: string }
+  | { eligible: false; reason: ReviewEligibilityReason };
+
 export type AccountLineReviewState =
   | { kind: "eligible"; expiresAt: string }
   | { kind: "pending"; reviewId: string }
@@ -50,9 +54,9 @@ export type AccountLineReviewState =
       kind: "rejected";
       reviewId: string;
       reason: string;
-      canResubmit: boolean;
+      resubmission: AccountReviewResubmission;
     }
-  | { kind: "withdrawn"; reviewId: string; canResubmit: boolean }
+  | { kind: "withdrawn"; reviewId: string; resubmission: AccountReviewResubmission }
   | { kind: "ineligible"; reason: ReviewEligibilityReason };
 
 export interface AccountOrderImage {

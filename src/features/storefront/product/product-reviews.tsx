@@ -49,13 +49,17 @@ function ReviewCard({ review }: { review: PublicProductReview }) {
               />
             ))}
           </div>
-          {review.title ? <h4 className="mt-3 text-lg font-semibold">{review.title}</h4> : null}
+          {review.title ? (
+            <h4 className="mt-3 break-words text-lg font-semibold">{review.title}</h4>
+          ) : null}
         </div>
         {date ? <time className="text-xs text-muted-foreground">{date}</time> : null}
       </div>
 
       {review.body ? (
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-foreground/80">{review.body}</p>
+        <p className="mt-4 max-w-3xl break-words text-sm leading-7 text-foreground/80">
+          {review.body}
+        </p>
       ) : null}
 
       <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

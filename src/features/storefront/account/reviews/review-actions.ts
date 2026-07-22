@@ -2,15 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
+import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
+import type { ReviewActionState } from "@/lib/commerce/reviews/review-types";
 import { requireStorefrontSession } from "@/server/authorization/storefront-session";
 import {
   type SubmitReviewResult,
   submitReview,
   withdrawReview,
 } from "@/server/commerce/reviews/review-repository";
-import { reviewInputSchema } from "@/server/commerce/reviews/review-schema";
-import type { ReviewActionState } from "@/server/commerce/reviews/review-types";
+
+type ReviewErrorState = Extract<ReviewActionState, { status: "error" }>;
 
 const submitFailureCopy: Record<Extract<SubmitReviewResult, { ok: false }>["reason"], string> = {
   order_line_not_found: "We could not find this item in your orders.",
@@ -37,7 +38,7 @@ function readIdentifiers(formData: FormData) {
 }
 
 async function getCustomerId(): Promise<
-  { ok: true; customerId: string } | { ok: false; state: ReviewActionState }
+  { ok: true; customerId: string } | { ok: false; state: ReviewErrorState }
 > {
   try {
     const session = await requireStorefrontSession();
@@ -81,7 +82,7 @@ export async function submitReviewAction(
   }
 
   const parsed = reviewInputSchema.safeParse({
-    rating: textField(formData, "rating"),
+    rating: Number(textField(formData, "rating")),
     title: textField(formData, "title"),
     body: textField(formData, "body"),
     fit: textField(formData, "fit"),

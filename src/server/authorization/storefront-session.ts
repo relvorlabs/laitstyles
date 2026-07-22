@@ -18,9 +18,11 @@ export async function getStorefrontSession(): Promise<StorefrontSession | null> 
 
   const profile = await prisma.profiles.findUnique({
     where: { id: identity.authUserId },
-    select: { role: true },
+    select: { role: true, status: true },
   });
-  const role = profile?.role ?? "consumer";
+  if (profile?.status !== "active") return null;
+
+  const role = profile.role;
   const customer =
     role === "consumer"
       ? await prisma.customers.findFirst({
@@ -39,7 +41,7 @@ export async function getStorefrontSession(): Promise<StorefrontSession | null> 
 
 export async function requireStorefrontSession(): Promise<StorefrontSession> {
   const session = await getStorefrontSession();
-  if (!session || session.role !== "consumer") {
+  if (session?.role !== "consumer") {
     throw new Error("A consumer account is required.");
   }
   return session;
