@@ -1,19 +1,78 @@
 import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress, ProgressLabel } from "@/components/ui/progress";
-import type { ProductDetailPresentation } from "./product-detail-presentation";
-import {
-  productReviewAccessCopy,
-  reviewDistributionRows,
-} from "./product-detail-presentation";
+import type {
+  PublicProductReview,
+  PublicProductReviews,
+} from "@/server/commerce/reviews/public-reviews";
+import { reviewLifecycleMarkerCopy } from "../account/orders/order-state-copy";
+import { productReviewAccessCopy, reviewDistributionRows } from "./product-detail-presentation";
 
 const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
 
-export function ProductReviews({ presentation }: { presentation: ProductDetailPresentation }) {
-  const summary = presentation.reviewSummary;
+const fitCopy: Record<NonNullable<PublicProductReview["fit"]>, string> = {
+  runs_small: "Runs small",
+  true_to_size: "True to size",
+  runs_large: "Runs large",
+  not_applicable: "Fit not applicable",
+};
+
+function reviewDate(value: string | null) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function ReviewCard({ review }: { review: PublicProductReview }) {
+  const date = reviewDate(review.publishedAt);
+
+  return (
+    <article className="border-t border-border py-6 first:border-t-0 first:pt-0">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex gap-1" role="img" aria-label={`${review.rating} out of 5 stars`}>
+            {STAR_RATINGS.map((rating) => (
+              <HugeiconsIcon
+                aria-hidden="true"
+                key={rating}
+                icon={StarIcon}
+                size={16}
+                strokeWidth={1.6}
+                fill={rating <= review.rating ? "currentColor" : "none"}
+              />
+            ))}
+          </div>
+          {review.title ? <h4 className="mt-3 text-lg font-semibold">{review.title}</h4> : null}
+        </div>
+        {date ? <time className="text-xs text-muted-foreground">{date}</time> : null}
+      </div>
+
+      {review.body ? (
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-foreground/80">{review.body}</p>
+      ) : null}
+
+      <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground">{review.author}</span>
+        <Badge variant="secondary">Verified purchase</Badge>
+        {review.lifecycleMarker ? (
+          <Badge variant="outline">{reviewLifecycleMarkerCopy(review.lifecycleMarker)}</Badge>
+        ) : null}
+        {review.fit ? <span>{fitCopy[review.fit]}</span> : null}
+        {review.sizeOrdered ? <span>Size ordered: {review.sizeOrdered}</span> : null}
+      </div>
+    </article>
+  );
+}
+
+export function ProductReviews({ reviews }: { reviews: PublicProductReviews }) {
+  const summary = reviews.summary;
   const rows = reviewDistributionRows(summary);
   const hasReviews = summary.count > 0;
 
@@ -85,61 +144,35 @@ export function ProductReviews({ presentation }: { presentation: ProductDetailPr
               ))}
             </div>
 
-            <div className="mt-7 border-t border-border pt-6">
-              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Browse by topic
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {["Most helpful", "Fit", "Fabric", "Quality"].map((topic) => (
-                  <Button
-                    key={topic}
-                    type="button"
-                    disabled
-                    className="min-h-10 rounded-full text-[10px]"
-                    variant="outline"
-                  >
-                    {topic}
-                  </Button>
-                ))}
-              </div>
-              <p className="mt-3 text-[9px] text-muted-foreground">
-                Topic filters will activate when individual review content is available.
-              </p>
-            </div>
+            <p className="mt-7 border-t border-border pt-6 text-sm leading-6 text-muted-foreground">
+              Ratings and fit feedback come only from delivered purchases.
+            </p>
           </aside>
 
           <div>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold">What customers are saying</h3>
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  Verified purchase feedback appears first when supplied by the catalogue.
-                </p>
-              </div>
-              <label className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-control px-3 text-[10px] font-semibold">
-                Sort
-                <select
-                  disabled
-                  className="bg-control text-control-foreground"
-                  aria-label="Sort customer reviews"
-                >
-                  <option>Most helpful</option>
-                </select>
-              </label>
+            <div>
+              <h3 className="text-lg font-semibold">What customers are saying</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Most recently published verified-purchase reviews appear first.
+              </p>
             </div>
 
-            <Empty className="mt-6 min-h-64 border border-border bg-surface-sunken">
-              <EmptyHeader>
-                <EmptyTitle>
-                  {hasReviews ? "Individual reviews are not available" : "No reviews yet"}
-                </EmptyTitle>
-                <EmptyDescription>
-                  {hasReviews
-                    ? "The aggregate rating above is available, but the current data source does not include review text or reviewer profiles."
-                    : "This product has no verified review data yet. Nothing has been fabricated for this section."}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            {reviews.reviews.length > 0 ? (
+              <div className="mt-6">
+                {reviews.reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            ) : (
+              <Empty className="mt-6 min-h-64 border border-border bg-surface-sunken">
+                <EmptyHeader>
+                  <EmptyTitle>No reviews yet</EmptyTitle>
+                  <EmptyDescription>
+                    This product has no published verified-purchase reviews yet.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
           </div>
         </div>
       </div>

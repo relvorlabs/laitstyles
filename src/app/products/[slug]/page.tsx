@@ -9,6 +9,7 @@ import {
   loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
 } from "@/lib/storefront/catalog-data";
+import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
 import ProductDetailLoading from "./loading";
 
 type Params = { slug: string };
@@ -54,7 +55,10 @@ export default function ProductDetailPage({ params }: { params: Promise<Params> 
 
 async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const pageData = await loadStorefrontProductPageBySlug(slug);
+  const [pageData, reviews] = await Promise.all([
+    loadStorefrontProductPageBySlug(slug),
+    getPublicProductReviews(slug),
+  ]);
   if (!pageData) notFound();
   const { product, detail } = pageData;
 
@@ -109,7 +113,12 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: see above.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
       />
-      <ProductDetail detail={detail} product={product} fontClassName={storefrontFontClassName} />
+      <ProductDetail
+        detail={detail}
+        product={product}
+        reviews={reviews}
+        fontClassName={storefrontFontClassName}
+      />
     </>
   );
 }

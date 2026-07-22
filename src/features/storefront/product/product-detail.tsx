@@ -1,5 +1,6 @@
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import type { ProductDetail as CanonicalProductDetail } from "@/lib/storefront/types";
+import type { PublicProductReviews } from "@/server/commerce/reviews/public-reviews";
 import { ProductCampaign } from "./product-campaign";
 import { buildProductDetailPresentation } from "./product-detail-presentation";
 import {
@@ -17,10 +18,12 @@ import { Reveal } from "./reveal";
 export function ProductDetail({
   product,
   detail,
+  reviews,
   fontClassName,
 }: {
   product: Product;
   detail: CanonicalProductDetail;
+  reviews: PublicProductReviews;
   fontClassName: string;
 }) {
   const presentation = buildProductDetailPresentation(product, detail);
@@ -50,7 +53,7 @@ export function ProductDetail({
 
       <ProductCampaign frames={presentation.campaignFrames} />
       <ProductSizeGuide product={product} presentation={presentation} />
-      <ProductReviews presentation={presentation} />
+      <ProductReviews reviews={reviews} />
       <ServiceStrip />
 
       <Reveal as="div" className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 lg:px-8">
