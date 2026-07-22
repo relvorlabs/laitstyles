@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AppProviders } from "@/components/providers/app-providers";
-import { AppShellFallback } from "@/components/providers/app-shell-fallback";
+import { AppProviders } from "@/app/app-providers";
+import { AppShellFallback } from "@/app/app-shell-fallback";
 // The canonical Manrope/Newsreader typography is loaded once here via next/font
 // and exposed as --font-storefront-* for the whole app.
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";

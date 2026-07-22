@@ -3,12 +3,12 @@
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
-import { StorefrontAccountMenu } from "@/components/layout/storefront-account-menu";
-import { StorefrontCartSheet } from "@/components/layout/storefront-cart-sheet";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { IconClose, IconSearch } from "@/features/storefront/shared/storefront-icons";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import { StorefrontAccountMenu } from "@/features/storefront/shell/storefront-account-menu";
+import { StorefrontCartSheet } from "@/features/storefront/shell/storefront-cart-sheet";
 import { BrandMark } from "./brand-mark";
 
 export type NavShop = (opts: { category?: string; collection?: string | null }) => void;
