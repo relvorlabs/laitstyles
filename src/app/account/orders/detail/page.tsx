@@ -1,5 +1,5 @@
-import { OrderDetailSection } from "@/features/storefront/account/sections/order-detail-section";
+import { redirect } from "next/navigation";
 
 export default function AccountOrderDetailPage() {
-  return <OrderDetailSection />;
+  redirect("/account/orders");
 }

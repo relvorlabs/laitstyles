@@ -33,7 +33,7 @@ export type AccountNavItem = {
 export const accountNavItems: AccountNavItem[] = [
   { route: "overview", label: "Overview" },
   { route: "profile", label: "Profile" },
-  { route: "orders", label: "Orders", count: "03" },
+  { route: "orders", label: "Orders" },
   { route: "returns", label: "Returns", count: "01" },
   { route: "addresses", label: "Addresses" },
   { route: "payments", label: "Payment methods" },
@@ -49,7 +49,7 @@ export const routeTitles: Record<AccountRoute, string> = {
   overview: "Overview",
   profile: "Profile",
   orders: "Orders",
-  "order-detail": "Order #LS-1048",
+  "order-detail": "Order details",
   returns: "Returns",
   "return-detail": "Return #RT-0038",
   addresses: "Addresses",
@@ -63,9 +63,8 @@ export const routeTitles: Record<AccountRoute, string> = {
   "ticket-detail": "Ticket #SP-0119",
 };
 
-// URL for each route under the app-router `/account` tree. Detail routes have
-// no dynamic id in the prototype (the seed data is a single hardcoded order,
-// return and ticket), so they're static segments rather than `[id]` routes.
+// URL for each route under the app-router `/account` tree. Dynamic order detail
+// links are built from their public order number at the rendering call site.
 export const routePaths: Record<AccountRoute, string> = {
   overview: "/account",
   profile: "/account/profile",
@@ -90,5 +89,6 @@ const pathToRoute = new Map<string, AccountRoute>(
 
 /** Resolve the current section from `usePathname()`, defaulting to overview. */
 export function routeFromPathname(pathname: string): AccountRoute {
+  if (pathname.startsWith("/account/orders/")) return "order-detail";
   return pathToRoute.get(pathname) ?? "overview";
 }
