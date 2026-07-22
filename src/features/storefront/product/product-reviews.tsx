@@ -1,19 +1,18 @@
-"use client";
-
-import { PencilEdit01Icon, StarIcon } from "@hugeicons/core-free-icons";
+import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress, ProgressLabel } from "@/components/ui/progress";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
-import { reviewDistributionRows } from "./product-detail-presentation";
+import {
+  productReviewAccessCopy,
+  reviewDistributionRows,
+} from "./product-detail-presentation";
 
 const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
 
 export function ProductReviews({ presentation }: { presentation: ProductDetailPresentation }) {
-  const storefront = useStorefront();
   const summary = presentation.reviewSummary;
   const rows = reviewDistributionRows(summary);
   const hasReviews = summary.count > 0;
@@ -63,32 +62,9 @@ export function ProductReviews({ presentation }: { presentation: ProductDetailPr
             </div>
           </div>
 
-          <div>
-            <Button
-              type="button"
-              className="min-h-14 w-full gap-2 bg-surface-panel px-7 text-[12px] font-bold text-surface-panel-foreground hover:bg-surface-interactive lg:w-auto"
-              aria-describedby="review-submission-status"
-              onClick={() =>
-                storefront.showToast(
-                  "Review submission is not available yet. Your feedback has not been saved.",
-                )
-              }
-            >
-              <HugeiconsIcon
-                aria-hidden="true"
-                icon={PencilEdit01Icon}
-                size={16}
-                strokeWidth={1.6}
-              />
-              Write a review
-            </Button>
-            <p
-              id="review-submission-status"
-              className="mt-2 max-w-xs text-[9px] leading-4 opacity-60"
-            >
-              Review submission is currently unavailable.
-            </p>
-          </div>
+          <p className="max-w-sm text-sm leading-6 opacity-70 lg:text-right">
+            {productReviewAccessCopy}
+          </p>
         </div>
 
         <div className="grid gap-7 p-6 sm:p-9 lg:grid-cols-[0.72fr_1.28fr]">

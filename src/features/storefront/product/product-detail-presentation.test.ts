@@ -5,6 +5,7 @@ import type { ProductDetail } from "@/lib/storefront/types";
 
 import {
   buildProductDetailPresentation,
+  productReviewAccessCopy,
   reviewDistributionRows,
   selectProductRecommendations,
   wrapCampaignIndex,
@@ -199,5 +200,13 @@ describe("reviewDistributionRows", () => {
       { rating: 2, count: 0, percentage: 0 },
       { rating: 1, count: 0, percentage: 0 },
     ]);
+  });
+});
+
+describe("productReviewAccessCopy", () => {
+  it("directs review creation to delivered items in order history", () => {
+    expect(productReviewAccessCopy).toBe(
+      "Reviews can be written from delivered items in your order history.",
+    );
   });
 });

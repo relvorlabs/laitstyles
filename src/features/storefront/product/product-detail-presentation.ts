@@ -26,6 +26,9 @@ export interface ProductDetailPresentation {
   campaignFrames: readonly CampaignFramePresentation[];
 }
 
+export const productReviewAccessCopy =
+  "Reviews can be written from delivered items in your order history.";
+
 export function wrapCampaignIndex(value: number, frameCount: number) {
   if (frameCount <= 0) return 0;
   return (value + frameCount) % frameCount;
