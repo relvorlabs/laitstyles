@@ -78,7 +78,8 @@ export type ProductEditorBase = {
 export type UniqueProductEditorValues = ProductEditorBase & {
   inventoryMode: "unique";
   unique: {
-    condition: "Excellent" | "Good" | "Fair";
+    /** Preserve canonical database labels such as "Very good" without coercion. */
+    condition: string;
     size: string;
     colour: string;
     measurements: ProductEditorMeasurement[];

@@ -23,10 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
+import { useSaveProduct } from "@/features/admin/inventory/inventory-mutations";
 import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
 import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
-import { useSaveProduct } from "@/lib/admin/inventory/inventory-mutations";
 import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import {
   changeProductEditorMode,
@@ -210,7 +210,7 @@ function ProductEditorForm({
               {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
             </DialogTitle>
             <DialogDescription>
-              Seven guided steps · prototype changes stay in this browser session
+              Seven guided steps · changes are saved to the shared catalogue
             </DialogDescription>
           </DialogHeader>
 
@@ -262,8 +262,8 @@ function ProductEditorForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard unsaved product changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              Values entered in this editor will be lost. Save a draft instead when the work should
-              remain in this session.
+              Values entered since the last successful save will be lost. Save a draft when the
+              work should remain available after reload.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

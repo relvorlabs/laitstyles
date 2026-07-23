@@ -15,6 +15,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
+    "check:architecture": "node scripts/checks/architecture-guard.mjs",
     "audit:buttons": "node scripts/audit-buttons.mjs --strict",
     "test:e2e": "playwright test",
     "prisma:clean": "node scripts/db/clean-prisma-schema-input.mjs",
@@ -36,7 +37,7 @@
     "test:styles:e2e": "node scripts/checks/non-admin-style-smoke.mjs",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
     "test": "vitest run --passWithNoTests",
-    "verify": "pnpm audit:buttons && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "verify": "pnpm check:architecture && pnpm prisma:validate && pnpm audit:buttons && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "auth:create": "tsx scripts/bootstrap-owner.mjs"
   },
   "dependencies": {

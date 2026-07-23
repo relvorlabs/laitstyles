@@ -1,176 +1,91 @@
 "use client";
 
-import { ArrowLeft01Icon, ArrowRight01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
+import { Edit02Icon } from "@hugeicons/core-free-icons";
 import Image from "next/image";
-import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { useTransitionIntake } from "@/lib/admin/inventory/inventory-mutations";
-import {
-  formatIntakeStage,
-  getAdjacentIntakeStages,
-} from "@/lib/admin/product-editor/product-editor-reducer";
-import type { IntakeRecord, IntakeStage, InventoryListItem } from "@/lib/admin/shared/types";
-
-const stageOrder: IntakeStage[] = [
-  "received",
-  "photographing",
-  "details-required",
-  "pricing-review",
-  "ready-to-publish",
-  "published",
-];
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) {
-  const { state } = useAdmin();
-  const transitionIntakeMutation = useTransitionIntake();
   const { openExistingProduct } = useProductEditorController();
-  const [feedback, setFeedback] = useState<{
-    tone: "success" | "error";
-    message: string;
-  } | null>(null);
-  const records = useMemo(() => {
-    const productIds = new Set(items.map((item) => item.product.id));
-    return (state.intake ?? [])
-      .filter((record) => productIds.has(record.productId))
-      .toSorted(
-        (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
-      );
-  }, [items, state.intake]);
-  const itemByProductId = useMemo(
-    () => new Map(items.map((item) => [item.product.id, item])),
-    [items],
-  );
-
-  async function move(record: IntakeRecord, stage: IntakeStage) {
-    const result = await transitionIntakeMutation.mutateAsync({
-      productId: record.productId,
-      nextStage: stage,
-    });
-    if (!result.ok) {
-      setFeedback({ tone: "error", message: result.error.message });
-      return;
-    }
-    setFeedback({ tone: "success", message: result.value.message });
-  }
 
   return (
     <section aria-labelledby="intake-queue-title" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Same product record · staged work
+            Same product record · persistent catalogue
           </p>
           <h2
             className="mt-2 font-serif text-[28px] font-medium leading-tight"
             id="intake-queue-title"
           >
-            Intake queue
+            Intake products
           </h2>
           <p className="mt-2 max-w-[680px] text-[12.5px] leading-5 text-muted-foreground">
-            Move each product one adjacent stage at a time. Continue product opens the same record
-            in the seven-step editor; it never creates a duplicate.
+            Continue each Prisma-backed product in the seven-step editor. Intake stage transitions
+            stay unavailable until the intake workflow itself is migrated to persistent storage.
           </p>
         </div>
         <Badge variant="outline">
-          {records.length} product{records.length === 1 ? "" : "s"}
+          {items.length} product{items.length === 1 ? "" : "s"}
         </Badge>
       </div>
 
-      {feedback ? (
-        <Alert aria-live="polite" variant={feedback.tone === "error" ? "destructive" : "default"}>
-          <AlertTitle>
-            {feedback.tone === "error" ? "Intake action failed" : "Intake updated"}
-          </AlertTitle>
-          <AlertDescription>{feedback.message}</AlertDescription>
-        </Alert>
-      ) : null}
+      <Alert>
+        <AlertTitle>Intake transitions are read-only in this phase</AlertTitle>
+        <AlertDescription>
+          Product details and drafts persist after reload. Moving products between operational
+          intake stages belongs to the later admin-domain cutover and is not simulated in memory.
+        </AlertDescription>
+      </Alert>
 
       <div className="grid gap-4">
-        {records.map((record) => {
-          const item = itemByProductId.get(record.productId);
-          if (!item) return null;
-          const adjacent = getAdjacentIntakeStages(record.stage);
-          const stageIndex = stageOrder.indexOf(record.stage);
-          const progress = ((stageIndex + 1) / stageOrder.length) * 100;
+        {items.map((item) => (
+          <Card key={item.product.id}>
+            <CardContent className="grid gap-5 py-5 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
+              <div className="relative aspect-[4/5] w-24 overflow-hidden rounded-[12px] bg-secondary">
+                <Image
+                  alt={item.coverImage.alt || item.product.name}
+                  className="object-cover"
+                  fill
+                  sizes="96px"
+                  src={item.coverImage.url}
+                />
+              </div>
 
-          return (
-            <Card key={record.id}>
-              <CardContent className="grid gap-5 py-5 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
-                <div className="relative aspect-[4/5] w-24 overflow-hidden rounded-[12px] bg-secondary">
-                  <Image
-                    alt={item.coverImage.alt || item.product.name}
-                    className="object-cover"
-                    fill
-                    sizes="96px"
-                    src={item.coverImage.url}
-                  />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge>Intake</Badge>
+                  <Badge variant="outline">{item.reference}</Badge>
                 </div>
+                <h3 className="mt-3 font-serif text-[24px] font-medium leading-tight">
+                  {item.product.name}
+                </h3>
+                <p className="mt-2 text-[11.5px] leading-5 text-muted-foreground">
+                  Edit identity, media, stock, pricing and fulfilment on this same persistent product
+                  record.
+                </p>
+              </div>
 
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge>{formatIntakeStage(record.stage)}</Badge>
-                    <Badge variant="outline">{item.reference}</Badge>
-                  </div>
-                  <h3 className="mt-3 font-serif text-[24px] font-medium leading-tight">
-                    {item.product.name}
-                  </h3>
-                  <p className="mt-2 text-[11.5px] leading-5 text-muted-foreground">
-                    Assigned to {record.assignedTo} · {record.note}
-                  </p>
-                  <div className="mt-4 max-w-[520px]">
-                    <div className="mb-2 flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      <span>
-                        Stage {stageIndex + 1} of {stageOrder.length}
-                      </span>
-                      <span>{formatIntakeStage(record.stage)}</span>
-                    </div>
-                    <Progress value={progress} />
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 md:max-w-[190px] md:justify-end">
-                  <Button
-                    size="lg"
-                    onClick={() => openExistingProduct(record.productId)}
-                    type="button"
-                    variant="outline"
-                  >
-                    <AdminIcon icon={Edit02Icon} size={16} />
-                    Continue product
-                  </Button>
-                  {adjacent.previous ? (
-                    <Button
-                      size="lg"
-                      onClick={() => move(record, adjacent.previous as IntakeStage)}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <AdminIcon icon={ArrowLeft01Icon} size={16} />
-                      Previous stage
-                    </Button>
-                  ) : null}
-                  {adjacent.next ? (
-                    <Button
-                      size="lg"
-                      onClick={() => move(record, adjacent.next as IntakeStage)}
-                      type="button"
-                    >
-                      Next stage
-                      <AdminIcon icon={ArrowRight01Icon} size={16} />
-                    </Button>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              <div className="flex flex-wrap gap-2 md:justify-end">
+                <Button
+                  size="lg"
+                  onClick={() => openExistingProduct(item.product.id)}
+                  type="button"
+                  variant="outline"
+                >
+                  <AdminIcon icon={Edit02Icon} size={16} />
+                  Continue product
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </section>
   );

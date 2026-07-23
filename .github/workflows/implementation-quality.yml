@@ -1,0 +1,226 @@
+name: Implementation Quality
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: implementation-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "1"
+  STOREFRONT_STYLE_SMOKE: "1"
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+
+jobs:
+  static-architecture:
+    name: Static architecture and conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load implementation agent skills
+        uses: actions/checkout@v4
+        with:
+          repository: relvorlabs/agent-controller
+          path: .ci/agent-controller
+          sparse-checkout: |
+            skills/next-best-practices
+            skills/vercel-react-best-practices
+            skills/error-handling-patterns
+            skills/typescript-advanced-types
+            skills/react-doctor
+
+      - name: Verify doctrine and agent skills
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f .agents/doctrine/architecture.md
+          test -f .agents/doctrine/server-and-actions.md
+          test -f .agents/doctrine/toolchain-and-skills.md
+          test -f .ci/agent-controller/skills/next-best-practices/SKILL.md
+          test -f .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
+          test -f .ci/agent-controller/skills/error-handling-patterns/SKILL.md
+          test -f .ci/agent-controller/skills/typescript-advanced-types/SKILL.md
+          test -f .ci/agent-controller/skills/react-doctor/SKILL.md
+          {
+            echo "## Implementation guidance loaded"
+            echo "- AGENTS.md and repository architecture doctrine"
+            echo "- next-best-practices"
+            echo "- vercel-react-best-practices"
+            echo "- error-handling-patterns"
+            echo "- typescript-advanced-types"
+            echo "- react-doctor"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Architecture and folder-structure guard
+        run: pnpm check:architecture
+
+      - name: Validate Prisma schema
+        run: pnpm prisma:validate
+
+      - name: Strict button audit
+        run: pnpm audit:buttons
+
+      - name: Biome conventions
+        run: pnpm lint
+
+      - name: TypeScript contract
+        run: pnpm typecheck
+
+  tests-and-migrations:
+    name: Tests, coverage and migration integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy and verify migrations
+        run: |
+          pnpm prisma:migrate:deploy
+          pnpm prisma:migrate:status
+
+      - name: Run Vitest with coverage
+        run: pnpm exec vitest run --passWithNoTests --coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage-${{ github.run_attempt }}
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 14
+
+  build-and-review:
+    name: Production build and React review
+    needs:
+      - static-architecture
+      - tests-and-migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare database
+        run: pnpm prisma:migrate:deploy
+
+      - name: Production build
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm build 2>&1 | tee build.log
+
+      - name: React Doctor changed-scope review
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm dlx react-doctor@latest . \
+            --verbose \
+            --scope changed \
+            --base "origin/${CI_BASE_REF}" 2>&1 | tee react-doctor.log
+
+      - name: Upload implementation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: implementation-evidence-${{ github.run_attempt }}
+          path: |
+            build.log
+            react-doctor.log
+          if-no-files-found: warn
+          retention-days: 14

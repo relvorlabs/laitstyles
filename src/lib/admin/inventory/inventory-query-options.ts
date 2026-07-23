@@ -6,13 +6,18 @@ export function inventoryProductsQueryOptions(repositories: AdminRepositories) {
   return queryOptions({
     queryKey: inventoryKeys.products(),
     queryFn: () => repositories.inventory.listProducts(),
+    staleTime: 30_000,
   });
 }
 
-export function inventoryProductQueryOptions(repositories: AdminRepositories, productId: string) {
+export function inventoryProductQueryOptions(
+  repositories: AdminRepositories,
+  productId: string,
+) {
   return queryOptions({
     queryKey: inventoryKeys.product(productId),
     queryFn: () => repositories.inventory.getProduct(productId),
+    staleTime: 30_000,
   });
 }
 
@@ -20,5 +25,17 @@ export function inventoryTaxonomyQueryOptions(repositories: AdminRepositories) {
   return queryOptions({
     queryKey: inventoryKeys.taxonomy(),
     queryFn: () => repositories.inventory.listTaxonomy(),
+    staleTime: 30_000,
+  });
+}
+
+export function inventoryStockMovementsQueryOptions(
+  repositories: AdminRepositories,
+  productId?: string,
+) {
+  return queryOptions({
+    queryKey: inventoryKeys.stockMovements(productId),
+    queryFn: () => repositories.inventory.listStockMovements(productId),
+    staleTime: 30_000,
   });
 }
