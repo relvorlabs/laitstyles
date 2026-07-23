@@ -8,7 +8,7 @@ const prNumber = Number(args.get("pull-request") ?? process.env.PR_NUMBER);
 const repository = process.env.GITHUB_REPOSITORY;
 const token = process.env.GITHUB_TOKEN;
 const feedbackPath = resolve(String(args.get("feedback") ?? "ci-feedback/ci-feedback.md"));
-const analysisPath = resolve(String(args.get("analysis") ?? "ci-feedback/ai-analysis.md"));
+const handoffPath = resolve(String(args.get("handoff") ?? "ci-feedback/agent-handoff.md"));
 const marker = "<!-- laitstyles-ci-feedback -->";
 
 if (!repository || !token || !Number.isInteger(prNumber) || prNumber <= 0) {
@@ -16,8 +16,10 @@ if (!repository || !token || !Number.isInteger(prNumber) || prNumber <= 0) {
   process.exit(0);
 }
 
-const feedback = await readFile(feedbackPath, "utf8").catch(() => `${marker}\n## CI execution feedback\n\nNo feedback artifact was produced.`);
-const analysis = await readFile(analysisPath, "utf8").catch(() => "");
+const feedback = await readFile(feedbackPath, "utf8").catch(
+  () => `${marker}\n## CI execution feedback\n\nNo feedback artifact was produced.`,
+);
+const handoff = await readFile(handoffPath, "utf8").catch(() => "");
 const runUrl =
   process.env.GITHUB_SERVER_URL && process.env.GITHUB_RUN_ID
     ? `${process.env.GITHUB_SERVER_URL}/${repository}/actions/runs/${process.env.GITHUB_RUN_ID}`
@@ -26,11 +28,11 @@ const body = truncate(
   [
     feedback.includes(marker) ? feedback : `${marker}\n${feedback}`,
     "",
-    analysis,
+    handoff,
     "",
     runUrl ? `Workflow feedback run: ${runUrl}` : "",
     "",
-    "_This comment is updated in place. It reports captured evidence; it does not imply an AI or ChatGPT session changed the repository._",
+    "_This is GitHub-generated evidence only. A connected ChatGPT/Codex GitHub session may inspect it, edit the PR branch, rerun jobs and repeat the fix loop._",
   ]
     .filter(Boolean)
     .join("\n"),
