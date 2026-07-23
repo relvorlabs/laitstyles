@@ -70,7 +70,7 @@ May change only route data wiring and data-only component inputs/state synchroni
 ### Reviewer
 
 - compare critical visual files against the base branch;
-- run all validation gates;
+- run all validation gates in GitHub Actions;
 - inspect screenshots at 375×812, 768×1024 and 1280×800;
 - keep the PR draft until all required evidence is available.
 
