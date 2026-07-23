@@ -59,7 +59,7 @@ Owns `prisma/**` and `scripts/seed/**`:
 
 Owns `src/server/**`, cross-cutting DTOs and server-boundary tests:
 
-- complete catalogue filtering, facets, pagination and slug/detail reads;
+- complete catalogue filtering, sorting, count, pagination and slug/detail reads;
 - expose pure compatibility adapters where the UI contract must remain unchanged;
 - remove runtime snapshot access and root catalogue reads;
 - retain cache tags and deterministic style-smoke fixtures.
