@@ -9,6 +9,7 @@ export type LegacyCatalogueSort =
   | "one"
   | "saved";
 
+export type LegacyCondition = "A+" | "A" | "B+";
 export type LegacyInventory = "one-of-one" | "variant" | "matching-stock";
 
 export interface ParsedCatalogueSearch {
@@ -16,7 +17,7 @@ export interface ParsedCatalogueSearch {
   search: string;
   category: string | null;
   collection: string | null;
-  conditions: string[];
+  conditions: LegacyCondition[];
   inventories: LegacyInventory[];
   inStock: boolean;
   maxPriceNaira: number | undefined;
@@ -61,6 +62,13 @@ function parseSort(value: string | string[] | undefined): LegacyCatalogueSort {
     : "curated";
 }
 
+function parseConditions(value: string | string[] | undefined): LegacyCondition[] {
+  return values(value).filter(
+    (condition): condition is LegacyCondition =>
+      condition === "A+" || condition === "A" || condition === "B+",
+  );
+}
+
 function parseInventories(searchParams: CatalogueSearchParams): LegacyInventory[] {
   const explicit = values(searchParams.inventory);
   const canonicalModes = values(searchParams.mode).map((mode) =>
@@ -80,9 +88,7 @@ export function parseCatalogueSearchParams(
     search: first(searchParams.search).slice(0, 120),
     category: first(searchParams.category) || null,
     collection: first(searchParams.collection) || null,
-    conditions: values(searchParams.condition).filter((value) =>
-      value === "A+" || value === "A" || value === "B+",
-    ),
+    conditions: parseConditions(searchParams.condition),
     inventories: parseInventories(searchParams),
     inStock: first(searchParams.stock) === "1" || first(searchParams.inStock) === "true",
     maxPriceNaira: nonNegativeNumber(searchParams.max),
