@@ -6,7 +6,9 @@ import type {
 } from "@/server/commerce/catalogue/storefront-page-selection";
 import { publishedProductWhere } from "@/server/commerce/catalogue/visibility";
 
-function databaseConditions(conditions: readonly StorefrontConditionFilter[]): Prisma.productsWhereInput[] {
+function databaseConditions(
+  conditions: readonly StorefrontConditionFilter[],
+): Prisma.productsWhereInput[] {
   return conditions.map((condition) => {
     if (condition === "A+") return { condition: "Excellent" };
     if (condition === "B+") return { condition: "Fair" };
@@ -99,8 +101,12 @@ export function buildStorefrontCatalogueWhere(
   if (query.inventories.length) {
     and.push({ inventory_mode: { in: databaseModes(query.inventories) } });
   }
-  if (query.inStock) and.push({ stock_levels: { some: { available: { gt: 0 } } } });
-  if (query.maxPriceNaira !== undefined) and.push({ price: { lte: query.maxPriceNaira } });
+  if (query.inStock) {
+    and.push({ stock_levels: { some: { available: { gt: 0 } } } });
+  }
+  if (query.maxPriceNaira !== undefined) {
+    and.push({ price: { lte: query.maxPriceNaira } });
+  }
   if (query.colours.length) {
     and.push({
       OR: [
