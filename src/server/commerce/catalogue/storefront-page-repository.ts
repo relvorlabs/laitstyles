@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
 import type { ProductSummary } from "@/lib/storefront/types";
 import { MAX_STOREFRONT_CATALOGUE_DETAILS } from "@/server/commerce/catalogue/catalogue-limits";
@@ -83,6 +84,10 @@ async function fetchAcrossBuckets(
 export async function queryStorefrontCataloguePageFromDatabase(
   query: StorefrontCataloguePageQuery,
 ): Promise<StorefrontCataloguePage> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
   if (useStyleSmokeCatalogue) {
     const products = await listPublishedProducts({ limit: MAX_STOREFRONT_CATALOGUE_DETAILS });
     return selectStorefrontCataloguePage(products, query);
