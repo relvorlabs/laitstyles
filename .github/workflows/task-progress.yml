@@ -1,4 +1,4 @@
-name: Task Progress and Runtime Feedback
+name: Task Progress and GitHub Agent Feedback
 
 on:
   pull_request:
@@ -7,6 +7,8 @@ on:
   workflow_run:
     workflows: [Implementation Quality, Playwright UI Contract]
     types: [completed]
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       pull_request:
@@ -14,31 +16,35 @@ on:
         required: true
         type: number
       mode:
-        description: Feedback operation
+        description: GitHub feedback operation
         required: true
         default: analyze
         type: choice
-        options: [analyze, safe-repair-plan]
+        options: [analyze, rerun-failed, safe-repair-plan]
 
 permissions:
-  actions: read
+  actions: write
   checks: read
   contents: read
   issues: write
   pull-requests: write
 
 concurrency:
-  group: task-feedback-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || inputs.pull_request }}-${{ inputs.mode || 'analyze' }}
+  group: github-agent-feedback-${{ github.event.pull_request.number || github.event.issue.number || github.event.workflow_run.head_sha || inputs.pull_request }}-${{ inputs.mode || 'event' }}
   cancel-in-progress: true
 
 jobs:
   feedback:
-    name: Aggregate logs and publish actionable feedback
-    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'analyze'
+    name: Aggregate logs and publish GitHub agent handoff
+    if: >-
+      (github.event_name != 'workflow_dispatch' || inputs.mode == 'analyze') &&
+      (github.event_name != 'issue_comment' ||
+        (github.event.issue.pull_request != null &&
+          (startsWith(github.event.comment.body, '/ci analyze') || startsWith(github.event.comment.body, '/ci status'))))
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Resolve pull request and head commit
+      - name: Resolve authorized pull request and head commit
         id: context
         shell: bash
         env:
@@ -47,6 +53,15 @@ jobs:
           set -euo pipefail
           pr_number=""
           head_sha=""
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+            association=$(jq -r '.comment.author_association' "$GITHUB_EVENT_PATH")
+            case "$association" in OWNER|MEMBER|COLLABORATOR) ;; *)
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "Only repository owners, members or collaborators may run CI commands." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+              ;;
+            esac
+          fi
           case "$GITHUB_EVENT_NAME" in
             pull_request)
               pr_number=$(jq -r '.pull_request.number' "$GITHUB_EVENT_PATH")
@@ -58,6 +73,10 @@ jobs:
               if [ -z "$pr_number" ]; then
                 pr_number=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head_sha}/pulls" --jq '.[0].number // empty')
               fi
+              ;;
+            issue_comment)
+              pr_number=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+              head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" --jq '.head.sha')
               ;;
             workflow_dispatch)
               pr_number='${{ inputs.pull_request }}'
@@ -87,7 +106,7 @@ jobs:
         with:
           node-version: 25
 
-      - name: Collect workflow runs, jobs, failed logs and artifacts
+      - name: Collect runs, jobs, failed logs, artifacts and PR context
         if: steps.context.outputs.skip != 'true'
         shell: bash
         env:
@@ -115,32 +134,50 @@ jobs:
             [ -n "$run_id" ] || continue
             mkdir -p "ci-artifacts/runs/${run_id}"
             gh run view "$run_id" --json name,workflowName,status,conclusion,url,event,headBranch,headSha,createdAt,updatedAt \
-              > "ci-artifacts/runs/${run_id}/run.json" || true
+              > "ci-artifacts/runs/${run_id}/run.json" || echo '{}' > "ci-artifacts/runs/${run_id}/run.json"
             gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
               > "ci-artifacts/runs/${run_id}/jobs.json" || echo '{"jobs":[]}' > "ci-artifacts/runs/${run_id}/jobs.json"
             gh run view "$run_id" --log-failed > "ci-artifacts/runs/${run_id}/failed.log" 2>&1 || true
             gh run download "$run_id" --dir "ci-artifacts/runs/${run_id}/artifacts" || true
 
             workflow_name=$(jq -r '.workflowName // .name // "unknown-workflow"' "ci-artifacts/runs/${run_id}/run.json")
+            failure_log=$(tail -n 240 "ci-artifacts/runs/${run_id}/failed.log" 2>/dev/null || true)
             jq \
               --arg workflow "$workflow_name" \
               --arg run_id "$run_id" \
               --arg sha "$HEAD_SHA" \
+              --arg failure_log "$failure_log" \
               '{
                 schemaVersion: 1,
                 kind: "workflow-runtime",
                 workflow: $workflow,
                 runId: $run_id,
                 sha: $sha,
-                status: (if any(.jobs[]; .conclusion != "success") then "failed" else "passed" end),
-                results: [.jobs[] | {
-                  name,
-                  required: true,
-                  status: (if .conclusion == "success" then "passed" elif .conclusion == "skipped" or .conclusion == "neutral" then "warning" else "failed" end),
-                  exitCode: null,
-                  timedOut: (.conclusion == "timed_out"),
-                  failureTail: (if .steps == null then "Job ended before GitHub allocated executable steps or logs. This is a runner/infrastructure failure, not a passed code check." else null end)
-                }]
+                status: (if (.jobs | length) == 0 then "failed" elif any(.jobs[]; .conclusion != "success") then "failed" else "passed" end),
+                results: (
+                  if (.jobs | length) == 0 then [{
+                    name: "workflow-job-allocation",
+                    required: true,
+                    status: "failed",
+                    exitCode: null,
+                    timedOut: false,
+                    failureTail: "GitHub returned no jobs for this workflow run. The workflow is not validated."
+                  }]
+                  else [.jobs[] | {
+                    name,
+                    required: true,
+                    status: (if .conclusion == "success" then "passed" elif .conclusion == "skipped" or .conclusion == "neutral" then "warning" else "failed" end),
+                    exitCode: null,
+                    timedOut: (.conclusion == "timed_out"),
+                    failureTail: (
+                      if .steps == null then
+                        "Job ended before GitHub allocated executable steps or logs. This is a runner/infrastructure failure, not a passed code check."
+                      elif .conclusion != "success" then $failure_log
+                      else null end
+                    )
+                  }]
+                  end
+                )
               }' "ci-artifacts/runs/${run_id}/jobs.json" > "ci-artifacts/runs/${run_id}/manifest.json"
           done < ci-artifacts/meta/run-ids.txt
 
@@ -174,30 +211,13 @@ jobs:
           --output ci-feedback
           --expect static,database,tests,build,browser-preflight,playwright:desktop-chromium,playwright:tablet-chromium,playwright:mobile-chromium
 
-      - name: Request optional AI diagnosis
-        if: steps.context.outputs.skip != 'true' && github.event_name != 'pull_request'
-        env:
-          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
-          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
-          CI_FEEDBACK_ENDPOINT: ${{ secrets.CI_FEEDBACK_ENDPOINT }}
-          CI_FEEDBACK_TOKEN: ${{ secrets.CI_FEEDBACK_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_CI_MODEL: ${{ secrets.OPENAI_CI_MODEL }}
-          CI_AI_INCLUDE_PATCH: ${{ vars.CI_AI_INCLUDE_PATCH || 'false' }}
+      - name: Build keyless GitHub agent handoff
+        if: steps.context.outputs.skip != 'true'
         run: >-
-          node scripts/ci/analyze-failures.mjs
-          --input ci-feedback/ci-feedback.json
+          node scripts/ci/build-agent-handoff.mjs
+          --feedback ci-feedback/ci-feedback.json
           --context ci-artifacts/meta/context.json
           --output ci-feedback
-
-      - name: Write non-secret analysis status
-        if: steps.context.outputs.skip != 'true' && github.event_name == 'pull_request'
-        run: |
-          printf '%s\n' \
-            '## AI failure analysis' \
-            '' \
-            'Deferred until a trusted workflow-run or manual-dispatch event; pull-request code never receives AI or endpoint secrets.' \
-            > ci-feedback/ai-analysis.md
 
       - name: Publish sticky pull-request feedback
         if: steps.context.outputs.skip != 'true'
@@ -208,13 +228,13 @@ jobs:
           node scripts/ci/publish-feedback.mjs
           --pull-request "$PR_NUMBER"
           --feedback ci-feedback/ci-feedback.md
-          --analysis ci-feedback/ai-analysis.md
+          --handoff ci-feedback/agent-handoff.md
 
       - name: Add feedback to workflow summary
         if: steps.context.outputs.skip != 'true'
         run: |
           cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
-          [ ! -f ci-feedback/ai-analysis.md ] || cat ci-feedback/ai-analysis.md >> "$GITHUB_STEP_SUMMARY"
+          cat ci-feedback/agent-handoff.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload consolidated runtime feedback
         if: always() && steps.context.outputs.skip != 'true'
@@ -229,6 +249,71 @@ jobs:
             ci-artifacts/runs/*/failed.log
           if-no-files-found: warn
           retention-days: 14
+
+  rerun-failed:
+    name: Rerun failed validation workflows
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.mode == 'rerun-failed') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/ci rerun-failed'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolve authorized pull request
+        id: rerun
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+            association=$(jq -r '.comment.author_association' "$GITHUB_EVENT_PATH")
+            case "$association" in OWNER|MEMBER|COLLABORATOR) ;; *)
+              echo "Only repository owners, members or collaborators may rerun jobs."
+              exit 1
+              ;;
+            esac
+            pr_number=$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")
+          else
+            pr_number='${{ inputs.pull_request }}'
+          fi
+          head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" --jq '.head.sha')
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Rerun latest failed implementation and browser runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.rerun.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${HEAD_SHA}&per_page=100" > runs.json
+          jq -r '
+            [.workflow_runs[]
+              | select(.name == "Implementation Quality" or .name == "Playwright UI Contract")
+              | select(.conclusion != "success")]
+            | sort_by(.created_at)
+            | reverse
+            | unique_by(.name)
+            | .[].id
+          ' runs.json > run-ids.txt
+          if [ ! -s run-ids.txt ]; then
+            echo "No failed validation workflow runs exist for ${HEAD_SHA}." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          while read -r run_id; do
+            [ -n "$run_id" ] || continue
+            gh run rerun "$run_id" --failed || gh run rerun "$run_id"
+            echo "Rerun requested for workflow run ${run_id}." >> "$GITHUB_STEP_SUMMARY"
+          done < run-ids.txt
+
+      - name: Comment rerun status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.rerun.outputs.pr_number }}
+        run: >-
+          gh pr comment "$PR_NUMBER"
+          --body "Requested reruns for the latest failed Implementation Quality and Playwright UI Contract runs on the current PR head. When they finish, the GitHub agent feedback workflow will refresh the evidence automatically."
 
   safe-repair-plan:
     name: Generate deterministic repair patch
@@ -272,7 +357,9 @@ jobs:
           mkdir -p ci-repair
           git diff --binary > ci-repair/safe-repair.patch
           git diff --stat > ci-repair/safe-repair.stat
-          if [ ! -s ci-repair/safe-repair.patch ]; then echo 'No deterministic formatting changes were available.' > ci-repair/README.txt; fi
+          if [ ! -s ci-repair/safe-repair.patch ]; then
+            echo 'No deterministic formatting changes were available.' > ci-repair/README.txt
+          fi
       - name: Upload repair plan
         uses: actions/upload-artifact@v4
         with:
@@ -286,4 +373,4 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: >-
           gh pr comment "$PR_NUMBER"
-          --body "A deterministic Biome repair patch was generated as the **safe-repair-plan-pr-${PR_NUMBER}** workflow artifact. It was not pushed automatically; review and apply it through a connected coding session. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          --body "A deterministic Biome repair patch was generated as the **safe-repair-plan-pr-${PR_NUMBER}** workflow artifact. It was not pushed automatically; a connected GitHub chat can review and apply it. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
