@@ -4,11 +4,11 @@ import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { ShopProvider } from "@/components/shop/shop-provider";
+import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 import { QueryProvider } from "@/lib/query/query-provider";
-import type { StorefrontCatalogPayload } from "@/lib/storefront/catalog-data";
 
 export function SiteChrome({
   catalog,

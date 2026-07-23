@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductDetail } from "@/features/storefront/product/product-detail";
-import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
-} from "@/lib/storefront/catalog-data";
+} from "@/features/storefront/shared/catalog-loader";
+import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
 import ProductDetailLoading from "./loading";
 
@@ -42,9 +42,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-// The product read is genuinely per-request (schedule-gated visibility, see
-// catalog-data.ts), so the static shell is just the route's own loading
-// skeleton; the actual content streams in around it.
+// The product read comes from the cached catalogue repository (cacheTag
+// "catalogue", minutes lifetime); the static shell is the route's own loading
+// skeleton and the content streams in around it.
 export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
   return (
     <Suspense fallback={<ProductDetailLoading />}>
@@ -127,7 +127,8 @@ function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-// Pre-render all prototype product detail pages at build time.
+// Pre-render every published product detail page at build time (needs a
+// reachable database during `next build`).
 export async function generateStaticParams() {
   const slugs = await loadStorefrontProductSlugs();
   return slugs.map((slug) => ({ slug }));

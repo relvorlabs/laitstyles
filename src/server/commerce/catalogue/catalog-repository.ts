@@ -3,11 +3,15 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
 import type {
+  CategoryWithImage,
   ProductDetail,
   ProductSummary,
   TaxonomyRef,
-  TaxonomyWithCount,
 } from "@/lib/storefront/types";
+import {
+  MAX_STOREFRONT_CATALOGUE_DETAILS,
+  normalizePublishedProductDetailLimit,
+} from "@/server/commerce/catalogue/catalogue-limits";
 import {
   mapProductDetail,
   mapProductSummary,
@@ -122,9 +126,45 @@ export async function countPublishedProducts(filters: CatalogueFilters = {}): Pr
   return prisma.products.count({ where: catalogueWhere(filters) });
 }
 
+// The Generation-1 storefront still filters the full catalogue in the browser.
+// Keep that bridge bounded until Phase 4 replaces it with paginated server reads.
+export async function listPublishedProductDetails(
+  limit: number = MAX_STOREFRONT_CATALOGUE_DETAILS,
+): Promise<ProductDetail[]> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
+  if (useStyleSmokeCatalogue) return [];
+
+  const rows = await prisma.products.findMany({
+    where: publishedProductWhere(),
+    include: productDetailInclude,
+    orderBy: { created_at: "desc" },
+    take: normalizePublishedProductDetailLimit(limit),
+  });
+  return rows.map(mapProductDetail);
+}
+
+export async function listPublishedProductSlugs(): Promise<string[]> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
+  if (useStyleSmokeCatalogue) return [];
+
+  const rows = await prisma.products.findMany({
+    where: publishedProductWhere(),
+    select: { slug: true },
+    orderBy: { created_at: "desc" },
+    take: MAX_STOREFRONT_CATALOGUE_DETAILS,
+  });
+  return rows.map((row) => row.slug);
+}
+
 export async function getPublishedProductBySlug(slug: string): Promise<ProductDetail | null> {
   "use cache";
-  cacheTag(`product-${slug}`);
+  cacheTag("catalogue", `product-${slug}`);
   cacheLife("minutes");
 
   if (useStyleSmokeCatalogue) return null;
@@ -138,18 +178,23 @@ export async function getPublishedProductBySlug(slug: string): Promise<ProductDe
 
 // Categories that contain at least one storefront-visible product, with a real
 // (never fabricated) count. Small catalogue → per-category count is fine.
-export async function listStorefrontCategories(): Promise<TaxonomyWithCount[]> {
-  if (useStyleSmokeCatalogue) return [{ ...styleSmokeCategory, productCount: 0 }];
+export async function listStorefrontCategories(): Promise<CategoryWithImage[]> {
+  "use cache";
+  cacheTag("catalogue");
+  cacheLife("minutes");
+
+  if (useStyleSmokeCatalogue) return [{ ...styleSmokeCategory, imageUrl: null, productCount: 0 }];
 
   const categories = await prisma.catalogue_categories.findMany({
     orderBy: { position: "asc" },
-    select: { id: true, slug: true, name: true },
+    select: { id: true, slug: true, name: true, image_url: true },
   });
   const withCounts = await Promise.all(
     categories.map(async (category) => ({
       id: category.id,
       slug: category.slug,
       name: category.name,
+      imageUrl: category.image_url,
       productCount: await prisma.products.count({
         where: { AND: [publishedProductWhere(), { category_id: category.id }] },
       }),

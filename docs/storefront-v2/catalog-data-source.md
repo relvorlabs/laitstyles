@@ -1,51 +1,57 @@
 # Storefront catalogue data source
 
-The canonical development catalogue is [`public/assets/data/storefront-catalog.json`](../../public/assets/data/storefront-catalog.json). It is a single public-safe relational dataset generated from the 100-product archive; product records must not be copied into TypeScript components, account fixtures, checkout fixtures, or feature-local arrays.
+PostgreSQL is the canonical catalogue. Application reads go through Prisma and
+`src/server/commerce/catalogue/catalog-repository.ts`; storefront code must not introduce a
+second product source in TypeScript arrays, public JSON, account fixtures, or checkout fixtures.
 
-## Dataset contract
+## One-time snapshot import
 
-The JSON retains each relation once, using stable IDs and snake_case database-style columns:
+`scripts/seed/storefront-catalog-snapshot.json` is retained only as the migration input that moved
+the former 100-product storefront snapshot into PostgreSQL. It is not a public asset, runtime data
+source, production sync mechanism, or file that client components may import.
 
-- store, category, collection, product, channel, variant, media, asset, measurement, and stock tables;
-- product options, option values, and variant-option joins;
-- condition reports;
-- tags and product-tag joins;
-- asset provenance and source-search records.
-
-The source contains 100 products, 173 variants, 240 stock rows, 884 measurements, 100 condition reports, 100 audited external assets, 183 tags, 540 product-tag joins, and 289 variant-option joins. Cost, customer identity, holds, audit events, and stock movements remain excluded from the public projection.
-
-Run the reproducible importer when a replacement archive is supplied:
+The one-time importer is:
 
 ```bash
-node scripts/build-storefront-catalog.mjs <dataset-directory> public/assets/data/storefront-catalog.json
+pnpm db:import:catalog
 ```
 
-The importer verifies manifest counts, unique IDs, every relevant foreign key, inventory-mode rules, and stock arithmetic before writing the consolidated file.
+It requires `DIRECT_URL` from `.env.local`; `DATABASE_URL` is not accepted as a fallback. Before any
+write, Zod validates the snapshot and the importer checks existing identity fields for conflicts.
+All inserts then run inside one bounded transaction, followed by snapshot-ID count verification
+before commit. The completion report includes normalized duplicate variant SKUs and the 580 omitted
+variant-level measurements.
+
+Rows use stable snapshot IDs with `createMany({ skipDuplicates: true })`. The importer remains
+insert-only: a repeat can fill rows that were not inserted, but it does not update or reconcile rows
+that already exist. Treat it as migration tooling, not a routine synchronization or development
+seed.
+
+### Environment safeguards
+
+- Set and verify `DIRECT_URL` for the intended non-production database before running the command.
+- Confirm the database host and name without printing credentials into logs.
+- Take a recoverable backup or snapshot first.
+- Do not run the importer against production. The script does not detect or block a production URL.
+- Verify row counts and representative unique, stocked, and variant products after the command.
+- Do not follow this import with `pnpm db:seed:storefront`: that development seed clears products
+  and rebuilds a separate seven-product catalogue.
+
+## Measurement limitation
+
+The archived snapshot contains 884 measurements: 304 product-level rows and 580 variant-level
+rows. The current Prisma model stores product-level measurements only, so the importer deliberately
+imports the 304 product-level rows and omits all 580 variant-level rows. This is a known, intentional
+migration limitation; the omitted values must not be described as persisted or available at
+runtime. Supporting them later requires an explicit schema and product-contract decision.
 
 ## Runtime boundary
 
-`src/lib/storefront/catalog-data.ts` is server-only. It validates the consolidated dataset and maps rows into the existing `ProductSummary`, `ProductDetail`, and shopper `Product` contracts. Client Components never import the JSON. The async root layout loads the catalog once on the server and passes the serializable shopper projection through the existing providers.
+The repository applies the shared storefront visibility predicate and maps database records into
+public product contracts. The server-only storefront loader builds the temporary shopper projection
+consumed by existing UI providers; client modules import only client-safe types and serialized data,
+never Prisma or the snapshot.
 
-This follows the same boundary as a production database repository:
-
-1. validate and authorize source rows on the server;
-2. apply the shared storefront visibility predicate (active store and product, valid publication time, storefront channel, positive price, and cover media);
-3. derive stock availability from stock rows and variants;
-4. return only existing public DTOs to the client.
-
-Product detail metadata, static params, page rendering, overlays, checkout, account fixtures, cart recommendations, and the legacy ShopProvider all consume that same server-loaded projection.
-
-## Cache decision
-
-`next.config.ts` does not enable Next.js Cache Components, so this implementation does not add `use cache`, `cacheLife`, or `cacheTag`. React `cache()` deduplicates the server repository build within a render/request. The imported JSON is deployment-versioned and changes only when the asset is regenerated and redeployed.
-
-When the production Prisma repository becomes authoritative, retain the existing public DTOs and replace only this source adapter. Database mutations should invalidate the database-backed catalog at that point; Server Actions remain a mutation boundary, not a catalog read mechanism.
-
-## Failure and empty states
-
-- malformed roots, unsupported schema versions, broken relations, invalid prices, inconsistent stock, and duplicate product IDs fail explicitly before rendering;
-- unpublished, archived, channel-disabled, non-positive-price, inactive-store, and coverless products are excluded;
-- missing slugs return `null` and use the existing route `notFound()` boundary;
-- filter/search results retain the existing empty state;
-- empty media/viewer and empty home-hero cases are guarded rather than indexing missing data;
-- external Pexels media remains marked as reference imagery and must be replaced with approved Laitstyles stock photography before production commerce claims.
+Catalogue writes must invalidate the `catalogue` and relevant `product-${slug}` cache tags. Missing
+or hidden products resolve through the existing `null`/`notFound()` boundaries, and empty filter or
+search results retain their explicit empty state.

@@ -11,15 +11,18 @@ import {
   useState,
 } from "react";
 import { toast as sonnerToast } from "sonner";
+import type {
+  StorefrontCatalogPayload,
+  StorefrontCategory,
+} from "@/features/storefront/shared/catalog-types";
 import { koboToNaira } from "@/lib/money";
-import type { StorefrontCatalogPayload, StorefrontCategory } from "@/lib/storefront/catalog-data";
 import type { ProductVariantOption } from "@/lib/storefront/types";
 import {
   addCartLine,
-  cartSubtotal,
-  changeCartLineQuantity,
   type CartLine,
   type CartSelection,
+  cartSubtotal,
+  changeCartLineQuantity,
 } from "./cart-lines";
 import { CART_STORAGE_KEY, loadPersistedCart } from "./cart-persistence";
 import {
@@ -425,12 +428,9 @@ export function StorefrontProvider({
     [cart, showToast],
   );
 
-  const changeQty = useCallback(
-    (lineKey: string, delta: number) => {
-      setCart((previous) => changeCartLineQuantity(previous, lineKey, delta));
-    },
-    [],
-  );
+  const changeQty = useCallback((lineKey: string, delta: number) => {
+    setCart((previous) => changeCartLineQuantity(previous, lineKey, delta));
+  }, []);
 
   const applyShop = useCallback((opts: { category?: string; collection?: string | null }) => {
     setCategory(opts.category || "All");

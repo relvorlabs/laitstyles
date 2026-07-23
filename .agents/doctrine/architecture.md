@@ -1,0 +1,62 @@
+# Doctrine: Project structure & separation of concern
+
+Owner of: the real folder map, layering rules, which layer owns what.
+Cited by: every engineering role. This file is the map roles use to know their territory.
+
+## The layers (top = closest to the user)
+
+```
+src/app/**          Routing, layouts, route-group composition, API route handlers.
+src/features/**      Feature composition: screens assembled from components + data hooks.
+src/components/**     Reusable presentational + primitive UI (design system lives here).
+src/server/**         Server-only domain logic: repositories, mappers, policies, authorization.
+src/lib/**            Cross-cutting utilities and typed clients shared by the layers above.
+prisma/  supabase/    Schema, migrations, and hosted-service config.
+```
+
+Dependencies flow **downward only**. `app` and `features` may import from `components`,
+`server`, and `lib`. `server` and `lib` must never import from `features` or `app`.
+`components` must never import from `server`. Server-only code must never reach a client
+bundle — the `src/lib/boundaries` check guards this seam.
+
+## Route groups (`src/app`)
+
+`(home)`, `account`, `cart`, `checkout`, `collections`, `products`, `order-confirmation`,
+`auth` — storefront. `admin` and `control-room` — operator surfaces. `api` — route handlers
+(`api/health`, `api/payment/{initialize,callback,webhook}`).
+
+## Domain (`src/server`)
+
+- `server/commerce/catalogue` — catalog repository, mappers, product writes, visibility.
+- `server/commerce/orders` — account order reads.
+- `server/commerce/reviews` — verified-purchase review repository, policy, schema.
+- `server/auth` — canonical session resolution (`getCurrentSession`), staff access, profile provisioning.
+- `server/assets` — asset config/resolution.
+
+## Cross-cutting (`src/lib`)
+
+`prisma` (client), `supabase` (client), `auth` (pure role/permission policies + `auth/server` redirect helpers),
+`query` (TanStack client + provider), `commerce`, `catalogue.ts`, `order.ts`, `money`,
+`errors`, `assets`, `boundaries` (server/client boundary test), `admin`, `storefront`.
+
+## Features (`src/features`)
+
+`storefront/{home,catalogue,product,checkout,account,shell,shared}` and
+`admin/{overview,orders,inventory,holds,returns,customers,settings,product-editor,record-sale,shell,shared,state}`.
+Admin feature folders carry a per-domain `data/` subfolder for their read/query layer and a
+shared `state/` folder for admin-wide client state.
+
+## Separation-of-concern rules
+
+- A file has one clear purpose. When it grows large or mixes concerns, split it — large
+  files are a signal, not a style preference.
+- Presentational components take data via props; they do not fetch or hold business state.
+- Domain rules live in `src/server` / `src/lib`, not inside components or route files.
+- Feature-specific conventions belong in the feature's spec, not in repo-wide doctrine.
+
+### Labeled feature example (not global law)
+
+The catalogue read path under `src/server/commerce/catalogue/*` uses Cache Components with
+the tag convention `catalogue` and `product-${slug}`. This is a **catalogue-feature**
+convention documented here as an example; other features define their own in their specs.
+See [server-and-actions](server-and-actions.md) for the caching rules themselves.

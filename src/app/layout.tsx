@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppProviders } from "@/app/app-providers";
 import { AppShellFallback } from "@/app/app-shell-fallback";
+import { loadStorefrontCatalog } from "@/features/storefront/shared/catalog-loader";
 // The canonical Manrope/Newsreader typography is loaded once here via next/font
 // and exposed as --font-storefront-* for the whole app.
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
-import { loadStorefrontCatalog } from "@/lib/storefront/catalog-data";
 import { cn } from "@/lib/utils";
 import "./theme-entry.css";
 

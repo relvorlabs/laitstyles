@@ -1,5 +1,5 @@
+import type { StorefrontCategory } from "@/features/storefront/shared/catalog-types";
 import type { HoldablePiece } from "@/features/storefront/shared/storefront-experience-data";
-import type { StorefrontCategory } from "@/lib/storefront/catalog-data";
 
 export type Condition = "A+" | "A" | "B+";
 export type Inventory = "one-of-one" | "variant" | "matching-stock";
@@ -93,7 +93,7 @@ export const relatedProducts = (products: readonly Product[], product: Product, 
 
 export function getHomeCategories(
   categories: readonly StorefrontCategory[],
-): [string, string, number][] {
+): [string, string | null, number][] {
   return categories
     .filter((category) =>
       ["Jackets", "Denim", "Shirts", "Dresses", "Trousers", "Accessories"].includes(category.name),

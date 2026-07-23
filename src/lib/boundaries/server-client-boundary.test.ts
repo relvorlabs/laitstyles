@@ -31,7 +31,6 @@ const LAYER_RULES = [
 // feature-owned types (Phase 5). This list only burns down — never add an
 // entry; fix the import direction instead.
 const LEGACY_INVERSION_ALLOWLIST = new Set([
-  "src/lib/storefront/catalog-data.ts",
   "src/lib/catalogue.ts",
   "src/components/shop/shop-provider.tsx",
   "src/lib/admin/customers/customers-mutations.ts",

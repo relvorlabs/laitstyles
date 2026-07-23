@@ -10,16 +10,6 @@ const nextConfig: NextConfig = {
         destination: "/products/:slug",
         permanent: true,
       },
-      {
-        source: "/shop/category/:slug",
-        destination: "/products?category=:slug",
-        permanent: true,
-      },
-      {
-        source: "/shop",
-        destination: "/products",
-        permanent: true,
-      },
     ];
   },
   images: {
@@ -36,11 +26,13 @@ const nextConfig: NextConfig = {
     ],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production"
+    removeConsole: process.env.NODE_ENV === "production",
   },
   allowedDevOrigins: [
-    "https://laitstyle.localhost","https://www.laitstyles.com","http://localhost:3000"
-  ]
+    "https://laitstyle.localhost",
+    "https://www.laitstyles.com",
+    "http://localhost:3000",
+  ],
 };
 
 export default nextConfig;

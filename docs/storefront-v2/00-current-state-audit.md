@@ -7,7 +7,8 @@ Updated 2026-07-15.
 - Prisma is the only application database management layer.
 - `prisma/schema.prisma` contains the single-store commerce model.
 - `prisma/migrations/00000000000000_init/migration.sql` is the fresh-database baseline.
-- `public/assets/data/storefront-catalog.json` is the validated public projection used by the storefront.
+- PostgreSQL is the canonical storefront catalogue, read through the Prisma catalogue repository.
+- `scripts/seed/storefront-catalog-snapshot.json` is retained only as one-time migration input; it is not a public or runtime data source.
 - Categories have their own `image_url`; home category cards consume that field rather than borrowing product imagery.
 - Product, collection, category and asset identifiers are globally unique because there is one store.
 
@@ -30,4 +31,4 @@ Updated 2026-07-15.
 
 ## Honest boundaries
 
-The public JSON catalog remains a deterministic storefront source until the relevant Prisma repository is wired into runtime reads. Applying the Prisma baseline to a shared database, full OAuth browser completion and production integration checks are separate explicit gates.
+The storefront now reads catalogue records through Prisma. Production catalogue population, full OAuth browser completion, and production integration checks remain separate explicit gates; a successful development import is not evidence that production is populated.

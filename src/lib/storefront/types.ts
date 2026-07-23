@@ -126,6 +126,11 @@ export interface TaxonomyWithCount extends TaxonomyRef {
   productCount: number;
 }
 
+export interface CategoryWithImage extends TaxonomyWithCount {
+  /** Category artwork; null until an admin sets one. */
+  imageUrl: string | null;
+}
+
 /** Canonical condition vocabulary persisted in products.condition. */
 export type ConditionGrade = "Excellent" | "Good" | "Fair";
 

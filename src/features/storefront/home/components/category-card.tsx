@@ -12,7 +12,7 @@ export function CategoryCard({
   onClick,
 }: {
   name: string;
-  image: string;
+  image: string | null;
   count: number;
   onClick: () => void;
 }) {
@@ -29,13 +29,21 @@ export function CategoryCard({
       variant="ghost"
     >
       <span className="contents">
-        <Image
-          src={image}
-          alt={`${name} collection`}
-          width={1200}
-          height={1500}
-          sizes="(min-width: 861px) 25vw, (min-width: 601px) 50vw, 100vw"
-        />
+        {image ? (
+          <Image
+            src={image}
+            alt={`${name} collection`}
+            width={1200}
+            height={1500}
+            sizes="(min-width: 861px) 25vw, (min-width: 601px) 50vw, 100vw"
+          />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 bg-[var(--ink-soft)]"
+            data-slot="category-image-fallback"
+          />
+        )}
         <span className="category-label">
           <span>
             <span>{count} pieces</span>
