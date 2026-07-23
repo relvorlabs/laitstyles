@@ -31,45 +31,70 @@ export function SiteHeader() {
         >
           <Menu className="size-5" />
         </Button>
-        <Link aria-label="Laitstyles home" href="/"><BrandMark /></Link>
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+
+        <Link aria-label="Laitstyles home" href="/">
+          <BrandMark />
+        </Link>
+
+        <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">
           {navigation.map(([label, href]) => (
-            <Link className={buttonVariants({ variant: "ghost" })} href={href} key={href}>{label}</Link>
+            <Link className={buttonVariants({ variant: "ghost" })} href={href} key={href}>
+              {label}
+            </Link>
           ))}
         </nav>
+
         <form action="/products" className="ml-auto hidden max-w-sm flex-1 md:flex" method="get">
           <label className="relative w-full">
             <span className="sr-only">Search products</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input className="h-10 w-full rounded-full border border-input bg-control pl-9 pr-3 text-sm" name="search" placeholder="Search the catalogue" type="search" />
+            <input
+              className="h-10 w-full rounded-full border border-input bg-control pl-9 pr-3 text-sm"
+              name="search"
+              placeholder="Search the catalogue"
+              type="search"
+            />
           </label>
         </form>
-        <Link aria-label="Account" className={buttonVariants({ size: "icon-sm", variant: "ghost" })} href="/account"><UserRound className="size-5" /></Link>
-        <Link aria-label={`Bag with ${heldItems.length} held ${heldItems.length === 1 ? "item" : "items"}`} className={`${buttonVariants({ size: "icon-sm", variant: "ghost" })} relative`} href="/cart">
+
+        <Link
+          aria-label="Account"
+          className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+          href="/account"
+        >
+          <UserRound className="size-5" />
+        </Link>
+        <Link
+          aria-label={`Bag with ${heldItems.length} held ${heldItems.length === 1 ? "item" : "items"}`}
+          className={`${buttonVariants({ size: "icon-sm", variant: "ghost" })} relative`}
+          href="/cart"
+        >
           <ShoppingBag className="size-5" />
-          {heldItems.length > 0 ? <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-foreground text-[10px] text-background">{heldItems.length}</span> : null}
+          {heldItems.length > 0 ? (
+            <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-foreground text-[10px] text-background">
+              {heldItems.length}
+            </span>
+          ) : null}
         </Link>
       </div>
+
       {mobileOpen ? (
-        <nav className="grid gap-1 border-t border-[var(--line)] px-4 py-3 md:hidden" aria-label="Mobile navigation">
+        <nav
+          aria-label="Mobile navigation"
+          className="grid gap-1 border-t border-[var(--line)] px-4 py-3 md:hidden"
+        >
           {navigation.map(([label, href]) => (
-            <Link className={buttonVariants({ variant: "ghost" })} href={href} key={href} onClick={() => setMobileOpen(false)}>{label}</Link>
+            <Link
+              className={buttonVariants({ variant: "ghost" })}
+              href={href}
+              key={href}
+              onClick={() => setMobileOpen(false)}
+            >
+              {label}
+            </Link>
           ))}
         </nav>
       ) : null}
     </header>
-  );
-}
-
-export function SiteFooter() {
-  return (
-    <footer className="mt-auto border-t border-[var(--line)] bg-[var(--bone-2)]">
-      <div className="shell grid gap-8 px-4 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div><BrandMark /><p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground">Curated premium pre-owned fashion with transparent condition, sizing and availability.</p></div>
-        <nav className="grid content-start gap-3 text-sm" aria-label="Shop links"><p className="font-semibold">Shop</p><Link href="/products">All pieces</Link><Link href="/products?sort=newest">New arrivals</Link><Link href="/products?mode=unique">One-of-one</Link></nav>
-        <nav className="grid content-start gap-3 text-sm" aria-label="Account links"><p className="font-semibold">Account</p><Link href="/account">Profile and orders</Link><Link href="/account?tab=saved">Saved pieces</Link><Link href="/contact">Contact</Link></nav>
-      </div>
-      <div className="border-t border-[var(--line)] py-4 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Laitstyles</div>
-    </footer>
   );
 }
