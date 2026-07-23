@@ -35,7 +35,7 @@ export function StorefrontHome({
               catalogue.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link className={buttonVariants({ size: "lg" })} href="/products">
+              <Link className={buttonVariants({ size: "lg", variant: "secondary" })} href="/products">
                 Shop all pieces
               </Link>
               <Link

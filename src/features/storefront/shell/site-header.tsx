@@ -33,7 +33,7 @@ export function SiteHeader() {
         </Button>
 
         <Link aria-label="Laitstyles home" href="/">
-          <BrandMark />
+          <BrandMark size="5" />
         </Link>
 
         <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">

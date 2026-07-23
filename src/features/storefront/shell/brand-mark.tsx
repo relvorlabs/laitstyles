@@ -5,7 +5,7 @@ import { useId } from "react";
 // The Laitstyles monogram from storefront.html. The source duplicated this SVG three
 // times with per-instance gradient id suffixes (-header/-footer/-mobile) to avoid
 // clashing <defs> ids; useId() gives each React instance its own stable, unique ids.
-export function BrandMark() {
+export function BrandMark({size = "20"} :{size?: string}) {
   const uid = useId().replace(/:/g, "");
   const sb = `sage-bottom-${uid}`;
   const ir = `ink-right-${uid}`;
@@ -15,8 +15,8 @@ export function BrandMark() {
     <svg
       aria-hidden="true"
       focusable="false"
-      width="100%"
-      height="100%"
+      width={`${size}%`}
+      height={`${size}%`}
       viewBox="0 0 136 209"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
