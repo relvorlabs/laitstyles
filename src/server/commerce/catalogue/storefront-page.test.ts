@@ -3,12 +3,9 @@ import type { ProductSummary } from "@/lib/storefront/types";
 import {
   selectStorefrontCataloguePage,
   type StorefrontCataloguePageQuery,
-} from "./storefront-page";
+} from "./storefront-page-selection";
 
-function product(
-  id: string,
-  overrides: Partial<ProductSummary> = {},
-): ProductSummary {
+function product(id: string, overrides: Partial<ProductSummary> = {}): ProductSummary {
   return {
     id,
     slug: id,
