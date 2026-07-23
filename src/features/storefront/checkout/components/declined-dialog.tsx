@@ -5,11 +5,19 @@ export function DeclinedDialog({
   availabilityMessage,
   dismiss,
   payNow,
+  timer,
 }: {
-  availabilityMessage: string;
+  availabilityMessage?: string;
   dismiss: () => void;
   payNow: () => void;
+  timer?: string;
 }) {
+  const status =
+    availabilityMessage ??
+    (timer && timer !== "Availability check"
+      ? `Held for ${timer} more`
+      : "Availability will be checked before another payment attempt.");
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-5">
       <div className="absolute inset-0 bg-[#1B1A17]/50 animate-[leemFade_.25s_ease]" />
@@ -26,7 +34,7 @@ export function DeclinedDialog({
           Your bank declined the charge &mdash; no money left your account. Your selections remain in
           your bag, and availability will be confirmed before another attempt.
         </p>
-        <div className="mb-[22px] text-xs text-[#8A887E]">{availabilityMessage}</div>
+        <div className="mb-[22px] text-xs text-[#8A887E]">{status}</div>
         <Button size="lg" className="mb-2.5 w-full" onClick={payNow}>
           Try payment again
         </Button>
