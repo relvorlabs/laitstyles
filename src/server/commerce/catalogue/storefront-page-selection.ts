@@ -67,8 +67,11 @@ function matchesSearch(product: ProductSummary, search: string): boolean {
 export function selectStorefrontCataloguePage(
   products: readonly ProductSummary[],
   query: StorefrontCataloguePageQuery,
+  eligibleProductIds?: ReadonlySet<string>,
 ): StorefrontCataloguePage {
-  let list = products.map((product, index) => ({ product, isNew: index < 20 }));
+  let list = products
+    .map((product, index) => ({ product, isNew: index < 20 }))
+    .filter(({ product }) => !eligibleProductIds || eligibleProductIds.has(product.id));
 
   if (query.category) {
     list = list.filter(
