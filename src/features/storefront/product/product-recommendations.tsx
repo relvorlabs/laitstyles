@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { productToHoldable } from "@/features/storefront/shared/catalogue-data";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { selectProductRecommendations } from "./product-detail-presentation";
 
@@ -22,10 +20,7 @@ export function ProductRecommendations({
   columns: "styled" | "related";
 }) {
   const storefront = useStorefront();
-  const {
-    state: { holdSecondsByProduct },
-    actions: { holdProduct, releaseProduct },
-  } = useStorefrontExperience();
+  const clientState = useStorefrontClientState();
   const groups = selectProductRecommendations(storefront.products, product);
   const products = columns === "styled" ? groups.styledWith : groups.related;
 
@@ -58,20 +53,22 @@ export function ProductRecommendations({
         >
           {products.map((candidate) => (
             <ProductCard
-              holdSeconds={holdSecondsByProduct[candidate.id] ?? null}
-              isHeld={candidate.id in holdSecondsByProduct}
+              holdSeconds={clientState.holdSecondsByProduct[candidate.id] ?? null}
+              isHeld={candidate.id in clientState.holdSecondsByProduct}
               isSaved={storefront.saved.has(candidate.id)}
               key={candidate.id}
               onAdd={(id) => {
-                releaseProduct(id);
+                clientState.releaseProduct(id);
                 storefront.addToCart(id);
               }}
               onHold={(id) => {
                 const target = storefront.productById(id);
-                if (target) holdProduct(productToHoldable(target));
+                if (target && clientState.holdProduct(id)) {
+                  storefront.showToast(`${target.name} is held for 15 minutes.`);
+                }
               }}
               onQuickView={storefront.openQuick}
-              onRelease={releaseProduct}
+              onRelease={clientState.releaseProduct}
               onSave={storefront.toggleSaved}
               product={candidate}
             />
