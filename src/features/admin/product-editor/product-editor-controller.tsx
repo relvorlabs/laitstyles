@@ -54,8 +54,7 @@ export function ProductEditorControllerProvider({ children }: { children: ReactN
           <AdminIcon className="text-success" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Catalogue views now use this session-only product record. Refreshing resets the
-            prototype.
+            The product is persisted and connected catalogue views have been invalidated.
           </AlertDescription>
           <AlertAction>
             <Button onClick={() => setResult(null)} size="sm" type="button" variant="ghost">

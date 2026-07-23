@@ -1,7 +1,9 @@
 "use client";
 
 import { Edit02Icon } from "@hugeicons/core-free-icons";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,27 +21,26 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { ProductMediaPanel } from "@/features/admin/inventory/inventory-detail-media";
 import { ProductPricingPanel } from "@/features/admin/inventory/inventory-detail-pricing";
 import {
-  ProductActivityPanel,
-  ProductHoldsPanel,
   ProductMovementsPanel,
-  ProductOrdersPanel,
   ProductReturnsPanel,
-  ProductReviewsPanel,
 } from "@/features/admin/inventory/inventory-detail-records";
 import { ProductStockPanel } from "@/features/admin/inventory/inventory-detail-stock";
 import { ProductSummaryPanel } from "@/features/admin/inventory/inventory-detail-summary";
 import { InventoryProductLifecycleActions } from "@/features/admin/inventory/inventory-product-lifecycle-actions";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ControlRoomState, InventoryListItem } from "@/lib/admin/shared/types";
+import { inventoryStockMovementsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
+import type { InventoryListItem } from "@/lib/admin/shared/types";
 
 type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
-  state: ControlRoomState;
   onOpenChange: (open: boolean) => void;
   onEdit: (productId: string) => void;
+  /** Compatibility prop until the parent workspace drops its shared admin-state argument. */
+  state?: unknown;
 };
 
 const detailTabs = [
@@ -57,41 +58,35 @@ const detailTabs = [
 
 type DetailTab = (typeof detailTabs)[number][0];
 
+type DeferredDomainPanelProps = {
+  domain: "Orders" | "Holds" | "Reviews" | "Activity";
+};
+
+function DeferredDomainPanel({ domain }: DeferredDomainPanelProps) {
+  return (
+    <Alert>
+      <AlertTitle>{domain} are not read from the Inventory service yet</AlertTitle>
+      <AlertDescription>
+        This product is Prisma-backed. {domain} remain on their declared prototype boundary until
+        their dedicated admin-domain cutover, so Inventory does not display seeded records as real
+        operational history.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function InventoryDetailSheet({
   item,
-  state,
   onOpenChange,
   onEdit,
 }: InventoryDetailSheetProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
+  const repositories = useAdminRepositories();
   const productId = item?.product.id ?? null;
-  const orders = productId
-    ? state.orders.filter((order) => order.lines.some((line) => line.productId === productId))
-    : [];
-  const holds = productId ? state.holds.filter((hold) => hold.productId === productId) : [];
-  const movements = productId
-    ? state.stockMovements
-        .filter((movement) => movement.productId === productId)
-        .toSorted(
-          (left, right) =>
-            new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
-        )
-    : [];
-  const reviews = productId
-    ? state.reviews
-        .filter((review) => review.productId === productId)
-        .toSorted(
-          (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-        )
-    : [];
-  const activities = productId
-    ? state.activities
-        .filter((activity) => activity.productId === productId)
-        .toSorted(
-          (left, right) =>
-            new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
-        )
-    : [];
+  const { data: movements = [] } = useQuery({
+    ...inventoryStockMovementsQueryOptions(repositories, productId ?? undefined),
+    enabled: Boolean(productId),
+  });
 
   return (
     <Sheet onOpenChange={onOpenChange} open={Boolean(item)}>
@@ -108,7 +103,7 @@ export function InventoryDetailSheet({
                     {item.product.name}
                   </SheetTitle>
                   <SheetDescription className="mt-1">
-                    Catalogue, stock and operational history for this product.
+                    Persistent catalogue and stock data for this product.
                   </SheetDescription>
                 </div>
                 <Button size="lg" onClick={() => onEdit(productId)} type="button" variant="outline">
@@ -181,10 +176,10 @@ export function InventoryDetailSheet({
                   <ProductPricingPanel item={item} />
                 </TabsContent>
                 <TabsContent value="orders">
-                  <ProductOrdersPanel orders={orders} productId={productId} />
+                  <DeferredDomainPanel domain="Orders" />
                 </TabsContent>
                 <TabsContent value="holds">
-                  <ProductHoldsPanel holds={holds} />
+                  <DeferredDomainPanel domain="Holds" />
                 </TabsContent>
                 <TabsContent value="movements">
                   <ProductMovementsPanel movements={movements} />
@@ -193,10 +188,10 @@ export function InventoryDetailSheet({
                   <ProductReturnsPanel movements={movements} />
                 </TabsContent>
                 <TabsContent value="reviews">
-                  <ProductReviewsPanel reviews={reviews} />
+                  <DeferredDomainPanel domain="Reviews" />
                 </TabsContent>
                 <TabsContent value="activity">
-                  <ProductActivityPanel activities={activities} />
+                  <DeferredDomainPanel domain="Activity" />
                 </TabsContent>
               </div>
             </Tabs>

@@ -10,13 +10,13 @@ export function validateCommittedStockEdit(
 ): ProductEditorIssue[] {
   if (!existingProduct) return [];
 
-  const totalCommitted = getProductCommittedQuantity(existingProduct);
-  if (existingProduct.inventoryMode !== values.inventoryMode && totalCommitted > 0) {
+  const totalRecorded = getProductRecordedQuantity(existingProduct);
+  if (existingProduct.inventoryMode !== values.inventoryMode && totalRecorded > 0) {
     return [
       {
         path: "inventoryMode",
         message:
-          "Product type cannot change after units have been reserved, sold, returned or damaged.",
+          "Product type cannot change after stock has been recorded. Archive this product and create a new record instead.",
         step: "type",
       },
     ];
@@ -84,15 +84,11 @@ export function validateCommittedStockEdit(
   return [];
 }
 
-function getProductCommittedQuantity(product: InventoryProduct) {
+function getProductRecordedQuantity(product: InventoryProduct): number {
   if (product.inventoryMode === "variant") {
-    return product.variants.reduce(
-      (total, variant) => total + getCommittedQuantity(variant.stock),
-      0,
-    );
+    return product.variants.reduce((total, variant) => total + variant.stock.totalReceived, 0);
   }
-
-  return getCommittedQuantity(product.stock);
+  return product.stock.totalReceived;
 }
 
 function getCommittedQuantity(stock: {

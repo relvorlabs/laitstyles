@@ -18,7 +18,7 @@ import {
   useCreateCatalogueTaxonomy,
   useDeleteCatalogueTaxonomy,
   useRenameCatalogueTaxonomy,
-} from "@/lib/admin/inventory/inventory-mutations";
+} from "@/features/admin/inventory/inventory-mutations";
 import {
   inventoryProductsQueryOptions,
   inventoryTaxonomyQueryOptions,

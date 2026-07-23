@@ -72,7 +72,8 @@ export type ProductBase = {
 export type UniqueProduct = ProductBase & {
   inventoryMode: "unique";
   archiveNumber: string;
-  condition: "Excellent" | "Good" | "Fair";
+  /** Database-backed condition labels are open text and must round-trip losslessly. */
+  condition: string;
   size: string;
   colour: string;
   measurements: ProductMeasurement[];

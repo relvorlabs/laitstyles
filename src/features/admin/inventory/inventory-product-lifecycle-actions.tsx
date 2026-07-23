@@ -17,7 +17,7 @@ import {
   useArchiveProduct,
   useDeleteProduct,
   useRestoreProduct,
-} from "@/lib/admin/inventory/inventory-mutations";
+} from "@/features/admin/inventory/inventory-mutations";
 import type { ProductLifecycle } from "@/lib/admin/shared/types";
 
 type PendingAction = "archive" | "restore" | "delete" | null;

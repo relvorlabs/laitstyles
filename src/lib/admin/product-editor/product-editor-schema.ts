@@ -70,7 +70,7 @@ export const productEditorDraftSchema = z.discriminatedUnion("inventoryMode", [
     ...baseDraftShape,
     inventoryMode: z.literal("unique"),
     unique: z.object({
-      condition: z.enum(["Excellent", "Good", "Fair"]),
+      condition: z.string(),
       size: z.string(),
       colour: z.string(),
       measurements: z.array(measurementSchema),
@@ -156,7 +156,7 @@ const imagesSchema = z
 const uniqueStockSchema = z.object({
   inventoryMode: z.literal("unique"),
   unique: z.object({
-    condition: z.enum(["Excellent", "Good", "Fair"]),
+    condition: z.string().trim().min(1, "Choose a condition."),
     size: z.string().trim().min(1, "Enter the piece size."),
     colour: z.string().trim().min(1, "Enter the piece colour."),
     measurements: z
