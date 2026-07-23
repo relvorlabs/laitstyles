@@ -3,8 +3,8 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
+import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 import { QueryProvider } from "@/lib/query/query-provider";
@@ -18,7 +18,7 @@ export function SiteChrome({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { actions } = useStorefrontExperience();
+  const { actions } = useStorefrontAuth();
   const isStandaloneSurface = pathname?.startsWith("/admin") || pathname?.startsWith("/auth");
 
   const navigateShop = useCallback<NavShop>(
