@@ -18,7 +18,7 @@
     "audit:buttons": "node scripts/audit-buttons.mjs --strict",
     "test:e2e": "playwright test",
     "prisma:clean": "node scripts/db/clean-prisma-schema-input.mjs",
-    "prisma:generate": "pnpm prisma:clean && prisma generate --generator phase2Client",
+    "prisma:generate": "pnpm prisma:clean && prisma generate && pnpm prisma:clean",
     "prisma:format": "pnpm prisma:clean && prisma format",
     "prisma:validate": "pnpm prisma:clean && prisma validate",
     "prisma:studio": "pnpm prisma:clean && prisma studio",
