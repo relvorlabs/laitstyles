@@ -175,37 +175,44 @@ export async function deleteInventoryTaxonomy(
     });
   }
 
-  const usageCount = await prisma.products.count({
-    where:
-      decoded.kind === "category"
-        ? { category_id: decoded.id }
-        : { collection_id: decoded.id },
-  });
-  if (usageCount > 0) {
-    return err({
-      code: "taxonomy-in-use",
-      taxonomyId,
-      message: `This ${decoded.kind} is used by ${usageCount} product${usageCount === 1 ? "" : "s"}. Reassign those products before deleting it.`,
-    });
-  }
-
   try {
-    await prisma.$transaction(async (tx) => {
-      if (decoded.kind === "category") {
-        await tx.catalogue_categories.delete({ where: { id: decoded.id } });
-      } else {
-        await tx.catalogue_collections.delete({ where: { id: decoded.id } });
-      }
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: actor.authUserId,
-          action: `inventory:${decoded.kind}:delete`,
-          target_table:
-            decoded.kind === "category" ? "catalogue_categories" : "catalogue_collections",
-          target_id: decoded.id,
-        },
+    const outcome = await prisma.$transaction(
+      async (tx) => {
+        const usageCount = await tx.products.count({
+          where:
+            decoded.kind === "category"
+              ? { category_id: decoded.id }
+              : { collection_id: decoded.id },
+        });
+        if (usageCount > 0) return { kind: "in-use" as const, usageCount };
+
+        if (decoded.kind === "category") {
+          await tx.catalogue_categories.delete({ where: { id: decoded.id } });
+        } else {
+          await tx.catalogue_collections.delete({ where: { id: decoded.id } });
+        }
+        await tx.audit_events.create({
+          data: {
+            actor_profile_id: actor.authUserId,
+            action: `inventory:${decoded.kind}:delete`,
+            target_table:
+              decoded.kind === "category" ? "catalogue_categories" : "catalogue_collections",
+            target_id: decoded.id,
+          },
+        });
+        return { kind: "deleted" as const };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    if (outcome.kind === "in-use") {
+      return err({
+        code: "taxonomy-in-use",
+        taxonomyId,
+        message: `This ${decoded.kind} is used by ${outcome.usageCount} product${outcome.usageCount === 1 ? "" : "s"}. Reassign those products before deleting it.`,
       });
-    });
+    }
+
     return ok({
       deletedId: taxonomyId,
       message: `${decoded.kind === "category" ? "Category" : "Collection"} deleted.`,
