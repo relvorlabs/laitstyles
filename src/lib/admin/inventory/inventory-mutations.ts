@@ -1,8 +1,8 @@
 "use client";
 
 // Compatibility export while the remaining admin prototype modules are migrated
-// domain-by-domain. All product and taxonomy mutations are real Server Actions;
-// only the explicitly out-of-scope intake transition still uses AdminStore.
+// domain-by-domain. Every Inventory product and taxonomy mutation below is a
+// capability-gated Server Action; no AdminStore mutation is exported here.
 export {
   useArchiveProduct,
   useCreateCatalogueTaxonomy,
@@ -11,5 +11,4 @@ export {
   useRenameCatalogueTaxonomy,
   useRestoreProduct,
   useSaveProduct,
-  useTransitionIntake,
 } from "@/features/admin/inventory/inventory-mutations";
