@@ -1,0 +1,12 @@
+model product_variant_measurements {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id String @db.Uuid
+  variant_id String @db.Uuid
+  label      String
+  value      String
+  position   Int    @default(0)
+
+  @@unique([variant_id, position], map: "product_variant_measurements_variant_position_unique")
+  @@index([product_id], map: "product_variant_measurements_product_idx")
+  @@schema("public")
+}
