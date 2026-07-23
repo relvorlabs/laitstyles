@@ -1,3 +1,4 @@
+import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
 import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
 import {
@@ -6,7 +7,6 @@ import {
   inventorySavedViews,
   inventorySortOptions,
 } from "@/lib/admin/inventory/inventory-selectors";
-import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 import type {
   CatalogueChannel,
   InventoryModeFilter,
@@ -15,6 +15,8 @@ import type {
   InventorySortKey,
   InventoryStockFilter,
 } from "@/lib/admin/shared/types";
+import { getStaffAccess } from "@/server/auth/session";
+import { listInventoryProducts } from "@/server/commerce/inventory/inventory-read";
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -51,13 +53,16 @@ const channelValues = new Set<CatalogueChannel | "all">([
   "instagram",
 ]);
 const sortValues = new Set<InventorySortKey>(inventorySortOptions.map((option) => option.value));
-const facets = getInventoryFacetOptions(activeAdminSeed.products);
-const categoryValues = new Set(facets.categories);
-const collectionValues = new Set(facets.collections);
 const pageSizeValues = new Set([10, 15, 25, 50]);
 
 export default async function InventoryPage({ searchParams }: InventoryPageProps) {
-  const params = await searchParams;
+  const access = await getStaffAccess("inventory:read");
+  if (!access.ok) return <AdminAccessDenied reason={access.reason} />;
+
+  const [params, products] = await Promise.all([searchParams, listInventoryProducts()]);
+  const facets = getInventoryFacetOptions(products);
+  const categoryValues = new Set(facets.categories);
+  const collectionValues = new Set(facets.collections);
   const requestedView = first(params.view);
   const requestedPresentation = first(params.presentation);
   const requestedProduct = first(params.product);
@@ -66,7 +71,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
 
   const view = pick(requestedView, savedViewValues, "all");
   const presentation: InventoryPresentation = requestedPresentation === "table" ? "table" : "grid";
-  const productId = activeAdminSeed.products.some((product) => product.id === requestedProduct)
+  const productId = products.some((product) => product.id === requestedProduct)
     ? (requestedProduct ?? null)
     : null;
   const requestedPage = Number(first(params.page));
@@ -107,8 +112,5 @@ function first(value: string | string[] | undefined) {
 
 function pick<TValue extends string>(
   value: string | undefined,
-  allowed: Set<TValue>,
-  fallback: TValue,
-): TValue {
-  return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
-}
+  allowed: Set<TVX[YO‹ˆ˜[˜XÚÎˆ˜[YKŠˆ˜[YHÂˆ™]\›ˆ˜[YH	‰ˆ[ÝÙYš\Ê˜[YH\È˜[YJHÈ
+˜[YH\È˜[YJHˆ˜[˜XÚÎÂŸB

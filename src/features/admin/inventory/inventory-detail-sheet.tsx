@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Edit02Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { ProductMediaPanel } from "@/features/admin/inventory/inventory-detail-media";
 import { ProductPricingPanel } from "@/features/admin/inventory/inventory-detail-pricing";
 import {
   ProductActivityPanel,
   ProductHoldsPanel,
-  ProductMovementsPanel,
+  ProductMovementsPanel
   ProductOrdersPanel,
   ProductReturnsPanel,
   ProductReviewsPanel,
@@ -33,6 +35,7 @@ import { ProductStockPanel } from "@/features/admin/inventory/inventory-detail-s
 import { ProductSummaryPanel } from "@/features/admin/inventory/inventory-detail-summary";
 import { InventoryProductLifecycleActions } from "@/features/admin/inventory/inventory-product-lifecycle-actions";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { inventoryStockMovementsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import type { ControlRoomState, InventoryListItem } from "@/lib/admin/shared/types";
 
 type InventoryDetailSheetProps = {
@@ -64,19 +67,16 @@ export function InventoryDetailSheet({
   onEdit,
 }: InventoryDetailSheetProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
+  const repositories = useAdminRepositories();
   const productId = item?.product.id ?? null;
+  const { data: movements = [] } = useQuery({
+    ...inventoryStockMovementsQueryOptions(repositories, productId ?? undefined),
+    enabled: Boolean(productId),
+  });
   const orders = productId
     ? state.orders.filter((order) => order.lines.some((line) => line.productId === productId))
     : [];
   const holds = productId ? state.holds.filter((hold) => hold.productId === productId) : [];
-  const movements = productId
-    ? state.stockMovements
-        .filter((movement) => movement.productId === productId)
-        .toSorted(
-          (left, right) =>
-            new Date(right.occurredAt).getTime() - new Date(left.occurredAt).getTime(),
-        )
-    : [];
   const reviews = productId
     ? state.reviews
         .filter((review) => review.productId === productId)

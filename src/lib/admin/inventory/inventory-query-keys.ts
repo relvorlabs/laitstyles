@@ -3,4 +3,6 @@ export const inventoryKeys = {
   products: () => [...inventoryKeys.all, "products"] as const,
   product: (productId: string) => [...inventoryKeys.all, "product", productId] as const,
   taxonomy: () => [...inventoryKeys.all, "taxonomy"] as const,
+  stockMovements: (productId?: string) =>
+    [...inventoryKeys.all, "stock-movements", productId ?? "all"] as const,
 };
