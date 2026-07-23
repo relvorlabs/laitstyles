@@ -62,6 +62,15 @@ function mapZodIssues(
   });
 }
 
+function isDurableMediaUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function validateSaveInput(
   values: ProductEditorValues,
   intent: ProductEditorIntent,
@@ -73,10 +82,14 @@ function validateSaveInput(
   if (intent === "schedule") issues.push(...validateProductForSchedule(values));
 
   for (const [index, media] of values.media.entries()) {
-    if (media.source === "local-preview" || media.url.startsWith("blob:")) {
+    if (
+      media.source === "local-preview" ||
+      media.url.startsWith("blob:") ||
+      !isDurableMediaUrl(media.url)
+    ) {
       issues.push({
         path: `media.${index}.url`,
-        message: "Choose a durable image URL before saving; local previews cannot be persisted.",
+        message: "Choose a durable HTTP or HTTPS image URL before saving.",
         step: "images",
       });
     }
@@ -93,6 +106,13 @@ function validateSaveInput(
   if (values.inventoryMode === "variant") {
     const existingIds = new Set<string>();
     for (const [index, variant] of values.variant.variants.entries()) {
+      if (variant.imageUrl.trim() && !isDurableMediaUrl(variant.imageUrl.trim())) {
+        issues.push({
+          path: `variant.variants.${index}.imageUrl`,
+          message: "Choose a durable HTTP or HTTPS variant image URL before saving.",
+          step: "images",
+        });
+      }
       if (!variant.id || !isUuid(variant.id)) continue;
       if (existingIds.has(variant.id)) {
         issues.push({
@@ -189,7 +209,8 @@ export async function saveInventoryProduct(
           archive_number:
             values.inventoryMode === "unique" ? clean(values.internalReference) || null : null,
           sku: values.inventoryMode === "stocked" ? clean(values.internalReference) || null : null,
-          condition: values.inventoryMode === "unique" ? values.unique.condition : null,
+          condition:
+            values.inventoryMode === "unique" ? clean(values.unique.condition) || null : null,
           size_label:
             values.inventoryMode === "unique"
               ? clean(values.unique.size) || null
