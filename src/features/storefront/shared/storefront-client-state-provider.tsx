@@ -20,6 +20,7 @@ import {
   type StorefrontClientStateSnapshot,
   type StorefrontHoldIntent,
 } from "./storefront-client-state";
+import { StorefrontHoldAlert } from "./storefront-feedback";
 
 const DEFAULT_HOLD_SECONDS = 15 * 60;
 
@@ -115,6 +116,7 @@ export function StorefrontClientStateProvider({
   const [saved, setSavedState] = useState<Set<string>>(new Set());
   const [holds, setHolds] = useState<StorefrontHoldIntent[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [holdAlertDismissed, setHoldAlertDismissed] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -163,6 +165,7 @@ export function StorefrontClientStateProvider({
         ...existing.filter((hold) => hold.productId !== product.id),
         { productId: product.id, expiresAt },
       ]);
+      setHoldAlertDismissed(false);
       return true;
     },
     [findProduct],
@@ -194,6 +197,8 @@ export function StorefrontClientStateProvider({
     }
     return seconds;
   }, [holds, now]);
+  const activeHoldSeconds = Object.values(holdSecondsByProduct);
+  const soonestHoldSeconds = activeHoldSeconds.length ? Math.min(...activeHoldSeconds) : 0;
 
   const value = useMemo<StorefrontClientStateContextValue>(
     () => ({
@@ -229,6 +234,13 @@ export function StorefrontClientStateProvider({
   return (
     <StorefrontClientStateContext.Provider value={value}>
       {children}
+      {activeHoldSeconds.length > 0 && !holdAlertDismissed ? (
+        <StorefrontHoldAlert
+          count={activeHoldSeconds.length}
+          onDismiss={() => setHoldAlertDismissed(true)}
+          secondsLeft={soonestHoldSeconds}
+        />
+      ) : null}
     </StorefrontClientStateContext.Provider>
   );
 }
