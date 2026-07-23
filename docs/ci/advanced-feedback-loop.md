@@ -1,12 +1,23 @@
-# Advanced CI feedback loop
+# GitHub-only CI feedback loop
 
-The repository keeps exactly three authoritative workflows. They run on `ubuntu-latest`, execute repository-owned scripts, retain complete evidence, and expose one machine-readable feedback contract for connected debugging agents.
+The repository keeps exactly three authoritative workflows. They run on `ubuntu-latest`, execute repository-owned scripts, retain complete evidence, and expose a machine-readable handoff that any connected ChatGPT/Codex GitHub session can inspect.
 
-## What this system can and cannot do
+No OpenAI API key, OpenAI endpoint, webhook, or deployed Next.js analysis route is required or used.
 
-GitHub Actions cannot attach itself to an already-open ChatGPT conversation or silently make that conversation execute code. Instead, the workflows publish redacted logs, manifests, patches, screenshots and a sticky pull-request comment. A ChatGPT session with the GitHub connector can read those artifacts and act on them in a later turn.
+## Operating model
 
-Optional AI analysis uses the OpenAI Responses API or a separately deployed authenticated endpoint. It diagnoses captured evidence and proposes a minimal correction. It never receives repository write credentials and never claims that it edited code or passed a check.
+GitHub Actions runs the validation jobs and stores their results. A connected GitHub chat can then:
+
+1. open the pull request;
+2. read workflow runs, jobs, failed logs, artifacts, `ci-feedback.json`, and `agent-handoff.json`;
+3. inspect the changed implementation;
+4. fix the smallest evidenced root cause on the PR branch;
+5. commit and push the correction;
+6. inspect the new workflow runs;
+7. rerun failed jobs when the code did not change;
+8. repeat until every required check passes.
+
+GitHub Actions cannot silently wake an existing chat session. The chat must be invoked by the user, but it does not need an API key because it uses the connected GitHub integration.
 
 ## Workflows
 
@@ -14,84 +25,86 @@ Optional AI analysis uses the OpenAI Responses API or a separately deployed auth
 
 Runs independent jobs for:
 
-- changed-file, architecture-doctrine and agent-skill context;
-- architecture/folder boundaries, strict button audit, Biome and TypeScript;
+- changed-file, architecture-doctrine, and agent-skill context;
+- architecture and folder boundaries;
+- strict button audit, Biome, and TypeScript;
 - production dependency audit as an advisory signal;
-- Prisma validation, migration deployment and migration status against PostgreSQL 17;
+- Prisma validation, migration deployment, and migration status against PostgreSQL 17;
 - Vitest with coverage;
 - production build and changed-scope React Doctor review;
 - aggregate evidence generation, including missing-job detection.
 
-Each command runs through `scripts/ci/run-gates.mjs`. The runner continues through every gate, applies a per-command timeout, redacts configured secrets, stores the complete log, and records exit code, signal, duration and required/advisory status.
+Each command runs through `scripts/ci/run-gates.mjs`. The runner continues through every gate, applies a per-command timeout, redacts configured secrets, stores complete logs, and records exit code, signal, duration, and required/advisory status.
 
 ### `playwright.yml`
 
-Builds the production application once and then runs independent desktop, tablet and mobile Chromium jobs. Each viewport job performs:
+Builds the production application once and then runs independent desktop, tablet, and mobile Chromium jobs. Each viewport job performs:
 
 - database migration deployment;
 - Chromium and operating-system dependency installation with browser caching;
 - production server readiness and process-liveness checks;
 - redirect-aware HTTP page smoke checks;
 - protected API status verification;
-- unauthenticated CI-feedback endpoint boundary verification;
-- Playwright theme, responsiveness, event, button, console, network and runtime contracts;
-- JSON, JUnit, HTML, trace, screenshot and retained failure-video output;
+- Playwright theme, responsiveness, event, button, console, network, and runtime contracts;
+- JSON, JUnit, HTML, trace, screenshot, and retained failure-video output;
 - production server log inspection;
 - an aggregate viewport manifest that detects missing jobs.
 
 ### `task-progress.yml`
 
-Correlates the two workflows by pull-request head SHA. It downloads their artifacts, queries run/job metadata, captures failed logs, and creates a synthetic failure when GitHub terminates a job before allocating steps or logs. It then publishes one sticky PR comment and one `ci-feedback.json` artifact.
+Correlates implementation and browser workflows by pull-request head SHA. It downloads artifacts, queries run and job metadata, captures failed logs, and creates explicit failures when GitHub returns no jobs or terminates a job before allocating steps.
 
-On trusted `workflow_run` or manual-dispatch events it may request optional AI diagnosis. Pull-request code never receives AI keys or endpoint secrets.
+It publishes:
 
-Manual dispatch also supports `safe-repair-plan`. This installs dependencies without lifecycle scripts, runs only deterministic Biome fixes and uploads a reviewable patch. It does not commit or push the patch.
+- one sticky PR comment;
+- `ci-feedback.json` and `ci-feedback.md`;
+- `agent-handoff.json` and `agent-handoff.md`;
+- pull-request context and changed-file patches;
+- workflow run metadata and failed logs.
+
+No skipped, missing, cancelled, neutral, unavailable, or zero-step job is represented as passed.
+
+## Pull-request commands
+
+Repository owners, members, and collaborators may comment on a pull request:
+
+- `/ci analyze` or `/ci status` — rebuild the evidence bundle and sticky agent handoff;
+- `/ci rerun-failed` — rerun the latest failed Implementation Quality and Playwright UI Contract runs for the current head SHA.
+
+The workflow also supports manual dispatch modes:
+
+- `analyze`;
+- `rerun-failed`;
+- `safe-repair-plan`.
+
+`safe-repair-plan` installs dependencies without lifecycle scripts, runs deterministic Biome fixes, and uploads a reviewable patch. It does not commit or push automatically.
 
 ## Machine-readable contract
 
 Every command suite writes a `manifest.json`. The aggregator writes:
 
-- `ci-feedback.json` — normalized required failures, advisory warnings, missing suites and gate metadata;
+- `ci-feedback.json` — required failures, advisory warnings, missing suites, and gate metadata;
 - `ci-feedback.md` — human-readable summary and failure tails;
-- `ai-analysis.json` and `ai-analysis.md` when analysis is configured;
-- workflow run/job metadata and failed logs;
-- Playwright reports, traces, screenshots, videos and server logs;
-- `context.json` and a capped changed-code patch for connected-agent review.
+- `agent-handoff.json` — PR identity, head SHA, failures, warnings, missing evidence, changed files, diff summary, capped patch, and the fix-and-verify protocol;
+- `agent-handoff.md` — a ready-to-use prompt for any connected GitHub chat;
+- workflow run and job metadata plus failed logs;
+- Playwright reports, traces, screenshots, videos, and server logs;
+- `context.json` and the changed-code patch for repository review.
 
-No skipped, unavailable, neutral or cancelled check is represented as passed.
+## Connected chat protocol
 
-## Optional AI configuration
+Use this instruction in any ChatGPT/Codex conversation with GitHub access:
 
-Choose one route.
+```text
+Open relvorlabs/laitstyles PR #<number>. Read the latest task-runtime-feedback artifact, ci-feedback.json, agent-handoff.json and failed GitHub Actions logs. Fix only evidenced root causes on the PR branch, commit the changes, inspect the new workflow runs, rerun failed jobs when appropriate, and repeat until every required check is green. Do not treat missing or skipped jobs as passed.
+```
 
-### Direct OpenAI Responses API
+The connected chat performs the semantic code changes. GitHub Actions remains the execution authority. Git stores the code; it does not replace the Actions runner.
 
-Add repository secrets:
+## Security boundary
 
-- `OPENAI_API_KEY`
-- `OPENAI_CI_MODEL`
-
-### Deployed Laitstyles analysis endpoint
-
-Deploy the application with server-only environment variables:
-
-- `CI_FEEDBACK_TOKEN`
-- `OPENAI_API_KEY`
-- `OPENAI_CI_MODEL`
-
-Then add repository secrets:
-
-- `CI_FEEDBACK_ENDPOINT` — the full `/api/internal/ci/analyze` URL
-- `CI_FEEDBACK_TOKEN` — the same bearer token configured on the deployment
-
-The endpoint uses constant-time bearer-token comparison, a 256 KB request limit, strict Zod validation and `private, no-store` responses.
-
-Optional repository variable:
-
-- `CI_AI_INCLUDE_PATCH=true` — includes a redacted, capped patch excerpt in AI requests. It is disabled by default so source code is not sent automatically.
-
-## Runtime repair model
-
-AI analysis is advisory. A connected coding session may inspect `ci-feedback.json`, fetch the cited source files, implement the smallest correction, push to the PR branch, and let the workflows rerun. The CI system itself only generates a deterministic formatting patch when a maintainer explicitly dispatches `safe-repair-plan`.
-
-This boundary prevents untrusted pull-request code, dependency scripts or model output from receiving a write-capable token and mutating the repository without review.
+- No OpenAI or external AI secrets exist in this CI design.
+- Pull-request code receives no repository write credential.
+- Comment commands are restricted to owners, members, and collaborators.
+- Automatic repair is limited to a reviewable deterministic formatter patch.
+- Semantic fixes are committed only by an explicitly invoked connected GitHub chat or a human contributor.
