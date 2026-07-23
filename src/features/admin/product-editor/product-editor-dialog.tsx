@@ -23,10 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
+import { useSaveProduct } from "@/features/admin/inventory/inventory-mutations";
 import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
 import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
-import { useSaveProduct } from "@/lib/admin/inventory/inventory-mutations";
 import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import {
   changeProductEditorMode,
