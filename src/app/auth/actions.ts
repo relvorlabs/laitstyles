@@ -5,13 +5,19 @@ import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects"
 import { getRequestOrigin } from "@/lib/auth/server/request-origin";
 import { createClient } from "@/lib/supabase/server";
 
+type PasswordAuthFieldErrors = Partial<
+  Record<"email" | "password" | "first" | "last", string>
+>;
+
 export type PasswordAuthActionResult =
-  | { ok: true; status: "success" | "check-email" }
+  | { ok: true; status: "success" | "check-email"; email: string }
   | {
       ok: false;
       message: string;
-      fieldErrors?: Partial<Record<"email" | "password" | "first" | "last", string>>;
+      fieldErrors?: PasswordAuthFieldErrors;
     };
+
+export type SignOutActionResult = { ok: true } | { ok: false; message: string };
 
 function authFailureMessage(message: string) {
   const normalized = message.toLowerCase();
@@ -38,7 +44,7 @@ export async function submitPasswordSignIn(
   formData: FormData,
 ): Promise<PasswordAuthActionResult> {
   const { email, password } = credentialsFrom(formData);
-  const fieldErrors: NonNullable<PasswordAuthActionResult["fieldErrors"]> = {};
+  const fieldErrors: PasswordAuthFieldErrors = {};
 
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     fieldErrors.email = "Enter a valid email address.";
@@ -51,7 +57,7 @@ export async function submitPasswordSignIn(
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { ok: false, message: authFailureMessage(error.message) };
-  return { ok: true, status: "success" };
+  return { ok: true, status: "success", email };
 }
 
 export async function submitPasswordSignUp(
@@ -61,7 +67,7 @@ export async function submitPasswordSignUp(
   const first = String(formData.get("first") ?? "").trim();
   const last = String(formData.get("last") ?? "").trim();
   const next = getSafeNextPath(formData.get("next"), "/account");
-  const fieldErrors: NonNullable<PasswordAuthActionResult["fieldErrors"]> = {};
+  const fieldErrors: PasswordAuthFieldErrors = {};
 
   if (!first) fieldErrors.first = "Enter your first name.";
   if (!last) fieldErrors.last = "Enter your last name.";
@@ -90,7 +96,15 @@ export async function submitPasswordSignUp(
   });
 
   if (error) return { ok: false, message: authFailureMessage(error.message) };
-  return { ok: true, status: data.session ? "success" : "check-email" };
+  return { ok: true, status: data.session ? "success" : "check-email", email };
+}
+
+export async function signOutStorefrontSession(): Promise<SignOutActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut();
+  return error
+    ? { ok: false, message: "We could not sign you out. Please try again." }
+    : { ok: true };
 }
 
 export async function signInWithPassword(formData: FormData) {
