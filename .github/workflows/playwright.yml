@@ -2,15 +2,15 @@ name: Playwright UI Contract
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
+  actions: read
+  checks: read
   contents: read
 
 concurrency:
@@ -20,6 +20,8 @@ concurrency:
 env:
   CI: "1"
   STOREFRONT_STYLE_SMOKE: "1"
+  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+  PR_NUMBER: ${{ github.event.pull_request.number || '' }}
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
@@ -27,18 +29,14 @@ env:
   PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
 
 jobs:
-  browser-contract:
-    name: Browser contract / ${{ matrix.project }}
+  browser:
+    name: Browser runtime / ${{ matrix.project }}
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 65
     strategy:
       fail-fast: false
       matrix:
-        project:
-          - desktop-chromium
-          - tablet-chromium
-          - mobile-chromium
-
+        project: [desktop-chromium, tablet-chromium, mobile-chromium]
     services:
       postgres:
         image: postgres:17
@@ -46,146 +44,207 @@ jobs:
           POSTGRES_DB: laitstyles
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
+        ports: [5432:5432]
         options: >-
           --health-cmd="pg_isready -U postgres -d laitstyles"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-
+    env:
+      PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+      PLAYWRIGHT_OUTPUT_DIR: ci-evidence/browser/${{ matrix.project }}/test-results
+      PLAYWRIGHT_REPORT_DIR: ci-evidence/browser/${{ matrix.project }}/playwright-report
+      PLAYWRIGHT_JSON_OUTPUT: ci-evidence/browser/${{ matrix.project }}/test-results/results.json
+      PLAYWRIGHT_JUNIT_OUTPUT: ci-evidence/browser/${{ matrix.project }}/test-results/junit.xml
     steps:
       - name: Check out application
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Load UI review agent skills
+      - name: Load UI and browser agent skills
+        if: matrix.project == 'desktop-chromium'
         uses: actions/checkout@v4
         with:
           repository: relvorlabs/agent-controller
           path: .ci/agent-controller
+          persist-credentials: false
           sparse-checkout: |
             skills/web-design-guidelines
             skills/ui-ux-pro-max
             skills/react-doctor
+            skills/vercel-react-best-practices
 
-      - name: Verify repository doctrine and UI skills
+      - name: Verify browser doctrine and skills
+        if: matrix.project == 'desktop-chromium'
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            AGENTS.md
+            .agents/doctrine/ui-and-design-system.md
+            .agents/doctrine/validation-and-reporting.md
+            .ci/agent-controller/skills/web-design-guidelines/SKILL.md
+            .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
+            .ci/agent-controller/skills/react-doctor/SKILL.md
+            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
+          )
+          for path in "${required[@]}"; do
+            test -f "$path" || { echo "Missing browser guidance: $path"; exit 1; }
+          done
+
+      - name: Verify repository browser doctrine
+        if: matrix.project != 'desktop-chromium'
         shell: bash
         run: |
           set -euo pipefail
           test -f AGENTS.md
+          test -f .agents/doctrine/ui-and-design-system.md
           test -f .agents/doctrine/validation-and-reporting.md
-          test -f .ci/agent-controller/skills/web-design-guidelines/SKILL.md
-          test -f .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
-          test -f .ci/agent-controller/skills/react-doctor/SKILL.md
-          {
-            echo "## Browser validation guidance"
-            echo "- Repository: AGENTS.md + validation doctrine"
-            echo "- Agent skills: web-design-guidelines, ui-ux-pro-max, react-doctor"
-            echo "- Project: ${{ matrix.project }}"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 25
           cache: pnpm
-
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prepare ephemeral database
-        run: |
-          pnpm prisma:migrate:deploy
-          pnpm prisma:migrate:status
+      - name: Capture browser implementation context
+        if: matrix.project == 'desktop-chromium'
+        run: node scripts/ci/collect-context.mjs --output ci-evidence/browser/${PLAYWRIGHT_PROJECT}/context
 
-      - name: Install Chromium
+      - name: Validate database and build production application
+        run: >-
+          node scripts/ci/run-gates.mjs
+          --suite browser-preflight
+          --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/preflight"
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Chromium and operating-system dependencies
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build production application
-        run: pnpm build
-
       - name: Start production server
+        id: server
         shell: bash
         run: |
           set -euo pipefail
-          pnpm start > playwright-server.log 2>&1 &
-          echo $! > playwright-server.pid
-          for attempt in {1..90}; do
-            if curl --fail --silent --show-error http://127.0.0.1:3000/products >/dev/null; then
+          mkdir -p "ci-evidence/browser/${PLAYWRIGHT_PROJECT}"
+          pnpm start > "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.log" 2>&1 &
+          echo $! > "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.pid"
+          for attempt in {1..120}; do
+            if curl --fail --silent --show-error "${PLAYWRIGHT_BASE_URL}/products" >/dev/null; then
               exit 0
             fi
-            if ! kill -0 "$(cat playwright-server.pid)" 2>/dev/null; then
-              cat playwright-server.log
+            if ! kill -0 "$(cat "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.pid")" 2>/dev/null; then
+              cat "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.log"
               exit 1
             fi
             sleep 1
           done
-          cat playwright-server.log
+          cat "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.log"
           exit 1
 
-      - name: HTTP and protected API smoke
-        shell: bash
-        run: |
-          set -euo pipefail
-          for path in / /products /account /admin; do
-            code=$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:3000${path}")
-            if [ "$code" -ge 500 ]; then
-              echo "${path} returned ${code}"
-              exit 1
-            fi
-          done
+      - name: Exercise HTTP, redirects and protected API boundaries
+        id: http
+        if: steps.server.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          node scripts/ci/http-smoke.mjs
+          --base-url "$PLAYWRIGHT_BASE_URL"
+          --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/http"
 
-          api_code=$(curl --silent --output /tmp/inventory-api.txt --write-out '%{http_code}' \
-            http://127.0.0.1:3000/api/admin/inventory/products)
-          case "$api_code" in
-            200|302|307|401|403) ;;
-            *)
-              cat /tmp/inventory-api.txt
-              echo "Unexpected Inventory API status: ${api_code}"
-              exit 1
-              ;;
-          esac
+      - name: Run responsive, theme, event and interaction contracts
+        id: e2e
+        if: steps.server.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          node scripts/ci/run-gates.mjs
+          --suite playwright
+          --project "$PLAYWRIGHT_PROJECT"
+          --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright"
 
-      - name: Run responsive, theme and interaction contracts
-        shell: bash
-        run: |
-          set -euo pipefail
-          pnpm exec playwright test \
-            --project="${{ matrix.project }}" \
-            --grep-invert "captures paired handoff and implementation evidence"
-
-      - name: Inspect server log for runtime failures
+      - name: Inspect production runtime log
+        id: serverlog
         if: always()
-        shell: bash
-        run: |
-          if [ -f playwright-server.log ]; then
-            cat playwright-server.log
-            if grep -E "Unhandled Runtime Error|Internal Server Error|ReferenceError:|TypeError:" playwright-server.log; then
-              exit 1
-            fi
-          fi
+        continue-on-error: true
+        run: >-
+          node scripts/ci/check-server-log.mjs
+          --input "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.log"
+          --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/server-log"
 
       - name: Stop production server
         if: always()
         shell: bash
         run: |
-          if [ -f playwright-server.pid ]; then
-            kill "$(cat playwright-server.pid)" 2>/dev/null || true
+          pid_file="ci-evidence/browser/${PLAYWRIGHT_PROJECT}/playwright-server.pid"
+          if [ -f "$pid_file" ]; then
+            kill "$(cat "$pid_file")" 2>/dev/null || true
           fi
 
-      - name: Upload browser evidence
+      - name: Upload complete browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-${{ matrix.project }}-${{ github.run_attempt }}
-          path: |
-            playwright-report/
-            test-results/
-            playwright-server.log
+          name: playwright-${{ matrix.project }}
+          path: ci-evidence/browser/${{ matrix.project }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce browser contract outcomes
+        if: always()
+        shell: bash
+        env:
+          SERVER_OUTCOME: ${{ steps.server.outcome }}
+          HTTP_OUTCOME: ${{ steps.http.outcome }}
+          E2E_OUTCOME: ${{ steps.e2e.outcome }}
+          SERVER_LOG_OUTCOME: ${{ steps.serverlog.outcome }}
+        run: |
+          failed=0
+          for value in "$SERVER_OUTCOME" "$HTTP_OUTCOME" "$E2E_OUTCOME" "$SERVER_LOG_OUTCOME"; do
+            [ "$value" = "success" ] || failed=1
+          done
+          exit "$failed"
+
+  aggregate:
+    name: Aggregate browser evidence
+    if: always() && !cancelled()
+    needs: [browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out trusted scripts
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download all browser evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-*
+          path: ci-artifacts
+      - name: Merge manifests and detect missing viewport jobs
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          node scripts/ci/merge-evidence.mjs
+          --input ci-artifacts
+          --output ci-feedback
+          --expect browser-preflight,playwright:desktop-chromium,playwright:tablet-chromium,playwright:mobile-chromium
+      - name: Publish aggregate in workflow summary
+        run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload aggregate browser feedback
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-feedback
+          path: ci-feedback/
           if-no-files-found: warn
           retention-days: 14

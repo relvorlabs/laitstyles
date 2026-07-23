@@ -2,15 +2,15 @@ name: Implementation Quality
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
+  actions: read
+  checks: read
   contents: read
 
 concurrency:
@@ -20,29 +20,31 @@ concurrency:
 env:
   CI: "1"
   STOREFRONT_STYLE_SMOKE: "1"
+  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+  PR_NUMBER: ${{ github.event.pull_request.number || '' }}
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
-  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
 
 jobs:
-  static-architecture:
-    name: Static architecture and conventions
+  static:
+    name: Architecture, conventions and static contracts
     runs-on: ubuntu-latest
-    timeout-minutes: 35
-
+    timeout-minutes: 45
     steps:
       - name: Check out application
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Load implementation agent skills
         uses: actions/checkout@v4
         with:
           repository: relvorlabs/agent-controller
           path: .ci/agent-controller
+          persist-credentials: false
           sparse-checkout: |
             skills/next-best-practices
             skills/vercel-react-best-practices
@@ -50,119 +52,55 @@ jobs:
             skills/typescript-advanced-types
             skills/react-doctor
 
-      - name: Verify doctrine and agent skills
+      - name: Verify doctrine and loaded skills
         shell: bash
         run: |
           set -euo pipefail
-          test -f AGENTS.md
-          test -f .agents/doctrine/architecture.md
-          test -f .agents/doctrine/server-and-actions.md
-          test -f .agents/doctrine/toolchain-and-skills.md
-          test -f .ci/agent-controller/skills/next-best-practices/SKILL.md
-          test -f .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
-          test -f .ci/agent-controller/skills/error-handling-patterns/SKILL.md
-          test -f .ci/agent-controller/skills/typescript-advanced-types/SKILL.md
-          test -f .ci/agent-controller/skills/react-doctor/SKILL.md
-          {
-            echo "## Implementation guidance loaded"
-            echo "- AGENTS.md and repository architecture doctrine"
-            echo "- next-best-practices"
-            echo "- vercel-react-best-practices"
-            echo "- error-handling-patterns"
-            echo "- typescript-advanced-types"
-            echo "- react-doctor"
-          } >> "$GITHUB_STEP_SUMMARY"
+          required=(
+            AGENTS.md
+            .agents/doctrine/architecture.md
+            .agents/doctrine/conventions.md
+            .agents/doctrine/server-and-actions.md
+            .agents/doctrine/toolchain-and-skills.md
+            .agents/doctrine/validation-and-reporting.md
+            .ci/agent-controller/skills/next-best-practices/SKILL.md
+            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
+            .ci/agent-controller/skills/error-handling-patterns/SKILL.md
+            .ci/agent-controller/skills/typescript-advanced-types/SKILL.md
+            .ci/agent-controller/skills/react-doctor/SKILL.md
+          )
+          for path in "${required[@]}"; do
+            test -f "$path" || { echo "Missing required guidance: $path"; exit 1; }
+          done
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 25
           cache: pnpm
-
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Architecture and folder-structure guard
-        run: pnpm check:architecture
-
-      - name: Validate Prisma schema
-        run: pnpm prisma:validate
-
-      - name: Strict button audit
-        run: pnpm audit:buttons
-
-      - name: Biome conventions
-        run: pnpm lint
-
-      - name: TypeScript contract
-        run: pnpm typecheck
-
-  tests-and-migrations:
-    name: Tests, coverage and migration integrity
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: laitstyles
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres -d laitstyles"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Deploy and verify migrations
-        run: |
-          pnpm prisma:migrate:deploy
-          pnpm prisma:migrate:status
-
-      - name: Run Vitest with coverage
-        run: pnpm exec vitest run --passWithNoTests --coverage
-
-      - name: Upload coverage
+      - name: Capture changed code, doctrine and skills
+        run: node scripts/ci/collect-context.mjs --output ci-evidence/context
+      - name: Run static gate suite
+        run: node scripts/ci/run-gates.mjs --suite static --output ci-evidence/static
+      - name: Upload static and context evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vitest-coverage-${{ github.run_attempt }}
-          path: coverage/
+          name: implementation-static
+          path: |
+            ci-evidence/context/
+            ci-evidence/static/
           if-no-files-found: warn
           retention-days: 14
 
-  build-and-review:
-    name: Production build and React review
-    needs:
-      - static-architecture
-      - tests-and-migrations
+  database:
+    name: Prisma schema and migration integrity
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:17
@@ -170,57 +108,162 @@ jobs:
           POSTGRES_DB: laitstyles
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
+        ports: [5432:5432]
         options: >-
           --health-cmd="pg_isready -U postgres -d laitstyles"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-
     steps:
       - name: Check out application
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          persist-credentials: false
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 25
           cache: pnpm
-
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Prepare database
-        run: pnpm prisma:migrate:deploy
-
-      - name: Production build
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm build 2>&1 | tee build.log
-
-      - name: React Doctor changed-scope review
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm dlx react-doctor@latest . \
-            --verbose \
-            --scope changed \
-            --base "origin/${CI_BASE_REF}" 2>&1 | tee react-doctor.log
-
-      - name: Upload implementation evidence
+      - name: Run database gate suite
+        run: node scripts/ci/run-gates.mjs --suite database --output ci-evidence/database
+      - name: Upload database evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: implementation-evidence-${{ github.run_attempt }}
+          name: implementation-database
+          path: ci-evidence/database/
+          if-no-files-found: warn
+          retention-days: 14
+
+  tests:
+    name: Vitest and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: [5432:5432]
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Deploy migrations before integration tests
+        run: pnpm prisma:migrate:deploy
+      - name: Run test gate suite
+        run: node scripts/ci/run-gates.mjs --suite tests --output ci-evidence/tests
+      - name: Upload test and coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: implementation-tests
           path: |
-            build.log
-            react-doctor.log
+            ci-evidence/tests/
+            coverage/
+          if-no-files-found: warn
+          retention-days: 14
+
+  build:
+    name: Production build and React review
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: [5432:5432]
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Check out application
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Deploy migrations for build-time reads
+        run: pnpm prisma:migrate:deploy
+      - name: Run build and React review suite
+        run: node scripts/ci/run-gates.mjs --suite build --output ci-evidence/build
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: implementation-build
+          path: ci-evidence/build/
+          if-no-files-found: warn
+          retention-days: 14
+
+  aggregate:
+    name: Aggregate implementation evidence
+    if: always() && !cancelled()
+    needs: [static, database, tests, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out trusted scripts
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download all implementation evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: implementation-*
+          path: ci-artifacts
+      - name: Merge manifests and detect missing jobs
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          node scripts/ci/merge-evidence.mjs
+          --input ci-artifacts
+          --output ci-feedback
+          --expect static,database,tests,build
+      - name: Publish aggregate in workflow summary
+        run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload aggregate feedback
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: implementation-feedback
+          path: ci-feedback/
           if-no-files-found: warn
           retention-days: 14

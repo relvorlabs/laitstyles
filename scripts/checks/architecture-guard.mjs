@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 
 const root = process.cwd();
 const errors = [];
@@ -46,15 +46,34 @@ if (JSON.stringify(actualWorkflows) !== JSON.stringify(expectedWorkflows)) {
   );
 }
 
-const requiredDoctrine = [
+const requiredFiles = [
   "AGENTS.md",
   ".agents/doctrine/architecture.md",
   ".agents/doctrine/server-and-actions.md",
   ".agents/doctrine/toolchain-and-skills.md",
   ".agents/doctrine/validation-and-reporting.md",
+  "scripts/ci/lib.mjs",
+  "scripts/ci/run-gates.mjs",
+  "scripts/ci/collect-context.mjs",
+  "scripts/ci/http-smoke.mjs",
+  "scripts/ci/check-server-log.mjs",
+  "scripts/ci/merge-evidence.mjs",
+  "scripts/ci/build-agent-handoff.mjs",
+  "scripts/ci/publish-feedback.mjs",
+  "docs/ci/advanced-feedback-loop.md",
 ];
-for (const path of requiredDoctrine) {
-  if (!existsSync(join(root, path))) errors.push(`Required architecture guidance is missing: ${path}`);
+for (const path of requiredFiles) {
+  if (!existsSync(join(root, path))) errors.push(`Required architecture or CI contract is missing: ${path}`);
+}
+
+const forbiddenAiFiles = [
+  "scripts/ci/analyze-failures.mjs",
+  "src/app/api/internal/ci/analyze/route.ts",
+  "src/server/ci/ci-feedback.ts",
+  "src/server/ci/ci-feedback.test.ts",
+];
+for (const path of forbiddenAiFiles) {
+  if (existsSync(join(root, path))) errors.push(`OpenAI-key CI dependency must not exist: ${path}`);
 }
 
 if (existsSync(join(root, "src/lib/admin/inventory/inventory-mutations.ts"))) {
@@ -66,7 +85,8 @@ const sourceExtensions = /\.(?:[cm]?[jt]sx?)$/i;
 const phaseThree =
   /phase-3/i.test(process.env.GITHUB_HEAD_REF ?? "") ||
   changedFiles.includes("docs/migration/phase-3-product-management-v2.md");
-const protectedPhaseThreePaths = /^(?:src\/features\/storefront\/|src\/app\/\(home\)\/|src\/app\/products\/|src\/components\/shop\/)/;
+const protectedPhaseThreePaths =
+  /^(?:src\/features\/storefront\/|src\/app\/\(home\)\/|src\/app\/products\/|src\/components\/shop\/)/;
 
 for (const file of changedFiles) {
   if (phaseThree && protectedPhaseThreePaths.test(file)) {
@@ -82,9 +102,8 @@ for (const file of changedFiles) {
   const isTest = /(?:\.test\.|\.spec\.|\/tests?\/)/.test(file);
   const isClient = /^\s*["']use client["'];/m.test(source.slice(0, 300));
   const isServerAction = /^\s*["']use server["'];/m.test(source.slice(0, 300));
-  const importsServerRuntime = /from\s+["'](?:@\/server\/|@\/lib\/prisma|@prisma\/client|[^"']*prisma\/generated)/.test(
-    source,
-  );
+  const importsServerRuntime =
+    /from\s+["'](?:@\/server\/|@\/lib\/prisma|@prisma\/client|[^"']*prisma\/generated)/.test(source);
 
   if (!isTest && lineCount > 800) {
     errors.push(`${file} has ${lineCount} lines; split the implementation before it becomes a god module.`);
@@ -125,15 +144,13 @@ const summary = [
   "",
   `- Changed files inspected: ${changedFiles.length}`,
   `- Workflow files: ${actualWorkflows.join(", ") || "none"}`,
+  `- Required repository contracts: ${requiredFiles.length}`,
+  `- Forbidden OpenAI-key CI files found: ${forbiddenAiFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Errors: ${errors.length}`,
   `- Warnings: ${warnings.length}`,
 ];
-if (warnings.length) {
-  summary.push("", "### Warnings", ...warnings.map((warning) => `- ${warning}`));
-}
-if (errors.length) {
-  summary.push("", "### Failures", ...errors.map((error) => `- ${error}`));
-}
+if (warnings.length) summary.push("", "### Warnings", ...warnings.map((warning) => `- ${warning}`));
+if (errors.length) summary.push("", "### Failures", ...errors.map((error) => `- ${error}`));
 
 const rendered = `${summary.join("\n")}\n`;
 process.stdout.write(rendered);
