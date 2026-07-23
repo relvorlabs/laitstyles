@@ -23,6 +23,8 @@ export function ProductPurchaseIsland({ product }: { product: ProductDetail }) {
   const { reserve, isHeld, secondsFor } = useShop();
   const selection = useProductSelection(product);
   const held = isHeld(product.slug);
+  const baseSize = product.mode === "variant" ? null : product.sizeLabel;
+  const baseColour = product.mode === "variant" ? null : product.colour;
   const colours = useMemo(
     () =>
       product.mode === "variant"
@@ -62,8 +64,8 @@ export function ProductPurchaseIsland({ product }: { product: ProductDetail }) {
       id: product.slug,
       name: product.name,
       category: product.category?.name ?? "Pieces",
-      size: selection.selectedSize ?? product.sizeLabel ?? "One size",
-      color: selection.selectedColour ?? product.colour ?? "Not specified",
+      size: selection.selectedSize ?? baseSize ?? "One size",
+      color: selection.selectedColour ?? baseColour ?? "Not specified",
       condition: product.condition ?? "Not specified",
       price: koboToNaira(selection.displayPrice),
       original: koboToNaira(selection.referencePrice ?? selection.displayPrice),
@@ -116,7 +118,7 @@ export function ProductPurchaseIsland({ product }: { product: ProductDetail }) {
 
       <fieldset className="mt-7">
         <legend className="text-sm font-semibold">
-          Size: {selection.selectedSize ?? "Choose a size"}
+          Size: {selection.selectedSize ?? baseSize ?? "Choose a size"}
         </legend>
         <div className="mt-3 flex flex-wrap gap-2">
           {sizeOptions.map((size) => (

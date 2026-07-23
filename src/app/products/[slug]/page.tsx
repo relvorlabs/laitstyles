@@ -8,10 +8,22 @@ import {
   listPublishedProducts,
   listPublishedProductSlugs,
 } from "@/server/commerce/catalogue/catalog-repository";
-import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
+import {
+  getPublicProductReviews,
+  type PublicProductReviews,
+} from "@/server/commerce/reviews/public-reviews";
 import ProductDetailLoading from "./loading";
 
 type Params = { slug: string };
+
+const EMPTY_REVIEWS: PublicProductReviews = {
+  reviews: [],
+  summary: {
+    average: 0,
+    count: 0,
+    distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+  },
+};
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
@@ -65,10 +77,7 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
 
   const [reviews, recommendationCandidates] = await Promise.all([
     process.env.STOREFRONT_STYLE_SMOKE === "1"
-      ? Promise.resolve({
-          reviews: [],
-          summary: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
-        })
+      ? Promise.resolve(EMPTY_REVIEWS)
       : getPublicProductReviews(slug),
     listPublishedProducts({
       categoryId: product.category?.id,
