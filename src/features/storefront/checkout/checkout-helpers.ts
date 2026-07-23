@@ -9,9 +9,14 @@ export type FormErrors = Partial<
 export type CheckoutSnapshot = ReturnType<typeof buildCheckoutSnapshot>;
 
 export type CheckoutItem = {
+  lineKey: string;
+  productId: string;
+  slug: string;
   name: string;
   meta: string;
   seller: string;
+  quantity: number;
+  unitPriceNaira: number;
   priceNum: number;
   img: string;
 };
@@ -65,19 +70,22 @@ export const initialForm = {
 
 export function validate(step: CheckoutStep, form: typeof initialForm): FormErrors {
   const nextErrors: FormErrors = {};
-  if (step === 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((form.email || "").trim()))
+  if (step === 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((form.email || "").trim())) {
     nextErrors.email = "Enter a valid email address";
+  }
   if (step === 1) {
     if (!form.first.trim()) nextErrors.first = "Required";
     if (!form.last.trim()) nextErrors.last = "Required";
     if (!form.address.trim()) nextErrors.address = "Add your street address";
     if (!form.city.trim()) nextErrors.city = "Required";
     const digits = form.phone.replace(/\D/g, "");
-    const ok =
+    const validPhone =
       (digits.startsWith("234") && digits.length === 13) ||
       (digits.startsWith("0") && digits.length === 11) ||
       (!digits.startsWith("234") && !digits.startsWith("0") && digits.length === 10);
-    if (!ok) nextErrors.phone = "Enter a valid Nigerian number, e.g. +234 801 234 5678";
+    if (!validPhone) {
+      nextErrors.phone = "Enter a valid Nigerian number, e.g. +234 801 234 5678";
+    }
   }
   return nextErrors;
 }
@@ -85,11 +93,13 @@ export function validate(step: CheckoutStep, form: typeof initialForm): FormErro
 export function moneyLabel(ngn: number, currency: Currency) {
   return currency === "NGN"
     ? `₦${ngn.toLocaleString()}`
-    : `$${(Math.round((ngn / 1600) * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    : `$${(Math.round((ngn / 1600) * 100) / 100).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+      })}`;
 }
 
-export function formatSeconds(sec = 0) {
-  const value = Math.max(0, sec);
+export function formatSeconds(seconds = 0) {
+  const value = Math.max(0, seconds);
   return `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
 }
 
@@ -97,44 +107,53 @@ export function buildCheckoutSnapshot(
   currency: Currency,
   zone: ZoneId,
   method: PaymentId,
-  secondsLeft: number,
+  secondsLeft: number | null,
   checkoutItems: CheckoutItem[],
 ) {
-  const activeZone = zones.find((item) => item.id === zone) || zones[0];
-  const activeMethod = paymentMethods.find((item) => item.id === method) || paymentMethods[0];
-  const sub = checkoutItems.reduce((sum, item) => sum + item.priceNum, 0);
-  const vatNum = Math.round(sub * 0.075);
-  const totalNum = sub + activeZone.feeNum + vatNum;
+  const activeZone = zones.find((item) => item.id === zone) ?? zones[0];
+  const activeMethod = paymentMethods.find((item) => item.id === method) ?? paymentMethods[0];
+  const subtotalNum = checkoutItems.reduce((sum, item) => sum + item.priceNum, 0);
+  const vatNum = Math.round(subtotalNum * 0.075);
+  const totalNum = subtotalNum + activeZone.feeNum + vatNum;
   const podDepositNum = 5000;
-  const expired = secondsLeft <= 0;
-  const expiring = !expired && secondsLeft <= 180;
+  const hasHold = secondsLeft !== null;
+  const expired = hasHold && secondsLeft <= 0;
+  const expiring = hasHold && !expired && secondsLeft <= 180;
   const isPod = method === "pod";
+  const holdStatus = hasHold
+    ? expired
+      ? "Hold released — availability will be checked again"
+      : `Your held pieces release in ${formatSeconds(secondsLeft)}`
+    : "Availability is confirmed when payment starts";
 
   return {
     activeMethod,
     activeZone,
     expired,
     expiring,
+    hasHold,
     gatewayName: method === "flutterwave" ? "Flutterwave" : "Paystack",
     isPod,
     items: checkoutItems.map((item) => ({ ...item, price: moneyLabel(item.priceNum, currency) })),
     podDeposit: moneyLabel(podDepositNum, currency),
-    reviewHold: expired ? "Re-hold above to continue." : `Held ${formatSeconds(secondsLeft)}.`,
+    reviewHold: hasHold
+      ? expired
+        ? "Availability will be checked before payment."
+        : `Held ${formatSeconds(secondsLeft)}.`
+      : "Availability is checked before payment.",
+    shippingNum: activeZone.feeNum,
     shipping: moneyLabel(activeZone.feeNum, currency),
-    subtotal: moneyLabel(sub, currency),
-    timer: formatSeconds(secondsLeft),
+    subtotalNum,
+    subtotal: moneyLabel(subtotalNum, currency),
+    timer: hasHold ? formatSeconds(secondsLeft) : null,
+    totalNum,
     total: moneyLabel(totalNum, currency),
+    vatNum,
     vat: moneyLabel(vatNum, currency),
     payGateway: isPod ? "Deposit secured · Paystack" : `Secured by ${activeMethod.name} · PCI-DSS`,
-    payLabel: expired
-      ? "Re-hold to pay"
-      : isPod
-        ? `Pay deposit · ${moneyLabel(podDepositNum, currency)}`
-        : `Pay ${moneyLabel(totalNum, currency)}`,
-    holdMsg: expired
-      ? "Hold released — re-hold above to continue"
-      : isPod
-        ? "Deposit confirms your hold at checkout"
-        : `Your ${checkoutItems.length} pieces are held — releasing in ${formatSeconds(secondsLeft)}`,
+    payLabel: isPod
+      ? `Pay deposit · ${moneyLabel(podDepositNum, currency)}`
+      : `Pay ${moneyLabel(totalNum, currency)}`,
+    holdMsg: holdStatus,
   };
 }
