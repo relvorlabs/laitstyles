@@ -10,13 +10,10 @@ import {
   restoreProductAction,
   saveProductAction,
 } from "@/features/admin/inventory/inventory-actions";
-import { useAdmin } from "@/features/admin/state/admin-provider";
 import { inventoryKeys } from "@/lib/admin/inventory/inventory-query-keys";
 import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import type {
-  CatalogueTaxonomyInput,
   CatalogueTaxonomyItem,
-  IntakeStage,
   InventoryProduct,
   ProductEditorIntent,
   ProductEditorValues,
@@ -110,34 +107,6 @@ export function useDeleteProduct() {
       queryClient.removeQueries({
         queryKey: inventoryKeys.product(result.value.productId),
       });
-      queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
-    },
-  });
-}
-
-export function useTransitionIntake() {
-  const { transitionIntake } = useAdmin();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      productId,
-      nextStage,
-    }: {
-      productId: string;
-      nextStage: IntakeStage;
-    }) => Promise.resolve(transitionIntake(productId, nextStage)),
-    onSuccess: (result) => {
-      if (!result.ok) return;
-      queryClient.setQueryData(
-        inventoryKeys.products(),
-        (previous?: InventoryProduct[]) =>
-          upsertProductInCache(previous, result.value.product),
-      );
-      queryClient.setQueryData(
-        inventoryKeys.product(result.value.product.id),
-        result.value.product,
-      );
       queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
     },
   });
