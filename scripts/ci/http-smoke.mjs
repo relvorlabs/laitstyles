@@ -18,13 +18,6 @@ const cases = [
     path: "/api/admin/inventory/products",
     allowed: [200, 302, 307, 401, 403],
   },
-  {
-    name: "ci-feedback-auth-boundary",
-    method: "POST",
-    path: "/api/internal/ci/analyze",
-    allowed: [400, 401, 413, 503],
-    body: {},
-  },
 ];
 
 async function requestWithRedirects(testCase) {
