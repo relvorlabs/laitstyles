@@ -158,6 +158,15 @@ export function parseOrderReceipt(value: unknown): OrderReceipt | null {
   };
 }
 
+export function parseOrderReceiptSnapshot(snapshot: string | null) {
+  if (!snapshot) return null;
+  try {
+    return parseOrderReceipt(JSON.parse(snapshot));
+  } catch {
+    return null;
+  }
+}
+
 export function serializeOrderReceipt(receipt: OrderReceipt) {
   const parsed = parseOrderReceipt(receipt);
   if (!parsed) throw new Error("Cannot persist an invalid order receipt.");
@@ -168,12 +177,7 @@ export function readLatestOrderReceipt(storage: ReceiptStorage): OrderReceipt | 
   const serialized =
     storage.getItem(ORDER_RECEIPT_STORAGE_KEY) ??
     storage.getItem(LEGACY_ORDER_RECEIPT_STORAGE_KEY);
-  if (!serialized) return null;
-  try {
-    return parseOrderReceipt(JSON.parse(serialized));
-  } catch {
-    return null;
-  }
+  return parseOrderReceiptSnapshot(serialized);
 }
 
 export function writeLatestOrderReceipt(storage: ReceiptStorage, receipt: OrderReceipt) {
