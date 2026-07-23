@@ -11,9 +11,19 @@ import { canStaff, isUuid } from "@/server/commerce/inventory/inventory-rules";
 
 export type LifecycleOutcome = ProductLifecycleActionSuccess & { slug: string };
 
-async function getTarget(productId: string) {
+type ProductTarget = { id: string; name: string; slug: string };
+
+function productNotFound(productId: string): Result<never, ProductLifecycleActionError> {
+  return err({
+    code: "product-not-found",
+    productId,
+    message: "The selected product could not be found.",
+  });
+}
+
+async function findTarget(tx: Prisma.TransactionClient, productId: string): Promise<ProductTarget | null> {
   if (!isUuid(productId)) return null;
-  return prisma.products.findUnique({
+  return tx.products.findUnique({
     where: { id: productId },
     select: { id: true, name: true, slug: true },
   });
@@ -30,29 +40,30 @@ export async function archiveInventoryProduct(
       message: "You don't have permission to archive products.",
     });
   }
-  const product = await getTarget(productId);
-  if (!product) {
-    return err({
-      code: "product-not-found",
-      productId,
-      message: "The selected product could not be found.",
-    });
-  }
-  await prisma.$transaction(async (tx) => {
-    await tx.products.update({
-      where: { id: product.id },
-      data: { lifecycle: "archived", publication: "unpublished", scheduled_at: null },
-    });
-    await tx.product_channels.deleteMany({ where: { product_id: product.id } });
-    await tx.audit_events.create({
-      data: {
-        actor_profile_id: actor.authUserId,
-        action: "inventory:archive",
-        target_table: "products",
-        target_id: product.id,
-      },
-    });
-  });
+
+  const product = await prisma.$transaction(
+    async (tx) => {
+      const target = await findTarget(tx, productId);
+      if (!target) return null;
+      await tx.products.update({
+        where: { id: target.id },
+        data: { lifecycle: "archived", publication: "unpublished", scheduled_at: null },
+      });
+      await tx.product_channels.deleteMany({ where: { product_id: target.id } });
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: "inventory:archive",
+          target_table: "products",
+          target_id: target.id,
+        },
+      });
+      return target;
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
+  if (!product) return productNotFound(productId);
+
   return ok({
     productId,
     slug: product.slug,
@@ -72,28 +83,29 @@ export async function restoreInventoryProduct(
       message: "You don't have permission to restore products.",
     });
   }
-  const product = await getTarget(productId);
-  if (!product) {
-    return err({
-      code: "product-not-found",
-      productId,
-      message: "The selected product could not be found.",
-    });
-  }
-  await prisma.$transaction(async (tx) => {
-    await tx.products.update({
-      where: { id: product.id },
-      data: { lifecycle: "active", publication: "unpublished", scheduled_at: null },
-    });
-    await tx.audit_events.create({
-      data: {
-        actor_profile_id: actor.authUserId,
-        action: "inventory:restore",
-        target_table: "products",
-        target_id: product.id,
-      },
-    });
-  });
+
+  const product = await prisma.$transaction(
+    async (tx) => {
+      const target = await findTarget(tx, productId);
+      if (!target) return null;
+      await tx.products.update({
+        where: { id: target.id },
+        data: { lifecycle: "active", publication: "unpublished", scheduled_at: null },
+      });
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: "inventory:restore",
+          target_table: "products",
+          target_id: target.id,
+        },
+      });
+      return target;
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
+  if (!product) return productNotFound(productId);
+
   return ok({
     productId,
     slug: product.slug,
@@ -113,57 +125,62 @@ export async function deleteInventoryProduct(
       message: "You don't have permission to delete products.",
     });
   }
-  const product = await getTarget(productId);
-  if (!product) {
-    return err({
-      code: "product-not-found",
-      productId,
-      message: "The selected product could not be found.",
-    });
-  }
-
-  const dependencies = await Promise.all([
-    prisma.order_lines.count({ where: { product_id: productId } }),
-    prisma.holds.count({ where: { product_id: productId } }),
-    prisma.stock_movements.count({ where: { product_id: productId } }),
-    prisma.customer_saved_products.count({ where: { product_id: productId } }),
-  ]);
-  if (dependencies.some((count) => count > 0)) {
-    return err({
-      code: "product-in-use",
-      productId,
-      message: `${product.name} has order, hold, stock or customer history. Archive it instead.`,
-    });
-  }
+  if (!isUuid(productId)) return productNotFound(productId);
 
   try {
-    await prisma.$transaction(async (tx) => {
-      await tx.products.delete({ where: { id: productId } });
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: actor.authUserId,
-          action: "inventory:delete",
-          target_table: "products",
-          target_id: productId,
-          metadata: { slug: product.slug, name: product.name },
-        },
+    const outcome = await prisma.$transaction(
+      async (tx) => {
+        const product = await findTarget(tx, productId);
+        if (!product) return { kind: "missing" as const };
+
+        const dependencies = await Promise.all([
+          tx.order_lines.count({ where: { product_id: productId } }),
+          tx.holds.count({ where: { product_id: productId } }),
+          tx.stock_movements.count({ where: { product_id: productId } }),
+          tx.customer_saved_products.count({ where: { product_id: productId } }),
+        ]);
+        if (dependencies.some((count) => count > 0)) {
+          return { kind: "in-use" as const, product };
+        }
+
+        await tx.products.delete({ where: { id: productId } });
+        await tx.audit_events.create({
+          data: {
+            actor_profile_id: actor.authUserId,
+            action: "inventory:delete",
+            target_table: "products",
+            target_id: productId,
+            metadata: { slug: product.slug, name: product.name },
+          },
+        });
+        return { kind: "deleted" as const, product };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+
+    if (outcome.kind === "missing") return productNotFound(productId);
+    if (outcome.kind === "in-use") {
+      return err({
+        code: "product-in-use",
+        productId,
+        message: `${outcome.product.name} has order, hold, stock or customer history. Archive it instead.`,
       });
+    }
+
+    return ok({
+      productId,
+      slug: outcome.product.slug,
+      deleted: true,
+      message: `${outcome.product.name} permanently deleted.`,
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
       return err({
         code: "product-in-use",
         productId,
-        message: `${product.name} has operational history. Archive it instead.`,
+        message: "This product has operational history. Archive it instead.",
       });
     }
     throw error;
   }
-
-  return ok({
-    productId,
-    slug: product.slug,
-    deleted: true,
-    message: `${product.name} permanently deleted.`,
-  });
 }
