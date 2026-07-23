@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import {
   createContext,
   type ReactNode,
@@ -11,27 +10,25 @@ import {
   useRef,
   useState,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { Product } from "./catalogue-data";
+import { useRouter } from "next/navigation";
+import {
+  signOutStorefrontSession,
+  submitPasswordSignIn,
+  submitPasswordSignUp,
+} from "@/app/auth/actions";
+import type { StorefrontAuthSession } from "./storefront-auth-session";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
   type StorefrontAuthMode,
   type StorefrontAuthState,
 } from "./storefront-auth-dialog";
+import { type Product, productById } from "./catalogue-data";
+import { useStorefrontClientState } from "./storefront-client-state-provider";
 import {
-  applyHold,
-  applyRelease,
   buildStorefrontAccountSeedItems,
-  HOLD_SECONDS,
   type HoldablePiece,
-  type HoldsRecord,
-  holdsToItems,
-  pruneExpiredHolds,
-  readPersistedHolds,
   type StorefrontAccountItem,
-  tickHolds,
-  writePersistedHolds,
 } from "./storefront-experience-data";
 import {
   StorefrontHoldAlert,
@@ -44,7 +41,7 @@ type StorefrontExperienceState = {
   authReady: boolean;
   heldItems: StorefrontAccountItem[];
   holdCount: number;
-  holdSecondsByProduct: Record<string, number>;
+  holdSecondsByProduct: Readonly<Record<string, number>>;
   items: StorefrontAccountItem[];
   signedIn: boolean;
   soonestHoldSeconds: number;
@@ -78,6 +75,14 @@ const blankAuthForm: StorefrontAuthForm = {
   password: "",
 };
 
+function buildAccountItems(products: readonly Product[]) {
+  return buildStorefrontAccountSeedItems(products).map((item) =>
+    item.st === "resYou"
+      ? { ...item, st: "available" as const, secondsLeft: undefined }
+      : item,
+  );
+}
+
 export function useStorefrontExperience() {
   const context = use(StorefrontExperienceContext);
   if (!context) {
@@ -87,19 +92,20 @@ export function useStorefrontExperience() {
 }
 
 export function StorefrontExperienceProvider({
+  authSession,
   children,
   products,
 }: {
+  authSession: StorefrontAuthSession;
   children: ReactNode;
   products: readonly Product[];
 }) {
-  const [items, setItems] = useState<StorefrontAccountItem[]>(() =>
-    buildStorefrontAccountSeedItems(products),
+  const router = useRouter();
+  const clientState = useStorefrontClientState();
+  const [session, setSession] = useState(authSession);
+  const [accountItems, setAccountItems] = useState<StorefrontAccountItem[]>(() =>
+    buildAccountItems(products),
   );
-  const [authReady, setAuthReady] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [holdAlertDismissed, setHoldAlertDismissed] = useState(false);
   const [toast, setToast] = useState<StorefrontToastData | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -112,67 +118,8 @@ export function StorefrontExperienceProvider({
   const [remember, setRemember] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const authSuccessRef = useRef<(() => void) | null>(null);
-  // Absolute-expiry record for storefront-originated holds, mirrored to sessionStorage
-  // so a live countdown survives reload. Seed holds are not tracked here.
-  const holdsRef = useRef<HoldsRecord>({});
 
-  useEffect(() => {
-    let active = true;
-    try {
-      const supabase = createClient();
-      void supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
-        if (!active) return;
-        const user = data.session?.user ?? null;
-        setSignedIn(!!user);
-        setUserEmail(user?.email ?? null);
-        setUserName(readUserName(user?.user_metadata));
-        setAuthReady(true);
-      });
-      const { data } = supabase.auth.onAuthStateChange(
-        (_event: AuthChangeEvent, session: Session | null) => {
-          const user = session?.user ?? null;
-          setSignedIn(!!user);
-          setUserEmail(user?.email ?? null);
-          setUserName(readUserName(user?.user_metadata));
-          setAuthReady(true);
-        },
-      );
-      return () => {
-        active = false;
-        data.subscription.unsubscribe();
-      };
-    } catch {
-      setAuthReady(true);
-    }
-  }, []);
-
-  // Rehydrate storefront holds from sessionStorage once, on mount (deferred so it does
-  // not diverge from the seed-only server render and cause a hydration mismatch).
-  useEffect(() => {
-    const now = Date.now();
-    const record = pruneExpiredHolds(readPersistedHolds(), now);
-    holdsRef.current = record;
-    writePersistedHolds(record);
-    const rehydrated = holdsToItems(record, now);
-    if (rehydrated.length === 0) return;
-    setItems((current) => {
-      const known = new Set(current.map((item) => item.id));
-      return [...current, ...rehydrated.filter((item) => !known.has(item.id))];
-    });
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setItems((current) => tickHolds(current));
-      const pruned = pruneExpiredHolds(holdsRef.current, Date.now());
-      if (Object.keys(pruned).length !== Object.keys(holdsRef.current).length) {
-        holdsRef.current = pruned;
-        writePersistedHolds(pruned);
-      }
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, []);
+  useEffect(() => setSession(authSession), [authSession]);
 
   useEffect(() => {
     if (!toast) return;
@@ -180,19 +127,39 @@ export function StorefrontExperienceProvider({
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const heldItems = useMemo(
-    () => items.filter((item) => !item.removed && item.st === "resYou"),
-    [items],
+  const heldItems = useMemo<StorefrontAccountItem[]>(
+    () =>
+      clientState.holds.flatMap((hold) => {
+        const product = productById(products, hold.productId);
+        const secondsLeft = clientState.holdSecondsByProduct[hold.productId];
+        if (!product || !secondsLeft) return [];
+        return [
+          {
+            id: product.id,
+            name: product.name,
+            cat: product.category,
+            size: product.size,
+            color: product.colour,
+            cond: product.condition,
+            priceNum: product.price,
+            origNum: product.referencePrice ?? product.price,
+            st: "resYou",
+            img: product.images[0] ?? "",
+            removed: false,
+            secondsLeft,
+          },
+        ];
+      }),
+    [clientState.holdSecondsByProduct, clientState.holds, products],
   );
   const holdCount = heldItems.length;
   const soonestHoldSeconds = holdCount
-    ? Math.min(...heldItems.map((item) => item.secondsLeft || 0))
+    ? Math.min(...heldItems.map((item) => item.secondsLeft ?? 0))
     : 0;
-  const holdSecondsByProduct = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const item of heldItems) map[item.id] = item.secondsLeft ?? 0;
-    return map;
-  }, [heldItems]);
+  const items = useMemo(() => {
+    const heldIds = new Set(heldItems.map((item) => item.id));
+    return [...accountItems.filter((item) => !heldIds.has(item.id)), ...heldItems];
+  }, [accountItems, heldItems]);
 
   const openAuth = useCallback((mode: StorefrontAuthMode, onSuccess?: () => void) => {
     authSuccessRef.current = onSuccess ?? null;
@@ -202,7 +169,6 @@ export function StorefrontExperienceProvider({
     setAuthErrors({});
     setAuthOpen(true);
   }, []);
-
   const openSignin = useCallback(
     (onSuccess?: () => void) => openAuth("signin", onSuccess),
     [openAuth],
@@ -213,11 +179,12 @@ export function StorefrontExperienceProvider({
   );
 
   const finishAuth = useCallback(() => {
+    const completed = authState === "success";
     setAuthOpen(false);
     setAuthState("default");
-    if (signedIn) authSuccessRef.current?.();
+    if (completed) authSuccessRef.current?.();
     authSuccessRef.current = null;
-  }, [signedIn]);
+  }, [authState]);
 
   const submitAuth = useCallback(async () => {
     if (authState === "signing-in") return;
@@ -232,38 +199,31 @@ export function StorefrontExperienceProvider({
     setShowAuthErrors(false);
     setAuthState("signing-in");
 
-    try {
-      const supabase = createClient();
-      if (authMode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email: authForm.email.trim(),
-          password: authForm.password,
-          options: {
-            data: {
-              first_name: authForm.first.trim(),
-              last_name: authForm.last.trim(),
-              full_name: `${authForm.first.trim()} ${authForm.last.trim()}`.trim(),
-            },
-          },
-        });
-        if (error) throw error;
-        setAuthState(data.session ? "success" : "check-email");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authForm.email.trim(),
-          password: authForm.password,
-        });
-        if (error) throw error;
-        setAuthState("success");
-      }
-    } catch (error) {
-      setAuthErrors({
-        form: error instanceof Error ? error.message : "We could not complete that request.",
-      });
+    const formData = new FormData();
+    formData.set("email", authForm.email.trim());
+    formData.set("password", authForm.password);
+    formData.set("first", authForm.first.trim());
+    formData.set("last", authForm.last.trim());
+    formData.set("next", `${window.location.pathname}${window.location.search}`);
+
+    const result =
+      authMode === "signup"
+        ? await submitPasswordSignUp(formData)
+        : await submitPasswordSignIn(formData);
+
+    if (!result.ok) {
+      setAuthErrors({ ...(result.fieldErrors ?? {}), form: result.message });
       setShowAuthErrors(true);
       setAuthState("default");
+      return;
     }
-  }, [authForm, authMode, authState, termsAccepted]);
+
+    setAuthState(result.status);
+    if (result.status === "success") {
+      setSession({ signedIn: true, email: result.email });
+      router.refresh();
+    }
+  }, [authForm, authMode, authState, router, termsAccepted]);
 
   const onAuthOpenChange = useCallback((open: boolean) => {
     setAuthOpen(open);
@@ -275,7 +235,7 @@ export function StorefrontExperienceProvider({
 
   const updateItems = useCallback(
     (updater: (current: StorefrontAccountItem[]) => StorefrontAccountItem[]) => {
-      setItems(updater);
+      setAccountItems(updater);
     },
     [],
   );
@@ -287,54 +247,40 @@ export function StorefrontExperienceProvider({
 
   const holdProduct = useCallback(
     (piece: HoldablePiece) => {
-      const expiresAt = Date.now() + HOLD_SECONDS * 1000;
-      holdsRef.current = { ...holdsRef.current, [piece.id]: { expiresAt, piece } };
-      writePersistedHolds(holdsRef.current);
-      setItems((current) => applyHold(current, piece));
+      if (!clientState.holdProduct(piece.id)) return;
       setHoldAlertDismissed(false);
       showToast("bag", "Held for you", `"${piece.name}" is held for 15 minutes.`);
     },
-    [showToast],
+    [clientState, showToast],
+  );
+  const releaseProduct = useCallback(
+    (id: string) => clientState.releaseProduct(id),
+    [clientState],
   );
 
-  const releaseProduct = useCallback((id: string) => {
-    if (holdsRef.current[id]) {
-      const { [id]: _removed, ...rest } = holdsRef.current;
-      holdsRef.current = rest;
-      writePersistedHolds(holdsRef.current);
-    }
-    setItems((current) => applyRelease(current, id));
-  }, []);
   const signOut = useCallback(async () => {
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut({ scope: "local" });
-      if (error) throw error;
-      setSignedIn(false);
-      setUserEmail(null);
-      setUserName(null);
-      showToast("default", "Signed out", "Your bag and saved pieces remain in this session.");
-    } catch (error) {
-      showToast(
-        "default",
-        "Could not sign out",
-        error instanceof Error ? error.message : "Please try again.",
-      );
+    const result = await signOutStorefrontSession();
+    if (!result.ok) {
+      showToast("default", "Could not sign out", result.message);
+      return;
     }
-  }, [showToast]);
+    setSession({ signedIn: false, email: null });
+    router.refresh();
+    showToast("default", "Signed out", "Your bag and saved pieces remain in this session.");
+  }, [router, showToast]);
 
   const value = useMemo<StorefrontExperienceContextValue>(
     () => ({
       state: {
-        authReady,
+        authReady: true,
         heldItems,
         holdCount,
-        holdSecondsByProduct,
+        holdSecondsByProduct: clientState.holdSecondsByProduct,
         items,
-        signedIn,
+        signedIn: session.signedIn,
         soonestHoldSeconds,
-        userEmail,
-        userName,
+        userEmail: session.email,
+        userName: null,
       },
       actions: {
         dismissToast,
@@ -349,29 +295,27 @@ export function StorefrontExperienceProvider({
       },
     }),
     [
-      authReady,
+      clientState.holdSecondsByProduct,
       dismissToast,
       heldItems,
       holdCount,
       holdProduct,
-      holdSecondsByProduct,
       items,
       openSignin,
       openSignup,
       releaseProduct,
       revealHoldAlert,
+      session.email,
+      session.signedIn,
       showToast,
-      signedIn,
       signOut,
       soonestHoldSeconds,
       updateItems,
-      userEmail,
-      userName,
     ],
   );
 
   return (
-    <StorefrontExperienceContext value={value}>
+    <StorefrontExperienceContext.Provider value={value}>
       {children}
       {holdCount > 0 && !holdAlertDismissed ? (
         <StorefrontHoldAlert
@@ -405,16 +349,15 @@ export function StorefrontExperienceProvider({
         onTermsAcceptedChange={setTermsAccepted}
         setForm={setAuthForm}
       />
-    </StorefrontExperienceContext>
+    </StorefrontExperienceContext.Provider>
   );
 }
 
-function readUserName(metadata: Record<string, unknown> | undefined) {
-  const value = metadata?.full_name ?? metadata?.name ?? metadata?.first_name;
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-function validateAuth(mode: StorefrontAuthMode, form: StorefrontAuthForm, termsAccepted: boolean) {
+function validateAuth(
+  mode: StorefrontAuthMode,
+  form: StorefrontAuthForm,
+  termsAccepted: boolean,
+) {
   const errors: Record<string, string> = {};
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
     errors.email = "Enter a valid email address";
