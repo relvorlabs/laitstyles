@@ -34,11 +34,15 @@ export interface StorefrontCataloguePage {
 }
 
 function legacyCondition(value: string | null): StorefrontConditionFilter {
-  return value === "Excellent" ? "A+" : value === "Fair" ? "B+" : "A";
+  if (value === "Excellent") return "A+";
+  if (value === "Fair") return "B+";
+  return "A";
 }
 
 function legacyInventory(mode: InventoryMode): StorefrontInventoryFilter {
-  return mode === "unique" ? "one-of-one" : mode === "stocked" ? "matching-stock" : "variant";
+  if (mode === "unique") return "one-of-one";
+  if (mode === "stocked") return "matching-stock";
+  return "variant";
 }
 
 function isAvailable(product: ProductSummary): boolean {
@@ -101,7 +105,7 @@ export function selectStorefrontCataloguePage(
     list = list.filter(({ product }) => inventories.has(legacyInventory(product.mode)));
   }
   if (query.inStock) list = list.filter(({ product }) => isAvailable(product));
-  if (query.maxPriceNaira) {
+  if (query.maxPriceNaira !== undefined) {
     const maxPriceKobo = query.maxPriceNaira * 100;
     list = list.filter(({ product }) => product.price <= maxPriceKobo);
   }
