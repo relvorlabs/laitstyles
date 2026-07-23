@@ -115,7 +115,7 @@ export function StorefrontClientStateProvider({
   const [cart, setCartState] = useState<readonly CartLine[]>([]);
   const [saved, setSavedState] = useState<Set<string>>(new Set());
   const [holds, setHolds] = useState<StorefrontHoldIntent[]>([]);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
   const [holdAlertDismissed, setHoldAlertDismissed] = useState(false);
 
   useEffect(() => {
