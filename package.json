@@ -23,7 +23,7 @@
     "ci:http-smoke": "node scripts/ci/http-smoke.mjs",
     "ci:server-log": "node scripts/ci/check-server-log.mjs",
     "ci:merge-evidence": "node scripts/ci/merge-evidence.mjs",
-    "ci:analyze": "node scripts/ci/analyze-failures.mjs",
+    "ci:handoff": "node scripts/ci/build-agent-handoff.mjs",
     "ci:publish": "node scripts/ci/publish-feedback.mjs",
     "prisma:clean": "node scripts/db/clean-prisma-schema-input.mjs",
     "prisma:generate": "pnpm prisma:clean && prisma generate && pnpm prisma:clean",
