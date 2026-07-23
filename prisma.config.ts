@@ -15,7 +15,9 @@ const datasourceUrl =
     : null;
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  // Prisma's multi-file schema keeps the large public baseline stable while
+  // Phase 2 adds the normalized variant-measurement model in its own file.
+  schema: "prisma",
   migrations: {
     path: "prisma/migrations",
     // Dev-only deterministic seed (docs/storefront-v2/06 Phase 1). Runs automatically
