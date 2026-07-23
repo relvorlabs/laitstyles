@@ -1,9 +1,3 @@
-generator phase2Client {
-  provider        = "prisma-client-js"
-  output          = "../src/generated/prisma"
-  previewFeatures = ["partialIndexes"]
-}
-
 model product_variant_measurements {
   id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   variant_id String @db.Uuid
