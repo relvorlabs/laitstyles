@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = join(__dirname, "../..");
 const sourceRoot = join(root, "src");
 const sourceExtension = /\.(?:[cm]?[jt]sx?)$/;
-const importPattern = /(?:from\s+|import\s*\()\s*["']([^"']+)["']/g;
+const importPattern = /(?:from\s+|import\s*\(\s*|import\s+)["']([^"']+)["']/g;
 const forbiddenClientImports = [
   "@/server/",
   "@/lib/prisma",
