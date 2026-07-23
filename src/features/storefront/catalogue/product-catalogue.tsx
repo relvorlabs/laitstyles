@@ -1,13 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { ParsedCatalogueSearch } from "@/features/storefront/catalogue/catalogue-search-params";
-import { catalogueHref } from "@/features/storefront/catalogue/catalogue-search-params";
+import {
+  catalogueHref,
+  type ParsedCatalogueSearch,
+} from "@/features/storefront/catalogue/catalogue-search-params";
+import { sortOptions } from "@/features/storefront/shared/catalogue-data";
 import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { sortOptions } from "@/features/storefront/shared/catalogue-data";
 import { IconClose, IconFilter, IconSort } from "@/features/storefront/shared/storefront-icons";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
@@ -73,14 +75,10 @@ function CatalogueApp({
   const lastAppliedFilterSignature = useRef(searchFilterSignature(search));
   const filterPanelId = "catalogue-filter-panel";
 
-  const pageItems = useMemo(
-    () =>
-      productIds.flatMap((id) => {
-        const product = storefront.productById(id);
-        return product ? [product] : [];
-      }),
-    [productIds, storefront.productById],
-  );
+  const pageItems = productIds.flatMap((id) => {
+    const product = storefront.productById(id);
+    return product ? [product] : [];
+  });
   const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
 
   const localFilterSignature = JSON.stringify({
@@ -95,6 +93,9 @@ function CatalogueApp({
   });
   const serverFilterSignature = searchFilterSignature(search);
 
+  // The server signature contains every value read inside this synchronization
+  // effect. Storefront setters are stable React state setters.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: signature-driven synchronization is intentional.
   useEffect(() => {
     setFiltersReady(false);
     lastAppliedFilterSignature.current = serverFilterSignature;
@@ -108,8 +109,10 @@ function CatalogueApp({
     storefront.setSort(search.sort);
     const frame = window.requestAnimationFrame(() => setFiltersReady(true));
     return () => window.cancelAnimationFrame(frame);
-  }, [search, serverFilterSignature, storefront]);
+  }, [serverFilterSignature]);
 
+  // Local filter state is serialized only after the server state has hydrated.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the serialized signature is the dependency contract.
   useEffect(() => {
     if (!filtersReady || localFilterSignature === lastAppliedFilterSignature.current) return;
     lastAppliedFilterSignature.current = localFilterSignature;
@@ -127,7 +130,7 @@ function CatalogueApp({
       }),
       { scroll: false },
     );
-  }, [filtersReady, localFilterSignature, router, search, storefront]);
+  }, [filtersReady, localFilterSignature]);
 
   const applyQuick = (opts: { category?: string; collection?: string | null }) => {
     storefront.applyShop(opts);
