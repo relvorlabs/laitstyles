@@ -39,6 +39,8 @@ type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
   onOpenChange: (open: boolean) => void;
   onEdit: (productId: string) => void;
+  /** Compatibility prop until the parent workspace drops its shared admin-state argument. */
+  state?: unknown;
 };
 
 const detailTabs = [
