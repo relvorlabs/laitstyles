@@ -36,7 +36,7 @@ No redesign, styling cleanup, component replacement or opportunistic refactor be
 
 ## Validation authority
 
-All Phase 2 acceptance gates are run and recorded in GitHub Actions. Local or agent-terminal results may help investigation, but they are not completion evidence. The temporary `phase2-diagnostics.yml` workflow captures per-gate logs and exit codes while CI failures are being repaired; it must be removed before the PR is marked ready.
+All Phase 2 acceptance gates are run and recorded in GitHub Actions. Local or agent-terminal results may help investigation, but they are not completion evidence. The temporary `phase2-diagnostics.yml` workflow captures per-gate logs and exit codes while CI failures are being repaired. Remove that workflow before the PR is marked ready.
 
 ## Role sequence and ownership
 
