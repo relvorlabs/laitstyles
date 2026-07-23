@@ -110,7 +110,7 @@ function nextStockData(stock: StockBalance | undefined, totalReceived: number) {
   };
 }
 
-async function assertInventoryModeCanChange(
+export async function assertInventoryModeCanChange(
   tx: Prisma.TransactionClient,
   productId: string,
   existingRow: ExistingProductRow | null,
@@ -270,8 +270,6 @@ export async function writeStockAndVariants(
   values: ProductEditorValues,
   existingRow: ExistingProductRow | null,
 ): Promise<void> {
-  await assertInventoryModeCanChange(tx, productId, existingRow, values.inventoryMode);
-
   const existingVariants = new Map(
     (existingRow?.product_variants ?? []).map((variant) => [variant.id, variant]),
   );
