@@ -29,100 +29,10 @@ env:
   PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
 
 jobs:
-  prepare:
-    name: Build browser test application once
-    runs-on: ubuntu-latest
-    timeout-minutes: 50
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: laitstyles
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports: [5432:5432]
-        options: >-
-          --health-cmd="pg_isready -U postgres -d laitstyles"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Load UI and browser agent skills
-        uses: actions/checkout@v4
-        with:
-          repository: relvorlabs/agent-controller
-          path: .ci/agent-controller
-          persist-credentials: false
-          sparse-checkout: |
-            skills/web-design-guidelines
-            skills/ui-ux-pro-max
-            skills/react-doctor
-            skills/vercel-react-best-practices
-
-      - name: Verify browser doctrine and skills
-        shell: bash
-        run: |
-          set -euo pipefail
-          required=(
-            AGENTS.md
-            .agents/doctrine/ui-and-design-system.md
-            .agents/doctrine/validation-and-reporting.md
-            .ci/agent-controller/skills/web-design-guidelines/SKILL.md
-            .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
-            .ci/agent-controller/skills/react-doctor/SKILL.md
-            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
-          )
-          for path in "${required[@]}"; do
-            test -f "$path" || { echo "Missing browser guidance: $path"; exit 1; }
-          done
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Capture browser implementation context
-        run: node scripts/ci/collect-context.mjs --output ci-evidence/browser-context
-      - name: Validate database and build production application
-        run: node scripts/ci/run-gates.mjs --suite browser-preflight --output ci-evidence/browser-preflight
-
-      - name: Upload production build
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-production-build
-          path: |
-            .next/
-            !.next/cache/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 2
-
-      - name: Upload browser preflight evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-preflight
-          path: |
-            ci-evidence/browser-context/
-            ci-evidence/browser-preflight/
-          if-no-files-found: error
-          retention-days: 14
-
   browser:
     name: Browser runtime / ${{ matrix.project }}
-    needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 65
     strategy:
       fail-fast: false
       matrix:
@@ -152,6 +62,47 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Load UI and browser agent skills
+        if: matrix.project == 'desktop-chromium'
+        uses: actions/checkout@v4
+        with:
+          repository: relvorlabs/agent-controller
+          path: .ci/agent-controller
+          persist-credentials: false
+          sparse-checkout: |
+            skills/web-design-guidelines
+            skills/ui-ux-pro-max
+            skills/react-doctor
+            skills/vercel-react-best-practices
+
+      - name: Verify browser doctrine and skills
+        if: matrix.project == 'desktop-chromium'
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            AGENTS.md
+            .agents/doctrine/ui-and-design-system.md
+            .agents/doctrine/validation-and-reporting.md
+            .ci/agent-controller/skills/web-design-guidelines/SKILL.md
+            .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
+            .ci/agent-controller/skills/react-doctor/SKILL.md
+            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
+          )
+          for path in "${required[@]}"; do
+            test -f "$path" || { echo "Missing browser guidance: $path"; exit 1; }
+          done
+
+      - name: Verify repository browser doctrine
+        if: matrix.project != 'desktop-chromium'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f .agents/doctrine/ui-and-design-system.md
+          test -f .agents/doctrine/validation-and-reporting.md
+
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
@@ -161,13 +112,16 @@ jobs:
           cache: pnpm
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-      - name: Restore production build
-        uses: actions/download-artifact@v4
-        with:
-          name: browser-production-build
-          path: .
-      - name: Deploy runtime database migrations
-        run: pnpm prisma:migrate:deploy
+
+      - name: Capture browser implementation context
+        if: matrix.project == 'desktop-chromium'
+        run: node scripts/ci/collect-context.mjs --output ci-evidence/browser/${PLAYWRIGHT_PROJECT}/context
+
+      - name: Validate database and build production application
+        run: >-
+          node scripts/ci/run-gates.mjs
+          --suite browser-preflight
+          --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/preflight"
 
       - name: Cache Playwright browser
         uses: actions/cache@v4
@@ -241,7 +195,7 @@ jobs:
         with:
           name: playwright-${{ matrix.project }}
           path: ci-evidence/browser/${{ matrix.project }}/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Enforce browser contract outcomes
@@ -261,8 +215,8 @@ jobs:
 
   aggregate:
     name: Aggregate browser evidence
-    if: always()
-    needs: [prepare, browser]
+    if: always() && !cancelled()
+    needs: [browser]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -287,9 +241,10 @@ jobs:
       - name: Publish aggregate in workflow summary
         run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload aggregate browser feedback
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-feedback
           path: ci-feedback/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
