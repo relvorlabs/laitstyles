@@ -58,14 +58,22 @@ const requiredFiles = [
   "scripts/ci/http-smoke.mjs",
   "scripts/ci/check-server-log.mjs",
   "scripts/ci/merge-evidence.mjs",
-  "scripts/ci/analyze-failures.mjs",
+  "scripts/ci/build-agent-handoff.mjs",
   "scripts/ci/publish-feedback.mjs",
-  "src/app/api/internal/ci/analyze/route.ts",
-  "src/server/ci/ci-feedback.ts",
   "docs/ci/advanced-feedback-loop.md",
 ];
 for (const path of requiredFiles) {
   if (!existsSync(join(root, path))) errors.push(`Required architecture or CI contract is missing: ${path}`);
+}
+
+const forbiddenAiFiles = [
+  "scripts/ci/analyze-failures.mjs",
+  "src/app/api/internal/ci/analyze/route.ts",
+  "src/server/ci/ci-feedback.ts",
+  "src/server/ci/ci-feedback.test.ts",
+];
+for (const path of forbiddenAiFiles) {
+  if (existsSync(join(root, path))) errors.push(`OpenAI-key CI dependency must not exist: ${path}`);
 }
 
 if (existsSync(join(root, "src/lib/admin/inventory/inventory-mutations.ts"))) {
@@ -137,6 +145,7 @@ const summary = [
   `- Changed files inspected: ${changedFiles.length}`,
   `- Workflow files: ${actualWorkflows.join(", ") || "none"}`,
   `- Required repository contracts: ${requiredFiles.length}`,
+  `- Forbidden OpenAI-key CI files found: ${forbiddenAiFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Errors: ${errors.length}`,
   `- Warnings: ${warnings.length}`,
 ];
