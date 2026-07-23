@@ -180,8 +180,7 @@ export function mapInventoryProductRow(row: InventoryProductRow): InventoryProdu
       ...base,
       inventoryMode: "unique",
       archiveNumber: row.archive_number ?? "Pending",
-      condition:
-        row.condition === "Excellent" || row.condition === "Fair" ? row.condition : "Good",
+      condition: row.condition ?? "",
       size: row.size_label ?? "Not recorded",
       colour: row.colour ?? "Not recorded",
       measurements: row.product_measurements.map(({ label, value }) => ({ label, value })),
