@@ -71,6 +71,19 @@ function protectedQuantity(stock: StockBalance | undefined): number {
   return stock.reserved + stock.committed + stock.sold + stock.returned + stock.damaged;
 }
 
+function recordedQuantity(stock: StockBalance | undefined): number {
+  if (!stock) return 0;
+  return (
+    stock.total_received +
+    stock.available +
+    stock.reserved +
+    stock.committed +
+    stock.sold +
+    stock.returned +
+    stock.damaged
+  );
+}
+
 function nextStockData(stock: StockBalance | undefined, totalReceived: number) {
   const protectedUnits = protectedQuantity(stock);
   if (totalReceived < protectedUnits) {
@@ -95,6 +108,41 @@ function nextStockData(stock: StockBalance | undefined, totalReceived: number) {
     returned: stock?.returned ?? 0,
     damaged: stock?.damaged ?? 0,
   };
+}
+
+async function assertInventoryModeCanChange(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  existingRow: ExistingProductRow | null,
+  nextMode: ProductEditorValues["inventoryMode"],
+): Promise<void> {
+  if (!existingRow || existingRow.inventory_mode === nextMode) return;
+
+  const stockRows = [
+    ...existingRow.stock_levels,
+    ...existingRow.product_variants.flatMap((variant) => variant.stock_levels),
+  ];
+  const hasRecordedBalance = stockRows.some((stock) => recordedQuantity(stock) > 0);
+  const [holds, lines, movements] = await Promise.all([
+    tx.holds.count({ where: { product_id: productId } }),
+    tx.order_lines.count({ where: { product_id: productId } }),
+    tx.stock_movements.count({ where: { product_id: productId } }),
+  ]);
+
+  if (!hasRecordedBalance && holds + lines + movements === 0) return;
+
+  throw new InventoryRuleViolation({
+    code: "validation-failed",
+    message:
+      "Product type cannot change after stock or operational history has been recorded. Archive this product and create a new record instead.",
+    issues: [
+      {
+        path: "inventoryMode",
+        message: "Product type is locked after stock or operational history exists.",
+        step: "type",
+      },
+    ],
+  });
 }
 
 async function assertVariantsCanBeRemoved(
@@ -124,6 +172,14 @@ async function assertVariantsCanBeRemoved(
   }
 }
 
+function assetProviderFor(url: string): string {
+  try {
+    return new URL(url).hostname === "res.cloudinary.com" ? "cloudinary" : "external";
+  } catch {
+    return "external";
+  }
+}
+
 export async function writeProductMedia(
   tx: Prisma.TransactionClient,
   productId: string,
@@ -132,10 +188,12 @@ export async function writeProductMedia(
   await tx.product_media.deleteMany({ where: { product_id: productId } });
   for (const [position, item] of media.entries()) {
     const kind = mediaKindToDb[item.kind];
+    const provider = assetProviderFor(item.url);
     const asset = await tx.cloudinary_assets.upsert({
       where: { public_id: `admin/products/${productId}/${position}` },
-      update: { kind, secure_url: item.url, alt: clean(item.alt) },
+      update: { provider, kind, secure_url: item.url, alt: clean(item.alt) },
       create: {
+        provider,
         kind,
         public_id: `admin/products/${productId}/${position}`,
         secure_url: item.url,
@@ -212,6 +270,8 @@ export async function writeStockAndVariants(
   values: ProductEditorValues,
   existingRow: ExistingProductRow | null,
 ): Promise<void> {
+  await assertInventoryModeCanChange(tx, productId, existingRow, values.inventoryMode);
+
   const existingVariants = new Map(
     (existingRow?.product_variants ?? []).map((variant) => [variant.id, variant]),
   );
@@ -304,17 +364,21 @@ export async function writeStockAndVariants(
     );
 
     if (clean(input.imageUrl)) {
+      const imageUrl = clean(input.imageUrl);
+      const provider = assetProviderFor(imageUrl);
       const asset = await tx.cloudinary_assets.upsert({
         where: { public_id: `admin/products/${productId}/variants/${variant.id}` },
         update: {
+          provider,
           kind: "product_detail",
-          secure_url: clean(input.imageUrl),
+          secure_url: imageUrl,
           alt: `${clean(values.name) || "Product"} — ${clean(input.label)}`,
         },
         create: {
+          provider,
           kind: "product_detail",
           public_id: `admin/products/${productId}/variants/${variant.id}`,
-          secure_url: clean(input.imageUrl),
+          secure_url: imageUrl,
           alt: `${clean(values.name) || "Product"} — ${clean(input.label)}`,
         },
       });
