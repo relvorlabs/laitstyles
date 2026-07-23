@@ -5,16 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
-import { naira } from "@/lib/catalogue";
 import {
-  getClientReadySnapshot,
   getLatestOrderSnapshot,
-  getServerClientReadySnapshot,
   getServerOrderSnapshot,
-  parseOrderReceipt,
-  subscribeToClientReady,
+  parseOrderReceiptSnapshot,
   subscribeToLatestOrder,
-} from "@/lib/order";
+} from "@/features/storefront/checkout/order-receipt";
+import { money } from "@/features/storefront/shared/catalogue-data";
 
 export default function OrderConfirmationPage() {
   const receiptSnapshot = useSyncExternalStore(
@@ -22,24 +19,12 @@ export default function OrderConfirmationPage() {
     getLatestOrderSnapshot,
     getServerOrderSnapshot,
   );
-  const clientReady = useSyncExternalStore(
-    subscribeToClientReady,
-    getClientReadySnapshot,
-    getServerClientReadySnapshot,
+  const receipt = useMemo(
+    () => parseOrderReceiptSnapshot(receiptSnapshot),
+    [receiptSnapshot],
   );
-  const receipt = useMemo(() => parseOrderReceipt(receiptSnapshot), [receiptSnapshot]);
 
-  if (!clientReady) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-[#ECEBE6] px-5 py-10">
-        <div className="h-[720px] w-full max-w-[640px] animate-pulse rounded-[16px] bg-white/70" />
-      </main>
-    );
-  }
-
-  if (!receipt) {
-    return <MissingReceipt />;
-  }
+  if (!receipt) return <MissingReceipt />;
 
   return (
     <main className="min-h-dvh bg-[#ECEBE6] px-5 pb-[50px] pt-[26px] text-[#1B1A17] max-sm:px-4">
@@ -60,11 +45,11 @@ export default function OrderConfirmationPage() {
               Order confirmed
             </div>
             <h1 className="mb-2.5 font-serif text-[34px] font-medium leading-[1.15]">
-              They&apos;re yours, {receipt.firstName}.
+              They&apos;re yours, {receipt.firstName || "there"}.
             </h1>
             <p className="mx-auto max-w-[430px] text-[14.5px] leading-[1.6] text-[#57554E]">
-              Each piece is one-of-one — off the rack for good and reserved to you. A receipt is on
-              its way to <strong className="text-[#1B1A17]">{receipt.email}</strong>.
+              Your order summary is saved for this session. A receipt is on its way to{" "}
+              <strong className="text-[#1B1A17]">{receipt.email}</strong>.
             </p>
           </header>
 
@@ -110,38 +95,44 @@ export default function OrderConfirmationPage() {
             {receipt.items.map((item) => (
               <div
                 className="flex items-center gap-3.5 border-b border-[#F4F3EE] py-3"
-                key={item.id}
+                key={item.lineKey}
               >
                 <div className="relative h-[70px] w-[58px] shrink-0 overflow-hidden rounded-[9px] bg-[#E4E5DE]">
-                  <Image
-                    alt={item.name}
-                    className="object-cover"
-                    fill
-                    sizes="58px"
-                    src={item.image}
-                  />
+                  {item.imageUrl ? (
+                    <Image
+                      alt={item.name}
+                      className="object-cover"
+                      fill
+                      sizes="58px"
+                      src={item.imageUrl}
+                    />
+                  ) : null}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[14px] font-medium">{item.name}</div>
+                  <Link className="text-[14px] font-medium" href={`/products/${item.slug}`}>
+                    {item.name}
+                  </Link>
                   <div className="mt-0.5 text-[12px] text-[#8A887E]">
-                    Size {item.size} · {item.color} · {item.condition}
+                    Size {item.size ?? "—"} · {item.colour ?? "—"} · Grade {item.condition}
                   </div>
                   <div className="mt-0.5 text-[11.5px] text-[#A7A59B]">
-                    One-of-one Laitstyle piece
+                    Quantity {item.quantity}
                   </div>
                 </div>
-                <div className="shrink-0 text-[14px] font-semibold">{naira(item.price)}</div>
+                <div className="shrink-0 text-[14px] font-semibold">
+                  {money(item.unitPriceNaira * item.quantity)}
+                </div>
               </div>
             ))}
           </section>
 
           <section className="px-[34px] pb-2 pt-[18px] max-sm:px-5">
-            <SummaryRow label="Subtotal" value={naira(receipt.subtotal)} />
-            <SummaryRow label={`Delivery · ${receipt.zoneName}`} value={naira(receipt.shipping)} />
-            <SummaryRow label="VAT (7.5%)" value={naira(receipt.vat)} />
+            <SummaryRow label="Subtotal" value={money(receipt.subtotal)} />
+            <SummaryRow label={`Delivery · ${receipt.zoneName}`} value={money(receipt.shipping)} />
+            <SummaryRow label="VAT (7.5%)" value={money(receipt.vat)} />
             <div className="mt-3.5 flex items-baseline justify-between border-t border-[#ECEAE3] pt-3.5">
               <span className="text-[16px] font-semibold">Total paid</span>
-              <span className="text-[20px] font-semibold">{naira(receipt.total)}</span>
+              <span className="text-[20px] font-semibold">{money(receipt.total)}</span>
             </div>
           </section>
 
@@ -155,8 +146,7 @@ export default function OrderConfirmationPage() {
               <div>
                 <div className="text-[13.5px] font-semibold">Tracking on the way</div>
                 <div className="mt-1 text-[12.5px] leading-[1.55] text-[#57554E]">
-                  We&apos;ll text your <strong>GIG Logistics</strong> tracking link the moment your
-                  parcel is booked. Follow it from your account.
+                  We&apos;ll text your tracking link when the parcel is booked.
                 </div>
               </div>
             </div>
@@ -182,14 +172,6 @@ export default function OrderConfirmationPage() {
             </div>
           </section>
         </article>
-
-        <p className="mx-auto mt-[22px] max-w-[440px] text-center font-serif text-[12.5px] italic leading-[1.6] text-[#8A887E]">
-          Questions about your order? Reach us at{" "}
-          <a className="underline underline-offset-2" href="mailto:care@laitstyle.ng">
-            care@laitstyle.ng
-          </a>{" "}
-          — we reply within a day.
-        </p>
       </div>
     </main>
   );
