@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogueResults, parseSort } from "@/features/storefront/catalogue/catalogue-results";
+import type { CatalogueSort } from "@/lib/storefront/types";
 import {
-  type CatalogueSort,
   countPublishedProducts,
   getStorefrontCollectionBySlug,
   listPublishedProducts,
