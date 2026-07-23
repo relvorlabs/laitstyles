@@ -7,7 +7,9 @@ import {
 } from "./storefront-page-query";
 import type { StorefrontCataloguePageQuery } from "./storefront-page-selection";
 
-function query(overrides: Partial<StorefrontCataloguePageQuery> = {}): StorefrontCataloguePageQuery {
+function query(
+  overrides: Partial<StorefrontCataloguePageQuery> = {},
+): StorefrontCataloguePageQuery {
   return {
     page: 1,
     pageSize: 12,
@@ -48,7 +50,17 @@ describe("buildStorefrontCatalogueWhere", () => {
     expect(clauses(where)).toEqual(
       expect.arrayContaining([
         { id: { in: ["new-product"] } },
-        { OR: [{ condition: "Excellent" }, { OR: [{ condition: null }, { condition: { notIn: ["Excellent", "Fair"] } }] }] },
+        {
+          OR: [
+            { condition: "Excellent" },
+            {
+              OR: [
+                { condition: null },
+                { condition: { notIn: ["Excellent", "Fair"] } },
+              ],
+            },
+          ],
+        },
         { inventory_mode: { in: ["unique", "stocked"] } },
         { stock_levels: { some: { available: { gt: 0 } } } },
         { price: { lte: 25_000 } },
@@ -69,21 +81,23 @@ describe("buildStorefrontCatalogueWhere", () => {
   });
 
   it("maps special collections and semantic legacy searches", () => {
-    expect(clauses(buildStorefrontCatalogueWhere(query({ collection: "one-of-one" })))).toContainEqual({
-      inventory_mode: "unique",
-    });
-    expect(clauses(buildStorefrontCatalogueWhere(query({ collection: "under-25" })))).toContainEqual({
-      price: { lt: 25_000 },
-    });
-    expect(clauses(buildStorefrontCatalogueWhere(query({ collection: "grade-a-plus" })))).toContainEqual({
-      condition: "Excellent",
-    });
-    expect(clauses(buildStorefrontCatalogueWhere(query({ collection: "vintage" })))).toContainEqual({
-      style: { equals: "Vintage", mode: "insensitive" },
-    });
+    expect(
+      clauses(buildStorefrontCatalogueWhere(query({ collection: "one-of-one" }))),
+    ).toContainEqual({ inventory_mode: "unique" });
+    expect(
+      clauses(buildStorefrontCatalogueWhere(query({ collection: "under-25" }))),
+    ).toContainEqual({ price: { lt: 25_000 } });
+    expect(
+      clauses(buildStorefrontCatalogueWhere(query({ collection: "grade-a-plus" }))),
+    ).toContainEqual({ condition: "Excellent" });
+    expect(
+      clauses(buildStorefrontCatalogueWhere(query({ collection: "vintage" }))),
+    ).toContainEqual({ style: { equals: "Vintage", mode: "insensitive" } });
 
     const search = clauses(buildStorefrontCatalogueWhere(query({ search: "A+" })))[1];
-    expect(search).toMatchObject({ OR: expect.arrayContaining([{ condition: "Excellent" }]) });
+    expect(search).toMatchObject({
+      OR: expect.arrayContaining([{ condition: "Excellent" }]),
+    });
   });
 });
 
