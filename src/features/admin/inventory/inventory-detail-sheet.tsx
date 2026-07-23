@@ -26,7 +26,7 @@ import { ProductPricingPanel } from "@/features/admin/inventory/inventory-detail
 import {
   ProductActivityPanel,
   ProductHoldsPanel,
-  ProductMovementsPanel
+  ProductMovementsPanel,
   ProductOrdersPanel,
   ProductReturnsPanel,
   ProductReviewsPanel,

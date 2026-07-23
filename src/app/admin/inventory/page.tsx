@@ -112,5 +112,8 @@ function first(value: string | string[] | undefined) {
 
 function pick<TValue extends string>(
   value: string | undefined,
-  allowed: Set<TVX[YO‹ˆ˜[˜XÚÎˆ˜[YKŠˆ˜[YHÂˆ™]\›ˆ˜[YH	‰ˆ[ÝÙYš\Ê˜[YH\È˜[YJHÈ
-˜[YH\È˜[YJHˆ˜[˜XÚÎÂŸB
+  allowed: Set<TValue>,
+  fallback: TValue,
+): TValue {
+  return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
+}
