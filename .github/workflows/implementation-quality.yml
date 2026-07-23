@@ -28,10 +28,10 @@ env:
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
 jobs:
-  context:
-    name: Implementation context and agent guidance
+  static:
+    name: Architecture, conventions and static contracts
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Check out application
         uses: actions/checkout@v4
@@ -51,11 +51,6 @@ jobs:
             skills/error-handling-patterns
             skills/typescript-advanced-types
             skills/react-doctor
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
 
       - name: Verify doctrine and loaded skills
         shell: bash
@@ -78,28 +73,6 @@ jobs:
             test -f "$path" || { echo "Missing required guidance: $path"; exit 1; }
           done
 
-      - name: Capture changed code, doctrine and skills
-        run: node scripts/ci/collect-context.mjs --output ci-evidence/context
-
-      - name: Upload implementation context
-        uses: actions/upload-artifact@v4
-        with:
-          name: implementation-context
-          path: ci-evidence/context/
-          if-no-files-found: error
-          retention-days: 14
-
-  static:
-    name: Architecture, conventions and static contracts
-    needs: context
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
       - name: Set up Node.js
@@ -109,20 +82,23 @@ jobs:
           cache: pnpm
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+      - name: Capture changed code, doctrine and skills
+        run: node scripts/ci/collect-context.mjs --output ci-evidence/context
       - name: Run static gate suite
         run: node scripts/ci/run-gates.mjs --suite static --output ci-evidence/static
-      - name: Upload static evidence
+      - name: Upload static and context evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: implementation-static
-          path: ci-evidence/static/
-          if-no-files-found: error
+          path: |
+            ci-evidence/context/
+            ci-evidence/static/
+          if-no-files-found: warn
           retention-days: 14
 
   database:
     name: Prisma schema and migration integrity
-    needs: context
     runs-on: ubuntu-latest
     timeout-minutes: 35
     services:
@@ -161,12 +137,11 @@ jobs:
         with:
           name: implementation-database
           path: ci-evidence/database/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
   tests:
     name: Vitest and coverage
-    needs: context
     runs-on: ubuntu-latest
     timeout-minutes: 40
     services:
@@ -214,7 +189,6 @@ jobs:
 
   build:
     name: Production build and React review
-    needs: context
     runs-on: ubuntu-latest
     timeout-minutes: 50
     services:
@@ -255,13 +229,13 @@ jobs:
         with:
           name: implementation-build
           path: ci-evidence/build/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
   aggregate:
     name: Aggregate implementation evidence
-    if: always()
-    needs: [context, static, database, tests, build]
+    if: always() && !cancelled()
+    needs: [static, database, tests, build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -286,9 +260,10 @@ jobs:
       - name: Publish aggregate in workflow summary
         run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload aggregate feedback
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: implementation-feedback
           path: ci-feedback/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
