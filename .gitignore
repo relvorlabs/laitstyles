@@ -52,5 +52,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma (generated client — regenerated via `prisma generate`)
+# prisma (generated client — regenerated via `pnpm prisma:generate`)
 /prisma/generated/
+/src/generated/prisma/
