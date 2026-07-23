@@ -772,6 +772,18 @@ model stock_levels {
   @@schema("public")
 }
 
+model product_variant_measurements {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  variant_id String @db.Uuid
+  label      String
+  value      String
+  position   Int    @default(0)
+
+  @@unique([variant_id, position], map: "product_variant_measurements_variant_position_unique")
+  @@schema("public")
+}
+
+
 /// Immutable inventory ledger entries. stock_levels is the current balance;
 /// stock_movements explains how that balance changed.
 model stock_movements {
