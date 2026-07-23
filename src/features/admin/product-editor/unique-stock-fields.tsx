@@ -1,7 +1,7 @@
 "use client";
 
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -11,8 +11,21 @@ import {
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
+const standardConditions = [
+  ["Like new", "Like new"],
+  ["Excellent", "Excellent"],
+  ["Very good", "Very good"],
+  ["Good", "Good"],
+  ["Fair", "Fair"],
+] as const;
+
 export function UniqueStockFields() {
   const { control } = useFormContext<ProductEditorValues>();
+  const condition = useWatch({ control, name: "unique.condition" });
+  const conditionOptions: ReadonlyArray<readonly [string, string]> =
+    condition && !standardConditions.some(([value]) => value === condition)
+      ? [[condition, condition], ...standardConditions]
+      : standardConditions;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "unique.measurements",
@@ -34,11 +47,7 @@ export function UniqueStockFields() {
           <EditorSelectField
             label="Condition"
             name="unique.condition"
-            options={[
-              ["Excellent", "Excellent"],
-              ["Good", "Good"],
-              ["Fair", "Fair"],
-            ]}
+            options={conditionOptions}
           />
           <EditorTextField label="Size" name="unique.size" placeholder="M, UK 12 or One size" />
           <EditorTextField label="Colour" name="unique.colour" placeholder="Ivory" />
