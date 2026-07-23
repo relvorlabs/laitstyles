@@ -77,8 +77,18 @@ jobs:
           run_gate typecheck pnpm typecheck
           run_gate tests pnpm test
           run_gate build pnpm build
+          exit 0
 
-      - name: Summarize gates
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-diagnostics
+          path: phase2-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Enforce diagnostic result
         if: always()
         shell: bash
         run: |
@@ -97,12 +107,3 @@ jobs:
             fi
           done
           exit "$failed"
-
-      - name: Upload diagnostic evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase2-diagnostics
-          path: phase2-diagnostics/
-          if-no-files-found: warn
-          retention-days: 7
