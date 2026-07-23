@@ -33,9 +33,10 @@ identities before writes, and inserts all rows in one bounded transaction. Stabl
 `createMany({ skipDuplicates: true })` make interrupted imports resumable without turning the tool
 into an update/synchronization path.
 
-Variant-level measurements are persisted through `product_measurements.variant_id`; product-level
-and variant-level positions have separate partial unique indexes. The importer verifies the full
-measurement count before commit, including the 580 variant-scoped rows in the archived snapshot.
+Variant-level measurements are persisted in the dedicated
+`product_variant_measurements` Prisma model/table while product-level measurements remain in
+`product_measurements`. The importer verifies both counts before commit, including the 580
+variant-scoped rows in the archived snapshot.
 
 ## Verification mode
 
