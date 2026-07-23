@@ -1,0 +1,108 @@
+name: Phase 2 diagnostics
+
+on:
+  pull_request:
+    branches:
+      - feat/admin-overview-broadsheet
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase2-diagnostics-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        id: install
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          mkdir -p phase2-diagnostics
+          pnpm install --frozen-lockfile > phase2-diagnostics/install.log 2>&1
+          code=$?
+          echo "$code" > phase2-diagnostics/install.exit
+          cat phase2-diagnostics/install.log
+          exit "$code"
+
+      - name: Run validation gates
+        if: steps.install.outcome == 'success'
+        shell: bash
+        run: |
+          set +e
+          mkdir -p phase2-diagnostics
+
+          run_gate() {
+            name="$1"
+            shift
+            echo "::group::$name"
+            "$@" > "phase2-diagnostics/$name.log" 2>&1
+            code=$?
+            echo "$code" > "phase2-diagnostics/$name.exit"
+            cat "phase2-diagnostics/$name.log"
+            echo "::endgroup::"
+          }
+
+          run_gate prisma-validate pnpm prisma:validate
+          run_gate button-audit pnpm audit:buttons
+          run_gate lint pnpm lint
+          run_gate typecheck pnpm typecheck
+          run_gate tests pnpm test
+          run_gate build pnpm build
+
+      - name: Summarize gates
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          echo "## Phase 2 diagnostics" >> "$GITHUB_STEP_SUMMARY"
+          failed=0
+          for exit_file in phase2-diagnostics/*.exit; do
+            [ -e "$exit_file" ] || continue
+            name=$(basename "$exit_file" .exit)
+            code=$(cat "$exit_file")
+            if [ "$code" = "0" ]; then
+              echo "- ✅ $name" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "- ❌ $name (exit $code)" >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+            fi
+          done
+          exit "$failed"
+
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-diagnostics
+          path: phase2-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
