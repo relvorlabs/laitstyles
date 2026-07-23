@@ -245,10 +245,23 @@ export function persistStorefrontClientState(
   now: number = Date.now(),
 ): StorefrontClientStateSnapshot {
   const snapshot = normalizeStorefrontClientState(value, now);
-  sessionStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, JSON.stringify(snapshot));
+  try {
+    sessionStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    return snapshot;
+  }
+
   for (const key of Object.values(LEGACY_STOREFRONT_STORAGE_KEYS).flat()) {
-    sessionStorage.removeItem(key);
-    localStorage.removeItem(key);
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      // A successful canonical write remains authoritative even if cleanup is blocked.
+    }
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // A successful canonical write remains authoritative even if cleanup is blocked.
+    }
   }
   return snapshot;
 }
