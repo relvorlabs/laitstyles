@@ -32,6 +32,15 @@ function listChangedFiles() {
   return [];
 }
 
+function listFilesRecursively(directory, prefix = "") {
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const relative = normalise(join(prefix, entry.name));
+    const absolute = join(directory, entry.name);
+    return entry.isDirectory() ? listFilesRecursively(absolute, relative) : [relative];
+  });
+}
+
 const expectedWorkflows = ["implementation-quality.yml", "playwright.yml", "task-progress.yml"];
 const workflowDirectory = join(root, ".github", "workflows");
 const actualWorkflows = existsSync(workflowDirectory)
@@ -61,9 +70,15 @@ const requiredFiles = [
   "scripts/ci/build-agent-handoff.mjs",
   "scripts/ci/publish-feedback.mjs",
   "docs/ci/advanced-feedback-loop.md",
+  "src/features/storefront/shared/storefront-client-state.ts",
+  "src/features/storefront/shared/storefront-client-state-provider.tsx",
+  "src/features/storefront/shared/storefront-auth-provider.tsx",
+  "src/features/storefront/checkout/order-receipt.ts",
 ];
 for (const path of requiredFiles) {
-  if (!existsSync(join(root, path))) errors.push(`Required architecture or CI contract is missing: ${path}`);
+  if (!existsSync(join(root, path))) {
+    errors.push(`Required architecture or CI contract is missing: ${path}`);
+  }
 }
 
 const forbiddenAiFiles = [
@@ -76,12 +91,45 @@ for (const path of forbiddenAiFiles) {
   if (existsSync(join(root, path))) errors.push(`OpenAI-key CI dependency must not exist: ${path}`);
 }
 
+const retiredStorefrontFiles = [
+  "src/components/shop/shop-provider.tsx",
+  "src/features/storefront/shared/storefront-experience-provider.tsx",
+  "src/features/storefront/shared/storefront-experience-data.ts",
+  "src/features/storefront/checkout/checkout-flow.tsx",
+  "src/lib/catalogue.ts",
+  "src/lib/order.ts",
+];
+for (const path of retiredStorefrontFiles) {
+  if (existsSync(join(root, path))) errors.push(`Retired storefront compatibility file was reintroduced: ${path}`);
+}
+
 if (existsSync(join(root, "src/lib/admin/inventory/inventory-mutations.ts"))) {
   errors.push("Retired browser-memory Inventory mutation module was reintroduced.");
 }
 
-const changedFiles = listChangedFiles();
 const sourceExtensions = /\.(?:[cm]?[jt]sx?)$/i;
+const allSourceFiles = listFilesRecursively(join(root, "src"), "src").filter((file) =>
+  sourceExtensions.test(file),
+);
+const forbiddenStorefrontImports = [
+  "@/components/shop/shop-provider",
+  "storefront-experience-provider",
+  "storefront-experience-data",
+  "@/lib/catalogue",
+  "@/lib/order",
+  "storefront/checkout/checkout-flow\"",
+  "storefront/checkout/checkout-flow'",
+];
+for (const file of allSourceFiles) {
+  const source = readFileSync(join(root, file), "utf8");
+  for (const forbiddenImport of forbiddenStorefrontImports) {
+    if (source.includes(forbiddenImport)) {
+      errors.push(`Retired storefront import remains in ${file}: ${forbiddenImport}`);
+    }
+  }
+}
+
+const changedFiles = listChangedFiles();
 const phaseThree =
   /phase-3/i.test(process.env.GITHUB_HEAD_REF ?? "") ||
   changedFiles.includes("docs/migration/phase-3-product-management-v2.md");
@@ -115,7 +163,11 @@ for (const file of changedFiles) {
     errors.push(`Client/server boundary violation in ${file}: client code imports a server or Prisma runtime.`);
   }
 
-  if (file.startsWith("src/server/") && !isTest && !/import\s+["']server-only["'];/.test(source.slice(0, 500))) {
+  if (
+    file.startsWith("src/server/") &&
+    !isTest &&
+    !/import\s+["']server-only["'];/.test(source.slice(0, 500))
+  ) {
     errors.push(`Server module is missing an explicit server-only boundary: ${file}`);
   }
 
@@ -143,8 +195,10 @@ const summary = [
   "## Architecture guard",
   "",
   `- Changed files inspected: ${changedFiles.length}`,
+  `- Source files scanned for retired imports: ${allSourceFiles.length}`,
   `- Workflow files: ${actualWorkflows.join(", ") || "none"}`,
   `- Required repository contracts: ${requiredFiles.length}`,
+  `- Retired storefront files found: ${retiredStorefrontFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Forbidden OpenAI-key CI files found: ${forbiddenAiFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Errors: ${errors.length}`,
   `- Warnings: ${warnings.length}`,
