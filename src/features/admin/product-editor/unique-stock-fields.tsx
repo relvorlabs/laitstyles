@@ -24,7 +24,7 @@ export function UniqueStockFields() {
   const condition = useWatch({ control, name: "unique.condition" });
   const conditionOptions: ReadonlyArray<readonly [string, string]> =
     condition && !standardConditions.some(([value]) => value === condition)
-      ? [[condition, condition], ...standardConditions]
+      ? [[condition, condition] as const, ...standardConditions]
       : standardConditions;
   const { fields, append, remove } = useFieldArray({
     control,
