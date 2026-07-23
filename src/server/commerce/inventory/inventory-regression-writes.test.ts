@@ -80,8 +80,8 @@ function stockedProduct(): InventoryProduct {
     sizeLabel: "M",
     colour: "Black",
     stock: {
-      totalReceived: 5,
-      available: 5,
+      totalReceived: 0,
+      available: 0,
       reserved: 0,
       sold: 0,
       returned: 0,
@@ -96,7 +96,7 @@ beforeEach(() => {
 });
 
 describe("inventory write regressions", () => {
-  it("blocks inventory-mode changes after stock has been recorded", async () => {
+  it("rechecks inventory-mode changes against transactional stock", async () => {
     getInventoryProductMock.mockResolvedValue(stockedProduct());
     harness.state.currentRow = {
       id: PRODUCT_ID,
@@ -139,6 +139,7 @@ describe("inventory write regressions", () => {
         expect.objectContaining({ path: "inventoryMode", step: "type" }),
       );
     }
+    expect(harness.prisma.$transaction).toHaveBeenCalledOnce();
     expect(harness.tx.products.update).not.toHaveBeenCalled();
   });
 
