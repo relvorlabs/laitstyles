@@ -43,6 +43,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isCurrentSnapshot(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && value.version === STOREFRONT_CLIENT_STATE_VERSION;
+}
+
 function nonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
@@ -58,10 +62,9 @@ function finiteTimestamp(value: unknown): number | null {
 }
 
 function parseStoredValue(storage: StorefrontStateStorage, key: string): unknown {
-  const serialized = storage.getItem(key);
-  if (!serialized) return undefined;
   try {
-    return JSON.parse(serialized);
+    const serialized = storage.getItem(key);
+    return serialized ? JSON.parse(serialized) : undefined;
   } catch {
     return undefined;
   }
@@ -83,7 +86,6 @@ function firstStoredValue(
 
 function normalizeCart(values: unknown[]): StorefrontCartIntent[] {
   const byLine = new Map<string, StorefrontCartIntent>();
-
   for (const candidate of values) {
     if (!isRecord(candidate)) continue;
     const productId = nonEmptyString(candidate.productId) ?? nonEmptyString(candidate.id);
@@ -102,7 +104,6 @@ function normalizeCart(values: unknown[]): StorefrontCartIntent[] {
       quantity: (existing?.quantity ?? 0) + quantity,
     });
   }
-
   return [...byLine.values()];
 }
 
@@ -121,7 +122,6 @@ function normalizeSaved(values: unknown[]): string[] {
 
 function normalizeHoldCandidate(candidate: unknown, now: number): StorefrontHoldIntent | null {
   if (!isRecord(candidate)) return null;
-
   const piece = isRecord(candidate.piece) ? candidate.piece : null;
   const product = isRecord(candidate.product) ? candidate.product : null;
   const productId =
@@ -151,19 +151,23 @@ function normalizeHolds(value: unknown, now: number): StorefrontHoldIntent[] {
     const hold = normalizeHoldCandidate(candidate, now);
     if (!hold) continue;
     const existing = byProduct.get(hold.productId);
-    if (!existing || hold.expiresAt > existing.expiresAt) byProduct.set(hold.productId, hold);
+    if (!existing || hold.expiresAt > existing.expiresAt) {
+      byProduct.set(hold.productId, hold);
+    }
   }
-
   return [...byProduct.values()];
 }
 
+function objectHoldsToCandidates(value: unknown) {
+  if (!isRecord(value)) return [];
+  return Object.entries(value).map(([productId, entry]) => ({
+    productId,
+    ...(isRecord(entry) ? entry : {}),
+  }));
+}
+
 export function emptyStorefrontClientState(): StorefrontClientStateSnapshot {
-  return {
-    version: STOREFRONT_CLIENT_STATE_VERSION,
-    cart: [],
-    saved: [],
-    holds: [],
-  };
+  return { version: STOREFRONT_CLIENT_STATE_VERSION, cart: [], saved: [], holds: [] };
 }
 
 export function normalizeStorefrontClientState(
@@ -183,10 +187,9 @@ export function migrateLegacyStorefrontClientState(
   sources: LegacyStateSources,
   now: number = Date.now(),
 ): StorefrontClientStateSnapshot {
-  if (isRecord(sources.current) && sources.current.version === STOREFRONT_CLIENT_STATE_VERSION) {
+  if (isCurrentSnapshot(sources.current)) {
     return normalizeStorefrontClientState(sources.current, now);
   }
-
   return {
     version: STOREFRONT_CLIENT_STATE_VERSION,
     cart: normalizeCart(Array.isArray(sources.cart) ? sources.cart : []),
@@ -195,7 +198,7 @@ export function migrateLegacyStorefrontClientState(
       [
         ...(Array.isArray(sources.heldItems) ? sources.heldItems : []),
         ...(Array.isArray(sources.holds) ? sources.holds : []),
-        ...(isRecord(sources.holds) ? Object.entries(sources.holds).map(([productId, entry]) => ({ productId, ...(isRecord(entry) ? entry : {}) })) : []),
+        ...objectHoldsToCandidates(sources.holds),
       ],
       now,
     ),
@@ -208,20 +211,12 @@ export function loadStorefrontClientState(
   now: number = Date.now(),
 ): { snapshot: StorefrontClientStateSnapshot; migrated: boolean } {
   const current = parseStoredValue(sessionStorage, STOREFRONT_CLIENT_STATE_STORAGE_KEY);
-  if (current !== undefined) {
+  if (isCurrentSnapshot(current)) {
     return { snapshot: normalizeStorefrontClientState(current, now), migrated: false };
   }
 
-  const cart = firstStoredValue(
-    sessionStorage,
-    localStorage,
-    LEGACY_STOREFRONT_STORAGE_KEYS.cart,
-  );
-  const saved = firstStoredValue(
-    sessionStorage,
-    localStorage,
-    LEGACY_STOREFRONT_STORAGE_KEYS.saved,
-  );
+  const cart = firstStoredValue(sessionStorage, localStorage, LEGACY_STOREFRONT_STORAGE_KEYS.cart);
+  const saved = firstStoredValue(sessionStorage, localStorage, LEGACY_STOREFRONT_STORAGE_KEYS.saved);
   const experienceHolds = firstStoredValue(sessionStorage, localStorage, [
     LEGACY_STOREFRONT_STORAGE_KEYS.holds[0],
   ]);
@@ -229,14 +224,17 @@ export function loadStorefrontClientState(
     LEGACY_STOREFRONT_STORAGE_KEYS.holds[1],
   ]);
 
-  const migrated =
-    cart !== undefined || saved !== undefined || experienceHolds !== undefined || shopHolds !== undefined;
   return {
     snapshot: migrateLegacyStorefrontClientState(
-      { cart, saved, holds: experienceHolds, heldItems: shopHolds },
+      { current, cart, saved, holds: experienceHolds, heldItems: shopHolds },
       now,
     ),
-    migrated,
+    migrated:
+      current !== undefined ||
+      cart !== undefined ||
+      saved !== undefined ||
+      experienceHolds !== undefined ||
+      shopHolds !== undefined,
   };
 }
 
@@ -248,11 +246,9 @@ export function persistStorefrontClientState(
 ): StorefrontClientStateSnapshot {
   const snapshot = normalizeStorefrontClientState(value, now);
   sessionStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, JSON.stringify(snapshot));
-
   for (const key of Object.values(LEGACY_STOREFRONT_STORAGE_KEYS).flat()) {
     sessionStorage.removeItem(key);
     localStorage.removeItem(key);
   }
-
   return snapshot;
 }
