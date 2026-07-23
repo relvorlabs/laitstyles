@@ -15,9 +15,7 @@ const categorySchema = z.object({
   name: z.string().min(1),
   image_url: z.string().min(1),
 });
-
 const collectionSchema = z.object({ id: uuid, slug: z.string().min(1), name: z.string().min(1) });
-
 const productSchema = z.object({
   id: uuid,
   category_id: uuid.nullable(),
@@ -46,7 +44,6 @@ const productSchema = z.object({
   created_at: isoDate,
   updated_at: isoDate,
 });
-
 const variantSchema = z.object({
   id: uuid,
   product_id: uuid,
@@ -57,7 +54,6 @@ const variantSchema = z.object({
   price_override: nullableNumber,
   created_at: isoDate,
 });
-
 const stockSchema = z.object({
   id: uuid,
   product_id: uuid,
@@ -67,7 +63,6 @@ const stockSchema = z.object({
   quantity_reserved: z.number().int().nonnegative(),
   updated_at: isoDate,
 });
-
 const measurementSchema = z.object({
   id: uuid,
   product_id: uuid,
@@ -76,7 +71,6 @@ const measurementSchema = z.object({
   value: z.number().finite().nonnegative(),
   unit: z.string().min(1),
 });
-
 const assetSchema = z.object({
   id: uuid,
   secure_url: z.string().min(1),
@@ -85,7 +79,6 @@ const assetSchema = z.object({
   height: z.number().int().nonnegative().nullable(),
   alt: z.string(),
 });
-
 const mediaSchema = z.object({
   id: uuid,
   product_id: uuid,
@@ -94,7 +87,6 @@ const mediaSchema = z.object({
   role: z.enum(["cover", "detail", "defect"]),
   position: z.number().int().nonnegative(),
 });
-
 const snapshotSchema = z.object({
   schema_version: z.literal(2),
   catalogue_categories: z.array(categorySchema),
@@ -114,11 +106,11 @@ const snapshotSchema = z.object({
 });
 
 export type CatalogSnapshot = z.infer<typeof snapshotSchema>;
-
 export type PreparedCatalogSnapshot = {
   snapshot: CatalogSnapshot;
   counts: {
     importedMeasurements: number;
+    importedVariantMeasurements: number;
     droppedVariantMeasurements: number;
     normalizedDuplicateSkus: number;
   };
@@ -175,11 +167,7 @@ export function prepareCatalogSnapshot(input: unknown): PreparedCatalogSnapshot 
     assertForeignKey(product.collection_id, collectionIds, `products.${product.id}.collection_id`);
   }
   for (const channel of snapshot.product_channels) {
-    assertForeignKey(
-      channel.product_id,
-      productIds,
-      `product_channels.${channel.product_id}.product_id`,
-    );
+    assertForeignKey(channel.product_id, productIds, `product_channels.${channel.product_id}.product_id`);
   }
   for (const variant of snapshot.product_variants) {
     assertForeignKey(variant.product_id, productIds, `product_variants.${variant.id}.product_id`);
@@ -193,23 +181,17 @@ export function prepareCatalogSnapshot(input: unknown): PreparedCatalogSnapshot 
       const variant = variantById.get(stock.variant_id);
       if (!variant) fail(`stock_levels.${stock.id}.variant_id`, "references missing variant");
       if (variant.product_id !== stock.product_id) {
-        fail(
-          `stock_levels.${stock.id}.variant_id`,
-          "variant and stock must belong to the same product",
-        );
+        fail(`stock_levels.${stock.id}.variant_id`, "variant and stock must belong to the same product");
       }
     }
   }
   for (const measurement of snapshot.product_measurements) {
-    assertForeignKey(
-      measurement.product_id,
-      productIds,
-      `product_measurements.${measurement.id}.product_id`,
-    );
+    assertForeignKey(measurement.product_id, productIds, `product_measurements.${measurement.id}.product_id`);
     if (measurement.variant_id !== null) {
       const variant = variantById.get(measurement.variant_id);
-      if (!variant)
+      if (!variant) {
         fail(`product_measurements.${measurement.id}.variant_id`, "references missing variant");
+      }
       if (variant.product_id !== measurement.product_id) {
         fail(
           `product_measurements.${measurement.id}.variant_id`,
@@ -225,10 +207,7 @@ export function prepareCatalogSnapshot(input: unknown): PreparedCatalogSnapshot 
       const variant = variantById.get(media.variant_id);
       if (!variant) fail(`product_media.${media.id}.variant_id`, "references missing variant");
       if (variant.product_id !== media.product_id) {
-        fail(
-          `product_media.${media.id}.variant_id`,
-          "variant and media must belong to the same product",
-        );
+        fail(`product_media.${media.id}.variant_id`, "variant and media must belong to the same product");
       }
     }
   }
@@ -277,15 +256,16 @@ export function prepareCatalogSnapshot(input: unknown): PreparedCatalogSnapshot 
     normalizedDuplicateSkus += 1;
     return { ...variant, sku: null };
   });
-  const droppedVariantMeasurements = snapshot.product_measurements.filter(
+  const importedVariantMeasurements = snapshot.product_measurements.filter(
     (row) => row.variant_id !== null,
   ).length;
 
   return {
     snapshot: { ...snapshot, product_variants },
     counts: {
-      importedMeasurements: snapshot.product_measurements.length - droppedVariantMeasurements,
-      droppedVariantMeasurements,
+      importedMeasurements: snapshot.product_measurements.length,
+      importedVariantMeasurements,
+      droppedVariantMeasurements: 0,
       normalizedDuplicateSkus,
     },
   };
