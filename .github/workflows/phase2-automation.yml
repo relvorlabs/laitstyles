@@ -1,0 +1,86 @@
+name: Phase 2 assembly
+
+on:
+  push:
+    branches: [automation/phase2-complete]
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: automation/phase2-complete
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+      - name: Materialize Phase 2 files
+        run: |
+          for payload in scripts/automation/bundle_*.py; do python "$payload"; done
+      - name: Apply final Phase 2 schema and compatibility patches
+        run: python scripts/automation/complete_phase2.py
+      - name: Remove assembly payloads
+        run: rm -f scripts/automation/bundle_*.py scripts/automation/payload_*.py
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Format and lint changed source
+        run: |
+          pnpm exec biome check --write \
+            src/app/layout.tsx \
+            src/app/app-providers.tsx \
+            'src/app/(home)/page.tsx' \
+            src/app/products/page.tsx \
+            'src/app/products/[slug]/page.tsx' \
+            src/components/shop/shop-provider.tsx \
+            src/features/storefront/catalogue/catalogue-search-params.ts \
+            src/features/storefront/catalogue/catalogue-search-params.test.ts \
+            src/features/storefront/catalogue/product-catalogue.tsx \
+            src/features/storefront/catalogue/product-card.tsx \
+            src/features/storefront/home/storefront-home.tsx \
+            src/features/storefront/product/product-detail.tsx \
+            src/features/storefront/product/product-purchase-island.tsx \
+            src/features/storefront/shared/storefront-auth-dialog.tsx \
+            src/features/storefront/shared/storefront-experience-provider.tsx \
+            src/features/storefront/shell/site-chrome.tsx \
+            src/features/storefront/shell/site-header.tsx \
+            src/features/storefront/shell/storefront-account-menu.tsx \
+            src/features/storefront/shell/storefront-cart-sheet.tsx \
+            src/lib/catalogue.ts \
+            src/lib/storefront/types.ts \
+            src/lib/boundaries/catalogue-root-boundary.test.ts \
+            src/lib/boundaries/server-client-boundary.test.ts \
+            src/server/commerce/catalogue/catalog-repository.ts \
+            src/server/commerce/catalogue/mappers.ts \
+            scripts/seed/catalog-snapshot.ts \
+            scripts/seed/catalog-snapshot.test.ts \
+            scripts/seed/import-catalog-snapshot.ts \
+            tests/e2e/storefront-product-detail-parity.spec.ts
+          pnpm prisma:format
+      - name: Validate
+        run: |
+          pnpm prisma:validate
+          pnpm audit:buttons
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+          pnpm build
+      - name: Commit verified tree
+        run: |
+          git config user.name "laitstyles-phase2-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: assemble verified Phase 2 tree"
+          git push origin HEAD:automation/phase2-complete
