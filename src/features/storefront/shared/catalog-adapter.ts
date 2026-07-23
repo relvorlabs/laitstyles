@@ -1,29 +1,31 @@
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { koboToNaira } from "@/lib/money";
-import type { CategoryWithImage, ProductDetail, ProductSummary } from "@/lib/storefront/types";
 import type {
   StorefrontCatalogPayload,
   StorefrontCategory,
 } from "@/features/storefront/shared/catalog-types";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { koboToNaira } from "@/lib/money";
+import type { CategoryWithImage, ProductDetail, ProductSummary } from "@/lib/storefront/types";
 
 function detailVariants(detail: ProductDetail) {
   return detail.mode === "variant" ? detail.variants : [];
 }
 
 function legacyCondition(value: string | null): Product["condition"] {
-  return value === "Excellent" ? "A+" : value === "Fair" ? "B+" : "A";
+  if (value === "Excellent") return "A+";
+  if (value === "Fair") return "B+";
+  return "A";
 }
 
 function legacyInventory(mode: ProductSummary["mode"]): Product["inventory"] {
-  return mode === "unique" ? "one-of-one" : mode === "stocked" ? "matching-stock" : "variant";
+  if (mode === "unique") return "one-of-one";
+  if (mode === "stocked") return "matching-stock";
+  return "variant";
 }
 
 function legacyStatus(summary: ProductSummary): Product["status"] {
-  return summary.availability.state === "sold_out"
-    ? "sold"
-    : summary.availability.state === "reserved_by_others"
-      ? "reserved"
-      : "available";
+  if (summary.availability.state === "sold_out") return "sold";
+  if (summary.availability.state === "reserved_by_others") return "reserved";
+  return "available";
 }
 
 export function projectLegacyProductSummary(summary: ProductSummary, index: number): Product {
