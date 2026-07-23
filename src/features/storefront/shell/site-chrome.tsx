@@ -3,7 +3,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
-import { ShopProvider } from "@/components/shop/shop-provider";
 import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
@@ -54,19 +53,17 @@ export function SiteChrome({
   if (isStandaloneSurface) return <>{children}</>;
 
   return (
-    <ShopProvider products={catalog.products}>
-      <StorefrontProvider catalog={catalog}>
-        <QueryProvider>
-          <SiteHeader
-            onGoHome={() => router.push("/")}
-            onNavNew={() => navigateShop({ collection: "new" })}
-            onNavShop={navigateShop}
-          />
-          {children}
-          <SiteFooter onNavShop={navigateShop} />
-          <Analytics />
-        </QueryProvider>
-      </StorefrontProvider>
-    </ShopProvider>
+    <StorefrontProvider catalog={catalog}>
+      <QueryProvider>
+        <SiteHeader
+          onGoHome={() => router.push("/")}
+          onNavNew={() => navigateShop({ collection: "new" })}
+          onNavShop={navigateShop}
+        />
+        {children}
+        <SiteFooter onNavShop={navigateShop} />
+        <Analytics />
+      </QueryProvider>
+    </StorefrontProvider>
   );
 }
