@@ -3,6 +3,8 @@ name: Phase 2 assembly
 on:
   push:
     branches: [automation/phase2-complete]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
