@@ -95,7 +95,7 @@ describe("storefront client state", () => {
     });
   });
 
-  it("prefers the v3 snapshot instead of resurrecting legacy state", () => {
+  it("prefers a valid v3 snapshot instead of resurrecting legacy state", () => {
     const session = new MemoryStorage();
     const local = new MemoryStorage();
     session.setItem(
@@ -107,7 +107,10 @@ describe("storefront client state", () => {
         holds: [],
       }),
     );
-    local.setItem(LEGACY_STOREFRONT_STORAGE_KEYS.cart[2], JSON.stringify([{ id: "legacy", qty: 4 }]));
+    local.setItem(
+      LEGACY_STOREFRONT_STORAGE_KEYS.cart[2],
+      JSON.stringify([{ id: "legacy", qty: 4 }]),
+    );
 
     expect(loadStorefrontClientState(session, local, NOW)).toEqual({
       migrated: false,
@@ -117,6 +120,48 @@ describe("storefront client state", () => {
         saved: [],
         holds: [],
       },
+    });
+  });
+
+  it("falls back to legacy state when the canonical key is corrupt or the wrong version", () => {
+    const session = new MemoryStorage();
+    const local = new MemoryStorage();
+    session.setItem(
+      STOREFRONT_CLIENT_STATE_STORAGE_KEY,
+      JSON.stringify({ version: 2, cart: [{ productId: "broken", quantity: 9 }] }),
+    );
+    local.setItem(
+      LEGACY_STOREFRONT_STORAGE_KEYS.cart[2],
+      JSON.stringify([{ id: "legacy", qty: 2 }]),
+    );
+
+    expect(loadStorefrontClientState(session, local, NOW)).toEqual({
+      migrated: true,
+      snapshot: {
+        version: STOREFRONT_CLIENT_STATE_VERSION,
+        cart: [{ productId: "legacy", variantId: null, quantity: 2 }],
+        saved: [],
+        holds: [],
+      },
+    });
+  });
+
+  it("treats unavailable or malformed storage as an empty recoverable state", () => {
+    const blocked: StorefrontStateStorage = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+      removeItem: () => {
+        throw new Error("blocked");
+      },
+    };
+
+    expect(loadStorefrontClientState(blocked, blocked, NOW)).toEqual({
+      migrated: false,
+      snapshot: emptyStorefrontClientState(),
     });
   });
 
