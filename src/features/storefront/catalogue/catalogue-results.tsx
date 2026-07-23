@@ -2,8 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/features/storefront/catalogue/product-card";
-import type { ProductSummary } from "@/lib/storefront/types";
-import type { CatalogueSort } from "@/server/commerce/catalogue/catalog-repository";
+import type { CatalogueSort, ProductSummary } from "@/lib/storefront/types";
 
 const SORTS: { value: CatalogueSort; label: string }[] = [
   { value: "newest", label: "Newest" },
