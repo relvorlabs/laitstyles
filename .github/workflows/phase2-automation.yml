@@ -1,13 +1,11 @@
 name: Phase 2 assembly
 
 on:
-  push:
-    branches: [automation/phase2-complete]
   pull_request:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   assemble-and-verify:
@@ -29,60 +27,59 @@ jobs:
         with:
           node-version: 25
           cache: pnpm
-      - name: Materialize Phase 2 files
+      - name: Run captured Phase 2 verification
+        shell: bash
         run: |
-          for payload in scripts/automation/bundle_*.py; do python "$payload"; done
-      - name: Apply final Phase 2 schema and compatibility patches
-        run: python scripts/automation/complete_phase2.py
-      - name: Remove assembly payloads
-        run: rm -f scripts/automation/bundle_*.py scripts/automation/payload_*.py
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Format and lint changed source
-        run: |
-          pnpm exec biome check --write \
-            src/app/layout.tsx \
-            src/app/app-providers.tsx \
-            'src/app/(home)/page.tsx' \
-            src/app/products/page.tsx \
-            'src/app/products/[slug]/page.tsx' \
-            src/components/shop/shop-provider.tsx \
-            src/features/storefront/catalogue/catalogue-search-params.ts \
-            src/features/storefront/catalogue/catalogue-search-params.test.ts \
-            src/features/storefront/catalogue/product-catalogue.tsx \
-            src/features/storefront/catalogue/product-card.tsx \
-            src/features/storefront/home/storefront-home.tsx \
-            src/features/storefront/product/product-detail.tsx \
-            src/features/storefront/product/product-purchase-island.tsx \
-            src/features/storefront/shared/storefront-auth-dialog.tsx \
-            src/features/storefront/shared/storefront-experience-provider.tsx \
-            src/features/storefront/shell/site-chrome.tsx \
-            src/features/storefront/shell/site-header.tsx \
-            src/features/storefront/shell/storefront-account-menu.tsx \
-            src/features/storefront/shell/storefront-cart-sheet.tsx \
-            src/lib/catalogue.ts \
-            src/lib/storefront/types.ts \
-            src/lib/boundaries/catalogue-root-boundary.test.ts \
-            src/lib/boundaries/server-client-boundary.test.ts \
-            src/server/commerce/catalogue/catalog-repository.ts \
-            src/server/commerce/catalogue/mappers.ts \
-            scripts/seed/catalog-snapshot.ts \
-            scripts/seed/catalog-snapshot.test.ts \
-            scripts/seed/import-catalog-snapshot.ts \
-            tests/e2e/storefront-product-detail-parity.spec.ts
-          pnpm prisma:format
-      - name: Validate
-        run: |
-          pnpm prisma:validate
-          pnpm audit:buttons
-          pnpm lint
-          pnpm typecheck
-          pnpm test
-          pnpm build
-      - name: Commit verified tree
-        run: |
-          git config user.name "laitstyles-phase2-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -m "chore: assemble verified Phase 2 tree"
-          git push origin HEAD:automation/phase2-complete
+          set -o pipefail
+          {
+            set -euxo pipefail
+            for payload in scripts/automation/bundle_*.py; do python "$payload"; done
+            python scripts/automation/complete_phase2.py
+            rm -f scripts/automation/bundle_*.py scripts/automation/payload_*.py
+            pnpm install --frozen-lockfile
+            pnpm exec biome check --write \
+              src/app/layout.tsx \
+              src/app/app-providers.tsx \
+              'src/app/(home)/page.tsx' \
+              src/app/products/page.tsx \
+              'src/app/products/[slug]/page.tsx' \
+              src/components/shop/shop-provider.tsx \
+              src/features/storefront/catalogue/catalogue-search-params.ts \
+              src/features/storefront/catalogue/catalogue-search-params.test.ts \
+              src/features/storefront/catalogue/product-catalogue.tsx \
+              src/features/storefront/catalogue/product-card.tsx \
+              src/features/storefront/home/storefront-home.tsx \
+              src/features/storefront/product/product-detail.tsx \
+              src/features/storefront/product/product-purchase-island.tsx \
+              src/features/storefront/shared/storefront-auth-dialog.tsx \
+              src/features/storefront/shared/storefront-experience-provider.tsx \
+              src/features/storefront/shell/site-chrome.tsx \
+              src/features/storefront/shell/site-header.tsx \
+              src/features/storefront/shell/storefront-account-menu.tsx \
+              src/features/storefront/shell/storefront-cart-sheet.tsx \
+              src/lib/catalogue.ts \
+              src/lib/storefront/types.ts \
+              src/lib/boundaries/catalogue-root-boundary.test.ts \
+              src/lib/boundaries/server-client-boundary.test.ts \
+              src/server/commerce/catalogue/catalog-repository.ts \
+              src/server/commerce/catalogue/mappers.ts \
+              scripts/seed/catalog-snapshot.ts \
+              scripts/seed/catalog-snapshot.test.ts \
+              scripts/seed/import-catalog-snapshot.ts \
+              tests/e2e/storefront-product-detail-parity.spec.ts
+            pnpm prisma:format
+            pnpm prisma:validate
+            pnpm audit:buttons
+            pnpm lint
+            pnpm typecheck
+            pnpm test
+            pnpm build
+          } 2>&1 | tee phase2-diagnostic.log
+      - name: Upload diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-diagnostic-${{ github.run_attempt }}
+          path: phase2-diagnostic.log
+          if-no-files-found: error
+          retention-days: 7
