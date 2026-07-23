@@ -1,14 +1,15 @@
 import "server-only";
 
-import { prisma } from "@/lib/prisma";
 import type { CatalogueTaxonomyItem } from "@/lib/admin/inventory/catalogue-taxonomy";
 import type { InventoryProduct, StockMovement } from "@/lib/admin/inventory/inventory-types";
+import { prisma } from "@/lib/prisma";
 import {
   inventoryProductInclude,
   mapInventoryProductRow,
   mapStockMovementRow,
   mapTaxonomyRow,
 } from "@/server/commerce/inventory/inventory-mappers";
+import { isUuid } from "@/server/commerce/inventory/inventory-rules";
 
 const MAX_ADMIN_PRODUCTS = 500;
 const MAX_STOCK_MOVEMENTS = 500;
@@ -23,6 +24,7 @@ export async function listInventoryProducts(): Promise<InventoryProduct[]> {
 }
 
 export async function getInventoryProduct(productId: string): Promise<InventoryProduct | null> {
+  if (!isUuid(productId)) return null;
   const row = await prisma.products.findUnique({
     where: { id: productId },
     include: inventoryProductInclude,
@@ -44,6 +46,7 @@ export async function listInventoryTaxonomy(): Promise<CatalogueTaxonomyItem[]> 
 export async function listInventoryStockMovements(
   productId?: string,
 ): Promise<StockMovement[]> {
+  if (productId && !isUuid(productId)) return [];
   const rows = await prisma.stock_movements.findMany({
     where: productId ? { product_id: productId } : {},
     include: { profiles: { select: { display_name: true } } },
