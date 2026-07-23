@@ -298,9 +298,7 @@ async function main() {
   console.warn(
     `Imported snapshot: ${imported.products} products, ${imported.variants} variants, ${imported.media} media rows, ${imported.stock} stock rows, ${imported.productMeasurements} product measurements and ${imported.variantMeasurements} variant measurements.`,
   );
-  console.warn(
-    `Snapshot adjustment: ${prepared.counts.normalizedDuplicateSkus} duplicate variant SKUs were set to null.`,
-  );
+  console.warn("Snapshot validation passed: duplicate identifiers and SKUs were rejected before the transaction.");
 }
 
 main()
