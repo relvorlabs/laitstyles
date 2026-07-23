@@ -6,9 +6,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { config as loadEnv } from "dotenv";
-import { Prisma, PrismaClient } from "../../prisma/generated/prisma/client";
-import { prepareCatalogSnapshot, type CatalogSnapshot } from "./catalog-snapshot";
+import { PrismaClient } from "../../prisma/generated/prisma/client";
+import { assertNoCatalogTargetConflicts } from "./catalog-import-preflight";
 import { prepareMeasurementRows } from "./catalog-measurements";
+import { prepareCatalogSnapshot } from "./catalog-snapshot";
 
 loadEnv({ path: ".env.local" });
 
@@ -35,87 +36,15 @@ const MEDIA_KIND = {
   defect: "product_defect",
 } as const;
 
-async function assertNoPreflightConflicts(
-  tx: Prisma.TransactionClient,
-  source: CatalogSnapshot,
-): Promise<void> {
-  const categories = await tx.catalogue_categories.findMany({
-    where: {
-      OR: [
-        { id: { in: source.catalogue_categories.map((row) => row.id) } },
-        { slug: { in: source.catalogue_categories.map((row) => row.slug) } },
-      ],
-    },
-    select: { id: true, slug: true },
-  });
-  const expectedCategories = new Map(source.catalogue_categories.map((row) => [row.id, row.slug]));
-  const expectedCategoryIds = new Map(source.catalogue_categories.map((row) => [row.slug, row.id]));
-  for (const row of categories) {
-    if (
-      expectedCategories.get(row.id) !== row.slug ||
-      expectedCategoryIds.get(row.slug) !== row.id
-    ) {
-      throw new Error(`Preflight conflict: catalogue category ${row.id}/${row.slug}.`);
-    }
-  }
-
-  const collections = await tx.catalogue_collections.findMany({
-    where: {
-      OR: [
-        { id: { in: source.catalogue_collections.map((row) => row.id) } },
-        { slug: { in: source.catalogue_collections.map((row) => row.slug) } },
-      ],
-    },
-    select: { id: true, slug: true },
-  });
-  const expectedCollections = new Map(
-    source.catalogue_collections.map((row) => [row.id, row.slug]),
-  );
-  const expectedCollectionIds = new Map(
-    source.catalogue_collections.map((row) => [row.slug, row.id]),
-  );
-  for (const row of collections) {
-    if (
-      expectedCollections.get(row.id) !== row.slug ||
-      expectedCollectionIds.get(row.slug) !== row.id
-    ) {
-      throw new Error(`Preflight conflict: catalogue collection ${row.id}/${row.slug}.`);
-    }
-  }
-
-  const products = await tx.products.findMany({
-    where: {
-      OR: [
-        { id: { in: source.products.map((row) => row.id) } },
-        { slug: { in: source.products.map((row) => row.slug) } },
-        { sku: { in: source.products.flatMap((row) => (row.sku ? [row.sku] : [])) } },
-        {
-          archive_number: {
-            in: source.products.flatMap((row) => (row.archive_number ? [row.archive_number] : [])),
-          },
-        },
-      ],
-    },
-    select: { id: true, slug: true, sku: true, archive_number: true },
-  });
-  const expectedById = new Map(source.products.map((row) => [row.id, row]));
-  for (const row of products) {
-    const expected = expectedById.get(row.id);
-    if (
-      !expected ||
-      expected.slug !== row.slug ||
-      expected.sku !== row.sku ||
-      expected.archive_number !== row.archive_number
-    ) {
-      throw new Error(`Preflight conflict: product ${row.id}/${row.slug}.`);
-    }
-  }
-}
-
 async function main() {
   const imported = await prisma.$transaction(
     async (tx) => {
-      await assertNoPreflightConflicts(tx, snapshot);
+      await assertNoCatalogTargetConflicts(
+        tx,
+        snapshot,
+        productMeasurements,
+        variantMeasurements,
+      );
 
       await tx.catalogue_categories.createMany({
         data: snapshot.catalogue_categories.map((row, position) => ({
@@ -299,7 +228,7 @@ async function main() {
     `Imported snapshot: ${imported.products} products, ${imported.variants} variants, ${imported.media} media rows, ${imported.stock} stock rows, ${imported.productMeasurements} product measurements and ${imported.variantMeasurements} variant measurements.`,
   );
   console.warn(
-    `Snapshot adjustment: ${prepared.counts.normalizedDuplicateSkus} duplicate variant SKUs were set to null.`,
+    "Snapshot validation passed: duplicate identifiers, SKUs and conflicting target keys were rejected before the transaction.",
   );
 }
 

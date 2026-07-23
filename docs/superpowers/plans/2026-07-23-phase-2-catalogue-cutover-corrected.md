@@ -34,6 +34,10 @@ No redesign, styling cleanup, component replacement or opportunistic refactor be
 9. Catalogue cache tags and route boundaries remain explicit; no server-only module reaches a client bundle.
 10. CI runs lint, TypeScript, tests, build and storefront parity checks; required checks are not commented out or bypassed.
 
+## Validation authority
+
+All Phase 2 acceptance gates are run and recorded in GitHub Actions. Local or agent-terminal results may help investigation, but they are not completion evidence. The temporary `phase2-diagnostics.yml` workflow captures per-gate logs and exit codes while CI failures are being repaired. Remove that workflow before the PR is marked ready.
+
 ## Role sequence and ownership
 
 ### Planner
@@ -48,13 +52,14 @@ Owns `prisma/**` and `scripts/seed/**`:
 
 - add normalized variant measurement storage;
 - validate and atomically import the retained snapshot;
+- reject duplicate identifiers and SKUs before the transaction;
 - preserve the existing migration baseline and migration history.
 
 ### Domain engineer
 
 Owns `src/server/**`, cross-cutting DTOs and server-boundary tests:
 
-- complete catalogue filtering, facets, pagination and slug/detail reads;
+- complete catalogue filtering, sorting, count, pagination and slug/detail reads;
 - expose pure compatibility adapters where the UI contract must remain unchanged;
 - remove runtime snapshot access and root catalogue reads;
 - retain cache tags and deterministic style-smoke fixtures.
@@ -66,7 +71,7 @@ May change only route data wiring and data-only component inputs/state synchroni
 ### Reviewer
 
 - compare critical visual files against the base branch;
-- run all validation gates;
+- run all validation gates in GitHub Actions;
 - inspect screenshots at 375×812, 768×1024 and 1280×800;
 - keep the PR draft until all required evidence is available.
 
