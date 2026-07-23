@@ -111,6 +111,19 @@ describe("selectStorefrontCataloguePage", () => {
     ).toEqual(["3"]);
   });
 
+  it("preserves global new-arrival positions when SQL facet matches are intersected", () => {
+    const products = Array.from({ length: 25 }, (_, index) => product(String(index)));
+    const eligible = new Set(["21"]);
+
+    expect(
+      selectStorefrontCataloguePage(
+        products,
+        query({ collection: "new", pageSize: 30 }),
+        eligible,
+      ),
+    ).toEqual({ productIds: [], total: 0, page: 1, pageCount: 1 });
+  });
+
   it("sorts and clamps pagination on the server", () => {
     const products = [
       product("high", { price: 4_000_000, condition: "Fair" }),
