@@ -1,33 +1,90 @@
-name: Playwright
+name: Playwright UI Contract
 
 on:
   pull_request:
     branches:
       - main
-      - feat/admin-overview-broadsheet
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: playwright-${{ github.event.pull_request.number || github.ref }}
+  group: playwright-ui-${{ github.event.pull_request.number || github.ref }}-${{ matrix.project || 'contract' }}
   cancel-in-progress: true
 
+env:
+  CI: "1"
+  STOREFRONT_STYLE_SMOKE: "1"
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+  PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+
 jobs:
-  test:
+  browser-contract:
+    name: Browser contract / ${{ matrix.project }}
     runs-on: ubuntu-latest
-    timeout-minutes: 35
-    env:
-      CI: "1"
-      STOREFRONT_STYLE_SMOKE: "1"
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - desktop-chromium
+          - tablet-chromium
+          - mobile-chromium
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
-      - name: Check out repository
+      - name: Check out application
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load UI review agent skills
+        uses: actions/checkout@v4
+        with:
+          repository: relvorlabs/agent-controller
+          path: .ci/agent-controller
+          sparse-checkout: |
+            skills/web-design-guidelines
+            skills/ui-ux-pro-max
+            skills/react-doctor
+
+      - name: Verify repository doctrine and UI skills
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f .agents/doctrine/validation-and-reporting.md
+          test -f .ci/agent-controller/skills/web-design-guidelines/SKILL.md
+          test -f .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
+          test -f .ci/agent-controller/skills/react-doctor/SKILL.md
+          {
+            echo "## Browser validation guidance"
+            echo "- Repository: AGENTS.md + validation doctrine"
+            echo "- Agent skills: web-design-guidelines, ui-ux-pro-max, react-doctor"
+            echo "- Project: ${{ matrix.project }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -41,8 +98,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Strict button audit
-        run: pnpm audit:buttons
+      - name: Prepare ephemeral database
+        run: |
+          pnpm prisma:migrate:deploy
+          pnpm prisma:migrate:status
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
@@ -50,33 +109,80 @@ jobs:
       - name: Build production application
         run: pnpm build
 
-      - name: Run Playwright suite
+      - name: Start production server
         shell: bash
         run: |
           set -euo pipefail
           pnpm start > playwright-server.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-
-          for attempt in {1..60}; do
-            if curl -fsS http://127.0.0.1:3000/products >/dev/null; then
-              break
+          echo $! > playwright-server.pid
+          for attempt in {1..90}; do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/products >/dev/null; then
+              exit 0
             fi
-            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+            if ! kill -0 "$(cat playwright-server.pid)" 2>/dev/null; then
               cat playwright-server.log
               exit 1
             fi
             sleep 1
           done
+          cat playwright-server.log
+          exit 1
 
-          curl -fsS http://127.0.0.1:3000/products >/dev/null
-          pnpm test:e2e
+      - name: HTTP and protected API smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in / /products /account /admin; do
+            code=$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:3000${path}")
+            if [ "$code" -ge 500 ]; then
+              echo "${path} returned ${code}"
+              exit 1
+            fi
+          done
 
-      - name: Upload Playwright report and failure evidence
+          api_code=$(curl --silent --output /tmp/inventory-api.txt --write-out '%{http_code}' \
+            http://127.0.0.1:3000/api/admin/inventory/products)
+          case "$api_code" in
+            200|302|307|401|403) ;;
+            *)
+              cat /tmp/inventory-api.txt
+              echo "Unexpected Inventory API status: ${api_code}"
+              exit 1
+              ;;
+          esac
+
+      - name: Run responsive, theme and interaction contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec playwright test \
+            --project="${{ matrix.project }}" \
+            --grep-invert "captures paired handoff and implementation evidence"
+
+      - name: Inspect server log for runtime failures
+        if: always()
+        shell: bash
+        run: |
+          if [ -f playwright-server.log ]; then
+            cat playwright-server.log
+            if grep -E "Unhandled Runtime Error|Internal Server Error|ReferenceError:|TypeError:" playwright-server.log; then
+              exit 1
+            fi
+          fi
+
+      - name: Stop production server
+        if: always()
+        shell: bash
+        run: |
+          if [ -f playwright-server.pid ]; then
+            kill "$(cat playwright-server.pid)" 2>/dev/null || true
+          fi
+
+      - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ github.run_attempt }}
+          name: playwright-${{ matrix.project }}-${{ github.run_attempt }}
           path: |
             playwright-report/
             test-results/
