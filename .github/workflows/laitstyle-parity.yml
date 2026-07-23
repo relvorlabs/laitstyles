@@ -2,7 +2,7 @@ name: Laitstyle parity checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/admin-overview-broadsheet]
   workflow_dispatch:
 
 concurrency:
