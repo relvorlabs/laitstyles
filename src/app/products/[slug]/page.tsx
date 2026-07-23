@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductDetail } from "@/features/storefront/product/product-detail";
+import { formatNaira } from "@/lib/money";
 import {
-  loadStorefrontProductBySlug,
-  loadStorefrontProductPageBySlug,
-  loadStorefrontProductSlugs,
-} from "@/features/storefront/shared/catalog-loader";
-import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
+  getPublishedProductBySlug,
+  listPublishedProducts,
+  listPublishedProductSlugs,
+} from "@/server/commerce/catalogue/catalog-repository";
 import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
 import ProductDetailLoading from "./loading";
 
@@ -16,12 +15,21 @@ type Params = { slug: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await loadStorefrontProductBySlug(slug);
+  const product = await getPublishedProductBySlug(slug);
   if (!product) return { title: "Not found — Laitstyles" };
+
   const title = `${product.name} — Laitstyles`;
-  const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
-  const canonical = `/products/${productSlug(product)}`;
-  const image = product.images[0];
+  const description = [
+    product.material,
+    product.condition,
+    product.category?.name,
+    formatNaira(product.price),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const canonical = `/products/${product.slug}`;
+  const image = product.media[0]?.url;
+
   return {
     title,
     description,
@@ -42,9 +50,6 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-// The product read comes from the cached catalogue repository (cacheTag
-// "catalogue", minutes lifetime); the static shell is the route's own loading
-// skeleton and the content streams in around it.
 export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
   return (
     <Suspense fallback={<ProductDetailLoading />}>
@@ -55,70 +60,58 @@ export default function ProductDetailPage({ params }: { params: Promise<Params> 
 
 async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const [pageData, reviews] = await Promise.all([
-    loadStorefrontProductPageBySlug(slug),
-    getPublicProductReviews(slug),
+  const product = await getPublishedProductBySlug(slug);
+  if (!product) notFound();
+
+  const [reviews, recommendationCandidates] = await Promise.all([
+    process.env.STOREFRONT_STYLE_SMOKE === "1"
+      ? Promise.resolve({
+          reviews: [],
+          summary: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+        })
+      : getPublicProductReviews(slug),
+    listPublishedProducts({
+      categoryId: product.category?.id,
+      limit: 8,
+    }),
   ]);
-  if (!pageData) notFound();
-  const { product, detail } = pageData;
+  const recommendations = recommendationCandidates.filter(
+    (candidate) => candidate.id !== product.id,
+  );
 
   const availability =
-    product.status === "available"
-      ? "https://schema.org/InStock"
-      : product.status === "reserved"
+    product.availability.state === "sold_out"
+      ? "https://schema.org/SoldOut"
+      : product.availability.state === "reserved_by_others"
         ? "https://schema.org/PreOrder"
-        : "https://schema.org/SoldOut";
+        : "https://schema.org/InStock";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: product.images,
-    description: `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition}.`,
-    sku: `LS-${product.id.toUpperCase()}`,
-    brand: { "@type": "Brand", name: product.brand },
-    category: product.category,
+    image: product.media.map((image) => image.url),
+    description: product.description,
+    sku: product.archiveNumber ?? product.id,
+    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+    category: product.category?.name,
     offers: {
       "@type": "Offer",
-      price: product.price,
+      price: product.price / 100,
       priceCurrency: "NGN",
       availability,
-      url: `/products/${productSlug(product)}`,
+      url: `/products/${product.slug}`,
       itemCondition: "https://schema.org/UsedCondition",
     },
-  };
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "/" },
-      { "@type": "ListItem", position: 2, name: "Shop", item: "/products" },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: product.name,
-        item: `/products/${productSlug(product)}`,
-      },
-    ],
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD script text; serializeJsonLd escapes `<` so the payload cannot break out of the tag.
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is serialized and escapes `<`.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: see above.
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
-      />
-      <ProductDetail
-        detail={{ ...detail, reviewSummary: reviews.summary }}
-        product={product}
-        reviews={reviews}
-        fontClassName={storefrontFontClassName}
-      />
+      <ProductDetail product={product} recommendations={recommendations} reviews={reviews} />
     </>
   );
 }
@@ -127,9 +120,7 @@ function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-// Pre-render every published product detail page at build time (needs a
-// reachable database during `next build`).
 export async function generateStaticParams() {
-  const slugs = await loadStorefrontProductSlugs();
+  const slugs = await listPublishedProductSlugs();
   return slugs.map((slug) => ({ slug }));
 }
