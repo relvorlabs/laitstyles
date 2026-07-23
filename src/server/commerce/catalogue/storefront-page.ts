@@ -16,10 +16,19 @@ export type {
 export async function queryStorefrontCataloguePage(
   query: StorefrontCataloguePageQuery,
 ): Promise<StorefrontCataloguePage> {
-  const products = await listPublishedProducts({
-    colours: query.colours.length ? [...query.colours] : undefined,
-    sizes: query.sizes.length ? [...query.sizes] : undefined,
-    limit: MAX_STOREFRONT_CATALOGUE_DETAILS,
-  });
-  return selectStorefrontCataloguePage(products, query);
+  const hasVariantFacetFilter = query.colours.length > 0 || query.sizes.length > 0;
+  const [products, facetMatches] = await Promise.all([
+    listPublishedProducts({ limit: MAX_STOREFRONT_CATALOGUE_DETAILS }),
+    hasVariantFacetFilter
+      ? listPublishedProducts({
+          colours: query.colours.length ? [...query.colours] : undefined,
+          sizes: query.sizes.length ? [...query.sizes] : undefined,
+          limit: MAX_STOREFRONT_CATALOGUE_DETAILS,
+        })
+      : Promise.resolve(null),
+  ]);
+  const eligibleProductIds = facetMatches
+    ? new Set(facetMatches.map((product) => product.id))
+    : undefined;
+  return selectStorefrontCataloguePage(products, query, eligibleProductIds);
 }
