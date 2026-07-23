@@ -1,10 +1,10 @@
 "use client";
 
 import { type ReactNode, use } from "react";
+import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontClientStateProvider } from "@/features/storefront/shared/storefront-client-state-provider";
-import { StorefrontExperienceProvider } from "@/features/storefront/shared/storefront-experience-provider";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 
 export function StorefrontProviders({
@@ -24,9 +24,9 @@ export function StorefrontProviders({
       products={catalog.products}
       variantOptionsByProductId={catalog.variantOptionsByProductId}
     >
-      <StorefrontExperienceProvider authSession={authSession} products={catalog.products}>
+      <StorefrontAuthProvider authSession={authSession} products={catalog.products}>
         <SiteChrome catalog={catalog}>{children}</SiteChrome>
-      </StorefrontExperienceProvider>
+      </StorefrontAuthProvider>
     </StorefrontClientStateProvider>
   );
 }
