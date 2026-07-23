@@ -59,6 +59,8 @@ import {
   listInventoryTaxonomy,
 } from "./inventory-read";
 
+const MISSING_PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000099";
+
 describe("inventory reads", () => {
   it("lists every lifecycle with an explicit upper bound", async () => {
     const products = await listInventoryProducts();
@@ -72,9 +74,22 @@ describe("inventory reads", () => {
     expect(vi.mocked(prisma.products.findMany).mock.calls[0]?.[0]?.where).toBeUndefined();
   });
 
-  it("returns null for an unknown product", async () => {
+  it("queries a valid identifier and returns null for an unknown product", async () => {
     vi.mocked(prisma.products.findUnique).mockResolvedValueOnce(null);
+
+    await expect(getInventoryProduct(MISSING_PRODUCT_ID)).resolves.toBeNull();
+
+    expect(prisma.products.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: MISSING_PRODUCT_ID } }),
+    );
+  });
+
+  it("returns null for a malformed identifier without querying Prisma", async () => {
+    vi.mocked(prisma.products.findUnique).mockClear();
+
     await expect(getInventoryProduct("missing")).resolves.toBeNull();
+
+    expect(prisma.products.findUnique).not.toHaveBeenCalled();
   });
 
   it("combines categories and collections using encoded ids", async () => {
