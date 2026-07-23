@@ -96,80 +96,85 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-6 py-2">
-              {storefront.cartLines.map(({ product, lineQty, variantLabel }) => (
-                <article
-                  className="grid grid-cols-[88px_1fr] gap-4 border-b border-[var(--line)] py-5"
-                  key={product.id}
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[var(--linen)]">
-                    <Image
-                      alt={product.name}
-                      className="object-cover"
-                      fill
-                      sizes="88px"
-                      src={product.images[0]}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                      Grade {product.condition} · {variantLabel ?? product.size}
-                    </p>
-                    <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
-                    <p className="mt-1 text-sm font-semibold">{money(product.price)}</p>
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                      {product.inventory === "one-of-one" ? (
-                        <span className="text-xs text-[var(--muted)]">One-of-one</span>
-                      ) : (
-                        <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
+              {storefront.cartLines.map(
+                ({ product, lineKey, lineQty, variantLabel, unitPriceNaira }) => (
+                  <article
+                    className="grid grid-cols-[88px_1fr] gap-4 border-b border-[var(--line)] py-5"
+                    key={lineKey}
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[var(--linen)]">
+                      {product.images[0] ? (
+                        <Image
+                          alt={product.name}
+                          className="object-cover"
+                          fill
+                          sizes="88px"
+                          src={product.images[0]}
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                        Grade {product.condition} · {variantLabel ?? product.size}
+                      </p>
+                      <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
+                      <p className="mt-1 text-sm font-semibold">
+                        {money(unitPriceNaira * lineQty)}
+                      </p>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        {product.inventory === "one-of-one" ? (
+                          <span className="text-xs text-[var(--muted)]">One-of-one</span>
+                        ) : (
+                          <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
+                            <Button
+                              aria-label={`Decrease ${product.name} quantity`}
+                              className="grid place-items-center"
+                              onClick={() => storefront.changeQty(lineKey, -1)}
+                              size="icon"
+                              variant="ghost"
+                            >
+                              −
+                            </Button>
+                            <span className="min-w-6 text-center font-mono text-xs">{lineQty}</span>
+                            <Button
+                              aria-label={`Increase ${product.name} quantity`}
+                              className="grid place-items-center"
+                              onClick={() => storefront.changeQty(lineKey, 1)}
+                              size="icon"
+                              variant="ghost"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 text-xs">
                           <Button
-                            aria-label={`Decrease ${product.name} quantity`}
-                            className="grid place-items-center"
-                            onClick={() => storefront.changeQty(product.id, -1)}
-                            size="icon"
-                            variant="ghost"
+                            size="lg"
+                            className="gap-1.5"
+                            onClick={() => {
+                              if (!storefront.saved.has(product.id)) storefront.toggleSaved(product.id);
+                              storefront.removeFromCart(lineKey);
+                            }}
+                            type="button"
+                            variant="link"
                           >
-                            −
+                            <HugeiconsIcon icon={FavouriteIcon} size={14} strokeWidth={1.6} />
+                            Save
                           </Button>
-                          <span className="min-w-6 text-center font-mono text-xs">{lineQty}</span>
                           <Button
-                            aria-label={`Increase ${product.name} quantity`}
-                            className="grid place-items-center"
-                            onClick={() => storefront.changeQty(product.id, 1)}
-                            size="icon"
-                            variant="ghost"
+                            size="lg"
+                            onClick={() => storefront.removeFromCart(lineKey)}
+                            type="button"
+                            variant="link"
                           >
-                            +
+                            Remove
                           </Button>
                         </div>
-                      )}
-                      <div className="flex items-center gap-3 text-xs">
-                        <Button
-                          size="lg"
-                          className="gap-1.5"
-                          onClick={() => {
-                            if (!storefront.saved.has(product.id))
-                              storefront.toggleSaved(product.id);
-                            storefront.removeFromCart(product.id);
-                          }}
-                          type="button"
-                          variant="link"
-                        >
-                          <HugeiconsIcon icon={FavouriteIcon} size={14} strokeWidth={1.6} />
-                          Save
-                        </Button>
-                        <Button
-                          size="lg"
-                          onClick={() => storefront.removeFromCart(product.id)}
-                          type="button"
-                          variant="link"
-                        >
-                          Remove
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ),
+              )}
 
               {recommendations.length > 0 ? (
                 <section className="py-6">
@@ -187,13 +192,15 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                       >
                         <span className="min-w-0">
                           <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
-                            <Image
-                              alt=""
-                              className="object-cover transition-transform group-hover:scale-[1.03]"
-                              fill
-                              sizes="190px"
-                              src={product.images[0]}
-                            />
+                            {product.images[0] ? (
+                              <Image
+                                alt=""
+                                className="object-cover transition-transform group-hover:scale-[1.03]"
+                                fill
+                                sizes="190px"
+                                src={product.images[0]}
+                              />
+                            ) : null}
                           </span>
                           <span className="mt-2 block truncate text-xs font-medium">
                             {product.name}
