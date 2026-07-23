@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { koboToNaira } from "@/lib/money";
-import type { CategoryWithImage, ProductDetail } from "@/lib/storefront/types";
+import type { CategoryWithImage, ProductDetail, ProductSummary } from "@/lib/storefront/types";
 import {
   getPublishedProductBySlug,
   listPublishedProductDetails,
@@ -17,36 +17,92 @@ import type {
 } from "./catalog-types";
 
 // The one storefront catalogue loader: everything the storefront renders comes
-// from the Prisma repository (cacheTag "catalogue"). The legacy Product
-// projection below exists only for the Generation-1 client providers and dies
-// with them in migration Phase 4.
+// from the Prisma repository (cacheTag "catalogue"). The compatibility Product
+// projection preserves the approved UI contract while Phase 4 later simplifies
+// client state; it is a pure adapter and is never an independent data source.
 
 function detailVariants(detail: ProductDetail) {
   return detail.mode === "variant" ? detail.variants : [];
 }
 
-/** Legacy condition letter: persisted vocabulary is Excellent/Good/Fair. */
+/** Compatibility condition letter: persisted vocabulary remains authoritative. */
 function legacyCondition(value: string | null): Product["condition"] {
   return value === "Excellent" ? "A+" : value === "Fair" ? "B+" : "A";
+}
+
+function legacyInventory(mode: ProductSummary["mode"]): Product["inventory"] {
+  return mode === "unique" ? "one-of-one" : mode === "stocked" ? "matching-stock" : "variant";
+}
+
+function legacyStatus(summary: ProductSummary): Product["status"] {
+  return summary.availability.state === "sold_out"
+    ? "sold"
+    : summary.availability.state === "reserved_by_others"
+      ? "reserved"
+      : "available";
+}
+
+/**
+ * Pure compatibility projection for catalogue filtering. Cards ultimately use
+ * the full detail-backed product from StorefrontProvider, so this summary shape
+ * never invents extra media or variant detail for presentation.
+ */
+export function projectLegacyProductSummary(summary: ProductSummary, index: number): Product {
+  return {
+    id: summary.id,
+    databaseId: summary.id,
+    slug: summary.slug,
+    name: summary.name,
+    brand: summary.brand ?? "Unbranded",
+    brandStatus: summary.brand ? "Branded" : "Unbranded",
+    category: summary.collection?.name ?? "Unisex",
+    type: summary.category?.name ?? "Pieces",
+    style: summary.style ?? "Essentials",
+    price: koboToNaira(summary.price),
+    referencePrice: summary.referencePrice === null ? null : koboToNaira(summary.referencePrice),
+    condition: legacyCondition(summary.condition),
+    size: summary.sizeLabel ?? "One size",
+    fit: summary.fit ?? summary.sizeLabel ?? "One size",
+    colour: summary.colour ?? "",
+    inventory: legacyInventory(summary.mode),
+    stock: summary.availability.available,
+    status: legacyStatus(summary),
+    new: index < 20,
+    saved: 0,
+    flaw: "None",
+    material: summary.material ?? "Material not specified",
+    careInstructions: "Follow the garment care label.",
+    images: summary.cover ? [summary.cover.url] : [],
+  };
 }
 
 export function projectLegacyProduct(detail: ProductDetail, index: number): Product {
   const variants = detailVariants(detail);
   const sizeLabel = detail.mode === "variant" ? null : detail.sizeLabel;
   const colour = detail.mode === "variant" ? null : detail.colour;
-  return {
+  const summary: ProductSummary = {
     id: detail.id,
-    databaseId: detail.id,
     slug: detail.slug,
     name: detail.name,
-    brand: detail.brand ?? "Unbranded",
-    brandStatus: detail.brand ? "Branded" : "Unbranded",
-    category: detail.collection?.name ?? "Unisex",
-    type: detail.category?.name ?? "Pieces",
-    style: detail.style ?? "Essentials",
-    price: koboToNaira(detail.price),
-    referencePrice: detail.referencePrice === null ? null : koboToNaira(detail.referencePrice),
-    condition: legacyCondition(detail.condition),
+    brand: detail.brand,
+    price: detail.price,
+    referencePrice: detail.referencePrice,
+    archiveNumber: detail.archiveNumber,
+    condition: detail.condition,
+    material: detail.material,
+    fit: detail.fit,
+    style: detail.style,
+    category: detail.category,
+    collection: detail.collection,
+    cover: detail.cover,
+    mode: detail.mode,
+    sizeLabel,
+    colour,
+    availability: detail.availability,
+  };
+
+  return {
+    ...projectLegacyProductSummary(summary, index),
     size:
       sizeLabel ??
       variants
@@ -55,21 +111,6 @@ export function projectLegacyProduct(detail: ProductDetail, index: number): Prod
         .join("–"),
     fit: detail.fit ?? sizeLabel ?? "One size",
     colour: colour ?? variants[0]?.colour ?? "",
-    inventory:
-      detail.mode === "unique"
-        ? "one-of-one"
-        : detail.mode === "stocked"
-          ? "matching-stock"
-          : "variant",
-    stock: detail.availability.available,
-    status:
-      detail.availability.state === "sold_out"
-        ? "sold"
-        : detail.availability.state === "reserved_by_others"
-          ? "reserved"
-          : "available",
-    new: index < 20,
-    saved: 0,
     flaw: detail.flawNotes ?? "None",
     material: detail.material ?? "Material not specified",
     careInstructions: detail.careInstructions ?? "Follow the garment care label.",
@@ -123,8 +164,6 @@ const getCatalog = cache(async () => {
   return { details, payload: buildStorefrontCatalog(details, categories) };
 });
 
-// React cache deduplicates metadata/page reads during one render pass; the
-// repository's use-cache entries provide the cross-request minutes TTL.
 const getProductDetail = cache((slug: string) => getPublishedProductBySlug(slug));
 const getProductSlugs = cache(() => listPublishedProductSlugs());
 
@@ -147,9 +186,6 @@ export async function loadStorefrontProductPageBySlug(
   if (!detail) return null;
 
   const publishedIndex = slugs.indexOf(slug);
-  // A detail and slug entry normally share the same catalogue cache lifetime.
-  // If independently refreshed entries briefly disagree, avoid falsely
-  // labelling the product "new" in the Phase-4 legacy projection.
   const legacyIndex = publishedIndex >= 0 ? publishedIndex : Math.max(20, slugs.length);
   return { product: projectLegacyProduct(detail, legacyIndex), detail };
 }

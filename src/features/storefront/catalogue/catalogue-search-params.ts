@@ -1,20 +1,28 @@
-import type { CatalogueSort } from "@/lib/storefront/types";
-
 export type CatalogueSearchParams = Record<string, string | string[] | undefined>;
+
+export type LegacyCatalogueSort =
+  | "curated"
+  | "newest"
+  | "price-low"
+  | "price-high"
+  | "condition"
+  | "one"
+  | "saved";
+
+export type LegacyInventory = "one-of-one" | "variant" | "matching-stock";
 
 export interface ParsedCatalogueSearch {
   page: number;
   search: string;
   category: string | null;
   collection: string | null;
-  brands: string[];
   conditions: string[];
+  inventories: LegacyInventory[];
+  inStock: boolean;
+  maxPriceNaira: number | undefined;
+  sort: LegacyCatalogueSort;
   colours: string[];
   sizes: string[];
-  modes: Array<"unique" | "stocked" | "variant">;
-  minPriceNaira: number | undefined;
-  maxPriceNaira: number | undefined;
-  sort: CatalogueSort;
 }
 
 function values(value: string | string[] | undefined): string[] {
@@ -41,32 +49,46 @@ function nonNegativeNumber(value: string | string[] | undefined): number | undef
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
-function parseSort(value: string | string[] | undefined): CatalogueSort {
+function parseSort(value: string | string[] | undefined): LegacyCatalogueSort {
   const sort = first(value);
-  return sort === "price_asc" || sort === "price_desc" ? sort : "newest";
+  return sort === "newest" ||
+    sort === "price-low" ||
+    sort === "price-high" ||
+    sort === "condition" ||
+    sort === "one" ||
+    sort === "saved"
+    ? sort
+    : "curated";
+}
+
+function parseInventories(searchParams: CatalogueSearchParams): LegacyInventory[] {
+  const explicit = values(searchParams.inventory);
+  const canonicalModes = values(searchParams.mode).map((mode) =>
+    mode === "unique" ? "one-of-one" : mode === "stocked" ? "matching-stock" : mode,
+  );
+  return [...new Set([...explicit, ...canonicalModes])].filter(
+    (value): value is LegacyInventory =>
+      value === "one-of-one" || value === "variant" || value === "matching-stock",
+  );
 }
 
 export function parseCatalogueSearchParams(
   searchParams: CatalogueSearchParams,
 ): ParsedCatalogueSearch {
-  const modes = values(searchParams.mode).filter(
-    (mode): mode is ParsedCatalogueSearch["modes"][number] =>
-      mode === "unique" || mode === "stocked" || mode === "variant",
-  );
-
   return {
     page: positiveInteger(searchParams.page, 1),
     search: first(searchParams.search).slice(0, 120),
     category: first(searchParams.category) || null,
     collection: first(searchParams.collection) || null,
-    brands: values(searchParams.brand),
-    conditions: values(searchParams.condition),
-    colours: values(searchParams.colour),
-    sizes: values(searchParams.size),
-    modes,
-    minPriceNaira: nonNegativeNumber(searchParams.min),
+    conditions: values(searchParams.condition).filter((value) =>
+      value === "A+" || value === "A" || value === "B+",
+    ),
+    inventories: parseInventories(searchParams),
+    inStock: first(searchParams.stock) === "1" || first(searchParams.inStock) === "true",
     maxPriceNaira: nonNegativeNumber(searchParams.max),
     sort: parseSort(searchParams.sort),
+    colours: values(searchParams.colour),
+    sizes: values(searchParams.size),
   };
 }
 
@@ -80,14 +102,13 @@ export function catalogueHref(
   if (next.search) params.set("search", next.search);
   if (next.category) params.set("category", next.category);
   if (next.collection) params.set("collection", next.collection);
-  if (next.brands.length) params.set("brand", next.brands.join(","));
   if (next.conditions.length) params.set("condition", next.conditions.join(","));
+  if (next.inventories.length) params.set("inventory", next.inventories.join(","));
+  if (next.inStock) params.set("stock", "1");
+  if (next.maxPriceNaira !== undefined) params.set("max", String(next.maxPriceNaira));
+  if (next.sort !== "curated") params.set("sort", next.sort);
   if (next.colours.length) params.set("colour", next.colours.join(","));
   if (next.sizes.length) params.set("size", next.sizes.join(","));
-  if (next.modes.length) params.set("mode", next.modes.join(","));
-  if (next.minPriceNaira !== undefined) params.set("min", String(next.minPriceNaira));
-  if (next.maxPriceNaira !== undefined) params.set("max", String(next.maxPriceNaira));
-  if (next.sort !== "newest") params.set("sort", next.sort);
   if (next.page > 1) params.set("page", String(next.page));
 
   const query = params.toString();
