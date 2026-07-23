@@ -1,13 +1,6 @@
 /**
- * One-time import of the legacy public storefront snapshot into the database,
- * making Postgres the single catalogue source of truth (migration Phase 2).
- *
- * Reads scripts/seed/storefront-catalog-snapshot.json (the former
- * public/assets/data/storefront-catalog.json) and inserts categories,
- * collections, products, variants, assets, media, channels, measurements and
- * stock levels. Idempotent: createMany + skipDuplicates, stable snapshot ids.
- *
- *   pnpm db:import:catalog
+ * One-time import of the archived storefront catalogue into PostgreSQL.
+ * The snapshot is migration input only; runtime reads use Prisma repositories.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -15,20 +8,24 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { config as loadEnv } from "dotenv";
 import { Prisma, PrismaClient } from "../../prisma/generated/prisma/client";
 import { prepareCatalogSnapshot, type CatalogSnapshot } from "./catalog-snapshot";
+import { prepareMeasurementRows } from "./catalog-measurements";
 
 loadEnv({ path: ".env.local" });
 
 const connectionString = process.env.DIRECT_URL;
 if (!connectionString) {
-  throw new Error("DIRECT_URL is not set (import requires a direct connection).");
+  throw new Error("DIRECT_URL is not set (catalogue import requires a direct connection).");
 }
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString, max: 2, connectionTimeoutMillis: 15_000 }),
 });
-
 const snapshotPath = join(__dirname, "storefront-catalog-snapshot.json");
 const prepared = prepareCatalogSnapshot(JSON.parse(readFileSync(snapshotPath, "utf8")));
 const snapshot = prepared.snapshot;
+const { productMeasurements, variantMeasurements } = prepareMeasurementRows(
+  snapshot.product_measurements,
+);
 const date = (value: string) => new Date(value);
 const dateOrNull = (value: string | null) => (value ? new Date(value) : null);
 
@@ -130,7 +127,6 @@ async function main() {
         })),
         skipDuplicates: true,
       });
-
       await tx.catalogue_collections.createMany({
         data: snapshot.catalogue_collections.map((row, position) => ({
           id: row.id,
@@ -140,7 +136,6 @@ async function main() {
         })),
         skipDuplicates: true,
       });
-
       await tx.products.createMany({
         data: snapshot.products.map((row) => ({
           id: row.id,
@@ -174,16 +169,14 @@ async function main() {
         skipDuplicates: true,
       });
 
-      // Per-product variant position, preserving snapshot order.
       const variantPosition = new Map<string, number>();
       await tx.product_variants.createMany({
         data: snapshot.product_variants.map((row) => {
-          const productId = row.product_id;
-          const position = variantPosition.get(productId) ?? 0;
-          variantPosition.set(productId, position + 1);
+          const position = variantPosition.get(row.product_id) ?? 0;
+          variantPosition.set(row.product_id, position + 1);
           return {
             id: row.id,
-            product_id: productId,
+            product_id: row.product_id,
             label: row.title,
             sku: row.sku,
             size: row.size_label,
@@ -196,7 +189,6 @@ async function main() {
         skipDuplicates: true,
       });
 
-      // Asset kind derives from the media rows referencing the asset.
       const assetKind = new Map<string, (typeof MEDIA_KIND)[keyof typeof MEDIA_KIND]>();
       for (const media of snapshot.product_media) {
         if (!assetKind.has(media.asset_id)) assetKind.set(media.asset_id, MEDIA_KIND[media.role]);
@@ -206,7 +198,6 @@ async function main() {
           id: row.id,
           provider: "pexels",
           kind: assetKind.get(row.id) ?? "product_detail",
-          // public_id must be unique; the snapshot asset id is the stable key.
           public_id: `snapshot-${row.id}`,
           secure_url: row.secure_url,
           delivery_url: row.delivery_url,
@@ -216,7 +207,6 @@ async function main() {
         })),
         skipDuplicates: true,
       });
-
       await tx.product_media.createMany({
         data: snapshot.product_media.map((row) => ({
           id: row.id,
@@ -228,34 +218,20 @@ async function main() {
         })),
         skipDuplicates: true,
       });
-
       await tx.product_channels.createMany({
         data: snapshot.product_channels
           .filter((row) => row.channel === "storefront")
           .map((row) => ({ product_id: row.product_id, channel: "storefront" as const })),
         skipDuplicates: true,
       });
-
-      // The DB tracks product-level measurements only (no variant/unit columns):
-      // fold the unit into the value and re-sequence positions per product.
-      const measurementPosition = new Map<string, number>();
       await tx.product_measurements.createMany({
-        data: snapshot.product_measurements
-          .filter((row) => row.variant_id === null)
-          .map((row) => {
-            const position = measurementPosition.get(row.product_id) ?? 0;
-            measurementPosition.set(row.product_id, position + 1);
-            return {
-              id: row.id,
-              product_id: row.product_id,
-              label: row.label,
-              value: `${row.value} ${row.unit}`,
-              position,
-            };
-          }),
+        data: productMeasurements,
         skipDuplicates: true,
       });
-
+      await tx.product_variant_measurements.createMany({
+        data: variantMeasurements,
+        skipDuplicates: true,
+      });
       await tx.stock_levels.createMany({
         data: snapshot.stock_levels.map((row) => ({
           id: row.id,
@@ -269,35 +245,42 @@ async function main() {
         skipDuplicates: true,
       });
 
-      const [products, variants, media, stock, measurements] = await Promise.all([
-        tx.products.count({ where: { id: { in: snapshot.products.map((row) => row.id) } } }),
-        tx.product_variants.count({
-          where: { id: { in: snapshot.product_variants.map((row) => row.id) } },
-        }),
-        tx.product_media.count({
-          where: { id: { in: snapshot.product_media.map((row) => row.id) } },
-        }),
-        tx.stock_levels.count({
-          where: { id: { in: snapshot.stock_levels.map((row) => row.id) } },
-        }),
-        tx.product_measurements.count({
-          where: {
-            id: {
-              in: snapshot.product_measurements
-                .filter((row) => row.variant_id === null)
-                .map((row) => row.id),
-            },
-          },
-        }),
-      ]);
+      const [products, variants, media, stock, productMeasurementCount, variantMeasurementCount] =
+        await Promise.all([
+          tx.products.count({ where: { id: { in: snapshot.products.map((row) => row.id) } } }),
+          tx.product_variants.count({
+            where: { id: { in: snapshot.product_variants.map((row) => row.id) } },
+          }),
+          tx.product_media.count({
+            where: { id: { in: snapshot.product_media.map((row) => row.id) } },
+          }),
+          tx.stock_levels.count({
+            where: { id: { in: snapshot.stock_levels.map((row) => row.id) } },
+          }),
+          tx.product_measurements.count({
+            where: { id: { in: productMeasurements.map((row) => row.id) } },
+          }),
+          tx.product_variant_measurements.count({
+            where: { id: { in: variantMeasurements.map((row) => row.id) } },
+          }),
+        ]);
+
       const expected = {
         products: snapshot.products.length,
         variants: snapshot.product_variants.length,
         media: snapshot.product_media.length,
         stock: snapshot.stock_levels.length,
-        measurements: prepared.counts.importedMeasurements,
+        productMeasurements: productMeasurements.length,
+        variantMeasurements: variantMeasurements.length,
       };
-      const actual = { products, variants, media, stock, measurements };
+      const actual = {
+        products,
+        variants,
+        media,
+        stock,
+        productMeasurements: productMeasurementCount,
+        variantMeasurements: variantMeasurementCount,
+      };
       if (
         Object.keys(expected).some(
           (key) => expected[key as keyof typeof expected] !== actual[key as keyof typeof actual],
@@ -307,16 +290,16 @@ async function main() {
           `Post-import count mismatch: expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}.`,
         );
       }
-      return { products, variants, media, stock, measurements };
+      return actual;
     },
     { maxWait: 15_000, timeout: 60_000 },
   );
 
   console.warn(
-    `Imported snapshot: ${imported.products} products, ${imported.variants} variants, ${imported.media} media rows, ${imported.stock} stock rows, ${imported.measurements} measurements.`,
+    `Imported snapshot: ${imported.products} products, ${imported.variants} variants, ${imported.media} media rows, ${imported.stock} stock rows, ${imported.productMeasurements} product measurements and ${imported.variantMeasurements} variant measurements.`,
   );
   console.warn(
-    `Snapshot adjustments: ${prepared.counts.normalizedDuplicateSkus} duplicate variant SKUs set to null; ${prepared.counts.droppedVariantMeasurements} variant measurements omitted because the database model has no variant measurement relation.`,
+    `Snapshot adjustment: ${prepared.counts.normalizedDuplicateSkus} duplicate variant SKUs were set to null.`,
   );
 }
 

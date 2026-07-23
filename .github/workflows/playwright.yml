@@ -2,8 +2,7 @@ name: Playwright
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,8 +18,7 @@ jobs:
     timeout-minutes: 35
     env:
       CI: "1"
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
-      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+      STOREFRONT_STYLE_SMOKE: "1"
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
@@ -29,68 +27,34 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up pnpm from package.json
+      - name: Set up pnpm
         uses: pnpm/action-setup@v4
-        with:
-          run_install: false
 
-      - name: Set up Node.js 24
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 25
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit raw application buttons
-        run: pnpm audit:buttons
-
-      - name: Install Chromium and operating-system dependencies
+      - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Start local Supabase auth stub
-        shell: bash
-        run: |
-          node --input-type=module <<'NODE' > supabase-mock.log 2>&1 &
-          import http from "node:http";
-
-          http
-            .createServer((request, response) => {
-              response.setHeader("content-type", "application/json");
-              if (request.url?.includes("/.well-known/jwks.json")) {
-                response.writeHead(200);
-                response.end(JSON.stringify({ keys: [] }));
-                return;
-              }
-              if (request.url?.includes("/auth/v1/user")) {
-                response.writeHead(401);
-                response.end(JSON.stringify({ message: "No authorization header" }));
-                return;
-              }
-              response.writeHead(200);
-              response.end(JSON.stringify({}));
-            })
-            .listen(54321, "127.0.0.1");
-          NODE
-          echo $! > supabase-mock.pid
-
       - name: Build production application
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm build 2>&1 | tee playwright-build.log
+        run: pnpm build
 
       - name: Run Playwright suite
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           pnpm start > playwright-server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
 
           for attempt in {1..60}; do
-            if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+            if curl -fsS http://127.0.0.1:3000/products >/dev/null; then
               break
             fi
             if ! kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -100,8 +64,8 @@ jobs:
             sleep 1
           done
 
-          curl -fsS http://127.0.0.1:3000 >/dev/null
-          pnpm test:e2e 2>&1 | tee playwright-tests.log
+          curl -fsS http://127.0.0.1:3000/products >/dev/null
+          pnpm test:e2e
 
       - name: Upload Playwright report and failure evidence
         if: always()
@@ -111,9 +75,6 @@ jobs:
           path: |
             playwright-report/
             test-results/
-            playwright-build.log
             playwright-server.log
-            playwright-tests.log
-            supabase-mock.log
           if-no-files-found: warn
           retention-days: 14

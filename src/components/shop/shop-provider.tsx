@@ -9,13 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { Product as StorefrontProduct } from "@/features/storefront/shared/catalogue-data";
-import {
-  canonicalizeProduct,
-  canonicalProductId,
-  type Product,
-  projectLegacyCatalogue,
-} from "@/lib/catalogue";
+import { canonicalProductId, type Product } from "@/lib/catalogue";
 
 const STORAGE_KEY = "laitstyle-held-items-v1";
 const DEFAULT_HOLD_SECONDS = 15 * 60;
@@ -37,42 +31,25 @@ type ShopContextValue = {
 
 const ShopContext = createContext<ShopContextValue | null>(null);
 
-function normalizeHeldItems(items: HeldItem[], catalogue: readonly Product[]) {
+function normalizeHeldItems(items: HeldItem[]) {
   const byProduct = new Map<string, HeldItem>();
-
   for (const item of items) {
     if (!item?.product?.id) continue;
-    const product = canonicalizeProduct(catalogue, item.product);
-    const canonicalId = canonicalProductId(product.id);
+    const canonicalId = canonicalProductId(item.product.id);
+    const secondsLeft = Math.max(0, item.secondsLeft ?? DEFAULT_HOLD_SECONDS);
     const existing = byProduct.get(canonicalId);
-
-    if (!existing || item.secondsLeft > existing.secondsLeft) {
+    if (!existing || secondsLeft > existing.secondsLeft) {
       byProduct.set(canonicalId, {
-        product: { ...product, id: canonicalId, state: "resYou" },
-        secondsLeft: Math.max(0, item.secondsLeft ?? DEFAULT_HOLD_SECONDS),
+        product: { ...item.product, id: canonicalId, state: "resYou" },
+        secondsLeft,
       });
     }
   }
-
   return Array.from(byProduct.values());
 }
 
-export function ShopProvider({
-  children,
-  products,
-}: {
-  children: ReactNode;
-  products: readonly StorefrontProduct[];
-}) {
-  const catalogue = useMemo(() => projectLegacyCatalogue(products), [products]);
-  const [heldItems, setHeldItems] = useState<HeldItem[]>(() =>
-    catalogue
-      .filter((product) => product.state === "resYou")
-      .map((product) => ({
-        product: canonicalizeProduct(catalogue, product),
-        secondsLeft: product.secondsLeft ?? DEFAULT_HOLD_SECONDS,
-      })),
-  );
+export function ShopProvider({ children }: { children: ReactNode }) {
+  const [heldItems, setHeldItems] = useState<HeldItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -81,9 +58,7 @@ export function ShopProvider({
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored) as HeldItem[];
-          if (Array.isArray(parsed)) {
-            setHeldItems(normalizeHeldItems(parsed, catalogue));
-          }
+          if (Array.isArray(parsed)) setHeldItems(normalizeHeldItems(parsed));
         }
       } catch {
         // A blocked or malformed localStorage entry should not break shopping.
@@ -91,9 +66,8 @@ export function ShopProvider({
         setHydrated(true);
       }
     });
-
     return () => window.cancelAnimationFrame(frame);
-  }, [catalogue]);
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -107,50 +81,29 @@ export function ShopProvider({
   useEffect(() => {
     const timer = window.setInterval(() => {
       setHeldItems((current) =>
-        current.map((item) => ({
-          ...item,
-          secondsLeft: Math.max(0, item.secondsLeft - 1),
-        })),
+        current.map((item) => ({ ...item, secondsLeft: Math.max(0, item.secondsLeft - 1) })),
       );
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, []);
 
-  const reserve = useCallback(
-    (incomingProduct: Product) => {
-      if (incomingProduct.state === "sold" || incomingProduct.state === "resOthers") {
-        return false;
+  const reserve = useCallback((incomingProduct: Product) => {
+    if (incomingProduct.state === "sold" || incomingProduct.state === "resOthers") return false;
+    const canonicalId = canonicalProductId(incomingProduct.id);
+    const product = { ...incomingProduct, id: canonicalId, state: "resYou" as const };
+
+    setHeldItems((current) => {
+      if (current.some((item) => canonicalProductId(item.product.id) === canonicalId)) {
+        return current.map((item) =>
+          canonicalProductId(item.product.id) === canonicalId
+            ? { product, secondsLeft: DEFAULT_HOLD_SECONDS }
+            : item,
+        );
       }
-
-      const product = canonicalizeProduct(catalogue, incomingProduct);
-      const canonicalId = canonicalProductId(product.id);
-
-      setHeldItems((current) => {
-        if (current.some((item) => canonicalProductId(item.product.id) === canonicalId)) {
-          return current.map((item) =>
-            canonicalProductId(item.product.id) === canonicalId
-              ? {
-                  product: { ...product, id: canonicalId, state: "resYou" },
-                  secondsLeft: DEFAULT_HOLD_SECONDS,
-                }
-              : item,
-          );
-        }
-
-        return [
-          ...current,
-          {
-            product: { ...product, id: canonicalId, state: "resYou" },
-            secondsLeft: DEFAULT_HOLD_SECONDS,
-          },
-        ];
-      });
-
-      return true;
-    },
-    [catalogue],
-  );
+      return [...current, { product, secondsLeft: DEFAULT_HOLD_SECONDS }];
+    });
+    return true;
+  }, []);
 
   const release = useCallback((productId: string) => {
     const canonicalId = canonicalProductId(productId);
@@ -171,7 +124,6 @@ export function ShopProvider({
   }, []);
 
   const clearCart = useCallback(() => setHeldItems([]), []);
-
   const value = useMemo<ShopContextValue>(
     () => ({
       heldItems,
@@ -185,10 +137,7 @@ export function ShopProvider({
       },
       secondsFor: (productId) => {
         const canonicalId = canonicalProductId(productId);
-        return (
-          heldItems.find((item) => canonicalProductId(item.product.id) === canonicalId)
-            ?.secondsLeft ?? 0
-        );
+        return heldItems.find((item) => canonicalProductId(item.product.id) === canonicalId)?.secondsLeft ?? 0;
       },
     }),
     [clearCart, heldItems, rehold, release, reserve],
@@ -199,9 +148,7 @@ export function ShopProvider({
 
 export function useShop() {
   const value = use(ShopContext);
-  if (!value) {
-    throw new Error("useShop must be used within ShopProvider");
-  }
+  if (!value) throw new Error("useShop must be used within ShopProvider");
   return value;
 }
 

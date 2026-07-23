@@ -1,282 +1,305 @@
-"use client";
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ProductCard } from "@/features/storefront/catalogue/product-card";
+import {
+  catalogueHref,
+  type ParsedCatalogueSearch,
+} from "@/features/storefront/catalogue/catalogue-search-params";
+import type {
+  CategoryWithImage,
+  ProductSummary,
+  StorefrontFacetOptions,
+} from "@/lib/storefront/types";
+import { cn } from "@/lib/utils";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { type Product, productToHoldable } from "@/features/storefront/shared/catalogue-data";
-import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
-import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
-
-const PAGE_SIZE = 12;
-const quickLinks: [string, string][] = [
-  ["all", "All"],
-  ["new", "New arrivals"],
-  ["women", "Women"],
-  ["men", "Men"],
-  ["unisex", "Unisex"],
-  ["one-of-one", "One-of-one"],
-  ["under-25", "Under ₦25,000"],
-  ["grade-a-plus", "Grade A+"],
-  ["vintage", "Vintage"],
-];
-const genderByKey: Record<string, string> = { women: "Women", men: "Men", unisex: "Unisex" };
-
-function CatalogueApp() {
-  const storefront = useStorefront();
-  const [page, setPage] = useState(1);
-  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-
-  useEffect(() => {
-    const storedDensity = sessionStorage.getItem("laitstyles-density");
-    if (storedDensity === "compact" || storedDensity === "comfortable") {
-      setDensity(storedDensity);
-    }
-  }, []);
-
-  const changeDensity = (nextDensity: "comfortable" | "compact") => {
-    setDensity(nextDensity);
-    try {
-      sessionStorage.setItem("laitstyles-density", nextDensity);
-    } catch {
-      // Ignore unavailable storage.
-    }
-  };
-
-  const filterSignature = `${storefront.category}|${storefront.collection}|${[
-    ...storefront.conditions,
-  ]
-    .sort()
-    .join(",")}|${[...storefront.inventories].sort().join(",")}|${storefront.inStock}|${
-    storefront.maxPrice
-  }|${storefront.search}|${storefront.sort}`;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: page resets on filter-signature change only.
-  useEffect(() => setPage(1), [filterSignature]);
-
-  const list = storefront.filteredList;
-  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const current = Math.min(page, pages);
-  const start = (current - 1) * PAGE_SIZE;
-  const pageItems = list.slice(start, start + PAGE_SIZE);
-
-  const applyQuick = (key: string) => {
-    if (key === "all") storefront.applyShop({});
-    else if (genderByKey[key]) storefront.applyShop({ category: genderByKey[key] });
-    else storefront.applyShop({ collection: key });
-  };
-  const quickActive = (key: string) => {
-    if (key === "all") return storefront.category === "All" && !storefront.collection;
-    if (genderByKey[key]) return storefront.category === genderByKey[key];
-    return storefront.collection === key;
-  };
-
-  const {
-    state: { holdSecondsByProduct },
-    actions: { holdProduct, releaseProduct },
-  } = useStorefrontExperience();
-  const cardHandlers = {
-    onQuickView: storefront.openQuick,
-    onSave: storefront.toggleSaved,
-    onAdd: (id: string) => {
-      releaseProduct(id);
-      storefront.addToCart(id);
-    },
-    onHold: (id: string) => {
-      const product = storefront.productById(id);
-      if (product) holdProduct(productToHoldable(product));
-    },
-    onRelease: releaseProduct,
-  };
-  const renderCards = (items: Product[]) =>
-    items.map((product) => (
-      <ProductCard
-        {...cardHandlers}
-        holdSeconds={holdSecondsByProduct[product.id] ?? null}
-        isHeld={product.id in holdSecondsByProduct}
-        isSaved={storefront.saved.has(product.id)}
-        key={product.id}
-        product={product}
-      />
-    ));
-
-  const goToPage = (nextPage: number) => {
-    setPage(nextPage);
-    document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
-  };
+export function ProductCatalogue({
+  products,
+  total,
+  page,
+  pageCount,
+  search,
+  facets,
+  categories,
+}: {
+  products: readonly ProductSummary[];
+  total: number;
+  page: number;
+  pageCount: number;
+  search: ParsedCatalogueSearch;
+  facets: StorefrontFacetOptions;
+  categories: readonly CategoryWithImage[];
+}) {
+  const activeFilters = [
+    search.search
+      ? { label: `Search: ${search.search}`, href: catalogueHref(search, { search: "", page: 1 }) }
+      : null,
+    search.category
+      ? {
+          label: `Category: ${search.category}`,
+          href: catalogueHref(search, { category: null, page: 1 }),
+        }
+      : null,
+    search.collection
+      ? {
+          label: `Collection: ${search.collection}`,
+          href: catalogueHref(search, { collection: null, page: 1 }),
+        }
+      : null,
+    ...search.brands.map((brand) => ({
+      label: brand,
+      href: catalogueHref(search, {
+        brands: search.brands.filter((value) => value !== brand),
+        page: 1,
+      }),
+    })),
+    ...search.conditions.map((condition) => ({
+      label: condition,
+      href: catalogueHref(search, {
+        conditions: search.conditions.filter((value) => value !== condition),
+        page: 1,
+      }),
+    })),
+    ...search.colours.map((colour) => ({
+      label: colour,
+      href: catalogueHref(search, {
+        colours: search.colours.filter((value) => value !== colour),
+        page: 1,
+      }),
+    })),
+    ...search.sizes.map((size) => ({
+      label: size,
+      href: catalogueHref(search, {
+        sizes: search.sizes.filter((value) => value !== size),
+        page: 1,
+      }),
+    })),
+    ...search.modes.map((mode) => ({
+      label: mode,
+      href: catalogueHref(search, {
+        modes: search.modes.filter((value) => value !== mode),
+        page: 1,
+      }),
+    })),
+  ].filter((item): item is { label: string; href: string } => item !== null);
 
   return (
     <main className="lst-catalogue" id="main">
-      <div className="quick-nav-wrap">
-        <nav aria-label="Quick collections" className="shell quick-nav">
-          {quickLinks.map(([key, label]) => {
-            const active = quickActive(key);
-            return (
-              <Button
-                aria-pressed={active}
-                key={key}
-                onClick={() => applyQuick(key)}
-                type="button"
-                variant={active ? "secondary" : "ghost"}
-              >
-                {label}
-              </Button>
-            );
-          })}
-        </nav>
-      </div>
-
-      <section className="catalogue-toolbar">
-        <div className="shell">
-          <div className="toolbar-main">
-            <div className="toolbar-group">
-              <Button
-                onClick={() => storefront.open("filterDrawer")}
-                type="button"
-                variant="outline"
-              >
-                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M4 6h16M7 12h10M10 18h4" />
-                </svg>
-                Filters <span className="mono">{storefront.activeFilterChips.length}</span>
-              </Button>
-              <Button
-                aria-pressed={sidebarVisible}
-                onClick={() => setSidebarVisible((visible) => !visible)}
-                type="button"
-                variant="outline"
-              >
-                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M4 6h16M7 12h10M10 18h4" />
-                </svg>
-                {sidebarVisible ? "Hide filters" : "Show filters"}
-              </Button>
-              <Button onClick={() => storefront.open("sortSheet")} type="button" variant="outline">
-                <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 7h10M8 12h7M8 17h4M4 5v14" />
-                </svg>
-                Sort
-              </Button>
+      <section className="border-b border-[var(--line)] bg-[var(--bone-2)]">
+        <div className="shell px-4 py-12">
+          <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[var(--muted)]">
+            Live Prisma catalogue
+          </p>
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <h1 className="font-serif text-6xl">Shop all pieces</h1>
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                {total} published {total === 1 ? "piece" : "pieces"} · page {page} of {pageCount}
+              </p>
             </div>
-            <div className="toolbar-group">
-              <span className="result-count mono" id="resultCount">
-                {list.length} products
-              </span>
-              <div aria-label="Product grid density" className="density-control" role="group">
-                <Button
-                  aria-label="Comfortable grid"
-                  aria-pressed={density === "comfortable"}
-                  onClick={() => changeDensity("comfortable")}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  ▦
-                </Button>
-                <Button
-                  aria-label="Compact grid"
-                  aria-pressed={density === "compact"}
-                  onClick={() => changeDensity("compact")}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  ▥
-                </Button>
-              </div>
-            </div>
+            <Link className={buttonVariants({ variant: "outline" })} href="/products">
+              Clear all
+            </Link>
           </div>
-          {storefront.activeFilterChips.length > 0 ? (
-            <div className="active-filters" id="activeFilters">
-              {storefront.activeFilterChips.map((chip) => (
-                <Button
-                  key={`${chip.type}-${chip.value ?? chip.label}`}
-                  onClick={() => storefront.removeFilter(chip.type, chip.value)}
-                  type="button"
-                  variant="secondary"
-                >
-                  {chip.label} ×
-                </Button>
-              ))}
-            </div>
-          ) : null}
         </div>
       </section>
 
-      <section className="catalogue" id="products">
-        <div className={`shell catalogue-layout${sidebarVisible ? "" : " no-sidebar"}`}>
-          <aside aria-label="Catalogue filters" className="filter-sidebar" hidden={!sidebarVisible}>
-            <div className="filter-panel">
-              <div className="filter-head">
-                <h2>Refine the rack</h2>
-                <Button onClick={storefront.clearFilters} type="button" variant="ghost">
-                  Clear all
-                </Button>
-              </div>
-              <FilterControls />
-            </div>
-          </aside>
+      <section className="border-b border-[var(--line)] bg-[var(--bone)]">
+        <form action="/products" className="shell grid gap-4 px-4 py-6 lg:grid-cols-6" method="get">
+          <label className="grid gap-1 lg:col-span-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+              Search
+            </span>
+            <input
+              className="h-11 rounded-md border border-input bg-control px-3 text-sm"
+              defaultValue={search.search}
+              name="search"
+              placeholder="Name, brand or description"
+              type="search"
+            />
+          </label>
+          <FilterSelect label="Category" name="category" value={search.category ?? ""}>
+            <option value="">All categories</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.slug}>
+                {category.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Condition" name="condition" value={search.conditions[0] ?? ""}>
+            <option value="">Any condition</option>
+            {facets.conditions.map((condition) => (
+              <option key={condition} value={condition}>
+                {condition}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Inventory" name="mode" value={search.modes[0] ?? ""}>
+            <option value="">All inventory</option>
+            <option value="unique">One-of-one</option>
+            <option value="stocked">Stocked</option>
+            <option value="variant">Variants</option>
+          </FilterSelect>
+          <FilterSelect label="Sort" name="sort" value={search.sort}>
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+          </FilterSelect>
+          <FilterSelect label="Brand" name="brand" value={search.brands[0] ?? ""}>
+            <option value="">All brands</option>
+            {facets.brands.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Colour" name="colour" value={search.colours[0] ?? ""}>
+            <option value="">All colours</option>
+            {facets.colours.map((colour) => (
+              <option key={colour} value={colour}>
+                {colour}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect label="Size" name="size" value={search.sizes[0] ?? ""}>
+            <option value="">All sizes</option>
+            {facets.sizes.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </FilterSelect>
+          <label className="grid gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+              Min price
+            </span>
+            <input
+              className="h-11 rounded-md border border-input bg-control px-3 text-sm"
+              defaultValue={search.minPriceNaira}
+              min="0"
+              name="min"
+              placeholder="₦"
+              type="number"
+            />
+          </label>
+          <label className="grid gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+              Max price
+            </span>
+            <input
+              className="h-11 rounded-md border border-input bg-control px-3 text-sm"
+              defaultValue={search.maxPriceNaira}
+              min="0"
+              name="max"
+              placeholder="₦"
+              type="number"
+            />
+          </label>
+          <Button className="self-end" type="submit">
+            Apply filters
+          </Button>
+        </form>
 
-          <div className="results">
-            {list.length ? (
-              <div aria-live="polite" className={`product-grid ${density}`} id="productGrid">
-                {renderCards(pageItems)}
-              </div>
-            ) : (
-              <div className="empty-state" id="emptyState">
-                <h2>No pieces match this edit.</h2>
-                <p>Clear one or more filters or return to the complete rack.</p>
-                <Button onClick={storefront.clearFilters} type="button">
-                  Clear filters
-                </Button>
-              </div>
-            )}
-            {list.length > 0 && pages > 1 ? (
-              <nav aria-label="Product result pages" className="pagination" id="pagination">
-                <Button
-                  aria-label="Previous page"
-                  disabled={current === 1}
-                  onClick={() => goToPage(Math.max(1, current - 1))}
-                  type="button"
-                  variant="outline"
-                >
-                  ←
-                </Button>
-                {Array.from({ length: pages }, (_, index) => {
-                  const pageNumber = index + 1;
-                  const active = current === pageNumber;
-                  return (
-                    <Button
-                      aria-current={active ? "page" : undefined}
-                      aria-label={`Page ${pageNumber}`}
-                      key={pageNumber}
-                      onClick={() => goToPage(pageNumber)}
-                      type="button"
-                      variant={active ? "default" : "outline"}
-                    >
-                      {pageNumber}
-                    </Button>
-                  );
-                })}
-                <Button
-                  aria-label="Next page"
-                  disabled={current === pages}
-                  onClick={() => goToPage(Math.min(pages, current + 1))}
-                  type="button"
-                  variant="outline"
-                >
-                  →
-                </Button>
-              </nav>
-            ) : null}
+        {activeFilters.length > 0 ? (
+          <div className="shell flex flex-wrap gap-2 px-4 pb-6" aria-label="Active filters">
+            {activeFilters.map((filter) => (
+              <Link
+                className={buttonVariants({ size: "sm", variant: "secondary" })}
+                href={filter.href}
+                key={`${filter.label}-${filter.href}`}
+              >
+                {filter.label} ×
+              </Link>
+            ))}
           </div>
-        </div>
+        ) : null}
+      </section>
+
+      <section className="shell px-4 py-10">
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid min-h-80 place-items-center border border-[var(--line)] bg-[var(--bone-2)] p-8 text-center">
+            <div>
+              <h2 className="font-serif text-4xl">No pieces match these filters.</h2>
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                Remove a filter or return to the complete catalogue.
+              </p>
+              <Link className={cn(buttonVariants(), "mt-6")} href="/products">
+                Clear filters
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {pageCount > 1 ? (
+          <nav className="mt-10 flex flex-wrap justify-center gap-2" aria-label="Catalogue pages">
+            <Link
+              aria-disabled={page === 1}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                page === 1 && "pointer-events-none opacity-50",
+              )}
+              href={catalogueHref(search, { page: Math.max(1, page - 1) })}
+            >
+              Previous
+            </Link>
+            {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+              <Link
+                aria-current={pageNumber === page ? "page" : undefined}
+                className={buttonVariants({
+                  variant: pageNumber === page ? "default" : "outline",
+                })}
+                href={catalogueHref(search, { page: pageNumber })}
+                key={pageNumber}
+              >
+                {pageNumber}
+              </Link>
+            ))}
+            <Link
+              aria-disabled={page === pageCount}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                page === pageCount && "pointer-events-none opacity-50",
+              )}
+              href={catalogueHref(search, { page: Math.min(pageCount, page + 1) })}
+            >
+              Next
+            </Link>
+          </nav>
+        ) : null}
       </section>
     </main>
   );
 }
 
-export function ProductCatalogue({ fontClassName }: { fontClassName: string }) {
-  void fontClassName;
-  return <CatalogueApp />;
+function FilterSelect({
+  children,
+  label,
+  name,
+  value,
+}: {
+  children: ReactNode;
+  label: string;
+  name: string;
+  value: string;
+}) {
+  return (
+    <label className="grid gap-1">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+        {label}
+      </span>
+      <select
+        className="h-11 rounded-md border border-input bg-control px-3 text-sm"
+        defaultValue={value}
+        name={name}
+      >
+        {children}
+      </select>
+    </label>
+  );
 }
