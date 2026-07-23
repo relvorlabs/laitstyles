@@ -1,22 +1,24 @@
-name: Task Progress Tracker
+name: Task Progress and Runtime Feedback
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft, closed]
   workflow_run:
-    workflows:
-      - Playwright UI Contract
-      - Implementation Quality
-    types:
-      - completed
+    workflows: [Implementation Quality, Playwright UI Contract]
+    types: [completed]
   workflow_dispatch:
     inputs:
       pull_request:
         description: Pull request number to inspect
         required: true
         type: number
+      mode:
+        description: Feedback operation
+        required: true
+        default: analyze
+        type: choice
+        options: [analyze, safe-repair-plan]
 
 permissions:
   actions: read
@@ -26,17 +28,17 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: task-progress-${{ github.event.pull_request.number || github.event.workflow_run.id || inputs.pull_request }}
+  group: task-feedback-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || inputs.pull_request }}-${{ inputs.mode || 'analyze' }}
   cancel-in-progress: true
 
 jobs:
-  track:
-    name: Current task alignment and progress
+  feedback:
+    name: Aggregate logs and publish actionable feedback
+    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'analyze'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    timeout-minutes: 25
     steps:
-      - name: Resolve pull request context
+      - name: Resolve pull request and head commit
         id: context
         shell: bash
         env:
@@ -44,39 +46,48 @@ jobs:
         run: |
           set -euo pipefail
           pr_number=""
-          case "${GITHUB_EVENT_NAME}" in
+          head_sha=""
+          case "$GITHUB_EVENT_NAME" in
             pull_request)
               pr_number=$(jq -r '.pull_request.number' "$GITHUB_EVENT_PATH")
+              head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
               ;;
             workflow_run)
+              head_sha=$(jq -r '.workflow_run.head_sha' "$GITHUB_EVENT_PATH")
               pr_number=$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")
+              if [ -z "$pr_number" ]; then
+                pr_number=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head_sha}/pulls" --jq '.[0].number // empty')
+              fi
               ;;
             workflow_dispatch)
               pr_number='${{ inputs.pull_request }}'
+              head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" --jq '.head.sha')
               ;;
           esac
-
-          if [ -z "$pr_number" ]; then
+          if [ -z "$pr_number" ] || [ -z "$head_sha" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "No pull request is associated with this run." >> "$GITHUB_STEP_SUMMARY"
+            echo "No pull request could be associated with this event." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-
-          pr_json=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}")
-          head_sha=$(jq -r '.head.sha' <<< "$pr_json")
           echo "skip=false" >> "$GITHUB_OUTPUT"
-          echo "pr_number=${pr_number}" >> "$GITHUB_OUTPUT"
-          echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Check out task head
+      - name: Check out trusted feedback scripts
         if: steps.context.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.context.outputs.head_sha }}
+          ref: ${{ github.event_name == 'pull_request' && steps.context.outputs.head_sha || github.event.repository.default_branch }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Build and publish sticky progress report
-        id: report
+      - name: Set up Node.js
+        if: steps.context.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+
+      - name: Collect workflow runs, jobs, failed logs and artifacts
         if: steps.context.outputs.skip != 'true'
         shell: bash
         env:
@@ -85,103 +96,194 @@ jobs:
           HEAD_SHA: ${{ steps.context.outputs.head_sha }}
         run: |
           set -euo pipefail
-          marker='<!-- laitstyles-task-progress -->'
-          pr_json=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
-          title=$(jq -r '.title' <<< "$pr_json")
-          body=$(jq -r '.body // ""' <<< "$pr_json")
-          state=$(jq -r '.state' <<< "$pr_json")
-          draft=$(jq -r '.draft' <<< "$pr_json")
-          merged=$(jq -r '.merged' <<< "$pr_json")
-          base=$(jq -r '.base.ref' <<< "$pr_json")
-          branch=$(jq -r '.head.ref' <<< "$pr_json")
+          mkdir -p ci-artifacts/meta ci-artifacts/runs
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" > ci-artifacts/meta/pull-request.json
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
+            | jq '[.[][] | {filename,status,additions,deletions,changes,patch}]' > ci-artifacts/meta/files.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${HEAD_SHA}&per_page=100" > ci-artifacts/meta/runs.json
 
-          mapfile -t files < <(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" --jq '.[].filename')
-          checks_json=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/check-runs?per_page=100")
+          jq -r '
+            [.workflow_runs[]
+              | select(.name == "Implementation Quality" or .name == "Playwright UI Contract")]
+            | sort_by(.created_at)
+            | reverse
+            | unique_by(.name)
+            | .[].id
+          ' ci-artifacts/meta/runs.json > ci-artifacts/meta/run-ids.txt
 
-          phase=$(printf '%s\n%s' "$title" "$body" | grep -oEi 'phase[[:space:]]+[0-9]+' | head -1 || true)
-          phase=${phase:-"Unspecified phase"}
-          issue=$(printf '%s' "$body" | grep -oE '#[0-9]+' | head -1 || true)
-          issue=${issue:-"No linked issue detected"}
-          completed=$(printf '%s' "$body" | grep -Eic -- '- \[[xX]\]' || true)
-          remaining=$(printf '%s' "$body" | grep -Ec -- '- \[ \]' || true)
+          while read -r run_id; do
+            [ -n "$run_id" ] || continue
+            mkdir -p "ci-artifacts/runs/${run_id}"
+            gh run view "$run_id" --json name,workflowName,status,conclusion,url,event,headBranch,headSha,createdAt,updatedAt \
+              > "ci-artifacts/runs/${run_id}/run.json" || true
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
+              > "ci-artifacts/runs/${run_id}/jobs.json" || echo '{"jobs":[]}' > "ci-artifacts/runs/${run_id}/jobs.json"
+            gh run view "$run_id" --log-failed > "ci-artifacts/runs/${run_id}/failed.log" 2>&1 || true
+            gh run download "$run_id" --dir "ci-artifacts/runs/${run_id}/artifacts" || true
 
-          expected_workflows=(implementation-quality.yml playwright.yml task-progress.yml)
-          mapfile -t actual_workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
-          workflow_alignment=true
-          if [ "${actual_workflows[*]}" != "${expected_workflows[*]}" ]; then
-            workflow_alignment=false
-          fi
+            workflow_name=$(jq -r '.workflowName // .name // "unknown-workflow"' "ci-artifacts/runs/${run_id}/run.json")
+            jq \
+              --arg workflow "$workflow_name" \
+              --arg run_id "$run_id" \
+              --arg sha "$HEAD_SHA" \
+              '{
+                schemaVersion: 1,
+                kind: "workflow-runtime",
+                workflow: $workflow,
+                runId: $run_id,
+                sha: $sha,
+                status: (if any(.jobs[]; .conclusion != "success") then "failed" else "passed" end),
+                results: [.jobs[] | {
+                  name,
+                  required: true,
+                  status: (if .conclusion == "success" then "passed" elif .conclusion == "skipped" or .conclusion == "neutral" then "warning" else "failed" end),
+                  exitCode: null,
+                  timedOut: (.conclusion == "timed_out"),
+                  failureTail: (if .steps == null then "Job ended before GitHub allocated executable steps or logs. This is a runner/infrastructure failure, not a passed code check." else null end)
+                }]
+              }' "ci-artifacts/runs/${run_id}/jobs.json" > "ci-artifacts/runs/${run_id}/manifest.json"
+          done < ci-artifacts/meta/run-ids.txt
 
-          scope_alignment=true
-          scope_notes=()
-          if [[ "${phase,,}" == "phase 3"* ]]; then
-            protected_pattern='^(src/features/storefront/|src/features/storefront/shell/site-(header|footer)\.tsx$|src/features/storefront/catalogue/product-card\.tsx$|src/features/storefront/product/|src/app/\(home\)/|src/app/products/|src/components/shop/)'
-            for file in "${files[@]}"; do
-              if [[ "$file" =~ $protected_pattern ]]; then
-                scope_alignment=false
-                scope_notes+=("Protected storefront path changed: \`$file\`")
-              fi
-            done
-          fi
-          if [ "$workflow_alignment" != true ]; then
-            scope_alignment=false
-            scope_notes+=("Workflow contract drift: expected exactly implementation-quality.yml, playwright.yml and task-progress.yml")
-          fi
-          if [ ${#scope_notes[@]} -eq 0 ]; then
-            scope_notes+=("No declared phase-boundary drift detected")
-          fi
+          jq -n \
+            --slurpfile pr ci-artifacts/meta/pull-request.json \
+            --slurpfile files ci-artifacts/meta/files.json \
+            --arg sha "$HEAD_SHA" \
+            '{
+              schemaVersion: 1,
+              kind: "remote-pr-context",
+              repository: env.GITHUB_REPOSITORY,
+              pullRequest: ($pr[0].number),
+              sha: $sha,
+              title: ($pr[0].title),
+              body: ($pr[0].body // ""),
+              baseRef: ($pr[0].base.ref),
+              branch: ($pr[0].head.ref),
+              changedFiles: [$files[0][].filename],
+              diffStat: ($files[0] | map("\(.filename): +\(.additions) -\(.deletions)") | join("\n")),
+              patch: ($files[0] | map(select(.patch != null) | "diff -- \(.filename)\n\(.patch)") | join("\n\n"))
+            }' > ci-artifacts/meta/context.json
 
-          report=$(mktemp)
-          {
-            echo "$marker"
-            echo "## Temporary task progress tracker"
-            echo
-            echo "| Field | Current value |"
-            echo "| --- | --- |"
-            echo "| Task | ${title} |"
-            echo "| Phase | ${phase} |"
-            echo "| Linked issue | ${issue} |"
-            echo "| Branch | \`${branch}\` → \`${base}\` |"
-            echo "| Head | \`${HEAD_SHA}\` |"
-            echo "| PR state | ${state}; draft=${draft}; merged=${merged} |"
-            echo "| Checklist | ${completed} complete / ${remaining} remaining |"
-            echo "| Changed files | ${#files[@]} |"
-            echo
-            echo "### Alignment"
-            for note in "${scope_notes[@]}"; do echo "- ${note}"; done
-            echo
-            echo "### GitHub Actions"
-            jq -r '
-              [.check_runs[]
-                | select(.name != "Current task alignment and progress")
-                | "- " + (if .conclusion == "success" then "✅" elif .conclusion == "failure" then "❌" elif .conclusion == "cancelled" then "⚪" else "⏳" end)
-                  + " " + .name + " — " + (.conclusion // .status)]
-              | unique[]?
-            ' <<< "$checks_json"
-            if [ "$(jq '[.check_runs[] | select(.name != "Current task alignment and progress")] | length' <<< "$checks_json")" -eq 0 ]; then
-              echo "- ⏳ No implementation or browser check has reported yet"
-            fi
-            echo
-            echo "### Changed-file sample"
-            printf '%s\n' "${files[@]}" | head -20 | sed 's/^/- `/' | sed 's/$/`/'
-            if [ ${#files[@]} -gt 20 ]; then echo "- … and $((${#files[@]} - 20)) more"; fi
-            echo
-            echo "This comment is maintained automatically and is intentionally temporary for the active task."
-          } > "$report"
+      - name: Merge execution evidence
+        if: steps.context.outputs.skip != 'true'
+        env:
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
+        run: >-
+          node scripts/ci/merge-evidence.mjs
+          --input ci-artifacts
+          --output ci-feedback
+          --expect static,database,tests,build,browser-preflight,playwright:desktop-chromium,playwright:tablet-chromium,playwright:mobile-chromium
 
-          comment_id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" \
-            --jq ".[] | select(.body | contains(\"${marker}\")) | .id" | head -1 || true)
-          if [ -n "$comment_id" ]; then
-            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" --raw-field body="$(cat "$report")" >/dev/null
-          else
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --raw-field body="$(cat "$report")" >/dev/null
-          fi
+      - name: Request optional AI diagnosis
+        if: steps.context.outputs.skip != 'true' && github.event_name != 'pull_request'
+        env:
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
+          CI_FEEDBACK_ENDPOINT: ${{ secrets.CI_FEEDBACK_ENDPOINT }}
+          CI_FEEDBACK_TOKEN: ${{ secrets.CI_FEEDBACK_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_CI_MODEL: ${{ secrets.OPENAI_CI_MODEL }}
+          CI_AI_INCLUDE_PATCH: ${{ vars.CI_AI_INCLUDE_PATCH || 'false' }}
+        run: >-
+          node scripts/ci/analyze-failures.mjs
+          --input ci-feedback/ci-feedback.json
+          --context ci-artifacts/meta/context.json
+          --output ci-feedback
 
-          cat "$report" >> "$GITHUB_STEP_SUMMARY"
-          echo "aligned=${scope_alignment}" >> "$GITHUB_OUTPUT"
-
-      - name: Enforce declared task alignment
-        if: steps.context.outputs.skip != 'true' && steps.report.outputs.aligned != 'true'
+      - name: Write non-secret analysis status
+        if: steps.context.outputs.skip != 'true' && github.event_name == 'pull_request'
         run: |
-          echo "The changed files or workflow set drifted from the declared task boundary."
-          exit 1
+          printf '%s\n' \
+            '## AI failure analysis' \
+            '' \
+            'Deferred until a trusted workflow-run or manual-dispatch event; pull-request code never receives AI or endpoint secrets.' \
+            > ci-feedback/ai-analysis.md
+
+      - name: Publish sticky pull-request feedback
+        if: steps.context.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+        run: >-
+          node scripts/ci/publish-feedback.mjs
+          --pull-request "$PR_NUMBER"
+          --feedback ci-feedback/ci-feedback.md
+          --analysis ci-feedback/ai-analysis.md
+
+      - name: Add feedback to workflow summary
+        if: steps.context.outputs.skip != 'true'
+        run: |
+          cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
+          [ ! -f ci-feedback/ai-analysis.md ] || cat ci-feedback/ai-analysis.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload consolidated runtime feedback
+        if: always() && steps.context.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-runtime-feedback-${{ steps.context.outputs.pr_number }}
+          path: |
+            ci-feedback/
+            ci-artifacts/meta/
+            ci-artifacts/runs/*/run.json
+            ci-artifacts/runs/*/jobs.json
+            ci-artifacts/runs/*/failed.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  safe-repair-plan:
+    name: Generate deterministic repair patch
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'safe-repair-plan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Resolve requested pull request
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pr='${{ inputs.pull_request }}'
+          head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}" --jq '.head.sha')
+          echo "number=$pr" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pull-request head without write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+      - name: Install dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Run deterministic safe formatter repair
+        continue-on-error: true
+        run: node scripts/ci/run-gates.mjs --suite safe-repair --output ci-repair/evidence
+      - name: Produce reviewable patch artifact
+        shell: bash
+        run: |
+          mkdir -p ci-repair
+          git diff --binary > ci-repair/safe-repair.patch
+          git diff --stat > ci-repair/safe-repair.stat
+          if [ ! -s ci-repair/safe-repair.patch ]; then echo 'No deterministic formatting changes were available.' > ci-repair/README.txt; fi
+      - name: Upload repair plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-repair-plan-pr-${{ steps.pr.outputs.number }}
+          path: ci-repair/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Comment repair-plan location
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: >-
+          gh pr comment "$PR_NUMBER"
+          --body "A deterministic Biome repair patch was generated as the **safe-repair-plan-pr-${PR_NUMBER}** workflow artifact. It was not pushed automatically; review and apply it through a connected coding session. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
