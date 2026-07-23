@@ -1,23 +1,17 @@
 "use client";
 
 // Reuses the SHARED storefront ProductCard + saved/hold/cart wiring (the exact
-// card used on /products and /shop) so product design is consistent across the
+// card used on /products) so product design is consistent across the
 // site and adapts to the account context. Data comes from the shared storefront
-// experience (home-lab prototype catalogue + saved/hold state), not a separate
+// experience (storefront prototype catalogue + saved/hold state), not a separate
 // account copy.
 
-import type { Product } from "@/features/storefront/home-lab/data";
-import { productById, productToHoldable } from "@/features/storefront/home-lab/data";
-import { ProductCard } from "@/features/storefront/home-lab/product-card";
-import { useStorefront } from "@/features/storefront/home-lab/storefront-context";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { productToHoldable } from "@/features/storefront/shared/catalogue-data";
+import { ProductCard } from "@/features/storefront/shared/product-card";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
-
-/** Saved + recently-viewed product lists from the shared storefront state. */
-export function useAccountProducts() {
-  const s = useStorefront();
-  return { saved: s.savedList, recent: s.recentList };
-}
 
 /**
  * Grid of shared storefront ProductCards, wired to the same save/hold/quick-view/
@@ -54,7 +48,7 @@ export function AccountProductGrid({
       s.addToCart(id);
     },
     onHold: (id: string) => {
-      const product = productById(id);
+      const product = s.productById(id);
       if (product) holdProduct(productToHoldable(product));
     },
     onRelease: releaseProduct,

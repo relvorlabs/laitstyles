@@ -1,5 +1,5 @@
-import { isSettingsSection } from "@/features/control-room/settings/settings-config";
-import { SettingsWorkspace } from "@/features/control-room/settings/settings-workspace";
+import { isSettingsSection } from "@/features/admin/settings/settings-config";
+import { SettingsWorkspace } from "@/features/admin/settings/settings-workspace";
 
 export default async function SettingsPage({
   searchParams,

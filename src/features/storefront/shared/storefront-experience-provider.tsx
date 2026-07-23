@@ -1,5 +1,6 @@
 "use client";
 
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import {
   createContext,
   type ReactNode,
@@ -11,6 +12,7 @@ import {
   useState,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { Product } from "./catalogue-data";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
@@ -20,6 +22,7 @@ import {
 import {
   applyHold,
   applyRelease,
+  buildStorefrontAccountSeedItems,
   HOLD_SECONDS,
   type HoldablePiece,
   type HoldsRecord,
@@ -27,7 +30,6 @@ import {
   pruneExpiredHolds,
   readPersistedHolds,
   type StorefrontAccountItem,
-  storefrontAccountSeedItems,
   tickHolds,
   writePersistedHolds,
 } from "./storefront-experience-data";
@@ -84,9 +86,15 @@ export function useStorefrontExperience() {
   return context;
 }
 
-export function StorefrontExperienceProvider({ children }: { children: ReactNode }) {
+export function StorefrontExperienceProvider({
+  children,
+  products,
+}: {
+  children: ReactNode;
+  products: readonly Product[];
+}) {
   const [items, setItems] = useState<StorefrontAccountItem[]>(() =>
-    storefrontAccountSeedItems.map((item) => ({ ...item })),
+    buildStorefrontAccountSeedItems(products),
   );
   const [authReady, setAuthReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -112,7 +120,7 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
     let active = true;
     try {
       const supabase = createClient();
-      void supabase.auth.getSession().then(({ data }) => {
+      void supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
         if (!active) return;
         const user = data.session?.user ?? null;
         setSignedIn(!!user);
@@ -120,13 +128,15 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
         setUserName(readUserName(user?.user_metadata));
         setAuthReady(true);
       });
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        const user = session?.user ?? null;
-        setSignedIn(!!user);
-        setUserEmail(user?.email ?? null);
-        setUserName(readUserName(user?.user_metadata));
-        setAuthReady(true);
-      });
+      const { data } = supabase.auth.onAuthStateChange(
+        (_event: AuthChangeEvent, session: Session | null) => {
+          const user = session?.user ?? null;
+          setSignedIn(!!user);
+          setUserEmail(user?.email ?? null);
+          setUserName(readUserName(user?.user_metadata));
+          setAuthReady(true);
+        },
+      );
       return () => {
         active = false;
         data.subscription.unsubscribe();
@@ -376,6 +386,7 @@ export function StorefrontExperienceProvider({ children }: { children: ReactNode
         form={authForm}
         mode={authMode}
         open={authOpen}
+        product={products[13] ?? products[0]}
         remember={remember}
         revealPassword={authReveal}
         showErrors={showAuthErrors}

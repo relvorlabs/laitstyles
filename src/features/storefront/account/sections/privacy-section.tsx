@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
@@ -55,13 +56,15 @@ export function PrivacySection() {
                   12 products stored
                 </span>
               </span>
-              <button
+              {/* TODO(button-action): Clear recently viewed history after the account history mutation is available. */}
+              <Button
+                size="lg"
                 type="button"
-                onClick={() => toast("Recently viewed history cleared.")}
-                className="text-sm font-semibold underline underline-offset-4"
+                onClick={() => toast("Clearing recently viewed history is not available yet.")}
+                variant="link"
               >
                 Clear
-              </button>
+              </Button>
             </div>
           </div>
         </section>

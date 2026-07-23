@@ -33,11 +33,11 @@ The current repository has no production Control Room data service.
 - Do not create API routes whose only purpose is to wrap local seed arrays.
 - Do not add random latency, random failures, fake background jobs or production persistence claims.
 - Phase 9 now audits and fixes the codebase boundaries needed before production auth/data wiring.
-- Phases 10 and 11 introduce real Supabase Auth, organization permissions, database schema, storage and RLS.
-- TanStack Query is deferred until Phase 12 so query ownership is introduced after authenticated Supabase resource contracts exist.
+- Phases 10 and 11 introduce real Supabase Auth, profile-role permissions and the Prisma database foundation.
+- TanStack Query is deferred until Phase 12 so query ownership is introduced after authenticated Prisma resource contracts exist.
 - The preliminary Phase 9 repository/key work already present on the branch is paused and must be reconciled into Phase 12 without claiming production backend behavior.
-- Any in-memory adapter must remain truthful, deterministic and session-only until replaced by Supabase-backed adapters.
-- A future Supabase, HTTP or RPC adapter must be replaceable without rewriting feature components or query keys.
+- Any in-memory adapter must remain truthful, deterministic and session-only until replaced by Prisma-backed adapters.
+- A future Prisma repository, HTTP or RPC adapter must be replaceable without rewriting feature components or query keys.
 
 ### 1.4 TanStack decisions
 
@@ -51,7 +51,7 @@ No dedicated TanStack Query skill exists in the current `agent-controller` index
 
 #### TanStack Query
 
-Phase 12 is approved to add a future-ready server-state layer after the Supabase auth and database phases establish authenticated resource contracts. The earlier TanStack Phase 9 start is preserved as paused preliminary work, under these conditions:
+Phase 12 is approved to add a future-ready server-state layer after Supabase Auth and the Prisma database phase establish authenticated resource contracts. The earlier TanStack Phase 9 start is preserved as paused preliminary work, under these conditions:
 
 - query data is backed by typed repository interfaces
 - the development adapter is deterministic and Promise-based
@@ -116,7 +116,7 @@ src/lib/auth/                       # Phase 10
   permissions.ts
   guards.ts
 
-supabase/                           # Phase 11
+prisma/                             # schema, migrations and generated client
   migrations/
   seed.sql
 ```
@@ -357,7 +357,7 @@ Deliver a polished, non-technical store-configuration experience.
 ### Acceptance criteria
 
 - Labels describe business outcomes.
-- No technical infrastructure terminology appears in operator-facing copy.
+- No technical infrastructure terminology appears in staff-facing copy.
 - Save feedback is explicit and contextual.
 - Sections remain visually distinct without becoming unrelated generic pages.
 - Phase checks pass.
@@ -435,11 +435,11 @@ See `docs/control-room-v2/phase8-plan.md`.
 - Table media preview and product-record navigation remain separate.
 - Full executable and visual gates pass.
 
-## 12. Phase 9 — Codebase structure review and Supabase readiness
+## 12. Phase 9 — Codebase structure and backend readiness
 
 ### Goal
 
-Perform the meticulous repository review needed before production auth and database work: confirm live architecture, remove contradictory phase assumptions, and apply narrow file/folder boundary fixes so Supabase integration has clean ownership.
+Perform the meticulous repository review needed before production auth and database work: confirm live architecture, remove contradictory phase assumptions, and apply narrow file/folder boundary fixes so Supabase Auth and Prisma have clean ownership.
 
 ### Locked plan
 
@@ -457,7 +457,7 @@ See `docs/control-room-v2/phase9-plan.md`.
 
 ### Explicit exclusions
 
-- production Supabase schema changes
+- production Prisma schema changes
 - protected routes, login UI or role enforcement
 - TanStack Query package/provider work
 - new API routes wrapping local seed data
@@ -466,16 +466,16 @@ See `docs/control-room-v2/phase9-plan.md`.
 ### Acceptance criteria
 
 - The active phase docs no longer describe TanStack Query as Phase 9.
-- The folder/file structure has a clear home for Supabase clients, auth guards, permissions and future Supabase adapters.
+- The folder/file structure has a clear home for Supabase Auth clients, auth guards, permissions and Prisma repositories.
 - Current Control Room domains are mapped to the future database domains.
 - Any applied structural fixes are narrow, tested and do not disturb implemented Phase 4–8 behavior.
-- Progress and decisions record the TanStack deferral and Supabase-first sequence.
+- Progress and decisions record the TanStack deferral and auth/schema sequence.
 
-## 13. Phase 10 — Supabase Auth, Google OAuth and organization permissions
+## 13. Phase 10 — Supabase Auth, Google OAuth and role permissions
 
 ### Goal
 
-Implement end-to-end Supabase Auth for staff and consumers, with Google OAuth, secure server-side session handling and store-scoped organization permissions.
+Implement end-to-end Supabase Auth for staff and consumers, with Google OAuth, secure server-side session handling and profile-role authorization.
 
 ### Locked plan
 
@@ -486,8 +486,8 @@ See `docs/control-room-v2/phase10-plan.md`.
 - add Next.js Supabase SSR browser/server/proxy clients
 - add auth callback and auth error routes for OAuth PKCE
 - configure Google OAuth flow and required redirect handling
-- model profile, organization, store, membership, invitation, role and permission contracts
-- implement owner/CEO, manager and operator/sales staff permissions
+- model the profile role and typed permission contracts
+- implement admin/store-owner and manager permissions
 - implement consumer storefront identity boundaries
 - protect Control Room routes and actions through server-side guards
 - add permission-restricted UI states without leaking staff data
@@ -499,42 +499,41 @@ See `docs/control-room-v2/phase10-plan.md`.
 - full production catalogue/order persistence
 - TanStack Query migration
 - payment-provider, courier or messaging integration
-- owner billing transfer or multi-store enterprise management
+- owner billing transfer or additional-location management
 
 ### Acceptance criteria
 
 - Staff and consumer sessions are handled with Supabase SSR cookies.
 - Google OAuth completes through the callback route in local development.
 - Server code uses `getClaims()` or `getUser()` for identity checks and never trusts `getSession()` for authorization.
-- Owner, manager and operator capabilities are enforced in both guards and UI state.
+- Admin and manager capabilities are enforced in both guards and UI state.
 - Consumers can access only storefront/account capabilities.
 - Unauthorized users see appropriate redirects or permission-restricted states.
 - Service role and secret keys are never exposed to browser code.
 
-## 14. Phase 11 — Supabase database, storage, RLS and generated types
+## 14. Phase 11 — Prisma database schema, migrations and generated client
 
 ### Goal
 
-Create the Supabase database and storage foundation required for Laitstyle to run from real authenticated data instead of prototype seed records.
+Create the Prisma-managed PostgreSQL foundation required for Laitstyle to run from real authenticated data instead of prototype seed records.
 
 ### Locked plan
 
-See `docs/control-room-v2/phase11-plan.md` and `docs/control-room-v2/supabase-schema-plan.md`.
+See `docs/control-room-v2/phase11-plan.md` and `docs/control-room-v2/prisma-schema-plan.md`.
 
 ### Core scope
 
-- initialize or repair the local Supabase project folder
-- create migrations through Supabase CLI workflow
-- add schemas/tables for identity, organizations, stores, catalogue, inventory, sales, returns, customers, reviews, settings, audit and storage references
+- maintain the database contract in `prisma/schema.prisma`
+- create and deploy migrations only through Prisma
+- model profiles with roles plus catalogue, inventory, sales, returns, customers, reviews, settings, audit and asset references
 - add enum/check constraints that preserve current TypeScript domain invariants
-- add indexes for RLS predicates, list filters and operational lookups
-- enable RLS on every exposed table
-- add staff, consumer and public storefront policies
-- add private helper functions only where they are safer and auditable
-- configure storage buckets and storage RLS for product media and brand assets
+- add indexes for authorization predicates, list filters and operational lookups
+- enforce staff and consumer authorization at typed server boundaries
+- expose a validated public storefront projection
+- keep asset provider integration behind the existing asset boundary
 - seed deterministic development data
-- generate and commit Supabase database TypeScript types
-- add RLS and database tests where tooling is available
+- generate and commit Prisma Client
+- add schema, authorization and database tests where tooling is available
 
 ### Explicit exclusions
 
@@ -542,24 +541,24 @@ See `docs/control-room-v2/phase11-plan.md` and `docs/control-room-v2/supabase-sc
 - realtime subscriptions
 - payment settlement, courier provider or messaging provider integration
 - analytics warehouse and accounting/tax integrations
-- multi-store warehouse/supplier expansion
+- warehouse/supplier expansion
 
 ### Acceptance criteria
 
 - Migrations apply cleanly from a fresh local database.
 - Generated database types align with the application domain model.
-- RLS blocks cross-store and cross-consumer reads/writes.
+- Server authorization blocks staff-only access and cross-consumer reads/writes.
 - Public storefront access exposes only published storefront-visible catalogue data.
-- Staff policies require active store membership and the appropriate capability.
+- Staff requests require the appropriate profile role and capability.
 - Consumer policies allow only own account/order/hold/review data.
-- Storage policies prevent public writes and unauthorized media access.
-- Supabase advisors or equivalent review is run when available.
+- Asset policies prevent public writes and unauthorized media access.
+- Prisma validation, migration review and generated-client checks pass.
 
 ## 15. Phase 12 — TanStack Query server-state foundation
 
 ### Goal
 
-Create a replaceable, tested TanStack Query v5 server-state boundary over the authenticated Supabase resource contracts without pretending that old in-memory prototype data is the production backend.
+Create a replaceable, tested TanStack Query v5 server-state boundary over authenticated Prisma resource contracts without pretending that old in-memory prototype data is the production backend.
 
 ### Locked plan
 
@@ -571,14 +570,14 @@ See `docs/control-room-v2/phase12-plan.md`.
 - install `@tanstack/react-query`
 - add the official Query ESLint plugin
 - create one stable Control Room QueryClient provider
-- define Supabase-backed repository adapters or browser-safe API/RPC adapters by domain
+- define Prisma-backed repository adapters or browser-safe API/RPC adapters by domain
 - define query-key factories for Overview, Inventory, Products, Orders, Holds, Returns, Customers and Settings
 - colocate query functions/options and mutations by domain
 - migrate server-like records out of duplicate global client state
 - preserve URL, overlay, form, theme and other ephemeral UI state outside the query cache
 - add targeted invalidation, exact cache reconciliation and safe optimistic rollback
 - represent initial loading, error, empty, stale and background-refetch states
-- document authentication, RLS, concurrency and hydration requirements
+- document authentication, authorization, concurrency and hydration requirements
 
 ### Explicit exclusions
 

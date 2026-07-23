@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { AppProviders } from "@/components/providers/app-providers";
-// The canonical typography is the card-lab home-lab set (Geist / Instrument Serif /
-// Geist Mono), loaded once here via next/font and exposed as --font-lab-* for the whole app.
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
+import { AppProviders } from "@/app/app-providers";
+// The canonical Manrope/Newsreader typography is loaded once here via next/font
+// and exposed as --font-storefront-* for the whole app.
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { cn } from "@/lib/utils";
-import "./globals.css";
-import "@/features/storefront/home-lab/home-lab.css";
+import "./theme-entry.css";
 
 export const metadata: Metadata = {
   title: "Laitstyle",
@@ -23,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={cn("h-full antialiased font-sans", labFontClassName)}
+      className={cn("h-full antialiased font-sans", storefrontFontClassName)}
       lang="en"
       suppressHydrationWarning
     >

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
-import { StorefrontLab } from "@/features/storefront/home-lab/storefront-lab";
+import { StorefrontHome } from "@/features/storefront/home/storefront-home";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 
 export const metadata: Metadata = {
   title: "Laitstyles — Curated Premium Fashion",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <StorefrontLab fontClassName={labFontClassName} />;
+  return <StorefrontHome fontClassName={storefrontFontClassName} />;
 }

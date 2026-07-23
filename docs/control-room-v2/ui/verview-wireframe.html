@@ -1,0 +1,4622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Responsive single-store owner dashboard wireframe for catalogue, orders, customers, revenue and storefront operations." />
+  <title>Laitstyles — Store Owner Overview Wireframe</title>
+  <style>
+    :root {
+      --bg: #f5f5f3;
+      --surface: #ffffff;
+      --surface-2: #f8f8f6;
+      --surface-3: #efefec;
+      --ink: #161616;
+      --muted: #6f6f6a;
+      --subtle: #9b9b94;
+      --line: #d9d9d3;
+      --line-strong: #b7b7b0;
+      --dark: #202020;
+      --success: #245c3a;
+      --warning: #765713;
+      --danger: #722f2f;
+      --sidebar: 252px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --shadow: 0 8px 24px rgba(0,0,0,.045);
+      --transition: 180ms ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        linear-gradient(rgba(0,0,0,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.018) 1px, transparent 1px),
+        var(--bg);
+      background-size: 24px 24px;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    button, input, select { font: inherit; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    button {
+      color: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    svg { display: block; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      transition: grid-template-columns var(--transition);
+    }
+
+    body.sidebar-collapsed {
+      --sidebar: 82px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 18px 14px;
+      background: rgba(255,255,255,.94);
+      border-right: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      overflow-y: auto;
+    }
+
+    .brand {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-mark {
+      width: 29px;
+      height: 29px;
+      flex: 0 0 29px;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid var(--ink);
+      border-radius: 9px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .brand-copy {
+      min-width: 0;
+      display: grid;
+      gap: 1px;
+    }
+
+    .brand-copy strong { font-size: 13px; }
+    .brand-copy span { color: var(--muted); font-size: 11px; }
+
+    .nav-section {
+      display: grid;
+      gap: 5px;
+    }
+
+    .nav-label {
+      padding: 0 10px 6px;
+      color: var(--subtle);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 11px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: #3f3f3c;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+    }
+
+    .nav-item:hover {
+      background: var(--surface-2);
+      border-color: var(--line);
+      transform: translateX(1px);
+    }
+
+    .nav-item.active {
+      color: #fff;
+      background: var(--dark);
+      border-color: var(--dark);
+      box-shadow: 0 6px 16px rgba(0,0,0,.12);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display: grid;
+      place-items: center;
+    }
+
+    .nav-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
+    .nav-text {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      min-width: 22px;
+      height: 20px;
+      padding: 0 6px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .nav-item.active .nav-badge {
+      border-color: rgba(255,255,255,.35);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .permission-card {
+      padding: 12px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-md);
+      background: var(--surface-2);
+    }
+
+    .permission-card strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 12px;
+    }
+
+    .permission-card span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .collapse-button {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .collapse-button:hover { border-color: var(--line-strong); }
+
+    body.sidebar-collapsed .brand-copy,
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .nav-text,
+    body.sidebar-collapsed .nav-badge,
+    body.sidebar-collapsed .permission-card,
+    body.sidebar-collapsed .collapse-label {
+      display: none;
+    }
+
+    body.sidebar-collapsed .brand,
+    body.sidebar-collapsed .nav-item,
+    body.sidebar-collapsed .collapse-button {
+      justify-content: center;
+      padding-inline: 0;
+    }
+
+    .main-shell {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      min-height: 76px;
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) minmax(280px, 620px) minmax(250px, 1fr);
+      align-items: center;
+      gap: 22px;
+      padding: 12px 24px;
+      background: rgba(255,255,255,.91);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+
+    .mobile-menu {
+      display: none;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .greeting { min-width: 0; }
+    .greeting strong {
+      display: block;
+      font-size: 17px;
+      letter-spacing: -.015em;
+    }
+    .greeting span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: 0 3px 10px rgba(0,0,0,.025);
+    }
+
+    .search:focus-within {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+    }
+
+    .search svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 1.8;
+    }
+
+    .search input {
+      min-width: 0;
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .search input::placeholder { color: var(--subtle); }
+
+    kbd {
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+    }
+
+    .icon-button {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface);
+    }
+
+    .icon-button:hover { border-color: var(--line-strong); background: var(--surface-2); }
+
+    .icon-button svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
+    .notification-dot {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--surface);
+      border-radius: 999px;
+      background: var(--dark);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .profile-button {
+      height: 44px;
+      min-width: 188px;
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 9px;
+      padding: 4px 9px 4px 5px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      text-align: left;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface-3);
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .profile-copy {
+      min-width: 0;
+      display: grid;
+    }
+
+    .profile-copy strong,
+    .profile-copy span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .profile-copy strong { font-size: 12px; }
+    .profile-copy span { color: var(--muted); font-size: 10px; }
+
+    .page {
+      width: min(100%, 1780px);
+      margin: 0 auto;
+      padding: 22px 24px 40px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 9px;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 850;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .count-pill {
+      min-width: 24px;
+      height: 22px;
+      padding: 0 7px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .text-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #3b3b38;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .text-link:hover { text-decoration: underline; }
+
+    .priority-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .priority-card {
+      min-height: 170px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .priority-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+      box-shadow: 0 12px 26px rgba(0,0,0,.07);
+    }
+
+    .priority-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .task-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+
+    .task-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--ink);
+      fill: none;
+      stroke-width: 1.7;
+    }
+
+    .severity {
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .severity.high {
+      border-color: #c8b2b2;
+      color: var(--danger);
+      background: #faf4f4;
+    }
+
+    .severity.medium {
+      border-color: #d8caa8;
+      color: var(--warning);
+      background: #faf8f0;
+    }
+
+    .task-main {
+      align-self: end;
+    }
+
+    .task-number {
+      display: inline-block;
+      margin-right: 7px;
+      font-size: 27px;
+      font-weight: 720;
+      letter-spacing: -.04em;
+    }
+
+    .task-title {
+      display: inline;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .task-meta {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .button {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 760;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+
+    .button:hover {
+      background: var(--dark);
+      border-color: var(--dark);
+      color: #fff;
+    }
+
+    .button.primary {
+      background: var(--dark);
+      border-color: var(--dark);
+      color: #fff;
+    }
+
+    .button.primary:hover { background: #000; }
+
+    .button.ghost { border-color: var(--line); background: transparent; }
+
+    .button:focus-visible,
+    .icon-button:focus-visible,
+    .nav-item:focus-visible,
+    .tab:focus-visible,
+    .profile-button:focus-visible,
+    .quick-action:focus-visible,
+    .collapse-button:focus-visible {
+      outline: 3px solid rgba(0,0,0,.18);
+      outline-offset: 2px;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .workspace {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .workspace-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(330px, .9fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .workspace-bottom {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-heading {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: .01em;
+    }
+
+    .info-dot {
+      width: 17px;
+      height: 17px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: help;
+    }
+
+    .tabs {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface-2);
+    }
+
+    .tab {
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 2px 6px rgba(0,0,0,.06);
+    }
+
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(100px, 1fr));
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .metric {
+      min-width: 105px;
+      padding: 12px 11px;
+      border-right: 1px solid var(--line);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric-label {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .metric-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 16px;
+      font-weight: 780;
+      letter-spacing: -.025em;
+      white-space: nowrap;
+    }
+
+    .metric-change {
+      display: block;
+      margin-top: 4px;
+      color: var(--success);
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .metric-change.down { color: var(--danger); }
+
+    .chart-wrap {
+      padding: 14px 14px 8px;
+    }
+
+    .chart {
+      width: 100%;
+      min-height: 270px;
+      overflow: hidden;
+    }
+
+    .chart svg {
+      width: 100%;
+      height: 270px;
+    }
+
+    .grid-line {
+      stroke: #e4e4df;
+      stroke-width: 1;
+    }
+
+    .chart-label {
+      fill: #888881;
+      font-size: 10px;
+    }
+
+    .line-current {
+      fill: none;
+      stroke: #1f1f1f;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .line-previous {
+      fill: none;
+      stroke: #999990;
+      stroke-width: 1.7;
+      stroke-dasharray: 5 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .chart-area {
+      fill: url(#areaFill);
+      opacity: .3;
+    }
+
+    .chart-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 2px 14px 14px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-line {
+      width: 18px;
+      height: 0;
+      border-top: 2px solid var(--ink);
+    }
+
+    .legend-line.dashed {
+      border-top-color: var(--subtle);
+      border-top-style: dashed;
+    }
+
+    .revenue-body {
+      padding: 14px;
+    }
+
+    .revenue-flow {
+      display: grid;
+      gap: 4px;
+    }
+
+    .flow-row {
+      min-height: 37px;
+      display: grid;
+      grid-template-columns: minmax(90px, 1fr) 126px auto;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid #ecece8;
+    }
+
+    .flow-row strong { font-size: 11px; }
+    .flow-row.total {
+      margin-top: 2px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line-strong);
+      font-weight: 800;
+    }
+
+    .flow-label {
+      min-width: 0;
+      color: #484844;
+      font-size: 10px;
+    }
+
+    .flow-amount {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .flow-track {
+      height: 9px;
+      display: flex;
+      justify-content: flex-end;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .flow-bar {
+      height: 100%;
+      background: #b9b9b2;
+    }
+
+    .flow-bar.dark { background: #494945; }
+    .flow-bar.light { background: #d8d8d1; }
+
+    .money-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 14px -14px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .money-item {
+      min-width: 0;
+      padding: 11px 10px;
+      border-right: 1px solid var(--line);
+    }
+
+    .money-item:last-child { border-right: 0; }
+
+    .money-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: .025em;
+    }
+
+    .money-item strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .money-item small {
+      display: block;
+      margin-top: 3px;
+      color: var(--success);
+      font-size: 8px;
+    }
+
+    .panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding-top: 12px;
+    }
+
+    .panel-actions .button {
+      min-height: 32px;
+      flex: 1 1 100px;
+      padding-inline: 8px;
+      font-size: 9px;
+    }
+
+    .overview-panel .panel-body { padding: 12px; }
+
+    .overview-metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(90px, 1fr));
+      gap: 7px;
+    }
+
+    .mini-metric {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+    }
+
+    .mini-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .mini-metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 15px;
+      letter-spacing: -.02em;
+    }
+
+    .mini-metric small {
+      display: block;
+      margin-top: 4px;
+      color: var(--success);
+      font-size: 8px;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: .8fr 1.4fr .9fr;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .insight-card {
+      min-height: 138px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface-2);
+    }
+
+    .insight-card h3 {
+      margin: 0 0 8px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .035em;
+    }
+
+    .big-number {
+      display: block;
+      font-size: 21px;
+      font-weight: 750;
+      letter-spacing: -.04em;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 38px;
+      margin-top: 12px;
+    }
+
+    .sparkline polyline {
+      fill: none;
+      stroke: #66665f;
+      stroke-width: 1.8;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar-item {
+      display: grid;
+      grid-template-columns: minmax(78px, 1fr) 1.5fr auto;
+      align-items: center;
+      gap: 8px;
+      font-size: 8px;
+    }
+
+    .mini-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #dfdfda;
+      overflow: hidden;
+    }
+
+    .mini-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: #8b8b84;
+    }
+
+    .leaderboard {
+      display: grid;
+      gap: 8px;
+    }
+
+    .leader-row {
+      display: grid;
+      grid-template-columns: 22px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 7px;
+      font-size: 8px;
+    }
+
+    .rank {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      font-weight: 800;
+    }
+
+    .donut-wrap {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+    }
+
+    .donut {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: conic-gradient(#464642 0 64%, #8f8f88 64% 82%, #bdbdb6 82% 93%, #deded8 93% 100%);
+      position: relative;
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: var(--surface-2);
+    }
+
+    .status-list {
+      display: grid;
+      gap: 5px;
+      font-size: 8px;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: 7px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #464642;
+    }
+    .status-row:nth-child(2) .status-dot { background: #8f8f88; }
+    .status-row:nth-child(3) .status-dot { background: #bdbdb6; }
+    .status-row:nth-child(4) .status-dot { background: #deded8; border: 1px solid #aaa; }
+
+    .overview-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .overview-actions .button {
+      min-height: 31px;
+      flex: 1 1 105px;
+      font-size: 8px;
+      padding-inline: 7px;
+    }
+
+    .right-rail {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .quick-panel .panel-header,
+    .activity-panel .panel-header { min-height: 49px; }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .quick-action {
+      position: relative;
+      min-height: 88px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 9px;
+      padding: 9px 5px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      text-align: center;
+      transition: transform var(--transition), border-color var(--transition), background var(--transition);
+    }
+
+    .quick-action:hover {
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+      background: var(--surface-2);
+    }
+
+    .quick-action svg {
+      width: 21px;
+      height: 21px;
+      stroke: var(--ink);
+      fill: none;
+      stroke-width: 1.6;
+    }
+
+    .quick-action span {
+      font-size: 9px;
+      font-weight: 690;
+      line-height: 1.25;
+    }
+
+    .quick-action[aria-disabled="true"] {
+      opacity: .42;
+      cursor: not-allowed;
+    }
+
+    .quick-action[aria-disabled="true"]::after {
+      content: "Restricted";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 2px 4px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      font-size: 6px;
+      text-transform: uppercase;
+    }
+
+
+    .quick-action small {
+      display: block;
+      max-width: 86px;
+      color: var(--muted);
+      font-size: 7px;
+      line-height: 1.25;
+      font-weight: 560;
+    }
+
+    .store-context {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .store-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(36,92,58,.10);
+    }
+
+    .readiness-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 10px;
+      font-size: 8px;
+    }
+
+    .readiness-row {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .readiness-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .readiness-row span { color: var(--muted); }
+
+    .activity-list {
+      position: relative;
+      display: grid;
+      padding: 5px 13px 13px 36px;
+    }
+
+    .activity-list::before {
+      content: "";
+      position: absolute;
+      top: 15px;
+      bottom: 24px;
+      left: 23px;
+      width: 1px;
+      background: var(--line-strong);
+    }
+
+    .activity-item {
+      position: relative;
+      padding: 11px 0;
+      border-bottom: 1px solid #ecece8;
+    }
+
+    .activity-item:last-child { border-bottom: 0; }
+
+    .activity-item::before {
+      content: "";
+      position: absolute;
+      top: 17px;
+      left: -17px;
+      width: 7px;
+      height: 7px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      background: #55554f;
+      box-shadow: 0 0 0 1px var(--line-strong);
+    }
+
+    .activity-item strong {
+      display: block;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .activity-item span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .activity-tag {
+      display: inline-flex !important;
+      width: fit-content;
+      margin-top: 6px !important;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: #4e4e49 !important;
+      font-size: 7px !important;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mobile-bottom-nav { display: none; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0,0,0,.42);
+      backdrop-filter: blur(4px);
+    }
+
+    .overlay.open { display: grid; }
+
+    .modal {
+      width: min(100%, 440px);
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 30px 80px rgba(0,0,0,.22);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-header h2 { margin: 0; font-size: 17px; }
+    .modal-header p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .review-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .review-row span { color: var(--muted); }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 14px 18px 18px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 120;
+      max-width: min(390px, calc(100vw - 44px));
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 15px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--dark);
+      color: #fff;
+      box-shadow: 0 20px 50px rgba(0,0,0,.22);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast strong { display: block; font-size: 11px; }
+    .toast span { display: block; margin-top: 2px; color: #d7d7d1; font-size: 10px; }
+
+    .loading-skeleton {
+      position: relative;
+      overflow: hidden;
+      background: #e9e9e4;
+    }
+
+    .loading-skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer { to { transform: translateX(100%); } }
+
+    @media (max-width: 1450px) {
+      .priority-grid {
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+      }
+
+      .dashboard-layout {
+        grid-template-columns: minmax(0, 1fr) 280px;
+      }
+
+      .workspace-top {
+        grid-template-columns: minmax(0, 1.35fr) minmax(320px, .9fr);
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .topbar {
+        grid-template-columns: minmax(220px, 1fr) minmax(280px, 460px) auto;
+      }
+
+      .profile-button { min-width: 44px; width: 44px; }
+      .profile-copy, .profile-button > svg { display: none; }
+
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .right-rail {
+        grid-template-columns: minmax(280px, .75fr) minmax(0, 1.25fr);
+      }
+
+      .activity-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 24px;
+      }
+
+      .activity-list::before { display: none; }
+      .activity-item::before { left: -12px; }
+    }
+
+    @media (max-width: 1020px) {
+      :root { --sidebar: 82px; }
+
+      .brand-copy,
+      .nav-label,
+      .nav-text,
+      .nav-badge,
+      .permission-card,
+      .collapse-label { display: none; }
+
+      .brand, .nav-item, .collapse-button {
+        justify-content: center;
+        padding-inline: 0;
+      }
+
+      .topbar {
+        grid-template-columns: minmax(200px, 1fr) minmax(240px, 420px) auto;
+      }
+
+      .workspace-top {
+        grid-template-columns: 1fr;
+      }
+
+      .revenue-panel .revenue-body {
+        display: grid;
+        grid-template-columns: 1.15fr .85fr;
+        gap: 16px;
+      }
+
+      .money-summary {
+        margin: 0;
+        align-self: start;
+      }
+
+      .revenue-panel .panel-actions {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .app-shell { display: block; }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        transform: translateX(-105%);
+        width: 264px;
+        transition: transform var(--transition);
+        box-shadow: 18px 0 55px rgba(0,0,0,.2);
+      }
+
+      body.mobile-nav-open .sidebar { transform: translateX(0); }
+
+      .brand-copy,
+      .nav-label,
+      .nav-text,
+      .nav-badge,
+      .permission-card,
+      .collapse-label { display: initial; }
+
+      .brand, .nav-item, .collapse-button {
+        justify-content: flex-start;
+        padding-inline: 11px;
+      }
+
+      .topbar {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        padding-inline: 14px;
+      }
+
+      .mobile-menu { display: grid; }
+      .greeting strong { font-size: 14px; }
+      .greeting span { font-size: 10px; }
+      .search {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .topbar { padding-block: 10px; }
+      .top-actions .icon-button:first-child { display: none; }
+      .profile-button { display: none; }
+
+      .page { padding: 18px 14px 92px; }
+
+      .priority-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 4px;
+      }
+
+      .priority-card {
+        min-width: min(82vw, 285px);
+        scroll-snap-align: start;
+      }
+
+      .workspace-bottom,
+      .right-rail {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-strip { grid-template-columns: repeat(8, 118px); }
+
+      .overview-metrics {
+        display: flex;
+        overflow-x: auto;
+      }
+
+      .mini-metric { min-width: 120px; }
+
+      .insight-grid { grid-template-columns: 1fr; }
+
+      .activity-list {
+        grid-template-columns: 1fr;
+      }
+
+      .activity-list::before {
+        display: block;
+      }
+
+      .activity-item::before { left: -17px; }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        z-index: 50;
+        height: 62px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: rgba(255,255,255,.94);
+        box-shadow: 0 16px 40px rgba(0,0,0,.16);
+        backdrop-filter: blur(18px);
+      }
+
+      .mobile-bottom-nav button {
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 2px;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 8px;
+      }
+
+      .mobile-bottom-nav button.active {
+        background: var(--dark);
+        color: #fff;
+      }
+
+      .mobile-bottom-nav svg {
+        width: 19px;
+        height: 19px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .top-actions { gap: 5px; }
+      .icon-button { width: 38px; height: 38px; }
+      .greeting span { max-width: 210px; }
+
+      .section-heading {
+        align-items: flex-start;
+      }
+
+      .priority-grid {
+        margin-right: -14px;
+        padding-right: 14px;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-header .text-link { align-self: flex-end; }
+
+      .tabs {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .tab { flex: 1; min-width: 54px; }
+
+      .chart { min-height: 220px; }
+      .chart svg { height: 220px; }
+      .chart-footer { align-items: flex-start; flex-direction: column; }
+
+      .revenue-panel .revenue-body { display: block; }
+
+      .flow-row {
+        grid-template-columns: minmax(80px,1fr) 88px auto;
+      }
+
+      .money-summary {
+        margin: 14px -14px 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .money-item:nth-child(2) { border-right: 0; }
+      .money-item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+
+      .quick-grid { grid-template-columns: repeat(3, 1fr); }
+      .quick-action { min-height: 82px; }
+
+      .overview-actions .button { flex-basis: 45%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    /* Multi-screen store operating system */
+    .app-screen { display: none; }
+    .app-screen.active { display: block; }
+
+    .screen-page {
+      display: grid;
+      gap: 14px;
+      animation: screenIn .2s ease;
+    }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen-intro {
+      min-height: 118px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(120deg, rgba(0,0,0,.035), transparent 42%),
+        var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .screen-intro-copy { max-width: 780px; }
+
+    .screen-kicker {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .screen-intro h1 {
+      margin: 0;
+      font-size: clamp(24px, 2.4vw, 38px);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+    }
+
+    .screen-intro p {
+      max-width: 700px;
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .screen-intro-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .screen-panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .screen-panel-head {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .screen-panel-title {
+      min-width: 0;
+    }
+
+    .screen-panel-title h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: -.01em;
+    }
+
+    .screen-panel-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .screen-tools {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .compact-input,
+    .compact-select {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      outline: 0;
+    }
+
+    .compact-input {
+      min-width: 180px;
+      padding: 0 10px;
+    }
+
+    .compact-select {
+      padding: 0 30px 0 10px;
+    }
+
+    .compact-input:focus,
+    .compact-select:focus {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(125px, 1fr));
+      gap: 9px;
+    }
+
+    .signal-card {
+      min-height: 92px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .signal-card.attention {
+      border-style: dashed;
+      border-color: var(--line-strong);
+      background: var(--surface-2);
+    }
+
+    .signal-label {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 720;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .signal-value {
+      display: block;
+      margin-top: 7px;
+      font-size: 23px;
+      font-weight: 790;
+      letter-spacing: -.04em;
+    }
+
+    .signal-detail {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .screen-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .screen-layout.wide-rail {
+      grid-template-columns: minmax(0, 1fr) 390px;
+    }
+
+    .screen-stack {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .segmented {
+      display: inline-flex;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface-2);
+      overflow-x: auto;
+    }
+
+    .seg-button {
+      min-height: 29px;
+      padding: 0 9px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .seg-button.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 2px 6px rgba(0,0,0,.06);
+    }
+
+    /* Orders */
+    .fulfilment-ribbon {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .stage-cell {
+      min-width: 112px;
+      padding: 8px 11px;
+      border-right: 1px solid var(--line);
+    }
+
+    .stage-cell:last-child { border-right: 0; }
+
+    .stage-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .stage-cell strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 17px;
+    }
+
+    .stage-cell small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .order-board { padding: 8px; }
+
+    .order-row {
+      display: grid;
+      grid-template-columns: 30px minmax(150px, 1.3fr) minmax(120px, .85fr) minmax(105px, .75fr) minmax(120px, .9fr) minmax(110px, .8fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 72px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-bottom-color: var(--line);
+      background: var(--surface);
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+    }
+
+    .order-row:hover {
+      background: var(--surface-2);
+    }
+
+    .order-row.selected {
+      border-color: var(--ink);
+      border-radius: 10px;
+      background: var(--surface-2);
+      transform: translateX(2px);
+    }
+
+    .row-check {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: var(--surface);
+    }
+
+    .order-identity strong,
+    .order-customer strong,
+    .order-money strong {
+      display: block;
+      font-size: 11px;
+    }
+
+    .order-identity span,
+    .order-customer span,
+    .order-money span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .order-status {
+      width: fit-content;
+      padding: 4px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: #44443f;
+      font-size: 8px;
+      font-weight: 820;
+      text-transform: uppercase;
+    }
+
+    .order-status.urgent {
+      border-color: #cfbcbc;
+      color: var(--danger);
+      background: #fbf5f5;
+    }
+
+    .order-status.ready {
+      border-color: #bfccbf;
+      color: var(--success);
+      background: #f5faf6;
+    }
+
+    .delivery-window {
+      font-size: 9px;
+      color: #44443f;
+    }
+
+    .delivery-window small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+
+    .row-menu {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .inspector {
+      position: sticky;
+      top: 92px;
+    }
+
+    .inspector-hero {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .inspector-hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .inspector-hero h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.03em;
+    }
+
+    .inspector-hero p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .inspector-body { padding: 14px; }
+
+    .inspector-section {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .inspector-section:first-child { padding-top: 0; }
+    .inspector-section:last-child { border-bottom: 0; }
+
+    .inspector-section h3 {
+      margin: 0 0 9px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .055em;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: minmax(90px, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      font-size: 10px;
+    }
+
+    .detail-row span { color: var(--muted); }
+    .detail-row strong { text-align: right; }
+
+    .timeline-steps {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      padding-left: 18px;
+    }
+
+    .timeline-steps::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 7px;
+      bottom: 7px;
+      width: 1px;
+      background: var(--line-strong);
+    }
+
+    .timeline-step {
+      position: relative;
+      font-size: 9px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -17px;
+      top: 4px;
+      width: 7px;
+      height: 7px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      background: var(--dark);
+      box-shadow: 0 0 0 1px var(--line-strong);
+    }
+
+    .timeline-step.pending::before { background: var(--surface); }
+
+    .timeline-step strong { display: block; }
+    .timeline-step span { display: block; margin-top: 2px; color: var(--muted); }
+
+    .inspector-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 7px;
+      padding-top: 12px;
+    }
+
+    .exception-grid,
+    .dispatch-grid {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .exception-item {
+      display: grid;
+      grid-template-columns: 10px minmax(0,1fr) auto;
+      gap: 9px;
+      align-items: center;
+      min-height: 54px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface-2);
+    }
+
+    .exception-mark {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .exception-item strong { display: block; font-size: 10px; }
+    .exception-item span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+
+    .dispatch-wave {
+      display: grid;
+      grid-template-columns: 70px minmax(0,1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 54px;
+      padding: 9px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dispatch-wave:last-child { border-bottom: 0; }
+    .dispatch-time { font-size: 15px; font-weight: 780; }
+    .dispatch-wave strong { display: block; font-size: 10px; }
+    .dispatch-wave span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+
+    /* Products + stock */
+    .catalog-health {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 9px;
+    }
+
+    .health-card {
+      min-height: 98px;
+      display: grid;
+      align-content: space-between;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .health-card strong {
+      font-size: 23px;
+      letter-spacing: -.04em;
+    }
+
+    .health-card span {
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .035em;
+    }
+
+    .health-card small {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .catalog-toolbar {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) auto auto auto;
+      gap: 7px;
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .catalog-columns,
+    .product-row {
+      display: grid;
+      grid-template-columns: 32px minmax(220px, 1.5fr) minmax(100px, .7fr) minmax(90px, .65fr) minmax(160px, 1.05fr) minmax(105px, .7fr) 36px;
+      align-items: center;
+      gap: 10px;
+      min-width: 820px;
+    }
+
+    .catalog-columns {
+      min-height: 36px;
+      padding: 0 12px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .catalog-list { overflow-x: auto; }
+
+    .product-row {
+      min-height: 88px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      transition: background var(--transition);
+    }
+
+    .product-row:hover { background: var(--surface-2); }
+
+    .product-cell {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .product-thumb {
+      width: 48px;
+      height: 56px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, #ecece8, #fafaf8);
+      color: var(--subtle);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .product-copy {
+      min-width: 0;
+    }
+
+    .product-copy strong {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 11px;
+    }
+
+    .product-copy span {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .price-cell strong,
+    .sales-cell strong {
+      display: block;
+      font-size: 10px;
+    }
+
+    .price-cell span,
+    .sales-cell span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .stock-block { min-width: 0; }
+
+    .stock-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 7px;
+      font-size: 9px;
+    }
+
+    .stock-top strong { font-size: 10px; }
+    .stock-meter {
+      height: 7px;
+      margin-top: 6px;
+      border-radius: 999px;
+      background: #e0e0db;
+      overflow: hidden;
+    }
+
+    .stock-meter span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: #71716a;
+    }
+
+    .stock-meter.low span { background: #9a7a32; }
+    .stock-meter.empty span { background: #8f4545; }
+
+    .variant-line {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .publish-state {
+      width: fit-content;
+      padding: 4px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-2);
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .publish-state.live {
+      border-color: #bdccbe;
+      color: var(--success);
+      background: #f4faf5;
+    }
+
+    .publish-state.draft {
+      border-style: dashed;
+      color: var(--muted);
+    }
+
+    .stock-centre { padding: 12px; }
+
+    .stock-alert-card {
+      display: grid;
+      gap: 8px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+      margin-bottom: 8px;
+    }
+
+    .stock-alert-card:last-child { margin-bottom: 0; }
+
+    .stock-alert-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stock-alert-card strong { font-size: 10px; }
+    .stock-alert-card p { margin: 0; color: var(--muted); font-size: 8px; }
+
+    .stock-adjuster {
+      display: grid;
+      grid-template-columns: 32px 1fr 32px;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .stock-adjuster button,
+    .stock-adjuster span {
+      min-height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .product-flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 8px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    .flow-step {
+      position: relative;
+      min-width: 125px;
+      min-height: 118px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+
+    .flow-step::after {
+      content: "→";
+      position: absolute;
+      top: 47px;
+      right: -8px;
+      z-index: 2;
+      color: var(--subtle);
+      font-size: 13px;
+    }
+
+    .flow-step:last-child::after { display: none; }
+
+    .flow-number {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--surface);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .flow-step strong {
+      display: block;
+      margin-top: 12px;
+      font-size: 10px;
+    }
+
+    .flow-step span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    /* Categories */
+    .taxonomy-layout {
+      display: grid;
+      grid-template-columns: minmax(270px, .82fr) minmax(0, 1.35fr) 320px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .taxonomy-tree { padding: 10px; }
+
+    .category-node {
+      display: grid;
+      grid-template-columns: 20px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 43px;
+      padding: 7px 8px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .category-node:hover { background: var(--surface-2); }
+
+    .category-node.selected {
+      border-color: var(--ink);
+      background: var(--surface-2);
+    }
+
+    .category-node.child { margin-left: 24px; }
+    .category-node.grandchild { margin-left: 48px; }
+
+    .drag-handle {
+      color: var(--subtle);
+      font-size: 12px;
+      letter-spacing: -2px;
+    }
+
+    .category-node strong {
+      display: block;
+      font-size: 10px;
+    }
+
+    .category-node span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .node-count {
+      min-width: 28px;
+      height: 23px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink) !important;
+      font-size: 8px !important;
+      font-weight: 800;
+    }
+
+    .storefront-map {
+      padding: 14px;
+    }
+
+    .storefront-frame {
+      min-height: 520px;
+      padding: 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .storefront-browser {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 29px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .browser-dot {
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+    }
+
+    .browser-address {
+      flex: 1;
+      height: 14px;
+      margin-left: 8px;
+      border-radius: 4px;
+      background: var(--surface-3);
+    }
+
+    .storefront-header-wire {
+      height: 48px;
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 90px 1fr 100px;
+      align-items: center;
+      gap: 15px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .wire {
+      height: 9px;
+      border-radius: 3px;
+      background: #d4d4cf;
+    }
+
+    .wire.dark { background: #8e8e87; }
+    .wire.short { width: 60%; }
+
+    .category-hero-wire {
+      min-height: 160px;
+      display: grid;
+      align-content: end;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 18px;
+      border: 1px dashed var(--line-strong);
+      background:
+        linear-gradient(135deg, #e3e3de, #f7f7f4);
+    }
+
+    .category-grid-wire {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .category-tile-wire {
+      min-height: 115px;
+      display: grid;
+      align-content: end;
+      gap: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .category-tile-wire.selected {
+      border: 2px solid var(--ink);
+    }
+
+    .category-product-wire {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .product-wire {
+      min-height: 92px;
+      display: grid;
+      align-content: end;
+      gap: 5px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .category-detail { position: sticky; top: 92px; }
+
+    .category-form { padding: 13px; }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      margin-bottom: 11px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      outline: 0;
+    }
+
+    .field input,
+    .field select {
+      min-height: 37px;
+      padding: 0 10px;
+    }
+
+    .field textarea {
+      min-height: 72px;
+      resize: vertical;
+      padding: 9px 10px;
+    }
+
+    .field-help {
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .toggle-row {
+      min-height: 43px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .toggle-row strong { display: block; font-size: 9px; }
+    .toggle-row span { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      padding: 2px;
+      border-radius: 999px;
+      background: var(--dark);
+    }
+
+    .toggle::after {
+      content: "";
+      display: block;
+      width: 16px;
+      height: 16px;
+      margin-left: 16px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .category-bottom-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 12px;
+    }
+
+    .uncategorised-list { padding: 9px 12px; }
+
+    .uncategorised-row {
+      display: grid;
+      grid-template-columns: 40px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 58px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .uncategorised-row:last-child { border-bottom: 0; }
+
+    .mini-thumb {
+      width: 38px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--subtle);
+      font-size: 7px;
+    }
+
+    .uncategorised-row strong { display: block; font-size: 9px; }
+    .uncategorised-row span { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+
+    .category-rules {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .rule-card {
+      min-height: 74px;
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr);
+      gap: 9px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface-2);
+    }
+
+    .rule-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      font-weight: 800;
+    }
+
+    .rule-card strong { display: block; font-size: 9px; }
+    .rule-card span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+
+    .screen-empty-note {
+      padding: 10px 13px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 9px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    @media (max-width: 1320px) {
+      .signal-grid { grid-template-columns: repeat(3, minmax(150px,1fr)); }
+      .taxonomy-layout { grid-template-columns: 290px minmax(0,1fr); }
+      .category-detail { position: static; grid-column: 1 / -1; }
+      .category-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 0 12px;
+      }
+      .category-form .panel-actions,
+      .category-form .toggle-row { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 1100px) {
+      .screen-layout,
+      .screen-layout.wide-rail {
+        grid-template-columns: 1fr;
+      }
+      .inspector { position: static; }
+      .catalog-health { grid-template-columns: repeat(3, minmax(130px,1fr)); }
+      .taxonomy-layout { grid-template-columns: 1fr; }
+      .category-detail { grid-column: auto; }
+      .taxonomy-tree {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+      .category-node.child,
+      .category-node.grandchild { margin-left: 0; }
+    }
+
+    @media (max-width: 780px) {
+      .screen-intro {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 17px;
+      }
+
+      .screen-intro-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .screen-intro-actions .button { flex: 1; }
+
+      .signal-grid {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 3px;
+      }
+
+      .signal-card { min-width: 150px; }
+
+      .screen-panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .screen-tools { width: 100%; justify-content: flex-start; }
+      .compact-input { flex: 1; min-width: 140px; }
+
+      .order-board { overflow-x: auto; }
+      .order-row { min-width: 880px; }
+
+      .catalog-health {
+        display: flex;
+        overflow-x: auto;
+      }
+      .health-card { min-width: 160px; }
+
+      .catalog-toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+      .catalog-toolbar .compact-input { grid-column: 1 / -1; }
+
+      .category-bottom-grid { grid-template-columns: 1fr; }
+      .taxonomy-tree { grid-template-columns: 1fr; }
+      .category-form { display: block; }
+
+      .category-grid-wire { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .category-product-wire { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .signal-grid { margin-right: -14px; padding-right: 14px; }
+      .inspector-actions { grid-template-columns: 1fr; }
+      .category-grid-wire { grid-template-columns: 1fr; }
+      .storefront-frame { min-height: 460px; }
+      .catalog-toolbar { grid-template-columns: 1fr; }
+      .catalog-toolbar .compact-input { grid-column: auto; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#overview" aria-label="Laitstyles admin home">
+        <span class="brand-mark">LS</span>
+        <span class="brand-copy">
+          <strong>Laitstyles</strong>
+          <span>Owner operations</span>
+        </span>
+      </a>
+
+      <nav class="nav-section" aria-label="Workspace">
+        <div class="nav-label">Store workspace</div>
+
+        <a class="nav-item active" href="#overview-screen" aria-current="page" data-screen-link="overview">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></svg>
+          </span>
+          <span class="nav-text">Overview</span>
+        </a>
+
+        <a class="nav-item" href="#orders-screen" data-screen-link="orders">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 5h2l2.2 10h10.9l2-7H7"/><circle cx="9" cy="19" r="1.3"/><circle cx="18" cy="19" r="1.3"/></svg>
+          </span>
+          <span class="nav-text">Orders</span>
+          <span class="nav-badge">18</span>
+        </a>
+
+        <a class="nav-item" href="#products-screen" data-screen-link="products">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg>
+          </span>
+          <span class="nav-text">Products</span>
+          <span class="nav-badge" title="9 stock alerts">9</span>
+        </a>
+
+        <a class="nav-item" href="#categories-screen" data-screen-link="categories">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"/></svg>
+          </span>
+          <span class="nav-text">Categories</span>
+        </a>
+
+        <a class="nav-item" href="#consumers">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-4 2.3-6 5.5-6s4.9 2 5.5 6"/><path d="M16 11c2 0 3.7 1.5 4.5 4"/></svg>
+          </span>
+          <span class="nav-text">Customers</span>
+        </a>
+      </nav>
+
+      <nav class="nav-section" aria-label="Operations">
+        <div class="nav-label">Commerce operations</div>
+
+        <a class="nav-item" href="#revenue">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg>
+          </span>
+          <span class="nav-text">Payments & finance</span>
+        </a>
+
+        <a class="nav-item" href="#actions">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v6h-6"/></svg>
+          </span>
+          <span class="nav-text">Returns & refunds</span>
+          <span class="nav-badge">2</span>
+        </a>
+
+        <a class="nav-item" href="#consumers">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v6H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 1-2Z"/><path d="M20 14h-3v6h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-1-2Z"/></svg>
+          </span>
+          <span class="nav-text">Customer messages</span>
+          <span class="nav-badge">5</span>
+        </a>
+
+        <a class="nav-item" href="#actions">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 13V8l12-4v13L4 13Z"/><path d="M8 14v5"/><path d="M16 8h3a2 2 0 0 1 0 4h-3"/></svg>
+          </span>
+          <span class="nav-text">Marketing & discounts</span>
+        </a>
+
+        <a class="nav-item" href="#stores">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5"/></svg>
+          </span>
+          <span class="nav-text">Storefront & content</span>
+        </a>
+
+        <a class="nav-item" href="#performance">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          </span>
+          <span class="nav-text">Reports & insights</span>
+        </a>
+      </nav>
+
+      <nav class="nav-section" aria-label="Administration">
+        <div class="nav-label">Owner controls</div>
+
+        <a class="nav-item" href="#actions">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .4 2l.1.1-2.8 2.8-.1-.1a1.8 1.8 0 0 0-2-.4 1.8 1.8 0 0 0-1.1 1.6v.2H10V21a1.8 1.8 0 0 0-1.1-1.6 1.8 1.8 0 0 0-2 .4l-.1.1L4 17.1l.1-.1a1.8 1.8 0 0 0 .4-2A1.8 1.8 0 0 0 3 14H2.8v-4H3a1.8 1.8 0 0 0 1.5-1 1.8 1.8 0 0 0-.4-2l-.1-.1L6.8 4l.1.1a1.8 1.8 0 0 0 2 .4A1.8 1.8 0 0 0 10 3V2.8h4V3a1.8 1.8 0 0 0 1.1 1.5 1.8 1.8 0 0 0 2-.4l.1-.1L20 6.9l-.1.1a1.8 1.8 0 0 0-.4 2A1.8 1.8 0 0 0 21 10h.2v4H21a1.8 1.8 0 0 0-1.6 1Z"/></svg>
+          </span>
+          <span class="nav-text">Store settings</span>
+        </a>
+
+        <a class="nav-item" href="#activity">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-4 2.3-6 5.5-6s4.9 2 5.5 6"/><path d="M17 8v6"/><path d="M14 11h6"/></svg>
+          </span>
+          <span class="nav-text">Team & access</span>
+        </a>
+
+        <a class="nav-item" href="#activity">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </span>
+          <span class="nav-text">Audit logs</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="permission-card">
+          <strong>Site &amp; Store Owner</strong>
+          <span>Single-store control · Session verified</span>
+        </div>
+
+        <button class="collapse-button" type="button" id="collapseSidebar" aria-label="Collapse sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"/></svg>
+          <span class="collapse-label">Collapse navigation</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-shell">
+      <header class="topbar">
+        <button class="mobile-menu" type="button" id="mobileMenu" aria-label="Open navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+
+        <div class="greeting">
+          <strong>Good morning, Ada <span aria-hidden="true">👋</span></strong>
+          <span>6 items need attention across orders, inventory, customers and storefront.</span>
+          <div class="store-context"><span class="store-status-dot"></span> Laitstyles Main Store · Online · Last synced 2 min ago</div>
+        </div>
+
+        <label class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <span class="sr-only">Search platform</span>
+          <input id="globalSearch" type="search" placeholder="Search products, orders, customers, categories…" autocomplete="off" />
+          <kbd>⌘K</kbd>
+        </label>
+
+        <div class="top-actions">
+          <button class="icon-button" type="button" data-toast-title="Storefront preview" data-toast-copy="Opening the customer-facing Laitstyles storefront preview.">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="sr-only">Preview storefront</span>
+          </button>
+
+          <button class="icon-button" type="button" data-toast-title="Notifications" data-toast-copy="12 unread operational notifications.">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            <span class="notification-dot">12</span>
+            <span class="sr-only">Open notifications</span>
+          </button>
+
+          <button class="icon-button" type="button" data-toast-title="Help centre" data-toast-copy="Admin documentation and support shortcuts opened.">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.8 2.1c-1 .6-1.5 1.1-1.5 2.4"/><path d="M12 17h.01"/></svg>
+            <span class="sr-only">Help centre</span>
+          </button>
+
+          <button class="profile-button" type="button" data-toast-title="Admin profile" data-toast-copy="Profile, security, session and account controls.">
+            <span class="avatar">AO</span>
+            <span class="profile-copy">
+              <strong>Ada Okafor</strong>
+              <span>Site &amp; Store Owner · Active</span>
+            </span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="page" id="appMain">
+        <section class="app-screen active" id="overview-screen" data-screen="overview">
+
+        <section class="section" id="actions" aria-labelledby="priority-title">
+          <div class="section-heading">
+            <div class="section-title-wrap">
+              <h1 class="section-title" id="priority-title">Priority action centre</h1>
+              <span class="count-pill">6</span>
+            </div>
+            <button class="text-link" type="button" data-toast-title="Task queue" data-toast-copy="Opening all owner tasks across orders, inventory, customers and storefront.">
+              View all tasks <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <div class="priority-grid">
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><path d="M3 5h2l2.2 10h10.9l2-7H7"/><circle cx="9" cy="19" r="1.3"/><circle cx="18" cy="19" r="1.3"/></svg>
+                </span>
+                <span class="severity high">High</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">18</span>
+                <span class="task-title">Orders awaiting fulfilment</span>
+                <span class="task-meta">Oldest waiting 3h 18m · 4 express deliveries</span>
+              </div>
+              <button class="button primary action-trigger" type="button" data-action="Fulfil pending orders">Fulfil orders</button>
+            </article>
+
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"/><path d="M8 6V3h8v3"/><path d="M4 11h16"/></svg>
+                </span>
+                <span class="severity high">High</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">9</span>
+                <span class="task-title">Low-stock products</span>
+                <span class="task-meta">3 may sell out today · ₦4.8M sales at risk</span>
+              </div>
+              <button class="button action-trigger" type="button" data-action="Update low-stock inventory">Manage stock</button>
+            </article>
+
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg>
+                </span>
+                <span class="severity medium">Medium</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">7</span>
+                <span class="task-title">Draft products</span>
+                <span class="task-meta">4 missing images · 2 missing prices · 1 incomplete SEO</span>
+              </div>
+              <button class="button" type="button" data-toast-title="Product drafts" data-toast-copy="Opening draft products grouped by missing information.">Review drafts</button>
+            </article>
+
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9.4 9.4 0 0 1-4-.9L3 21l1.7-4.2A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+                </span>
+                <span class="severity medium">Medium</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">5</span>
+                <span class="task-title">Customer messages</span>
+                <span class="task-meta">2 waiting over 4 hours · 1 pre-purchase question</span>
+              </div>
+              <button class="button" type="button" data-toast-title="Customer inbox" data-toast-copy="Opening customer messages sorted by waiting time.">Open inbox</button>
+            </article>
+
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+                </span>
+                <span class="severity medium">Medium</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">3</span>
+                <span class="task-title">Failed payments</span>
+                <span class="task-meta">₦118,400 recoverable · 2 customers can retry</span>
+              </div>
+              <button class="button" type="button" data-toast-title="Failed payments" data-toast-copy="Opening failed payment attempts with customer recovery actions.">View details</button>
+            </article>
+
+            <article class="priority-card">
+              <div class="priority-card-top">
+                <span class="task-icon">
+                  <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v6h-6"/></svg>
+                </span>
+                <span class="severity high">High</span>
+              </div>
+              <div class="task-main">
+                <span class="task-number">2</span>
+                <span class="task-title">Refund requests</span>
+                <span class="task-meta">₦96,000 exposure · 1 requires your decision today</span>
+              </div>
+              <button class="button action-trigger" type="button" data-action="Review refund requests">Review refunds</button>
+            </article>
+          </div>
+        </section>
+
+        <div class="dashboard-layout">
+          <div class="workspace">
+            <div class="workspace-top">
+              <section class="panel performance-panel" id="performance" aria-labelledby="performance-title">
+                <div class="panel-header">
+                  <div class="panel-heading">
+                    <h2 id="performance-title">Store performance</h2>
+                    <span class="info-dot" title="Store performance compares sales, traffic, conversion and customer behaviour with the previous period.">i</span>
+                  </div>
+                  <div class="tabs" role="tablist" aria-label="Performance period">
+                    <button class="tab" type="button" role="tab" aria-selected="false">Today</button>
+                    <button class="tab" type="button" role="tab" aria-selected="false">7D</button>
+                    <button class="tab active" type="button" role="tab" aria-selected="true">30D</button>
+                    <button class="tab" type="button" role="tab" aria-selected="false">Quarter</button>
+                    <button class="tab" type="button" role="tab" aria-selected="false">Custom</button>
+                  </div>
+                </div>
+
+                <div class="metrics-strip" aria-label="Key store metrics">
+                  <div class="metric">
+                    <span class="metric-label">Gross sales</span>
+                    <strong class="metric-value">₦245.6M</strong>
+                    <span class="metric-change">↑ 18.6% vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Net proceeds</span>
+                    <strong class="metric-value">₦220.0M</strong>
+                    <span class="metric-change">↑ 16.3% vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Completed orders</span>
+                    <strong class="metric-value">12,842</strong>
+                    <span class="metric-change">↑ 12.7% vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Store visitors</span>
+                    <strong class="metric-value">356,940</strong>
+                    <span class="metric-change">↑ 9.4% vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Conversion rate</span>
+                    <strong class="metric-value">3.60%</strong>
+                    <span class="metric-change">↑ 0.7pp vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Avg. order value</span>
+                    <strong class="metric-value">₦19,140</strong>
+                    <span class="metric-change">↑ 5.2% vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Repeat customers</span>
+                    <strong class="metric-value">28.4%</strong>
+                    <span class="metric-change">↑ 3.1pp vs prev.</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Refund rate</span>
+                    <strong class="metric-value">2.14%</strong>
+                    <span class="metric-change down">↑ 0.4pp vs prev.</span>
+                  </div>
+                </div>
+
+                <div class="chart-wrap">
+                  <div class="chart" role="img" aria-label="Thirty-day line chart comparing current store sales with the previous period.">
+                    <svg viewBox="0 0 900 270" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stop-color="#888" stop-opacity=".22"/>
+                          <stop offset="100%" stop-color="#888" stop-opacity="0"/>
+                        </linearGradient>
+                      </defs>
+
+                      <line class="grid-line" x1="56" y1="25" x2="880" y2="25"/>
+                      <line class="grid-line" x1="56" y1="85" x2="880" y2="85"/>
+                      <line class="grid-line" x1="56" y1="145" x2="880" y2="145"/>
+                      <line class="grid-line" x1="56" y1="205" x2="880" y2="205"/>
+                      <line class="grid-line" x1="56" y1="235" x2="880" y2="235"/>
+
+                      <text class="chart-label" x="9" y="29">₦30M</text>
+                      <text class="chart-label" x="9" y="89">₦20M</text>
+                      <text class="chart-label" x="9" y="149">₦10M</text>
+                      <text class="chart-label" x="23" y="239">₦0</text>
+
+                      <path class="chart-area" d="M56 165 C78 177,88 194,110 162 S145 108,170 132 S208 158,230 124 S270 120,294 107 S330 130,353 87 S390 30,420 72 S458 91,486 78 S530 31,558 67 S600 82,624 55 S672 24,694 82 S730 142,755 103 S796 82,820 95 S855 58,880 46 L880 235 L56 235 Z"/>
+                      <path class="line-current" d="M56 165 C78 177,88 194,110 162 S145 108,170 132 S208 158,230 124 S270 120,294 107 S330 130,353 87 S390 30,420 72 S458 91,486 78 S530 31,558 67 S600 82,624 55 S672 24,694 82 S730 142,755 103 S796 82,820 95 S855 58,880 46"/>
+                      <path class="line-previous" d="M56 198 C82 192,95 207,117 185 S154 159,178 178 S218 202,240 166 S274 149,300 170 S344 188,370 144 S410 130,438 153 S482 169,510 140 S552 116,581 137 S624 151,649 120 S690 96,716 126 S758 160,784 135 S832 114,880 126"/>
+
+                      <text class="chart-label" x="56" y="258">Apr 15</text>
+                      <text class="chart-label" x="210" y="258">Apr 20</text>
+                      <text class="chart-label" x="364" y="258">Apr 25</text>
+                      <text class="chart-label" x="518" y="258">Apr 30</text>
+                      <text class="chart-label" x="672" y="258">May 5</text>
+                      <text class="chart-label" x="835" y="258">May 15</text>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="chart-footer">
+                  <div class="legend">
+                    <span class="legend-item"><span class="legend-line"></span> This period (Apr 15 – May 15)</span>
+                    <span class="legend-item"><span class="legend-line dashed"></span> Previous period (Mar 15 – Apr 14)</span>
+                  </div>
+                  <button class="text-link" type="button" data-toast-title="Performance report" data-toast-copy="Opening detailed sales, traffic, conversion, product and customer analytics.">View full report →</button>
+                </div>
+              </section>
+
+              <section class="panel revenue-panel" id="revenue" aria-labelledby="revenue-title">
+                <div class="panel-header">
+                  <div class="panel-heading">
+                    <h2 id="revenue-title">Revenue & money movement</h2>
+                    <span class="info-dot" title="Gross sales less discounts, refunds and payment fees, plus shipping collected, equals estimated net proceeds.">i</span>
+                  </div>
+                  <button class="button ghost" type="button" data-toast-title="Revenue period" data-toast-copy="Showing the last 30 days.">30 days ▾</button>
+                </div>
+
+                <div class="revenue-body">
+                  <div class="revenue-flow">
+                    <div class="flow-row">
+                      <span class="flow-label">Gross sales</span>
+                      <span class="flow-track"><span class="flow-bar dark" style="width:100%"></span></span>
+                      <span class="flow-amount">₦245.6M</span>
+                    </div>
+                    <div class="flow-row">
+                      <span class="flow-label">Discounts</span>
+                      <span class="flow-track"><span class="flow-bar light" style="width:31%"></span></span>
+                      <span class="flow-amount">−₦18.4M</span>
+                    </div>
+                    <div class="flow-row">
+                      <span class="flow-label">Returns &amp; refunds</span>
+                      <span class="flow-track"><span class="flow-bar light" style="width:17%"></span></span>
+                      <span class="flow-amount">−₦9.6M</span>
+                    </div>
+                    <div class="flow-row">
+                      <span class="flow-label">Payment fees</span>
+                      <span class="flow-track"><span class="flow-bar light" style="width:12%"></span></span>
+                      <span class="flow-amount">−₦4.8M</span>
+                    </div>
+                    <div class="flow-row">
+                      <span class="flow-label">Shipping collected</span>
+                      <span class="flow-track"><span class="flow-bar" style="width:21%"></span></span>
+                      <span class="flow-amount">+₦7.2M</span>
+                    </div>
+                    <div class="flow-row total">
+                      <strong class="flow-label">Estimated net proceeds</strong>
+                      <span class="flow-track"><span class="flow-bar dark" style="width:90%"></span></span>
+                      <strong class="flow-amount">₦220.0M</strong>
+                    </div>
+                  </div>
+
+                  <div class="money-summary">
+                    <div class="money-item">
+                      <span>Settled to bank</span>
+                      <strong>₦184.2M</strong>
+                      <small>↑ 15.4%</small>
+                    </div>
+                    <div class="money-item">
+                      <span>Pending settlement</span>
+                      <strong>₦31.6M</strong>
+                      <small>Next batch tomorrow</small>
+                    </div>
+                    <div class="money-item">
+                      <span>Refund exposure</span>
+                      <strong>₦4.2M</strong>
+                      <small>12 open requests</small>
+                    </div>
+                    <div class="money-item">
+                      <span>Failed payments</span>
+                      <strong>₦1.8M</strong>
+                      <small>↓ 8.6%</small>
+                    </div>
+                  </div>
+
+                  <div class="panel-actions">
+                    <button class="button" type="button" data-toast-title="Orders" data-toast-copy="Opening the paid-order ledger with fulfilment and settlement status.">View orders</button>
+                    <button class="button primary action-trigger" type="button" data-action="Reconcile store payments">Reconcile payments</button>
+                    <button class="button" type="button" data-toast-title="Refunds" data-toast-copy="Opening refund requests, reasons and financial exposure.">Review refunds</button>
+                    <button class="button" type="button" data-toast-title="Report export" data-toast-copy="A detailed sales and settlement report has been prepared.">Export report</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="workspace-bottom">
+              <section class="panel overview-panel" id="consumers" aria-labelledby="consumer-title">
+                <div class="panel-header">
+                  <div class="panel-heading">
+                    <h2 id="consumer-title">Customers &amp; conversion</h2>
+                    <span class="info-dot" title="Customer health combines acquisition, repeat purchase, checkout friction, service demand and retention.">i</span>
+                  </div>
+                  <button class="text-link" type="button" data-toast-title="Customers" data-toast-copy="Opening the customer directory, segments and purchase history.">View all →</button>
+                </div>
+
+                <div class="panel-body">
+                  <div class="overview-metrics">
+                    <div class="mini-metric"><span>New customers</span><strong>6,540</strong><small>↑ 14.2%</small></div>
+                    <div class="mini-metric"><span>Returning</span><strong>22,020</strong><small>↑ 11.3%</small></div>
+                    <div class="mini-metric"><span>Orders / customer</span><strong>1.8</strong><small>↑ 6.2%</small></div>
+                    <div class="mini-metric"><span>Conversion rate</span><strong>3.6%</strong><small>↑ 0.7pp</small></div>
+                    <div class="mini-metric"><span>Repeat purchase</span><strong>28.4%</strong><small>↑ 3.1pp</small></div>
+                  </div>
+
+                  <div class="insight-grid">
+                    <article class="insight-card">
+                      <h3>Abandoned checkouts</h3>
+                      <strong class="big-number">2,460</strong>
+                      <span class="metric-change down">↑ 9.5% needs attention</span>
+                      <svg class="sparkline" viewBox="0 0 140 38" preserveAspectRatio="none"><polyline points="0,26 11,20 22,27 33,17 44,21 55,13 66,18 77,8 88,16 99,11 110,17 121,5 140,9"/></svg>
+                    </article>
+
+                    <article class="insight-card">
+                      <h3>Top friction points</h3>
+                      <div class="bar-list">
+                        <div class="bar-item"><span>High delivery cost</span><span class="mini-track"><span class="mini-fill" style="width:82%"></span></span><strong>32%</strong></div>
+                        <div class="bar-item"><span>Payment failure</span><span class="mini-track"><span class="mini-fill" style="width:57%"></span></span><strong>21%</strong></div>
+                        <div class="bar-item"><span>Long delivery</span><span class="mini-track"><span class="mini-fill" style="width:45%"></span></span><strong>17%</strong></div>
+                        <div class="bar-item"><span>Payment options</span><span class="mini-track"><span class="mini-fill" style="width:34%"></span></span><strong>12%</strong></div>
+                      </div>
+                    </article>
+
+                    <article class="insight-card">
+                      <h3>Customers needing support</h3>
+                      <strong class="big-number">42</strong>
+                      <span class="task-meta">Open cases · 5 escalated</span>
+                      <svg class="sparkline" viewBox="0 0 140 38" preserveAspectRatio="none"><polyline points="0,30 14,22 28,26 42,18 56,20 70,10 84,15 98,7 112,14 126,5 140,9"/></svg>
+                    </article>
+                  </div>
+
+                  <div class="overview-actions">
+                    <button class="button" type="button" data-toast-title="Segments" data-toast-copy="Opening customer cohorts and saved segments.">View segments</button>
+                    <button class="button" type="button" data-toast-title="Customer campaign" data-toast-copy="Opening a targeted customer email or announcement composer.">Message customers</button>
+                    <button class="button" type="button" data-toast-title="High-value customers" data-toast-copy="Opening the high-value customer segment.">High-value customers</button>
+                    <button class="button" type="button" data-toast-title="Abandoned checkouts" data-toast-copy="Opening recoverable abandoned checkouts with customer contact actions.">Recover checkouts</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel overview-panel" id="stores" aria-labelledby="store-title">
+                <div class="panel-header">
+                  <div class="panel-heading">
+                    <h2 id="store-title">Catalogue &amp; store health</h2>
+                    <span class="info-dot" title="Catalogue health combines product publishing, categories, inventory risk, merchandising and storefront readiness.">i</span>
+                  </div>
+                  <button class="text-link" type="button" data-toast-title="Product catalogue" data-toast-copy="Opening all products, variants, categories, collections and inventory.">View catalogue →</button>
+                </div>
+
+                <div class="panel-body">
+                  <div class="overview-metrics">
+                    <div class="mini-metric"><span>Total products</span><strong>486</strong><small>812 variants</small></div>
+                    <div class="mini-metric"><span>Published</span><strong>421</strong><small>86.6% live</small></div>
+                    <div class="mini-metric"><span>Draft products</span><strong>27</strong><small>7 need attention</small></div>
+                    <div class="mini-metric"><span>Categories</span><strong>18</strong><small>6 collections</small></div>
+                    <div class="mini-metric"><span>Low stock</span><strong>9</strong><small>3 urgent</small></div>
+                  </div>
+
+                  <div class="insight-grid">
+                    <article class="insight-card">
+                      <h3>Top products this month</h3>
+                      <div class="leaderboard">
+                        <div class="leader-row"><span class="rank">1</span><span>Silk Wrap Dress</span><strong>₦8.4M</strong></div>
+                        <div class="leader-row"><span class="rank">2</span><span>Classic Co-ord Set</span><strong>₦6.9M</strong></div>
+                        <div class="leader-row"><span class="rank">3</span><span>Leather Mini Bag</span><strong>₦5.8M</strong></div>
+                      </div>
+                    </article>
+
+                    <article class="insight-card">
+                      <h3>Inventory by status</h3>
+                      <div class="donut-wrap">
+                        <div class="donut" aria-label="Donut chart: 74 percent healthy stock, 10 percent low stock, 6 percent out of stock and 10 percent draft or unpublished."></div>
+                        <div class="status-list">
+                          <div class="status-row"><span class="status-dot"></span><span>Healthy stock</span><strong>358</strong></div>
+                          <div class="status-row"><span class="status-dot"></span><span>Low stock</span><strong>48</strong></div>
+                          <div class="status-row"><span class="status-dot"></span><span>Out of stock</span><strong>31</strong></div>
+                          <div class="status-row"><span class="status-dot"></span><span>Draft / hidden</span><strong>49</strong></div>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="insight-card">
+                      <h3>Storefront readiness</h3>
+                      <strong class="big-number">92%</strong>
+                      <span class="task-meta">3 checks need attention</span>
+                      <div class="readiness-list">
+                        <div class="readiness-row"><span>Product imagery</span><strong>94%</strong></div>
+                        <div class="readiness-row"><span>SEO metadata</span><strong>88%</strong></div>
+                        <div class="readiness-row"><span>Shipping profiles</span><strong>100%</strong></div>
+                      </div>
+                    </article>
+                  </div>
+
+                  <div class="overview-actions">
+                    <button class="button primary action-trigger" type="button" data-action="Add a new product">Add product</button>
+                    <button class="button action-trigger" type="button" data-action="Create or edit categories">Manage categories</button>
+                    <button class="button" type="button" data-toast-title="Inventory alerts" data-toast-copy="Opening low-stock, out-of-stock and overselling alerts.">Inventory alerts</button>
+                    <button class="button" type="button" data-toast-title="Storefront editor" data-toast-copy="Opening homepage sections, navigation, banners and featured collections.">Edit storefront</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <aside class="right-rail" aria-label="Store owner shortcuts and activity">
+            <section class="panel quick-panel" aria-labelledby="quick-title">
+              <div class="panel-header">
+                <div class="panel-heading"><h2 id="quick-title">Quick actions</h2></div>
+                <button class="text-link" type="button" data-toast-title="Edit shortcuts" data-toast-copy="Pin and reorder your most-used store management actions.">Edit</button>
+              </div>
+
+              <div class="quick-grid">
+                <button class="quick-action action-trigger" type="button" data-action="Add a new product">
+                  <svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4z"/><path d="M12 11v10"/><path d="M8 16h8"/></svg>
+                  <span>Add product</span>
+                  <small>Create listing &amp; variants</small>
+                </button>
+
+                <button class="quick-action action-trigger" type="button" data-action="Add a product category">
+                  <svg viewBox="0 0 24 24"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"/></svg>
+                  <span>Add category</span>
+                  <small>Organise the catalogue</small>
+                </button>
+
+                <button class="quick-action action-trigger" type="button" data-action="Create a product collection">
+                  <svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4z"/><path d="m4 12 8 4 8-4"/></svg>
+                  <span>New collection</span>
+                  <small>Curate featured products</small>
+                </button>
+
+                <button class="quick-action action-trigger" type="button" data-action="Update store inventory">
+                  <svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"/><path d="M8 6V3h8v3"/><path d="M4 11h16"/></svg>
+                  <span>Manage inventory</span>
+                  <small>Adjust stock &amp; alerts</small>
+                </button>
+
+                <button class="quick-action action-trigger" type="button" data-action="Create a discount">
+                  <svg viewBox="0 0 24 24"><path d="m4 4 16 16"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                  <span>Create discount</span>
+                  <small>Code, sale or promotion</small>
+                </button>
+
+                <button class="quick-action action-trigger" type="button" data-action="Fulfil pending orders">
+                  <svg viewBox="0 0 24 24"><path d="M3 5h2l2.2 10h10.9l2-7H7"/><path d="m10 11 2 2 4-4"/></svg>
+                  <span>Fulfil orders</span>
+                  <small>18 orders are waiting</small>
+                </button>
+
+                <button class="quick-action" type="button" data-toast-title="Homepage editor" data-toast-copy="Opening hero banners, featured categories, collections and homepage sections.">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5"/></svg>
+                  <span>Update homepage</span>
+                  <small>Hero, sections &amp; banners</small>
+                </button>
+
+                <button class="quick-action" type="button" data-toast-title="Content editor" data-toast-copy="Opening the blog and editorial content composer.">
+                  <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>
+                  <span>Add blog post</span>
+                  <small>Publish store content</small>
+                </button>
+
+                <button class="quick-action" type="button" data-toast-title="Storefront preview" data-toast-copy="Opening the customer-facing store in preview mode.">
+                  <svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                  <span>Preview store</span>
+                  <small>See the customer view</small>
+                </button>
+              </div>
+            </section>
+
+            <section class="panel activity-panel" id="activity" aria-labelledby="activity-title">
+              <div class="panel-header">
+                <div class="panel-heading"><h2 id="activity-title">Important activity</h2></div>
+                <button class="text-link" type="button" data-toast-title="Audit log" data-toast-copy="Opening product, order, inventory, storefront and access changes.">View all →</button>
+              </div>
+
+              <div class="activity-list">
+                <article class="activity-item">
+                  <strong>“Satin Evening Dress” was published</strong>
+                  <span>Ada Okafor · 10 minutes ago</span>
+                  <span class="activity-tag">Catalogue</span>
+                </article>
+
+                <article class="activity-item">
+                  <strong>Order #LTS-10482 was paid and is ready to fulfil</strong>
+                  <span>₦185,000 · 24 minutes ago</span>
+                  <span class="activity-tag">New order</span>
+                </article>
+
+                <article class="activity-item">
+                  <strong>“Leather Mini Bag — Black” dropped below its stock threshold</strong>
+                  <span>3 units remaining · 48 minutes ago</span>
+                  <span class="activity-tag">Inventory</span>
+                </article>
+
+                <article class="activity-item">
+                  <strong>Customer Tobi A. requested a return for order #LTS-10461</strong>
+                  <span>1 hour ago</span>
+                  <span class="activity-tag">Needs decision</span>
+                </article>
+
+                <article class="activity-item">
+                  <strong>Homepage hero changed to “New Season Edit”</strong>
+                  <span>Ada Okafor · 2 hours ago</span>
+                  <span class="activity-tag">Storefront</span>
+                </article>
+
+                <article class="activity-item">
+                  <strong>Discount “MIDYEAR15” was scheduled</strong>
+                  <span>Starts tomorrow at 09:00 · 4 hours ago</span>
+                  <span class="activity-tag">Marketing</span>
+                </article>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        </section>
+
+        <section class="app-screen" id="orders-screen" data-screen="orders" aria-labelledby="orders-page-title">
+          <div class="screen-page">
+            <header class="screen-intro">
+              <div class="screen-intro-copy">
+                <span class="screen-kicker">Commerce operations / Orders</span>
+                <h1 id="orders-page-title">Orders command desk</h1>
+                <p>Move paid orders from confirmation to delivery without losing sight of payment risk, dispatch deadlines, customer communication, returns, or the exact next action.</p>
+              </div>
+              <div class="screen-intro-actions">
+                <button class="button" type="button" data-toast-title="Order export" data-toast-copy="The visible order view is ready for CSV export.">Export view</button>
+                <button class="button" type="button" data-toast-title="Packing slips" data-toast-copy="Packing slips prepared for the 11 ready-to-fulfil orders.">Print packing slips</button>
+                <button class="button primary" type="button" data-toast-title="Manual order" data-toast-copy="Opening a manual order flow for phone or offline sales.">Create manual order</button>
+              </div>
+            </header>
+
+            <div class="signal-grid" aria-label="Order operating signals">
+              <article class="signal-card"><span class="signal-label">Paid today</span><strong class="signal-value">26</strong><span class="signal-detail">₦684,500 captured</span></article>
+              <article class="signal-card attention"><span class="signal-label">Ready to fulfil</span><strong class="signal-value">11</strong><span class="signal-detail">Cut-off in 2h 18m</span></article>
+              <article class="signal-card"><span class="signal-label">In transit</span><strong class="signal-value">34</strong><span class="signal-detail">3 delivery updates due</span></article>
+              <article class="signal-card attention"><span class="signal-label">Delivery issues</span><strong class="signal-value">3</strong><span class="signal-detail">Contact courier or customer</span></article>
+              <article class="signal-card"><span class="signal-label">Return requests</span><strong class="signal-value">2</strong><span class="signal-detail">₦74,000 exposure</span></article>
+              <article class="signal-card"><span class="signal-label">Average fulfilment</span><strong class="signal-value">7.4h</strong><span class="signal-detail">Target is under 10 hours</span></article>
+            </div>
+
+            <div class="screen-layout wide-rail">
+              <div class="screen-stack">
+                <section class="screen-panel" aria-labelledby="fulfilment-title">
+                  <div class="screen-panel-head">
+                    <div class="screen-panel-title">
+                      <h2 id="fulfilment-title">Fulfilment board</h2>
+                      <p>Orders are grouped by operational state, not just purchase date.</p>
+                    </div>
+                    <div class="screen-tools">
+                      <div class="segmented" aria-label="Order views">
+                        <button class="seg-button active" type="button">Needs action</button>
+                        <button class="seg-button" type="button">All orders</button>
+                        <button class="seg-button" type="button">Returns</button>
+                        <button class="seg-button" type="button">Saved: Today</button>
+                      </div>
+                      <input class="compact-input" id="orderSearch" type="search" placeholder="Order, customer, phone…" />
+                      <select class="compact-select" aria-label="Order filter">
+                        <option>All delivery methods</option>
+                        <option>Lagos dispatch</option>
+                        <option>Interstate courier</option>
+                        <option>Store pickup</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="fulfilment-ribbon">
+                    <div class="stage-cell"><span>Payment review</span><strong>2</strong><small>Verify before fulfilment</small></div>
+                    <div class="stage-cell"><span>Ready to fulfil</span><strong>11</strong><small>4 express orders</small></div>
+                    <div class="stage-cell"><span>Packing</span><strong>5</strong><small>2 labels missing</small></div>
+                    <div class="stage-cell"><span>Shipped</span><strong>34</strong><small>3 updates required</small></div>
+                    <div class="stage-cell"><span>Delivery issue</span><strong>3</strong><small>Oldest 19 hours</small></div>
+                    <div class="stage-cell"><span>Return requested</span><strong>2</strong><small>Review item condition</small></div>
+                  </div>
+
+                  <div class="order-board" id="orderBoard">
+                    <article class="order-row selected"
+                      data-order="#LS-10482"
+                      data-customer="Amaka Nwosu"
+                      data-contact="+234 803 441 2098"
+                      data-total="₦86,500"
+                      data-payment="Paid · Paystack"
+                      data-delivery="Lagos express"
+                      data-address="Lekki Phase 1, Lagos"
+                      data-status="Ready to fulfil">
+                      <span class="row-check" aria-hidden="true"></span>
+                      <div class="order-identity"><strong>#LS-10482</strong><span>Today · 9:42 AM · 3 items</span></div>
+                      <div class="order-customer"><strong>Amaka Nwosu</strong><span>2nd order · WhatsApp preferred</span></div>
+                      <div class="order-money"><strong>₦86,500</strong><span>Paid · no risk flags</span></div>
+                      <span class="order-status ready">Ready to fulfil</span>
+                      <div class="delivery-window">Dispatch by 1:00 PM<small>Lagos express</small></div>
+                      <button class="row-menu" type="button" aria-label="Order actions">•••</button>
+                    </article>
+
+                    <article class="order-row"
+                      data-order="#LS-10479"
+                      data-customer="Chinedu Okeke"
+                      data-contact="+234 706 908 1110"
+                      data-total="₦42,000"
+                      data-payment="Paid · Transfer"
+                      data-delivery="Interstate courier"
+                      data-address="New Haven, Enugu"
+                      data-status="Payment review">
+                      <span class="row-check" aria-hidden="true"></span>
+                      <div class="order-identity"><strong>#LS-10479</strong><span>Today · 8:51 AM · 1 item</span></div>
+                      <div class="order-customer"><strong>Chinedu Okeke</strong><span>New customer · Email</span></div>
+                      <div class="order-money"><strong>₦42,000</strong><span>Transfer · verify reference</span></div>
+                      <span class="order-status urgent">Payment review</span>
+                      <div class="delivery-window">Hold dispatch<small>Interstate courier</small></div>
+                      <button class="row-menu" type="button" aria-label="Order actions">•••</button>
+                    </article>
+
+                    <article class="order-row"
+                      data-order="#LS-10474"
+                      data-customer="Zainab Bello"
+                      data-contact="+234 812 225 0061"
+                      data-total="₦118,000"
+                      data-payment="Paid · Card"
+                      data-delivery="Lagos standard"
+                      data-address="Wuse 2, Abuja"
+                      data-status="Packing">
+                      <span class="row-check" aria-hidden="true"></span>
+                      <div class="order-identity"><strong>#LS-10474</strong><span>Yesterday · 6:14 PM · 4 items</span></div>
+                      <div class="order-customer"><strong>Zainab Bello</strong><span>5th order · High-value</span></div>
+                      <div class="order-money"><strong>₦118,000</strong><span>Paid · card</span></div>
+                      <span class="order-status">Packing</span>
+                      <div class="delivery-window">Label required<small>Lagos standard</small></div>
+                      <button class="row-menu" type="button" aria-label="Order actions">•••</button>
+                    </article>
+
+                    <article class="order-row"
+                      data-order="#LS-10461"
+                      data-customer="Feyi Adeyemi"
+                      data-contact="+234 809 144 2120"
+                      data-total="₦34,500"
+                      data-payment="Paid · Card"
+                      data-delivery="Lagos express"
+                      data-address="Ikeja GRA, Lagos"
+                      data-status="Delivery issue">
+                      <span class="row-check" aria-hidden="true"></span>
+                      <div class="order-identity"><strong>#LS-10461</strong><span>Yesterday · 11:03 AM · 2 items</span></div>
+                      <div class="order-customer"><strong>Feyi Adeyemi</strong><span>3rd order · Phone preferred</span></div>
+                      <div class="order-money"><strong>₦34,500</strong><span>Paid · no refund yet</span></div>
+                      <span class="order-status urgent">Delivery issue</span>
+                      <div class="delivery-window">Customer unreachable<small>Courier attempted twice</small></div>
+                      <button class="row-menu" type="button" aria-label="Order actions">•••</button>
+                    </article>
+
+                    <article class="order-row"
+                      data-order="#LS-10448"
+                      data-customer="Nkechi Umeh"
+                      data-contact="+234 802 771 0027"
+                      data-total="₦56,000"
+                      data-payment="Paid · Card"
+                      data-delivery="Store pickup"
+                      data-address="Pickup at Lekki studio"
+                      data-status="Return requested">
+                      <span class="row-check" aria-hidden="true"></span>
+                      <div class="order-identity"><strong>#LS-10448</strong><span>May 14 · 4:19 PM · 1 item</span></div>
+                      <div class="order-customer"><strong>Nkechi Umeh</strong><span>Return reason: fit</span></div>
+                      <div class="order-money"><strong>₦56,000</strong><span>Refund not issued</span></div>
+                      <span class="order-status urgent">Return requested</span>
+                      <div class="delivery-window">Inspect on arrival<small>Store pickup return</small></div>
+                      <button class="row-menu" type="button" aria-label="Order actions">•••</button>
+                    </article>
+                  </div>
+                </section>
+
+                <div class="category-bottom-grid">
+                  <section class="screen-panel">
+                    <div class="screen-panel-head">
+                      <div class="screen-panel-title"><h2>Today’s dispatch plan</h2><p>Batch orders by cut-off, courier and destination.</p></div>
+                      <button class="text-link" type="button" data-toast-title="Dispatch planning" data-toast-copy="Opening route and courier assignment.">Manage routes →</button>
+                    </div>
+                    <div class="dispatch-grid">
+                      <div class="dispatch-wave"><strong class="dispatch-time">11:30</strong><div><strong>Lagos express wave</strong><span>6 orders · 8 packages · Bode assigned</span></div><span class="order-status ready">Ready</span></div>
+                      <div class="dispatch-wave"><strong class="dispatch-time">13:00</strong><div><strong>Lagos standard wave</strong><span>9 orders · 2 labels still required</span></div><span class="order-status">Packing</span></div>
+                      <div class="dispatch-wave"><strong class="dispatch-time">16:00</strong><div><strong>Interstate hand-off</strong><span>5 orders · Enugu, Abuja, Ibadan</span></div><span class="order-status urgent">1 hold</span></div>
+                    </div>
+                  </section>
+
+                  <section class="screen-panel">
+                    <div class="screen-panel-head">
+                      <div class="screen-panel-title"><h2>Exception queue</h2><p>Problems that can delay cash, fulfilment or customer trust.</p></div>
+                    </div>
+                    <div class="exception-grid">
+                      <div class="exception-item"><span class="exception-mark"></span><div><strong>Transfer reference unmatched</strong><span>#LS-10479 · Do not dispatch before verification</span></div><button class="button">Verify</button></div>
+                      <div class="exception-item"><span class="exception-mark"></span><div><strong>Courier attempted delivery twice</strong><span>#LS-10461 · Contact customer before 2 PM</span></div><button class="button">Contact</button></div>
+                      <div class="exception-item"><span class="exception-mark"></span><div><strong>Return window closes tomorrow</strong><span>#LS-10448 · Awaiting product inspection</span></div><button class="button">Review</button></div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <aside class="screen-panel inspector" aria-labelledby="order-inspector-title">
+                <div class="inspector-hero">
+                  <div class="inspector-hero-top">
+                    <div>
+                      <span class="screen-kicker">Selected order</span>
+                      <h2 id="orderInspectorId">#LS-10482</h2>
+                      <p id="orderInspectorCustomer">Amaka Nwosu · +234 803 441 2098</p>
+                    </div>
+                    <span class="order-status ready" id="orderInspectorStatus">Ready to fulfil</span>
+                  </div>
+                </div>
+                <div class="inspector-body">
+                  <section class="inspector-section">
+                    <h3>Order snapshot</h3>
+                    <div class="detail-grid">
+                      <div class="detail-row"><span>Total</span><strong id="orderInspectorTotal">₦86,500</strong></div>
+                      <div class="detail-row"><span>Payment</span><strong id="orderInspectorPayment">Paid · Paystack</strong></div>
+                      <div class="detail-row"><span>Delivery</span><strong id="orderInspectorDelivery">Lagos express</strong></div>
+                      <div class="detail-row"><span>Address</span><strong id="orderInspectorAddress">Lekki Phase 1, Lagos</strong></div>
+                    </div>
+                  </section>
+
+                  <section class="inspector-section">
+                    <h3>Items to pick</h3>
+                    <div class="detail-grid">
+                      <div class="detail-row"><span>Silk Wrap Dress · Black · M</span><strong>× 1</strong></div>
+                      <div class="detail-row"><span>Contour Bodysuit · Cocoa · M</span><strong>× 1</strong></div>
+                      <div class="detail-row"><span>Minimal Chain Bag · Black</span><strong>× 1</strong></div>
+                    </div>
+                  </section>
+
+                  <section class="inspector-section">
+                    <h3>Fulfilment timeline</h3>
+                    <div class="timeline-steps">
+                      <div class="timeline-step"><strong>Payment confirmed</strong><span>Today · 9:43 AM</span></div>
+                      <div class="timeline-step"><strong>Stock reserved</strong><span>Today · 9:44 AM</span></div>
+                      <div class="timeline-step pending"><strong>Pick and pack</strong><span>Complete before 12:15 PM</span></div>
+                      <div class="timeline-step pending"><strong>Courier hand-off</strong><span>Dispatch cut-off 1:00 PM</span></div>
+                    </div>
+                  </section>
+
+                  <div class="inspector-actions">
+                    <button class="button primary" type="button" data-toast-title="Packing started" data-toast-copy="Items reserved and the packing checklist is open.">Start packing</button>
+                    <button class="button" type="button" data-toast-title="Packing slip" data-toast-copy="Packing slip opened for the selected order.">Packing slip</button>
+                    <button class="button" type="button" data-toast-title="Customer contact" data-toast-copy="Opening the customer’s preferred contact channel.">Contact customer</button>
+                    <button class="button" type="button" data-toast-title="Order options" data-toast-copy="Refund, cancel, edit address and internal notes.">More actions</button>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section class="app-screen" id="products-screen" data-screen="products" aria-labelledby="products-page-title">
+          <div class="screen-page">
+            <header class="screen-intro">
+              <div class="screen-intro-copy">
+                <span class="screen-kicker">Catalogue / Products and stock</span>
+                <h1 id="products-page-title">Products</h1>
+                <p>Product information and inventory belong in the same workspace. Each product row shows what is selling, what is live, and exactly how much stock remains across variants—so there is no separate “inventory” destination to reconcile.</p>
+              </div>
+              <div class="screen-intro-actions">
+                <button class="button" type="button" data-toast-title="Stock import" data-toast-copy="Upload a CSV to update quantities by SKU.">Import stock</button>
+                <button class="button" type="button" data-screen-jump="categories">Manage categories</button>
+                <button class="button primary" type="button" data-toast-title="New product" data-toast-copy="Opening the six-step product creation flow.">Add product</button>
+              </div>
+            </header>
+
+            <div class="catalog-health" aria-label="Catalogue health">
+              <article class="health-card"><span>Active products</span><strong>438</strong><small>90% of catalogue</small></article>
+              <article class="health-card"><span>Draft products</span><strong>18</strong><small>7 missing media or pricing</small></article>
+              <article class="health-card"><span>Low-stock products</span><strong>9</strong><small>24 affected variants</small></article>
+              <article class="health-card"><span>Out of stock</span><strong>4</strong><small>₦382k estimated lost sales</small></article>
+              <article class="health-card"><span>Needs catalogue fix</span><strong>17</strong><small>Category, SEO or delivery data</small></article>
+            </div>
+
+            <div class="screen-layout">
+              <div class="screen-stack">
+                <section class="screen-panel" aria-labelledby="catalogue-title">
+                  <div class="screen-panel-head">
+                    <div class="screen-panel-title">
+                      <h2 id="catalogue-title">Catalogue and stock matrix</h2>
+                      <p>Edit product information, visibility, variants and quantities from one operational list.</p>
+                    </div>
+                    <div class="screen-tools">
+                      <div class="segmented" aria-label="Product views">
+                        <button class="seg-button active" type="button">All products</button>
+                        <button class="seg-button" type="button">Stock attention</button>
+                        <button class="seg-button" type="button">Drafts</button>
+                        <button class="seg-button" type="button">Uncategorised</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="catalog-toolbar">
+                    <input class="compact-input" id="productSearch" type="search" placeholder="Search product, SKU or variant…" />
+                    <select class="compact-select" aria-label="Category filter">
+                      <option>All categories</option>
+                      <option>Dresses</option>
+                      <option>Tops</option>
+                      <option>Bottoms</option>
+                      <option>Accessories</option>
+                    </select>
+                    <select class="compact-select" aria-label="Product status filter">
+                      <option>All statuses</option>
+                      <option>Live</option>
+                      <option>Draft</option>
+                      <option>Hidden</option>
+                    </select>
+                    <button class="button" type="button" data-toast-title="Bulk actions" data-toast-copy="Category, price, visibility and stock actions for selected products.">Bulk actions ▾</button>
+                  </div>
+
+                  <div class="catalog-list">
+                    <div class="catalog-columns" aria-hidden="true">
+                      <span></span><span>Product</span><span>Price</span><span>30-day sales</span><span>Variants and stock</span><span>Storefront</span><span></span>
+                    </div>
+
+                    <article class="product-row" data-product-name="Silk Wrap Dress" data-product-sku="DRS-SWD">
+                      <span class="row-check"></span>
+                      <div class="product-cell">
+                        <span class="product-thumb">IMAGE</span>
+                        <div class="product-copy"><strong>Silk Wrap Dress</strong><span>DRS-SWD · Dresses / Occasion</span></div>
+                      </div>
+                      <div class="price-cell"><strong>₦58,000</strong><span>Margin 61%</span></div>
+                      <div class="sales-cell"><strong>84 units</strong><span>₦4.87M revenue</span></div>
+                      <div class="stock-block">
+                        <div class="stock-top"><span>Black, Cocoa, Wine · 9 sizes</span><strong>62 units</strong></div>
+                        <div class="stock-meter"><span style="width:68%"></span></div>
+                        <div class="variant-line">Lowest: Wine / XL · 3 left</div>
+                      </div>
+                      <span class="publish-state live">Live</span>
+                      <button class="row-menu" type="button" aria-label="Product actions">•••</button>
+                    </article>
+
+                    <article class="product-row" data-product-name="Contour Bodysuit" data-product-sku="TOP-CBS">
+                      <span class="row-check"></span>
+                      <div class="product-cell">
+                        <span class="product-thumb">IMAGE</span>
+                        <div class="product-copy"><strong>Contour Bodysuit</strong><span>TOP-CBS · Tops / Essentials</span></div>
+                      </div>
+                      <div class="price-cell"><strong>₦28,500</strong><span>Margin 58%</span></div>
+                      <div class="sales-cell"><strong>126 units</strong><span>₦3.59M revenue</span></div>
+                      <div class="stock-block">
+                        <div class="stock-top"><span>Black, Cocoa, Ivory · 12 sizes</span><strong>19 units</strong></div>
+                        <div class="stock-meter low"><span style="width:24%"></span></div>
+                        <div class="variant-line">4 variants below reorder point</div>
+                      </div>
+                      <span class="publish-state live">Live</span>
+                      <button class="row-menu" type="button" aria-label="Product actions">•••</button>
+                    </article>
+
+                    <article class="product-row" data-product-name="Pleated Column Skirt" data-product-sku="BTM-PCS">
+                      <span class="row-check"></span>
+                      <div class="product-cell">
+                        <span class="product-thumb">IMAGE</span>
+                        <div class="product-copy"><strong>Pleated Column Skirt</strong><span>BTM-PCS · Bottoms / Skirts</span></div>
+                      </div>
+                      <div class="price-cell"><strong>₦36,000</strong><span>Margin 54%</span></div>
+                      <div class="sales-cell"><strong>47 units</strong><span>₦1.69M revenue</span></div>
+                      <div class="stock-block">
+                        <div class="stock-top"><span>Black, Stone · 8 sizes</span><strong>0 units</strong></div>
+                        <div class="stock-meter empty"><span style="width:100%"></span></div>
+                        <div class="variant-line">All variants unavailable · back-in-stock list 31</div>
+                      </div>
+                      <span class="publish-state live">Live</span>
+                      <button class="row-menu" type="button" aria-label="Product actions">•••</button>
+                    </article>
+
+                    <article class="product-row" data-product-name="Minimal Chain Bag" data-product-sku="ACC-MCB">
+                      <span class="row-check"></span>
+                      <div class="product-cell">
+                        <span class="product-thumb">IMAGE</span>
+                        <div class="product-copy"><strong>Minimal Chain Bag</strong><span>ACC-MCB · Accessories / Bags</span></div>
+                      </div>
+                      <div class="price-cell"><strong>₦41,000</strong><span>Margin 64%</span></div>
+                      <div class="sales-cell"><strong>61 units</strong><span>₦2.50M revenue</span></div>
+                      <div class="stock-block">
+                        <div class="stock-top"><span>Black, Tan · 2 variants</span><strong>38 units</strong></div>
+                        <div class="stock-meter"><span style="width:51%"></span></div>
+                        <div class="variant-line">Reorder point 12 · healthy</div>
+                      </div>
+                      <span class="publish-state live">Live</span>
+                      <button class="row-menu" type="button" aria-label="Product actions">•••</button>
+                    </article>
+
+                    <article class="product-row" data-product-name="Structured Linen Shirt" data-product-sku="TOP-SLS">
+                      <span class="row-check"></span>
+                      <div class="product-cell">
+                        <span class="product-thumb">IMAGE</span>
+                        <div class="product-copy"><strong>Structured Linen Shirt</strong><span>TOP-SLS · No category assigned</span></div>
+                      </div>
+                      <div class="price-cell"><strong>₦32,000</strong><span>Cost not added</span></div>
+                      <div class="sales-cell"><strong>—</strong><span>Not yet published</span></div>
+                      <div class="stock-block">
+                        <div class="stock-top"><span>Ivory, Sage · 10 sizes</span><strong>50 units</strong></div>
+                        <div class="stock-meter"><span style="width:58%"></span></div>
+                        <div class="variant-line">Stock entered · delivery weight missing</div>
+                      </div>
+                      <span class="publish-state draft">Draft</span>
+                      <button class="row-menu" type="button" aria-label="Product actions">•••</button>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="screen-panel">
+                  <div class="screen-panel-head">
+                    <div class="screen-panel-title"><h2>Product creation map</h2><p>A complete product moves through six connected decisions before publishing.</p></div>
+                    <button class="text-link" type="button" data-toast-title="Product templates" data-toast-copy="Create reusable defaults for sizes, delivery, tax and publishing.">Manage templates →</button>
+                  </div>
+                  <div class="product-flow">
+                    <article class="flow-step"><span class="flow-number">1</span><strong>Identity</strong><span>Name, description, product type and category.</span></article>
+                    <article class="flow-step"><span class="flow-number">2</span><strong>Media</strong><span>Primary image, gallery, video and alt text.</span></article>
+                    <article class="flow-step"><span class="flow-number">3</span><strong>Price</strong><span>Selling price, cost, margin and sale rules.</span></article>
+                    <article class="flow-step"><span class="flow-number">4</span><strong>Variants + stock</strong><span>Sizes, colours, SKUs, quantities and reorder points.</span></article>
+                    <article class="flow-step"><span class="flow-number">5</span><strong>Delivery</strong><span>Weight, packaging, pickup and shipping eligibility.</span></article>
+                    <article class="flow-step"><span class="flow-number">6</span><strong>Publishing</strong><span>Storefront status, SEO, launch date and channels.</span></article>
+                  </div>
+                </section>
+              </div>
+
+              <aside class="screen-stack">
+                <section class="screen-panel">
+                  <div class="screen-panel-head">
+                    <div class="screen-panel-title"><h2>Stock action centre</h2><p>Only products that need a quantity decision appear here.</p></div>
+                    <span class="count-pill">9</span>
+                  </div>
+                  <div class="stock-centre">
+                    <article class="stock-alert-card">
+                      <div class="stock-alert-top"><strong>Contour Bodysuit · Cocoa / M</strong><span class="order-status urgent">2 left</span></div>
+                      <p>8 sold in the last 7 days · suggested reorder: 18 units.</p>
+                      <div class="stock-adjuster"><button type="button">−</button><span>2</span><button type="button">+</button></div>
+                    </article>
+                    <article class="stock-alert-card">
+                      <div class="stock-alert-top"><strong>Pleated Column Skirt · All variants</strong><span class="order-status urgent">Out</span></div>
+                      <p>31 customers requested a restock alert · no incoming stock date.</p>
+                      <button class="button" type="button" data-toast-title="Restock plan" data-toast-copy="Set incoming quantity, date and customer notification.">Create restock plan</button>
+                    </article>
+                    <article class="stock-alert-card">
+                      <div class="stock-alert-top"><strong>Silk Wrap Dress · Wine / XL</strong><span class="order-status">3 left</span></div>
+                      <p>Variant is above reorder point but selling 2.4× faster this week.</p>
+                      <div class="stock-adjuster"><button type="button">−</button><span>3</span><button type="button">+</button></div>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="screen-panel">
+                  <div class="screen-panel-head">
+                    <div class="screen-panel-title"><h2>Catalogue attention</h2><p>Problems that stop products from being found, trusted or delivered correctly.</p></div>
+                  </div>
+                  <div class="exception-grid">
+                    <div class="exception-item"><span class="exception-mark"></span><div><strong>6 products have no category</strong><span>They cannot appear in category browsing.</span></div><button class="button" data-screen-jump="categories">Assign</button></div>
+                    <div class="exception-item"><span class="exception-mark"></span><div><strong>4 products have no delivery weight</strong><span>Shipping estimates may be inaccurate.</span></div><button class="button">Fix</button></div>
+                    <div class="exception-item"><span class="exception-mark"></span><div><strong>7 drafts are missing images</strong><span>Primary media is required before publishing.</span></div><button class="button">Review</button></div>
+                    <div class="exception-item"><span class="exception-mark"></span><div><strong>3 prices have no cost value</strong><span>Margin reporting is incomplete.</span></div><button class="button">Add cost</button></div>
+                  </div>
+                </section>
+
+                <div class="screen-empty-note">
+                  <strong>Inventory is not a second object.</strong> Stock is the quantity and availability state of each product variant. Keeping both in one screen prevents mismatched product records and stock records.
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section class="app-screen" id="categories-screen" data-screen="categories" aria-labelledby="categories-page-title">
+          <div class="screen-page">
+            <header class="screen-intro">
+              <div class="screen-intro-copy">
+                <span class="screen-kicker">Catalogue / Storefront structure</span>
+                <h1 id="categories-page-title">Categories</h1>
+                <p>Build the permanent browsing structure of the store, see exactly where each category appears on the storefront, and resolve products that are invisible because they have not been categorised.</p>
+              </div>
+              <div class="screen-intro-actions">
+                <button class="button" type="button" data-toast-title="Storefront preview" data-toast-copy="Opening the live category navigation preview.">Preview storefront</button>
+                <button class="button" type="button" data-toast-title="Reorder mode" data-toast-copy="Drag categories to change their navigation and storefront order.">Reorder categories</button>
+                <button class="button primary" type="button" data-toast-title="New category" data-toast-copy="Opening category name, parent, media and visibility fields.">Add category</button>
+              </div>
+            </header>
+
+            <div class="signal-grid">
+              <article class="signal-card"><span class="signal-label">Visible categories</span><strong class="signal-value">14</strong><span class="signal-detail">6 top-level · 8 nested</span></article>
+              <article class="signal-card"><span class="signal-label">Categorised products</span><strong class="signal-value">480</strong><span class="signal-detail">98.8% of catalogue</span></article>
+              <article class="signal-card attention"><span class="signal-label">Uncategorised</span><strong class="signal-value">6</strong><span class="signal-detail">Not shown in category browsing</span></article>
+              <article class="signal-card"><span class="signal-label">Homepage categories</span><strong class="signal-value">4</strong><span class="signal-detail">Two rows in current layout</span></article>
+              <article class="signal-card attention"><span class="signal-label">Empty categories</span><strong class="signal-value">2</strong><span class="signal-detail">Hidden automatically</span></article>
+              <article class="signal-card"><span class="signal-label">Category conversion</span><strong class="signal-value">4.8%</strong><span class="signal-detail">Dresses leads at 7.2%</span></article>
+            </div>
+
+            <div class="taxonomy-layout">
+              <section class="screen-panel" aria-labelledby="tree-title">
+                <div class="screen-panel-head">
+                  <div class="screen-panel-title"><h2 id="tree-title">Category tree</h2><p>Hierarchy controls navigation, breadcrumbs and product discovery.</p></div>
+                  <button class="row-menu" type="button" aria-label="Category tree options">•••</button>
+                </div>
+                <div class="taxonomy-tree" id="categoryTree">
+                  <div class="category-node selected" data-category="Dresses" data-count="126" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>Dresses</strong><span>Visible · Homepage featured</span></div><span class="node-count">126</span>
+                  </div>
+                  <div class="category-node child" data-category="Everyday dresses" data-count="48" data-parent="Dresses">
+                    <span class="drag-handle">⠿</span><div><strong>Everyday dresses</strong><span>Visible · /dresses/everyday</span></div><span class="node-count">48</span>
+                  </div>
+                  <div class="category-node child" data-category="Occasion dresses" data-count="51" data-parent="Dresses">
+                    <span class="drag-handle">⠿</span><div><strong>Occasion dresses</strong><span>Visible · /dresses/occasion</span></div><span class="node-count">51</span>
+                  </div>
+                  <div class="category-node child" data-category="Mini dresses" data-count="27" data-parent="Dresses">
+                    <span class="drag-handle">⠿</span><div><strong>Mini dresses</strong><span>Visible · /dresses/mini</span></div><span class="node-count">27</span>
+                  </div>
+
+                  <div class="category-node" data-category="Tops" data-count="104" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>Tops</strong><span>Visible · Main navigation</span></div><span class="node-count">104</span>
+                  </div>
+                  <div class="category-node child" data-category="Bodysuits" data-count="29" data-parent="Tops">
+                    <span class="drag-handle">⠿</span><div><strong>Bodysuits</strong><span>Visible · /tops/bodysuits</span></div><span class="node-count">29</span>
+                  </div>
+                  <div class="category-node child" data-category="Shirts and blouses" data-count="42" data-parent="Tops">
+                    <span class="drag-handle">⠿</span><div><strong>Shirts & blouses</strong><span>Visible · /tops/shirts</span></div><span class="node-count">42</span>
+                  </div>
+
+                  <div class="category-node" data-category="Bottoms" data-count="91" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>Bottoms</strong><span>Visible · Main navigation</span></div><span class="node-count">91</span>
+                  </div>
+                  <div class="category-node child" data-category="Skirts" data-count="37" data-parent="Bottoms">
+                    <span class="drag-handle">⠿</span><div><strong>Skirts</strong><span>Visible · /bottoms/skirts</span></div><span class="node-count">37</span>
+                  </div>
+                  <div class="category-node child" data-category="Trousers" data-count="31" data-parent="Bottoms">
+                    <span class="drag-handle">⠿</span><div><strong>Trousers</strong><span>Visible · /bottoms/trousers</span></div><span class="node-count">31</span>
+                  </div>
+
+                  <div class="category-node" data-category="Accessories" data-count="86" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>Accessories</strong><span>Visible · Homepage featured</span></div><span class="node-count">86</span>
+                  </div>
+                  <div class="category-node" data-category="New arrivals" data-count="42" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>New arrivals</strong><span>Automatic · Added in last 30 days</span></div><span class="node-count">42</span>
+                  </div>
+                  <div class="category-node" data-category="Sale" data-count="31" data-parent="Top-level category">
+                    <span class="drag-handle">⠿</span><div><strong>Sale</strong><span>Automatic · Compare-at price exists</span></div><span class="node-count">31</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="screen-panel">
+                <div class="screen-panel-head">
+                  <div class="screen-panel-title"><h2>Storefront placement canvas</h2><p>Selected category is outlined. This preview shows the consequence of hierarchy and visibility changes.</p></div>
+                  <div class="segmented">
+                    <button class="seg-button active" type="button">Desktop</button>
+                    <button class="seg-button" type="button">Mobile</button>
+                  </div>
+                </div>
+                <div class="storefront-map">
+                  <div class="storefront-frame">
+                    <div class="storefront-browser">
+                      <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-address"></span>
+                    </div>
+                    <div class="storefront-header-wire">
+                      <span class="wire dark"></span>
+                      <span class="wire"></span>
+                      <span class="wire short"></span>
+                    </div>
+                    <div class="category-hero-wire">
+                      <span class="wire dark" style="width:34%; height:15px"></span>
+                      <span class="wire" style="width:58%"></span>
+                      <span class="wire" style="width:44%"></span>
+                    </div>
+                    <div class="category-grid-wire">
+                      <div class="category-tile-wire selected"><span class="wire dark"></span><span class="wire short"></span></div>
+                      <div class="category-tile-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                      <div class="category-tile-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                    </div>
+                    <div class="category-product-wire">
+                      <div class="product-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                      <div class="product-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                      <div class="product-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                      <div class="product-wire"><span class="wire dark"></span><span class="wire short"></span></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <aside class="screen-panel category-detail">
+                <div class="screen-panel-head">
+                  <div class="screen-panel-title">
+                    <h2 id="categoryDetailTitle">Dresses</h2>
+                    <p id="categoryDetailMeta">126 products · Top-level category</p>
+                  </div>
+                  <span class="publish-state live">Visible</span>
+                </div>
+                <form class="category-form" onsubmit="return false">
+                  <div class="field">
+                    <label for="categoryName">Category name</label>
+                    <input id="categoryName" value="Dresses" />
+                  </div>
+                  <div class="field">
+                    <label for="categorySlug">Storefront URL</label>
+                    <input id="categorySlug" value="/dresses" />
+                    <span class="field-help">Changing this should create a redirect from the old URL.</span>
+                  </div>
+                  <div class="field">
+                    <label for="categoryParent">Parent category</label>
+                    <select id="categoryParent"><option>No parent — top level</option><option>Tops</option><option>Bottoms</option><option>Accessories</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="categoryDescription">Storefront description</label>
+                    <textarea id="categoryDescription">Designed for everyday ease, occasion dressing and statement silhouettes.</textarea>
+                  </div>
+                  <div class="field">
+                    <label>Category image</label>
+                    <button class="button" type="button" data-toast-title="Category image" data-toast-copy="Opening media library with recommended aspect ratio.">Choose image</button>
+                  </div>
+                  <div class="field">
+                    <label>Product assignment</label>
+                    <select><option>Manual assignment</option><option>Automatic by product type</option><option>Automatic by tag</option></select>
+                  </div>
+                  <div class="toggle-row"><div><strong>Visible in main navigation</strong><span>Customers can enter this category from the header.</span></div><span class="toggle"></span></div>
+                  <div class="toggle-row"><div><strong>Feature on homepage</strong><span>Display as one of four category tiles.</span></div><span class="toggle"></span></div>
+                  <div class="panel-actions">
+                    <button class="button" type="button" data-toast-title="Category duplicated" data-toast-copy="A draft category copy was created.">Duplicate</button>
+                    <button class="button" type="button" data-toast-title="Category hidden" data-toast-copy="The category is hidden; products remain published.">Hide</button>
+                    <button class="button primary" type="button" data-toast-title="Category saved" data-toast-copy="Category structure and storefront placement saved.">Save changes</button>
+                  </div>
+                </form>
+              </aside>
+            </div>
+
+            <div class="category-bottom-grid">
+              <section class="screen-panel">
+                <div class="screen-panel-head">
+                  <div class="screen-panel-title"><h2>Uncategorised product queue</h2><p>These products are live or nearly ready, but cannot be discovered through category browsing.</p></div>
+                  <button class="button" type="button" data-screen-jump="products">Open in products</button>
+                </div>
+                <div class="uncategorised-list">
+                  <div class="uncategorised-row"><span class="mini-thumb">IMAGE</span><div><strong>Structured Linen Shirt</strong><span>Draft · 50 units entered · Suggested: Tops / Shirts</span></div><button class="button">Assign</button></div>
+                  <div class="uncategorised-row"><span class="mini-thumb">IMAGE</span><div><strong>Soft Knit Co-ord</strong><span>Live · Suggested: Sets or New arrivals</span></div><button class="button">Assign</button></div>
+                  <div class="uncategorised-row"><span class="mini-thumb">IMAGE</span><div><strong>Architectural Cuff</strong><span>Live · Suggested: Accessories / Jewellery</span></div><button class="button">Assign</button></div>
+                  <div class="uncategorised-row"><span class="mini-thumb">IMAGE</span><div><strong>Fluid Evening Trouser</strong><span>Draft · Suggested: Bottoms / Trousers</span></div><button class="button">Assign</button></div>
+                </div>
+              </section>
+
+              <section class="screen-panel">
+                <div class="screen-panel-head">
+                  <div class="screen-panel-title"><h2>Category operating rules</h2><p>Clear rules prevent categories, promotions and product types from becoming the same thing.</p></div>
+                </div>
+                <div class="category-rules">
+                  <article class="rule-card"><span class="rule-icon">C</span><div><strong>Category = permanent browsing structure</strong><span>Examples: Dresses, Tops and Accessories. A product can belong to more than one.</span></div></article>
+                  <article class="rule-card"><span class="rule-icon">A</span><div><strong>Automatic category = rule-based product set</strong><span>Examples: New arrivals or Sale. Membership updates when products meet the rule.</span></div></article>
+                  <article class="rule-card"><span class="rule-icon">P</span><div><strong>Promotion = temporary campaign</strong><span>A promotion can feature products from several categories without changing the catalogue hierarchy.</span></div></article>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile shortcuts">
+    <button class="active" type="button" data-screen-jump="overview">
+      <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/></svg>
+      Overview
+    </button>
+    <button type="button" data-scroll="#actions">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>
+      Orders
+    </button>
+    <button type="button" data-scroll="#revenue">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+      Finance
+    </button>
+    <button type="button" data-scroll="#activity">
+      <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h6"/></svg>
+      Activity
+    </button>
+  </nav>
+
+  <div class="overlay" id="actionModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalTitle">Review action</h2>
+          <p id="modalDescription">Review the owner action, affected store data and audit logging before continuing.</p>
+        </div>
+        <button class="icon-button" type="button" id="closeModal" aria-label="Close dialog">
+          <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="review-row"><span>Selected action</span><strong id="selectedAction">—</strong></div>
+        <div class="review-row"><span>Admin</span><strong>Ada Okafor</strong></div>
+        <div class="review-row"><span>Permission</span><strong>Site &amp; Store Owner</strong></div>
+        <div class="review-row"><span>Audit logging</span><strong>Enabled</strong></div>
+      </div>
+      <div class="modal-actions">
+        <button class="button" type="button" id="cancelModal">Cancel</button>
+        <button class="button primary" type="button" id="confirmModal">Continue to review</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div>
+      <strong id="toastTitle">Action opened</strong>
+      <span id="toastCopy">This wireframe demonstrates the intended store-management destination.</span>
+    </div>
+  </div>
+
+  <script>
+    const body = document.body;
+    const sidebar = document.getElementById("sidebar");
+    const collapseButton = document.getElementById("collapseSidebar");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const globalSearch = document.getElementById("globalSearch");
+    const modal = document.getElementById("actionModal");
+    const selectedAction = document.getElementById("selectedAction");
+    const modalTitle = document.getElementById("modalTitle");
+    const closeModal = document.getElementById("closeModal");
+    const cancelModal = document.getElementById("cancelModal");
+    const confirmModal = document.getElementById("confirmModal");
+    const toast = document.getElementById("toast");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastCopy = document.getElementById("toastCopy");
+    let toastTimer;
+
+    function showToast(title, copy) {
+      toastTitle.textContent = title || "Action opened";
+      toastCopy.textContent = copy || "This wireframe demonstrates the intended store-management destination.";
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+    }
+
+    function closeActionModal() {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      body.style.overflow = "";
+    }
+
+    function openActionModal(action) {
+      selectedAction.textContent = action;
+      modalTitle.textContent = action;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      body.style.overflow = "hidden";
+      closeModal.focus();
+    }
+
+    collapseButton.addEventListener("click", () => {
+      if (window.innerWidth <= 780) {
+        body.classList.remove("mobile-nav-open");
+        return;
+      }
+      body.classList.toggle("sidebar-collapsed");
+      collapseButton.setAttribute("aria-label", body.classList.contains("sidebar-collapsed") ? "Expand sidebar" : "Collapse sidebar");
+    });
+
+    mobileMenu.addEventListener("click", () => {
+      body.classList.toggle("mobile-nav-open");
+    });
+
+    document.addEventListener("click", (event) => {
+      const toastButton = event.target.closest("[data-toast-title]");
+      const actionButton = event.target.closest(".action-trigger");
+      const navItem = event.target.closest(".nav-item");
+      const mobileNavButton = event.target.closest("[data-scroll]");
+
+      if (toastButton) {
+        if (toastButton.getAttribute("aria-disabled") === "true") return;
+        showToast(toastButton.dataset.toastTitle, toastButton.dataset.toastCopy);
+      }
+
+      if (actionButton) {
+        openActionModal(actionButton.dataset.action || "Review action");
+      }
+
+      if (navItem) {
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        navItem.classList.add("active");
+        if (window.innerWidth <= 780) body.classList.remove("mobile-nav-open");
+      }
+
+      if (mobileNavButton) {
+        const target = document.querySelector(mobileNavButton.dataset.scroll);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.querySelectorAll(".mobile-bottom-nav button").forEach(button => button.classList.remove("active"));
+        mobileNavButton.classList.add("active");
+      }
+
+      if (window.innerWidth <= 780 &&
+          body.classList.contains("mobile-nav-open") &&
+          !sidebar.contains(event.target) &&
+          !mobileMenu.contains(event.target)) {
+        body.classList.remove("mobile-nav-open");
+      }
+    });
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(item => {
+          item.classList.remove("active");
+          item.setAttribute("aria-selected", "false");
+        });
+        tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
+        showToast("Period updated", `Performance view changed to ${tab.textContent.trim()}.`);
+      });
+    });
+
+    document.querySelectorAll('.quick-action[aria-disabled="true"]').forEach(button => {
+      button.addEventListener("click", () => {
+        showToast("Permission restricted", "System settings require Platform Owner access.");
+      });
+    });
+
+    [closeModal, cancelModal].forEach(button => button.addEventListener("click", closeActionModal));
+
+    confirmModal.addEventListener("click", () => {
+      const action = selectedAction.textContent;
+      closeActionModal();
+      showToast("Review flow opened", `${action} is ready for detailed review and audit logging.`);
+    });
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) closeActionModal();
+    });
+
+    document.addEventListener("keydown", event => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        globalSearch.focus();
+      }
+      if (event.key === "Escape") {
+        closeActionModal();
+        body.classList.remove("mobile-nav-open");
+      }
+    });
+
+    globalSearch.addEventListener("keydown", event => {
+      if (event.key === "Enter" && globalSearch.value.trim()) {
+        showToast("Search started", `Searching for “${globalSearch.value.trim()}” across products, orders, customers and categories.`);
+      }
+    });
+  </script>
+
+  <script>
+    (() => {
+      const screenCopy = {
+        overview: {
+          title: 'Good morning, Ada 👋',
+          summary: '8 items need attention across products, orders, customers, and your storefront.'
+        },
+        orders: {
+          title: 'Orders command desk',
+          summary: '11 orders are ready to fulfil; 3 delivery issues need intervention.'
+        },
+        products: {
+          title: 'Products and stock',
+          summary: '9 products need stock attention and 17 need catalogue fixes.'
+        },
+        categories: {
+          title: 'Category architecture',
+          summary: '6 products are uncategorised and 2 categories are currently empty.'
+        }
+      };
+
+      const greetingTitle = document.querySelector('.greeting strong');
+      const greetingSummary = document.querySelector('.greeting span');
+      const searchInput = document.getElementById('globalSearch');
+
+      function activateScreen(name, updateHash = true) {
+        const target = document.querySelector(`.app-screen[data-screen="${name}"]`);
+        if (!target) return;
+
+        document.querySelectorAll('.app-screen').forEach(screen => screen.classList.remove('active'));
+        target.classList.add('active');
+
+        document.querySelectorAll('[data-screen-link]').forEach(link => {
+          const active = link.dataset.screenLink === name;
+          link.classList.toggle('active', active);
+          if (active) link.setAttribute('aria-current', 'page');
+          else link.removeAttribute('aria-current');
+        });
+
+        const copy = screenCopy[name] || screenCopy.overview;
+        if (greetingTitle) greetingTitle.textContent = copy.title;
+        if (greetingSummary) greetingSummary.textContent = copy.summary;
+
+        if (searchInput) {
+          const placeholders = {
+            overview: 'Search products, orders, customers and categories…',
+            orders: 'Search order, customer, phone or payment reference…',
+            products: 'Search product, SKU, variant or category…',
+            categories: 'Search category or uncategorised product…'
+          };
+          searchInput.placeholder = placeholders[name] || placeholders.overview;
+        }
+
+        document.title = `Laitstyles — ${name.charAt(0).toUpperCase() + name.slice(1)} Wireframe`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (updateHash) history.replaceState(null, '', `#${name}`);
+        document.body.classList.remove('mobile-nav-open');
+      }
+
+      document.addEventListener('click', event => {
+        const screenLink = event.target.closest('[data-screen-link]');
+        const jump = event.target.closest('[data-screen-jump]');
+
+        if (screenLink) {
+          event.preventDefault();
+          activateScreen(screenLink.dataset.screenLink);
+        }
+
+        if (jump) {
+          event.preventDefault();
+          activateScreen(jump.dataset.screenJump);
+        }
+      });
+
+      document.querySelectorAll('.segmented').forEach(group => {
+        group.addEventListener('click', event => {
+          const button = event.target.closest('.seg-button');
+          if (!button) return;
+          group.querySelectorAll('.seg-button').forEach(item => item.classList.remove('active'));
+          button.classList.add('active');
+        });
+      });
+
+      const orderFields = {
+        id: document.getElementById('orderInspectorId'),
+        customer: document.getElementById('orderInspectorCustomer'),
+        total: document.getElementById('orderInspectorTotal'),
+        payment: document.getElementById('orderInspectorPayment'),
+        delivery: document.getElementById('orderInspectorDelivery'),
+        address: document.getElementById('orderInspectorAddress'),
+        status: document.getElementById('orderInspectorStatus')
+      };
+
+      document.querySelectorAll('.order-row').forEach(row => {
+        row.addEventListener('click', event => {
+          if (event.target.closest('button')) return;
+          document.querySelectorAll('.order-row').forEach(item => item.classList.remove('selected'));
+          row.classList.add('selected');
+
+          if (orderFields.id) orderFields.id.textContent = row.dataset.order;
+          if (orderFields.customer) orderFields.customer.textContent = `${row.dataset.customer} · ${row.dataset.contact}`;
+          if (orderFields.total) orderFields.total.textContent = row.dataset.total;
+          if (orderFields.payment) orderFields.payment.textContent = row.dataset.payment;
+          if (orderFields.delivery) orderFields.delivery.textContent = row.dataset.delivery;
+          if (orderFields.address) orderFields.address.textContent = row.dataset.address;
+          if (orderFields.status) {
+            orderFields.status.textContent = row.dataset.status;
+            orderFields.status.className = 'order-status';
+            if (row.dataset.status === 'Ready to fulfil') orderFields.status.classList.add('ready');
+            if (['Payment review', 'Delivery issue', 'Return requested'].includes(row.dataset.status)) orderFields.status.classList.add('urgent');
+          }
+        });
+      });
+
+      const productSearch = document.getElementById('productSearch');
+      if (productSearch) {
+        productSearch.addEventListener('input', () => {
+          const query = productSearch.value.trim().toLowerCase();
+          document.querySelectorAll('.product-row').forEach(row => {
+            const haystack = `${row.dataset.productName || ''} ${row.dataset.productSku || ''} ${row.textContent}`.toLowerCase();
+            row.style.display = haystack.includes(query) ? 'grid' : 'none';
+          });
+        });
+      }
+
+      const orderSearch = document.getElementById('orderSearch');
+      if (orderSearch) {
+        orderSearch.addEventListener('input', () => {
+          const query = orderSearch.value.trim().toLowerCase();
+          document.querySelectorAll('.order-row').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(query) ? 'grid' : 'none';
+          });
+        });
+      }
+
+      const categoryName = document.getElementById('categoryName');
+      const categorySlug = document.getElementById('categorySlug');
+      const categoryTitle = document.getElementById('categoryDetailTitle');
+      const categoryMeta = document.getElementById('categoryDetailMeta');
+
+      document.querySelectorAll('.category-node').forEach(node => {
+        node.addEventListener('click', () => {
+          document.querySelectorAll('.category-node').forEach(item => item.classList.remove('selected'));
+          node.classList.add('selected');
+          const name = node.dataset.category || 'Category';
+          if (categoryTitle) categoryTitle.textContent = name;
+          if (categoryMeta) categoryMeta.textContent = `${node.dataset.count || 0} products · ${node.dataset.parent || 'Category'}`;
+          if (categoryName) categoryName.value = name;
+          if (categorySlug) categorySlug.value = '/' + name.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        });
+      });
+
+      document.querySelectorAll('.stock-adjuster').forEach(adjuster => {
+        adjuster.addEventListener('click', event => {
+          const button = event.target.closest('button');
+          if (!button) return;
+          const value = adjuster.querySelector('span');
+          const current = Number(value.textContent) || 0;
+          value.textContent = button.textContent.trim() === '+' ? current + 1 : Math.max(0, current - 1);
+        });
+      });
+
+      const initial = location.hash.replace('#', '');
+      if (['overview', 'orders', 'products', 'categories'].includes(initial)) {
+        activateScreen(initial, false);
+      }
+    })();
+  </script>
+
+</body>
+</html>

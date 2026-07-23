@@ -4,7 +4,7 @@
 
 **Paused preliminary foundation for Phase 12.**
 
-This file was created when TanStack Query was the planned Phase 9. The user has since moved Supabase Auth, organization permissions and Supabase schema work ahead of TanStack Query. Treat the repository boundary notes here as Phase 12 groundwork only.
+This file was created when TanStack Query was the planned Phase 9. Supabase Auth, profile-role permissions and Prisma schema work now precede TanStack Query. Treat the repository boundary notes here as Phase 12 groundwork only.
 
 Phase 8 remains implemented but unaccepted. The earlier TanStack work does not reclassify any blocked Phase 4–8 check as passing.
 

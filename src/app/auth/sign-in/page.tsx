@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { getSafeNextPath } from "@/lib/auth/server/redirects";
-import { isSignedIn } from "@/lib/auth/server/session";
+import { getCurrentSession, isAuthenticated } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "Sign in | Laitstyle",
@@ -30,7 +30,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     redirect(`/?auth=signin&next=${encodeURIComponent(next)}`);
   }
 
-  if (await isSignedIn()) {
+  if (isAuthenticated(await getCurrentSession())) {
     redirect(next);
   }
 
@@ -46,7 +46,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <span>
                 <span className="block font-serif text-2xl leading-none">Laitstyle</span>
                 <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
-                  {surface === "staff" ? "Control room access" : "Customer account"}
+                  {surface === "staff" ? "Admin access" : "Customer account"}
                 </span>
               </span>
             </Link>
@@ -60,7 +60,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               </h1>
               <p className="mt-5 max-w-[430px] text-sm leading-6 text-sidebar-foreground/68">
                 {surface === "staff"
-                  ? "Owners, managers and operators sign in here. Store permissions are checked from membership records, not profile metadata."
+                  ? "The admin / store owner and store managers sign in here. Access is checked from the role stored on the authenticated profile."
                   : "Use the same secure account for holds, saved pieces, orders and delivery details."}
               </p>
             </div>
@@ -82,7 +82,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
               <form action="/auth/google" method="post">
                 <input name="next" type="hidden" value={next} />
-                <Button className="h-12 w-full rounded-full text-sm font-semibold" type="submit">
+                <Button className="w-full" type="submit">
                   Continue with Google
                 </Button>
               </form>
@@ -116,14 +116,14 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                     type="password"
                   />
                 </label>
-                <Button className="mt-1 h-11 rounded-full" type="submit" variant="outline">
+                <Button size="lg" className="mt-1" type="submit" variant="outline">
                   Sign in with email
                 </Button>
               </form>
 
               <p className="rounded-xl border border-border bg-muted/35 p-4 text-xs leading-5 text-muted-foreground">
-                This page is reserved for Control Room staff. Customer sign-in and account creation
-                happen in the storefront dialog.
+                This page is reserved for Admin staff. Customer sign-in and account creation happen
+                in the storefront dialog.
               </p>
             </div>
           </section>

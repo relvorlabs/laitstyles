@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { ProductDetail } from "@/features/storefront/product/product-detail";
 import {
-  inventoryLabel,
-  money,
-  productBySlug,
-  productSlug,
-  products,
-} from "@/features/storefront/home-lab/data";
-import { labFontClassName } from "@/features/storefront/home-lab/fonts";
-import { ProductDetailLab } from "@/features/storefront/home-lab/product-detail-lab";
+  loadStorefrontProductBySlug,
+  loadStorefrontProductPageBySlug,
+  loadStorefrontProductSlugs,
+} from "@/features/storefront/shared/catalog-loader";
+import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
+import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
+import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
+import ProductDetailLoading from "./loading";
 
 type Params = { slug: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = productBySlug(slug);
+  const product = await loadStorefrontProductBySlug(slug);
   if (!product) return { title: "Not found — Laitstyles" };
   const title = `${product.name} — Laitstyles`;
   const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
@@ -40,10 +42,25 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<Params> }) {
+// The product read comes from the cached catalogue repository (cacheTag
+// "catalogue", minutes lifetime); the static shell is the route's own loading
+// skeleton and the content streams in around it.
+export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
+  return (
+    <Suspense fallback={<ProductDetailLoading />}>
+      <ProductDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const product = productBySlug(slug);
-  if (!product) notFound();
+  const [pageData, reviews] = await Promise.all([
+    loadStorefrontProductPageBySlug(slug),
+    getPublicProductReviews(slug),
+  ]);
+  if (!pageData) notFound();
+  const { product, detail } = pageData;
 
   const availability =
     product.status === "available"
@@ -88,13 +105,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
     <>
       <script
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD script text; serializeJsonLd escapes `<` so the payload cannot break out of the tag.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <script
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: see above.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }}
       />
-      <ProductDetailLab product={product} fontClassName={labFontClassName} />
+      <ProductDetail
+        detail={{ ...detail, reviewSummary: reviews.summary }}
+        product={product}
+        reviews={reviews}
+        fontClassName={storefrontFontClassName}
+      />
     </>
   );
 }
@@ -103,7 +127,9 @@ function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-// Pre-render all prototype product detail pages at build time.
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: productSlug(p) }));
+// Pre-render every published product detail page at build time (needs a
+// reachable database during `next build`).
+export async function generateStaticParams() {
+  const slugs = await loadStorefrontProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }

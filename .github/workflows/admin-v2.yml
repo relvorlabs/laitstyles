@@ -1,0 +1,50 @@
+name: Admin checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - feat/admin-overview-broadsheet
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Strict button audit
+        run: pnpm audit:buttons
+
+      - name: Admin unit tests
+        run: pnpm exec vitest run src/lib/admin src/features/admin --passWithNoTests
+
+      - name: TypeScript
+        run: pnpm typecheck

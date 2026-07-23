@@ -4,12 +4,12 @@ The **DB schema** (`…phase11…sql`) is the contract. This file defines the do
 
 ## 1. Money & identifiers
 - Money in **integer kobo** app-side (DB `numeric(12,2)` → ×100). Format via `src/lib/money` (`naira()`; `usd()` display-only, approximate).
-- Public identifiers are **slugs** (`products.slug`, `catalogue_categories.slug`, `catalogue_collections.slug`) and **order numbers** (human-facing; derived from `orders.id`/reference). Never expose raw UUIDs in consumer URLs where a slug/number exists. Never accept client-supplied `storeId`/`customerId` as authority (`04`).
+- Public identifiers are **slugs** (`products.slug`, `catalogue_categories.slug`, `catalogue_collections.slug`) and **order numbers**. Never expose raw UUIDs in consumer URLs where a slug or number exists. Never accept a client-supplied customer identifier as authority.
 
 ## 2. Product discriminated union (`inventory_mode`)
 
 ### 2.1 Common fields (all modes)
-`id, storeId, slug, name, description, brand, category{id,slug,name}, collection{…}, inventoryMode('unique'|'stocked'|'variant'), lifecycle, publication, channels, media{cover, detail[], defect[]}, price, referencePrice(compare-at), scheduledAt, createdAt, updatedAt`. Fulfilment-relevant: `condition, sizeLabel, colour` where applicable per mode. `archiveNumber` (accession "№ 0001") from `products.archive_number`.
+`id, slug, name, description, brand, category{id,slug,name,imageUrl}, collection{…}, inventoryMode('unique'|'stocked'|'variant'), lifecycle, publication, channels, media{cover, detail[], defect[]}, price, referencePrice(compare-at), scheduledAt, createdAt, updatedAt`. Fulfilment-relevant: `condition, sizeLabel, colour` where applicable per mode. `archiveNumber` (accession "№ 0001") from `products.archive_number`.
 *Server-derived, not raw columns:* `availability` (§3), `reviewSummary` (from published `product_reviews`), `deliveryEstimate` (from `delivery_zones` + destination).
 
 ### 2.2 Unique
@@ -43,7 +43,7 @@ A product is publicly visible **only if all** hold:
 7. `price` valid (`> 0`),
 8. product/variant stock state safe to expose.
 
-This is encoded once as `publishedProductWhere()` (`04` §5) and composed by **every** catalogue read. It mirrors the existing RLS `products_public_storefront_select` policy so app-layer authz and RLS agree.
+This is encoded once as `publishedProductWhere()` and composed by **every** catalogue read so the public projection and Prisma repository agree.
 
 ## 5. Never expose (public reads must strip)
 `cost`, internal staff notes (`customer_notes`, product internal notes), audit metadata (`audit_events`), raw stock movement history (`stock_movements`), customer notes, private staff identifiers/profile ids, unpublished media, service-role data, raw availability counts beyond what's needed for messaging, `reference_price` when invalid (≤ price). DTOs in `src/server/commerce/*/dto.ts` are allow-lists, not Prisma models.
@@ -56,7 +56,7 @@ For each: *purpose · key fields · relationships · ownership · lifecycle · i
 |---|---|
 | **Store** ● | Storefront reads `active` only (public). No write from storefront. |
 | **StorefrontSettings** ◐ | `store_settings.identity/selling/payments/notifications` JSONB exists. **Add safe merchandising fields** (hero, featured collection/category, announcement bar, footer/support/social/policy copy, size-guide, care, accepted-payment display, newsletter config) as **allow-listed JSON keys** — never arbitrary CSS. Admin writes; storefront reads sanitized subset. |
-| **Category / Collection** ● | Public-visible only if they contain ≥1 visible product (RLS already does this). Storefront read-only. Counts computed from visible products. |
+| **Category / Collection** ● | Public-visible only if they contain at least one visible product. Storefront read-only. Counts computed from visible products. |
 | **Product / ProductVariant / ProductMedia / ProductMeasurement** ● | Contract §2. Read-only public. Admin write (create/publish migrated in Phase 1). Slug unique per store; slug change retains old → redirect (`02` §8). |
 | **StockLevel / StockMovement** ● | Never public. Availability derived server-side. Movements written transactionally on hold/order/return. |
 | **GuestSession** ○ | **New.** Signed cookie token → owns guest cart/holds/saves pre-auth; merged on sign-in. Server-issued, httpOnly, rotating; ownership check server-side. |
@@ -71,7 +71,7 @@ For each: *purpose · key fields · relationships · ownership · lifecycle · i
 | **ReturnRequest / ReturnLine** ● | Owned by customer; line-level qty; disposition restock/damaged; status timeline. |
 | **Promotion/Discount** | **Only if genuinely required.** V1: no promo engine; "reduced" = valid `reference_price`. Defer. |
 | **NotificationSubscription** ○ | **New (for back-in-stock / released-hold).** `{customer_or_email, product_id, kind, status, created_at, expires_at}`; delivery = **Resend** email (`08` §3). Prevents "fake notify". |
-| **ReturnEvidence** (files) | Return-line evidence images (if required) stored in **Supabase Storage** (free tier, private bucket + RLS + signed URLs), referenced by `return_lines` (`08` §4). Product/brand imagery stays on **Cloudinary**. |
+| **ReturnEvidence** (files) | Return-line evidence images, if required, use the configured private asset provider and are referenced by `return_lines`. Product and brand imagery stays on Cloudinary. |
 | **AnalyticsEvent** | Not a DB table by default; via analytics provider (`07` §events). No PII/payment data in payloads. |
 
 ## 7. Missing-capability resolutions (smallest maintainable, no page-builder)
@@ -83,7 +83,7 @@ For each: *purpose · key fields · relationships · ownership · lifecycle · i
 | Editorial / Journal | home | **Descope V1**; derive "Editors' picks" from a flagged `catalogue_collections` row. Revisit CMS later. |
 | Product SEO title/description, tags | PDP/SEO | Derive from product fields V1; **add optional `seo_title/seo_description/tags`** ○ only if owners need override (defer unless required). |
 | Collection cover media, scheduled campaign publishing | merch | `catalogue_collections` cover via `product_media`-style asset link ○ if needed; scheduling via existing `scheduled_at` pattern. |
-| Review moderation | reviews | existing `product_reviews.status` + admin moderate policy (already in RLS). |
+| Review moderation | reviews | existing `product_reviews.status` plus admin-only server authorization. |
 | Return eligibility, order tracking, courier/tracking number | orders | existing `orders`, `order_timeline_events`, `orders.courier`; consumer status mapping §8. |
 | Store logo & favicon | brand | `store_brand_assets` (exists) + `/app` icons. |
 
@@ -109,4 +109,4 @@ Raw DB strings are never rendered directly.
 1. `product_reviews`: `fit_note text null`, `size_ordered text null` (additive).
 2. `guest_sessions` (or signed-cookie-only, no table — decide `04`) for guest cart/hold ownership.
 3. `notification_subscriptions` (back-in-stock / released-hold).
-4. Optional: `payment_attempts`, `shipments`, `carts`/`cart_lines`, product `seo_*`/`tags`, collection cover — each gated on a real need in its phase, each a **small, domain-named** migration (never one giant file). RLS/policies for new tables added as raw SQL steps (`04` §migrations).
+4. Optional: `payment_attempts`, `shipments`, `carts`/`cart_lines`, product `seo_*`/`tags`, collection cover — each gated on a real need in its phase and captured in a small, domain-named Prisma migration.

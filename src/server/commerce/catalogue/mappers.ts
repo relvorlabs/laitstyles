@@ -36,7 +36,6 @@ export const productDetailInclude = {
   product_measurements: { orderBy: { position: "asc" } },
   stock_levels: true,
   product_variants: { orderBy: { position: "asc" }, include: { stock_levels: true } },
-  product_reviews: { where: { status: "published" }, select: { rating: true } },
 } satisfies Prisma.productsInclude;
 
 type ProductSummaryRow = Prisma.productsGetPayload<{ include: typeof productSummaryInclude }>;
@@ -78,6 +77,7 @@ function mapImage(media: MediaRow): ProductImage | null {
     position: media.position,
     width: asset.width,
     height: asset.height,
+    variantId: media.variant_id,
   };
 }
 
@@ -138,6 +138,7 @@ function mapVariant(variant: VariantRow, lowStockThreshold: number): ProductVari
     sku: variant.sku,
     size: variant.size,
     colour: variant.colour,
+    colourHex: null,
     price: variant.price ? decimalToKobo(variant.price) : null,
     availability: deriveAvailability("stocked", available, reserved, lowStockThreshold),
   };
@@ -215,7 +216,10 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
     description: row.description,
     media,
     measurements,
-    reviewSummary: mapReviewSummary(row.product_reviews),
+    // Public reviews are loaded through the verified order-line relation and
+    // merged at the product route. Keeping this mapper review-free avoids
+    // exposing order data through the catalogue query.
+    reviewSummary: mapReviewSummary([]),
     careInstructions: row.care_instructions,
     flawNotes: row.flaw_notes,
   };

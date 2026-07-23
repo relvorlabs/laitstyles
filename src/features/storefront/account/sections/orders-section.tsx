@@ -1,22 +1,92 @@
-"use client";
-
-import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
-import { useAccountUi } from "../account-context";
-import { ProductThumb } from "../components/account-garments";
+import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import {
-  AcctButton,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import type { AccountOrderSummary } from "@/features/storefront/account/orders/order-types";
+import { cn } from "@/lib/utils";
+import {
   Eyebrow,
-  fieldClass,
   monoClass,
   panelClass,
   panelElevatedClass,
   StatusBadge,
+  type StatusVariant,
 } from "../components/account-primitives";
 
-export function OrdersSection() {
-  const { navigate, openModal, toast } = useAccountUi();
+function formatMoney(kobo: number, currency: string): string {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(kobo / 100);
+}
 
+function formatDate(isoDate: string): string {
+  return new Intl.DateTimeFormat("en-NG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(isoDate));
+}
+
+function paymentVariant(code: AccountOrderSummary["paymentStatus"]["code"]): StatusVariant {
+  if (code === "paid") return "success";
+  if (code === "review_required" || code === "cancelled") return "danger";
+  if (code === "pending" || code === "processing") return "warning";
+  return "neutral";
+}
+
+function fulfilmentVariant(code: AccountOrderSummary["fulfilmentStatus"]["code"]): StatusVariant {
+  if (code === "delivered") return "success";
+  if (code === "cancelled") return "danger";
+  if (code === "processing" || code === "ready_for_dispatch" || code === "dispatched") {
+    return "warning";
+  }
+  return "neutral";
+}
+
+function OrderImages({ order }: { order: AccountOrderSummary }) {
+  const images = [...new Map(order.images.map((image) => [image.src, image])).values()];
+
+  if (images.length === 0) {
+    return (
+      <div className="grid aspect-[4/3] place-items-center rounded-[10px] bg-[var(--acc-bone-2)] text-[var(--acc-muted)]">
+        <HugeiconsIcon aria-hidden="true" icon={ShoppingBag03Icon} size={28} strokeWidth={1.5} />
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("grid gap-2", images.length > 1 && "grid-cols-2")}>
+      {images.map((image) => (
+        <div
+          key={image.src}
+          className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-[var(--acc-bone-2)]"
+        >
+          <Image
+            src={image.src}
+            alt={image.alt}
+            fill
+            sizes="(max-width: 767px) 42vw, 110px"
+            className="object-cover"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
   return (
     <>
       <header>
@@ -25,130 +95,94 @@ export function OrdersSection() {
           Orders.
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--acc-muted)]">
-          Payment and fulfillment stay separate, so the current state is always clear.
+          Follow each purchase from payment through delivery, then review the pieces you kept.
         </p>
       </header>
 
-      <div className={cn("mt-7 p-4", panelClass)}>
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_170px_auto]">
-          <input
-            className={fieldClass}
-            type="search"
-            placeholder="Search order or product"
-            aria-label="Search orders"
-          />
-          <select className={fieldClass} aria-label="Filter by status">
-            <option>All statuses</option>
-            <option>Processing</option>
-            <option>Shipped</option>
-            <option>Delivered</option>
-            <option>Refunded</option>
-          </select>
-          <select className={fieldClass} aria-label="Sort orders">
-            <option>Newest first</option>
-            <option>Oldest first</option>
-          </select>
-          <AcctButton variant="secondary" onClick={() => toast("Order filters applied.")}>
-            Apply
-          </AcctButton>
+      {orders.length === 0 ? (
+        <Empty className={cn("mt-8 min-h-80", panelClass)}>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon aria-hidden="true" icon={ShoppingBag03Icon} />
+            </EmptyMedia>
+            <EmptyTitle className="font-serif text-2xl font-normal">No orders yet</EmptyTitle>
+            <EmptyDescription>
+              Pieces you purchase will appear here with delivery and review updates.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link href="/products" className={buttonVariants({ size: "lg" })}>
+              Explore the collection
+            </Link>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <div className="mt-7 space-y-4">
+          {orders.map((order, index) => {
+            const detailsHref = `/account/orders/${encodeURIComponent(order.orderNumber)}`;
+            const itemLabel = `${order.itemCount} ${order.itemCount === 1 ? "item" : "items"}`;
+            const reviewLabel = `Review ${order.reviewableItemCount} ${order.reviewableItemCount === 1 ? "item" : "items"}`;
+
+            return (
+              <article
+                key={order.orderNumber}
+                className={cn("overflow-hidden", index === 0 ? panelElevatedClass : panelClass)}
+              >
+                <div className="flex flex-col gap-4 border-b border-[var(--acc-line)] p-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <Eyebrow className="text-[var(--acc-muted)]">
+                      Order <span className={monoClass}>#{order.orderNumber}</span>
+                    </Eyebrow>
+                    <p className="mt-2 text-sm text-[var(--acc-muted)]">
+                      {formatDate(order.placedAt)} ·{" "}
+                      <span className={monoClass}>
+                        {formatMoney(order.totalKobo, order.currency)}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <StatusBadge variant={paymentVariant(order.paymentStatus.code)}>
+                      {order.paymentStatus.label}
+                    </StatusBadge>
+                    <StatusBadge variant={fulfilmentVariant(order.fulfilmentStatus.code)}>
+                      {order.fulfilmentStatus.label}
+                    </StatusBadge>
+                  </div>
+                </div>
+
+                <div className="grid gap-5 p-5 sm:grid-cols-[150px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)_auto] lg:items-center">
+                  <OrderImages order={order} />
+                  <div className="min-w-0">
+                    <p className="text-lg font-semibold">{itemLabel}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--acc-muted)]">
+                      {order.itemNames.join(" · ")}
+                    </p>
+                    <p className="mt-3 text-sm text-[var(--acc-muted)]">
+                      Last updated {formatDate(order.updatedAt)}
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:col-start-2 sm:grid-cols-2 lg:col-start-auto lg:grid-cols-1">
+                    {order.reviewableItemCount > 0 ? (
+                      <Link
+                        href={`${detailsHref}#review-items`}
+                        className={buttonVariants({ size: "lg" })}
+                      >
+                        {reviewLabel}
+                      </Link>
+                    ) : null}
+                    <Link
+                      href={detailsHref}
+                      className={buttonVariants({ variant: "outline", size: "lg" })}
+                    >
+                      View order details
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
-      </div>
-
-      <div className="mt-5 space-y-4">
-        {/* LS-1048 */}
-        <article className={cn("overflow-hidden", panelElevatedClass)}>
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--acc-line)] p-5">
-            <div>
-              <Eyebrow className="text-[var(--acc-muted)]">
-                Order <span className={monoClass}>#LS-1048</span>
-              </Eyebrow>
-              <p className="mt-2 text-sm text-[var(--acc-muted)]">
-                12 July 2026 · <span className={monoClass}>₦63,000</span>
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <StatusBadge variant="neutral">Paid</StatusBadge>
-              <StatusBadge variant="success">Shipped</StatusBadge>
-            </div>
-          </div>
-          <div className="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
-            <div className="grid grid-cols-2 gap-2">
-              <ProductThumb product={products[0]} className="aspect-square" />
-              <ProductThumb product={products[1]} className="aspect-square" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold">2 items</p>
-              <p className="mt-2 text-[var(--acc-muted)]">Estimated arrival Friday, 17 July</p>
-              <p className="mt-2 text-sm text-[var(--acc-muted)]">DHL Express · Shipment 1 of 1</p>
-            </div>
-            <div className="grid gap-3">
-              <AcctButton onClick={() => toast("Carrier tracking would open.")}>Track</AcctButton>
-              <AcctButton variant="secondary" onClick={() => navigate("order-detail")}>
-                Details
-              </AcctButton>
-            </div>
-          </div>
-        </article>
-
-        {/* LS-0977 */}
-        <article className={cn("overflow-hidden", panelClass)}>
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--acc-line)] p-5">
-            <div>
-              <Eyebrow className="text-[var(--acc-muted)]">
-                Order <span className={monoClass}>#LS-0977</span>
-              </Eyebrow>
-              <p className="mt-2 text-sm text-[var(--acc-muted)]">
-                18 May 2026 · <span className={monoClass}>₦28,500</span>
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <StatusBadge variant="neutral">Paid</StatusBadge>
-              <StatusBadge variant="neutral">Delivered</StatusBadge>
-            </div>
-          </div>
-          <div className="grid gap-5 p-5 lg:grid-cols-[180px_minmax(0,1fr)_auto] lg:items-center">
-            <ProductThumb product={products[6] ?? products[2]} className="aspect-[4/3]" />
-            <div>
-              <p className="text-lg font-semibold">1 item</p>
-              <p className="mt-2 text-[var(--acc-muted)]">Delivered 23 May 2026</p>
-              <p className="mt-2 text-sm text-[var(--acc-warning)]">
-                Return window closes in 2 days
-              </p>
-            </div>
-            <div className="grid gap-3">
-              <AcctButton onClick={() => openModal("return")}>Start return</AcctButton>
-              <AcctButton variant="secondary" onClick={() => navigate("order-detail")}>
-                Details
-              </AcctButton>
-            </div>
-          </div>
-        </article>
-
-        {/* LS-0891 */}
-        <article
-          className={cn("overflow-hidden border-l-[5px] border-l-[var(--acc-oxblood)]", panelClass)}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
-            <div>
-              <Eyebrow className="text-[var(--acc-muted)]">
-                Order <span className={monoClass}>#LS-0891</span>
-              </Eyebrow>
-              <h2 className="mt-3 font-serif text-2xl font-normal">Payment needs attention.</h2>
-              <p className="mt-2 text-[var(--acc-muted)]">
-                This order has not entered fulfillment.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <AcctButton onClick={() => toast("Retry payment would use the existing provider.")}>
-                Retry payment
-              </AcctButton>
-              <AcctButton variant="secondary" onClick={() => navigate("order-detail")}>
-                Details
-              </AcctButton>
-            </div>
-          </div>
-        </article>
-      </div>
+      )}
     </>
   );
 }

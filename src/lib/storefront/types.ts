@@ -10,6 +10,7 @@
 import type { Kobo } from "@/lib/money";
 
 export type InventoryMode = "unique" | "stocked" | "variant";
+export type CatalogueSort = "newest" | "price_asc" | "price_desc";
 
 export type AvailabilityState =
   | "available"
@@ -37,6 +38,7 @@ export interface ProductImage {
   position: number;
   width: number | null;
   height: number | null;
+  variantId: string | null;
 }
 
 export interface Measurement {
@@ -52,7 +54,7 @@ export interface TaxonomyRef {
 }
 
 export interface ReviewSummary {
-  average: number; // 0–5
+  average: number;
   count: number;
   distribution: Record<1 | 2 | 3 | 4 | 5, number>;
 }
@@ -63,19 +65,18 @@ export interface ProductVariantOption {
   sku: string | null;
   size: string | null;
   colour: string | null;
+  colourHex: string | null;
   /** null → inherits the product price. */
   price: Kobo | null;
   availability: Availability;
 }
 
-/** Fields shared by every product mode. */
 interface ProductCommon {
   id: string;
   slug: string;
   name: string;
   brand: string | null;
   price: Kobo;
-  /** compare-at / "original" — only present when strictly greater than price. */
   referencePrice: Kobo | null;
   archiveNumber: string | null;
   condition: string | null;
@@ -87,7 +88,6 @@ interface ProductCommon {
   cover: ProductImage | null;
 }
 
-/** Compact shape for cards, listings, search results, rails, wishlist. */
 export type ProductSummary = ProductCommon & {
   mode: InventoryMode;
   sizeLabel: string | null;
@@ -95,7 +95,6 @@ export type ProductSummary = ProductCommon & {
   availability: Availability;
 };
 
-/** Full shape for the product detail page. */
 export type ProductDetail = ProductCommon & {
   description: string;
   media: ProductImage[];
@@ -116,21 +115,24 @@ export type ProductDetail = ProductCommon & {
         colour: string | null;
         availability: Availability;
       }
-    | { mode: "variant"; variants: ProductVariantOption[]; availability: Availability }
+    | {
+        mode: "variant";
+        variants: ProductVariantOption[];
+        variantMeasurements?: Record<string, Measurement[]>;
+        availability: Availability;
+      }
   );
 
 export interface TaxonomyWithCount extends TaxonomyRef {
-  /** Count of storefront-visible products — never fabricated. */
   productCount: number;
 }
 
-/** Canonical condition vocabulary persisted in products.condition. */
+export interface CategoryWithImage extends TaxonomyWithCount {
+  imageUrl: string | null;
+}
+
 export type ConditionGrade = "Excellent" | "Good" | "Fair";
 
-/**
- * Derives a shopper label + a 0–10 confidence score from the persisted
- * condition grade. Never persisted — pure presentation derivation.
- */
 export function conditionDisplay(grade: string | null): { label: string; score: number } {
   switch (grade) {
     case "Excellent":
@@ -142,4 +144,11 @@ export function conditionDisplay(grade: string | null): { label: string; score: 
     default:
       return { label: grade ?? "Unrated", score: 6 };
   }
+}
+
+export interface StorefrontFacetOptions {
+  brands: string[];
+  conditions: string[];
+  colours: string[];
+  sizes: string[];
 }

@@ -6,14 +6,14 @@
 
 /*
  * Canonical application theme. Values are the Laitstyles card-lab palette from
- * docs/storefront-v2/card-lab (home-lab.css): raw brand hex — Bone / Ink / Sage /
+ * docs/storefront-v2/card-lab (storefront.css): raw brand hex — Bone / Ink / Sage /
  * Oxblood / Linen. Light and dark are paired role systems; components consume
  * semantic roles instead of carrying one-off dark-mode patches.
  * The semantic role-token structure (surface / action / functional / shadcn-compat)
  * is preserved; only the underlying values changed.
  */
 :root {
-  /* Brand ingredients (home-lab hex). */
+  /* Brand ingredients (storefront palette). */
   --brand-ink: #191a17;
   --brand-ink-soft: #34362f;
   --brand-bone: #f3f0e8;
@@ -52,7 +52,7 @@
   --border-strong: rgba(25, 26, 23, 0.34);
   --focus: #682631;
 
-  /* Functional roles (home-lab success / warning / error). */
+  /* Functional roles (storefront success / warning / error). */
   --destructive: #8a332d;
   --destructive-foreground: #f3f0e8;
   --destructive-surface: #e9e4d9;
@@ -114,7 +114,7 @@
 
   /*
    * Prototype motion, layout & elevation — the tokens that had no global
-   * equivalent, moved verbatim out of home-lab.css `.lst-lab` so the storefront
+   * equivalent, moved verbatim out of storefront.css `.lst-storefront` so the storefront
    * consumes a single source of truth. Oxblood is the restrained destructive/brand
    * accent (also drives --focus). Values are unchanged from the prototype.
    */
@@ -233,15 +233,16 @@
   --color-surface-inverse-foreground: var(--surface-inverse-foreground);
   --color-overlay: var(--overlay);
   --color-oxblood: var(--oxblood);
-  --ease-lab: var(--ease);
+  --ease-storefront: var(--ease);
   --ease-drawer: var(--drawer-ease);
-  --shadow-lab-1: var(--shadow-1);
-  --shadow-lab-2: var(--shadow-2);
-  --shadow-lab-3: var(--shadow-3);
-  --font-sans: var(--font-lab-sans);
-  --font-serif: var(--font-lab-serif);
-  --font-mono: var(--font-lab-mono);
-  --font-heading: var(--font-lab-sans);
+  --shadow-storefront-1: var(--shadow-1);
+  --shadow-storefront-2: var(--shadow-2);
+  --shadow-storefront-3: var(--shadow-3);
+  --font-storefront-mono: var(--font-storefront-sans);
+  --font-sans: var(--font-storefront-sans);
+  --font-serif: var(--font-storefront-serif);
+  --font-mono: var(--font-storefront-mono);
+  --font-heading: var(--font-storefront-sans);
   --radius-sm: 9px;
   --radius-md: 14px;
   --radius-lg: 16px;
@@ -309,40 +310,35 @@
 }
 
 /*
- * Account workspace — the fixed editorial palette from
- * docs/storefront-v2/card-lab/account-workspace.html (Bone / Ink / Sage / Oxblood).
- * Scoped as literal light values so the prototype renders identically regardless of
- * the app theme, and applied to the workspace root AND to portalled dialog/sheet
- * content (which renders outside the workspace subtree).
+ * Account workspace consumes the same global surface, action and functional roles
+ * as storefront and Admin. These aliases preserve the account component API while
+ * removing the former hardcoded light-only token island. Portalled account overlays
+ * receive `.lst-account` from their existing component wrappers.
  */
 .lst-account {
-  --acc-bone: #f3f0e8;
-  --acc-bone-2: #e9e4d9;
-  --acc-surface: #faf8f2;
-  --acc-ink: #191a17;
-  --acc-muted: #727267;
-  --acc-sage: #d6e4a6;
-  --acc-sage-deep: #35533b;
-  --acc-oxblood: #682631;
-  --acc-danger: #8a332d;
-  --acc-warning: #8b5a26;
-  --acc-warning-surface: #ead8bd;
-  --acc-danger-surface: #ead0d0;
-  --acc-line: rgba(25, 26, 23, 0.16);
-  --acc-line-strong: rgba(25, 26, 23, 0.34);
-  --acc-shadow-sm: 0 10px 30px rgba(25, 26, 23, 0.07);
-  --acc-shadow-md: 0 30px 80px rgba(25, 26, 23, 0.14);
+  --acc-bone: var(--background);
+  --acc-bone-2: var(--surface-sunken);
+  --acc-surface: var(--card);
+  --acc-ink: var(--foreground);
+  --acc-muted: var(--muted-foreground);
+  --acc-sage: var(--surface-selected);
+  --acc-sage-deep: var(--success-surface-foreground);
+  --acc-oxblood: var(--oxblood);
+  --acc-danger: var(--destructive);
+  --acc-warning: var(--warning);
+  --acc-warning-surface: var(--warning-surface);
+  --acc-danger-surface: var(--destructive-surface);
+  --acc-line: var(--border-subtle);
+  --acc-line-strong: var(--border-strong);
+  --acc-shadow-sm: var(--shadow-1);
+  --acc-shadow-md: var(--shadow-2);
   color: var(--acc-ink);
 }
 
 /*
- * The storefront chrome (home-lab.css, unlayered) forces `color: inherit` on every
- * button/a/input/select/textarea nested in its `.lst-lab` wrapper — and the account
- * renders inside that chrome. That reset (specificity 0,1,1, unlayered) beats the
- * account's Tailwind colour utilities (0,1,0, layered) on its shadcn buttons/links,
- * flattening them to the inherited ink. These scoped classes (0,2,0) re-assert the
- * account's own foreground colours and hover/active states, mirroring how the
- * prototype's own `.button` classes dodge the same reset.
+ * The storefront chrome reset is intentionally unlayered, so these scoped account
+ * states retain their semantic foreground and active behaviour without a separate
+ * account theme provider or blanket `!important` colour rule.
  */
 .lst-account .acc-fg-oxblood {
   color: var(--acc-oxblood);
@@ -369,11 +365,35 @@ textarea::placeholder {
 }
 
 body {
-  font-family: var(--font-lab-sans), system-ui, sans-serif;
+  font-family: var(--font-storefront-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-a {
+/*
+ * App-wide scrollbar hiding. Scrolling stays fully functional (wheel, trackpad,
+ * keyboard, drag-scroll); only the visible scrollbar chrome is removed.
+ */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+*,
+*::before,
+*::after {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+a:not([data-slot="button"]) {
   color: inherit;
   text-decoration: none;
 }

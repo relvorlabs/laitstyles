@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import type { AccountRoute } from "../account-nav";
@@ -57,7 +58,11 @@ export function NotificationsSection() {
             Only transactional, support and security events with real backend records.
           </p>
         </div>
-        <AcctButton variant="secondary" onClick={() => toast("All notifications marked as read.")}>
+        {/* TODO(button-action): Persist notification read state after the account notifications mutation is available. */}
+        <AcctButton
+          variant="secondary"
+          onClick={() => toast("Marking all notifications as read is not available yet.")}
+        >
           Mark all read
         </AcctButton>
       </header>
@@ -66,13 +71,14 @@ export function NotificationsSection() {
         className={cn("mt-7 divide-y divide-[var(--acc-line)] overflow-hidden", panelElevatedClass)}
       >
         {items.map((item) => (
-          <button
+          <Button
             key={item.title}
             type="button"
             onClick={() => navigate(item.route)}
+            variant="ghost"
             className={cn(
-              "grid w-full gap-4 p-5 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]",
-              item.unread && "bg-[rgba(233,228,217,.75)]",
+              "grid w-full justify-stretch gap-4 text-left sm:grid-cols-[12px_minmax(0,1fr)_auto]",
+              item.unread && "",
             )}
           >
             {item.unread ? (
@@ -89,7 +95,7 @@ export function NotificationsSection() {
               <span className="mt-1 block text-sm text-[var(--acc-muted)]">{item.detail}</span>
             </span>
             <time className="text-sm text-[var(--acc-muted)]">{item.time}</time>
-          </button>
+          </Button>
         ))}
       </div>
     </>

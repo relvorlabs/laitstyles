@@ -1,7 +1,6 @@
 /**
  * Deterministic dev seed for the storefront (docs/storefront-v2/06 Phase 1).
- * Creates the store chain (auth user → profile → org → store → settings →
- * owner membership) and a small published catalogue covering all three product
+ * Creates the single admin profile, singleton settings, and a small published catalogue covering all three product
  * modes (unique / stocked / variant), each with a Cloudinary cover, stock and
  * a storefront channel — so the storefront can read real data end to end.
  *
@@ -25,78 +24,34 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
 
 // Stable ids for singletons so re-runs upsert cleanly.
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
-const ORG_ID = "22222222-2222-4222-8222-222222222222";
-const STORE_SLUG = "laitstyle";
 
 // Cloudinary's public demo cloud satisfies the secure_url check constraint
 // (https://res.cloudinary.com/...) and renders a real image in dev.
 const demoImage = (id: string) => `https://res.cloudinary.com/demo/image/upload/${id}.jpg`;
 
-async function ensureStore(): Promise<string> {
-  await prisma.users.upsert({
-    where: { id: OWNER_ID },
-    update: {},
-    create: {
-      id: OWNER_ID,
-      aud: "authenticated",
-      role: "authenticated",
-      email: "owner@laitstyle.dev",
-      email_confirmed_at: new Date(),
-      created_at: new Date(),
-      updated_at: new Date(),
-      raw_app_meta_data: { provider: "email", providers: ["email"] },
-      raw_user_meta_data: {},
-    },
-  });
+async function ensureApplicationState(): Promise<void> {
   await prisma.profiles.upsert({
     where: { id: OWNER_ID },
-    update: {},
-    create: { id: OWNER_ID, email: "owner@laitstyle.dev", display_name: "Laitstyle Owner" },
+    update: { email: "owner@laitstyle.dev", role: "admin" },
+    create: { id: OWNER_ID, email: "owner@laitstyle.dev", role: "admin" },
   });
-  await prisma.organizations.upsert({
-    where: { id: ORG_ID },
-    update: {},
-    create: { id: ORG_ID, name: "Laitstyle", owner_profile_id: OWNER_ID },
-  });
-  const store = await prisma.stores.upsert({
-    where: { slug: STORE_SLUG },
-    update: { status: "active" },
-    create: { organization_id: ORG_ID, name: "Laitstyle", slug: STORE_SLUG, status: "active" },
-  });
-  await prisma.store_settings.upsert({
-    where: { store_id: store.id },
-    update: {},
-    create: { store_id: store.id },
-  });
-  await prisma.store_memberships.upsert({
-    where: { store_id_profile_id: { store_id: store.id, profile_id: OWNER_ID } },
-    update: { status: "active" },
-    // owner memberships must be created_by_cli (schema constraint)
-    create: {
-      store_id: store.id,
-      profile_id: OWNER_ID,
-      role: "owner",
-      status: "active",
-      created_by_cli: true,
-    },
-  });
-  return store.id;
+  await prisma.store_settings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
 }
 
-async function ensureCategory(storeId: string, slug: string, name: string): Promise<string> {
+async function ensureCategory(slug: string, name: string, imageUrl: string): Promise<string> {
   const category = await prisma.catalogue_categories.upsert({
-    where: { store_id_slug: { store_id: storeId, slug } },
-    update: { name },
-    create: { store_id: storeId, name, slug },
+    where: { slug },
+    update: { name, image_url: imageUrl },
+    create: { name, slug, image_url: imageUrl },
   });
   return category.id;
 }
 
-async function ensureCollection(storeId: string, slug: string, name: string): Promise<string> {
+async function ensureCollection(slug: string, name: string): Promise<string> {
   const collection = await prisma.catalogue_collections.upsert({
-    where: { store_id_slug: { store_id: storeId, slug } },
+    where: { slug },
     update: { name },
-    create: { store_id: storeId, name, slug },
+    create: { name, slug },
   });
   return collection.id;
 }
@@ -120,9 +75,9 @@ interface SeedProductInput {
   variants?: { label: string; size: string; price: string | null; stock: number }[];
 }
 
-async function seedProduct(storeId: string, input: SeedProductInput): Promise<void> {
+async function seedProduct(input: SeedProductInput): Promise<void> {
   const product = await prisma.products.upsert({
-    where: { store_id_slug: { store_id: storeId, slug: input.slug } },
+    where: { slug: input.slug },
     update: {
       name: input.name,
       description: input.description,
@@ -140,7 +95,6 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
       collection_id: input.collectionId ?? null,
     },
     create: {
-      store_id: storeId,
       slug: input.slug,
       name: input.name,
       description: input.description,
@@ -167,15 +121,9 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
   await prisma.product_variants.deleteMany({ where: { product_id: product.id } });
 
   const asset = await prisma.cloudinary_assets.upsert({
-    where: {
-      store_id_public_id: {
-        store_id: storeId,
-        public_id: input.coverPublicId,
-      },
-    },
+    where: { public_id: input.coverPublicId },
     update: {},
     create: {
-      store_id: storeId,
       kind: "product_cover",
       public_id: input.coverPublicId,
       secure_url: demoImage(input.coverPublicId),
@@ -187,7 +135,6 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
 
   await prisma.product_media.create({
     data: {
-      store_id: storeId,
       product_id: product.id,
       asset_id: asset.id,
       kind: "product_cover",
@@ -217,7 +164,6 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
       });
       await prisma.stock_levels.create({
         data: {
-          store_id: storeId,
           product_id: product.id,
           variant_id: variant.id,
           total_received: v.stock,
@@ -228,7 +174,6 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
   } else {
     await prisma.stock_levels.create({
       data: {
-        store_id: storeId,
         product_id: product.id,
         total_received: input.stock,
         available: input.stock,
@@ -238,22 +183,22 @@ async function seedProduct(storeId: string, input: SeedProductInput): Promise<vo
 }
 
 async function main() {
-  const storeId = await ensureStore();
+  await ensureApplicationState();
 
   // Dev only: clear the catalogue so re-seeds stay clean and brand-accurate.
-  await prisma.products.deleteMany({ where: { store_id: storeId } });
+  await prisma.products.deleteMany();
 
-  const jeans = await ensureCategory(storeId, "jeans-denim", "Jeans & Denim");
-  const shirts = await ensureCategory(storeId, "shirts", "Shirts");
-  const jackets = await ensureCategory(storeId, "jackets-coats", "Jackets & Coats");
-  const hoodies = await ensureCategory(storeId, "hoodies-sweats", "Hoodies & Sweats");
-  const dresses = await ensureCategory(storeId, "dresses", "Dresses");
-  const vintage = await ensureCollection(storeId, "vintage-edit", "The Vintage Edit");
+  const jeans = await ensureCategory("jeans-denim", "Jeans & Denim", "https://images.pexels.com/photos/28174872/pexels-photo-28174872.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const shirts = await ensureCategory("shirts", "Shirts", "https://images.pexels.com/photos/31959038/pexels-photo-31959038.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const jackets = await ensureCategory("jackets-coats", "Jackets & Coats", "https://images.pexels.com/photos/26936525/pexels-photo-26936525.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const hoodies = await ensureCategory("hoodies-sweats", "Hoodies & Sweats", "https://images.pexels.com/photos/9947825/pexels-photo-9947825.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const dresses = await ensureCategory("dresses", "Dresses", "https://images.pexels.com/photos/15470820/pexels-photo-15470820.jpeg?auto=compress&cs=tinysrgb&w=1200");
+  const vintage = await ensureCollection("vintage-edit", "The Vintage Edit");
 
   // Laitstyle = curated premium pre-owned & vintage: mostly stocked, honestly
   // graded (Like new = A+, Excellent = A, Good = B+); one-of-one only for
   // genuinely limited pieces.
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "levis-501-original-jeans",
     name: "Levi's 501 Original Straight Jeans",
     description:
@@ -271,7 +216,7 @@ async function main() {
     stock: 4,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "nike-sportswear-hoodie",
     name: "Nike Sportswear Club Hoodie",
     description:
@@ -289,7 +234,7 @@ async function main() {
     stock: 6,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "zara-wool-blend-blazer",
     name: "Zara Wool-Blend Tailored Blazer",
     description:
@@ -307,7 +252,7 @@ async function main() {
     stock: 3,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "ralph-lauren-oxford-shirt",
     name: "Ralph Lauren Cotton Oxford Shirt",
     description:
@@ -325,7 +270,7 @@ async function main() {
     stock: 5,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "champion-reverse-weave-sweatshirt",
     name: "Champion Reverse Weave Sweatshirt",
     description:
@@ -343,7 +288,7 @@ async function main() {
     stock: 4,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "vintage-levis-denim-jacket",
     name: "Vintage Levi's Trucker Denim Jacket",
     description:
@@ -362,7 +307,7 @@ async function main() {
     stock: 1,
   });
 
-  await seedProduct(storeId, {
+  await seedProduct({
     slug: "floral-midi-tea-dress",
     name: "Floral Midi Tea Dress",
     description:
@@ -386,8 +331,8 @@ async function main() {
     ],
   });
 
-  const count = await prisma.products.count({ where: { store_id: storeId } });
-  console.warn(`Seed complete — store "${STORE_SLUG}" has ${count} products.`);
+  const count = await prisma.products.count();
+  console.warn(`Seed complete — ${count} products.`);
 }
 
 main()

@@ -10,8 +10,8 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { cn } from "@/lib/utils";
-import { storefrontImage } from "./storefront-experience-data";
 
 export type StorefrontAuthMode = "signin" | "signup";
 export type StorefrontAuthState = "default" | "signing-in" | "success" | "check-email";
@@ -27,6 +27,7 @@ type StorefrontAuthDialogProps = {
   form: StorefrontAuthForm;
   mode: StorefrontAuthMode;
   open: boolean;
+  product: Product | undefined;
   remember: boolean;
   revealPassword: boolean;
   showErrors: boolean;
@@ -48,6 +49,7 @@ export function StorefrontAuthDialog({
   form,
   mode,
   open,
+  product: authProduct,
   remember,
   revealPassword,
   showErrors,
@@ -63,6 +65,7 @@ export function StorefrontAuthDialog({
   onTermsAcceptedChange,
   setForm,
 }: StorefrontAuthDialogProps) {
+  if (!authProduct) return null;
   const signup = mode === "signup";
   const busy = state === "signing-in";
   const errorFor = (key: string) => (showErrors ? errors[key] : undefined);
@@ -81,11 +84,11 @@ export function StorefrontAuthDialog({
         <DialogDescription className="sr-only">Access your Laitstyle account.</DialogDescription>
         <div className="relative hidden min-h-[540px] flex-col justify-end overflow-hidden bg-[linear-gradient(160deg,#5A6152,#3E463A)] p-9 text-white md:flex">
           <Image
-            alt="One-of-one pieces"
+            alt={authProduct.name}
             className="object-cover opacity-90"
             fill
             sizes="420px"
-            src={storefrontImage("1dXXWxCEEg6ezYPsRCK6B1XxD5QpAiZfh")}
+            src={authProduct.images[0]}
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(30,36,27,.35)_0%,rgba(30,36,27,.82)_100%)]" />
           <div className="relative">
@@ -124,10 +127,7 @@ export function StorefrontAuthDialog({
                   ? "We sent a secure confirmation link to your email. Your guest bag and saved pieces will stay in this session."
                   : "Your holds, saved pieces and addresses are ready. Let&apos;s find the next one-of-one."}
               </p>
-              <Button
-                className="h-[52px] w-full max-w-[300px] rounded-full px-[30px] text-[14.5px] font-semibold"
-                onClick={onFinish}
-              >
+              <Button size="lg" className="w-full max-w-[300px]" onClick={onFinish}>
                 {state === "check-email" ? "Continue shopping" : "Go to my account"}
               </Button>
             </div>
@@ -142,33 +142,28 @@ export function StorefrontAuthDialog({
                   : "Sign in to pick up your holds and saved finds."}
               </p>
               <div className="mb-6 flex gap-1 rounded-full border border-border bg-[#F2F1EC] p-1">
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    !signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
+                <Button
+                  aria-pressed={!signup}
+                  className="flex-1"
                   onClick={() => onModeChange("signin")}
                   type="button"
+                  variant={!signup ? "default" : "ghost"}
                 >
                   Sign in
-                </button>
-                <button
-                  className={cn(
-                    "h-[38px] flex-1 rounded-full text-[13.5px] font-medium",
-                    signup
-                      ? "bg-primary font-semibold text-primary-foreground"
-                      : "text-muted-foreground",
-                  )}
+                </Button>
+                <Button
+                  aria-pressed={signup}
+                  className="flex-1"
                   onClick={() => onModeChange("signup")}
                   type="button"
+                  variant={signup ? "default" : "ghost"}
                 >
                   Create account
-                </button>
+                </Button>
               </div>
               <Button
-                className="mb-5 h-[50px] w-full rounded-full border-[1.5px] border-[#E0DED5] bg-card text-sm font-medium text-primary hover:bg-card"
+                size="lg"
+                className="mb-5 w-full"
                 onClick={onContinueWithGoogle}
                 variant="outline"
               >
@@ -220,18 +215,20 @@ export function StorefrontAuthDialog({
                       type={revealPassword ? "text" : "password"}
                       value={form.password}
                     />
-                    <button
-                      aria-label="Toggle password visibility"
-                      className="absolute right-3.5 top-[15px] flex text-[#8A887E]"
+                    <Button
+                      aria-label={revealPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2.5 top-2.5"
                       onClick={() => onRevealPasswordChange(!revealPassword)}
+                      size="icon-sm"
                       type="button"
+                      variant="ghost"
                     >
                       {revealPassword ? (
                         <Eye className="size-[18px]" />
                       ) : (
                         <EyeOff className="size-[18px]" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                   <FieldError className="mt-1.5 text-xs">{errorFor("password")}</FieldError>
                 </Field>
@@ -271,13 +268,9 @@ export function StorefrontAuthDialog({
                   ) : null}
                 </div>
               )}
-              <Button
-                className="mt-[22px] h-[54px] w-full rounded-full text-[15px] font-semibold"
-                disabled={busy}
-                onClick={onSubmit}
-              >
+              <Button size="lg" className="mt-[22px] w-full" disabled={busy} onClick={onSubmit}>
                 {busy ? (
-                  <span className="size-[18px] rounded-full border-[2.5px] border-white/40 border-t-white animate-spin" />
+                  <span className="size-[18px] rounded-full border-[2.5px] border-current/40 border-t-current animate-spin" />
                 ) : null}
                 {busy
                   ? signup
@@ -289,13 +282,14 @@ export function StorefrontAuthDialog({
               </Button>
               <div className="mt-4 text-center text-[13px] text-[#8A887E]">
                 {signup ? "Already have an account?" : "New to Laitstyle?"}{" "}
-                <button
-                  className="bg-transparent p-0 text-[13px] font-semibold text-accent"
+                <Button
+                  size="lg"
                   onClick={() => onModeChange(signup ? "signin" : "signup")}
                   type="button"
+                  variant="link"
                 >
                   {signup ? "Sign in" : "Create one"}
-                </button>
+                </Button>
               </div>
             </div>
           )}

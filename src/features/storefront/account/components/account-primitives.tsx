@@ -1,21 +1,19 @@
 "use client";
 
 // Shared presentational primitives for the account workspace. Each encodes the
-// exact look of a reusable class from account-workspace.html (`.panel`,
-// `.panel-elevated`, `.soft`, `.eyebrow`, `.status`, `.btn-*`, `.icon-btn`,
-// `.field`, `.timeline-dot`) translated to Tailwind so the rendered result is
-// identical while the markup stays composable and typed.
+// exact look of a reusable class from account-workspace.html while delegating
+// interactive controls to the application-wide shadcn Button primitive.
 
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /** `.field` — the shared input/select/textarea surface. */
 export const fieldClass =
-  "min-h-12 h-auto w-full rounded-[10px] border border-[var(--acc-line-strong)] bg-[var(--acc-surface)] px-[.9rem] py-[.78rem] text-base text-[var(--acc-ink)] shadow-none placeholder:text-[rgba(114,114,103,.75)] focus-visible:border-[var(--acc-oxblood)] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[color-mix(in_srgb,var(--acc-oxblood)_25%,transparent)]";
+  "min-h-12 h-auto w-full rounded-[10px] border border-[var(--acc-line-strong)] bg-[var(--acc-surface)] px-[.9rem] py-[.78rem] text-base text-[var(--acc-ink)] shadow-none placeholder:text-muted-foreground focus-visible:border-[var(--acc-oxblood)] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[color-mix(in_srgb,var(--acc-oxblood)_25%,transparent)]";
 
-/** `.eyebrow` — Geist Mono, uppercase, tracked. */
+/** `.eyebrow` — Manrope utility role, uppercase, tracked. */
 export const eyebrowClass =
   "font-mono text-[.69rem] font-semibold uppercase leading-none tracking-[.13em]";
 
@@ -23,7 +21,7 @@ export const eyebrowClass =
 export const monoClass = "font-mono tabular-nums";
 
 export const panelClass =
-  "rounded-[14px] border border-[var(--acc-line)] bg-[rgba(250,248,242,.88)]";
+  "rounded-[14px] border border-[var(--acc-line)] bg-[color-mix(in_srgb,var(--acc-surface)_88%,transparent)]";
 export const panelElevatedClass =
   "rounded-[14px] border border-[var(--acc-line)] bg-[var(--acc-surface)] shadow-[var(--acc-shadow-sm)]";
 export const softClass = "rounded-[10px] bg-[var(--acc-bone-2)]";
@@ -45,47 +43,20 @@ export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
 }
 
 // ---- Buttons -------------------------------------------------------------
-// The account uses a pill button system (three variants) distinct from the
-// app's shadcn Button variants, so we style the same Base UI Button primitive
-// shadcn is built on, keeping full fidelity with `.btn-primary/.btn-secondary/.btn-danger`.
-const acctButton = cva(
-  "inline-flex items-center justify-center gap-2 min-h-12 rounded-full px-[1.1rem] py-3 text-base font-[650] whitespace-normal outline-none transition-[transform,border-color,background-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(.22,.8,.24,1)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] disabled:cursor-not-allowed disabled:opacity-[.48] [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:pointer-events-none",
-  {
-    variants: {
-      variant: {
-        // `text-…!` (important) so the bone label wins over home-lab.css's
-        // `.lst-lab button { color: inherit }`, which the shared chrome wrapper
-        // otherwise forces onto in-page buttons (ink-on-ink = invisible).
-        primary:
-          "border border-[var(--acc-ink)] bg-[var(--acc-ink)] text-[var(--acc-bone)]! enabled:hover:-translate-y-0.5 enabled:hover:shadow-[0_12px_24px_rgba(25,26,23,.14)]",
-        secondary:
-          "border border-[var(--acc-line-strong)] bg-transparent text-[var(--acc-ink)]! enabled:hover:border-[var(--acc-ink)] enabled:hover:bg-[var(--acc-bone-2)]",
-        danger:
-          "border border-[var(--acc-oxblood)] bg-[var(--acc-oxblood)] text-[var(--acc-bone)]!",
-      },
-    },
-    defaultVariants: { variant: "primary" },
-    
-  },
-);
+export type AcctButtonProps = Omit<ComponentProps<typeof Button>, "variant"> & {
+  variant?: "primary" | "secondary" | "danger";
+};
 
-export type AcctButtonProps = ButtonPrimitive.Props & VariantProps<typeof acctButton>;
+export function AcctButton({ className, variant = "primary", ...props }: AcctButtonProps) {
+  const shadcnVariant =
+    variant === "secondary" ? "outline" : variant === "danger" ? "destructive" : "default";
 
-export function AcctButton({ className, variant, ...props }: AcctButtonProps) {
-  return <ButtonPrimitive className={cn(acctButton({ variant, className }))} {...props} />;
+  return <Button className={className} variant={shadcnVariant} {...props} />;
 }
 
 /** `.icon-btn` — 44px round control (used for modal close, mobile menu). */
-export function IconButton({ className, ...props }: ButtonPrimitive.Props) {
-  return (
-    <ButtonPrimitive
-      className={cn(
-        "grid size-11 shrink-0 place-items-center rounded-full border border-[var(--acc-line)] bg-[rgba(250,248,242,.86)] outline-none transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--acc-ink)] hover:bg-[var(--acc-surface)] focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--acc-oxblood)] [&_svg]:pointer-events-none",
-        className,
-      )}
-      {...props}
-    />
-  );
+export function IconButton({ className, ...props }: ComponentProps<typeof Button>) {
+  return <Button className={className} size="icon-lg" variant="outline" {...props} />;
 }
 
 // ---- Status pill ---------------------------------------------------------

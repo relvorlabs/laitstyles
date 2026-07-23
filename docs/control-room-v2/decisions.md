@@ -314,71 +314,29 @@ Sales, payment, fulfilment, stock release, returns, refunds and unique-item owne
 - Loading, error, empty, stale and background-refetch states become explicit product states.
 - A production handoff must document endpoint, authentication, concurrency, stale-time and invalidation requirements.
 
-## Decision 005 — Supabase Auth and database before TanStack Query
+## Decision 005 — Supabase Auth before Prisma-backed server state
 
 **Date:** 2026-07-10
-**Status:** Accepted for the next implementation sequence
-**Decision owner:** User-requested Supabase-first replan
-**Review trigger:** Production backend provider changes, a different auth provider, multi-store enterprise scope, or a user override to resume TanStack earlier
+**Status:** Superseded and restated on 2026-07-15
+**Decision owner:** Direct user instruction
+**Review trigger:** Changing the auth provider or server-state architecture
 
-### Context
+Supabase owns authentication identities, OAuth and cookie sessions. Prisma owns all application database models, migrations and generated database types. Authorization comes from `profiles.role` and the static typed capability map.
 
-The user requested a full Supabase setup before TanStack Query:
+The delivery order is:
 
-1. Supabase Auth and Google Auth for staff and storefront consumers.
-2. Organization-level roles and permissions for owner/CEO, manager and operator/sales staff.
-3. A meticulous codebase review and structural fixes before backend wiring.
-4. A complete Supabase table/storage/RLS plan for everything Control Room and storefront need.
-5. TanStack Query moved after those foundations.
+1. Phase 9: backend boundary readiness.
+2. Phase 10: Supabase Auth, consumer/admin/manager roles and server guards.
+3. Phase 11: Prisma schema, migrations, generated client and public catalog projection.
+4. Phase 12: TanStack Query over authenticated Prisma-backed resource contracts.
 
-The branch already contains preliminary repository interfaces, in-memory adapters and initial query-key factories from the previous Phase 9 start. That work is useful, but it should not drive the next phase before authenticated Supabase resource ownership is clear.
-
-### Decision
-
-Reorder the remaining phases:
-
-- **Phase 9:** Codebase structure review and Supabase readiness.
-- **Phase 10:** Supabase Auth, Google OAuth, organization/store membership, staff roles and consumer auth.
-- **Phase 11:** Supabase database schema, storage, RLS policies, deterministic seed data and generated database types.
-- **Phase 12:** TanStack Query server-state foundation over the authenticated Supabase-backed resource contracts.
-
-Preserve the already-started TanStack repository/key work as paused preliminary Phase 12 foundation. Do not install TanStack packages, mount a QueryClient or migrate reads before Phases 10 and 11 are complete.
-
-### Auth and permission direction
-
-- Supabase Auth owns identity.
-- Application tables own authorization.
-- Staff permissions are store-scoped through memberships and role capabilities.
-- Consumers can own storefront account records but cannot access Control Room data.
-- Authorization decisions must not rely on user-editable metadata.
-- Server protection should use `getClaims()` or `getUser()` as appropriate; `getSession()` is not trusted for authorization.
-
-### Database direction
-
-The schema must map to existing Laitstyle domains:
-
-- profiles, organizations, stores, memberships, invitations, role capabilities and audit events
-- products, variants, media, categories, collections, channels and measurements
-- stock levels, stock movements and intake records
-- holds, orders, order lines, payment events, fulfilment events, returns and return lines
-- customers, addresses, notes, saved products and reviews
-- store settings, delivery zones, pickup locations and storage buckets
-
-RLS is required on exposed tables, with explicit public storefront, consumer-owned and staff membership policies.
-
-### Consequences
-
-- Docs and AGENTS instructions must no longer describe TanStack Query as the active Phase 9.
-- Supabase client/auth/permission folders are planned before query folders are expanded.
-- The in-memory repository adapter remains truthful prototype scaffolding until Supabase adapters exist.
-- Phase 12 query keys and mutations must include authenticated store/consumer context from Phases 10 and 11.
-
+No database setup, migration, type generation or reset is performed with Supabase tooling.
 ## Decision 006 — Phase 9 Supabase readiness boundary
 
 **Date:** 2026-07-10
 **Status:** Implemented for Phase 9; auth activation remains Phase 10
 **Decision owner:** Control Room V2 implementation
-**Review trigger:** Starting Phase 10 auth routes, starting Phase 11 migrations, or replacing Supabase as the backend provider
+**Review trigger:** Starting Phase 10 auth routes, starting Phase 11 migrations, or replacing Supabase Auth
 
 ### Context
 
@@ -394,11 +352,11 @@ Normalize Supabase setup code into `src/lib/supabase/` and keep root-level compa
 - Server client: `src/lib/supabase/server.ts`
 - Proxy/session refresh helper: `src/lib/supabase/proxy.ts`
 - Public environment validation: `src/lib/supabase/env.ts`
-- Placeholder generated type destination: `src/lib/supabase/types.ts`
+- Prisma-generated database client destination: `prisma/generated/prisma`
 
 Do not add root `src/proxy.ts`, redirects, auth pages or protected routes in Phase 9. The proxy helper only refreshes Supabase cookies through `getClaims()` when Phase 10 wires it into Next.js.
 
-Add pure role, capability and guard helpers under `src/lib/auth/` so staff owner, manager, operator and consumer boundaries are testable before database tables and RLS exist.
+Add pure role, capability and guard helpers under `src/lib/auth/` so admin, manager and consumer boundaries are testable independently of the database.
 
 ### Consequences
 
@@ -406,7 +364,7 @@ Add pure role, capability and guard helpers under `src/lib/auth/` so staff owner
 - No service role key is introduced to the app runtime.
 - Store permissions are modeled as application authorization, not Supabase Auth metadata.
 - Phase 10 can activate auth behavior without moving files again.
-- Phase 11 can replace placeholder database types with generated Supabase types.
+- Phase 11 generates Prisma Client from the validated schema.
 
 ## Decision 007 — Phase 9 Biome quality baseline and external asset boundary
 
@@ -432,7 +390,7 @@ Remove the legacy ESLint and Prettier package/config surface from the active pro
 
 For assets:
 
-- Supabase stores ownership, product links, RLS-protected metadata and audit trails.
+- Prisma stores asset ownership, product links, metadata and audit trails.
 - Cloudinary and Cloudflare R2/Images own external image delivery.
 - Browser-safe provider types and image host allowlists live under `src/lib/assets/*`.
 - Server-only asset credentials and provider checks live under `src/server/assets/*`.
@@ -448,13 +406,13 @@ For assets:
 ## Decision 008 — Phase 10 Supabase Auth activation
 
 **Date:** 2026-07-10
-**Status:** Implemented for Phase 10; database/RLS enforcement remains Phase 11
+**Status:** Implemented for Phase 10; Prisma persistence remains Phase 11
 **Decision owner:** Control Room V2 implementation
-**Review trigger:** Starting Phase 11 migrations, changing auth provider, or adding multi-store switching
+**Review trigger:** Starting Phase 11 migrations or changing the auth provider
 
 ### Context
 
-Phase 10 activates real Supabase Auth behavior before Control Room data moves to Supabase tables.
+Phase 10 activates real Supabase Auth behavior before Control Room data moves through Prisma repositories.
 The app needs staff and consumer sessions, Google OAuth with PKCE, server-side cookie handling and
 store-scoped role checks without exposing service-role credentials or trusting user metadata.
 
@@ -470,8 +428,8 @@ Use the Phase 9 Supabase SSR clients and activate them through root `src/proxy.t
 - Consumer account guard: `src/app/account/layout.tsx`
 
 Server identity checks use `getClaims()` with `getUser()` fallback, never `getSession()` for
-authorization. Store access resolves from `profiles`, `store_memberships` and customer linkage
-contracts, while Phase 11 remains responsible for migrations, generated types and RLS policies.
+authorization. Access resolves from `profiles.role` and customer linkage
+contracts, while Phase 11 remains responsible for Prisma migrations and generated client types.
 
 ### Consequences
 
@@ -513,107 +471,61 @@ Email/password sign-in and sign-up remain Server Actions because they are form m
 ## Decision 010 — Phase 11 CLI-only owner bootstrap and Cloudinary-only image metadata
 
 **Date:** 2026-07-11
-**Status:** Implemented as Phase 11 foundation; local Supabase apply/type generation blocked until Docker Desktop is reachable
+**Status:** Superseded by the Prisma-only single-store foundation
 **Decision owner:** Direct user instruction
-**Review trigger:** Adding a production upload UI, changing asset provider, adding another owner lifecycle path, or enabling Supabase Storage
+**Review trigger:** Adding a production upload UI, changing asset provider or changing the admin lifecycle
 
 ### Context
 
-The user clarified that admin/owner accounts must only be created from CLI tooling and that Supabase
-must use Cloudinary for file uploads when needed. Supabase must never store uploaded images as blob
-payloads.
+The user clarified that the one admin account must be created from narrow CLI tooling and that Prisma
+is the only database management layer. Supabase remains the authentication provider, and Cloudinary
+remains the image provider.
 
 ### Decision
 
-Owner/admin bootstrap is implemented as `pnpm supabase:bootstrap-owner`, backed by
-`scripts/bootstrap-owner.mjs`. The script requires service-role credentials, creates or attaches the
-Supabase Auth user, upserts the profile, creates/links the organization and store, and writes the
-owner membership with `created_by_cli = true`.
+Admin bootstrap is implemented as `pnpm auth:bootstrap-admin -- --email <email> --password <password>`, backed by
+`scripts/bootstrap-owner.mjs`. The script accepts only email and password, requires service-role
+credentials, creates or updates the Supabase Auth user and upserts the matching Prisma profile with the
+`admin` role. The database permits only one admin.
 
-The Phase 11 migration enforces this at the database layer:
+The Prisma schema and server authorization enforce this model:
 
-- `store_memberships.role = 'owner'` requires `created_by_cli = true`.
-- Authenticated browser policies can add/update only manager/operator memberships.
-- Owner creation remains service-role/CLI only.
+- public staff registration is unavailable; managers are provisioned through an owner-controlled backend process.
+- Consumers cannot promote their own role.
+- Admin creation remains service-role/CLI only.
 
 For assets:
 
-- Supabase Storage is disabled in local config for this project.
 - The database stores `cloudinary_assets`, `product_media` and `store_brand_assets` metadata only.
 - `cloudinary_assets.provider` is constrained to `cloudinary`, and `resource_type` is constrained to
   `image`.
-- The Phase 11 schema guard test rejects `storage.buckets`, `storage.objects` and `bytea` image
-  storage in the migration.
+- Image binary storage remains outside the application database.
 
 ### Consequences
 
-- Public sign-up and Google OAuth can create consumer identities, but cannot create owner access.
+- Public sign-up and Google OAuth can create consumer identities, but cannot create admin access.
 - Service-role keys stay outside the app runtime and client bundle.
 - Future production uploads need a server-issued Cloudinary signature/write route before a UI can
   persist asset metadata.
 - Cloudflare can still be evaluated later as CDN/proxy delivery infrastructure, but it is not a
   Phase 11 image upload path.
-- Fresh local migration apply, generated Supabase types and advisors remain blocked until Docker
-  Desktop is available.
+- Prisma validation, migration review and Prisma Client generation are the database gates.
 
-## Decision 011 — Phase 12 foundation started under explicit override while Phase 11 stays blocked
+## Decision 011 — Phase 12 follows the Prisma role and database foundation
 
 **Date:** 2026-07-11
-**Status:** Foundation scaffolded under direct user override; Phase 11 verification gates remain open
-**Decision owner:** Direct user instruction ("set up the next phase" → override Phase 12 timing)
-**Review trigger:** Phase 11 Docker/Supabase blockers clearing, the first domain read migrating onto the query boundary, SSR prefetch/hydration, or a Supabase-backed adapter replacing the in-memory adapter
+**Status:** Restated on 2026-07-15
+**Decision owner:** Direct user instruction
+**Review trigger:** Migrating the first domain read, SSR prefetch/hydration or replacing a Prisma repository
 
-### Context
+TanStack Query may own server-like resource state only after the relevant Prisma repository and profile-role authorization boundary are ready. The deterministic in-memory adapter remains truthful prototype scaffolding until a domain is migrated.
 
-Decision 005 sequenced TanStack Query strictly after Phases 10 and 11 and said: "Do not install
-TanStack packages, mount a QueryClient or migrate reads before Phases 10 and 11 are complete." Phase 11
-is code-complete but has hard blockers — Docker Desktop is unreachable from this shell, so migrations
-cannot apply, `supabase gen types --local` cannot run, and RLS/advisor checks cannot run.
+Consequences:
 
-The user reviewed this state and explicitly chose to override the phase gate and begin Phase 12 setup
-now. Per `AGENTS.md` §3 an override may permit later-phase work but never reclassifies an earlier
-blocked gate as passing.
-
-### Decision
-
-Start the Phase 12 server-state foundation while keeping Phase 11 blockers visible and unresolved.
-
-Scope delivered in this setup step:
-
-- Install `@tanstack/react-query` (5.101.2) via pnpm.
-- Mount one stable browser QueryClient at the narrow Control Room boundary
-  (`src/app/admin/query-provider.tsx`), wrapped around the existing shell providers in
-  `control-room-shell.tsx`. Client is created with a lazy `useState` initializer so it is never
-  recreated across renders.
-- Promote the paused preliminary repository/key foundation (`repositories.ts`, the deterministic
-  in-memory adapter, the already-mounted `ControlRoomRepositoryProvider`, and `inventoryKeys`) to
-  active Phase 12 material.
-- Add typed domain query-key factories for Orders, Holds, Returns, Customers, Settings and Overview
-  alongside the existing Inventory/Products factories, with a stability test.
-
-### Explicit non-scope (deliberately not done)
-
-- No feature component read has been migrated onto the query boundary yet.
-- No Supabase-backed adapter is wired. Phase 12 query functions that must "run under the authenticated
-  store/consumer context" and read "through Supabase-backed repositories" cannot be built truthfully
-  until Phase 11 generated types and RLS exist. The in-memory adapter remains the only truthful,
-  deterministic prototype source until then.
-- No optimistic mutations, no Devtools, no SSR hydration.
-
-### ESLint plugin decision
-
-`@tanstack/eslint-plugin-query` is **not** added. Decision 007 made Biome the single lint entrypoint.
-The plugin is ESLint-only; per the plan it would only be introduced as a narrow query-specific
-compatibility runner once real query hooks exist and the team accepts a second linter. Deferred until
-the first domain migration lands.
-
-### Consequences
-
-- The QueryClient is live in the Control Room tree but currently owns no server-like data.
-- Phase 11 acceptance is unchanged and still blocked; this override does not represent it as passing.
-- Full Phase 12 acceptance (authenticated queries, invalidation matrix, optimistic rollback, Phase
-  4–12 regression) remains open and must be completed once Phase 11 unblocks.
-
+- Server authorization remains authoritative.
+- Query keys and adapters cannot encode a store or tenant selector.
+- Prisma Client is regenerated after schema changes.
+- Phase 12 cannot claim production persistence from prototype data.
 ## Decision 012 — Merge PR #4 as an integration milestone and continue from updated main
 
 **Date:** 2026-07-13
@@ -640,7 +552,7 @@ phase decisions and preserves every unresolved gate.
 - Merge PR #4 as the integration milestone after local verification.
 - Create `surdma/control-room-v2-continuation` from the resulting `main` and open a draft PR with a
   repository handoff document plus a comprehensive PR #4 conversation summary.
-- Keep Phase 4–8 acceptance, Phase 10 browser OAuth/React Doctor, Phase 11 Docker/RLS/generated-types,
+- Keep Phase 4–8 acceptance, Phase 10 browser OAuth/React Doctor, Phase 11 Prisma schema/generated-client,
   and Phase 12 data-migration blockers explicit. The merge is not phase acceptance.
 
 ### Verification evidence

@@ -15,16 +15,10 @@ loadEnv({ path: ".env.local" });
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
 
-async function main() {
-  const { getActiveStore } = await import("@/server/commerce/store/active-store");
-  const { listPublishedProducts, countPublishedProducts, getPublishedProductBySlug } = await import(
+async function main() {  const { listPublishedProducts, countPublishedProducts, getPublishedProductBySlug } = await import(
     "@/server/commerce/catalogue/catalog-repository"
   );
-  const { createPublishedProduct } = await import("@/server/commerce/catalogue/product-write");
-
-  const store = await getActiveStore();
-  console.warn(`active store: ${store.slug} (${store.id})`);
-
+  const { createPublishedProduct } = await import("@/server/commerce/catalogue/product-write");
   const before = await countPublishedProducts();
   console.warn(`published products (read via repository): ${before}`);
 
@@ -46,7 +40,7 @@ async function main() {
 
   // Admin write path -> storefront read loop.
   const result = await createPublishedProduct(
-    { storeId: store.id, profileId: OWNER_ID },
+    { profileId: OWNER_ID },
     {
       slug: "smoke-admin-write",
       name: "Smoke Admin Write",

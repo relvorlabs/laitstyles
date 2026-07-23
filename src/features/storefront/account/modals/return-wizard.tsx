@@ -2,11 +2,12 @@
 
 import { UploadIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
-import { products } from "../../home-lab/data";
 import { ProductThumb } from "../components/account-garments";
 import {
   AcctButton,
@@ -28,18 +29,17 @@ const steps = [
 ];
 
 export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { products } = useStorefront();
   const { toast } = useAccountUi();
   const [step, setStep] = useState(1);
 
-  // Reset to the first step every time the wizard opens (matches the prototype,
-  // which resets `returnStep` to 1 after submit/close).
   useEffect(() => {
     if (open) setStep(1);
   }, [open]);
 
   function next() {
     if (step < 5) {
-      setStep((s) => s + 1);
+      setStep((current) => current + 1);
     } else {
       toast("Return request submitted");
       onClose();
@@ -50,8 +50,8 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => {
-        if (!o) onClose();
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
       }}
     >
       <DialogContent
@@ -72,12 +72,12 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
 
         <div className="border-b border-[var(--acc-line)] bg-[var(--acc-bone)] p-4">
           <ol className="grid grid-cols-5 gap-2" aria-label="Return steps">
-            {steps.map((s) => (
-              <li key={s.n} className="text-center">
-                <StepNode state={s.n === step ? "active" : s.n < step ? "complete" : "idle"}>
-                  {s.n}
+            {steps.map((item) => (
+              <li key={item.n} className="text-center">
+                <StepNode state={item.n === step ? "active" : item.n < step ? "complete" : "idle"}>
+                  {item.n}
                 </StepNode>
-                <span className="mt-2 hidden text-xs sm:block">{s.label}</span>
+                <span className="mt-2 hidden text-xs sm:block">{item.label}</span>
               </li>
             ))}
           </ol>
@@ -154,17 +154,19 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
               <p className="mt-3 text-[var(--acc-muted)]">
                 Required only when the policy or reason needs it.
               </p>
-              <button
+              {/* TODO(button-action): Open a validated evidence picker after return uploads and storage are connected. */}
+              <Button
                 type="button"
-                onClick={() => toast("File picker opened with type, count and size validation.")}
-                className="mt-6 flex min-h-56 w-full flex-col items-center justify-center rounded-[14px] border border-dashed border-[var(--acc-line-strong)] bg-[var(--acc-bone-2)] p-6 text-center"
+                onClick={() => toast("Return evidence uploads are not available yet.")}
+                className="mt-6 w-full flex-col text-center"
+                variant="ghost"
               >
                 <UploadIcon className="size-[34px]" strokeWidth={1.7} />
                 <strong className="mt-4">Add item or packaging photos</strong>
                 <span className="mt-2 text-sm text-[var(--acc-muted)]">
                   JPG, PNG or WEBP · Backend limits apply
                 </span>
-              </button>
+              </Button>
             </section>
           ) : null}
 
@@ -188,20 +190,22 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
                     desc: "Tracking must be added after dispatch.",
                     checked: false,
                   },
-                ].map((m) => (
+                ].map((method) => (
                   <label
-                    key={m.title}
+                    key={method.title}
                     className={cn(panelClass, "flex min-h-24 items-start gap-3 p-4")}
                   >
                     <input
                       type="radio"
                       name="returnMethod"
-                      defaultChecked={m.checked}
+                      defaultChecked={method.checked}
                       className="mt-1"
                     />
                     <span>
-                      <strong className="block">{m.title}</strong>
-                      <span className="mt-2 block text-sm text-[var(--acc-muted)]">{m.desc}</span>
+                      <strong className="block">{method.title}</strong>
+                      <span className="mt-2 block text-sm text-[var(--acc-muted)]">
+                        {method.desc}
+                      </span>
                     </span>
                   </label>
                 ))}
@@ -218,10 +222,10 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
                   ["Reason", "Fit was not right"],
                   ["Resolution", "Refund to original method"],
                   ["Method", "Courier pickup"],
-                ].map(([dt, dd]) => (
-                  <div key={dt} className="grid gap-2 p-4 sm:grid-cols-[180px_1fr]">
-                    <dt className="font-semibold">{dt}</dt>
-                    <dd>{dd}</dd>
+                ].map(([term, description]) => (
+                  <div key={term} className="grid gap-2 p-4 sm:grid-cols-[180px_1fr]">
+                    <dt className="font-semibold">{term}</dt>
+                    <dd>{description}</dd>
                   </div>
                 ))}
                 <div className="grid gap-2 p-4 sm:grid-cols-[180px_1fr]">
@@ -243,7 +247,7 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
           <AcctButton
             variant="secondary"
             disabled={step === 1}
-            onClick={() => setStep((s) => Math.max(1, s - 1))}
+            onClick={() => setStep((current) => Math.max(1, current - 1))}
           >
             Back
           </AcctButton>

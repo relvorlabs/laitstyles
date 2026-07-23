@@ -1,17 +1,14 @@
 export type AuthDeniedReason =
   | "signed-out"
-  | "membership-unavailable"
-  | "not-store-member"
-  | "inactive-membership"
+  | "authorization-unavailable"
   | "missing-capability"
+  | "account-inactive"
   | "not-consumer-owner";
 
 export const AUTH_DENIED_MESSAGES = {
   "signed-out": "Sign in before continuing.",
-  "membership-unavailable":
-    "We could not verify this store membership. Try again, or ask the owner to confirm the Supabase team setup.",
-  "not-store-member": "This account is not a member of this store.",
-  "inactive-membership": "This store membership is not active.",
-  "missing-capability": "This role cannot perform that action.",
-  "not-consumer-owner": "This account can only access its own storefront records.",
+  "authorization-unavailable": "We could not verify this account role. Try signing in again.",
+  "missing-capability": "This account role cannot perform that action.",
+  "account-inactive": "This account is inactive. Contact the store owner to restore access.",
+  "not-consumer-owner": "This consumer account can only access its own storefront records.",
 } satisfies Record<AuthDeniedReason, string>;

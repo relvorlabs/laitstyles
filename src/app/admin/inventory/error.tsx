@@ -11,7 +11,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ControlRoomIcon } from "@/features/control-room/shared/control-room-icon";
+import { AdminIcon } from "@/features/admin/shared/admin-icon";
 
 export default function InventoryError({ reset }: { reset: () => void }) {
   return (
@@ -19,7 +19,7 @@ export default function InventoryError({ reset }: { reset: () => void }) {
       <Empty className="min-h-[460px] border border-border bg-card shadow-[0_24px_70px_rgba(27,26,23,.08)]">
         <EmptyHeader>
           <EmptyMedia className="grid size-16 place-items-center rounded-full bg-destructive/10 text-destructive">
-            <ControlRoomIcon icon={Alert02Icon} size={27} />
+            <AdminIcon icon={Alert02Icon} size={27} />
           </EmptyMedia>
           <EmptyTitle className="font-serif text-[32px] font-medium">
             Inventory could not be assembled.
@@ -30,19 +30,18 @@ export default function InventoryError({ reset }: { reset: () => void }) {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="mt-2 flex-row flex-wrap justify-center">
-          <Button className="h-11 rounded-full px-5" onClick={reset} size="lg" type="button">
+          <Button onClick={reset} size="lg" type="button">
             Retry Inventory
           </Button>
           <Link
             className={buttonVariants({
               variant: "outline",
               size: "lg",
-              className: "h-11 rounded-full px-5",
             })}
             href="/admin"
           >
             Return to Overview
-            <ControlRoomIcon icon={ArrowRight01Icon} size={16} />
+            <AdminIcon icon={ArrowRight01Icon} size={16} />
           </Link>
         </EmptyContent>
       </Empty>

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-13
 **Branch:** feat/storefront-v2-spec
-**Surface:** `/products` (home-lab prototype card) — `src/features/storefront/home-lab/product-card.tsx`
+**Surface:** `/products` (storefront prototype prototype card) — `src/features/storefront/shared/product-card.tsx`
 
 ## Goal
 
@@ -28,7 +28,7 @@ drawer on add is an optional emphasis we can enable.
   arbitrary utilities. A separate fix already restored the hover reveal (a
   `transform` vs `translate` property mismatch that kept the button clipped).
 - Provider tree (from `src/app/layout.tsx` → `SiteChrome`):
-  `StorefrontExperienceProvider` (root) → `StorefrontProvider` (`.lst-lab`,
+  `StorefrontExperienceProvider` (root) → `StorefrontProvider` (`.lst-storefront`,
   `useStorefront`) → `/products` grid → `ProductCard`.
 - **Hold system today** lives in `StorefrontExperienceProvider`
   (`storefront-experience-provider.tsx`): a 1-second `setInterval` decrements
@@ -37,7 +37,7 @@ drawer on add is an optional emphasis we can enable.
   banner and the account Reservations tab both render from that state. But `items`
   is a **fixed 8-item account seed** (`StorefrontAccountItem[]`), not the full
   `/products` catalogue.
-- The card is presentational: `catalogue-lab.tsx` and `storefront-lab.tsx` render
+- The card is presentational: `product-catalogue.tsx` and `storefront-home.tsx` render
   `ProductCard` and pass `isSaved` + `{onQuickView, onSave, onAdd}` handlers.
 
 ## Approved decisions
@@ -61,8 +61,8 @@ no new timer or banner code.
 
 ### 1. `StorefrontExperienceProvider` (shared)
 
-Add a hold-a-piece API that maps a minimal, home-lab-agnostic shape into the item
-list. To keep the shared layer from depending on the home-lab `Product` type, define
+Add a hold-a-piece API that maps a minimal, storefront-agnostic shape into the item
+list. To keep the shared layer from depending on the storefront prototype `Product` type, define
 the input shape in the shared layer:
 
 ```ts
@@ -151,7 +151,7 @@ Card changes:
   Action = `onAdd(id)` for buyable/stock cases (`addToCart` + toast), `onQuickView(id)`
   for variant. Adding to bag **clears any active hold** for the piece.
 
-### 3. Wiring (`catalogue-lab.tsx`, `storefront-lab.tsx`)
+### 3. Wiring (`product-catalogue.tsx`, `storefront-home.tsx`)
 
 Both parents already build `cardHandlers` from `useStorefront()`. They additionally
 consume `useStorefrontExperience()` and, per product, compute
@@ -199,7 +199,7 @@ acceptable for this prototype surface.
 
 ## Out of scope
 
-- Real backend persistence of holds (Prisma/Supabase) — this is the frozen home-lab
+- Real backend persistence of holds through Prisma — this is the frozen storefront prototype
   prototype surface.
 - Changing the real `/shop` (`catalogue/product-card.tsx`) card.
 - Reworking the account Reservations tab beyond it now also listing storefront holds.
@@ -213,9 +213,9 @@ acceptable for this prototype surface.
 - `src/features/storefront/shared/storefront-experience-provider.tsx` —
   `holdProduct` / `releaseProduct` actions, `holdSecondsByProduct`, interval uses
   `tickHolds`, mount rehydration + write-through to `sessionStorage`.
-- `src/features/storefront/home-lab/product-card.tsx` — image→quick-view, held chip,
+- `src/features/storefront/shared/product-card.tsx` — image→quick-view, held chip,
   hover state machine, promoted dynamic CTA, `addToBagLabel`.
-- `src/features/storefront/home-lab/catalogue-lab.tsx` &
-  `src/features/storefront/home-lab/storefront-lab.tsx` — pass hold props, wrap
+- `src/features/storefront/catalogue/product-catalogue.tsx` &
+  `src/features/storefront/home/storefront-home.tsx` — pass hold props, wrap
   `onAdd` to release.
 - Tests: `storefront-experience-data.test.ts` (new).

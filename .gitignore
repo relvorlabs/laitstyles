@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.pnpm-store
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,6 +13,9 @@
 
 # testing
 /coverage
+/output/
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -24,11 +28,19 @@
 .DS_Store
 *.pem
 
+# editor / local tooling scratch
+/.idea/
+/.vscode/
+/.ai/
+/.codex-tmp/
+/.worktrees/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+/debug.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -40,5 +52,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma (generated client — regenerated via `prisma generate`)
+# prisma (generated client — regenerated via `pnpm prisma:generate`)
 /prisma/generated/

@@ -10,8 +10,7 @@ const recorded: {
 vi.mock("@/lib/prisma", () => ({
   Prisma: { PrismaClientKnownRequestError: class PrismaClientKnownRequestError {} },
   prisma: {
-    store_memberships: { findFirst: vi.fn().mockResolvedValue({ role: "owner" }) },
-    role_capabilities: { findFirst: vi.fn().mockResolvedValue({ role: "owner" }) },
+    profiles: { findUnique: vi.fn().mockResolvedValue({ role: "admin" }) },
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({
         products: {
@@ -40,7 +39,7 @@ import { createPublishedProduct } from "./product-write";
 describe("createPublishedProduct", () => {
   it("persists shopper attributes and measurements", async () => {
     const result = await createPublishedProduct(
-      { storeId: "store-1", profileId: "user-1" },
+      { profileId: "user-1" },
       {
         slug: "wool-jacket",
         name: "Wool Jacket",

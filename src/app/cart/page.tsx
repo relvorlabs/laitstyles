@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatHoldTime, useShop } from "@/components/shop/shop-provider";
+import { Button } from "@/components/ui/button";
 import { naira } from "@/lib/catalogue";
 
 const USD_RATE = 1600;
@@ -121,7 +122,7 @@ export default function CartPage() {
                     >
                       <Link
                         className="relative h-28 w-[88px] shrink-0 overflow-hidden rounded-[11px] bg-[#E4E5DE]"
-                        href={`/p/${product.id}`}
+                        href={`/products/${product.id}`}
                       >
                         <Image
                           alt={product.name}
@@ -135,7 +136,10 @@ export default function CartPage() {
                       <div className="flex min-w-0 flex-1 flex-col">
                         <div className="flex justify-between gap-3">
                           <div className="min-w-0">
-                            <Link className="text-[15px] font-medium" href={`/p/${product.id}`}>
+                            <Link
+                              className="text-[15px] font-medium"
+                              href={`/products/${product.id}`}
+                            >
                               {product.name}
                             </Link>
                             <div className="mt-1 text-[12.5px] text-[#8A887E]">
@@ -162,14 +166,15 @@ export default function CartPage() {
                               <span className="tabular-nums">{formatHoldTime(secondsLeft)}</span>
                             </span>
                           )}
-                          <button
-                            className="inline-flex items-center gap-1.5 px-0.5 py-1 text-[12.5px] text-[#A7A59B] hover:text-[#B4453C] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C8C63]"
+                          <Button
+                            className="h-auto gap-1.5"
                             onClick={() => release(product.id)}
                             type="button"
+                            variant="link"
                           >
                             <Trash2 aria-hidden="true" className="size-[13px]" />
                             Remove
-                          </button>
+                          </Button>
                         </div>
 
                         {expired ? (
@@ -178,13 +183,14 @@ export default function CartPage() {
                             <span className="flex-1 text-[12px] leading-[1.45] text-[#8A362F]">
                               Your hold released, but this piece is still available.
                             </span>
-                            <button
-                              className="h-8 shrink-0 rounded-full bg-[#1B1A17] px-3.5 text-[12px] font-semibold text-white"
+                            <Button
+                              size="lg"
+                              className="shrink-0"
                               onClick={() => rehold(product.id)}
                               type="button"
                             >
                               Re-hold
-                            </button>
+                            </Button>
                           </div>
                         ) : null}
                       </div>
@@ -195,7 +201,7 @@ export default function CartPage() {
 
               <Link
                 className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-[#7C8C63]"
-                href="/shop"
+                href="/products"
               >
                 ← Keep browsing the drop
               </Link>
@@ -218,13 +224,9 @@ export default function CartPage() {
                   placeholder="Discount code"
                   value={discountInput}
                 />
-                <button
-                  className="h-[46px] rounded-full bg-[#1B1A17] px-[18px] text-[13px] font-medium text-white"
-                  onClick={applyDiscount}
-                  type="button"
-                >
+                <Button size="lg" onClick={applyDiscount} type="button">
                   Apply
-                </button>
+                </Button>
               </div>
               <p
                 aria-live="polite"
@@ -260,13 +262,15 @@ export default function CartPage() {
                   Review &amp; check out
                 </Link>
               ) : (
-                <button
-                  className="mt-[22px] h-[54px] w-full cursor-not-allowed rounded-full bg-[#D8D6CF] text-[15px] font-semibold text-[#8A887E]"
+                <Button
+                  size="lg"
+                  className="mt-[22px] w-full"
                   disabled
                   type="button"
+                  variant="secondary"
                 >
                   Re-hold a piece to continue
-                </button>
+                </Button>
               )}
 
               <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[12px] text-[#8A887E]">
@@ -287,7 +291,7 @@ export default function CartPage() {
             </p>
             <Link
               className="mt-6 flex h-[52px] items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14.5px] font-semibold text-white"
-              href="/shop"
+              href="/products"
             >
               Browse one-of-one pieces
             </Link>
@@ -308,18 +312,15 @@ function CurrencyButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
+      size="lg"
       aria-pressed={active}
-      className={
-        active
-          ? "h-[34px] rounded-full border border-[#1B1A17] bg-[#1B1A17] px-3.5 text-[12.5px] font-semibold text-white"
-          : "h-[34px] rounded-full border border-[#D6D4CB] bg-transparent px-3.5 text-[12.5px] font-semibold text-[#57554E]"
-      }
       onClick={onClick}
       type="button"
+      variant={active ? "default" : "outline"}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

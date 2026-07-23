@@ -4,9 +4,9 @@
 
 **PR #4 integration verified for merge handoff — Phase 11 remains blocked**
 
-On 2026-07-11 the user reviewed the Phase 11 Docker/Supabase blockers and explicitly chose to override the phase gate and begin the Phase 12 TanStack Query foundation now (Decision 011). This override changes sequencing only: Phase 11 (fresh migration apply, generated types, RLS/advisors) is still blocked on Docker Desktop and is **not** represented as passing. Phase 10 browser OAuth and the required React Doctor `--diff` blockers also remain recorded.
+On 2026-07-15 the database and authorization foundation was corrected to a Prisma-only, single-store model with consumer, admin and manager roles. Supabase remains authentication-only. The Prisma baseline is generated but has not been applied to a shared database. Phase 10 browser OAuth and required React Doctor browser evidence remain separate gates.
 
-The paused TanStack Phase 9 repository/key work is now promoted to active Phase 12 material. No feature read has been migrated and no Supabase-backed adapter is wired — the deterministic in-memory adapter remains the only truthful prototype source until Phase 11 unblocks.
+The paused TanStack Phase 9 repository/key work is now Phase 12 material. No feature read is represented as production-backed until its Prisma repository and authorization boundary are complete.
 
 This does not mark Phase 4, Phase 5, Phase 6, Phase 7 or Phase 8 as accepted. No blocked check, screenshot review or merge condition is represented as passing.
 
@@ -33,7 +33,7 @@ phase acceptance blocker as passing.
 | Phase 9 plan                                   | `docs/control-room-v2/phase9-plan.md`                                                                 |
 | Phase 10 plan                                  | `docs/control-room-v2/phase10-plan.md`                                                                |
 | Phase 11 plan                                  | `docs/control-room-v2/phase11-plan.md`                                                                |
-| Supabase schema plan                           | `docs/control-room-v2/supabase-schema-plan.md`                                                        |
+| Prisma schema plan                             | `docs/control-room-v2/prisma-schema-plan.md`                                                          |
 | Phase 12 plan                                  | `docs/control-room-v2/phase12-plan.md`                                                                |
 | Paused TanStack adapter handoff                | `docs/control-room-v2/phase9-adapter-boundary.md`                                                     |
 | Accepted Batch 4A head/run                     | `2b14028c4e60c3395a9bbe819506adca8bfdcae1` / `29044424035`                                            |
@@ -182,22 +182,22 @@ Evidence: `docs/control-room-v2/phase7-blocker.md`.
 
 Exact evidence remains in `docs/control-room-v2/phase8-blocker.md`.
 
-## Phase 9 — Codebase Structure Review and Supabase Readiness
+## Phase 9 — Codebase Structure and Backend Readiness
 
 ### Replanned scope — implemented, awaiting final verification
 
-- [x] Phase order changed so Supabase/auth/schema work comes before TanStack Query
-- [x] Phase 9 plan rewritten as codebase structure review and Supabase readiness
-- [x] Phase 10 Supabase Auth and organization permission plan added
-- [x] Phase 11 Supabase database/storage/RLS plan added
-- [x] Supabase schema blueprint added
+- [x] Phase order changed so authentication and Prisma schema work come before TanStack Query
+- [x] Phase 9 plan rewritten as codebase structure and backend readiness
+- [x] Phase 10 Supabase Auth and role permission plan added
+- [x] Phase 11 Prisma database plan added
+- [x] Single-store Prisma schema blueprint added
 - [x] Phase 12 TanStack Query plan added
 - [x] Audit current route, feature, domain, repository, storefront and checkout boundaries
 - [x] Normalize `src/lib/supabase/` and `src/lib/auth/` destinations where needed
 - [x] Replace ESLint/Prettier tooling with Biome scripts and config
 - [x] Move client repository provider wiring into `src/features/control-room/data/`
 - [x] Add server/client import boundary test
-- [x] Add Cloudinary and Cloudflare asset provider boundaries for Supabase-backed media metadata
+- [x] Add Cloudinary and Cloudflare asset provider boundaries for Prisma-backed media metadata
 - [x] Remove changed Control Room raw color usages in favor of theme tokens
 - [x] Identify narrow file/folder fixes needed before auth and database implementation
 - [x] Verify executable behavior through lint, TypeScript, Vitest and production build
@@ -230,11 +230,11 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 - [x] Typed `inventoryKeys` and `productKeys` factories with stability tests
 - [ ] TanStack package/provider/runtime work deferred to Phase 12
 
-## Phase 10 — Supabase Auth, Google OAuth and Organization Permissions
+## Phase 10 — Supabase Auth, Google OAuth and Role Permissions
 
 - [x] Supabase SSR browser/server/proxy clients wired through root `proxy.ts`
 - [x] Google OAuth callback, auth error route and sign-in/sign-out flows
-- [x] Staff owner/manager/operator roles and capability contract
+- [x] Consumer/admin/manager roles and capability contract
 - [x] Consumer storefront account boundary for `/account`
 - [x] Control Room route guard and permission-restricted UI state
 - [x] Deterministic permission and redirect tests added
@@ -248,30 +248,28 @@ This work was implemented before the replan and is preserved for Phase 12, not a
 - [ ] Local Google OAuth browser completion test — blocked until a browser automation driver or interactive Google account session is available
 - [ ] Full executable gate — blocked because the required `npx.cmd --yes react-doctor@latest . --verbose --diff` timed out after 5 minutes, even though the current supported changed-scope fallback passed
 
-## Phase 11 — Supabase Database, Cloudinary Asset Metadata, RLS and Generated Types
+## Phase 11 — Prisma Database, Cloudinary Asset Metadata and Generated Client
 
-- [x] Supabase migration workflow initialized with CLI-generated migration timestamp
+- [x] Prisma migration workflow initialized with a committed single-store baseline
 - [x] Identity, catalogue, inventory, sales, returns, customers, settings, audit and Cloudinary metadata schema drafted
-- [x] Owner/admin membership creation constrained to service-role CLI bootstrap through `created_by_cli`
-- [x] Cloudinary-only image metadata tables added; Supabase Storage image blobs, `storage.objects` and `bytea` image columns prohibited by schema guard test
-- [x] RLS policies drafted for public storefront, consumers and staff roles/capabilities
-- [x] Local Supabase Storage disabled in `supabase/config.toml`
-- [x] Schema-aligned interim database TypeScript type surface committed
-- [x] Regression test added for owner CLI-only and no Supabase image blob/storage regression
-- [ ] Migrations apply cleanly to a fresh local Supabase database — blocked because Docker Desktop is not reachable from this shell
-- [ ] Generated database TypeScript types from `supabase gen types --local` — blocked until local Supabase database can start
-- [ ] Supabase advisors/RLS tests and full executable gate
+- [x] The single admin is constrained by a unique profile-role index and service-role CLI bootstrap
+- [x] Cloudinary-only image metadata tables retained; image blobs stay outside PostgreSQL
+- [x] Server authorization guards implemented for consumers, admin and manager
+- [x] Schema-aligned Prisma Client generated
+- [x] Regression tests cover role permissions and admin-only bootstrap behavior
+- [x] Fresh-database Prisma baseline generated without applying it to a shared database
+- [x] Prisma Client generated from the validated schema
+- [ ] Full executable and browser gates
 
 Verification returned:
 
-- [x] `npx.cmd --yes supabase@latest init` — created `supabase/config.toml`
-- [x] `npx.cmd --yes supabase@latest migration new phase11_identity_cloudinary_assets` — created CLI-timestamped migration
+- [x] `prisma format`, `prisma validate` and `prisma generate`
+- [x] `prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script` generated the baseline
 - [x] `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
 - [x] `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 33 files and 134 tests passed
 - [x] `node .\node_modules\next\dist\bin\next build` — passed after elevated permission cleared Windows ACL issues in generated `.next` trace artifacts
 - [x] `.\node_modules\.bin\biome.CMD check .` — passed with 48 existing warnings still visible
 - [x] `node -c scripts\bootstrap-owner.mjs`
-- [ ] `npx.cmd --yes supabase@latest db start` — blocked because Docker Desktop is not reachable from this shell
 - [ ] `npx.cmd --yes react-doctor@latest . --verbose --diff` — still not rerun successfully; Phase 10 recorded the command timing out after 5 minutes, and staged changed-scope fallback is required before commit
 
 ## Phase 12 — TanStack Query Server-State Foundation
@@ -283,24 +281,75 @@ Foundation started 2026-07-11 under Decision 011 override.
 - [x] Promote paused preliminary repository/key foundation to active Phase 12 material (`repositories.ts`, in-memory adapter, mounted `ControlRoomRepositoryProvider`, `inventoryKeys`/`productKeys`)
 - [x] Add typed domain query-key factories for Orders, Holds, Returns, Customers, Settings and Overview with stability test
 - [x] Decide the `@tanstack/eslint-plugin-query` question: deferred — Biome remains the single lint entrypoint; the ESLint-only plugin is introduced only once real query hooks exist (Decision 011)
-- [ ] Migrate Supabase-backed domain reads/writes into query options and mutations — **blocked** on Phase 11 generated types and RLS (Docker unreachable); in-memory adapter remains prototype-only until then
-- [ ] Add targeted invalidation, cache reconciliation and safe optimistic rollback
+- [x] Migrate all six admin domains (Inventory, Orders, Holds, Returns, Customers, Settings) onto `useQuery`/`useMutation` over the existing `AdminRepositories` interface
+- [x] Add targeted invalidation and authoritative cache reconciliation (`queryClient.setQueryData` from each mutation's own success payload; `invalidateQueries` only where the reducer's payload doesn't carry the authoritative updated value)
 - [ ] Devtools (development-only, excluded from production) if/when warranted
 - [ ] Full Phase 4–12 regression and production handoff
 
-Foundation verification returned:
+### 2026-07-17 — Repo restructuring and admin TanStack Query migration landed
+
+Executed per `docs/superpowers/plans/2026-07-16-repo-restructuring-and-admin-query-migration.md`
+and `docs/superpowers/specs/2026-07-16-repo-restructuring-and-admin-query-migration-design.md`,
+under the same Decision 011 / Governance-note override recorded above. **This did not touch
+Phase 10 or Phase 11** — those blockers stay exactly as recorded below; nothing here represents
+them as passing.
+
+Landed:
+
+- [x] Workstream 1 — deleted unused shims, resolved the `session.ts` filename collision, fixed a
+      stray direct `next-themes` import, deleted dead v1 layout components
+- [x] Workstreams 2 & 3 — split `lib/admin/`'s 60 flat files into 8 domain subfolders
+      (`inventory/`, `product-editor/`, `orders/`, `holds/`, `returns/`, `customers/`,
+      `settings/`, `shared/`) and renamed the 9 `*-actions.ts` pure reducers to `*-reducer.ts`
+- [x] Workstream 4 — extracted the one genuinely misplaced hook (`useAccountProducts`); the other
+      10 context-consumer hooks stay colocated with their providers by design; adopted React 19
+      `use()` over `useContext()` repo-wide
+- [x] Workstream 5 — consolidated the admin and storefront `QueryClient` construction onto one
+      shared `createQueryClient` factory; each surface keeps its own provider/mount strategy
+- [x] Workstream 6 — split `app/checkout/page.tsx` (1118 lines) and `lib/admin/shared/seed.ts`
+      (1021 lines) into per-concern files
+- [x] Workstream 7 — enabled Cache Components (`cacheComponents: true`) and added
+      `use cache`/`cacheTag`/`cacheLife` to the four Prisma-backed published-catalogue reads in
+      `server/commerce/catalogue/catalog-repository.ts` — the one read path in the app with a
+      real, current freshness boundary. **This is the only caching added anywhere in this
+      change; nothing else is Prisma-backed or cached.**
+- [x] Workstream 8 — migrated all six admin domains onto TanStack Query, wrapping the existing
+      in-memory `AdminRepositories`/`AdminStore` (unchanged business logic) in a client-cache
+      boundary. **Admin reads/writes remain in-memory-prototype, not Prisma-backed** — this
+      migration is orthogonal to the Prisma/auth work blocked in Phase 10/11 below, per the
+      plan's own explicit constraint against inventing persistence claims. Workspace components
+      whose view models genuinely span multiple domains (e.g. Customers' relationship profiles
+      pulling from orders/holds/returns/reviews, Holds' product-name resolution, Orders'/
+      Returns'/Record Sale's cross-references) keep their read on `useAdmin()`'s synchronous
+      store; only migrations with a single-domain read, or a mutation, moved onto
+      `useQuery`/`useMutation`. Removed the deprecated `ControlRoom*` compatibility aliases now
+      that every domain has migrated off the pattern they existed to ease.
+
+Verification for the full plan:
+
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` (163 tests, 41 files), `pnpm audit:buttons`, and
+      `pnpm build` all passed after every task and at the end of each workstream
+- [x] `npx react-doctor@latest . --verbose --diff` completed with "No issues detected" (its
+      internal lint sub-check exceeded its own 300s budget and was skipped, so the result is
+      marked incomplete by the tool itself — the same limitation this tracker has recorded for
+      every prior phase's React Doctor run)
+- [ ] Manual browser smoke passes for the six migrated domains — not performed; this session had
+      no admin Supabase credentials available and does not enter credentials on the user's
+      behalf. The automated verification above (typecheck/lint/test/build) is the evidence on
+      record; a human pass through each workspace (Settings, Customers, Holds, Returns, Orders,
+      Inventory + Product Editor + Record Sale) is still owed before this is browser-verified.
+
+Foundation verification returned (earlier, 2026-07-11):
 
 - [x] `.\node_modules\.bin\biome.CMD check .` — 0 errors, 48 pre-existing warnings still visible
 - [x] `node .\node_modules\typescript\bin\tsc --noEmit --pretty false --incremental false`
 - [x] `node .\node_modules\vitest\vitest.mjs run --passWithNoTests` — 35 files and 139 tests passed
 - [x] `node .\node_modules\next\dist\bin\next build` — Next.js 16.2.10 production build passed (exit 0)
 - [x] React Doctor changed-scope fallback: `npx.cmd --yes react-doctor@latest . --verbose --scope changed --base HEAD --no-supply-chain --no-score --max-duration 180 --blocking none` — no issues found
-- [ ] `npx.cmd --yes react-doctor@latest . --verbose --diff` — still not rerun; prior phases recorded this command timing out after 5 minutes
-- [ ] Browser/visual validation — not required for this non-visual provider/data scaffold; deferred to the first domain migration that touches UI states
 
 ## Verification and integration blockers
 
-No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain blocked. Phase 11 local Supabase apply/advisors/type generation are blocked until Docker Desktop is reachable.
+No executable evidence has been returned for the compact Inventory gallery or the paused TanStack foundation. Phase 9 has Biome lint, TypeScript, Vitest and production-build evidence, but React Doctor and browser/visual checks are not represented as passing. Phase 10 has auth route, OAuth initiation, TypeScript, Vitest and production-build evidence, but the required React Doctor `--diff` command and full browser OAuth completion remain open. Phase 11 now has Prisma format, validation, generation and a review-only baseline; applying it to a shared database remains intentionally outside this change.
 
 PR #4's 31-commit divergence from `main` was resolved on 2026-07-13 with a normal reviewed merge.
 The connected storefront implementation from `main` won the shared storefront conflicts; the
@@ -312,6 +361,12 @@ files. Those findings and all earlier phase gates remain open in the continuatio
 
 ## Next action
 
-The Phase 12 foundation (QueryClient boundary + domain key factories) is in place under the Decision 011 override, but Phase 12's data-layer body is **blocked on Phase 11**: query functions must read Supabase-backed contracts under authenticated store/consumer context, which require the Phase 11 migration to apply, `supabase gen types --local`, and RLS. So the true unblocking step is still Phase 11 — start Docker Desktop, apply the migration with `supabase db reset --local --no-seed`, generate database types, and run Supabase advisors/RLS tests. Only then migrate the first domain (Inventory) onto query options/mutations.
+All six admin domains are now migrated onto TanStack Query (2026-07-17, under the Decision 011 /
+Governance-note override), but over the existing in-memory `AdminRepositories`/`AdminStore` —
+**not** the Phase 11 Prisma schema. That data-layer swap (admin reads/writes moving onto Prisma
+with the Phase 10 authenticated profile-role contracts) remains open and blocked exactly as
+recorded below; this migration only changed the client-side caching boundary in front of the
+still-in-memory prototype store. A manual browser smoke pass across the six domains is also still
+owed (see the 2026-07-17 entry above for why it wasn't done in-session).
 
 Keep Phase 10 and Phase 11 blockers visible, do not represent them as passing, and keep PR #4 draft/non-review-ready until the blocked gates and the branch divergence are resolved.

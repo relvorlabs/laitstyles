@@ -28,7 +28,7 @@ Connect Orders, Holds, Offline Sales and Returns to the same inventory, revenue,
 - Production refunds or bank reversals
 - Backend persistence, APIs, database work or inventory locking
 - Phase 5 customer workspace implementation
-- Supplier, accounting, warehouse or multi-store expansion
+- Supplier, accounting or warehouse expansion
 
 ## Connected invariants
 

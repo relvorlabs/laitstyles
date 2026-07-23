@@ -3,7 +3,7 @@
 import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "@/components/theme/theme-provider";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle({
   className,
@@ -15,15 +15,14 @@ export function ThemeToggle({
   const dark = mounted && resolvedTheme === "dark";
 
   return (
-    <button
+    <Button
       aria-label={dark ? "Use light theme" : "Use dark theme"}
-      className={cn(
-        "grid size-11 place-items-center rounded-full text-[var(--ink)] transition-colors hover:bg-[var(--sage-light)]",
-        className,
-      )}
+      className={className}
       disabled={!mounted}
       onClick={() => setTheme(dark ? "light" : "dark")}
+      size="icon-lg"
       type="button"
+      variant="ghost"
     >
       <HugeiconsIcon
         aria-hidden="true"
@@ -31,6 +30,6 @@ export function ThemeToggle({
         size={19}
         strokeWidth={1.6}
       />
-    </button>
+    </Button>
   );
 }

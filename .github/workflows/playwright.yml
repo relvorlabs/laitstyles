@@ -1,0 +1,85 @@
+name: Playwright
+
+on:
+  pull_request:
+    branches:
+      - main
+      - feat/admin-overview-broadsheet
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Strict button audit
+        run: pnpm audit:buttons
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build production application
+        run: pnpm build
+
+      - name: Run Playwright suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm start > playwright-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/products >/dev/null; then
+              break
+            fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+              cat playwright-server.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl -fsS http://127.0.0.1:3000/products >/dev/null
+          pnpm test:e2e
+
+      - name: Upload Playwright report and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+            playwright-server.log
+          if-no-files-found: warn
+          retention-days: 14

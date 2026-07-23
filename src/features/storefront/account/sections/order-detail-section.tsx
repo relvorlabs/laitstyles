@@ -1,189 +1,379 @@
-"use client";
-
-import { cn } from "@/lib/utils";
-import { products } from "../../home-lab/data";
-import { useAccountUi } from "../account-context";
+import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
+import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
 import {
-  AcctButton,
+  reviewLifecycleMarkerCopy,
+  reviewStateCopy,
+} from "@/features/storefront/account/orders/order-state-copy";
+import type {
+  AccountOrderDetail,
+  AccountOrderLine,
+} from "@/features/storefront/account/orders/order-types";
+import { cn } from "@/lib/utils";
+import {
   Eyebrow,
   monoClass,
-  PlaceholderLink,
   ProgressTrack,
   panelClass,
   panelElevatedClass,
   StatusBadge,
+  type StatusVariant,
   TimelineDot,
 } from "../components/account-primitives";
 
-const thumbLinkClass =
-  "block overflow-hidden rounded-[10px] border border-[var(--acc-line)] bg-[var(--acc-bone-2)]";
+function formatMoney(kobo: number, currency: string): string {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(kobo / 100);
+}
 
-export function OrderDetailSection() {
-  const { navigate, openModal, toast } = useAccountUi();
+function formatDate(isoDate: string): string {
+  return new Intl.DateTimeFormat("en-NG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(isoDate));
+}
+
+function formatDateTime(isoDate: string): string {
+  return new Intl.DateTimeFormat("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(new Date(isoDate));
+}
+
+function sentenceCase(value: string): string {
+  const words = value.replaceAll("_", " ").trim();
+  return words ? `${words[0].toUpperCase()}${words.slice(1)}` : "Order update";
+}
+
+function paymentVariant(code: AccountOrderDetail["paymentStatus"]["code"]): StatusVariant {
+  if (code === "paid") return "success";
+  if (code === "review_required" || code === "cancelled") return "danger";
+  if (code === "pending" || code === "processing") return "warning";
+  return "neutral";
+}
+
+function fulfilmentVariant(code: AccountOrderDetail["fulfilmentStatus"]["code"]): StatusVariant {
+  if (code === "delivered") return "success";
+  if (code === "cancelled") return "danger";
+  if (code === "processing" || code === "ready_for_dispatch" || code === "dispatched") {
+    return "warning";
+  }
+  return "neutral";
+}
+
+function LineImage({ line }: { line: AccountOrderLine }) {
+  const content = line.image ? (
+    <Image
+      src={line.image.src}
+      alt={line.image.alt}
+      fill
+      sizes="(max-width: 639px) 96px, 112px"
+      className="object-cover"
+    />
+  ) : (
+    <span className="grid size-full place-items-center text-[var(--acc-muted)]">
+      <HugeiconsIcon aria-hidden="true" icon={ShoppingBag03Icon} size={26} strokeWidth={1.5} />
+    </span>
+  );
+  const className =
+    "relative block aspect-[4/5] overflow-hidden rounded-[10px] bg-[var(--acc-bone-2)]";
+
+  return line.productSlug ? (
+    <Link href={`/products/${encodeURIComponent(line.productSlug)}`} className={className}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className}>{content}</div>
+  );
+}
+
+function ReviewTreatment({ line, orderNumber }: { line: AccountOrderLine; orderNumber: string }) {
+  const state = line.reviewState;
+  const reviewHref = `/account/orders/${encodeURIComponent(orderNumber)}/items/${encodeURIComponent(line.id)}/review`;
+  let actionLabel: string | null = null;
+
+  if (state.kind === "eligible") actionLabel = "Write a review";
+  if (state.kind === "published") actionLabel = "View review";
+  if (state.kind === "rejected" && state.resubmission.eligible) actionLabel = "Revise review";
+  if (state.kind === "withdrawn" && state.resubmission.eligible) {
+    actionLabel = "Submit review again";
+  }
+
+  return (
+    <div className="space-y-3 sm:text-right">
+      <div className="flex flex-wrap gap-2 sm:justify-end">
+        {state.kind === "pending" ? (
+          <StatusBadge variant="warning">Pending review</StatusBadge>
+        ) : null}
+        {state.kind === "published" ? (
+          <StatusBadge variant="success">Published review</StatusBadge>
+        ) : null}
+        {state.kind === "rejected" ? (
+          <StatusBadge variant="danger">Changes requested</StatusBadge>
+        ) : null}
+        {state.kind === "withdrawn" ? (
+          <StatusBadge variant="neutral">Review withdrawn</StatusBadge>
+        ) : null}
+        {state.kind === "published" && state.lifecycleMarker ? (
+          <StatusBadge variant="neutral">
+            {reviewLifecycleMarkerCopy(state.lifecycleMarker)}
+          </StatusBadge>
+        ) : null}
+      </div>
+      <p className="max-w-sm text-sm leading-6 text-[var(--acc-muted)] sm:ml-auto">
+        {reviewStateCopy(state)}
+      </p>
+      {actionLabel ? (
+        <Link href={reviewHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
+          {actionLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+export type OrderReviewNotice = "submitted" | "withdrawn" | "withdrawal_failed";
+
+const reviewNoticeCopy: Record<OrderReviewNotice, { title: string; description: string }> = {
+  submitted: {
+    title: "Review submitted",
+    description: "Your review is awaiting moderation. We will show it here once it is published.",
+  },
+  withdrawn: {
+    title: "Review withdrawn",
+    description: "The review is no longer visible on the product page.",
+  },
+  withdrawal_failed: {
+    title: "Review not withdrawn",
+    description: "The review changed before we could withdraw it. Refresh and try again.",
+  },
+};
+
+export function OrderDetailSection({
+  order,
+  reviewNotice,
+}: {
+  order: AccountOrderDetail;
+  reviewNotice?: OrderReviewNotice;
+}) {
+  const notice = reviewNotice ? reviewNoticeCopy[reviewNotice] : null;
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => navigate("orders")}
-        className="mb-5 text-sm font-semibold underline underline-offset-4"
+      <Link
+        href="/account/orders"
+        className={cn(buttonVariants({ variant: "link", size: "lg" }), "mb-5 px-0")}
       >
         ← Back to orders
-      </button>
+      </Link>
 
-      <header className="flex flex-wrap items-start justify-between gap-5">
+      {notice ? (
+        <Alert
+          className="mb-6"
+          variant={reviewNotice === "withdrawal_failed" ? "destructive" : "default"}
+        >
+          <AlertTitle>{notice.title}</AlertTitle>
+          <AlertDescription>{notice.description}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <Eyebrow className="text-[var(--acc-sage-deep)]">Order detail</Eyebrow>
-          <h1 className="mt-4 font-serif text-[clamp(3rem,6vw,5rem)] font-normal leading-[.93]">
-            Order <span className={cn(monoClass, "text-[.6em]")}>#LS-1048</span>
+          <h1 className="mt-4 break-words font-serif text-[clamp(2.6rem,6vw,5rem)] font-normal leading-[.93]">
+            Order <span className={cn(monoClass, "text-[.55em]")}>#{order.orderNumber}</span>
           </h1>
           <p className="mt-4 text-[var(--acc-muted)]">
-            Placed 12 July 2026 · Total <span className={monoClass}>₦63,000</span>
+            Placed {formatDate(order.placedAt)} · Total{" "}
+            <span className={monoClass}>{formatMoney(order.totalKobo, order.currency)}</span>
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <AcctButton variant="secondary" onClick={() => toast("Receipt download would start.")}>
-            Receipt
-          </AcctButton>
-          <AcctButton onClick={() => toast("Carrier tracking would open.")}>
-            Track shipment
-          </AcctButton>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge variant={paymentVariant(order.paymentStatus.code)}>
+            {order.paymentStatus.label}
+          </StatusBadge>
+          <StatusBadge variant={fulfilmentVariant(order.fulfilmentStatus.code)}>
+            {order.fulfilmentStatus.label}
+          </StatusBadge>
         </div>
       </header>
 
-      {/* Progress */}
       <section className={cn("mt-7 p-5 sm:p-6", panelElevatedClass)}>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="font-serif text-3xl font-normal">Progress</h2>
-          <StatusBadge variant="success">Shipped</StatusBadge>
+          <p className="text-sm text-[var(--acc-muted)]">
+            Updated {formatDateTime(order.updatedAt)}
+          </p>
         </div>
-        <ProgressTrack>
-          <li className="grid grid-cols-[31px_1fr] gap-4">
-            <TimelineDot state="complete">✓</TimelineDot>
-            <div>
-              <p className="font-semibold">Order placed</p>
-              <p className="mt-1 text-sm text-[var(--acc-muted)]">12 Jul · 10:04</p>
-            </div>
-          </li>
-          <li className="grid grid-cols-[31px_1fr] gap-4">
-            <TimelineDot state="complete">✓</TimelineDot>
-            <div>
-              <p className="font-semibold">Payment confirmed</p>
-              <p className="mt-1 text-sm text-[var(--acc-muted)]">12 Jul · 10:06</p>
-            </div>
-          </li>
-          <li className="grid grid-cols-[31px_1fr] gap-4">
-            <TimelineDot state="complete">✓</TimelineDot>
-            <div>
-              <p className="font-semibold">Shipped with DHL Express</p>
-              <p className="mt-1 text-sm text-[var(--acc-muted)]">14 Jul · 16:42</p>
-            </div>
-          </li>
-          <li className="grid grid-cols-[31px_1fr] gap-4">
-            <TimelineDot state="pending">4</TimelineDot>
-            <div>
-              <p className="font-semibold text-[var(--acc-muted)]">Delivered</p>
-              <p className="mt-1 text-sm text-[var(--acc-muted)]">Pending real carrier event</p>
-            </div>
-          </li>
-        </ProgressTrack>
+        {order.timeline.length > 0 ? (
+          <ProgressTrack>
+            {order.timeline.map((event) => (
+              <li
+                key={`${event.status}-${event.occurredAt}`}
+                className="grid grid-cols-[31px_minmax(0,1fr)] gap-4"
+              >
+                <TimelineDot state="complete">✓</TimelineDot>
+                <div>
+                  <p className="font-semibold">{sentenceCase(event.status)}</p>
+                  <p className="mt-1 text-sm text-[var(--acc-muted)]">
+                    {formatDateTime(event.occurredAt)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ProgressTrack>
+        ) : (
+          <Alert className="mt-5 bg-[var(--acc-bone-2)]">
+            <AlertTitle>No timeline updates yet</AlertTitle>
+            <AlertDescription>
+              The current fulfilment state is {order.fulfilmentStatus.label.toLowerCase()}.
+            </AlertDescription>
+          </Alert>
+        )}
       </section>
 
-      {/* Items */}
-      <section className={cn("mt-6 overflow-hidden", panelClass)}>
+      <section id="review-items" className={cn("mt-6 scroll-mt-24 overflow-hidden", panelClass)}>
         <div className="border-b border-[var(--acc-line)] p-5">
-          <h2 className="font-serif text-3xl font-normal">Items</h2>
+          <Eyebrow className="text-[var(--acc-muted)]">Purchased pieces</Eyebrow>
+          <h2 className="mt-3 font-serif text-3xl font-normal">Items</h2>
         </div>
-        <article className="grid gap-5 border-b border-[var(--acc-line)] p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
-          <PlaceholderLink className={cn(thumbLinkClass, "aspect-[4/5]")}>
-            <img
-              src={products[0].images[0]}
-              alt="Broken-in Leather Moto"
-              className="h-full w-full object-cover [filter:saturate(0.72)_contrast(0.97)]"
-            />
-          </PlaceholderLink>
-          <div>
-            <PlaceholderLink className="font-semibold underline underline-offset-4">
-              Broken-in Leather Moto
-            </PlaceholderLink>
-            <p className="mt-2 text-sm text-[var(--acc-muted)]">Large · Quantity 1</p>
-            <p className={cn("mt-2", monoClass)}>₦41,000</p>
-            <p className="mt-3 text-sm text-[var(--acc-muted)]">
-              Eligible for return after delivery.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => openModal("cancel")}
-            className="text-sm font-semibold acc-fg-oxblood underline underline-offset-4"
-          >
-            Cancel item
-          </button>
-        </article>
-        <article className="grid gap-5 p-5 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
-          <PlaceholderLink className={cn(thumbLinkClass, "aspect-[4/5]")}>
-            <img
-              src={products[1].images[0]}
-              alt="Reworked Indigo Denim"
-              className="h-full w-full object-cover [filter:saturate(0.72)_contrast(0.97)]"
-            />
-          </PlaceholderLink>
-          <div>
-            <PlaceholderLink className="font-semibold underline underline-offset-4">
-              Reworked Indigo Denim
-            </PlaceholderLink>
-            <p className="mt-2 text-sm text-[var(--acc-muted)]">W 32 · Quantity 1</p>
-            <p className={cn("mt-2", monoClass)}>₦22,000</p>
-            <p className="mt-3 text-sm text-[var(--acc-muted)]">
-              Already with carrier; cancellation unavailable.
-            </p>
-          </div>
-          <span className="text-sm text-[var(--acc-muted)]">Not cancellable</span>
-        </article>
+        <div className="divide-y divide-[var(--acc-line)]">
+          {order.lines.map((line) => (
+            <article
+              key={line.id}
+              className="grid gap-5 p-5 sm:grid-cols-[112px_minmax(0,1fr)] lg:grid-cols-[112px_minmax(0,1fr)_minmax(220px,0.8fr)] lg:items-start"
+            >
+              <LineImage line={line} />
+              <div className="min-w-0">
+                {line.productSlug ? (
+                  <Link
+                    href={`/products/${encodeURIComponent(line.productSlug)}`}
+                    className="text-lg font-semibold underline-offset-4 hover:underline"
+                  >
+                    {line.productName}
+                  </Link>
+                ) : (
+                  <h3 className="text-lg font-semibold">{line.productName}</h3>
+                )}
+                <p className="mt-2 text-sm leading-6 text-[var(--acc-muted)]">
+                  {[
+                    line.variantLabel,
+                    line.sku ? `SKU ${line.sku}` : null,
+                    `Quantity ${line.quantity}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <p className={cn("mt-2", monoClass)}>
+                  {formatMoney(line.lineTotalKobo, order.currency)}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <StatusBadge
+                    variant={line.fulfilmentStatus.code === "delivered" ? "success" : "neutral"}
+                  >
+                    {line.fulfilmentStatus.label}
+                  </StatusBadge>
+                  {line.refundStatus.code !== "not_refunded" ? (
+                    <StatusBadge variant="neutral">{line.refundStatus.label}</StatusBadge>
+                  ) : null}
+                </div>
+                {line.deliveredAt ? (
+                  <p className="mt-3 text-sm text-[var(--acc-muted)]">
+                    First delivered {formatDate(line.deliveredAt)}
+                  </p>
+                ) : null}
+              </div>
+              <div className="sm:col-start-2 lg:col-start-auto">
+                <ReviewTreatment line={line} orderNumber={order.orderNumber} />
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
-      {/* Delivery + payment */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className={cn("p-5 sm:p-6", panelClass)}>
-          <Eyebrow className="text-[var(--acc-muted)]">Delivery</Eyebrow>
-          <h2 className="mt-3 font-serif text-3xl font-normal">Lekki, Lagos</h2>
-          <address className="mt-4 not-italic leading-7 text-[var(--acc-muted)]">
-            Ada Okafor
-            <br />
-            18 Example Road
-            <br />
-            Lekki Phase 1, Lagos
-            <br />
-            Nigeria
-          </address>
-          <p className="mt-5 border-t border-[var(--acc-line)] pt-4 text-sm">
-            <strong>DHL Express</strong>
-            <br />
-            <span className={cn(monoClass, "text-[var(--acc-muted)]")}>DHL-83920102</span>
-          </p>
+          <Eyebrow className="text-[var(--acc-muted)]">
+            {order.fulfilmentMethod === "pickup" ? "Pickup" : "Delivery"}
+          </Eyebrow>
+          <h2 className="mt-3 font-serif text-3xl font-normal">
+            {order.delivery?.city ??
+              (order.fulfilmentMethod === "pickup" ? "Store pickup" : "Address unavailable")}
+          </h2>
+          {order.delivery ? (
+            <address className="mt-4 not-italic leading-7 text-[var(--acc-muted)]">
+              {[
+                order.delivery.name,
+                order.delivery.line1,
+                order.delivery.line2,
+                order.delivery.state,
+                order.delivery.country,
+                order.delivery.postalCode,
+              ]
+                .filter(Boolean)
+                .map((part) => (
+                  <span key={part} className="block">
+                    {part}
+                  </span>
+                ))}
+              {order.delivery.phone ? (
+                <span className="mt-3 block text-[var(--acc-ink)]">{order.delivery.phone}</span>
+              ) : null}
+            </address>
+          ) : (
+            <p className="mt-4 text-[var(--acc-muted)]">
+              No delivery address snapshot is available for this order.
+            </p>
+          )}
         </section>
+
         <section className={cn("p-5 sm:p-6", panelClass)}>
           <Eyebrow className="text-[var(--acc-muted)]">Payment summary</Eyebrow>
           <dl className="mt-4 space-y-3">
             <div className="flex justify-between gap-4">
               <dt>Subtotal</dt>
-              <dd className={monoClass}>₦63,000</dd>
+              <dd className={monoClass}>{formatMoney(order.subtotalKobo, order.currency)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt>Delivery</dt>
-              <dd className={monoClass}>₦0</dd>
+              <dd className={monoClass}>{formatMoney(order.deliveryFeeKobo, order.currency)}</dd>
             </div>
-            <div className="flex justify-between gap-4">
-              <dt>Tax</dt>
-              <dd>Included</dd>
-            </div>
+            {order.discountAmountKobo > 0 ? (
+              <div className="flex justify-between gap-4">
+                <dt>Discount</dt>
+                <dd className={monoClass}>
+                  −{formatMoney(order.discountAmountKobo, order.currency)}
+                </dd>
+              </div>
+            ) : null}
+            {order.refundedAmountKobo > 0 ? (
+              <div className="flex justify-between gap-4 text-[var(--acc-muted)]">
+                <dt>Refunded</dt>
+                <dd className={monoClass}>
+                  {formatMoney(order.refundedAmountKobo, order.currency)}
+                </dd>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-4 border-t border-[var(--acc-line)] pt-4 text-lg font-semibold">
               <dt>Total</dt>
-              <dd className={monoClass}>₦63,000</dd>
+              <dd className={monoClass}>{formatMoney(order.totalKobo, order.currency)}</dd>
             </div>
           </dl>
           <p className="mt-5 text-sm text-[var(--acc-muted)]">
-            Visa ending 4242 · Payment confirmed
+            {order.paymentMethod ? `${order.paymentMethod} · ` : ""}
+            {order.paymentStatus.label}
           </p>
         </section>
       </div>

@@ -1,0 +1,149 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { CustomerControls } from "@/features/admin/customers/customer-controls";
+import { CustomerDetailSheet } from "@/features/admin/customers/customer-detail-sheet";
+import { CustomerSavedViews } from "@/features/admin/customers/customer-saved-views";
+import {
+  defaultCustomerQuery,
+  getCustomerSavedViewCounts,
+  getCustomerWorkspaceSummary,
+  queryCustomers,
+} from "@/features/admin/customers/customer-selectors";
+import type {
+  CustomerActionFeedback,
+  CustomerQuery,
+} from "@/features/admin/customers/customer-types";
+import { CustomersEmptyState } from "@/features/admin/customers/customers-empty-state";
+import { CustomersHeader } from "@/features/admin/customers/customers-header";
+import { CustomersMobileList } from "@/features/admin/customers/customers-mobile-list";
+import { CustomersSummaryStrip } from "@/features/admin/customers/customers-summary-strip";
+import { CustomersTable } from "@/features/admin/customers/customers-table";
+import { buildCustomersHref } from "@/features/admin/customers/customers-url";
+import { useAdmin } from "@/features/admin/state/admin-provider";
+import { getCustomerRelationshipProfiles } from "@/lib/admin/customers/customer-selectors";
+import { useAddCustomerNote } from "@/lib/admin/customers/customers-mutations";
+
+export function CustomersWorkspace({
+  initialQuery,
+  initialOpenCustomerId,
+}: {
+  initialQuery: CustomerQuery;
+  initialOpenCustomerId: string | null;
+}) {
+  const pathname = usePathname();
+  const { state } = useAdmin();
+  const addNoteMutation = useAddCustomerNote();
+  const [query, setQuery] = useState(initialQuery);
+  const [openCustomerId, setOpenCustomerId] = useState<string | null>(initialOpenCustomerId);
+  const [feedback, setFeedback] = useState<CustomerActionFeedback | null>(null);
+
+  const allProfiles = useMemo(() => getCustomerRelationshipProfiles(state), [state]);
+  const profiles = useMemo(
+    () => queryCustomers(state, query, allProfiles),
+    [allProfiles, query, state],
+  );
+  const counts = useMemo(() => getCustomerSavedViewCounts(allProfiles), [allProfiles]);
+  const summary = useMemo(
+    () => getCustomerWorkspaceSummary(state, allProfiles),
+    [allProfiles, state],
+  );
+  const openProfile = allProfiles.find((profile) => profile.customer.id === openCustomerId) ?? null;
+
+  function replaceUrl(nextQuery = query, nextCustomerId = openCustomerId) {
+    window.history.replaceState(
+      null,
+      "",
+      buildCustomersHref(pathname, {
+        query: nextQuery,
+        customerId: nextCustomerId,
+      }),
+    );
+  }
+
+  function patchQuery(patch: Partial<CustomerQuery>) {
+    const nextQuery = { ...query, ...patch };
+    setQuery(nextQuery);
+    setFeedback(null);
+    replaceUrl(nextQuery);
+  }
+
+  function resetQuery() {
+    setQuery(defaultCustomerQuery);
+    setFeedback(null);
+    replaceUrl(defaultCustomerQuery);
+  }
+
+  function openCustomer(customerId: string) {
+    setOpenCustomerId(customerId);
+    setFeedback(null);
+    replaceUrl(query, customerId);
+  }
+
+  function closeCustomer() {
+    setOpenCustomerId(null);
+    setFeedback(null);
+    replaceUrl(query, null);
+  }
+
+  async function saveCustomerNote(customerId: string, body: string) {
+    const result = await addNoteMutation.mutateAsync({ customerId, body });
+    if (!result.ok) {
+      setFeedback({
+        tone: "error",
+        title: "Note could not be saved",
+        message: result.error.message,
+      });
+      return result.error.message;
+    }
+
+    setFeedback({
+      tone: "success",
+      title: "Internal note saved",
+      message: result.value.message,
+    });
+    return null;
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+      <CustomersHeader />
+      <CustomersSummaryStrip summary={summary} />
+
+      <Card className="gap-0 overflow-hidden py-0">
+        <CustomerSavedViews
+          counts={counts}
+          onChange={(view) => patchQuery({ view })}
+          value={query.view}
+        />
+        <CustomerControls
+          onQueryChange={patchQuery}
+          onReset={resetQuery}
+          query={query}
+          resultCount={profiles.length}
+        />
+      </Card>
+
+      {profiles.length ? (
+        <>
+          <CustomersMobileList onOpen={openCustomer} profiles={profiles} />
+          <CustomersTable onOpen={openCustomer} profiles={profiles} />
+        </>
+      ) : (
+        <CustomersEmptyState hasCustomers={state.customers.length > 0} onReset={resetQuery} />
+      )}
+
+      <CustomerDetailSheet
+        feedback={feedback}
+        onAddNote={saveCustomerNote}
+        onOpenChange={(open) => {
+          if (!open) closeCustomer();
+        }}
+        profile={openProfile}
+        state={state}
+      />
+    </div>
+  );
+}

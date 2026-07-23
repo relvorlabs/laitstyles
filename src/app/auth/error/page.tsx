@@ -30,10 +30,10 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
         <h1 className="font-serif text-4xl font-medium">Let&apos;s try that again</h1>
         <p className="text-sm leading-6 text-muted-foreground">{message}</p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button className="rounded-full px-5" render={<Link href={signInHref} />}>
+          <Button size="lg" nativeButton={false} render={<Link href={signInHref} />}>
             Back to sign in
           </Button>
-          <Button className="rounded-full px-5" render={<Link href="/" />} variant="outline">
+          <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
             Return to storefront
           </Button>
         </div>

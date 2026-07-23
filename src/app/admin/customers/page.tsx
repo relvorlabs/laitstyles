@@ -2,14 +2,14 @@ import {
   customerSavedViews,
   customerSortOptions,
   defaultCustomerQuery,
-} from "@/features/control-room/customers/customer-selectors";
+} from "@/features/admin/customers/customer-selectors";
 import type {
   CustomerSavedView,
   CustomerSortKey,
   CustomerTypeFilter,
-} from "@/features/control-room/customers/customer-types";
-import { CustomersWorkspace } from "@/features/control-room/customers/customers-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/customers/customer-types";
+import { CustomersWorkspace } from "@/features/admin/customers/customers-workspace";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type CustomersPageProps = {
   searchParams: Promise<{
@@ -34,7 +34,7 @@ const sortValues = new Set<CustomerSortKey>(customerSortOptions.map((option) => 
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const params = await searchParams;
   const requestedCustomer = first(params.customer);
-  const initialOpenCustomerId = activeControlRoomSeed.customers.some(
+  const initialOpenCustomerId = activeAdminSeed.customers.some(
     (customer) => customer.id === requestedCustomer,
   )
     ? (requestedCustomer ?? null)

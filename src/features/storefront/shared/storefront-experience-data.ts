@@ -1,3 +1,5 @@
+import type { Product } from "@/features/storefront/shared/catalogue-data";
+
 export type StorefrontAccountItemState = "available" | "lastone" | "resYou" | "resOthers" | "sold";
 
 export type StorefrontAccountItem = {
@@ -16,112 +18,32 @@ export type StorefrontAccountItem = {
   mins?: number;
 };
 
-export const storefrontImage = (id: string) =>
-  `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-
-export const storefrontAccountSeedItems: StorefrontAccountItem[] = [
-  [
-    "Botanical Print Jacket",
-    "Jackets",
-    "S",
-    "Ivory",
-    "Excellent",
-    34000,
-    42000,
-    "lastone",
-    "1mJxRFNyGo2xXT89oLeiuAGZtSvRlw0Jf",
-  ],
-  [
-    "Sage Field Vest",
-    "Jackets",
-    "M",
-    "Sage",
-    "Excellent",
-    28000,
-    35000,
-    "available",
-    "1T0XygfKzp92Id6ch09aTFcUyG8PbIG66",
-  ],
-  [
-    "Eco Shell Jacket",
-    "Jackets",
-    "M",
-    "Grey",
-    "Excellent",
-    31000,
-    39000,
-    "resYou",
-    "1_2N674OlXJWHLw2a0Yh99LPNMlzQ95o_",
-  ],
-  [
-    "Ivory Zip Jacket",
-    "Jackets",
-    "M",
-    "Cream",
-    "Good",
-    29000,
-    37000,
-    "resOthers",
-    "1PDPeY2i810fzrtHsOUIcbh569FWkkNep",
-  ],
-  [
-    "Bloom Belted Coat",
-    "Coats",
-    "L",
-    "Rust",
-    "Excellent",
-    45000,
-    58000,
-    "sold",
-    "1k3j8wbjDh_WYYrHykQo8HPGoLDuLYtpv",
-  ],
-  [
-    "Daisy Field Dress",
-    "Dresses",
-    "S",
-    "Ivory",
-    "Excellent",
-    26000,
-    33000,
-    "available",
-    "1dXXWxCEEg6ezYPsRCK6B1XxD5QpAiZfh",
-  ],
-  [
-    "Chunky Cable Sweater",
-    "Knitwear",
-    "M",
-    "Rust",
-    "Good",
-    23000,
-    29000,
-    "lastone",
-    "127OwSWR8AB6eyu9zzWjc_k7KW3cYa-Uw",
-  ],
-  [
-    "Linen Camp Shirt",
-    "Shirts",
-    "M",
-    "Cream",
-    "Excellent",
-    13500,
-    18000,
-    "available",
-    "1wyWEgY5Wazc7-chGSdz5IjlpvKAzXL80",
-  ],
-].map((row, index) => ({
-  id: `w${index}`,
-  name: row[0] as string,
-  cat: row[1] as string,
-  size: row[2] as string,
-  color: row[3] as string,
-  cond: row[4] as string,
-  priceNum: row[5] as number,
-  origNum: row[6] as number,
-  st: row[7] as StorefrontAccountItemState,
-  img: storefrontImage(row[8] as string),
-  secondsLeft: row[7] === "resYou" ? 742 - index * 7 : undefined,
-  mins: row[7] === "resOthers" ? 4 + (index % 4) : undefined,
-}));
+export function buildStorefrontAccountSeedItems(
+  products: readonly Product[],
+): StorefrontAccountItem[] {
+  return products.slice(0, 8).map((product, index) => ({
+    id: `w${index}`,
+    name: product.name,
+    cat: product.type,
+    size: product.size,
+    color: product.colour,
+    cond: product.condition === "A+" ? "Excellent" : product.condition === "B+" ? "Fair" : "Good",
+    priceNum: product.price,
+    origNum: product.referencePrice ?? product.price,
+    st:
+      index === 0
+        ? "resYou"
+        : product.status === "sold"
+          ? "sold"
+          : product.status === "reserved"
+            ? "resOthers"
+            : product.inventory === "one-of-one" || product.stock === 1
+              ? "lastone"
+              : "available",
+    img: product.images[0],
+    secondsLeft: index === 0 ? 742 : undefined,
+  }));
+}
 
 // ── Storefront holds ─────────────────────────────────────────────────────────
 // A storefront product placed on a 15-minute hold is represented as a `resYou`
@@ -134,10 +56,10 @@ export const storefrontAccountSeedItems: StorefrontAccountItem[] = [
 export const HOLD_SECONDS = 15 * 60;
 
 export const SEED_HOLD_IDS: ReadonlySet<string> = new Set(
-  storefrontAccountSeedItems.map((item) => item.id),
+  Array.from({ length: 8 }, (_, index) => `w${index}`),
 );
 
-// Minimal, home-lab-agnostic shape the provider accepts to place a hold.
+// Minimal, storefront-agnostic shape the provider accepts to place a hold.
 export type HoldablePiece = {
   id: string;
   name: string;

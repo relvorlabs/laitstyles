@@ -33,7 +33,7 @@ export type AccountNavItem = {
 export const accountNavItems: AccountNavItem[] = [
   { route: "overview", label: "Overview" },
   { route: "profile", label: "Profile" },
-  { route: "orders", label: "Orders", count: "03" },
+  { route: "orders", label: "Orders" },
   { route: "returns", label: "Returns", count: "01" },
   { route: "addresses", label: "Addresses" },
   { route: "payments", label: "Payment methods" },
@@ -49,7 +49,7 @@ export const routeTitles: Record<AccountRoute, string> = {
   overview: "Overview",
   profile: "Profile",
   orders: "Orders",
-  "order-detail": "Order #LS-1048",
+  "order-detail": "Order details",
   returns: "Returns",
   "return-detail": "Return #RT-0038",
   addresses: "Addresses",
@@ -63,6 +63,32 @@ export const routeTitles: Record<AccountRoute, string> = {
   "ticket-detail": "Ticket #SP-0119",
 };
 
-export function isAccountRoute(value: string): value is AccountRoute {
-  return value in routeTitles;
+// URL for each route under the app-router `/account` tree. Dynamic order detail
+// links are built from their public order number at the rendering call site.
+export const routePaths: Record<AccountRoute, string> = {
+  overview: "/account",
+  profile: "/account/profile",
+  orders: "/account/orders",
+  "order-detail": "/account/orders/detail",
+  returns: "/account/returns",
+  "return-detail": "/account/returns/detail",
+  addresses: "/account/addresses",
+  payments: "/account/payments",
+  saved: "/account/saved",
+  notifications: "/account/notifications",
+  preferences: "/account/preferences",
+  security: "/account/security",
+  privacy: "/account/privacy",
+  support: "/account/support",
+  "ticket-detail": "/account/support/detail",
+};
+
+const pathToRoute = new Map<string, AccountRoute>(
+  (Object.entries(routePaths) as [AccountRoute, string][]).map(([route, path]) => [path, route]),
+);
+
+/** Resolve the current section from `usePathname()`, defaulting to overview. */
+export function routeFromPathname(pathname: string): AccountRoute {
+  if (pathname.startsWith("/account/orders/")) return "order-detail";
+  return pathToRoute.get(pathname) ?? "overview";
 }

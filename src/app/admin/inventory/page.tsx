@@ -1,12 +1,12 @@
-import { defaultInventoryPageSize } from "@/features/control-room/inventory/inventory-url";
-import { InventoryWorkspace } from "@/features/control-room/inventory/inventory-workspace";
+import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
+import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
   inventorySavedViews,
   inventorySortOptions,
-} from "@/lib/control-room/inventory-selectors";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/lib/admin/inventory/inventory-selectors";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 import type {
   CatalogueChannel,
   InventoryModeFilter,
@@ -14,7 +14,7 @@ import type {
   InventorySavedView,
   InventorySortKey,
   InventoryStockFilter,
-} from "@/lib/control-room/types";
+} from "@/lib/admin/shared/types";
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -51,7 +51,7 @@ const channelValues = new Set<CatalogueChannel | "all">([
   "instagram",
 ]);
 const sortValues = new Set<InventorySortKey>(inventorySortOptions.map((option) => option.value));
-const facets = getInventoryFacetOptions(activeControlRoomSeed.products);
+const facets = getInventoryFacetOptions(activeAdminSeed.products);
 const categoryValues = new Set(facets.categories);
 const collectionValues = new Set(facets.collections);
 const pageSizeValues = new Set([10, 15, 25, 50]);
@@ -66,9 +66,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
 
   const view = pick(requestedView, savedViewValues, "all");
   const presentation: InventoryPresentation = requestedPresentation === "table" ? "table" : "grid";
-  const productId = activeControlRoomSeed.products.some(
-    (product) => product.id === requestedProduct,
-  )
+  const productId = activeAdminSeed.products.some((product) => product.id === requestedProduct)
     ? (requestedProduct ?? null)
     : null;
   const requestedPage = Number(first(params.page));

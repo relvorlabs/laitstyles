@@ -1,16 +1,50 @@
 import { describe, expect, it } from "vitest";
+import type { Product } from "./catalogue-data";
 import {
   applyHold,
   applyRelease,
+  buildStorefrontAccountSeedItems,
   HOLD_SECONDS,
   type HoldablePiece,
   type HoldsRecord,
   holdsToItems,
   pruneExpiredHolds,
   type StorefrontAccountItem,
-  storefrontAccountSeedItems,
   tickHolds,
 } from "./storefront-experience-data";
+
+const storefrontAccountSeedItems = buildStorefrontAccountSeedItems(
+  Array.from(
+    { length: 8 },
+    (_, index) =>
+      ({
+        id: `p${index}`,
+        databaseId: `p${index}`,
+        slug: `product-${index}`,
+        name: `Product ${index}`,
+        brand: "Laitstyles",
+        brandStatus: "Branded",
+        category: "Men",
+        type: "Jackets",
+        style: "Vintage",
+        price: 1000,
+        referencePrice: 1200,
+        condition: "A",
+        size: "M",
+        fit: "Regular",
+        colour: "Black",
+        inventory: "matching-stock",
+        stock: 4,
+        status: "available",
+        new: false,
+        saved: 0,
+        flaw: "None",
+        material: "Cotton",
+        careInstructions: "Follow the label.",
+        images: ["https://example.test/product.jpg"],
+      }) satisfies Product,
+  ),
+);
 
 const piece: HoldablePiece = {
   id: "p3",

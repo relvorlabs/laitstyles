@@ -4,99 +4,63 @@ on:
   pull_request:
     branches:
       - main
+      - feat/admin-overview-broadsheet
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: laitstyle-parity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 25
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate Prisma schema
+        run: pnpm prisma:validate
+
+      - name: Strict button audit
+        run: pnpm audit:buttons
+
       - name: Lint
-        id: lint
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm lint 2>&1 | tee lint.log
+        run: pnpm lint
 
       - name: TypeScript
-        id: typescript
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm exec tsc --noEmit 2>&1 | tee typescript.log
+        run: pnpm typecheck
 
       - name: Tests
-        id: tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm exec vitest run --passWithNoTests 2>&1 | tee tests.log
+        run: pnpm test
 
       - name: Production build
-        id: build
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm build 2>&1 | tee build.log
+        run: pnpm build
 
       - name: React Doctor diagnostics
-        id: react_doctor
+        if: always()
         continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          pnpm dlx react-doctor@latest . --verbose 2>&1 | tee react-doctor.log
-
-      - name: Upload verification logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: laitstyle-parity-logs
-          path: |
-            lint.log
-            typescript.log
-            tests.log
-            build.log
-            react-doctor.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Enforce required checks
-        if: always()
-        env:
-          LINT_OUTCOME: ${{ steps.lint.outcome }}
-          TYPESCRIPT_OUTCOME: ${{ steps.typescript.outcome }}
-          TESTS_OUTCOME: ${{ steps.tests.outcome }}
-          BUILD_OUTCOME: ${{ steps.build.outcome }}
-        run: |
-          printf 'lint=%s\ntypescript=%s\ntests=%s\nbuild=%s\n' \
-            "$LINT_OUTCOME" "$TYPESCRIPT_OUTCOME" "$TESTS_OUTCOME" "$BUILD_OUTCOME"
-          test "$LINT_OUTCOME" = success
-          test "$TYPESCRIPT_OUTCOME" = success
-          test "$TESTS_OUTCOME" = success
-          test "$BUILD_OUTCOME" = success
+        run: pnpm dlx react-doctor@latest . --verbose --scope changed --base origin/feat/admin-overview-broadsheet

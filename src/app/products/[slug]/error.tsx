@@ -1,8 +1,9 @@
 "use client";
 
-import "@/features/storefront/home-lab/home-lab.css";
+import "@/features/storefront/shared/storefront.css";
 import Link from "next/link";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function ProductError({
   error,
@@ -15,7 +16,7 @@ export default function ProductError({
     console.error(error);
   }, [error]);
   return (
-    <div className="lst-lab">
+    <div className="lst-storefront">
       <main
         id="main"
         className="mx-auto grid min-h-[70vh] max-w-[720px] place-items-center px-4 py-24 text-center"
@@ -29,17 +30,17 @@ export default function ProductError({
             Please try again — if it keeps happening, head back to the catalogue.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <button
-              type="button"
-              className="button button-primary"
-              onClick={reset}
-              style={{ borderRadius: 999 }}
-            >
+            <Button onClick={reset} size="lg" type="button">
               Try again
-            </button>
-            <Link href="/products" className="button" style={{ borderRadius: 999 }}>
+            </Button>
+            <Button
+              nativeButton={false}
+              render={<Link href="/products" />}
+              size="lg"
+              variant="outline"
+            >
               Back to the catalogue
-            </Link>
+            </Button>
           </div>
         </div>
       </main>

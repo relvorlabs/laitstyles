@@ -2,15 +2,15 @@ import {
   defaultOrderQuery,
   orderSavedViews,
   orderSortOptions,
-} from "@/features/control-room/orders/order-selectors";
+} from "@/features/admin/orders/order-selectors";
 import type {
   OrderChannelFilter,
   OrderPaymentFilter,
   OrderSavedView,
   OrderSortKey,
-} from "@/features/control-room/orders/order-types";
-import { OrdersWorkspace } from "@/features/control-room/orders/orders-workspace";
-import { activeControlRoomSeed } from "@/lib/control-room/seed";
+} from "@/features/admin/orders/order-types";
+import { OrdersWorkspace } from "@/features/admin/orders/orders-workspace";
+import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type OrdersPageProps = {
   searchParams: Promise<{
@@ -38,9 +38,7 @@ const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
   const requestedOrder = first(params.order);
-  const initialOpenOrderId = activeControlRoomSeed.orders.some(
-    (order) => order.id === requestedOrder,
-  )
+  const initialOpenOrderId = activeAdminSeed.orders.some((order) => order.id === requestedOrder)
     ? (requestedOrder ?? null)
     : null;
 
