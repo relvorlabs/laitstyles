@@ -2,9 +2,9 @@ import "server-only";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 // Single coupling point to the generated client. Nothing else in the app
-// imports from src/generated/** — repositories import `prisma`/`Prisma`
+// imports from prisma/generated/** — repositories import `prisma`/`Prisma`
 // from here (or from "@/lib/prisma"). Server-only: never reaches the browser.
-import { Prisma, PrismaClient } from "../../generated/prisma/client";
+import { Prisma, PrismaClient } from "../../../prisma/generated/prisma/client";
 
 export type { PrismaClient };
 export { Prisma };
