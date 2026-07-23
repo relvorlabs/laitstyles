@@ -149,14 +149,23 @@ export function prepareCatalogSnapshot(input: unknown): PreparedCatalogSnapshot 
   assertUnique(snapshot.products, "products.slug", (row) => row.slug);
   assertUnique(snapshot.products, "products.sku", (row) => row.sku);
   assertUnique(snapshot.products, "products.archive_number", (row) => row.archive_number);
+  assertUnique(snapshot.product_channels, "product_channels.product_id+channel", (row) =>
+    `${row.product_id}:${row.channel}`,
+  );
   assertUnique(snapshot.product_variants, "product_variants.id", (row) => row.id);
   assertUnique(snapshot.product_variants, "product_variants.product_id+sku", (row) =>
     row.sku === null ? null : `${row.product_id}:${row.sku}`,
   );
   assertUnique(snapshot.stock_levels, "stock_levels.id", (row) => row.id);
+  assertUnique(snapshot.stock_levels, "stock_levels.product_id+variant_id", (row) =>
+    `${row.product_id}:${row.variant_id ?? "product"}`,
+  );
   assertUnique(snapshot.product_measurements, "product_measurements.id", (row) => row.id);
   assertUnique(snapshot.cloudinary_assets, "cloudinary_assets.id", (row) => row.id);
   assertUnique(snapshot.product_media, "product_media.id", (row) => row.id);
+  assertUnique(snapshot.product_media, "product_media.product_id+variant_id+position", (row) =>
+    `${row.product_id}:${row.variant_id ?? "product"}:${row.position}`,
+  );
 
   const categoryIds = new Set(snapshot.catalogue_categories.map((row) => row.id));
   const collectionIds = new Set(snapshot.catalogue_collections.map((row) => row.id));
