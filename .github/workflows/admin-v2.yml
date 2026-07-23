@@ -1,224 +1,50 @@
-# name: Admin checks
+name: Admin checks
 
-# on:
-#   pull_request:
-#     branches:
-#       - main
-#   workflow_dispatch:
+on:
+  pull_request:
+    branches:
+      - main
+      - feat/admin-overview-broadsheet
+  workflow_dispatch:
 
-# concurrency:
-#   group: admin-v2-${{ github.event.pull_request.number || github.ref }}
-#   cancel-in-progress: true
+permissions:
+  contents: read
 
-# permissions:
-#   contents: read
+concurrency:
+  group: admin-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
-# jobs:
-#   verify:
-#     runs-on: ubuntu-latest
-#     timeout-minutes: 75
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "1"
+      STOREFRONT_STYLE_SMOKE: "1"
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
-#     steps:
-#       - name: Check out repository
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-#       - name: Set up pnpm
-#         uses: pnpm/action-setup@v4
-#         with:
-#           version: 11.13.0
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 24
-#           cache: pnpm
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
 
-#       - name: Install dependencies
-#         run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-#       - name: Strict button audit
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm audit:buttons 2>&1 | tee button-audit.log
+      - name: Strict button audit
+        run: pnpm audit:buttons
 
-#       - name: Lint
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm lint 2>&1 | tee lint.log
+      - name: Admin unit tests
+        run: pnpm exec vitest run src/lib/admin src/features/admin --passWithNoTests
 
-#       - name: TypeScript
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm typecheck 2>&1 | tee typescript.log
-
-#       - name: Tests
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm test 2>&1 | tee tests.log
-
-#       - name: Theme token audit
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           node scripts/admin-phase7-theme-audit.mjs 2>&1 | tee theme-audit.log
-
-#       - name: Production build
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm build 2>&1 | tee build.log
-
-#       - name: Browser viewport and interaction checks
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -euo pipefail
-#           mkdir -p admin-screenshots
-#           pnpm exec playwright install --with-deps chromium 2>&1 | tee browser.log
-#           PLAYWRIGHT=./node_modules/.bin/playwright
-
-#           ./node_modules/.bin/next start >> browser.log 2>&1 &
-#           SERVER_PID=$!
-#           cleanup() {
-#             kill "$SERVER_PID" 2>/dev/null || true
-#             wait "$SERVER_PID" 2>/dev/null || true
-#           }
-#           trap cleanup EXIT
-
-#           for attempt in {1..60}; do
-#             if curl --silent --fail http://127.0.0.1:3000/admin >/dev/null; then
-#               break
-#             fi
-#             sleep 1
-#           done
-
-#           routes=(
-#             "/"
-#             "/admin"
-#             "/admin/inventory"
-#             "/admin/inventory?presentation=table"
-#             "/admin/orders"
-#             "/admin/holds"
-#             "/admin/returns"
-#             "/admin/customers"
-#             "/admin/settings"
-#           )
-#           for route in "${routes[@]}"; do
-#             curl --silent --fail "http://127.0.0.1:3000${route}" >/dev/null
-#           done
-
-#           screenshot_routes=(
-#             "overview|/admin"
-#             "inventory-grid|/admin/inventory"
-#             "inventory-table|/admin/inventory?presentation=table"
-#             "orders|/admin/orders"
-#             "holds|/admin/holds"
-#             "returns|/admin/returns"
-#             "customers|/admin/customers"
-#             "settings|/admin/settings"
-#           )
-#           for viewport in 375,812 768,1024 1280,800; do
-#             label=${viewport/,/x}
-#             for entry in "${screenshot_routes[@]}"; do
-#               name=${entry%%|*}
-#               route=${entry#*|}
-#               "$PLAYWRIGHT" screenshot \
-#                 --browser chromium \
-#                 --viewport-size "$viewport" \
-#                 --wait-for-timeout 1500 \
-#                 --full-page \
-#                 "http://127.0.0.1:3000${route}" \
-#                 "admin-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
-#             done
-#           done
-
-#           detail_routes=(
-#             "inventory-detail|/admin/inventory?product=botanical-jeans"
-#             "orders-detail|/admin/orders?order=LS-20481"
-#             "holds-detail|/admin/holds?hold=hold-botanical"
-#             "customers-detail|/admin/customers?customer=customer-amara"
-#             "settings-team|/admin/settings?section=team"
-#           )
-#           for viewport in 375,812 1280,800; do
-#             label=${viewport/,/x}
-#             for entry in "${detail_routes[@]}"; do
-#               name=${entry%%|*}
-#               route=${entry#*|}
-#               "$PLAYWRIGHT" screenshot \
-#                 --browser chromium \
-#                 --viewport-size "$viewport" \
-#                 --wait-for-timeout 1500 \
-#                 --full-page \
-#                 "http://127.0.0.1:3000${route}" \
-#                 "admin-screenshots/${name}-${label}.png" 2>&1 | tee -a browser.log
-#             done
-#           done
-
-#           scripts=(
-#             "admin-phase3-check.mjs"
-#             "admin-phase4-orders-check.mjs"
-#             "admin-phase4-holds-check.mjs"
-#             "admin-phase4-sales-returns-check.mjs"
-#             "admin-phase5-customers-check.mjs"
-#             "admin-phase6-settings-check.mjs"
-#             "admin-phase7-theme-media-check.mjs"
-#             "admin-phase7-theme-routes-check.mjs"
-#             "admin-phase8-check.mjs"
-#             "admin-inventory-catalogue-check.mjs"
-#           )
-#           for script in "${scripts[@]}"; do
-#             ADMIN_BASE_URL=http://127.0.0.1:3000 \
-#               ADMIN_SCREENSHOT_DIR="$GITHUB_WORKSPACE/admin-screenshots" \
-#               CONTROL_ROOM_BASE_URL=http://127.0.0.1:3000 \
-#               CONTROL_ROOM_SCREENSHOT_DIR="$GITHUB_WORKSPACE/admin-screenshots" \
-#               node "scripts/${script}" 2>&1 | tee -a browser.log
-#           done
-
-#           cleanup
-#           trap - EXIT
-
-#       - name: React Doctor diagnostics
-#         if: always()
-#         shell: bash
-#         run: |
-#           set -o pipefail
-#           pnpm dlx react-doctor@latest . --verbose --scope changed --base origin/main 2>&1 | tee react-doctor.log
-#           grep -a -i -q 'No issues found!' react-doctor.log
-
-#       - name: Upload verification logs
-#         if: always()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: admin-v2-logs
-#           path: |
-#             button-audit.log
-#             lint.log
-#             typescript.log
-#             tests.log
-#             theme-audit.log
-#             build.log
-#             browser.log
-#             react-doctor.log
-#           if-no-files-found: warn
-#           retention-days: 7
-
-#       - name: Upload viewport screenshots
-#         if: always()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: admin-v2-screenshots
-#           path: admin-screenshots
-#           if-no-files-found: warn
-#           retention-days: 7
+      - name: TypeScript
+        run: pnpm typecheck
