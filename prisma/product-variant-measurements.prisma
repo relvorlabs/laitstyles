@@ -1,0 +1,14 @@
+/// Variant measurements are queryable through Prisma Client, while their
+/// foreign key and lifecycle are owned by the checked-in SQL migration. The
+/// table is declared external in prisma.config.ts so later schema diffs do not
+/// remove that SQL-owned product_variants constraint.
+model product_variant_measurements {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  variant_id String @db.Uuid
+  label      String
+  value      String
+  position   Int    @default(0)
+
+  @@unique([variant_id, position], map: "product_variant_measurements_variant_position_unique")
+  @@schema("public")
+}

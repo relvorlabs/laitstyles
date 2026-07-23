@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  catalogueHref,
+  type ParsedCatalogueSearch,
+} from "@/features/storefront/catalogue/catalogue-search-params";
 import { type Product, productToHoldable } from "@/features/storefront/shared/catalogue-data";
 import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
 import { ProductCard } from "@/features/storefront/shared/product-card";
 import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
-const PAGE_SIZE = 12;
 const quickLinks: [string, string][] = [
   ["all", "All"],
   ["new", "New arrivals"],
@@ -22,11 +26,38 @@ const quickLinks: [string, string][] = [
 ];
 const genderByKey: Record<string, string> = { women: "Women", men: "Men", unisex: "Unisex" };
 
-function CatalogueApp() {
+function searchFilterSignature(search: ParsedCatalogueSearch) {
+  return JSON.stringify({
+    category: search.category ?? "All",
+    collection: search.collection,
+    conditions: [...search.conditions].sort(),
+    inventories: [...search.inventories].sort(),
+    inStock: search.inStock,
+    maxPrice: search.maxPriceNaira ?? null,
+    search: search.search,
+    sort: search.sort,
+  });
+}
+
+function CatalogueApp({
+  productIds,
+  total,
+  page,
+  pageCount,
+  search,
+}: {
+  productIds: readonly string[];
+  total: number;
+  page: number;
+  pageCount: number;
+  search: ParsedCatalogueSearch;
+}) {
+  const router = useRouter();
   const storefront = useStorefront();
-  const [page, setPage] = useState(1);
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [filtersReady, setFiltersReady] = useState(false);
+  const lastAppliedFilterSignature = useRef(searchFilterSignature(search));
 
   useEffect(() => {
     const storedDensity = sessionStorage.getItem("laitstyles-density");
@@ -44,21 +75,64 @@ function CatalogueApp() {
     }
   };
 
-  const filterSignature = `${storefront.category}|${storefront.collection}|${[
-    ...storefront.conditions,
-  ]
-    .sort()
-    .join(",")}|${[...storefront.inventories].sort().join(",")}|${storefront.inStock}|${
-    storefront.maxPrice
-  }|${storefront.search}|${storefront.sort}`;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: page resets on filter-signature change only.
-  useEffect(() => setPage(1), [filterSignature]);
+  const localFilterSignature = JSON.stringify({
+    category: storefront.category,
+    collection: storefront.collection,
+    conditions: [...storefront.conditions].sort(),
+    inventories: [...storefront.inventories].sort(),
+    inStock: storefront.inStock,
+    maxPrice: storefront.maxPrice,
+    search: storefront.search,
+    sort: storefront.sort,
+  });
+  const serverFilterSignature = searchFilterSignature(search);
 
-  const list = storefront.filteredList;
-  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const current = Math.min(page, pages);
-  const start = (current - 1) * PAGE_SIZE;
-  const pageItems = list.slice(start, start + PAGE_SIZE);
+  // The serialized signature contains every server-owned value read below.
+  // Storefront setters are stable React state setters.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: signature-driven synchronization is intentional.
+  useEffect(() => {
+    setFiltersReady(false);
+    lastAppliedFilterSignature.current = serverFilterSignature;
+    storefront.setCategory(search.category ?? "All");
+    storefront.setCollection(search.collection);
+    storefront.setConditions(new Set(search.conditions));
+    storefront.setInventories(new Set(search.inventories));
+    storefront.setInStock(search.inStock);
+    storefront.setMaxPrice(search.maxPriceNaira ?? null);
+    storefront.setSearch(search.search);
+    storefront.setSort(search.sort);
+    const frame = window.requestAnimationFrame(() => setFiltersReady(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [serverFilterSignature]);
+
+  // Local controls keep their existing behavior; this effect makes their state
+  // shareable by serializing it into the route rather than filtering in-browser.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the serialized signature is the dependency contract.
+  useEffect(() => {
+    if (!filtersReady || localFilterSignature === lastAppliedFilterSignature.current) return;
+    lastAppliedFilterSignature.current = localFilterSignature;
+    router.replace(
+      catalogueHref(search, {
+        page: 1,
+        category: storefront.category === "All" ? null : storefront.category,
+        collection: storefront.collection,
+        conditions: [...storefront.conditions],
+        inventories: [...storefront.inventories],
+        inStock: storefront.inStock,
+        maxPriceNaira: storefront.maxPrice ?? undefined,
+        search: storefront.search,
+        sort: storefront.sort as ParsedCatalogueSearch["sort"],
+      }),
+      { scroll: false },
+    );
+  }, [filtersReady, localFilterSignature]);
+
+  const pageItems = productIds.flatMap((id) => {
+    const product = storefront.productById(id);
+    return product ? [product] : [];
+  });
+  const pages = pageCount;
+  const current = page;
 
   const applyQuick = (key: string) => {
     if (key === "all") storefront.applyShop({});
@@ -101,7 +175,7 @@ function CatalogueApp() {
     ));
 
   const goToPage = (nextPage: number) => {
-    setPage(nextPage);
+    router.push(catalogueHref(search, { page: nextPage }));
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -160,7 +234,7 @@ function CatalogueApp() {
             </div>
             <div className="toolbar-group">
               <span className="result-count mono" id="resultCount">
-                {list.length} products
+                {total} products
               </span>
               <div aria-label="Product grid density" className="density-control" role="group">
                 <Button
@@ -218,7 +292,7 @@ function CatalogueApp() {
           </aside>
 
           <div className="results">
-            {list.length ? (
+            {total > 0 ? (
               <div aria-live="polite" className={`product-grid ${density}`} id="productGrid">
                 {renderCards(pageItems)}
               </div>
@@ -231,7 +305,7 @@ function CatalogueApp() {
                 </Button>
               </div>
             )}
-            {list.length > 0 && pages > 1 ? (
+            {total > 0 && pages > 1 ? (
               <nav aria-label="Product result pages" className="pagination" id="pagination">
                 <Button
                   aria-label="Previous page"
@@ -276,7 +350,29 @@ function CatalogueApp() {
   );
 }
 
-export function ProductCatalogue({ fontClassName }: { fontClassName: string }) {
+export function ProductCatalogue({
+  fontClassName,
+  productIds,
+  total,
+  page,
+  pageCount,
+  search,
+}: {
+  fontClassName: string;
+  productIds: readonly string[];
+  total: number;
+  page: number;
+  pageCount: number;
+  search: ParsedCatalogueSearch;
+}) {
   void fontClassName;
-  return <CatalogueApp />;
+  return (
+    <CatalogueApp
+      page={page}
+      pageCount={pageCount}
+      productIds={productIds}
+      search={search}
+      total={total}
+    />
+  );
 }

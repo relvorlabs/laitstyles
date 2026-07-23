@@ -15,12 +15,22 @@ const datasourceUrl =
     : null;
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  // Prisma's multi-file schema keeps the large public baseline stable while
+  // Phase 2 adds the normalized variant-measurement model in its own file.
+  schema: "prisma",
   migrations: {
     path: "prisma/migrations",
-    // Dev-only deterministic seed (docs/storefront-v2/06 Phase 1). Runs automatically
-    // after `prisma migrate dev` / `prisma migrate reset`, or on demand via `prisma db seed`.
-    // seed: "tsx scripts/seed/seed-storefront.ts",
+    // Prisma 7 does not automatically seed after migrate dev/reset. Keep
+    // deterministic development seeding explicit through the repository script.
+  },
+  // This table is created and constrained by the checked-in SQL migration. It is
+  // still available through Prisma Client, but Prisma Migrate must not infer away
+  // the SQL-owned foreign key to product_variants on a later schema diff.
+  experimental: {
+    externalTables: true,
+  },
+  tables: {
+    external: ["public.product_variant_measurements"],
   },
   // DB commands use the direct/session-pooler URL when configured. The runtime
   // Prisma client continues to use DATABASE_URL in src/lib/prisma/client.ts.

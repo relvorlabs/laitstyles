@@ -221,7 +221,7 @@ test("rejects duplicate ids, slugs, product SKUs, and archive numbers", () => {
   }
 });
 
-test("normalizes later duplicate variant SKUs to null within a product", () => {
+test("rejects duplicate variant SKUs within a product before any write", () => {
   const input = validSnapshot();
   input.products[0].inventory_mode = "variant";
   input.product_variants = [
@@ -256,10 +256,10 @@ test("normalizes later duplicate variant SKUs to null within a product", () => {
     updated_at: NOW,
   }));
 
-  const prepared = prepareCatalogSnapshot(input);
-  assert.equal(prepared.snapshot.product_variants[0].sku, "DUPLICATE");
-  assert.equal(prepared.snapshot.product_variants[1].sku, null);
-  assert.equal(prepared.counts.normalizedDuplicateSkus, 1);
+  assert.throws(
+    () => prepareCatalogSnapshot(input),
+    /product_variants\.product_id\+sku.*duplicate/,
+  );
 });
 
 test("rejects negative monetary or stock values", () => {

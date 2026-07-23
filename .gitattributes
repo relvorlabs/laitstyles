@@ -1,0 +1,17 @@
+# Biome is configured to format application source with CRLF. Make that
+# deterministic on Windows and Linux runners instead of relying on core.autocrlf.
+*.ts text eol=crlf
+*.tsx text eol=crlf
+*.mts text eol=crlf
+*.cts text eol=crlf
+*.js text eol=crlf
+*.jsx text eol=crlf
+*.mjs text eol=crlf
+*.cjs text eol=crlf
+*.json text eol=crlf
+*.css text eol=crlf
+
+# GitHub Actions and executable shell files must retain LF.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
