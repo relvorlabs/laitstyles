@@ -2,14 +2,30 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { AppShellFallback } from "@/app/app-shell-fallback";
 import { StorefrontProviders } from "@/app/storefront-providers";
+import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import { loadStorefrontCatalog } from "@/features/storefront/shared/catalog-loader";
+import { getCurrentSession } from "@/server/auth/session";
+
+async function loadStorefrontAuthSession(): Promise<StorefrontAuthSession> {
+  const session = await getCurrentSession();
+  if (session.kind === "consumer" || session.kind === "staff") {
+    return { signedIn: true, email: session.email };
+  }
+  return { signedIn: false, email: null };
+}
 
 export function StorefrontRouteBoundary({ children }: { children: ReactNode }) {
   const catalogPromise = loadStorefrontCatalog();
+  const authSessionPromise = loadStorefrontAuthSession();
 
   return (
     <Suspense fallback={<AppShellFallback />}>
-      <StorefrontProviders catalogPromise={catalogPromise}>{children}</StorefrontProviders>
+      <StorefrontProviders
+        authSessionPromise={authSessionPromise}
+        catalogPromise={catalogPromise}
+      >
+        {children}
+      </StorefrontProviders>
     </Suspense>
   );
 }
