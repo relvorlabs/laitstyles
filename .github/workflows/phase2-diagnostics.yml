@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: phase2-diagnostics-${{ github.event.pull_request.number || github.ref }}
@@ -24,6 +26,7 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+      PROGRESS_COMMENT_ID: "5061590869"
 
     steps:
       - name: Check out repository
@@ -31,22 +34,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 25
-          cache: pnpm
 
-      - name: Install dependencies
-        id: install
+      - name: Activate repository pnpm
+        id: pnpm
         continue-on-error: true
         shell: bash
         run: |
           set +e
           mkdir -p phase2-diagnostics
+          {
+            corepack enable
+            corepack prepare pnpm@11.13.0 --activate
+            pnpm --version
+          } > phase2-diagnostics/pnpm.log 2>&1
+          code=$?
+          echo "$code" > phase2-diagnostics/pnpm.exit
+          cat phase2-diagnostics/pnpm.log
+          exit "$code"
+
+      - name: Install dependencies
+        id: install
+        if: steps.pnpm.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
           pnpm install --frozen-lockfile > phase2-diagnostics/install.log 2>&1
           code=$?
           echo "$code" > phase2-diagnostics/install.exit
@@ -58,7 +74,6 @@ jobs:
         shell: bash
         run: |
           set +e
-          mkdir -p phase2-diagnostics
 
           run_gate() {
             name="$1"
@@ -88,22 +103,71 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Publish Phase 2 progress note
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          body_file=$(mktemp)
+          {
+            echo "## Phase 2 progress tracker"
+            echo
+            echo "**Branch:** \`refactor/phase-2-catalogue-complete\`  "
+            echo "**Head:** \`${GITHUB_SHA}\`  "
+            echo "**Validation authority:** GitHub Actions"
+            echo
+            echo "### Implemented"
+            echo "- Prisma-backed catalogue and route-specific storefront boundary"
+            echo "- Variant-level measurement schema, import and detail reads"
+            echo "- Strict preflight rejection for duplicate identifiers and variant SKUs"
+            echo "- URL-owned server catalogue filtering, sorting, count and pagination"
+            echo "- Approved storefront markup and styling remain outside the implementation scope"
+            echo
+            echo "### Current Action gates"
+            found=0
+            failed=0
+            for exit_file in phase2-diagnostics/*.exit; do
+              [ -e "$exit_file" ] || continue
+              found=1
+              name=$(basename "$exit_file" .exit)
+              code=$(cat "$exit_file")
+              if [ "$code" = "0" ]; then
+                echo "- ✅ $name"
+              else
+                echo "- ❌ $name (exit $code)"
+                failed=1
+              fi
+            done
+            if [ "$found" = "0" ]; then
+              echo "- ❌ Runner ended before diagnostic exit files were produced"
+              failed=1
+            fi
+            echo
+            echo "PR remains draft until every required check and visual-parity review is green."
+          } > "$body_file"
+
+          jq -n --rawfile body "$body_file" '{body: $body}' > phase2-comment.json
+          curl --fail-with-body --silent --show-error \
+            --request PATCH \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/comments/${PROGRESS_COMMENT_ID}" \
+            --data @phase2-comment.json
+
       - name: Enforce diagnostic result
         if: always()
         shell: bash
         run: |
           set +e
-          echo "## Phase 2 diagnostics" >> "$GITHUB_STEP_SUMMARY"
           failed=0
+          found=0
           for exit_file in phase2-diagnostics/*.exit; do
             [ -e "$exit_file" ] || continue
-            name=$(basename "$exit_file" .exit)
-            code=$(cat "$exit_file")
-            if [ "$code" = "0" ]; then
-              echo "- ✅ $name" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "- ❌ $name (exit $code)" >> "$GITHUB_STEP_SUMMARY"
-              failed=1
-            fi
+            found=1
+            [ "$(cat "$exit_file")" = "0" ] || failed=1
           done
+          [ "$found" = "1" ] || failed=1
           exit "$failed"
