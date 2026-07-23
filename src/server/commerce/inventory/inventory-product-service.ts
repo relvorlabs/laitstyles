@@ -27,6 +27,7 @@ import {
   slugify,
 } from "@/server/commerce/inventory/inventory-rules";
 import {
+  assertInventoryModeCanChange,
   resolveTaxonomyId,
   writeChannels,
   writeMeasurements,
@@ -189,6 +190,8 @@ export async function saveInventoryProduct(
             message: "This product could not be found.",
           });
         }
+
+        await assertInventoryModeCanChange(tx, values.productId ?? "", currentRow, values.inventoryMode);
 
         const categoryId = await resolveTaxonomyId(tx, "category", values.category);
         const collectionId = await resolveTaxonomyId(tx, "collection", values.collection);
