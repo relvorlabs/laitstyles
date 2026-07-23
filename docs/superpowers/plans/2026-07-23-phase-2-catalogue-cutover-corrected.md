@@ -52,6 +52,7 @@ Owns `prisma/**` and `scripts/seed/**`:
 
 - add normalized variant measurement storage;
 - validate and atomically import the retained snapshot;
+- reject duplicate identifiers and SKUs before the transaction;
 - preserve the existing migration baseline and migration history.
 
 ### Domain engineer
