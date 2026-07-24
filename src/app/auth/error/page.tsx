@@ -22,10 +22,17 @@ type AuthErrorPageProps = {
 export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps) {
   const params = await searchParams;
   const next = getSafeNextPath(params.next, "/account");
-  const message = isAuthFlowErrorCode(params.code)
-    ? getAuthFlowErrorMessage(params.code)
+  const code = isAuthFlowErrorCode(params.code) ? params.code : null;
+  const message = code
+    ? getAuthFlowErrorMessage(code)
     : "We could not complete that sign-in request.";
   const signInHref = `/auth/sign-in?next=${encodeURIComponent(next)}`;
+  const recoveryHref =
+    code === "email-not-confirmed"
+      ? "/auth/resend-confirmation"
+      : code === "recovery-invalid" || code === "password-update-failed"
+        ? "/auth/forgot-password"
+        : null;
 
   return (
     <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center px-4 py-12">
@@ -39,9 +46,20 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
           <Button size="lg" nativeButton={false} render={<Link href={signInHref} />}>
             Back to sign in
           </Button>
-          <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
-            Return to storefront
-          </Button>
+          {recoveryHref ? (
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={<Link href={recoveryHref} />}
+              variant="outline"
+            >
+              {code === "email-not-confirmed" ? "Resend confirmation" : "Request new reset link"}
+            </Button>
+          ) : (
+            <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
+              Return to storefront
+            </Button>
+          )}
         </div>
       </Card>
     </main>
