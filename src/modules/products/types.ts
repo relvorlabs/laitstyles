@@ -1,3 +1,4 @@
+import type { AssetProvider } from "@/lib/assets/types";
 import type {
   ProductEditorActionError,
   ProductEditorActionSuccess,
@@ -16,7 +17,7 @@ export type ProductMediaKind = "cover" | "detail" | "defect";
 export type ProductMedia = {
   id: string;
   url: string;
-  provider?: "cloudinary" | "external";
+  provider?: AssetProvider;
   storageKey?: string;
   alt: string;
   kind: ProductMediaKind;
@@ -41,7 +42,7 @@ export type ProductBase = {
   name: string;
   description: string;
   category: string;
-  collection?: string | null;
+  collection: string | null;
   brand: string;
   material?: string | null;
   fit?: string | null;
@@ -51,13 +52,13 @@ export type ProductBase = {
   image: string;
   media: ProductMedia[];
   price: number;
-  referencePrice?: number | null;
-  cost?: number | null;
+  referencePrice: number | null;
+  cost: number | null;
   lifecycle: ProductLifecycle;
   publication: PublicationState;
   channels: CatalogueChannel[];
   lowStockThreshold: number;
-  fulfilment: ProductFulfilment;
+  fulfilment?: ProductFulfilment;
   scheduledAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -85,11 +86,11 @@ export type ProductVariant = {
   id: string;
   label: string;
   sku: string;
-  size?: string | null;
-  colour?: string | null;
-  imageUrl?: string | null;
-  price?: number | null;
-  cost?: number | null;
+  size: string | null;
+  colour: string | null;
+  imageUrl: string | null;
+  price: number | null;
+  cost: number | null;
   stock: InventoryCounts;
 };
 
@@ -104,10 +105,11 @@ export type AdminProduct = UniqueProduct | StockedProduct | VariantProduct;
 export type ProductReview = {
   id: string;
   productId: string;
-  customerId: string;
-  customerName: string;
-  rating: number;
+  customerId: string | null;
+  rating: 1 | 2 | 3 | 4 | 5;
+  title: string;
   body: string;
+  status: "published" | "pending";
   createdAt: string;
 };
 
