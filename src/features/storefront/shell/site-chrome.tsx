@@ -7,7 +7,6 @@ import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-
 import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
-import { QueryProvider } from "@/lib/query/query-provider";
 
 export function SiteChrome({
   catalog,
@@ -54,16 +53,14 @@ export function SiteChrome({
 
   return (
     <StorefrontProvider catalog={catalog}>
-      <QueryProvider>
-        <SiteHeader
-          onGoHome={() => router.push("/")}
-          onNavNew={() => navigateShop({ collection: "new" })}
-          onNavShop={navigateShop}
-        />
-        {children}
-        <SiteFooter onNavShop={navigateShop} />
-        <Analytics />
-      </QueryProvider>
+      <SiteHeader
+        onGoHome={() => router.push("/")}
+        onNavNew={() => navigateShop({ collection: "new" })}
+        onNavShop={navigateShop}
+      />
+      {children}
+      <SiteFooter onNavShop={navigateShop} />
+      <Analytics />
     </StorefrontProvider>
   );
 }
