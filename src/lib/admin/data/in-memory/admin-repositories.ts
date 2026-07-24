@@ -15,18 +15,6 @@ export function createInMemoryAdminRepositories(store: AdminStore): AdminReposit
     Promise.resolve(cloneValue(selector(store.getSnapshot())));
 
   return {
-    inventory: {
-      listProducts: () => read((state) => state.products),
-      getProduct: (productId) =>
-        read((state) => state.products.find((product) => product.id === productId) ?? null),
-      listTaxonomy: () => read((state) => state.catalogueTaxonomy ?? []),
-      listStockMovements: (productId) =>
-        read((state) =>
-          productId
-            ? state.stockMovements.filter((movement) => movement.productId === productId)
-            : state.stockMovements,
-        ),
-    },
     orders: {
       listOrders: () => read((state) => state.orders),
       getOrder: (orderId) =>
