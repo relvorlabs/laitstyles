@@ -4,11 +4,13 @@ import { cache } from "react";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import {
   buildStorefrontCatalog,
+  buildStorefrontShellCatalog,
   projectLegacyProduct,
 } from "@/features/storefront/shared/catalog-adapter";
 import type {
   StorefrontCatalogPayload,
   StorefrontProductPageData,
+  StorefrontShellCatalogPayload,
 } from "@/features/storefront/shared/catalog-types";
 import {
   getPublishedProductBySlug,
@@ -19,9 +21,11 @@ import {
 
 export {
   buildStorefrontCatalog,
+  buildStorefrontShellCatalog,
   measurementsCmFor,
   projectLegacyProduct,
   projectLegacyProductSummary,
+  projectShellProduct,
 } from "@/features/storefront/shared/catalog-adapter";
 
 // react.cache keeps one repository round-trip per request. Repository reads use
@@ -40,6 +44,10 @@ const getProductSlugs = cache(() => listPublishedProductSlugs());
 
 export async function loadStorefrontCatalog(): Promise<StorefrontCatalogPayload> {
   return (await getCatalog()).payload;
+}
+
+export async function loadStorefrontShellCatalog(): Promise<StorefrontShellCatalogPayload> {
+  return buildStorefrontShellCatalog((await getCatalog()).payload);
 }
 
 export async function loadStorefrontProductSlugs(): Promise<string[]> {

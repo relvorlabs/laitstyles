@@ -3,9 +3,8 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
-import { ShopProvider } from "@/components/shop/shop-provider";
-import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
+import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 import { QueryProvider } from "@/lib/query/query-provider";
@@ -14,12 +13,12 @@ export function SiteChrome({
   catalog,
   children,
 }: {
-  catalog: StorefrontCatalogPayload;
+  catalog: StorefrontShellCatalogPayload;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { actions } = useStorefrontExperience();
+  const { actions } = useStorefrontAuth();
   const isStandaloneSurface = pathname?.startsWith("/admin") || pathname?.startsWith("/auth");
 
   const navigateShop = useCallback<NavShop>(
@@ -54,19 +53,17 @@ export function SiteChrome({
   if (isStandaloneSurface) return <>{children}</>;
 
   return (
-    <ShopProvider products={catalog.products}>
-      <StorefrontProvider catalog={catalog}>
-        <QueryProvider>
-          <SiteHeader
-            onGoHome={() => router.push("/")}
-            onNavNew={() => navigateShop({ collection: "new" })}
-            onNavShop={navigateShop}
-          />
-          {children}
-          <SiteFooter onNavShop={navigateShop} />
-          <Analytics />
-        </QueryProvider>
-      </StorefrontProvider>
-    </ShopProvider>
+    <StorefrontProvider catalog={catalog}>
+      <QueryProvider>
+        <SiteHeader
+          onGoHome={() => router.push("/")}
+          onNavNew={() => navigateShop({ collection: "new" })}
+          onNavShop={navigateShop}
+        />
+        {children}
+        <SiteFooter onNavShop={navigateShop} />
+        <Analytics />
+      </QueryProvider>
+    </StorefrontProvider>
   );
 }

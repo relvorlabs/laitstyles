@@ -7,10 +7,10 @@ import {
   catalogueHref,
   type ParsedCatalogueSearch,
 } from "@/features/storefront/catalogue/catalogue-search-params";
-import { type Product, productToHoldable } from "@/features/storefront/shared/catalogue-data";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 const quickLinks: [string, string][] = [
@@ -54,6 +54,7 @@ function CatalogueApp({
 }) {
   const router = useRouter();
   const storefront = useStorefront();
+  const clientState = useStorefrontClientState();
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [filtersReady, setFiltersReady] = useState(false);
@@ -145,29 +146,27 @@ function CatalogueApp({
     return storefront.collection === key;
   };
 
-  const {
-    state: { holdSecondsByProduct },
-    actions: { holdProduct, releaseProduct },
-  } = useStorefrontExperience();
   const cardHandlers = {
     onQuickView: storefront.openQuick,
     onSave: storefront.toggleSaved,
     onAdd: (id: string) => {
-      releaseProduct(id);
+      clientState.releaseProduct(id);
       storefront.addToCart(id);
     },
     onHold: (id: string) => {
       const product = storefront.productById(id);
-      if (product) holdProduct(productToHoldable(product));
+      if (product && clientState.holdProduct(id)) {
+        storefront.showToast(`${product.name} is held for 15 minutes.`);
+      }
     },
-    onRelease: releaseProduct,
+    onRelease: clientState.releaseProduct,
   };
   const renderCards = (items: Product[]) =>
     items.map((product) => (
       <ProductCard
         {...cardHandlers}
-        holdSeconds={holdSecondsByProduct[product.id] ?? null}
-        isHeld={product.id in holdSecondsByProduct}
+        holdSeconds={clientState.holdSecondsByProduct[product.id] ?? null}
+        isHeld={product.id in clientState.holdSecondsByProduct}
         isSaved={storefront.saved.has(product.id)}
         key={product.id}
         product={product}

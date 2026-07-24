@@ -18,15 +18,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
+import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function StorefrontAccountMenu() {
   const router = useRouter();
   const storefront = useStorefront();
-  const { actions, state } = useStorefrontExperience();
+  const clientState = useStorefrontClientState();
+  const { actions, state } = useStorefrontAuth();
   const displayName = state.userName?.split(" ")[0] ?? state.userEmail?.split("@")[0] ?? "Account";
   const initial = displayName.slice(0, 1).toUpperCase();
+  const holdCount = Object.keys(clientState.holdSecondsByProduct).length;
 
   if (!state.authReady) {
     return (
@@ -83,7 +86,7 @@ export function StorefrontAccountMenu() {
             </span>
             <span className="mt-3 grid grid-cols-3 gap-2 text-center">
               <span className="rounded-md bg-[var(--bone)] px-2 py-2">
-                <strong className="block text-sm text-[var(--ink)]">{state.holdCount}</strong>
+                <strong className="block text-sm text-[var(--ink)]">{holdCount}</strong>
                 <span className="text-[9px] uppercase tracking-wider">holds</span>
               </span>
               <span className="rounded-md bg-[var(--bone)] px-2 py-2">

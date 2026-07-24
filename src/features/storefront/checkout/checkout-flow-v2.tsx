@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  AlertTriangle,
-  ChevronDown,
-  Clock,
-  HelpCircle,
-  Home,
-  LockKeyhole,
-  Search,
-} from "lucide-react";
+import { ChevronDown, Clock, HelpCircle, Home, LockKeyhole } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +27,6 @@ import {
 } from "@/features/storefront/checkout/checkout-helpers";
 import { CheckBox } from "@/features/storefront/checkout/components/check-box";
 import { ChoiceRow } from "@/features/storefront/checkout/components/choice-row";
-import { ConfirmationScreen } from "@/features/storefront/checkout/components/confirmation-screen";
 import { CurrencyButton } from "@/features/storefront/checkout/components/currency-button";
 import { DeclinedDialog } from "@/features/storefront/checkout/components/declined-dialog";
 import { FieldInput } from "@/features/storefront/checkout/components/field-input";
@@ -43,40 +35,52 @@ import { ProcessingDialog } from "@/features/storefront/checkout/components/proc
 import { RadioDot } from "@/features/storefront/checkout/components/radio-dot";
 import { ReviewRow } from "@/features/storefront/checkout/components/review-row";
 import { StepIndicator } from "@/features/storefront/checkout/components/step-indicator";
+import {
+  createOrderNumber,
+  writeLatestOrderReceipt,
+  type OrderReceipt,
+} from "@/features/storefront/checkout/order-receipt";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
 
-export function CheckoutFlow() {
+export function CheckoutFlowV2() {
+  const router = useRouter();
   const storefront = useStorefront();
-  const checkoutItems: CheckoutItem[] = storefront.products.slice(0, 3).map((product) => ({
-    name: product.name,
-    meta: `Size ${product.size} · ${product.colour} · ${
-      product.condition === "A+" ? "Excellent" : product.condition === "B+" ? "Fair" : "Good"
-    }`,
-    seller: "Laitstyles",
-    priceNum: product.price,
-    img: product.images[0] ?? "",
-  }));
+  const clientState = useStorefrontClientState();
+  const checkoutItems = useMemo<CheckoutItem[]>(
+    () =>
+      storefront.cartLines.map((line) => ({
+        lineKey: line.lineKey,
+        productId: line.product.id,
+        slug: line.product.slug,
+        name: line.product.name,
+        meta: `Size ${line.size ?? line.variantLabel ?? line.product.size} · ${line.colour ?? line.product.colour} · Grade ${line.product.condition}`,
+        seller: "Laitstyles",
+        quantity: line.lineQty,
+        unitPriceNaira: line.unitPriceNaira,
+        priceNum: line.unitPriceNaira * line.lineQty,
+        img: line.product.images[0] ?? "",
+      })),
+    [storefront.cartLines],
+  );
+  const activeHoldSeconds = checkoutItems.flatMap((item) => {
+    const seconds = clientState.holdSecondsByProduct[item.productId];
+    return seconds && seconds > 0 ? [seconds] : [];
+  });
+  const secondsLeft = activeHoldSeconds.length ? Math.min(...activeHoldSeconds) : null;
+
   const [currency, setCurrency] = useState<Currency>("NGN");
   const [zone, setZone] = useState<ZoneId>("lagos");
   const [method, setMethod] = useState<PaymentId>("paystack");
-  const [secondsLeft, setSecondsLeft] = useState(852);
   const [payState, setPayState] = useState<PayState>("idle");
-  const [placed, setPlaced] = useState(false);
   const [step, setStep] = useState<CheckoutStep>(0);
-  const [showErr, setShowErr] = useState(false);
-  const [news, setNews] = useState(true);
+  const [showErrors, setShowErrors] = useState(false);
+  const [newsletter, setNewsletter] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  useEffect(() => {
-    const tick = window.setInterval(() => {
-      setSecondsLeft((current) => (current <= 0 ? current : current - 1));
-    }, 1000);
-    return () => window.clearInterval(tick);
-  }, []);
-
-  const vals = useMemo(
+  const snapshot = useMemo(
     () => buildCheckoutSnapshot(currency, zone, method, secondsLeft, checkoutItems),
     [checkoutItems, currency, method, secondsLeft, zone],
   );
@@ -84,54 +88,94 @@ export function CheckoutFlow() {
   function setField(name: keyof typeof form, value: string) {
     const nextForm = { ...form, [name]: value };
     setForm(nextForm);
-    if (showErr) setErrors(validate(step, nextForm));
+    if (showErrors) setErrors(validate(step, nextForm));
   }
 
   function next() {
     const nextErrors = validate(step, form);
-    if (Object.keys(nextErrors).length) {
+    if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setShowErr(true);
+      setShowErrors(true);
       return;
     }
     setStep((current) => Math.min(3, current + 1) as CheckoutStep);
     setErrors({});
-    setShowErr(false);
+    setShowErrors(false);
   }
 
   function back() {
     setStep((current) => Math.max(0, current - 1) as CheckoutStep);
     setErrors({});
-    setShowErr(false);
+    setShowErrors(false);
   }
 
   function goStep(index: CheckoutStep) {
     if (index > step) return;
     setStep(index);
     setErrors({});
-    setShowErr(false);
+    setShowErrors(false);
   }
 
   function payNow() {
-    if (secondsLeft <= 0) return;
+    if (checkoutItems.length === 0) return;
     setPayState("processing");
-    // INTEGRATION: Replace this simulated redirect with Paystack/Flutterwave checkout session creation and verified callback handling.
     try {
       window.open("https://paystack.shop/pay/1tdagzew46", "_blank", "noopener");
-    } catch {}
+    } catch {
+      // The prototype success/decline controls remain available if a popup is blocked.
+    }
   }
 
   function markPlaced() {
-    // INTEGRATION: Persist the order, convert held pieces to sold, clear the cart, and attach the gateway reference before showing confirmation.
-    window.scrollTo(0, 0);
-    setPlaced(true);
+    const receipt: OrderReceipt = {
+      orderNumber: createOrderNumber(),
+      firstName: form.first.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      city: form.city.trim(),
+      country: form.country,
+      zoneName: snapshot.activeZone.name,
+      eta: snapshot.activeZone.eta,
+      paymentName: snapshot.activeMethod.name,
+      items: storefront.cartLines.map((line) => ({
+        lineKey: line.lineKey,
+        productId: line.product.id,
+        slug: line.product.slug,
+        name: line.product.name,
+        imageUrl: line.product.images[0] ?? "",
+        size: line.size ?? line.variantLabel ?? line.product.size ?? null,
+        colour: line.colour ?? line.product.colour ?? null,
+        condition: line.product.condition,
+        quantity: line.lineQty,
+        unitPriceNaira: line.unitPriceNaira,
+      })),
+      subtotal: snapshot.subtotalNum,
+      shipping: snapshot.shippingNum,
+      vat: snapshot.vatNum,
+      total: snapshot.totalNum,
+      placedAt: new Date().toISOString(),
+    };
+
+    writeLatestOrderReceipt(window.sessionStorage, receipt);
+    for (const item of checkoutItems) clientState.releaseProduct(item.productId);
+    clientState.clearCart();
     setPayState("idle");
+    router.push("/order-confirmation");
   }
 
-  if (placed) {
+  if (checkoutItems.length === 0) {
     return (
-      <main className="flex w-full justify-center bg-[#ECEBE6] px-5 py-[26px] pb-[50px]">
-        <ConfirmationScreen form={form} vals={vals} />
+      <main className="flex min-h-[70dvh] items-center justify-center bg-[#ECEBE6] px-5 py-10">
+        <Card className="w-full max-w-[620px] items-center gap-4 rounded-lg px-8 py-14 text-center shadow-laitstyle">
+          <h1 className="font-serif text-4xl">Your bag is empty</h1>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">
+            Checkout reads the same bag as the header and cart page. Add a piece before continuing.
+          </p>
+          <Button nativeButton={false} render={<Link href="/products" />} size="lg">
+            Browse the archive
+          </Button>
+        </Card>
       </main>
     );
   }
@@ -140,8 +184,8 @@ export function CheckoutFlow() {
     <main className="flex min-h-screen w-full justify-center bg-[#ECEBE6] px-5 py-[26px]">
       <Card className="w-full max-w-[1120px] gap-0 overflow-hidden rounded-lg bg-card p-0 shadow-laitstyle ring-0">
         <div className="flex items-center justify-between border-b border-[#F0EEE8] px-[34px] py-[22px] max-sm:px-5">
-          <Link className="flex items-center gap-[9px]" href="/products">
-            <Home className="size-5" strokeWidth={1.9} />
+          <Link className="flex items-center gap-[9px]" href="/cart">
+            <Home aria-hidden="true" className="size-5" strokeWidth={1.9} />
             <span className="text-[15px] font-semibold tracking-[.26em]">LAITSTYLE</span>
           </Link>
           <div className="flex items-center gap-1.5">
@@ -156,35 +200,17 @@ export function CheckoutFlow() {
 
         <div className="flex flex-wrap">
           <section className="min-w-[300px] flex-[1_1_520px] px-[34px] pb-10 pt-7 max-sm:px-5">
-            {vals.expired ? (
-              <Alert className="mb-[22px] flex gap-3 rounded-xl border-[#E8D7A6] bg-[#FBF6E8] px-4 py-3.5 animate-[leemRise_.3s_ease]">
-                <AlertTriangle className="mt-0.5 size-[18px] shrink-0 text-[#9A7B1F]" />
-                <div className="flex-1">
-                  <AlertTitle className="text-[13.5px] font-semibold text-[#6E5714]">
-                    Your hold expired
-                  </AlertTitle>
-                  <AlertDescription className="mt-0.5 text-[12.5px] leading-[1.5] text-[#8A7434]">
-                    Good news &mdash; your pieces are still available. Re-hold them to finish
-                    checking out. Nothing was lost.
-                  </AlertDescription>
-                  <Button size="lg" className="mt-2.5" onClick={() => setSecondsLeft(852)}>
-                    Re-hold my pieces
-                  </Button>
-                </div>
-              </Alert>
-            ) : null}
-
             <StepIndicator current={step} goStep={goStep} />
 
             {step === 0 ? (
               <div className="animate-[leemStep_.3s_ease]">
-                <h2 className="m-0 mb-1 text-lg font-semibold">Contact</h2>
-                <p className="m-0 mb-4 text-[12.5px] text-[#8A887E]">
+                <h2 className="mb-1 text-lg font-semibold">Contact</h2>
+                <p className="mb-4 text-[12.5px] text-[#8A887E]">
                   Your receipt and delivery updates go here.
                 </p>
                 <FieldInput
                   ariaLabel="Email"
-                  error={showErr ? errors.email : undefined}
+                  error={showErrors ? errors.email : undefined}
                   onChange={(value) => setField("email", value)}
                   placeholder="Email"
                   type="email"
@@ -192,10 +218,10 @@ export function CheckoutFlow() {
                 />
                 <Button
                   className="mt-4 flex h-auto items-center gap-2.5 p-0 text-left"
-                  onClick={() => setNews((value) => !value)}
+                  onClick={() => setNewsletter((value) => !value)}
                   variant="ghost"
                 >
-                  <CheckBox checked={news} />
+                  <CheckBox checked={newsletter} />
                   <span className="text-[13.5px] text-[#3D3B35]">
                     Email me with news and one-of-one drop alerts
                   </span>
@@ -205,7 +231,7 @@ export function CheckoutFlow() {
 
             {step === 1 ? (
               <div className="animate-[leemStep_.3s_ease]">
-                <h2 className="m-0 mb-3.5 text-lg font-semibold">Delivery</h2>
+                <h2 className="mb-3.5 text-lg font-semibold">Delivery</h2>
                 <div className="relative mb-3">
                   <div className="absolute left-[15px] top-[9px] text-[11px] text-[#A7A59B]">
                     Country/Region
@@ -223,40 +249,35 @@ export function CheckoutFlow() {
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-6 size-4 text-[#8A887E]" />
                 </div>
-
                 <div className="mb-1 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                   <FieldInput
                     ariaLabel="First name"
-                    error={showErr ? errors.first : undefined}
+                    error={showErrors ? errors.first : undefined}
                     onChange={(value) => setField("first", value)}
                     placeholder="First name"
                     value={form.first}
                   />
                   <FieldInput
                     ariaLabel="Last name"
-                    error={showErr ? errors.last : undefined}
+                    error={showErrors ? errors.last : undefined}
                     onChange={(value) => setField("last", value)}
                     placeholder="Last name"
                     value={form.last}
                   />
                 </div>
-
-                <div className="relative mt-3">
+                <div className="mt-3">
                   <FieldInput
                     ariaLabel="Address"
-                    error={showErr ? errors.address : undefined}
+                    error={showErrors ? errors.address : undefined}
                     onChange={(value) => setField("address", value)}
                     placeholder="Address"
                     value={form.address}
-                    withRightPadding
                   />
-                  <Search className="pointer-events-none absolute right-4 top-[18px] size-4 text-[#8A887E]" />
                 </div>
-
                 <div className="mb-1 mt-3 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                   <FieldInput
                     ariaLabel="City"
-                    error={showErr ? errors.city : undefined}
+                    error={showErrors ? errors.city : undefined}
                     onChange={(value) => setField("city", value)}
                     placeholder="City"
                     value={form.city}
@@ -268,11 +289,10 @@ export function CheckoutFlow() {
                     value={form.postcode}
                   />
                 </div>
-
                 <div className="relative mt-3">
                   <FieldInput
                     ariaLabel="Phone"
-                    error={showErr ? errors.phone : undefined}
+                    error={showErrors ? errors.phone : undefined}
                     onChange={(value) => setField("phone", value)}
                     placeholder="Phone · +234 801 234 5678"
                     type="tel"
@@ -281,7 +301,6 @@ export function CheckoutFlow() {
                   />
                   <HelpCircle className="absolute right-3.5 top-4 size-5 text-[#8A887E]" />
                 </div>
-
                 <div className="mb-2.5 mt-6 text-[12.5px] font-semibold uppercase tracking-[.04em] text-[#57554E]">
                   Delivery zone
                 </div>
@@ -302,8 +321,8 @@ export function CheckoutFlow() {
 
             {step === 2 ? (
               <div className="animate-[leemStep_.3s_ease]">
-                <h2 className="m-0 mb-1.5 text-lg font-semibold">Payment</h2>
-                <p className="m-0 mb-3.5 text-[12.5px] text-[#8A887E]">
+                <h2 className="mb-1.5 text-lg font-semibold">Payment</h2>
+                <p className="mb-3.5 text-[12.5px] text-[#8A887E]">
                   All transactions are secure and encrypted.
                 </p>
                 <div className="flex flex-col gap-2.5">
@@ -338,12 +357,6 @@ export function CheckoutFlow() {
                             ))}
                           </span>
                         </Button>
-                        {active && item.id === "pod" ? (
-                          <div className="px-4 pb-3.5 pl-12 text-xs leading-[1.5] text-[#8A7434]">
-                            A refundable <strong>{vals.podDeposit} deposit</strong> is paid now to
-                            confirm the hold; the balance is paid to the courier on delivery.
-                          </div>
-                        ) : null}
                       </div>
                     );
                   })}
@@ -353,7 +366,7 @@ export function CheckoutFlow() {
 
             {step === 3 ? (
               <div className="animate-[leemStep_.3s_ease]">
-                <h2 className="m-0 mb-3.5 text-lg font-semibold">Review &amp; confirm</h2>
+                <h2 className="mb-3.5 text-lg font-semibold">Review &amp; confirm</h2>
                 <ReviewRow label="Contact" onEdit={() => goStep(0)} value={form.email || "—"} />
                 <ReviewRow
                   label="Ship to"
@@ -363,14 +376,13 @@ export function CheckoutFlow() {
                 <ReviewRow
                   label="Payment"
                   onEdit={() => goStep(2)}
-                  value={`${vals.activeMethod.name}${vals.isPod ? ` · ${vals.podDeposit} deposit now` : ""}`}
+                  value={snapshot.activeMethod.name}
                 />
                 <Alert className="mt-[18px] flex gap-2.5 rounded-[11px] border-chip-border bg-chip-bg px-[15px] py-[13px]">
                   <Clock className="mt-0.5 size-4 shrink-0 text-accent" />
-                  <AlertTitle className="sr-only">Hold status</AlertTitle>
+                  <AlertTitle className="sr-only">Availability status</AlertTitle>
                   <AlertDescription className="text-[12.5px] leading-[1.5] text-[#4A5540]">
-                    These {checkoutItems.length} one-of-one pieces stay reserved to you through
-                    payment. {vals.reviewHold}
+                    {snapshot.reviewHold}
                   </AlertDescription>
                 </Alert>
               </div>
@@ -392,34 +404,33 @@ export function CheckoutFlow() {
                 </Button>
               ) : (
                 <Button className="flex-1" onClick={payNow}>
-                  {vals.payLabel}
+                  {snapshot.payLabel}
                 </Button>
               )}
             </div>
             <div className="mt-3.5 flex items-center justify-center gap-[7px] text-xs text-[#8A887E]">
               <LockKeyhole className="size-3.5" />
-              {vals.payGateway}
+              {snapshot.payGateway}
             </div>
           </section>
 
-          <OrderSummary
-            currency={currency}
-            secondsLeft={secondsLeft}
-            setCurrency={setCurrency}
-            vals={vals}
-          />
+          <OrderSummary currency={currency} setCurrency={setCurrency} vals={snapshot} />
         </div>
       </Card>
 
       {payState === "processing" ? (
         <ProcessingDialog
-          gatewayName={vals.gatewayName}
+          gatewayName={snapshot.gatewayName}
           markPlaced={markPlaced}
           simulateDecline={() => setPayState("declined")}
         />
       ) : null}
       {payState === "declined" ? (
-        <DeclinedDialog dismiss={() => setPayState("idle")} payNow={payNow} timer={vals.timer} />
+        <DeclinedDialog
+          dismiss={() => setPayState("idle")}
+          payNow={payNow}
+          timer={snapshot.timer ?? "Availability check"}
+        />
       ) : null}
     </main>
   );

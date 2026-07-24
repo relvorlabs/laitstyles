@@ -1,8 +1,8 @@
 "use client";
 
-import { type Product, productToHoldable } from "@/features/storefront/shared/catalogue-data";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontExperience } from "@/features/storefront/shared/storefront-experience-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function HomeProductList({
@@ -15,29 +15,28 @@ export function HomeProductList({
   id: string;
 }) {
   const storefront = useStorefront();
-  const {
-    state: { holdSecondsByProduct },
-    actions: { holdProduct, releaseProduct },
-  } = useStorefrontExperience();
+  const clientState = useStorefrontClientState();
 
   return (
     <div id={id} className={className}>
       {products.map((product) => (
         <ProductCard
-          holdSeconds={holdSecondsByProduct[product.id] ?? null}
-          isHeld={product.id in holdSecondsByProduct}
+          holdSeconds={clientState.holdSecondsByProduct[product.id] ?? null}
+          isHeld={product.id in clientState.holdSecondsByProduct}
           isSaved={storefront.saved.has(product.id)}
           key={product.id}
-          onAdd={(id) => {
-            releaseProduct(id);
-            storefront.addToCart(id);
+          onAdd={(productId) => {
+            clientState.releaseProduct(productId);
+            storefront.addToCart(productId);
           }}
-          onHold={(id) => {
-            const selectedProduct = storefront.productById(id);
-            if (selectedProduct) holdProduct(productToHoldable(selectedProduct));
+          onHold={(productId) => {
+            const target = storefront.productById(productId);
+            if (target && clientState.holdProduct(productId)) {
+              storefront.showToast(`${target.name} is held for 15 minutes.`);
+            }
           }}
           onQuickView={storefront.openQuick}
-          onRelease={releaseProduct}
+          onRelease={clientState.releaseProduct}
           onSave={storefront.toggleSaved}
           product={product}
         />

@@ -22,8 +22,8 @@ export function ProcessingDialog({
           Redirecting to {gatewayName}...
         </h3>
         <p className="m-0 mb-[22px] text-[13.5px] leading-[1.6] text-[#57554E]">
-          Complete your payment in the secure {gatewayName} window. Your pieces stay held until
-          you&apos;re back.
+          Complete your payment in the secure {gatewayName} window. Your selections remain in your
+          bag while availability is checked.
         </p>
         <Button size="lg" className="mb-2.5 w-full" onClick={markPlaced}>
           I&apos;ve completed payment

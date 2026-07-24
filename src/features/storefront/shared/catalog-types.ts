@@ -20,6 +20,12 @@ export interface StorefrontCatalogPayload {
   variantOptionsByProductId: Readonly<Record<string, readonly ProductVariantOption[]>>;
 }
 
+/**
+ * Global shell projection. It keeps card/search/cart compatibility while the
+ * server withholds product-detail-only media and copy from the client boundary.
+ */
+export type StorefrontShellCatalogPayload = StorefrontCatalogPayload;
+
 export interface StorefrontProductPageData {
   product: Product;
   detail: ProductDetail;

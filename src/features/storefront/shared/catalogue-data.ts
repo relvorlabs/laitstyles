@@ -1,5 +1,4 @@
 import type { StorefrontCategory } from "@/features/storefront/shared/catalog-types";
-import type { HoldablePiece } from "@/features/storefront/shared/storefront-experience-data";
 
 export type Condition = "A+" | "A" | "B+";
 export type Inventory = "one-of-one" | "variant" | "matching-stock";
@@ -44,20 +43,6 @@ export const money = (value: number) => moneyFormatter.format(value).replace("NG
 
 export const inventoryLabel = (value: Inventory) =>
   value === "one-of-one" ? "One of one" : value === "variant" ? "Variants" : "Multiple units";
-
-export function productToHoldable(product: Product): HoldablePiece {
-  return {
-    id: product.id,
-    name: product.name,
-    cat: product.category,
-    size: product.size,
-    color: product.colour,
-    cond: product.condition,
-    priceNum: product.price,
-    origNum: product.referencePrice ?? product.price,
-    img: product.images[0] ?? "",
-  };
-}
 
 export function addToBagLabel(product: Pick<Product, "status" | "inventory" | "stock">) {
   if (product.status === "sold") return "Sold";
@@ -184,16 +169,22 @@ export function filteredProducts(products: readonly Product[], state: ShopState)
     );
   }
   if (state.collection === "new") list = list.filter((product) => product.new);
-  if (state.collection === "one-of-one")
+  if (state.collection === "one-of-one") {
     list = list.filter((product) => product.inventory === "one-of-one");
+  }
   if (state.collection === "under-25") list = list.filter((product) => product.price < 25000);
-  if (state.collection === "grade-a-plus")
+  if (state.collection === "grade-a-plus") {
     list = list.filter((product) => product.condition === "A+");
-  if (state.collection === "vintage") list = list.filter((product) => product.style === "Vintage");
-  if (state.conditions.size)
+  }
+  if (state.collection === "vintage") {
+    list = list.filter((product) => product.style === "Vintage");
+  }
+  if (state.conditions.size) {
     list = list.filter((product) => state.conditions.has(product.condition));
-  if (state.inventories.size)
+  }
+  if (state.inventories.size) {
     list = list.filter((product) => state.inventories.has(product.inventory));
+  }
   if (state.inStock) list = list.filter((product) => product.status === "available");
   const maxPrice = state.maxPrice;
   if (maxPrice) list = list.filter((product) => product.price <= maxPrice);
@@ -219,12 +210,14 @@ export function filteredProducts(products: readonly Product[], state: ShopState)
   if (state.sort === "newest") list.sort((a, b) => Number(b.new) - Number(a.new));
   if (state.sort === "price-low") list.sort((a, b) => a.price - b.price);
   if (state.sort === "price-high") list.sort((a, b) => b.price - a.price);
-  if (state.sort === "condition")
+  if (state.sort === "condition") {
     list.sort((a, b) => conditionRank[a.condition] - conditionRank[b.condition]);
-  if (state.sort === "one")
+  }
+  if (state.sort === "one") {
     list.sort(
       (a, b) => Number(b.inventory === "one-of-one") - Number(a.inventory === "one-of-one"),
     );
+  }
   if (state.sort === "saved") list.sort((a, b) => b.saved - a.saved);
   return list;
 }
