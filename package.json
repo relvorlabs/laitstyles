@@ -18,7 +18,7 @@
     "lint:fix": "pnpm biome:fix",
     "format": "biome format --write .",
     "check": "pnpm biome:fix",
-    "check:architecture": "node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs",
+    "check:architecture": "node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs",
     "audit:buttons": "node scripts/audit-buttons.mjs --strict",
     "react-doctor": "pnpm dlx react-doctor@0.7.2 . --verbose --no-telemetry",
     "test:e2e": "playwright test",
