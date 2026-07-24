@@ -10,7 +10,13 @@ import { useProductEditorController } from "@/features/admin/product-editor/prod
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
 
-export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) {
+export function InventoryIntakeQueue({
+  items,
+  totalItems = items.length,
+}: {
+  items: InventoryListItem[];
+  totalItems?: number;
+}) {
   const { openExistingProduct } = useProductEditorController();
 
   return (
@@ -32,7 +38,7 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
           </p>
         </div>
         <Badge variant="outline">
-          {items.length} product{items.length === 1 ? "" : "s"}
+          {totalItems} product{totalItems === 1 ? "" : "s"}
         </Badge>
       </div>
 
