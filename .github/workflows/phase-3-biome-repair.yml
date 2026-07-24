@@ -38,36 +38,46 @@ jobs:
           pnpm add @prisma/client-runtime-utils@7.8.0 --save-exact
           pnpm biome:fix > biome-safe-fix.log 2>&1 || true
 
-          cat > src/server/commerce/catalogue/variant-measurements.ts <<'EOF'
-          import type { Measurement } from "@/lib/storefront/types";
+          node <<'NODE'
+          const fs = require("node:fs");
 
-          export type VariantMeasurementRecord = {
-            variant_id: string;
-            label: string;
-            value: string;
-            position: number;
-          };
+          const variantPath = "src/server/commerce/catalogue/variant-measurements.ts";
+          const variantLines = [
+            'import type { Measurement } from "@/lib/storefront/types";',
+            "",
+            "export type VariantMeasurementRecord = {",
+            "  variant_id: string;",
+            "  label: string;",
+            "  value: string;",
+            "  position: number;",
+            "};",
+            "",
+            "export function groupVariantMeasurements(",
+            "  rows: readonly VariantMeasurementRecord[],",
+            "): Record<string, Measurement[]> {",
+            "  const grouped: Record<string, Measurement[]> = {};",
+            "  for (const row of rows) {",
+            "    const measurements = grouped[row.variant_id] ?? [];",
+            "    measurements.push({",
+            "      label: row.label,",
+            "      value: row.value,",
+            "      position: row.position,",
+            "    });",
+            "    grouped[row.variant_id] = measurements;",
+            "  }",
+            "  return grouped;",
+            "}",
+          ];
+          fs.writeFileSync(variantPath, `${variantLines.join("\r\n")}\r\n`);
 
-          export function groupVariantMeasurements(
-            rows: readonly VariantMeasurementRecord[],
-          ): Record<string, Measurement[]> {
-            const grouped: Record<string, Measurement[]> = {};
-            for (const row of rows) {
-              const measurements = grouped[row.variant_id] ?? [];
-              measurements.push({
-                label: row.label,
-                value: row.value,
-                position: row.position,
-              });
-              grouped[row.variant_id] = measurements;
-            }
-            return grouped;
-          }
-          EOF
+          const smokePath = "scripts/checks/storefront-smoke.ts";
+          const smoke = fs
+            .readFileSync(smokePath, "utf8")
+            .replace(/[ \t]+(?=\r?$)/gm, "")
+            .replace(/\r?\n/g, "\r\n");
+          fs.writeFileSync(smokePath, smoke.endsWith("\r\n") ? smoke : `${smoke}\r\n`);
+          NODE
 
-          pnpm exec biome format --write src/server/commerce/catalogue/variant-measurements.ts
-          node -e 'const fs=require("node:fs"); const p="scripts/checks/storefront-smoke.ts"; const s=fs.readFileSync(p,"utf8").replace(/[ \t]+$/gm,""); fs.writeFileSync(p,s);'
-          pnpm exec biome format --write scripts/checks/storefront-smoke.ts
           pnpm exec biome check . --max-diagnostics=500 > biome-verify.log 2>&1
           git diff --check > diff-check.log 2>&1
 
