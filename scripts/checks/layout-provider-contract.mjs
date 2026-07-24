@@ -9,11 +9,41 @@ const violations = [];
 const rootProvidersPath = "src/providers/providers.tsx";
 const adminLayoutPath = "src/app/admin/layout.tsx";
 const storefrontLayoutPath = "src/app/(storefront)/layout.tsx";
+const accountLayoutPath = "src/app/(storefront)/account/layout.tsx";
 const queryProviderImport = "@/providers/query-provider";
+
+const requiredStorefrontPaths = [
+  "src/app/(storefront)/(home)/page.tsx",
+  "src/app/(storefront)/products/page.tsx",
+  "src/app/(storefront)/products/[slug]/page.tsx",
+  "src/app/(storefront)/products/[slug]/loading.tsx",
+  "src/app/(storefront)/products/[slug]/error.tsx",
+  "src/app/(storefront)/products/[slug]/not-found.tsx",
+  "src/app/(storefront)/collections/[slug]/page.tsx",
+  "src/app/(storefront)/cart/page.tsx",
+  "src/app/(storefront)/checkout/page.tsx",
+  "src/app/(storefront)/order-confirmation/page.tsx",
+  accountLayoutPath,
+  "src/app/(storefront)/account/page.tsx",
+  "src/app/(storefront)/account/orders/page.tsx",
+  "src/app/(storefront)/account/profile/page.tsx",
+];
+
+const removedLegacyPaths = [
+  "src/app/(home)",
+  "src/app/products",
+  "src/app/collections",
+  "src/app/cart",
+  "src/app/checkout",
+  "src/app/order-confirmation",
+  "src/app/account",
+  "src/app/storefront-layout.tsx",
+];
 
 const rootProviders = readRequired(rootProvidersPath);
 const adminLayout = readRequired(adminLayoutPath);
 const storefrontLayout = readRequired(storefrontLayoutPath);
+const accountLayout = readRequired(accountLayoutPath);
 
 if (rootProviders.includes("QueryProvider") || rootProviders.includes(queryProviderImport)) {
   violations.push(`${rootProvidersPath} must not mount or import QueryProvider.`);
@@ -32,9 +62,25 @@ if (
   );
 }
 
-for (const removedPath of ["src/app/(home)/layout.tsx", "src/app/(home)/page.tsx"]) {
+if (!accountLayout.includes("AccountShell") || !accountLayout.includes("<AccountShell>")) {
+  violations.push(`${accountLayoutPath} must preserve the account presentation shell.`);
+}
+
+if (accountLayout.includes("StorefrontRouteBoundary")) {
+  violations.push(
+    `${accountLayoutPath} must not remount StorefrontRouteBoundary beneath ${storefrontLayoutPath}.`,
+  );
+}
+
+for (const requiredPath of requiredStorefrontPaths) {
+  if (!existsSync(resolve(root, requiredPath))) {
+    violations.push(`Required consolidated storefront route is missing: ${requiredPath}`);
+  }
+}
+
+for (const removedPath of removedLegacyPaths) {
   if (existsSync(resolve(root, removedPath))) {
-    violations.push(`${removedPath} must not be recreated after the homepage route-group move.`);
+    violations.push(`${removedPath} must not exist after the Phase 2 storefront route consolidation.`);
   }
 }
 
