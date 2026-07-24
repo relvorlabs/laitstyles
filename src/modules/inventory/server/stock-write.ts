@@ -1,15 +1,11 @@
 import "server-only";
 
-import type { ProductEditorValues } from "@/lib/admin/product-editor/product-editor-types";
+import type {
+  ProductEditorActionError,
+  ProductEditorValues,
+} from "@/lib/admin/product-editor/product-editor-types";
 import type { Prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
-import type { AdminProductRow } from "@/modules/products/server/mappers";
-import {
-  cleanProductText,
-  isProductId,
-  ProductRuleViolation,
-} from "@/modules/products/server/rules";
-import { productAssetProviderFor } from "@/modules/products/server/write-helpers";
 
 export type StockBalance = {
   id: string;
@@ -21,6 +17,39 @@ export type StockBalance = {
   returned: number;
   damaged: number;
 };
+
+type ExistingInventoryVariant = {
+  id: string;
+  stock_levels: StockBalance[];
+};
+
+export type ExistingProductInventoryState = {
+  inventory_mode: string;
+  stock_levels: StockBalance[];
+  product_variants: ExistingInventoryVariant[];
+};
+
+export class InventoryRuleViolation extends Error {
+  constructor(readonly actionError: ProductEditorActionError) {
+    super(actionError.message);
+  }
+}
+
+function cleanText(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function assetProviderFor(url: string): string {
+  try {
+    return new URL(url).hostname === "res.cloudinary.com" ? "cloudinary" : "external";
+  } catch {
+    return "external";
+  }
+}
 
 function protectedQuantity(stock: StockBalance | undefined): number {
   if (!stock) return 0;
@@ -43,7 +72,7 @@ function recordedQuantity(stock: StockBalance | undefined): number {
 function nextStockData(stock: StockBalance | undefined, totalReceived: number) {
   const protectedUnits = protectedQuantity(stock);
   if (totalReceived < protectedUnits) {
-    throw new ProductRuleViolation({
+    throw new InventoryRuleViolation({
       code: "validation-failed",
       message: `Total received cannot be lower than ${protectedUnits}, because those units are already committed.`,
       issues: [
@@ -69,7 +98,7 @@ function nextStockData(stock: StockBalance | undefined, totalReceived: number) {
 export async function assertProductInventoryModeCanChange(
   tx: Prisma.TransactionClient,
   productId: string,
-  existingRow: AdminProductRow | null,
+  existingRow: ExistingProductInventoryState | null,
   nextMode: ProductEditorValues["inventoryMode"],
 ): Promise<void> {
   if (!existingRow || existingRow.inventory_mode === nextMode) return;
@@ -87,7 +116,7 @@ export async function assertProductInventoryModeCanChange(
 
   if (!hasRecordedBalance && holds + lines + movements === 0) return;
 
-  throw new ProductRuleViolation({
+  throw new InventoryRuleViolation({
     code: "validation-failed",
     message:
       "Product type cannot change after stock or operational history has been recorded. Archive this product and create a new record instead.",
@@ -113,7 +142,7 @@ async function assertVariantsCanBeRemoved(
     tx.stock_movements.count({ where: { product_id: productId, variant_id: { in: variantIds } } }),
   ]);
   if (holds + lines + movements > 0) {
-    throw new ProductRuleViolation({
+    throw new InventoryRuleViolation({
       code: "validation-failed",
       message:
         "One or more removed variants have hold, order or stock history. Keep those variants and archive the product instead.",
@@ -158,7 +187,7 @@ export async function writeProductStockAndVariants(
   actor: StaffSession,
   productId: string,
   values: ProductEditorValues,
-  existingRow: AdminProductRow | null,
+  existingRow: ExistingProductInventoryState | null,
 ): Promise<void> {
   const existingVariants = new Map(
     (existingRow?.product_variants ?? []).map((variant) => [variant.id, variant]),
@@ -202,7 +231,7 @@ export async function writeProductStockAndVariants(
   const retainedIds = new Set(
     values.variant.variants
       .map((variant) => variant.id)
-      .filter((id) => isProductId(id) && existingVariants.has(id)),
+      .filter((id) => isUuid(id) && existingVariants.has(id)),
   );
   const removedVariantIds = [...existingVariants.keys()].filter((id) => !retainedIds.has(id));
   await assertVariantsCanBeRemoved(tx, productId, removedVariantIds);
@@ -216,12 +245,12 @@ export async function writeProductStockAndVariants(
   }
 
   for (const [position, input] of values.variant.variants.entries()) {
-    const existing = isProductId(input.id) ? existingVariants.get(input.id) : undefined;
+    const existing = isUuid(input.id) ? existingVariants.get(input.id) : undefined;
     const variantData = {
-      label: cleanProductText(input.label),
-      sku: cleanProductText(input.sku) || null,
-      size: cleanProductText(input.size) || null,
-      colour: cleanProductText(input.colour) || null,
+      label: cleanText(input.label),
+      sku: cleanText(input.sku) || null,
+      size: cleanText(input.size) || null,
+      colour: cleanText(input.colour) || null,
       price: input.price === null ? null : input.price.toFixed(2),
       cost: input.cost === null ? null : input.cost.toFixed(2),
       position,
@@ -251,23 +280,23 @@ export async function writeProductStockAndVariants(
       input.quantity,
     );
 
-    if (cleanProductText(input.imageUrl)) {
-      const imageUrl = cleanProductText(input.imageUrl);
-      const provider = productAssetProviderFor(imageUrl);
+    if (cleanText(input.imageUrl)) {
+      const imageUrl = cleanText(input.imageUrl);
+      const provider = assetProviderFor(imageUrl);
       const asset = await tx.cloudinary_assets.upsert({
         where: { public_id: `admin/products/${productId}/variants/${variant.id}` },
         update: {
           provider,
           kind: "product_detail",
           secure_url: imageUrl,
-          alt: `${cleanProductText(values.name) || "Product"} — ${cleanProductText(input.label)}`,
+          alt: `${cleanText(values.name) || "Product"} — ${cleanText(input.label)}`,
         },
         create: {
           provider,
           kind: "product_detail",
           public_id: `admin/products/${productId}/variants/${variant.id}`,
           secure_url: imageUrl,
-          alt: `${cleanProductText(values.name) || "Product"} — ${cleanProductText(input.label)}`,
+          alt: `${cleanText(values.name) || "Product"} — ${cleanText(input.label)}`,
         },
       });
       await tx.product_media.create({
