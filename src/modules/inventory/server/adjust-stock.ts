@@ -3,8 +3,8 @@ import "server-only";
 import { hasCapability } from "@/lib/auth/permissions";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
-import type { StaffSession } from "@/server/auth/session";
 import type { InventoryCounts, StockMovement } from "@/modules/inventory/types";
+import type { StaffSession } from "@/server/auth/session";
 
 export type StockAdjustmentInput = {
   productId: string;
@@ -28,14 +28,18 @@ export type StockAdjustmentError = {
   message: string;
 };
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function adjustInventoryStock(
   actor: StaffSession,
   input: StockAdjustmentInput,
 ): Promise<Result<StockAdjustmentOutcome, StockAdjustmentError>> {
   if (!hasCapability(actor.role, "inventory:update")) {
-    return err({ code: "forbidden", message: "You don't have permission to adjust inventory." });
+    return err({
+      code: "forbidden",
+      message: "You don't have permission to adjust inventory.",
+    });
   }
 
   const note = input.note.trim().replace(/\s+/g, " ");
@@ -63,7 +67,10 @@ export async function adjustInventoryStock(
         },
       });
       if (!product) {
-        return err({ code: "product-not-found", message: "The selected product could not be found." });
+        return err({
+          code: "product-not-found",
+          message: "The selected product could not be found.",
+        });
       }
 
       if (product.inventory_mode === "variant") {
@@ -123,7 +130,9 @@ export async function adjustInventoryStock(
         });
       }
 
-      const balance = await tx.stock_levels.findUniqueOrThrow({ where: { id: stock.id } });
+      const balance = await tx.stock_levels.findUniqueOrThrow({
+        where: { id: stock.id },
+      });
       const movement = await tx.stock_movements.create({
         data: {
           product_id: input.productId,
