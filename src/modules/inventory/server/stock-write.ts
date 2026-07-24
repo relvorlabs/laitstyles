@@ -9,6 +9,7 @@ import type { StaffSession } from "@/server/auth/session";
 
 export type StockBalance = {
   id: string;
+  variant_id: string | null;
   total_received: number;
   available: number;
   reserved: number;
