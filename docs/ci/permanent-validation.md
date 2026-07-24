@@ -27,9 +27,20 @@ a workflow service container, so no shared production database is used.
 
 ### Public deployment lane
 
-The permanent remote workflow in `relvorlabs/agent-controller` may test only a public deployment
-URL. It must not check out or execute the private Laitstyles source because public workflow logs
-and artifacts could expose source diagnostics.
+The permanent `Remote Public UI Contract` workflow in `relvorlabs/agent-controller` tests only a
+public deployment URL. It does not check out or execute the private Laitstyles source because public
+workflow logs and artifacts could expose source diagnostics.
+
+The workflow was merged to `agent-controller/main` as commit
+`ea33659835976c3823f4ecbf29508eb4275377b0` after run `30102855564` passed its target validation,
+isolated Playwright setup, desktop/tablet/mobile browser contract, manifest, and artifact upload.
+
+```text
+Artifact ID: 8600369626
+Artifact: remote-public-ui-laitstyles-pr-30102855564
+Digest: sha256:0b7df9d9fcaba7df46d6951b7da276c3be273b5ea1b8e71c66a2ce9e9384326c
+Expires: 2026-08-23
+```
 
 Use that lane for deployment availability, responsive screenshots, browser errors, and public
 navigation smoke checks. Use the private source lane for Biome, TypeScript, Vitest, Prisma, build,
@@ -73,7 +84,11 @@ pnpm validate:full         # normal set + Prisma integrity + production build
 pnpm validate:browser      # normal set + all Playwright viewports against PLAYWRIGHT_BASE_URL
 ```
 
-`pnpm validate:browser` expects an already-running application. It uses
+`pnpm validate:full` requires a disposable PostgreSQL database through `DATABASE_URL` and
+`DIRECT_URL`; the private workflow supplies PostgreSQL 17 automatically. Do not point validation at
+a production database.
+
+`pnpm validate:browser` expects an already-running application and installed Chromium. It uses
 `http://127.0.0.1:3000` unless `PLAYWRIGHT_BASE_URL` is set.
 
 Every validation command continues through its selected suites and writes evidence to:
