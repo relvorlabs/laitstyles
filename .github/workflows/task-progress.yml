@@ -44,6 +44,11 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      - name: Check out trusted workflow files
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Resolve command, authorization and pull request
         id: context
         shell: bash
