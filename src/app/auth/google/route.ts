@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { authFlowFailure, mapAuthProviderError } from "@/lib/auth/auth-errors";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,11 +16,11 @@ async function startGoogleOAuth(request: NextRequest, value: FormDataEntryValue 
   });
 
   if (error || !data.url) {
+    const failure = error
+      ? mapAuthProviderError(error, "oauth-start-failed")
+      : authFlowFailure("oauth-start-failed");
     return NextResponse.redirect(
-      new URL(
-        withAuthErrorPath(error?.message ?? "Google sign-in could not be started.", next),
-        request.url,
-      ),
+      new URL(withAuthErrorPath(failure.code, next), request.url),
       { status: 303 },
     );
   }
