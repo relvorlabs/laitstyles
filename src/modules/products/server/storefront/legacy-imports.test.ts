@@ -34,14 +34,14 @@ describe("public product query ownership", () => {
       if (relative.includes(".test.") || relative.includes(".spec.")) continue;
 
       const source = (await readFile(filePath, "utf8")).trim();
-      if (!/^export \* from "@\/modules\/products\/server\/storefront\/[a-z-]+";$/.test(source)) {
-        offenders.push(relative);
-      }
+      const isModuleForwarder =
+        /^export \* from "@\/modules\/products\/server\/storefront\/[a-z-]+";$/.test(source);
+      if (!isModuleForwarder) offenders.push(relative);
     }
 
     expect(
       offenders,
-      "Legacy catalogue paths may forward exports only; implementation belongs to modules/products.",
+      "Legacy catalogue paths may only forward exports to modules/products.",
     ).toEqual([]);
   });
 });
