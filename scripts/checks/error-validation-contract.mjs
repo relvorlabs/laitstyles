@@ -30,15 +30,21 @@ const authActions = read("src/app/auth/actions.ts");
 const authCallback = read("src/app/auth/callback/route.ts");
 const googleAuth = read("src/app/auth/google/route.ts");
 const authErrorPage = read("src/app/auth/error/page.tsx");
+const authProvider = read("src/features/storefront/shared/storefront-auth-provider.tsx");
 const authRedirects = read("src/lib/auth/server/redirects.ts");
+const authDiagnostics = read("src/lib/auth/server/auth-provider-diagnostics.ts");
 const reviewActions = read("src/features/storefront/account/reviews/review-actions.ts");
 const inventoryActions = read("src/features/admin/inventory/inventory-actions.ts");
 const inventoryActionSchema = read("src/lib/admin/inventory/inventory-action-schema.ts");
+const browserContract = read("tests/e2e/error-validation.spec.ts");
 
 if (!canonicalResult.includes("export type Result<")) {
   errors.push("The canonical Result implementation must remain in src/lib/errors/index.ts.");
 }
-if (/export\s+type\s+Result\s*</.test(compatibilityResult) || /function\s+(?:ok|err)\s*</.test(compatibilityResult)) {
+if (
+  /export\s+type\s+Result\s*</.test(compatibilityResult) ||
+  /function\s+(?:ok|err)\s*</.test(compatibilityResult)
+) {
   errors.push("src/lib/admin/shared/result.ts must not define a second Result implementation.");
 }
 if (!compatibilityResult.includes('from "@/lib/errors"')) {
@@ -58,8 +64,14 @@ if (!authErrors.includes("mapAuthProviderError") || !authErrors.includes("authFl
 if (!authSchemas.includes("passwordSignInSchema") || !authSchemas.includes("passwordSignUpSchema")) {
   errors.push("Password Server Actions must use the canonical Zod auth schemas.");
 }
+if (!authSchemas.includes("terms:") || !authProvider.includes('formData.set("terms"')) {
+  errors.push("Terms acceptance must be enforced at the Server Action boundary, not only in client UI.");
+}
 if (!authActions.includes("safeParse") || !authActions.includes("mapAuthProviderError")) {
   errors.push("Password auth actions must Zod-parse input and map provider failures.");
+}
+if (!authActions.includes("logAuthProviderFailure")) {
+  errors.push("Auth provider failures must retain structured server-side diagnostics.");
 }
 if (/error\.message|\.message\.toLowerCase|includes\(["']invalid/.test(authActions)) {
   errors.push("Password auth actions must not branch on or expose provider error messages.");
@@ -73,11 +85,34 @@ if (/params\.message|searchParams:[\s\S]*message\?/.test(authErrorPage)) {
 if (!authRedirects.includes("code,") || authRedirects.includes("message,")) {
   errors.push("Auth error redirects must serialize an allow-listed code only.");
 }
+if (
+  !authDiagnostics.includes('import "server-only"') ||
+  !authDiagnostics.includes("logger.warn") ||
+  !authDiagnostics.includes("providerCode") ||
+  !authDiagnostics.includes("providerStatus") ||
+  !authDiagnostics.includes("providerErrorName")
+) {
+  errors.push("Auth diagnostics must remain server-only and log structured provider metadata.");
+}
+if (/error\.message|providerMessage|rawMessage/.test(authDiagnostics)) {
+  errors.push("Auth diagnostics must not log raw provider messages.");
+}
+if (
+  !browserContract.includes("invalid-credentials") ||
+  !browserContract.includes("raw-provider-detail") ||
+  !browserContract.includes("toHaveCount(0)")
+) {
+  errors.push("Browser coverage must prove arbitrary auth query text is not reflected to users.");
+}
 
 if (!reviewActions.includes("reviewIdentifiersSchema.safeParse")) {
   errors.push("Review actions must Zod-parse order and line identifiers.");
 }
-if (/throw new Error\(identity\.state\.message\)|throw new Error\(["']This review link/.test(reviewActions)) {
+if (
+  /throw new Error\(identity\.state\.message\)|throw new Error\(["']This review link/.test(
+    reviewActions,
+  )
+) {
   errors.push("Expected review auth/link failures must return typed action state instead of throwing.");
 }
 if (!inventoryActions.includes("inventoryProductActionSchema.safeParse")) {
