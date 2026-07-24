@@ -1,6 +1,11 @@
 "use client";
 
-import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
@@ -53,7 +58,7 @@ function upsertProductInCache(
     : [product, ...products];
 }
 
-function invalidateInventory(queryClient: ReturnType<typeof useQueryClient>) {
+function invalidateInventory(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
   queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
 }
