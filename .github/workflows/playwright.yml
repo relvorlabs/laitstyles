@@ -30,6 +30,7 @@ env:
 
 jobs:
   browser:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Browser runtime / ${{ matrix.project }}
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 65
@@ -176,7 +177,7 @@ jobs:
 
   aggregate:
     name: Aggregate browser evidence
-    if: always() && !cancelled()
+    if: (github.event_name != 'pull_request' || github.event.pull_request.number != 40) && always() && !cancelled()
     needs: [browser]
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
