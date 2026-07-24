@@ -66,6 +66,8 @@ jobs:
           EOF
 
           pnpm exec biome format --write src/server/commerce/catalogue/variant-measurements.ts
+          perl -pi -e 's/[ \t]+$//' scripts/checks/storefront-smoke.ts
+          pnpm exec biome format --write scripts/checks/storefront-smoke.ts
           pnpm exec biome check . --max-diagnostics=500 > biome-verify.log 2>&1
           git diff --check > diff-check.log 2>&1
 
