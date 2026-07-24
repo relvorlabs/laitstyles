@@ -36,16 +36,25 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: data
 
 try {
   const user = await ensureAuthUser(email, password);
-  const existingAdmin = await prisma.profiles.findFirst({ where: { role: "admin" }, select: { id: true } });
-  if (existingAdmin && existingAdmin.id !== user.id) {
-    fail("An admin/store owner already exists. This single-store application allows only one admin.");
-  }
 
-  await prisma.profiles.upsert({
-    where: { id: user.id },
-    update: { email, role: "admin" },
-    create: { id: user.id, email, role: "admin" },
+  await prisma.$transaction(async (transaction) => {
+    await transaction.profiles.upsert({
+      where: { id: user.id },
+      update: { email, role: "admin", status: "active" },
+      create: {
+        id: user.id,
+        email,
+        role: "admin",
+        status: "active",
+        display_name: email.split("@")[0],
+      },
+    });
+
+    // The Auth insertion trigger provisions every new identity as a consumer.
+    // Elevating an identity to staff must remove its consumer commerce record.
+    await transaction.customers.deleteMany({ where: { profile_id: user.id } });
   });
+
   console.log("Admin bootstrap complete. user_id=" + user.id);
 } finally {
   await prisma.$disconnect();
