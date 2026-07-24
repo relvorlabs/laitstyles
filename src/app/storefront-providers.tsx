@@ -3,7 +3,7 @@
 import { type ReactNode, use } from "react";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import type { StorefrontCatalogPayload } from "@/features/storefront/shared/catalog-types";
+import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontClientStateProvider } from "@/features/storefront/shared/storefront-client-state-provider";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 
@@ -13,7 +13,7 @@ export function StorefrontProviders({
   children,
 }: {
   authSessionPromise: Promise<StorefrontAuthSession>;
-  catalogPromise: Promise<StorefrontCatalogPayload>;
+  catalogPromise: Promise<StorefrontShellCatalogPayload>;
   children: ReactNode;
 }) {
   const authSession = use(authSessionPromise);
