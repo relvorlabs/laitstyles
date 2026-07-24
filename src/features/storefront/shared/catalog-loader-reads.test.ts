@@ -8,7 +8,7 @@ const repository = vi.hoisted(() => ({
   listStorefrontCategories: vi.fn(),
 }));
 
-vi.mock("@/server/commerce/catalogue/catalog-repository", () => repository);
+vi.mock("@/modules/products/server/storefront/queries", () => repository);
 
 import { loadStorefrontProductPageBySlug } from "./catalog-loader";
 
