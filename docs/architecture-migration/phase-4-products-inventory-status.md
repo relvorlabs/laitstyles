@@ -2,154 +2,99 @@
 
 **Branch:** `refactor/phase-4-products-inventory-cutover`  
 **Base merge:** `d7e3149c96f234d7deb41151ac603d6f652ceb4d`  
-**Status:** In progress — source inventory and cutover contract established  
-**Acceptance gate:** Prisma-backed read/write parity through the Phase 3 transport contract, with no UI change
+**Pull request:** #41  
+**Source status:** Complete  
+**Certification status:** Pending executed final-head evidence  
+**UI contract:** No intentional redesign
 
-## 1. Predecessor status carried into Phase 4
+## Predecessor truth
 
-Phase 3 was squash-merged through PR #40 as `d7e3149c96f234d7deb41151ac603d6f652ceb4d` by explicit repository-owner direction.
+Phase 3 was merged with validation debt. Its final-head Implementation Quality and Playwright runs (`30118703848` and `30118703866`) did not execute before merge. Phase 4 does not reinterpret queued, skipped, cancelled or superseded runs as passing evidence.
 
-Phase 3 is recorded as **Merged with validation debt**, not as fully accepted or 10/10.
+## Current architecture
 
-Confirmed Phase 3 delivery:
-
-- typed browser HTTP client;
-- standard success, error and pagination envelopes;
-- reusable JSON and search validation;
-- API authentication and staff-capability helpers;
-- permission-policy helpers;
-- structured logging and `x-request-id` correlation;
-- admin-scoped QueryClient defaults and cancellation contract;
-- `/api/v1/health` as the versioned transport proof;
-- repaired Prisma 7.8 runtime dependency and self-hosted PostgreSQL routing;
-- database gates and the 460-test Vitest suite passed on earlier Phase 3 repair heads.
-
-Outstanding Phase 3 acceptance debt:
-
-```text
-Implementation Quality: 30118703848
-Playwright UI Contract: 30118703866
-```
-
-Those final-head runs were queued without execution at merge time. Phase 4 must not rewrite that state as a pass. Phase 1 and Phase 2 also retain their previously recorded validation debt.
-
-## 2. Controlling Phase 4 decision
-
-Phase 4 cuts over the canonical `products` and `inventory` domains while preserving the existing admin and storefront presentation.
+Interactive admin consumers use:
 
 ```text
 Client Component
-  -> TanStack Query hook
-  -> typed API client
+  -> TanStack Query
+  -> typed module API client
   -> /api/v1 Route Handler
-  -> products or inventory domain operation
+  -> product or inventory domain operation
   -> Prisma
 ```
 
+Server-rendered storefront reads use:
+
 ```text
-Server Component
-  -> products or inventory server query
+Server Component or server loader
+  -> modules/products/server/storefront/**
   -> Prisma
 ```
 
-Product owns definition and CRUD. Inventory owns stock, availability, reservations and stock movements. Catalogue remains a customer-facing read model, not a CRUD synonym.
+Product owns definition, lifecycle, taxonomy and public product read models. Inventory owns balances, movements, database pagination and stock adjustments. Catalogue remains a public read-model term rather than a second persistence domain.
 
-Route Handlers and Server Actions are alternative transport adapters. They must not call each other.
+## Completed source work
 
-## 3. Current source inventory at Phase 4 start
+- Product and inventory contracts are module-owned.
+- Product save, lifecycle and taxonomy commands are module-owned and Prisma-backed.
+- Inventory balances, stock movements, page filtering, aggregation and adjustment are module-owned.
+- Product and inventory browser consumers use typed API clients and TanStack Query.
+- Versioned authenticated endpoints replace the unversioned Inventory API.
+- TanStack mutations no longer import Server Actions.
+- The bespoke browser Inventory repository and production in-memory fallback are deleted.
+- Inventory list pagination, filtering, sorting, totals and saved-view counts execute in PostgreSQL.
+- Public catalogue queries, mappers, visibility rules and page pagination have one implementation owner under `src/modules/products/server/storefront/**`.
+- The live catalogue loader, collection page and products page import that module directly.
+- `src/server/commerce/catalogue/**` contains export-only compatibility shims; it contains no duplicate Prisma implementation.
+- The duplicate storefront product writer and its obsolete test were deleted.
+- The runtime storefront smoke uses the same canonical `saveProduct` command as the API.
+- A transactional inventory adjustment command guards invalid balances and concurrent changes, then records an immutable stock movement and audit event.
+- An architecture test rejects any production `src/**` import from the legacy catalogue path.
 
-### Already Prisma-backed
+## Versioned APIs
 
-- `src/server/commerce/inventory/inventory-read.ts`
-  - lists admin products;
-  - loads product detail;
-  - lists categories and collections;
-  - lists stock movements.
-- `src/server/commerce/inventory/inventory-product-service.ts`
-  - saves product definitions and associated stock transactionally.
-- `src/server/commerce/inventory/inventory-lifecycle-service.ts`
-  - archives, restores and deletes products.
-- `src/server/commerce/inventory/inventory-taxonomy-service.ts`
-  - creates, renames and deletes category/collection records.
-- `src/app/admin/inventory/page.tsx`
-  - performs the server-rendered inventory read directly without an internal HTTP round trip.
+- `GET/POST /api/v1/admin/products`
+- `GET/PATCH/DELETE /api/v1/admin/products/[id]`
+- `POST /api/v1/admin/products/[id]/archive`
+- `POST /api/v1/admin/products/[id]/restore`
+- `GET/POST /api/v1/admin/products/taxonomy`
+- `PATCH/DELETE /api/v1/admin/products/taxonomy/[id]`
+- `GET /api/v1/admin/inventory`
+- `GET /api/v1/admin/inventory/stock-movements`
 
-Phase 4 is therefore not a first persistence implementation. It is an ownership, transport and consumer cutover around existing persisted operations.
+Publishing is an explicit `publish` intent on the existing create/update product contract. A separate unused publish route was not added because no current consumer requires it.
 
-### Legacy browser read transport
-
-- `src/app/api/admin/inventory/products/route.ts`
-- `src/app/api/admin/inventory/products/[id]/route.ts`
-- `src/app/api/admin/inventory/taxonomy/route.ts`
-- `src/app/api/admin/inventory/stock-movements/route.ts`
-- `src/lib/admin/data/remote/inventory-repository.ts`
-
-These endpoints use unversioned `/api/admin/**` URLs, bespoke `fetchJson`, raw response bodies and route-local error shapes instead of the Phase 3 `/api/v1/**` envelope and shared HTTP adapter.
-
-### Legacy browser write transport
-
-`src/features/admin/inventory/inventory-mutations.ts` imports Server Actions directly from `src/features/admin/inventory/inventory-actions.ts`.
-
-The architecture guard records this exact temporary edge:
-
-```text
-src/features/admin/inventory/inventory-mutations.ts
-  -> src/features/admin/inventory/inventory-actions.ts
-```
-
-Phase 4 must replace it with typed API mutations before removing the exception.
-
-### Legacy ownership
-
-Product definition, taxonomy and stock operations are still grouped under `src/server/commerce/inventory/**` and shared admin types live under `src/lib/admin/**`. The target ownership is `src/modules/products/**` plus `src/modules/inventory/**`, migrated incrementally without wrapper-only abstractions.
-
-## 4. Approved execution tasks
+## Task state
 
 | ID | Task | Status |
 | --- | --- | --- |
-| P4-T01 | Record Phase 3 handoff and current products/inventory source map | Complete |
-| P4-T02 | Define products and inventory module contracts from the existing persisted operations | Not started |
-| P4-T03 | Move product definition, lifecycle and taxonomy server ownership into `src/modules/products/server/**` | Not started |
-| P4-T04 | Move stock and stock-movement server ownership into `src/modules/inventory/server/**` | Not started |
-| P4-T05 | Add authenticated versioned `/api/v1/admin/products/**` and `/api/v1/admin/inventory/**` read endpoints using Phase 3 envelopes | Not started |
-| P4-T06 | Replace the bespoke remote inventory repository with typed product/inventory API clients and TanStack Query options | Not started |
-| P4-T07 | Add versioned product and taxonomy mutation endpoints that call transport-neutral domain commands | Not started |
-| P4-T08 | Replace TanStack-to-Server-Action mutations and remove the exact legacy exception | Not started |
-| P4-T09 | Remove unversioned inventory endpoints and compatibility adapters only after every consumer moves | Not started |
-| P4-T10 | Prove authorization, validation, error envelopes, persistence, reload retention and cache invalidation | Not started |
-| P4-T11 | Run static, database, unit, build, React Doctor, HTTP and desktop/tablet/mobile Playwright parity gates | Not started |
-| P4-T12 | Reconcile outstanding Phase 3 validation debt with executed evidence when available | Not started |
+| P4-T01 | Record Phase 3 handoff and source map | Complete |
+| P4-T02 | Define product and inventory contracts | Complete |
+| P4-T03 | Move product definition, lifecycle, taxonomy and public reads | Complete |
+| P4-T04 | Move stock, movement and adjustment ownership | Complete |
+| P4-T05 | Add authenticated versioned reads | Complete |
+| P4-T06 | Replace bespoke browser reads with typed clients and TanStack Query | Complete |
+| P4-T07 | Add versioned product and taxonomy mutations | Complete |
+| P4-T08 | Remove TanStack-to-Server-Action mutations and exception | Complete |
+| P4-T09 | Remove unversioned Inventory endpoints after consumer cutover | Complete |
+| P4-T10 | Prove authorization, validation, errors, persistence and invalidation | Implemented; execution pending |
+| P4-T11 | Pass static, DB, unit, build, React Doctor, HTTP and Playwright gates | Pending execution |
+| P4-T12 | Reconcile Phase 3 validation debt with executed evidence | Pending execution |
 
-## 5. Scope boundaries
+## Current final-head evidence
 
-Phase 4 does not migrate orders, holds, returns, customers, settings, checkout, payments, delivery or authentication ownership.
+The latest final-head workflows must execute and pass before Phase 4 can be called complete, 10/10 or merge-ready. Required evidence:
 
-Phase 4 does not:
+- architecture guard and Biome;
+- TypeScript;
+- Prisma validation, migration and database-backed checks;
+- unit, component, integration and API contract tests;
+- production build;
+- React Doctor;
+- HTTP smoke;
+- desktop, tablet and mobile Playwright UI contract;
+- retained workflow artifacts;
+- final review-thread reconciliation.
 
-- redesign the Inventory workspace or product editor;
-- change header, footer, homepage, product cards, catalogue, PDP, typography, spacing, themes or responsive behaviour;
-- move Server Components to internal HTTP;
-- copy remote records into Zustand or another client store;
-- introduce generic repository or service classes without a real replaceable backend;
-- delete legacy routes or actions before all consumers move;
-- declare completion from queued, skipped or unavailable checks.
-
-## 6. Required acceptance evidence
-
-Before Phase 4 can be complete:
-
-- admin product list and detail reads use Prisma-backed product-domain queries;
-- taxonomy writes persist through authenticated product-domain commands;
-- inventory stock and movement reads use inventory-domain queries;
-- all interactive browser reads and writes use typed `/api/v1/**` clients;
-- no TanStack Query module imports a Server Action;
-- the Phase 4 legacy exception is removed rather than broadened;
-- changes survive reload and preserve database integrity;
-- unauthorized and malformed requests return stable sanitized errors;
-- cache invalidation updates list, detail, taxonomy, stock movement and overview consumers correctly;
-- existing admin and storefront routes, interactions and presentation remain unchanged;
-- final static, test, database, build, React Doctor, HTTP and Playwright evidence executes successfully.
-
-## 7. Rollback
-
-Each cutover slice must keep its old adapter until the replacement consumer is proven. Roll back by reverting the current slice; do not retain two active browser transports or partially remove the legacy exception.
+A queued workflow is not a pass.
