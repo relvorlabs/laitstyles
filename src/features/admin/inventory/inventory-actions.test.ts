@@ -54,7 +54,10 @@ describe("inventory actions", () => {
   });
 
   it("does not disguise session infrastructure failures as permission errors", async () => {
-    mocks.getCurrentSession.mockResolvedValueOnce({ kind: "unavailable", error: "Database offline" });
+    mocks.getCurrentSession.mockResolvedValueOnce({
+      kind: "unavailable",
+      error: "Database offline",
+    });
 
     await expect(archiveProductAction(productId)).rejects.toThrow("Database offline");
     expect(mocks.archiveInventoryProduct).not.toHaveBeenCalled();
@@ -71,7 +74,9 @@ describe("inventory actions", () => {
     });
     expect(mocks.archiveInventoryProduct).not.toHaveBeenCalled();
 
-    await expect(saveProductAction({ inventoryMode: "stocked" }, "delete")).resolves.toEqual({
+    await expect(
+      saveProductAction({ inventoryMode: "stocked" }, "delete"),
+    ).resolves.toEqual({
       ok: false,
       error: {
         code: "validation-failed",
@@ -133,7 +138,9 @@ describe("inventory actions", () => {
   });
 
   it("returns typed taxonomy failures for malformed identifiers", async () => {
-    await expect(renameCatalogueTaxonomyAction("category:not-a-uuid", "Archive")).resolves.toEqual({
+    await expect(
+      renameCatalogueTaxonomyAction("category:not-a-uuid", "Archive"),
+    ).resolves.toEqual({
       ok: false,
       error: {
         code: "taxonomy-not-found",
