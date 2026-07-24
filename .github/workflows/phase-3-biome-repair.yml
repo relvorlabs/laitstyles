@@ -79,7 +79,7 @@ jobs:
           NODE
 
           pnpm exec biome check . --max-diagnostics=500 > biome-verify.log 2>&1
-          git diff --check > diff-check.log 2>&1
+          git -c core.whitespace=cr-at-eol diff --check > diff-check.log 2>&1
 
       - name: Package repair diagnostics
         if: always()
@@ -116,7 +116,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --cached --check
+          git -c core.whitespace=cr-at-eol diff --cached --check
           git commit -m "style: apply verified Phase 3 validation repairs"
           git push origin "HEAD:${HEAD_REF}"
 
