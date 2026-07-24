@@ -11,12 +11,14 @@ describe("auth provider diagnostics", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("logs structured provider metadata without raw messages", () => {
-    logAuthProviderFailure("password-sign-in", {
+    const providerError = {
       code: "invalid_credentials",
       status: 400,
       name: "AuthApiError",
       message: "postgres://secret@internal-host",
-    } as { code: string; status: number; name: string; message: string });
+    };
+
+    logAuthProviderFailure("password-sign-in", providerError);
 
     expect(mocks.warn).toHaveBeenCalledWith(
       {
