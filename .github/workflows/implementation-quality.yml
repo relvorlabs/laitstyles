@@ -40,7 +40,7 @@ jobs:
 
       - uses: ./.github/actions/setup-environment
         with:
-          node-version: "22"
+          node-version: "25"
 
       - name: Architecture guard
         run: pnpm check:architecture
@@ -67,7 +67,7 @@ jobs:
 
       - uses: ./.github/actions/setup-environment
         with:
-          node-version: "22"
+          node-version: "25"
 
       - name: Run Vitest with coverage
         run: pnpm test:coverage
@@ -109,7 +109,7 @@ jobs:
 
       - uses: ./.github/actions/setup-environment
         with:
-          node-version: "22"
+          node-version: "25"
 
       - name: Validate Prisma schema
         run: pnpm prisma:validate
@@ -122,8 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
-    # Your current workflow explicitly says the build performs database reads.
-    # Keep this service only while the Next.js build genuinely requires it.
+    # The current application performs database reads while building pages.
     services:
       postgres:
         image: postgres:17
@@ -147,7 +146,7 @@ jobs:
 
       - uses: ./.github/actions/setup-environment
         with:
-          node-version: "22"
+          node-version: "25"
 
       - name: Apply migrations required by build-time reads
         run: pnpm prisma:migrate:deploy
