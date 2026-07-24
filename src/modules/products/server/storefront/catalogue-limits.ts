@@ -1,12 +1,9 @@
-export const PRODUCTS_PAGE_SIZE = 15;
-export const PRODUCTS_PAGE_SIZE_OPTIONS = [15, 30, 60] as const;
-export const MAX_PRODUCTS_PAGE_SIZE = 60;
+export const MAX_STOREFRONT_CATALOGUE_DETAILS = 300;
 
-export const STOREFRONT_PRODUCT_LIST_LIMIT = 240;
-export const STOREFRONT_DISCOVERY_QUERY_LIMIT = 500;
-export const DISCOVERY_SOURCE_LIMIT = STOREFRONT_DISCOVERY_QUERY_LIMIT;
+export function normalizePublishedProductDetailLimit(limit?: number): number {
+  if (limit === undefined || !Number.isFinite(limit)) {
+    return MAX_STOREFRONT_CATALOGUE_DETAILS;
+  }
 
-export const FEATURED_COLLECTION_PRODUCT_LIMIT = 4;
-export const STORE_PRODUCT_LIMIT = 4;
-export const NEW_ARRIVALS_PRODUCT_LIMIT = 4;
-export const PUBLIC_COLLECTION_PRODUCT_LIMIT = 24;
+  return Math.min(MAX_STOREFRONT_CATALOGUE_DETAILS, Math.max(1, Math.trunc(limit)));
+}
