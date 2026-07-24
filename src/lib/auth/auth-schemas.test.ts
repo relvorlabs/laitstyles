@@ -13,6 +13,7 @@ describe("password auth schemas", () => {
         password: "password123",
         first: "  Ada ",
         last: " Lovelace  ",
+        terms: "true",
         next: "/account",
       }),
     ).toEqual({
@@ -20,6 +21,7 @@ describe("password auth schemas", () => {
       password: "password123",
       first: "Ada",
       last: "Lovelace",
+      terms: true,
       next: "/account",
     });
   });
@@ -35,12 +37,13 @@ describe("password auth schemas", () => {
     });
   });
 
-  it("requires names and an eight-character sign-up password", () => {
+  it("requires names, terms, and an eight-character sign-up password", () => {
     const result = passwordSignUpSchema.safeParse({
       email: "shopper@example.com",
       password: "short",
       first: "",
       last: "",
+      terms: "false",
     });
     expect(result.success).toBe(false);
     if (result.success) return;
@@ -49,6 +52,7 @@ describe("password auth schemas", () => {
       password: "Password must be at least 8 characters.",
       first: "Enter your first name.",
       last: "Enter your last name.",
+      terms: "Please accept the Terms to continue.",
     });
   });
 });
