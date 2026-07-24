@@ -12,6 +12,8 @@ const passwordSchema = z
   .min(1, "Enter your password.")
   .max(1024, "Enter a valid password.");
 
+const strongPasswordSchema = passwordSchema.min(8, "Password must be at least 8 characters.");
+
 export const passwordSignInSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
@@ -28,7 +30,7 @@ export const passwordSignUpSchema = passwordSignInSchema.extend({
     .trim()
     .min(1, "Enter your last name.")
     .max(100, "Last name is too long."),
-  password: passwordSchema.min(8, "Password must be at least 8 characters."),
+  password: strongPasswordSchema,
   terms: z.preprocess(
     (value) => value === true || value === "true",
     z.boolean().refine(Boolean, "Please accept the Terms to continue."),
@@ -36,11 +38,34 @@ export const passwordSignUpSchema = passwordSignInSchema.extend({
   next: z.string().optional(),
 });
 
+export const authEmailSchema = z.object({
+  email: emailSchema,
+});
+
+export const recoveredPasswordSchema = z
+  .object({
+    password: strongPasswordSchema,
+    confirmPassword: z.string().min(1, "Confirm your new password."),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
+
 export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
 export type PasswordSignUpInput = z.infer<typeof passwordSignUpSchema>;
+export type AuthEmailInput = z.infer<typeof authEmailSchema>;
+export type RecoveredPasswordInput = z.infer<typeof recoveredPasswordSchema>;
 
-type AuthField = "email" | "password" | "first" | "last" | "terms";
-const authFields = new Set<AuthField>(["email", "password", "first", "last", "terms"]);
+type AuthField = "email" | "password" | "confirmPassword" | "first" | "last" | "terms";
+const authFields = new Set<AuthField>([
+  "email",
+  "password",
+  "confirmPassword",
+  "first",
+  "last",
+  "terms",
+]);
 
 export function authFormDataInput(formData: FormData) {
   const next = formData.get("next");
@@ -51,6 +76,17 @@ export function authFormDataInput(formData: FormData) {
     last: formData.get("last"),
     terms: formData.get("terms"),
     next: typeof next === "string" ? next : undefined,
+  };
+}
+
+export function authEmailFormDataInput(formData: FormData) {
+  return { email: formData.get("email") };
+}
+
+export function recoveredPasswordFormDataInput(formData: FormData) {
+  return {
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
   };
 }
 
