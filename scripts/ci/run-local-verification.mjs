@@ -26,11 +26,12 @@ results.push({
 if (fix) runSuite("safe-repair");
 runSuite("static");
 runSuite("tests");
-runSuite("react");
 
 if (full) {
   runSuite("database");
   runSuite("build");
+} else {
+  runSuite("react");
 }
 
 if (browser) {
