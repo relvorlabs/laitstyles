@@ -31,7 +31,7 @@ env:
 jobs:
   browser:
     name: Browser runtime / ${{ matrix.project }}
-    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64"]') }}
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 65
     strategy:
       fail-fast: false
@@ -191,7 +191,7 @@ jobs:
     name: Aggregate browser evidence
     if: always() && !cancelled()
     needs: [browser]
-    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64"]') }}
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
       - name: Check out trusted scripts
