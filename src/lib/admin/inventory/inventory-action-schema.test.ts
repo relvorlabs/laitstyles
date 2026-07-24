@@ -23,16 +23,21 @@ describe("inventory action schemas", () => {
   });
 
   it("normalizes taxonomy names and restricts kinds", () => {
-    expect(catalogueTaxonomyInputSchema.parse({ kind: "category", name: "  Evening Wear  " })).toEqual({
+    expect(
+      catalogueTaxonomyInputSchema.parse({ kind: "category", name: "  Evening Wear  " }),
+    ).toEqual({
       kind: "category",
       name: "Evening Wear",
     });
-    expect(catalogueTaxonomyInputSchema.safeParse({ kind: "tag", name: "Archive" }).success).toBe(
-      false,
-    );
-    expect(catalogueTaxonomyRenameSchema.safeParse({ taxonomyId: `category:${uuid}`, name: "" }).success).toBe(
-      false,
-    );
+    expect(
+      catalogueTaxonomyInputSchema.safeParse({ kind: "tag", name: "Archive" }).success,
+    ).toBe(false);
+    expect(
+      catalogueTaxonomyRenameSchema.safeParse({
+        taxonomyId: `category:${uuid}`,
+        name: "",
+      }).success,
+    ).toBe(false);
   });
 
   it("allows only declared product save intents", () => {
