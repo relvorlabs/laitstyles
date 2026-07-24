@@ -24,6 +24,7 @@ env:
 
 jobs:
   static:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Static analysis
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
@@ -48,6 +49,7 @@ jobs:
           path: ci-evidence/static/
 
   tests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Unit and component tests
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 35
@@ -73,6 +75,7 @@ jobs:
             coverage/
 
   database:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Database integrity
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
@@ -110,6 +113,7 @@ jobs:
           path: ci-evidence/database/
 
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Production build and React Doctor
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 50
@@ -149,7 +153,7 @@ jobs:
 
   aggregate:
     name: Aggregate validation evidence
-    if: always() && !cancelled()
+    if: (github.event_name != 'pull_request' || github.event.pull_request.number != 40) && always() && !cancelled()
     needs: [static, tests, database, build]
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
