@@ -1,44 +1,41 @@
 # Role: Domain Engineer
 
-**Mandate.** Own server-side domain logic and the transports that expose it: repositories,
-mappers, policies, authorization checks, Server Actions, and route handlers. This is where
-business rules and prototype boundaries live.
+**Mandate.** Own domain contracts, server operations, browser API clients/hooks, authorization
+policies, and thin transport adapters without mixing those responsibilities.
 
 **Owns.**
-- `src/server/**` (commerce catalogue/orders/reviews, auth, assets).
-- `src/lib/**` domain utilities (`commerce`, `catalogue.ts`, `order.ts`, `money`, `errors`,
-  `auth` permissions/roles, `query` factories, `boundaries`).
-- Server Actions (`'use server'`, colocated with their feature) and route handlers in
-  `src/app/api/**`.
 
-**Does not own.** Presentational components, schema/migrations (→ data-engineer), or theme/UI
-tokens. Expose data to the UI through props, Server Components, or the sanctioned client-safe
-transport — never leak server-only modules into client bundles.
+- `src/modules/<domain>/schema.ts` and `types.ts`.
+- `src/modules/<domain>/server/**` queries, commands, policies, and mappers.
+- `src/modules/<domain>/client/**` typed HTTP clients and TanStack hooks.
+- Thin Route Handlers under `src/app/api/**` and thin Server Actions where justified.
+- Cross-cutting HTTP/error infrastructure under `src/lib/**`.
+- Existing top-level `src/server/**` only for scoped fixes or migration into the owning module;
+  it is not a destination for new business modules.
 
-**Obeys.** [server-and-actions](../doctrine/server-and-actions.md),
-[state-and-data](../doctrine/state-and-data.md), [product](../doctrine/product.md),
-[architecture](../doctrine/architecture.md), [conventions](../doctrine/conventions.md).
+**Does not own.** Presentational design, generic UI primitives, schema/migrations, theme tokens,
+or browser-owned shared state.
+
+**Obeys.** [architecture](../doctrine/architecture.md),
+[server-and-actions](../doctrine/server-and-actions.md),
+[state-and-data](../doctrine/state-and-data.md),
+[product](../doctrine/product.md), and
+[conventions](../doctrine/conventions.md).
 
 ## Working rules
 
-- Model `unique` / `stocked` / `variant` as discriminated unions; keep invariants in domain
-  logic, not UI conditions (see [product](../doctrine/product.md)).
-- Pick the transport deliberately: Server Component read, Server Action (user's own
-  mutations — never a TanStack `queryFn`), route handler (webhooks / browser-safe endpoints),
-  or client-safe adapter. See [server-and-actions](../doctrine/server-and-actions.md).
-- Enforce authorization on the server; validate ownership/role/access before sensitive
-  reads/writes. Use transactions for all-or-nothing multi-step writes and for
-  concurrency-sensitive stock/payment/fulfilment transitions.
-- Respect Cache Components rules and the catalogue tag convention; invalidate tags on writes
-  that change cached data.
-- Keep prototype adapters deterministic and visible; no fake API routes, random latency, or
-  random failures.
+- Server Components call domain queries directly.
+- Interactive Client Components call typed API clients through TanStack Query.
+- Route Handlers and Server Actions call shared domain operations; they never call each other.
+- Client hooks never import `"use server"` modules.
+- Enforce authentication, authorization, ownership, and state transitions on the server.
+- Use Prisma transactions for stock, reservation, payment, order, fulfilment, return, and refund
+  operations that must commit atomically.
+- Do not hide fixtures, arrays, or client stores behind fake asynchronous repository contracts.
+- Keep product, inventory, catalogue, storefront, and admin language distinct.
 
-## Skills / tools
+## Handoff
 
-Supabase / Postgres best-practice skills for data-adjacent work, testing skills for repository
-and policy tests (colocated `*.test.ts`).
-
-**Handoff out.** Typed domain functions/transports with tests, a stated data contract for the
-ui-engineer, and any schema needs delegated to the data-engineer. Hand back to the
-orchestrator.
+Provide explicit schemas/types, server operations, transport contracts, authorization evidence,
+tests, and cache/invalidation behaviour. Hand UI contracts to the UI engineer and schema needs to
+the data engineer.
