@@ -70,6 +70,7 @@ const requiredFiles = [
   "scripts/ci/build-agent-handoff.mjs",
   "scripts/ci/publish-feedback.mjs",
   "docs/ci/advanced-feedback-loop.md",
+  "src/features/storefront/shared/catalog-adapter.ts",
   "src/features/storefront/shared/cart-restoration.ts",
   "src/features/storefront/shared/storefront-client-state.ts",
   "src/features/storefront/shared/storefront-client-state-provider.tsx",
@@ -98,6 +99,7 @@ const retiredStorefrontFiles = [
   "src/features/storefront/shared/cart-persistence.test.ts",
   "src/features/storefront/shared/storefront-experience-provider.tsx",
   "src/features/storefront/shared/storefront-experience-data.ts",
+  "src/features/storefront/shared/storefront-experience-data.test.ts",
   "src/features/storefront/checkout/checkout-flow.tsx",
   "src/lib/catalogue.ts",
   "src/lib/order.ts",
@@ -130,6 +132,17 @@ for (const file of allSourceFiles) {
     if (source.includes(forbiddenImport)) {
       errors.push(`Retired storefront import remains in ${file}: ${forbiddenImport}`);
     }
+  }
+}
+
+const storefrontBoundaryPath = join(root, "src/app/storefront-route-boundary.tsx");
+if (existsSync(storefrontBoundaryPath)) {
+  const source = readFileSync(storefrontBoundaryPath, "utf8");
+  if (!source.includes("loadStorefrontShellCatalog")) {
+    errors.push("Storefront route boundary must load the lightweight shell catalogue projection.");
+  }
+  if (/\bloadStorefrontCatalog\b/.test(source)) {
+    errors.push("Storefront route boundary must not serialize the full catalogue through the global client boundary.");
   }
 }
 
