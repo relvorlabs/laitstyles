@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/lib/auth/auth-errors";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/lib/auth/auth-errors";
 import { getSafeNextPath } from "@/lib/auth/server/redirects";
 
 export const metadata: Metadata = {

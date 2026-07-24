@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { getStaffAccess } from "@/server/auth/session";
 import { getInventoryProduct } from "@/server/commerce/inventory/inventory-read";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await getStaffAccess("inventory:read");
   if (!access.ok) {
     return NextResponse.json(

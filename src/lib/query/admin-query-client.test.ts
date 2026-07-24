@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ADMIN_QUERY_DEFAULTS,
-  makeAdminQueryClient,
-} from "@/lib/query/admin-query-client";
+import { ADMIN_QUERY_DEFAULTS, makeAdminQueryClient } from "@/lib/query/admin-query-client";
 
 describe("admin QueryClient defaults", () => {
   it("configures remote admin cache behaviour intentionally", () => {

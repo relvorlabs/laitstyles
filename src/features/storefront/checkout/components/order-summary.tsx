@@ -32,9 +32,7 @@ export function OrderSummary({
         <span
           className={cn(
             "size-2 rounded-full",
-            vals.hasHold && !vals.expired
-              ? "animate-[leemPulse_1.8s_ease-in-out_infinite]"
-              : "",
+            vals.hasHold && !vals.expired ? "animate-[leemPulse_1.8s_ease-in-out_infinite]" : "",
           )}
           style={{
             background: vals.expired ? "#B4453C" : vals.expiring ? "#9A7B1F" : "#7C8C63",

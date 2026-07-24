@@ -75,11 +75,7 @@ function DeferredDomainPanel({ domain }: DeferredDomainPanelProps) {
   );
 }
 
-export function InventoryDetailSheet({
-  item,
-  onOpenChange,
-  onEdit,
-}: InventoryDetailSheetProps) {
+export function InventoryDetailSheet({ item, onOpenChange, onEdit }: InventoryDetailSheetProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
   const repositories = useAdminRepositories();
   const productId = item?.product.id ?? null;

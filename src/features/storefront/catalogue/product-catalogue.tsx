@@ -8,9 +8,9 @@ import {
   type ParsedCatalogueSearch,
 } from "@/features/storefront/catalogue/catalogue-search-params";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
 import { ProductCard } from "@/features/storefront/shared/product-card";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 const quickLinks: [string, string][] = [

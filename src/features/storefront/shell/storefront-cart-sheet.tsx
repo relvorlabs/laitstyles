@@ -152,7 +152,8 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                             size="lg"
                             className="gap-1.5"
                             onClick={() => {
-                              if (!storefront.saved.has(product.id)) storefront.toggleSaved(product.id);
+                              if (!storefront.saved.has(product.id))
+                                storefront.toggleSaved(product.id);
                               storefront.removeFromCart(lineKey);
                             }}
                             type="button"

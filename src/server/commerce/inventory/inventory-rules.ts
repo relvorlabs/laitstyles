@@ -1,8 +1,8 @@
 import "server-only";
 
+import type { ProductEditorActionError } from "@/lib/admin/product-editor/product-editor-types";
 import type { StaffCapability } from "@/lib/auth/permissions";
 import { hasCapability } from "@/lib/auth/permissions";
-import type { ProductEditorActionError } from "@/lib/admin/product-editor/product-editor-types";
 import type { StaffSession } from "@/server/auth/session";
 
 export function canStaff(actor: StaffSession, capability: StaffCapability): boolean {
@@ -24,9 +24,7 @@ export function clean(value: string): string {
 }
 
 export function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export class InventoryRuleViolation extends Error {

@@ -12,11 +12,13 @@ export function groupVariantMeasurements(
 ): Record<string, Measurement[]> {
   const grouped: Record<string, Measurement[]> = {};
   for (const row of rows) {
-    (grouped[row.variant_id] ??= []).push({
+    const measurements = grouped[row.variant_id] ?? [];
+    measurements.push({
       label: row.label,
       value: row.value,
       position: row.position,
     });
+    grouped[row.variant_id] = measurements;
   }
   return grouped;
 }

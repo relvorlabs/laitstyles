@@ -123,10 +123,16 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               </form>
 
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <Link className="font-semibold underline-offset-4 hover:underline" href="/auth/forgot-password">
+                <Link
+                  className="font-semibold underline-offset-4 hover:underline"
+                  href="/auth/forgot-password"
+                >
                   Forgot password?
                 </Link>
-                <Link className="text-muted-foreground underline-offset-4 hover:underline" href="/auth/resend-confirmation">
+                <Link
+                  className="text-muted-foreground underline-offset-4 hover:underline"
+                  href="/auth/resend-confirmation"
+                >
                   Resend confirmation
                 </Link>
               </div>

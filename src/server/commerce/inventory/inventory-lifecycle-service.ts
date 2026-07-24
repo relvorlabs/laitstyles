@@ -1,11 +1,11 @@
 import "server-only";
 
-import { Prisma, prisma } from "@/lib/prisma";
-import { err, ok, type Result } from "@/lib/errors";
 import type {
   ProductLifecycleActionError,
   ProductLifecycleActionSuccess,
 } from "@/lib/admin/inventory/product-lifecycle-reducer";
+import { err, ok, type Result } from "@/lib/errors";
+import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
 import { canStaff, isUuid } from "@/server/commerce/inventory/inventory-rules";
 

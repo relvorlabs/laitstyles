@@ -1,6 +1,6 @@
-import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
 import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
+import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import {
   defaultInventoryQuery,
   getInventoryFacetOptions,

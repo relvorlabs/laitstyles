@@ -74,9 +74,7 @@ describe("inventory actions", () => {
     });
     expect(mocks.archiveInventoryProduct).not.toHaveBeenCalled();
 
-    await expect(
-      saveProductAction({ inventoryMode: "stocked" }, "delete"),
-    ).resolves.toEqual({
+    await expect(saveProductAction({ inventoryMode: "stocked" }, "delete")).resolves.toEqual({
       ok: false,
       error: {
         code: "validation-failed",
@@ -138,9 +136,7 @@ describe("inventory actions", () => {
   });
 
   it("returns typed taxonomy failures for malformed identifiers", async () => {
-    await expect(
-      renameCatalogueTaxonomyAction("category:not-a-uuid", "Archive"),
-    ).resolves.toEqual({
+    await expect(renameCatalogueTaxonomyAction("category:not-a-uuid", "Archive")).resolves.toEqual({
       ok: false,
       error: {
         code: "taxonomy-not-found",

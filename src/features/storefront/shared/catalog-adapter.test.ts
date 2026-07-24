@@ -1,5 +1,5 @@
-import type { ProductDetail, ProductSummary } from "@/lib/storefront/types";
 import { describe, expect, it } from "vitest";
+import type { ProductDetail, ProductSummary } from "@/lib/storefront/types";
 import {
   buildStorefrontCatalog,
   measurementsCmFor,
@@ -122,10 +122,7 @@ describe("catalogue compatibility adapter", () => {
       flaw: "Small cuff mark.",
       careInstructions: "Dry clean only.",
       variants: ["S", "M"],
-      images: [
-        "https://example.com/cover.jpg",
-        "https://example.com/detail.jpg",
-      ],
+      images: ["https://example.com/cover.jpg", "https://example.com/detail.jpg"],
     });
   });
 

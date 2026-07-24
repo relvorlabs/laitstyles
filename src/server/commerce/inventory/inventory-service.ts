@@ -1,15 +1,15 @@
 import "server-only";
 
 export {
-  saveInventoryProduct,
-  type ProductSaveOutcome,
-} from "@/server/commerce/inventory/inventory-product-service";
-export {
   archiveInventoryProduct,
   deleteInventoryProduct,
-  restoreInventoryProduct,
   type LifecycleOutcome,
+  restoreInventoryProduct,
 } from "@/server/commerce/inventory/inventory-lifecycle-service";
+export {
+  type ProductSaveOutcome,
+  saveInventoryProduct,
+} from "@/server/commerce/inventory/inventory-product-service";
 export {
   createInventoryTaxonomy,
   deleteInventoryTaxonomy,

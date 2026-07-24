@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cache } from "react";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import {
   buildStorefrontCatalog,
   buildStorefrontShellCatalog,
@@ -12,6 +11,7 @@ import type {
   StorefrontProductPageData,
   StorefrontShellCatalogPayload,
 } from "@/features/storefront/shared/catalog-types";
+import type { Product } from "@/features/storefront/shared/catalogue-data";
 import {
   getPublishedProductBySlug,
   listPublishedProductDetails,

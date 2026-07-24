@@ -1,6 +1,6 @@
 import "server-only";
 
-import { z } from "zod";
+import type { z } from "zod";
 import { ApiError } from "@/lib/errors/api-error";
 
 export async function parseJsonBody<TSchema extends z.ZodType>(

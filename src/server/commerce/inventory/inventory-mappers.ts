@@ -1,6 +1,5 @@
 import "server-only";
 
-import type { Prisma } from "@/lib/prisma";
 import type {
   CatalogueTaxonomyItem,
   CatalogueTaxonomyKind,
@@ -14,6 +13,7 @@ import type {
   ProductVariant,
   StockMovement,
 } from "@/lib/admin/inventory/inventory-types";
+import type { Prisma } from "@/lib/prisma";
 
 export const inventoryProductInclude = {
   catalogue_categories: { select: { name: true } },
@@ -116,9 +116,7 @@ export function mapInventoryCounts(
   };
 }
 
-function mapVariant(
-  row: InventoryProductRow["product_variants"][number],
-): ProductVariant {
+function mapVariant(row: InventoryProductRow["product_variants"][number]): ProductVariant {
   const image = row.product_media[0]?.cloudinary_assets;
   return {
     id: row.id,
@@ -126,7 +124,7 @@ function mapVariant(
     sku: row.sku ?? "",
     size: row.size,
     colour: row.colour,
-    imageUrl: image ? image.delivery_url ?? image.secure_url : null,
+    imageUrl: image ? (image.delivery_url ?? image.secure_url) : null,
     price: row.price?.toNumber() ?? null,
     cost: row.cost?.toNumber() ?? null,
     stock: mapInventoryCounts(row.stock_levels[0]),

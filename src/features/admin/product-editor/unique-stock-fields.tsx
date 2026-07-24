@@ -44,11 +44,7 @@ export function UniqueStockFields() {
 
       <FieldGroup>
         <div className="grid gap-5 md:grid-cols-3">
-          <EditorSelectField
-            label="Condition"
-            name="unique.condition"
-            options={conditionOptions}
-          />
+          <EditorSelectField label="Condition" name="unique.condition" options={conditionOptions} />
           <EditorTextField label="Size" name="unique.size" placeholder="M, UK 12 or One size" />
           <EditorTextField label="Colour" name="unique.colour" placeholder="Ivory" />
         </div>

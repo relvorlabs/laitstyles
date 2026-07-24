@@ -3,12 +3,12 @@ import {
   createOrderNumber,
   LEGACY_ORDER_RECEIPT_STORAGE_KEY,
   ORDER_RECEIPT_STORAGE_KEY,
+  type OrderReceipt,
   parseOrderReceipt,
+  type ReceiptStorage,
   readLatestOrderReceipt,
   serializeOrderReceipt,
   writeLatestOrderReceipt,
-  type OrderReceipt,
-  type ReceiptStorage,
 } from "./order-receipt";
 
 class MemoryStorage implements ReceiptStorage {

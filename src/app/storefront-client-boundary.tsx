@@ -1,9 +1,9 @@
 "use client";
 
 import { type ReactNode, use } from "react";
+import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontClientStateProvider } from "@/features/storefront/shared/storefront-client-state-provider";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 

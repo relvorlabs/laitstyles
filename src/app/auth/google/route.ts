@@ -21,10 +21,9 @@ async function startGoogleOAuth(request: NextRequest, value: FormDataEntryValue 
     const failure = error
       ? mapAuthProviderError(error, "oauth-start-failed")
       : authFlowFailure("oauth-start-failed");
-    return NextResponse.redirect(
-      new URL(withAuthErrorPath(failure.code, next), request.url),
-      { status: 303 },
-    );
+    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), request.url), {
+      status: 303,
+    });
   }
 
   return NextResponse.redirect(data.url, { status: 303 });

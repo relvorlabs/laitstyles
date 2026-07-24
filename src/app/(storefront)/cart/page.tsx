@@ -28,11 +28,7 @@ export default function CartPage() {
     ({ product }) => (clientState.holdSecondsByProduct[product.id] ?? 0) > 0,
   );
   const soonestHoldSeconds = heldLines.length
-    ? Math.min(
-        ...heldLines.map(
-          ({ product }) => clientState.holdSecondsByProduct[product.id] ?? 0,
-        ),
-      )
+    ? Math.min(...heldLines.map(({ product }) => clientState.holdSecondsByProduct[product.id] ?? 0))
     : 0;
   const itemCount = storefront.cartLines.reduce((sum, line) => sum + line.lineQty, 0);
 
@@ -121,9 +117,7 @@ export default function CartPage() {
                   {soonestHoldSeconds > 0 ? (
                     <>
                       Your next hold releases in{" "}
-                      <strong className="tabular-nums">
-                        {formatHoldTime(soonestHoldSeconds)}
-                      </strong>
+                      <strong className="tabular-nums">{formatHoldTime(soonestHoldSeconds)}</strong>
                     </>
                   ) : (
                     "Availability is confirmed again when you continue to checkout."
@@ -133,15 +127,7 @@ export default function CartPage() {
 
               <div>
                 {storefront.cartLines.map(
-                  ({
-                    product,
-                    lineKey,
-                    lineQty,
-                    variantLabel,
-                    colour,
-                    size,
-                    unitPriceNaira,
-                  }) => {
+                  ({ product, lineKey, lineQty, variantLabel, colour, size, unitPriceNaira }) => {
                     const holdSeconds = clientState.holdSecondsByProduct[product.id] ?? 0;
                     const held = holdSeconds > 0;
                     return (
@@ -193,9 +179,7 @@ export default function CartPage() {
                               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                                 <Clock aria-hidden="true" className="size-3" />
                                 Held ·{" "}
-                                <span className="tabular-nums">
-                                  {formatHoldTime(holdSeconds)}
-                                </span>
+                                <span className="tabular-nums">{formatHoldTime(holdSeconds)}</span>
                               </span>
                             ) : product.inventory === "one-of-one" ? (
                               <Button

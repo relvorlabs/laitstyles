@@ -1,8 +1,8 @@
 "use client";
 
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { ProductCard } from "@/features/storefront/shared/product-card";
+import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function HomeProductList({

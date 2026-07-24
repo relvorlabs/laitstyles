@@ -10,7 +10,11 @@ const validUnique = {
   categorySlug: "jackets-coats",
   categoryName: "Jackets & Coats",
   archiveNumber: "0099",
-  cover: { publicId: "cover-1", secureUrl: "https://res.cloudinary.com/demo/image/upload/cover-1.jpg", alt: "Jacket" },
+  cover: {
+    publicId: "cover-1",
+    secureUrl: "https://res.cloudinary.com/demo/image/upload/cover-1.jpg",
+    alt: "Jacket",
+  },
 };
 
 describe("productFixtureSchema", () => {

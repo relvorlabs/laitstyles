@@ -17,9 +17,7 @@ type ForgotPasswordPageProps = {
 
 export default async function ForgotPasswordPage({ searchParams }: ForgotPasswordPageProps) {
   const params = await searchParams;
-  const error = isAuthFlowErrorCode(params.error)
-    ? getAuthFlowErrorMessage(params.error)
-    : null;
+  const error = isAuthFlowErrorCode(params.error) ? getAuthFlowErrorMessage(params.error) : null;
 
   return (
     <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center bg-background px-4 py-12">
@@ -30,20 +28,23 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
           </p>
           <h1 className="mt-2 font-serif text-4xl font-medium">Forgot your password?</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Enter the email used for your account. For privacy, the response is the same whether
-            or not an account exists.
+            Enter the email used for your account. For privacy, the response is the same whether or
+            not an account exists.
           </p>
         </div>
 
         {params.sent === "1" ? (
           <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-6">
-            If this address can receive a reset email, a secure link is on its way. Check your
-            inbox and spam folder.
+            If this address can receive a reset email, a secure link is on its way. Check your inbox
+            and spam folder.
           </div>
         ) : null}
 
         {error ? (
-          <p className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground" role="alert">
+          <p
+            className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}
@@ -69,7 +70,10 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
           <Link className="font-semibold underline-offset-4 hover:underline" href="/?auth=signin">
             Back to sign in
           </Link>
-          <Link className="text-muted-foreground underline-offset-4 hover:underline" href="/auth/resend-confirmation">
+          <Link
+            className="text-muted-foreground underline-offset-4 hover:underline"
+            href="/auth/resend-confirmation"
+          >
             Resend confirmation
           </Link>
         </div>

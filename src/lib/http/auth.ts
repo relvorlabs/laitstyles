@@ -4,9 +4,9 @@ import { AUTH_DENIED_MESSAGES } from "@/lib/auth/auth-errors";
 import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { ApiError } from "@/lib/errors/api-error";
 import {
-  getCurrentSession,
   type ConsumerSession,
   type CurrentSession,
+  getCurrentSession,
   type StaffSession,
 } from "@/server/auth/session";
 

@@ -42,9 +42,7 @@ type StorefrontClientStateContextValue = {
 
 const StorefrontClientStateContext = createContext<StorefrontClientStateContextValue | null>(null);
 
-type VariantOptionsByProductId = Readonly<
-  Record<string, readonly ProductVariantOption[]>
->;
+type VariantOptionsByProductId = Readonly<Record<string, readonly ProductVariantOption[]>>;
 
 function snapshotFromState(
   cart: readonly CartLine[],
@@ -82,9 +80,7 @@ export function StorefrontClientStateProvider({
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const loaded = loadStorefrontClientState(window.sessionStorage, window.localStorage);
-      setCartState(
-        restoreCartLines(loaded.snapshot.cart, products, variantOptionsByProductId),
-      );
+      setCartState(restoreCartLines(loaded.snapshot.cart, products, variantOptionsByProductId));
       setSavedState(new Set(loaded.snapshot.saved));
       setHolds(loaded.snapshot.holds);
       setNow(Date.now());
@@ -138,10 +134,7 @@ export function StorefrontClientStateProvider({
     setHolds((existing) => existing.filter((hold) => hold.productId !== productId));
   }, []);
 
-  const reholdProduct = useCallback(
-    (productId: string) => holdProduct(productId),
-    [holdProduct],
-  );
+  const reholdProduct = useCallback((productId: string) => holdProduct(productId), [holdProduct]);
 
   const setCart = useCallback((next: readonly CartLine[]) => setCartState(next), []);
   const updateCart = useCallback(
@@ -211,9 +204,7 @@ export function StorefrontClientStateProvider({
 export function useStorefrontClientState() {
   const context = use(StorefrontClientStateContext);
   if (!context) {
-    throw new Error(
-      "useStorefrontClientState must be used within StorefrontClientStateProvider",
-    );
+    throw new Error("useStorefrontClientState must be used within StorefrontClientStateProvider");
   }
   return context;
 }

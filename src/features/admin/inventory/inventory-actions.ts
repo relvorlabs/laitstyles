@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
+import type {
+  CatalogueTaxonomyActionError,
+  CatalogueTaxonomyActionSuccess,
+} from "@/lib/admin/inventory/catalogue-taxonomy";
 import {
   catalogueTaxonomyIdSchema,
   catalogueTaxonomyInputSchema,
@@ -8,10 +12,6 @@ import {
   inventoryProductActionSchema,
   inventoryProductIdSchema,
 } from "@/lib/admin/inventory/inventory-action-schema";
-import type {
-  CatalogueTaxonomyActionError,
-  CatalogueTaxonomyActionSuccess,
-} from "@/lib/admin/inventory/catalogue-taxonomy";
 import type {
   ProductLifecycleActionError,
   ProductLifecycleActionSuccess,
@@ -78,10 +78,7 @@ async function lifecycleAction(
     actor: StaffSession,
     productId: string,
   ) => Promise<
-    Result<
-      ProductLifecycleActionSuccess & { slug: string },
-      ProductLifecycleActionError
-    >
+    Result<ProductLifecycleActionSuccess & { slug: string }, ProductLifecycleActionError>
   >,
   value: unknown,
 ): Promise<Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>> {

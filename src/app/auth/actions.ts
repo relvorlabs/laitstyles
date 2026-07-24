@@ -2,9 +2,9 @@
 
 import { redirect } from "next/navigation";
 import {
+  type AuthFlowFailure,
   authFlowFailure,
   mapAuthProviderError,
-  type AuthFlowFailure,
 } from "@/lib/auth/auth-errors";
 import {
   authEmailFormDataInput,
@@ -46,9 +46,7 @@ export type RecoveredPasswordActionResult = Result<
 >;
 export type SignOutActionResult = Result<void, AuthFlowFailure>;
 
-export async function submitPasswordSignIn(
-  formData: FormData,
-): Promise<PasswordAuthActionResult> {
+export async function submitPasswordSignIn(formData: FormData): Promise<PasswordAuthActionResult> {
   const input = authFormDataInput(formData);
   const parsed = passwordSignInSchema.safeParse({
     email: input.email,
@@ -70,9 +68,7 @@ export async function submitPasswordSignIn(
   return ok({ status: "success", email: parsed.data.email });
 }
 
-export async function submitPasswordSignUp(
-  formData: FormData,
-): Promise<PasswordAuthActionResult> {
+export async function submitPasswordSignUp(formData: FormData): Promise<PasswordAuthActionResult> {
   const input = authFormDataInput(formData);
   const parsed = passwordSignUpSchema.safeParse(input);
   if (!parsed.success) {

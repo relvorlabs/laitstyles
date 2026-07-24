@@ -43,10 +43,8 @@ export function useSaveProduct() {
     }) => saveProductAction(values, intent),
     onSuccess: (result) => {
       if (!result.ok) return;
-      queryClient.setQueryData(
-        inventoryKeys.products(),
-        (previous?: InventoryProduct[]) =>
-          upsertProductInCache(previous, result.value.product),
+      queryClient.setQueryData(inventoryKeys.products(), (previous?: InventoryProduct[]) =>
+        upsertProductInCache(previous, result.value.product),
       );
       queryClient.setQueryData(
         inventoryKeys.product(result.value.product.id),
@@ -99,10 +97,8 @@ export function useDeleteProduct() {
     mutationFn: deleteProductAction,
     onSuccess: (result) => {
       if (!result.ok) return;
-      queryClient.setQueryData(
-        inventoryKeys.products(),
-        (previous?: InventoryProduct[]) =>
-          previous?.filter((entry) => entry.id !== result.value.productId),
+      queryClient.setQueryData(inventoryKeys.products(), (previous?: InventoryProduct[]) =>
+        previous?.filter((entry) => entry.id !== result.value.productId),
       );
       queryClient.removeQueries({
         queryKey: inventoryKeys.product(result.value.productId),
@@ -120,13 +116,10 @@ export function useCreateCatalogueTaxonomy() {
     onSuccess: (result) => {
       if (!result.ok || !result.value.item) return;
       const item = result.value.item;
-      queryClient.setQueryData(
-        inventoryKeys.taxonomy(),
-        (previous?: CatalogueTaxonomyItem[]) => [
-          ...(previous?.filter((entry) => entry.id !== item.id) ?? []),
-          item,
-        ],
-      );
+      queryClient.setQueryData(inventoryKeys.taxonomy(), (previous?: CatalogueTaxonomyItem[]) => [
+        ...(previous?.filter((entry) => entry.id !== item.id) ?? []),
+        item,
+      ]);
     },
   });
 }
@@ -135,20 +128,13 @@ export function useRenameCatalogueTaxonomy() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      taxonomyId,
-      name,
-    }: {
-      taxonomyId: string;
-      name: string;
-    }) => renameCatalogueTaxonomyAction(taxonomyId, name),
+    mutationFn: ({ taxonomyId, name }: { taxonomyId: string; name: string }) =>
+      renameCatalogueTaxonomyAction(taxonomyId, name),
     onSuccess: (result) => {
       if (!result.ok || !result.value.item) return;
       const item = result.value.item;
-      queryClient.setQueryData(
-        inventoryKeys.taxonomy(),
-        (previous?: CatalogueTaxonomyItem[]) =>
-          previous?.map((entry) => (entry.id === item.id ? item : entry)),
+      queryClient.setQueryData(inventoryKeys.taxonomy(), (previous?: CatalogueTaxonomyItem[]) =>
+        previous?.map((entry) => (entry.id === item.id ? item : entry)),
       );
       queryClient.invalidateQueries({ queryKey: inventoryKeys.products() });
     },
@@ -163,10 +149,8 @@ export function useDeleteCatalogueTaxonomy() {
     onSuccess: (result) => {
       if (!result.ok || !result.value.deletedId) return;
       const deletedId = result.value.deletedId;
-      queryClient.setQueryData(
-        inventoryKeys.taxonomy(),
-        (previous?: CatalogueTaxonomyItem[]) =>
-          previous?.filter((entry) => entry.id !== deletedId),
+      queryClient.setQueryData(inventoryKeys.taxonomy(), (previous?: CatalogueTaxonomyItem[]) =>
+        previous?.filter((entry) => entry.id !== deletedId),
       );
     },
   });

@@ -18,7 +18,7 @@ const OWNER_ID = "11111111-1111-4111-8111-111111111111";
 async function main() {  const { listPublishedProducts, countPublishedProducts, getPublishedProductBySlug } = await import(
     "@/server/commerce/catalogue/catalog-repository"
   );
-  const { createPublishedProduct } = await import("@/server/commerce/catalogue/product-write");
+  const { createPublishedProduct } = await import("@/server/commerce/catalogue/product-write");
   const before = await countPublishedProducts();
   console.warn(`published products (read via repository): ${before}`);
 

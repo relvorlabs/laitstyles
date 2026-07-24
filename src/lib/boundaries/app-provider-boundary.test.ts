@@ -7,10 +7,7 @@ const appProviderSource = readFileSync(
   resolve(process.cwd(), "src/providers/providers.tsx"),
   "utf8",
 );
-const adminLayoutSource = readFileSync(
-  resolve(process.cwd(), "src/app/admin/layout.tsx"),
-  "utf8",
-);
+const adminLayoutSource = readFileSync(resolve(process.cwd(), "src/app/admin/layout.tsx"), "utf8");
 
 describe("application provider ownership", () => {
   it("keeps the root layout thin and delegates global ownership to AppProvider", () => {

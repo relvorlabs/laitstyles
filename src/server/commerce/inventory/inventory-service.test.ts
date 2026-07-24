@@ -126,9 +126,7 @@ const harness = vi.hoisted(() => {
     PrismaClientKnownRequestError,
   };
   const prisma = {
-    $transaction: vi.fn(
-      async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
-    ),
+    $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx)),
     products: {
       findUnique: vi.fn(async () => ({
         id: productId,
@@ -310,24 +308,25 @@ beforeEach(() => {
 });
 
 describe("saveInventoryProduct", () => {
-  it.each(["unique", "stocked", "variant"] as const)(
-    "creates a %s product without a client-supplied database id",
-    async (mode) => {
-      getInventoryProductMock.mockResolvedValueOnce(savedProduct(mode));
+  it.each([
+    "unique",
+    "stocked",
+    "variant",
+  ] as const)("creates a %s product without a client-supplied database id", async (mode) => {
+    getInventoryProductMock.mockResolvedValueOnce(savedProduct(mode));
 
-      const result = await saveInventoryProduct(actor, valuesFor(mode), "draft");
+    const result = await saveInventoryProduct(actor, valuesFor(mode), "draft");
 
-      expect(result.ok).toBe(true);
-      expect(harness.recorded.productCreates[0]).not.toHaveProperty("id");
-      if (mode === "variant") {
-        expect(harness.recorded.variantCreates[0]).not.toHaveProperty("id");
-      }
-      expect(harness.recorded.auditCreates[0]).toMatchObject({
-        actor_profile_id: actor.authUserId,
-        action: "inventory:create",
-      });
-    },
-  );
+    expect(result.ok).toBe(true);
+    expect(harness.recorded.productCreates[0]).not.toHaveProperty("id");
+    if (mode === "variant") {
+      expect(harness.recorded.variantCreates[0]).not.toHaveProperty("id");
+    }
+    expect(harness.recorded.auditCreates[0]).toMatchObject({
+      actor_profile_id: actor.authUserId,
+      action: "inventory:create",
+    });
+  });
 
   it("rejects local preview media before any database write", async () => {
     getInventoryProductMock.mockResolvedValueOnce(null);
@@ -360,9 +359,7 @@ describe("saveInventoryProduct", () => {
       returned: 0,
       damaged: 1,
     };
-    getInventoryProductMock
-      .mockResolvedValueOnce(existing)
-      .mockResolvedValueOnce(existing);
+    getInventoryProductMock.mockResolvedValueOnce(existing).mockResolvedValueOnce(existing);
     harness.state.currentRow = {
       ...baseCurrentRow("stocked"),
       stock_levels: [
@@ -437,9 +434,7 @@ describe("lifecycle and taxonomy writes", () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.item?.id).toBe(
-        "category:019f65c1-74fe-7bd3-8400-000000000021",
-      );
+      expect(result.value.item?.id).toBe("category:019f65c1-74fe-7bd3-8400-000000000021");
     }
     expect(harness.recorded.auditCreates[0]).toMatchObject({
       action: "inventory:category:create",

@@ -31,8 +31,8 @@ export function DeclinedDialog({
         </div>
         <h3 className="m-0 mb-2 font-serif text-[22px] font-medium">Payment declined</h3>
         <p className="m-0 mb-2 text-[13.5px] leading-[1.6] text-[#57554E]">
-          Your bank declined the charge &mdash; no money left your account. Your selections remain in
-          your bag, and availability will be confirmed before another attempt.
+          Your bank declined the charge &mdash; no money left your account. Your selections remain
+          in your bag, and availability will be confirmed before another attempt.
         </p>
         <div className="mb-[22px] text-xs text-[#8A887E]">{status}</div>
         <Button size="lg" className="mb-2.5 w-full" onClick={payNow}>

@@ -3,8 +3,8 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
-import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
+import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
 import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 

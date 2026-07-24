@@ -175,8 +175,7 @@ export function serializeOrderReceipt(receipt: OrderReceipt) {
 
 export function readLatestOrderReceipt(storage: ReceiptStorage): OrderReceipt | null {
   const serialized =
-    storage.getItem(ORDER_RECEIPT_STORAGE_KEY) ??
-    storage.getItem(LEGACY_ORDER_RECEIPT_STORAGE_KEY);
+    storage.getItem(ORDER_RECEIPT_STORAGE_KEY) ?? storage.getItem(LEGACY_ORDER_RECEIPT_STORAGE_KEY);
   return parseOrderReceiptSnapshot(serialized);
 }
 

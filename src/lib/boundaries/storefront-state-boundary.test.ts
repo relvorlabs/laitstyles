@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -21,9 +21,7 @@ function path(...segments: string[]) {
 }
 
 function importedModules(source: string): string[] {
-  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map(
-    (match) => match[1],
-  );
+  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map((match) => match[1]);
 }
 
 const retiredFiles = [

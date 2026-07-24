@@ -89,7 +89,10 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
 
         <p className="text-center text-sm text-muted-foreground">
           Already registered?{" "}
-          <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/?auth=signin">
+          <Link
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+            href="/?auth=signin"
+          >
             Sign in
           </Link>
         </p>

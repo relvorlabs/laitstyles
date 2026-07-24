@@ -7,8 +7,8 @@ import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
 import type { ReviewActionState } from "@/lib/commerce/reviews/review-types";
 import { getCurrentSession } from "@/server/auth/session";
 import {
-  submitReview,
   type SubmitReviewResult,
+  submitReview,
   withdrawReview,
 } from "@/server/commerce/reviews/review-repository";
 
@@ -19,10 +19,7 @@ const reviewIdentifiersSchema = z.object({
   orderLineId: z.string().trim().min(1).max(128),
 });
 
-const submitFailureCopy: Record<
-  Extract<SubmitReviewResult, { ok: false }>["reason"],
-  string
-> = {
+const submitFailureCopy: Record<Extract<SubmitReviewResult, { ok: false }>["reason"], string> = {
   order_line_not_found: "We could not find this item in your orders.",
   awaiting_delivery: "You can review this item after it is delivered.",
   cancelled: "This item was cancelled and cannot be reviewed.",
@@ -70,8 +67,7 @@ async function getCustomerId(): Promise<
       state: {
         status: "error",
         code: "customer-profile-required",
-        message:
-          "Your customer profile is not ready for reviews yet. Contact support for help.",
+        message: "Your customer profile is not ready for reviews yet. Contact support for help.",
       },
     };
   }

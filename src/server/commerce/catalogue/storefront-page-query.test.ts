@@ -54,10 +54,7 @@ describe("buildStorefrontCatalogueWhere", () => {
           OR: [
             { condition: "Excellent" },
             {
-              OR: [
-                { condition: null },
-                { condition: { notIn: ["Excellent", "Fair"] } },
-              ],
+              OR: [{ condition: null }, { condition: { notIn: ["Excellent", "Fair"] } }],
             },
           ],
         },
@@ -90,9 +87,9 @@ describe("buildStorefrontCatalogueWhere", () => {
     expect(
       clauses(buildStorefrontCatalogueWhere(query({ collection: "grade-a-plus" }))),
     ).toContainEqual({ condition: "Excellent" });
-    expect(
-      clauses(buildStorefrontCatalogueWhere(query({ collection: "vintage" }))),
-    ).toContainEqual({ style: { equals: "Vintage", mode: "insensitive" } });
+    expect(clauses(buildStorefrontCatalogueWhere(query({ collection: "vintage" })))).toContainEqual(
+      { style: { equals: "Vintage", mode: "insensitive" } },
+    );
 
     const search = clauses(buildStorefrontCatalogueWhere(query({ search: "A+" })))[1];
     expect(search).toMatchObject({
@@ -103,18 +100,9 @@ describe("buildStorefrontCatalogueWhere", () => {
 
 describe("storefront catalogue ordering", () => {
   it("uses stable database ordering and explicit legacy buckets", () => {
-    expect(storefrontStandardOrderBy("price-low")).toEqual([
-      { price: "asc" },
-      { id: "asc" },
-    ]);
-    expect(storefrontStandardOrderBy("price-high")).toEqual([
-      { price: "desc" },
-      { id: "asc" },
-    ]);
-    expect(storefrontStandardOrderBy("newest")).toEqual([
-      { created_at: "desc" },
-      { id: "asc" },
-    ]);
+    expect(storefrontStandardOrderBy("price-low")).toEqual([{ price: "asc" }, { id: "asc" }]);
+    expect(storefrontStandardOrderBy("price-high")).toEqual([{ price: "desc" }, { id: "asc" }]);
+    expect(storefrontStandardOrderBy("newest")).toEqual([{ created_at: "desc" }, { id: "asc" }]);
     expect(storefrontConditionBuckets).toHaveLength(3);
     expect(storefrontInventoryBuckets).toEqual([
       { inventory_mode: "unique" },

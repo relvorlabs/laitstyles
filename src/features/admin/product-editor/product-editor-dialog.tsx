@@ -262,8 +262,8 @@ function ProductEditorForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard unsaved product changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              Values entered since the last successful save will be lost. Save a draft when the
-              work should remain available after reload.
+              Values entered since the last successful save will be lost. Save a draft when the work
+              should remain available after reload.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

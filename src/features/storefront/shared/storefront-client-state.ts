@@ -95,7 +95,7 @@ function normalizeCart(values: unknown[]): StorefrontCartIntent[] {
     const variantId =
       candidate.variantId === null
         ? null
-        : nonEmptyString(candidate.variantId) ?? nonEmptyString(candidate.variant);
+        : (nonEmptyString(candidate.variantId) ?? nonEmptyString(candidate.variant));
     const lineKey = `${productId}::${variantId ?? ""}`;
     const existing = byLine.get(lineKey);
     byLine.set(lineKey, {
@@ -113,7 +113,7 @@ function normalizeSaved(values: unknown[]): string[] {
     const productId =
       nonEmptyString(candidate) ??
       (isRecord(candidate)
-        ? nonEmptyString(candidate.productId) ?? nonEmptyString(candidate.id)
+        ? (nonEmptyString(candidate.productId) ?? nonEmptyString(candidate.id))
         : null);
     if (productId) productIds.add(productId);
   }
@@ -216,7 +216,11 @@ export function loadStorefrontClientState(
   }
 
   const cart = firstStoredValue(sessionStorage, localStorage, LEGACY_STOREFRONT_STORAGE_KEYS.cart);
-  const saved = firstStoredValue(sessionStorage, localStorage, LEGACY_STOREFRONT_STORAGE_KEYS.saved);
+  const saved = firstStoredValue(
+    sessionStorage,
+    localStorage,
+    LEGACY_STOREFRONT_STORAGE_KEYS.saved,
+  );
   const experienceHolds = firstStoredValue(sessionStorage, localStorage, [
     LEGACY_STOREFRONT_STORAGE_KEYS.holds[0],
   ]);

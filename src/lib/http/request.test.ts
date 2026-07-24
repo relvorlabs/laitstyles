@@ -10,9 +10,9 @@ describe("HTTP request validation", () => {
       body: JSON.stringify({ name: "Linen Shirt" }),
     });
 
-    await expect(
-      parseJsonBody(request, z.object({ name: z.string().min(1) })),
-    ).resolves.toEqual({ name: "Linen Shirt" });
+    await expect(parseJsonBody(request, z.object({ name: z.string().min(1) }))).resolves.toEqual({
+      name: "Linen Shirt",
+    });
   });
 
   it("returns stable transport errors for missing content type and malformed JSON", async () => {
@@ -34,9 +34,7 @@ describe("HTTP request validation", () => {
       body: "{",
     });
 
-    await expect(
-      parseJsonBody(malformed, z.object({ name: z.string() })),
-    ).rejects.toMatchObject({
+    await expect(parseJsonBody(malformed, z.object({ name: z.string() }))).rejects.toMatchObject({
       code: "INVALID_JSON",
       status: 400,
     });

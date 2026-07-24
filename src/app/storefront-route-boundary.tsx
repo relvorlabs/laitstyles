@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { AppShellFallback } from "@/app/app-shell-fallback";
 import { StorefrontClientBoundary } from "@/app/storefront-client-boundary";
-import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import { loadStorefrontShellCatalog } from "@/features/storefront/shared/catalog-loader";
+import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import { getCurrentSession } from "@/server/auth/session";
 
 async function loadStorefrontAuthSession(): Promise<StorefrontAuthSession> {
