@@ -5,7 +5,7 @@
 **Phase 1 merge:** `1ca1b184207ea2a36fa41c10162b8a059abe5289`  
 **Current branch:** `refactor/phase-2-layout-provider-scope`  
 **Current phase:** Phase 2 — Consolidate layouts and provider scope  
-**Overall status:** In progress
+**Overall status:** Implementation complete; acceptance validation blocked
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
@@ -15,7 +15,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | --- | --- | --- | --- |
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
 | 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; private source validation still queued for `laitstyles-ci` |
-| 2 | Consolidate layouts and provider scope | In progress | Route and visual parity |
+| 2 | Consolidate layouts and provider scope | Blocked | Source implementation complete; route and visual parity evidence unavailable |
 | 3 | Create HTTP and domain-module foundation | Not started | Typed transport contract proven |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
 | 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
@@ -72,16 +72,16 @@ The exact Phase 2 checklist and scope are maintained in
 | --- | --- | --- |
 | P2-T01 | Add shared `(storefront)` layout using the existing route boundary | Complete |
 | P2-T02 | Move the homepage under `(storefront)/(home)` | Complete |
-| P2-T03 | Move products, collections, cart, checkout and order confirmation | Not started |
-| P2-T04 | Move account while retaining its nested shell | Not started |
-| P2-T05 | Remove duplicate storefront layout wrappers and retire compatibility layout | In progress |
+| P2-T03 | Move products, collections, cart, checkout and order confirmation | Complete |
+| P2-T04 | Move the full account subtree while retaining `AccountShell` | Complete |
+| P2-T05 | Remove duplicate storefront layout wrappers and retire compatibility layout | Complete |
 | P2-T06 | Remove QueryProvider from global root | Complete |
 | P2-T07 | Scope QueryProvider to the current admin TanStack surface | Complete |
-| P2-T08 | Add provider and layout architecture checks | Not started |
+| P2-T08 | Add provider and final route-map architecture checks | Complete |
 | P2-T09 | Execute route, browser and visual parity validation | Blocked |
-| P2-T10 | Record final map, evidence, rollback and debt | In progress |
+| P2-T10 | Record final map, validation state, rollback and debt | Complete |
 
-## Phase 2 current composition
+## Phase 2 final composition
 
 ```text
 RootLayout
@@ -97,7 +97,20 @@ AdminLayout
 
 src/app/(storefront)/layout.tsx
   -> StorefrontRouteBoundary
+     -> (home)                  /
+     -> products                /products/**
+     -> collections             /collections/**
+     -> cart                    /cart
+     -> checkout                /checkout
+     -> order-confirmation      /order-confirmation
+     -> account/layout.tsx
+        -> AccountShell         /account/**
 ```
+
+The moved files retain their existing blobs except for the account layout, which removes the now
+redundant nested `StorefrontRouteBoundary`. The compatibility layout and all per-segment storefront
+layout re-exports are gone. Public segment names are unchanged because `(storefront)` is a route
+group and is omitted from URLs.
 
 This phase changes route and provider composition only. It does not migrate domains, APIs,
 persistence, auth ownership, storefront state, checkout authority, or UI presentation.
@@ -118,16 +131,19 @@ pnpm test:e2e
 
 Also required:
 
-- every intended storefront route moved beneath the shared route group without URL changes;
-- no duplicate storefront layout wrappers;
-- all TanStack consumers beneath QueryProvider;
-- auth and admin redirect parity;
+- route continuity for `/`, products, collections, cart, checkout, confirmation and all account routes;
+- authenticated and unauthenticated auth/admin redirect parity;
 - desktop, tablet and mobile Playwright evidence;
 - light and dark screenshot parity;
 - no increase in console, page or network errors.
 
-A queued runner, unavailable check, missing artifact, or public-deployment-only result must remain
-reported as blocked rather than passing.
+Source implementation tasks P2-T01 through P2-T08 and P2-T10 are complete. P2-T09 remains blocked
+because the trusted `laitstyles-ci` runner is not online and no source-backed branch preview evidence
+is available. A queued runner, unavailable check, missing artifact, or public-deployment-only result
+must remain reported as blocked rather than passing.
+
+Phase 3 must not start until the repository owner explicitly accepts this blocked evidence state or
+the Phase 2 validation gate executes successfully.
 
 ## Decision safeguards
 
