@@ -3,7 +3,6 @@
 import { createContext, type ReactNode, use, useState } from "react";
 import type { AdminStore } from "@/features/admin/state/admin-store";
 import { createInMemoryAdminRepositories } from "@/lib/admin/data/in-memory/admin-repositories";
-import { createFetchAdminInventoryRepository } from "@/lib/admin/data/remote/inventory-repository";
 import type { AdminRepositories } from "@/lib/admin/data/repositories";
 
 const AdminRepositoryContext = createContext<AdminRepositories | null>(null);
@@ -15,10 +14,7 @@ export function AdminRepositoryProvider({
   children: ReactNode;
   store: AdminStore;
 }) {
-  const [repositories] = useState<AdminRepositories>(() => ({
-    ...createInMemoryAdminRepositories(store),
-    inventory: createFetchAdminInventoryRepository(),
-  }));
+  const [repositories] = useState<AdminRepositories>(() => createInMemoryAdminRepositories(store));
 
   return (
     <AdminRepositoryContext.Provider value={repositories}>
