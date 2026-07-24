@@ -12,6 +12,7 @@ import {
   passwordSignInSchema,
   passwordSignUpSchema,
 } from "@/lib/auth/auth-schemas";
+import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { getRequestOrigin } from "@/lib/auth/server/request-origin";
 import { err, ok, type Result } from "@/lib/errors";
@@ -50,7 +51,10 @@ export async function submitPasswordSignIn(
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) return err(mapAuthProviderError(error));
+  if (error) {
+    logAuthProviderFailure("password-sign-in", error);
+    return err(mapAuthProviderError(error));
+  }
   return ok({ status: "success", email: parsed.data.email });
 }
 
@@ -81,7 +85,10 @@ export async function submitPasswordSignUp(
     },
   });
 
-  if (error) return err(mapAuthProviderError(error));
+  if (error) {
+    logAuthProviderFailure("password-sign-up", error);
+    return err(mapAuthProviderError(error));
+  }
   return ok({
     status: data.session ? "success" : "check-email",
     email: parsed.data.email,
@@ -91,7 +98,11 @@ export async function submitPasswordSignUp(
 export async function signOutStorefrontSession(): Promise<SignOutActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
-  return error ? err(authFlowFailure("sign-out-failed")) : ok(undefined);
+  if (error) {
+    logAuthProviderFailure("sign-out", error);
+    return err(authFlowFailure("sign-out-failed"));
+  }
+  return ok(undefined);
 }
 
 export async function signInWithPassword(formData: FormData) {
