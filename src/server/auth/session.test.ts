@@ -4,8 +4,7 @@ const mocks = vi.hoisted(() => ({
   getClaims: vi.fn(),
   getUser: vi.fn(),
   profileFindUnique: vi.fn(),
-  customerFindFirst: vi.fn(),
-  ensureConsumerProfile: vi.fn(),
+  ensureConsumerAccount: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -16,25 +15,61 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     profiles: { findUnique: mocks.profileFindUnique },
-    customers: { findFirst: mocks.customerFindFirst },
   },
 }));
 vi.mock("@/server/auth/profile", () => ({
-  ensureConsumerProfile: mocks.ensureConsumerProfile,
+  ensureConsumerAccount: mocks.ensureConsumerAccount,
 }));
 
 import { getCurrentSession, getStaffAccess } from "./session";
 
 function signedInAs(sub: string, email: string | null) {
-  mocks.getClaims.mockResolvedValue({ data: { claims: { sub, email } } });
+  mocks.getClaims.mockResolvedValue({
+    data: {
+      claims: {
+        sub,
+        email,
+        user_metadata: { first_name: "Ada", last_name: "Lovelace" },
+      },
+    },
+  });
+}
+
+function activeConsumer(customerId = "customer-a") {
+  return {
+    role: "consumer",
+    status: "active",
+    display_name: "Ada Lovelace",
+    phone: "+2348012345678",
+    customer: { id: customerId },
+  };
+}
+
+function activeStaff(role: "manager" | "admin") {
+  return {
+    role,
+    status: "active",
+    display_name: "Store Owner",
+    phone: null,
+    customer: null,
+  };
 }
 
 describe("getCurrentSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     signedInAs("user-a", "shopper@example.com");
-    mocks.profileFindUnique.mockResolvedValue({ role: "consumer", status: "active" });
-    mocks.customerFindFirst.mockResolvedValue({ id: "customer-a" });
+    mocks.profileFindUnique.mockResolvedValue(activeConsumer());
+    mocks.ensureConsumerAccount.mockResolvedValue({
+      profile: {
+        id: "user-a",
+        role: "consumer",
+        status: "active",
+        display_name: "Ada Lovelace",
+        phone: "+2348012345678",
+      },
+      customerId: "customer-a",
+    });
   });
 
   it("resolves anonymous when no verified identity exists", async () => {
@@ -45,40 +80,50 @@ describe("getCurrentSession", () => {
     expect(mocks.profileFindUnique).not.toHaveBeenCalled();
   });
 
-  it("resolves an active consumer with their customer record", async () => {
+  it("resolves an active consumer with persisted profile and customer data", async () => {
     await expect(getCurrentSession()).resolves.toEqual({
       kind: "consumer",
       authUserId: "user-a",
       email: "shopper@example.com",
+      displayName: "Ada Lovelace",
+      phone: "+2348012345678",
       customerId: "customer-a",
     });
-    // Steady-state reads never write.
-    expect(mocks.ensureConsumerProfile).not.toHaveBeenCalled();
+    expect(mocks.ensureConsumerAccount).not.toHaveBeenCalled();
   });
 
-  it("resolves a consumer with no customer record yet", async () => {
-    mocks.customerFindFirst.mockResolvedValue(null);
+  it("repairs a missing customer record instead of returning a nullable customer id", async () => {
+    mocks.profileFindUnique.mockResolvedValue({ ...activeConsumer(), customer: null });
 
     await expect(getCurrentSession()).resolves.toMatchObject({
       kind: "consumer",
-      customerId: null,
+      customerId: "customer-a",
+    });
+    expect(mocks.ensureConsumerAccount).toHaveBeenCalledWith({
+      id: "user-a",
+      email: "shopper@example.com",
+      userMetadata: { first_name: "Ada", last_name: "Lovelace" },
     });
   });
 
-  it("resolves staff without touching customer records", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "manager", status: "active" });
+  it("resolves staff without provisioning a customer", async () => {
+    mocks.profileFindUnique.mockResolvedValue(activeStaff("manager"));
 
     await expect(getCurrentSession()).resolves.toEqual({
       kind: "staff",
       authUserId: "user-a",
       email: "shopper@example.com",
+      displayName: "Store Owner",
       role: "manager",
     });
-    expect(mocks.customerFindFirst).not.toHaveBeenCalled();
+    expect(mocks.ensureConsumerAccount).not.toHaveBeenCalled();
   });
 
   it("resolves suspended for any non-active profile, staff included", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "admin", status: "suspended" });
+    mocks.profileFindUnique.mockResolvedValue({
+      ...activeStaff("admin"),
+      status: "suspended",
+    });
 
     await expect(getCurrentSession()).resolves.toEqual({
       kind: "suspended",
@@ -87,17 +132,22 @@ describe("getCurrentSession", () => {
     });
   });
 
-  it("provisions a missing profile once instead of failing", async () => {
+  it("provisions a missing profile and customer atomically", async () => {
     mocks.profileFindUnique.mockResolvedValue(null);
-    mocks.ensureConsumerProfile.mockResolvedValue({
-      id: "user-a",
-      role: "consumer",
-      status: "active",
-    });
-    mocks.customerFindFirst.mockResolvedValue(null);
 
-    await expect(getCurrentSession()).resolves.toMatchObject({ kind: "consumer" });
-    expect(mocks.ensureConsumerProfile).toHaveBeenCalledWith("user-a", "shopper@example.com");
+    await expect(getCurrentSession()).resolves.toEqual({
+      kind: "consumer",
+      authUserId: "user-a",
+      email: "shopper@example.com",
+      displayName: "Ada Lovelace",
+      phone: "+2348012345678",
+      customerId: "customer-a",
+    });
+    expect(mocks.ensureConsumerAccount).toHaveBeenCalledWith({
+      id: "user-a",
+      email: "shopper@example.com",
+      userMetadata: { first_name: "Ada", last_name: "Lovelace" },
+    });
   });
 
   it("resolves unavailable when session resolution fails", async () => {
@@ -117,13 +167,13 @@ describe("getStaffAccess", () => {
   });
 
   it("grants staff with the requested capability", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "admin", status: "active" });
+    mocks.profileFindUnique.mockResolvedValue(activeStaff("admin"));
 
     await expect(getStaffAccess("settings:update")).resolves.toEqual({ ok: true, role: "admin" });
   });
 
   it("denies staff roles missing the capability", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "manager", status: "active" });
+    mocks.profileFindUnique.mockResolvedValue(activeStaff("manager"));
 
     await expect(getStaffAccess("settings:update")).resolves.toEqual({
       ok: false,
@@ -132,14 +182,16 @@ describe("getStaffAccess", () => {
   });
 
   it("denies consumers with missing-capability", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "consumer", status: "active" });
-    mocks.customerFindFirst.mockResolvedValue(null);
+    mocks.profileFindUnique.mockResolvedValue(activeConsumer());
 
     await expect(getStaffAccess()).resolves.toEqual({ ok: false, reason: "missing-capability" });
   });
 
   it("denies suspended accounts with account-inactive", async () => {
-    mocks.profileFindUnique.mockResolvedValue({ role: "admin", status: "suspended" });
+    mocks.profileFindUnique.mockResolvedValue({
+      ...activeStaff("admin"),
+      status: "suspended",
+    });
 
     await expect(getStaffAccess()).resolves.toEqual({ ok: false, reason: "account-inactive" });
   });
