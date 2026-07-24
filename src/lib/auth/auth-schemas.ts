@@ -31,12 +31,13 @@ type AuthField = "email" | "password" | "first" | "last";
 const authFields = new Set<AuthField>(["email", "password", "first", "last"]);
 
 export function authFormDataInput(formData: FormData) {
+  const next = formData.get("next");
   return {
     email: formData.get("email"),
     password: formData.get("password"),
     first: formData.get("first"),
     last: formData.get("last"),
-    next: formData.get("next"),
+    next: typeof next === "string" ? next : undefined,
   };
 }
 
