@@ -70,6 +70,7 @@ const requiredFiles = [
   "scripts/ci/build-agent-handoff.mjs",
   "scripts/ci/publish-feedback.mjs",
   "docs/ci/advanced-feedback-loop.md",
+  "src/features/storefront/shared/cart-restoration.ts",
   "src/features/storefront/shared/storefront-client-state.ts",
   "src/features/storefront/shared/storefront-client-state-provider.tsx",
   "src/features/storefront/shared/storefront-auth-provider.tsx",
@@ -93,6 +94,8 @@ for (const path of forbiddenAiFiles) {
 
 const retiredStorefrontFiles = [
   "src/components/shop/shop-provider.tsx",
+  "src/features/storefront/shared/cart-persistence.ts",
+  "src/features/storefront/shared/cart-persistence.test.ts",
   "src/features/storefront/shared/storefront-experience-provider.tsx",
   "src/features/storefront/shared/storefront-experience-data.ts",
   "src/features/storefront/checkout/checkout-flow.tsx",
@@ -113,6 +116,7 @@ const allSourceFiles = listFilesRecursively(join(root, "src"), "src").filter((fi
 );
 const forbiddenStorefrontImports = [
   "@/components/shop/shop-provider",
+  "./cart-persistence",
   "storefront-experience-provider",
   "storefront-experience-data",
   "@/lib/catalogue",
