@@ -9,6 +9,7 @@ import {
 import type {
   StorefrontCatalogPayload,
   StorefrontProductPageData,
+  StorefrontShellCatalogPayload,
 } from "@/features/storefront/shared/catalog-types";
 import {
   getPublishedProductBySlug,
@@ -38,8 +39,29 @@ const getCatalog = cache(async () => {
 const getProductDetail = cache((slug: string) => getPublishedProductBySlug(slug));
 const getProductSlugs = cache(() => listPublishedProductSlugs());
 
+function projectShellProduct(product: Product): Product {
+  return {
+    ...product,
+    images: product.images.slice(0, 1),
+    flaw: "",
+    careInstructions: "",
+    fit: product.size,
+    variants: undefined,
+  };
+}
+
 export async function loadStorefrontCatalog(): Promise<StorefrontCatalogPayload> {
   return (await getCatalog()).payload;
+}
+
+export async function loadStorefrontShellCatalog(): Promise<StorefrontShellCatalogPayload> {
+  const payload = (await getCatalog()).payload;
+  return {
+    products: payload.products.map(projectShellProduct),
+    categories: payload.categories,
+    measurementsCm: payload.measurementsCm,
+    variantOptionsByProductId: payload.variantOptionsByProductId,
+  };
 }
 
 export async function loadStorefrontProductSlugs(): Promise<string[]> {
