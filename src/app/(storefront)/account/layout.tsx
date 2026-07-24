@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { StorefrontRouteBoundary } from "@/app/storefront-route-boundary";
 import { AccountShell } from "@/features/storefront/account/account-shell";
 
 export const metadata: Metadata = {
@@ -9,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
-  return (
-    <StorefrontRouteBoundary>
-      <AccountShell>{children}</AccountShell>
-    </StorefrontRouteBoundary>
-  );
+  return <AccountShell>{children}</AccountShell>;
 }
