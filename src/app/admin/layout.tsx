@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
 import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
+import { QueryProvider } from "@/providers/query-provider";
 import { getStaffAccess } from "@/server/auth/session";
 
 export const metadata: Metadata = {
@@ -23,8 +24,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <AdminShell initialState={activeAdminSeed} role={access.role}>
-      {children}
-    </AdminShell>
+    <QueryProvider>
+      <AdminShell initialState={activeAdminSeed} role={access.role}>
+        {children}
+      </AdminShell>
+    </QueryProvider>
   );
 }
