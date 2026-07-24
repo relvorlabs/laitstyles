@@ -44,6 +44,19 @@ export async function listAdminProducts({
   };
 }
 
+export async function getAdminProductsByIds(productIds: string[]): Promise<AdminProduct[]> {
+  if (!productIds.length) return [];
+  const rows = await prisma.products.findMany({
+    where: { id: { in: productIds } },
+    include: adminProductInclude,
+  });
+  const byId = new Map(rows.map((row) => [row.id, mapAdminProductRow(row)]));
+  return productIds.flatMap((id) => {
+    const product = byId.get(id);
+    return product ? [product] : [];
+  });
+}
+
 export async function getAdminProduct(productId: string): Promise<AdminProduct | null> {
   const row = await prisma.products.findUnique({
     where: { id: productId },
