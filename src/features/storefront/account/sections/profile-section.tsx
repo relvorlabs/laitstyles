@@ -1,6 +1,10 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { useActionState, useEffect } from "react";
+import {
+  INITIAL_PROFILE_ACTION_STATE,
+  updateAccountProfile,
+} from "@/app/account/profile/actions";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
@@ -9,30 +13,33 @@ import {
   Eyebrow,
   fieldClass,
   LabeledField,
-  monoClass,
   panelElevatedClass,
 } from "../components/account-primitives";
 
-export function ProfileSection() {
+type ProfileSectionProps = {
+  email: string | null;
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  phone: string;
+};
+
+export function ProfileSection({
+  email,
+  firstName,
+  lastName,
+  preferredName,
+  phone,
+}: ProfileSectionProps) {
   const { openModal, toast } = useAccountUi();
-  const [changed, setChanged] = useState(false);
-  const [stateText, setStateText] = useState("No unsaved changes.");
+  const [state, formAction, pending] = useActionState(
+    updateAccountProfile,
+    INITIAL_PROFILE_ACTION_STATE,
+  );
 
-  function onInput() {
-    setChanged(true);
-    setStateText("Unsaved changes.");
-  }
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!event.currentTarget.checkValidity()) {
-      event.currentTarget.reportValidity();
-      return;
-    }
-    setChanged(false);
-    setStateText("Changes saved.");
-    toast("Profile updated");
-  }
+  useEffect(() => {
+    if (state.status === "success") toast(state.message);
+  }, [state, toast]);
 
   return (
     <>
@@ -47,36 +54,67 @@ export function ProfileSection() {
         </p>
       </header>
 
-      <form
-        className={cn("mt-7 overflow-hidden", panelElevatedClass)}
-        onInput={onInput}
-        onSubmit={onSubmit}
-      >
+      <form action={formAction} className={cn("mt-7 overflow-hidden", panelElevatedClass)}>
         <div className="border-b border-[var(--acc-line)] p-5 sm:p-6">
           <h2 className="font-serif text-3xl font-normal">Personal information</h2>
         </div>
         <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
           <LabeledField label="First name">
-            <Input name="firstName" defaultValue="Ada" required className={fieldClass} />
+            <Input
+              aria-invalid={!!state.fieldErrors?.firstName}
+              className={fieldClass}
+              defaultValue={firstName}
+              name="firstName"
+              required
+            />
+            {state.fieldErrors?.firstName ? (
+              <p className="text-xs text-destructive">{state.fieldErrors.firstName}</p>
+            ) : null}
           </LabeledField>
           <LabeledField label="Last name">
-            <Input name="lastName" defaultValue="Okafor" required className={fieldClass} />
+            <Input
+              aria-invalid={!!state.fieldErrors?.lastName}
+              className={fieldClass}
+              defaultValue={lastName}
+              name="lastName"
+              required
+            />
+            {state.fieldErrors?.lastName ? (
+              <p className="text-xs text-destructive">{state.fieldErrors.lastName}</p>
+            ) : null}
           </LabeledField>
-          <LabeledField
-            label="Preferred name"
-            className="sm:col-span-2"
-            hint="Used in account greetings only."
-          >
-            <Input name="preferredName" defaultValue="Ada" className={fieldClass} />
+          <LabeledField label="Preferred name" hint="Used in account greetings only.">
+            <Input
+              aria-invalid={!!state.fieldErrors?.preferredName}
+              className={fieldClass}
+              defaultValue={preferredName}
+              name="preferredName"
+            />
+            {state.fieldErrors?.preferredName ? (
+              <p className="text-xs text-destructive">{state.fieldErrors.preferredName}</p>
+            ) : null}
+          </LabeledField>
+          <LabeledField label="Phone number" hint="Used for delivery updates.">
+            <Input
+              aria-invalid={!!state.fieldErrors?.phone}
+              autoComplete="tel"
+              className={fieldClass}
+              defaultValue={phone}
+              name="phone"
+              type="tel"
+            />
+            {state.fieldErrors?.phone ? (
+              <p className="text-xs text-destructive">{state.fieldErrors.phone}</p>
+            ) : null}
           </LabeledField>
         </div>
 
         <div className="grid gap-4 border-t border-[var(--acc-line)] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
           <div>
             <p className="text-sm font-semibold">Email address</p>
-            <p className="mt-1">ada@example.com</p>
+            <p className="mt-1">{email ?? "No email address available"}</p>
             <p className="mt-2 text-sm text-[var(--acc-muted)]">
-              Verified · Used for sign-in and order updates
+              Supabase Auth owns sign-in email verification and protected email changes.
             </p>
           </div>
           <AcctButton variant="secondary" type="button" onClick={() => openModal("email")}>
@@ -84,27 +122,18 @@ export function ProfileSection() {
           </AcctButton>
         </div>
 
-        <div className="grid gap-4 border-t border-[var(--acc-line)] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
-          <div>
-            <p className="text-sm font-semibold">Phone number</p>
-            <p className={cn("mt-1", monoClass)}>+234 801 234 5678</p>
-            <p className="mt-2 text-sm text-[var(--acc-muted)]">
-              Verified · Used for delivery updates
-            </p>
-          </div>
-          <AcctButton
-            variant="secondary"
-            type="button"
-            onClick={() => toast("Phone verification flow would open.")}
-          >
-            Change phone
-          </AcctButton>
-        </div>
-
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--acc-line)] p-5 sm:p-6">
-          <p className="text-sm text-[var(--acc-muted)]">{stateText}</p>
-          <AcctButton type="submit" disabled={!changed}>
-            Save changes
+          <p
+            className={cn(
+              "text-sm",
+              state.status === "error" ? "text-destructive" : "text-[var(--acc-muted)]",
+            )}
+            role={state.status === "error" ? "alert" : "status"}
+          >
+            {state.message}
+          </p>
+          <AcctButton type="submit" disabled={pending}>
+            {pending ? "Saving..." : "Save changes"}
           </AcctButton>
         </div>
       </form>
