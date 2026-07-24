@@ -29,7 +29,7 @@ describe("ReviewForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.submit.mockResolvedValue({ status: "idle" });
-    mocks.withdraw.mockResolvedValue(undefined);
+    mocks.withdraw.mockResolvedValue({ status: "idle" });
   });
 
   it("presents a labelled rating group, five named radios, and visible review fields", () => {
@@ -78,6 +78,7 @@ describe("ReviewForm", () => {
   it("renders field errors returned by the Server Action", async () => {
     mocks.submit.mockResolvedValueOnce({
       status: "error",
+      code: "invalid-review-fields",
       message: "Check the highlighted review fields and try again.",
       fieldErrors: { body: ["Please add a little more detail."] },
     });
@@ -134,8 +135,35 @@ describe("ReviewForm", () => {
     await user.click(screen.getByRole("button", { name: "Yes, withdraw review" }));
 
     await waitFor(() => expect(mocks.withdraw).toHaveBeenCalledTimes(1));
-    const submitted = mocks.withdraw.mock.calls[0]?.[0] as FormData;
+    expect(mocks.withdraw.mock.calls[0]?.[0]).toEqual({ status: "idle" });
+    const submitted = mocks.withdraw.mock.calls[0]?.[1] as FormData;
     expect(submitted.get("orderNumber")).toBe("LS-1001");
     expect(submitted.get("orderLineId")).toBe("line-a");
+  });
+
+  it("renders an expected withdrawal failure inline", async () => {
+    mocks.withdraw.mockResolvedValueOnce({
+      status: "error",
+      code: "withdrawal-failed",
+      message: "We could not withdraw this review. Return to your order and try again.",
+    });
+    const user = userEvent.setup();
+    render(
+      <ReviewForm
+        allowWithdrawal
+        intent="edit"
+        orderLineId="line-a"
+        orderNumber="LS-1001"
+        defaultValues={{ rating: 5, body, fit: "true_to_size" }}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Withdraw review" }));
+    await user.click(screen.getByRole("button", { name: "Yes, withdraw review" }));
+
+    expect(await screen.findByText("We could not withdraw this review")).toBeTruthy();
+    expect(
+      screen.getByText("We could not withdraw this review. Return to your order and try again."),
+    ).toBeTruthy();
   });
 });
