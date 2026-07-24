@@ -1,57 +1,69 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
 const output = resolve(root, "ci-evidence/local-verification");
+const flags = new Set(process.argv.slice(2));
+const fix = flags.has("--fix");
+const full = flags.has("--full");
+const browser = flags.has("--browser");
+const nodeMajor = Number(process.versions.node.split(".")[0]);
+const results = [];
+
+rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 
-const nodeMajor = Number(process.versions.node.split(".")[0]);
-const checks = [];
-
-checks.push({
+results.push({
   name: "node-version",
   command: "node -p process.version",
-  status: nodeMajor === 25 ? 0 : 1,
-  stdout: process.version,
-  stderr: nodeMajor === 25 ? "" : `Expected Node 25.x but found ${process.version}.`,
+  status: nodeMajor === 25 ? "passed" : "failed",
+  exitCode: nodeMajor === 25 ? 0 : 1,
+  detail: nodeMajor === 25 ? process.version : `Expected Node 25.x but found ${process.version}.`,
 });
 
-for (const check of [
-  { name: "architecture", command: "pnpm", args: ["check:architecture"] },
-  { name: "prisma", command: "pnpm", args: ["prisma:validate"] },
-  { name: "buttons", command: "pnpm", args: ["audit:buttons"] },
-  { name: "biome", command: "pnpm", args: ["lint"] },
-  { name: "typescript", command: "pnpm", args: ["typecheck"] },
-  { name: "vitest", command: "pnpm", args: ["test:coverage"] },
-  {
-    name: "build-and-playwright",
-    command: "node",
-    args: ["scripts/auth/run-auth-e2e.mjs", "--all"],
-  },
-]) {
-  checks.push(runCheck(check.name, check.command, check.args));
+if (fix) runSuite("safe-repair");
+runSuite("static");
+runSuite("tests");
+
+if (full) {
+  runSuite("database");
+  runSuite("build");
+} else {
+  runSuite("react");
 }
 
-for (const check of checks) {
-  writeFileSync(resolve(output, `${check.name}.stdout.log`), check.stdout, "utf8");
-  writeFileSync(resolve(output, `${check.name}.stderr.log`), check.stderr, "utf8");
+if (browser) {
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+  const reachable = await checkBrowserTarget(baseUrl);
+  results.push({
+    name: "browser-target",
+    command: `GET ${baseUrl}/products`,
+    status: reachable ? "passed" : "failed",
+    exitCode: reachable ? 0 : 1,
+    detail: reachable
+      ? `Playwright target is reachable at ${baseUrl}.`
+      : `Start the application first or set PLAYWRIGHT_BASE_URL. Could not reach ${baseUrl}/products.`,
+  });
+
+  if (reachable) {
+    for (const project of ["desktop-chromium", "tablet-chromium", "mobile-chromium"]) {
+      runSuite("playwright", project);
+    }
+  }
 }
 
-const passed = checks.filter((check) => check.status === 0).length;
-const failed = checks.length - passed;
+const failed = results.filter((result) => result.status === "failed");
+const warnings = results.filter((result) => result.status === "passed-with-warnings");
 const summary = {
   generatedAt: new Date().toISOString(),
   node: process.version,
-  passed,
-  failed,
-  checks: checks.map(({ name, command, status }) => ({
-    name,
-    command,
-    status: status === 0 ? "passed" : "failed",
-    exitCode: status,
-  })),
+  mode: { fix, full, browser },
+  passed: results.length - failed.length - warnings.length,
+  warnings: warnings.length,
+  failed: failed.length,
+  results,
 };
 
 writeFileSync(resolve(output, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`, "utf8");
@@ -62,41 +74,71 @@ writeFileSync(
     "",
     `Generated: ${summary.generatedAt}`,
     `Node: ${summary.node}`,
-    `Result: ${passed} passed, ${failed} failed`,
+    `Mode: fix=${fix}, full=${full}, browser=${browser}`,
+    `Result: ${summary.passed} passed, ${summary.warnings} warning suites, ${summary.failed} failed`,
     "",
     "| Check | Result | Exit code |",
-    "|---|---:|---:|",
-    ...summary.checks.map(
-      (check) => `| ${check.name} | ${check.status} | ${check.exitCode} |`,
-    ),
+    "| --- | ---: | ---: |",
+    ...results.map((result) => `| ${result.name} | ${result.status} | ${result.exitCode} |`),
     "",
-    "Raw stdout and stderr for every check are stored beside this summary.",
+    "Every suite stores its manifest, summary, and raw logs below this directory.",
     "",
   ].join("\n"),
   "utf8",
 );
 
-console.log(`Local verification complete: ${passed} passed, ${failed} failed.`);
+console.log(`\nLocal verification: ${summary.passed} passed, ${summary.warnings} warnings, ${summary.failed} failed.`);
 console.log(`Evidence: ${output}`);
-process.exit(failed === 0 ? 0 : 1);
+process.exit(failed.length === 0 ? 0 : 1);
 
-function runCheck(name, command, args) {
-  console.log(`\n=== ${name}: ${command} ${args.join(" ")} ===`);
-  const result = spawnSync(command, args, {
+function runSuite(suite, project = "") {
+  const label = project ? `${suite}:${project}` : suite;
+  const suiteOutput = resolve(output, project ? `${suite}/${project}` : suite);
+  const commandArgs = [
+    "scripts/ci/run-gates.mjs",
+    "--suite",
+    suite,
+    "--output",
+    suiteOutput,
+  ];
+  if (project) commandArgs.push("--project", project);
+
+  console.log(`\n=== ${label} ===`);
+  const result = spawnSync(process.execPath, commandArgs, {
     cwd: root,
     env: process.env,
     encoding: "utf8",
-    shell: process.platform === "win32",
+    shell: false,
+    stdio: "inherit",
   });
-  const stdout = result.stdout ?? "";
-  const stderr = result.stderr ?? "";
-  process.stdout.write(stdout);
-  process.stderr.write(stderr);
-  return {
-    name,
-    command: `${command} ${args.join(" ")}`,
-    status: result.error ? 1 : (result.status ?? 1),
-    stdout,
-    stderr: result.error ? `${stderr}\n${result.error.message}` : stderr,
-  };
+  const exitCode = result.error ? 1 : (result.status ?? 1);
+  let status = exitCode === 0 ? "passed" : "failed";
+
+  try {
+    const manifest = JSON.parse(readFileSync(resolve(suiteOutput, "manifest.json"), "utf8"));
+    status = manifest.status;
+  } catch {
+    // Missing evidence is a failure, never an implied pass.
+    status = "failed";
+  }
+
+  results.push({
+    name: label,
+    command: `${process.execPath} ${commandArgs.join(" ")}`,
+    status,
+    exitCode,
+    detail: result.error?.message ?? null,
+  });
+}
+
+async function checkBrowserTarget(baseUrl) {
+  try {
+    const response = await fetch(new URL("/products", baseUrl), {
+      redirect: "follow",
+      signal: AbortSignal.timeout(10_000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }

@@ -1,40 +1,38 @@
 # Role: UI Engineer
 
-**Mandate.** Build and change presentational + interactive UI: the design system, feature
-screens, and the client parts of routes. Owns interaction state; consumes server data via
-props and the sanctioned data hooks.
+**Mandate.** Preserve and evolve presentational and interactive UI while consuming data through
+the owning domain's props or client hooks.
 
 **Owns.**
-- `src/components/**` (design system, primitives, shared UI).
-- `src/features/**` composition and client components.
-- Client Components and interactive segments inside `src/app/**`.
 
-**Does not own.** Domain logic, repositories, Server Actions, schema, or authorization —
-those are the domain-engineer's and data-engineer's. Render data from props/hooks; do not
-fetch business data or embed domain rules in components.
+- `src/modules/*/ui/**`.
+- `src/components/**`, especially generic primitives under `components/ui`.
+- `src/stores/**` and truly cross-domain browser hooks.
+- Client Components and interactive route segments under `src/app/**`.
+- Existing `src/features/**` only for scoped fixes or migration into the owning module; it is
+  not a destination for new production business features.
 
-**Obeys.** [ui-and-design-system](../doctrine/ui-and-design-system.md),
+**Does not own.** Domain server rules, Prisma access, Route Handler business logic, Server
+Actions, schema/migrations, or authorization.
+
+**Obeys.** [architecture](../doctrine/architecture.md),
+[server-and-actions](../doctrine/server-and-actions.md),
 [state-and-data](../doctrine/state-and-data.md),
-[conventions](../doctrine/conventions.md), and the server-first rules in
-[server-and-actions](../doctrine/server-and-actions.md) (keep interactivity to the smallest
-segment that needs it).
+[ui-and-design-system](../doctrine/ui-and-design-system.md), and
+[conventions](../doctrine/conventions.md).
 
 ## Working rules
 
-- Default to Server Components; reach for a Client Component only when browser APIs,
-  interaction state, client query hooks, or client-side forms require it.
-- Apply the state ladder from [state-and-data](../doctrine/state-and-data.md): most values are
-  local; `useState` only for locally-owned state; server/URL/shared state go to their rungs.
-- Compose existing shadcn / Base UI primitives (style `base-mira`, HugeIcons) before building
-  custom ones; load the `shadcn` skill for registry work.
-- Meet the responsive and accessibility gates in
-  [ui-and-design-system](../doctrine/ui-and-design-system.md).
+- Preserve the Phase 0 visual and interaction baseline during architecture phases.
+- Default to Server Components; create the smallest necessary Client Component.
+- Use URL state for navigable filters/sort/search/pagination, TanStack Query for remote browser
+  cache, Zustand for shared browser-owned state, and local React state for local interactions.
+- Do not import Prisma, top-level server modules, `modules/*/server/**`, or Server Actions into
+  client code.
+- Reuse existing JSX, class names, tokens, and primitives when moving UI.
+- Do not use architecture migration as visual cleanup.
 
-## Skills / tools
+## Handoff
 
-`shadcn`, `frontend-design` / `ui-ux-pro-max` when shaping new visual design, browser tooling
-for viewport and interaction checks (see [toolchain-and-skills](../doctrine/toolchain-and-skills.md)).
-
-**Handoff out.** Working UI with explicit loading/empty/error/disabled states, reviewed at the
-required viewports, plus notes on any data contract it needs from the domain-engineer.
-Hand back to the orchestrator; the reviewer runs the gates.
+Provide working UI with explicit loading, empty, error, disabled, and responsive states, plus the
+data contract required from the domain engineer. Hand back to the orchestrator for review gates.

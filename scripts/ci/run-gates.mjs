@@ -18,7 +18,6 @@ const args = parseArgs();
 const suiteName = String(args.get("suite") ?? "");
 const project = String(args.get("project") ?? "");
 const outputRoot = resolve(String(args.get("output") ?? `ci-evidence/${suiteName || "unknown"}`));
-const baseRef = process.env.CI_BASE_REF?.trim() || "main";
 const secrets = secretValues();
 
 const gate = (name, command, commandArgs, timeoutMinutes, required = true) => ({
@@ -29,14 +28,17 @@ const gate = (name, command, commandArgs, timeoutMinutes, required = true) => ({
   required,
 });
 
+const reactDoctorGate = () => gate("react-doctor", "pnpm", ["react-doctor"], 18, false);
+
 const suites = {
   static: [
     gate("architecture", "pnpm", ["check:architecture"], 8),
     gate("button-audit", "pnpm", ["audit:buttons"], 8),
-    gate("biome", "pnpm", ["lint"], 12),
+    gate("biome", "pnpm", ["biome"], 12),
     gate("typescript", "pnpm", ["typecheck"], 18),
     gate("dependency-audit", "pnpm", ["audit", "--prod", "--audit-level", "high"], 12, false),
   ],
+  react: [reactDoctorGate()],
   database: [
     gate("prisma-validate", "pnpm", ["prisma:validate"], 8),
     gate("prisma-migrate-deploy", "pnpm", ["prisma:migrate:deploy"], 12),
@@ -46,14 +48,9 @@ const suites = {
     gate("vitest", "pnpm", ["exec", "vitest", "run", "--passWithNoTests", "--coverage", "--reporter=verbose"], 25),
   ],
   build: [
+    gate("prisma-migrate-deploy", "pnpm", ["prisma:migrate:deploy"], 12),
     gate("production-build", "pnpm", ["build"], 30),
-    gate(
-      "react-doctor",
-      "pnpm",
-      ["dlx", "react-doctor@latest", ".", "--verbose", "--scope", "changed", "--base", `origin/${baseRef}`],
-      18,
-      false,
-    ),
+    reactDoctorGate(),
   ],
   "browser-preflight": [
     gate("prisma-validate", "pnpm", ["prisma:validate"], 8),
@@ -79,7 +76,7 @@ const suites = {
         ),
       ]
     : [],
-  "safe-repair": [gate("biome-write", "pnpm", ["exec", "biome", "check", "--write", "."], 15)],
+  "safe-repair": [gate("biome-write", "pnpm", ["biome:fix"], 15)],
 };
 
 if (!suiteName || !Object.hasOwn(suites, suiteName)) {
@@ -112,7 +109,7 @@ async function runGate(definition) {
     const child = spawn(definition.command, definition.args, {
       cwd: process.cwd(),
       env: { ...process.env, FORCE_COLOR: "0" },
-      shell: false,
+      shell: process.platform === "win32",
       stdio: ["ignore", "pipe", "pipe"],
     });
     const timer = setTimeout(() => {

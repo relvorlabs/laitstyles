@@ -1,110 +1,124 @@
-# GitHub-only CI feedback loop
+# Permanent CI feedback loop
 
-The repository keeps exactly three authoritative workflows. They run on `ubuntu-latest`, execute repository-owned scripts, retain complete evidence, and expose a machine-readable handoff that any connected ChatGPT/Codex GitHub session can inspect.
+The repository keeps three authoritative private-source workflows. They run repository-owned
+scripts on a configurable dedicated self-hosted runner, retain evidence, and expose a
+machine-readable handoff that a connected GitHub session can inspect.
 
-No OpenAI API key, OpenAI endpoint, webhook, or deployed Next.js analysis route is required or used.
+The separate public `agent-controller` workflow tests only a public deployment URL. It does not
+check out or execute the private Laitstyles source.
+
+No OpenAI API key, OpenAI endpoint, webhook, or deployed Next.js analysis route is required.
 
 ## Operating model
 
-GitHub Actions runs the validation jobs and stores their results. A connected GitHub chat can then:
+1. `Implementation Quality` runs architecture, Biome, TypeScript, dependency, Prisma, Vitest,
+   production-build, and pinned React Doctor checks.
+2. `Playwright UI Contract` builds the private source and tests desktop, tablet, and mobile
+   Chromium against the production server.
+3. `Task Progress and GitHub Agent Feedback` correlates both workflows by PR head SHA, downloads
+   evidence, detects missing or zero-step work, and publishes a repair handoff.
+4. A human or connected GitHub agent reads the evidence, fixes only the demonstrated root cause on
+   the PR branch, and triggers the same validation again.
+5. Required gates must pass before the phase or implementation is marked complete.
 
-1. open the pull request;
-2. read workflow runs, jobs, failed logs, artifacts, `ci-feedback.json`, and `agent-handoff.json`;
-3. inspect the changed implementation;
-4. fix the smallest evidenced root cause on the PR branch;
-5. commit and push the correction;
-6. inspect the new workflow runs;
-7. rerun failed jobs when the code did not change;
-8. repeat until every required check passes.
+GitHub Actions cannot silently wake an existing chat session. The user must invoke the connected
+session, but the evidence and commands remain in GitHub.
 
-GitHub Actions cannot silently wake an existing chat session. The chat must be invoked by the user, but it does not need an API key because it uses the connected GitHub integration.
+## Runner model
 
-## Workflows
+All three private workflows default to:
 
-### `implementation-quality.yml`
+```json
+["self-hosted", "linux", "x64", "laitstyles-ci"]
+```
 
-Runs independent jobs for:
+This avoids GitHub-hosted billing and keeps private diagnostics private. The selector may be
+overridden with the repository Actions variable `CI_RUNNER`. Setup and security requirements are
+documented in [`permanent-validation.md`](permanent-validation.md).
 
-- changed-file, architecture-doctrine, and agent-skill context;
-- architecture and folder boundaries;
-- strict button audit, Biome, and TypeScript;
+## `implementation-quality.yml`
+
+Independent jobs execute repository-owned gate suites for:
+
+- architecture boundaries, button audit, Biome, and TypeScript;
 - production dependency audit as an advisory signal;
-- Prisma validation, migration deployment, and migration status against PostgreSQL 17;
+- Prisma validation, clean migration deployment, and migration status on PostgreSQL 17;
 - Vitest with coverage;
-- production build and changed-scope React Doctor review;
-- aggregate evidence generation, including missing-job detection.
+- production build and React Doctor `0.7.2` with telemetry disabled;
+- aggregate evidence generation and missing-suite detection.
 
-Each command runs through `scripts/ci/run-gates.mjs`. The runner continues through every gate, applies a per-command timeout, redacts configured secrets, stores complete logs, and records exit code, signal, duration, and required/advisory status.
+Every command runs through `scripts/ci/run-gates.mjs`. The runner continues through each suite,
+applies timeouts, redacts configured secrets, stores logs, and records exit code, signal, duration,
+and required/advisory status.
 
-### `playwright.yml`
+## `playwright.yml`
 
-Builds the production application once and then runs independent desktop, tablet, and mobile Chromium jobs. Each viewport job performs:
+Each desktop, tablet, and mobile job performs:
 
-- database migration deployment;
+- Prisma validation and migration deployment;
+- production build;
 - Chromium and operating-system dependency installation with browser caching;
 - production server readiness and process-liveness checks;
-- redirect-aware HTTP page smoke checks;
-- protected API status verification;
-- Playwright theme, responsiveness, event, button, console, network, and runtime contracts;
-- JSON, JUnit, HTML, trace, screenshot, and retained failure-video output;
-- production server log inspection;
-- an aggregate viewport manifest that detects missing jobs.
+- redirect-aware HTTP and protected API checks;
+- Playwright theme, responsive, event, button, console, network, and runtime contracts;
+- JSON, JUnit, HTML, trace, screenshot, and failure-video output;
+- production server-log inspection;
+- aggregate viewport evidence with missing-job detection.
 
-### `task-progress.yml`
+The public deployment workflow in `agent-controller` is an additional availability and visual-smoke
+fallback. It does not replace this source-backed contract.
 
-Correlates implementation and browser workflows by pull-request head SHA. It downloads artifacts, queries run and job metadata, captures failed logs, and creates explicit failures when GitHub returns no jobs or terminates a job before allocating steps.
+## `task-progress.yml`
 
-It publishes:
+The workflow contains executable PR resolution and authorization logic. It:
 
-- one sticky PR comment;
-- `ci-feedback.json` and `ci-feedback.md`;
-- `agent-handoff.json` and `agent-handoff.md`;
-- pull-request context and changed-file patches;
-- workflow run metadata and failed logs.
+- accepts workflow completion events, manual dispatch, and authorized PR comments;
+- resolves the current PR head SHA;
+- queries validation runs and jobs;
+- captures failed logs and downloads artifacts;
+- records changed files and a bounded patch;
+- merges suite manifests and flags missing evidence;
+- publishes one sticky PR feedback comment and agent handoff;
+- can rerun the latest failed validation workflows;
+- can generate a deterministic Biome-only repair patch without pushing it.
 
-No skipped, missing, cancelled, neutral, unavailable, or zero-step job is represented as passed.
+A cancelled, neutral, missing, unavailable, or zero-step job is never represented as passed.
 
 ## Pull-request commands
 
-Repository owners, members, and collaborators may comment on a pull request:
+Repository owners, members, and collaborators may comment:
 
-- `/ci analyze` or `/ci status` — rebuild the evidence bundle and sticky agent handoff;
-- `/ci rerun-failed` — rerun the latest failed Implementation Quality and Playwright UI Contract runs for the current head SHA.
+- `/ci analyze` or `/ci status` — rebuild evidence and the sticky handoff;
+- `/ci rerun-failed` — rerun the latest failed validation workflows for the current head SHA;
+- `/ci safe-repair-plan` — generate a reviewable deterministic Biome patch artifact.
 
-The workflow also supports manual dispatch modes:
-
-- `analyze`;
-- `rerun-failed`;
-- `safe-repair-plan`.
-
-`safe-repair-plan` installs dependencies without lifecycle scripts, runs deterministic Biome fixes, and uploads a reviewable patch. It does not commit or push automatically.
+The same operations are available through manual workflow dispatch.
 
 ## Machine-readable contract
 
-Every command suite writes a `manifest.json`. The aggregator writes:
+Each suite writes `manifest.json` and `summary.md`. Aggregation produces:
 
-- `ci-feedback.json` — required failures, advisory warnings, missing suites, and gate metadata;
-- `ci-feedback.md` — human-readable summary and failure tails;
-- `agent-handoff.json` — PR identity, head SHA, failures, warnings, missing evidence, changed files, diff summary, capped patch, and the fix-and-verify protocol;
-- `agent-handoff.md` — a ready-to-use prompt for any connected GitHub chat;
-- workflow run and job metadata plus failed logs;
-- Playwright reports, traces, screenshots, videos, and server logs;
-- `context.json` and the changed-code patch for repository review.
+- `ci-feedback.json` and `ci-feedback.md`;
+- `agent-handoff.json` and `agent-handoff.md`;
+- PR metadata, changed-file inventory, and bounded patch;
+- workflow run/job metadata and failed logs;
+- Playwright reports, traces, screenshots, videos, and server logs.
 
-## Connected chat protocol
-
-Use this instruction in any ChatGPT/Codex conversation with GitHub access:
+## Connected GitHub protocol
 
 ```text
-Open relvorlabs/laitstyles PR #<number>. Read the latest task-runtime-feedback artifact, ci-feedback.json, agent-handoff.json and failed GitHub Actions logs. Fix only evidenced root causes on the PR branch, commit the changes, inspect the new workflow runs, rerun failed jobs when appropriate, and repeat until every required check is green. Do not treat missing or skipped jobs as passed.
+Open relvorlabs/laitstyles PR #<number>. Read the latest task-runtime-feedback artifact,
+ci-feedback.json, agent-handoff.json, and failed workflow logs. Fix only evidenced root causes on
+the PR branch, commit the smallest correction, inspect the new validation runs, and repeat until
+every required gate passes. Do not treat missing, queued, skipped, cancelled, advisory, or zero-step
+jobs as passed.
 ```
-
-The connected chat performs the semantic code changes. GitHub Actions remains the execution authority. Git stores the code; it does not replace the Actions runner.
 
 ## Security boundary
 
-- No OpenAI or external AI secrets exist in this CI design.
+- Private source executes only in the private repository or on a trusted dedicated runner.
+- The public deployment workflow receives no private repository token or source archive.
 - Pull-request code receives no repository write credential.
-- Comment commands are restricted to owners, members, and collaborators.
-- Automatic repair is limited to a reviewable deterministic formatter patch.
-- Semantic fixes are committed only by an explicitly invoked connected GitHub chat or a human contributor.
+- PR commands are restricted to owners, members, and collaborators.
+- Automated repair is limited to a reviewable deterministic Biome patch.
+- Semantic fixes are committed only by an explicitly invoked connected GitHub agent or human.

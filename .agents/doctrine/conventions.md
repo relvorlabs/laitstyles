@@ -5,48 +5,79 @@ Cited by: every engineering role, reviewer.
 
 ## Focus
 
-Change only what the active task requires. No unrelated formatting, dependency, or
-architectural changes. No speculative infrastructure or drive-by refactors unless the user
-asks or the task cannot be completed safely without them. Preserve existing public component
-and domain contracts unless the task requires changing them.
+Change only what the active task requires. No unrelated formatting, dependency, visual, or
+architectural changes. No speculative infrastructure or drive-by refactors unless the active
+phase requires them or the task cannot be completed safely without them.
 
-## Files & naming
+During the architecture migration, obey the active phase boundary. A later-phase improvement is
+not permission to implement it early.
 
-- One purpose per file; split when a file grows large or mixes concerns.
+## Files and ownership
+
+- One purpose per file; split when a file mixes responsibilities.
 - Match the naming, comment density, and idioms of the surrounding code.
-- Colocate tests as `*.test.ts` beside the unit under test (the repo pattern).
-- Keep server-only modules out of anything a client component imports.
-- Use `storefront` for the customer-facing feature surface, presentation-specific contracts,
-  route/client boundaries, and their symbols.
-- Use `commerce` for shared business-domain schemas/types under `src/lib/commerce/**` and
-  server-only repositories, policies, and services under `src/server/commerce/**`.
-- Never shorten the architecture namespace to `store`, and never use `commerce` as a second name
-  for a storefront component or `storefront` as a second name for a shared domain service.
-- Prefer domain nouns below the namespace: `CatalogRepository`, `InventoryService`,
-  `StorefrontAuthProvider`. Avoid redundant aliases such as `CommerceCatalogRepository`,
-  `StoreProvider`, or `CommerceHome`.
+- Colocate tests as `*.test.ts` or `*.test.tsx` beside the unit under test.
+- New business code belongs under `src/modules/<domain>/**`.
+- `src/features/**` is legacy for new production code. Existing files may be repaired or moved,
+  but do not create a new business feature there.
+- Top-level `src/server/**` is legacy for new business modules. New domain queries, commands,
+  policies, and mappers belong under the owning module's `server/**`.
+- Keep server-only modules out of every Client Component dependency chain.
+- Do not create broad barrels that expose a module's internal server, client, and UI files
+  through one ambiguous entry point.
+
+## Naming
+
+Use the domain language contract in
+[`architecture.md`](architecture.md):
+
+- `product` — canonical sellable-item domain;
+- `inventory` — stock and availability;
+- `catalogue` — public read model or UI term;
+- `storefront` — customer-facing surface;
+- `admin` — staff-facing surface;
+- `commerce` — conceptual umbrella, not a permanent folder layer.
+
+Use British spelling `catalogue`. Do not add new `catalog` filenames, imports, identifiers, or
+domain names. Existing American-spelled identifiers are legacy debt and must not increase when a
+file changes.
+
+Do not create product CRUD names under catalogue, for example
+`createCatalogueProduct` or `deleteCatalogueProduct`. Those are product commands.
+
+Use `repository` only for a real replaceable persistence/integration boundary. Prefer
+`queries`, `commands`, `api`, `policy`, or `mappers` for direct responsibilities.
+
+## Imports
+
+- Prefer the `@/` alias for cross-folder imports.
+- Client code must not import `@/server/**`, `@/modules/*/server/**`, Prisma, server-only
+  Supabase clients, or `"use server"` modules.
+- Route Handlers must not import Server Actions.
+- Production `src/**` code must not import from test fixtures, factories, stories fixtures,
+  development fixtures, or seed scripts.
+- Domain UI may import the owning domain's client API/hooks and shared UI primitives, but not
+  server internals.
+- Domain server code must not import app routes, providers, stores, or domain UI.
 
 ## TypeScript
 
 - Model `unique` / `stocked` / `variant` as discriminated unions.
 - Use structured validation errors or typed `Result` values for expected failures.
 - Use advanced types only where they improve domain safety, readability, or refactor
-  confidence. Avoid clever types that make ordinary feature work harder to read.
+  confidence.
 - Keep domain invariants in domain logic, not only in UI conditions.
 
 ## Package manager
 
-This repo uses `pnpm`. Confirm it before running commands or installing packages. Run
-components/registry tooling through `pnpm`.
+This repository uses `pnpm@11.13.0`. Confirm the repository scripts before running commands or
+installing packages.
 
-## Commits & pull requests
+## Commits and pull requests
 
-- Conventional commit and PR titles that describe the actual scope.
-- Load and follow the `create-pr` skill only when creating or updating a pull request.
+- Use conventional commit and PR titles that describe the actual phase scope.
 - Keep a PR in draft while required checks, browser evidence, visual review, or merge
   integration remain incomplete.
-- A PR body states: implemented scope, explicit exclusions, key architectural decisions,
-  verification evidence, screenshots/browser evidence for UI, known blockers, and follow-up
-  work intentionally left out of scope.
-- Never mark work merge-ready while required validation is failing, missing, or inaccurately
-  reported. See [validation-and-reporting](validation-and-reporting.md).
+- The PR body states implemented scope, explicit exclusions, architecture decisions,
+  verification evidence, known blockers, and follow-up work deliberately left to later phases.
+- Never report a planned, billing-blocked, or unexecuted check as passing.

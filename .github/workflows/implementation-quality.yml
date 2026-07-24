@@ -16,21 +16,17 @@ concurrency:
 
 env:
   CI: "1"
-
-  # Required by Prisma generation and application configuration.
-  # Only jobs with a Postgres service can actually connect to this URL.
+  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
-
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
 jobs:
-  quality:
-    name: Code quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+  static:
+    name: Static analysis
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -42,23 +38,19 @@ jobs:
         with:
           node-version: "25"
 
-      - name: Architecture guard
-        run: pnpm check:architecture
+      - name: Run architecture, button, Biome and TypeScript gates
+        run: node scripts/ci/run-gates.mjs --suite static --output ci-evidence/static
 
-      - name: Button audit
-        run: pnpm audit:buttons
+      - uses: ./.github/actions/upload-evidence
+        if: always()
+        with:
+          name: validation-static
+          path: ci-evidence/static/
 
-      - name: Biome lint and format check
-        run: pnpm lint
-
-      - name: TypeScript type-check
-        run: pnpm typecheck
-
-  unit-tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+  tests:
+    name: Unit and component tests
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 35
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -70,22 +62,20 @@ jobs:
           node-version: "25"
 
       - name: Run Vitest with coverage
-        run: pnpm test:coverage
+        run: node scripts/ci/run-gates.mjs --suite tests --output ci-evidence/tests
 
-      - name: Upload coverage
+      - uses: ./.github/actions/upload-evidence
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: vitest-coverage
-          path: coverage/
-          if-no-files-found: warn
-          retention-days: 14
+          name: validation-tests
+          path: |
+            ci-evidence/tests/
+            coverage/
 
   database:
     name: Database integrity
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:17
@@ -100,7 +90,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -111,18 +100,19 @@ jobs:
         with:
           node-version: "25"
 
-      - name: Validate Prisma schema
-        run: pnpm prisma:validate
+      - name: Validate and deploy migrations
+        run: node scripts/ci/run-gates.mjs --suite database --output ci-evidence/database
 
-      - name: Apply migrations to a clean database
-        run: pnpm prisma:migrate:deploy
+      - uses: ./.github/actions/upload-evidence
+        if: always()
+        with:
+          name: validation-database
+          path: ci-evidence/database/
 
   build:
-    name: Production build
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
-
-    # The current application performs database reads while building pages.
+    name: Production build and React Doctor
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 50
     services:
       postgres:
         image: postgres:17
@@ -137,19 +127,62 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup-environment
         with:
           node-version: "25"
 
-      - name: Apply migrations required by build-time reads
-        run: pnpm prisma:migrate:deploy
+      - name: Build and run pinned React Doctor
+        run: node scripts/ci/run-gates.mjs --suite build --output ci-evidence/build
 
-      - name: Build production application
-        run: pnpm build
+      - uses: ./.github/actions/upload-evidence
+        if: always()
+        with:
+          name: validation-build
+          path: ci-evidence/build/
+
+  aggregate:
+    name: Aggregate validation evidence
+    if: always() && !cancelled()
+    needs: [static, tests, database, build]
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 15
+    steps:
+      - name: Check out trusted scripts
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "25"
+
+      - name: Download validation evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: validation-*
+          path: ci-artifacts
+
+      - name: Merge manifests and detect missing suites
+        run: >-
+          node scripts/ci/merge-evidence.mjs
+          --input ci-artifacts
+          --output ci-feedback
+          --expect static,database,tests,build
+
+      - name: Publish aggregate in workflow summary
+        run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: ./.github/actions/upload-evidence
+        if: always()
+        with:
+          name: implementation-quality-feedback
+          path: ci-feedback/
