@@ -18,7 +18,7 @@ import { err, ok, type Result } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 type PasswordAuthFieldErrors = Partial<
-  Record<"email" | "password" | "first" | "last", string>
+  Record<"email" | "password" | "first" | "last" | "terms", string>
 >;
 
 export type PasswordAuthSuccess = {
