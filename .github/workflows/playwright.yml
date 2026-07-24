@@ -56,25 +56,12 @@ jobs:
       PLAYWRIGHT_REPORT_DIR: ci-evidence/browser/${{ matrix.project }}/playwright-report
       PLAYWRIGHT_JSON_OUTPUT: ci-evidence/browser/${{ matrix.project }}/test-results/results.json
       PLAYWRIGHT_JUNIT_OUTPUT: ci-evidence/browser/${{ matrix.project }}/test-results/junit.xml
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
 
-      - name: Load UI and browser agent skills
-        if: matrix.project == 'desktop-chromium'
-        uses: actions/checkout@v4
+    steps:
+      - uses: ./.github/actions/setup-environment
         with:
-          repository: relvorlabs/agent-controller
-          path: .ci/agent-controller
-          persist-credentials: false
-          sparse-checkout: |
-            skills/web-design-guidelines
-            skills/ui-ux-pro-max
-            skills/react-doctor
-            skills/vercel-react-best-practices
+          node-version: 22
+          load-agent-skills: ${{ matrix.project == 'desktop-chromium' }}
 
       - name: Verify browser doctrine and skills
         if: matrix.project == 'desktop-chromium'
@@ -103,16 +90,6 @@ jobs:
           test -f .agents/doctrine/ui-and-design-system.md
           test -f .agents/doctrine/validation-and-reporting.md
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Capture browser implementation context
         if: matrix.project == 'desktop-chromium'
         run: node scripts/ci/collect-context.mjs --output ci-evidence/browser/${PLAYWRIGHT_PROJECT}/context
@@ -123,13 +100,9 @@ jobs:
           --suite browser-preflight
           --output "ci-evidence/browser/${PLAYWRIGHT_PROJECT}/preflight"
 
-      - name: Cache Playwright browser
-        uses: actions/cache@v4
+      - uses: ./.github/actions/setup-playwright
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Install Chromium and operating-system dependencies
-        run: pnpm exec playwright install --with-deps chromium
+          project: ${{ matrix.project }}
 
       - name: Start production server
         id: server
@@ -189,14 +162,10 @@ jobs:
             kill "$(cat "$pid_file")" 2>/dev/null || true
           fi
 
-      - name: Upload complete browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/upload-evidence
         with:
           name: playwright-${{ matrix.project }}
           path: ci-evidence/browser/${{ matrix.project }}/
-          if-no-files-found: warn
-          retention-days: 14
 
       - name: Enforce browser contract outcomes
         if: always()
@@ -224,12 +193,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
       - name: Download all browser evidence
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           pattern: playwright-*
           path: ci-artifacts
+
       - name: Merge manifests and detect missing viewport jobs
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -238,13 +209,11 @@ jobs:
           --input ci-artifacts
           --output ci-feedback
           --expect browser-preflight,playwright:desktop-chromium,playwright:tablet-chromium,playwright:mobile-chromium
+
       - name: Publish aggregate in workflow summary
         run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload aggregate browser feedback
-        if: always()
-        uses: actions/upload-artifact@v4
+
+      - uses: ./.github/actions/upload-evidence
         with:
           name: playwright-feedback
           path: ci-feedback/
-          if-no-files-found: warn
-          retention-days: 14

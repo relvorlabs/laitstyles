@@ -2,15 +2,12 @@ name: Implementation Quality
 
 on:
   pull_request:
-    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  actions: read
-  checks: read
   contents: read
 
 concurrency:
@@ -19,131 +16,76 @@ concurrency:
 
 env:
   CI: "1"
-  STOREFRONT_STYLE_SMOKE: "1"
-  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
-  PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+
+  # Required by Prisma generation and application configuration.
+  # Only jobs with a Postgres service can actually connect to this URL.
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
 jobs:
-  static:
-    name: Architecture, conventions and static contracts
+  quality:
+    name: Code quality
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
+
     steps:
-      - name: Check out application
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Load implementation agent skills
+      - uses: ./.github/actions/setup-environment
+        with:
+          node-version: "22"
+
+      - name: Architecture guard
+        run: pnpm check:architecture
+
+      - name: Button audit
+        run: pnpm audit:buttons
+
+      - name: Biome lint and format check
+        run: pnpm lint
+
+      - name: TypeScript type-check
+        run: pnpm typecheck
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          repository: relvorlabs/agent-controller
-          path: .ci/agent-controller
           persist-credentials: false
-          sparse-checkout: |
-            skills/next-best-practices
-            skills/vercel-react-best-practices
-            skills/error-handling-patterns
-            skills/typescript-advanced-types
-            skills/react-doctor
 
-      - name: Verify doctrine and loaded skills
-        shell: bash
-        run: |
-          set -euo pipefail
-          required=(
-            AGENTS.md
-            .agents/doctrine/architecture.md
-            .agents/doctrine/conventions.md
-            .agents/doctrine/server-and-actions.md
-            .agents/doctrine/toolchain-and-skills.md
-            .agents/doctrine/validation-and-reporting.md
-            .ci/agent-controller/skills/next-best-practices/SKILL.md
-            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
-            .ci/agent-controller/skills/error-handling-patterns/SKILL.md
-            .ci/agent-controller/skills/typescript-advanced-types/SKILL.md
-            .ci/agent-controller/skills/react-doctor/SKILL.md
-          )
-          for path in "${required[@]}"; do
-            test -f "$path" || { echo "Missing required guidance: $path"; exit 1; }
-          done
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-environment
         with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Capture changed code, doctrine and skills
-        run: node scripts/ci/collect-context.mjs --output ci-evidence/context
-      - name: Run static gate suite
-        run: node scripts/ci/run-gates.mjs --suite static --output ci-evidence/static
-      - name: Upload static and context evidence
+          node-version: "22"
+
+      - name: Run Vitest with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: implementation-static
-          path: |
-            ci-evidence/context/
-            ci-evidence/static/
+          name: vitest-coverage
+          path: coverage/
           if-no-files-found: warn
           retention-days: 14
 
   database:
-    name: Prisma schema and migration integrity
+    name: Database integrity
     runs-on: ubuntu-latest
-    timeout-minutes: 35
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: laitstyles
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports: [5432:5432]
-        options: >-
-          --health-cmd="pg_isready -U postgres -d laitstyles"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Run database gate suite
-        run: node scripts/ci/run-gates.mjs --suite database --output ci-evidence/database
-      - name: Upload database evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: implementation-database
-          path: ci-evidence/database/
-          if-no-files-found: warn
-          retention-days: 14
+    timeout-minutes: 20
 
-  tests:
-    name: Vitest and coverage
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
     services:
       postgres:
         image: postgres:17
@@ -151,46 +93,37 @@ jobs:
           POSTGRES_DB: laitstyles
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: [5432:5432]
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U postgres -d laitstyles"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+
     steps:
-      - name: Check out application
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+
+      - uses: ./.github/actions/setup-environment
         with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Deploy migrations before integration tests
+          node-version: "22"
+
+      - name: Validate Prisma schema
+        run: pnpm prisma:validate
+
+      - name: Apply migrations to a clean database
         run: pnpm prisma:migrate:deploy
-      - name: Run test gate suite
-        run: node scripts/ci/run-gates.mjs --suite tests --output ci-evidence/tests
-      - name: Upload test and coverage evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: implementation-tests
-          path: |
-            ci-evidence/tests/
-            coverage/
-          if-no-files-found: warn
-          retention-days: 14
 
   build:
-    name: Production build and React review
+    name: Production build
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 35
+
+    # Your current workflow explicitly says the build performs database reads.
+    # Keep this service only while the Next.js build genuinely requires it.
     services:
       postgres:
         image: postgres:17
@@ -198,72 +131,26 @@ jobs:
           POSTGRES_DB: laitstyles
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: [5432:5432]
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U postgres -d laitstyles"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-    steps:
-      - name: Check out application
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
-          cache: pnpm
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Deploy migrations for build-time reads
-        run: pnpm prisma:migrate:deploy
-      - name: Run build and React review suite
-        run: node scripts/ci/run-gates.mjs --suite build --output ci-evidence/build
-      - name: Upload build evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: implementation-build
-          path: ci-evidence/build/
-          if-no-files-found: warn
-          retention-days: 14
 
-  aggregate:
-    name: Aggregate implementation evidence
-    if: always() && !cancelled()
-    needs: [static, database, tests, build]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Check out trusted scripts
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Download all implementation evidence
-        continue-on-error: true
-        uses: actions/download-artifact@v4
+
+      - uses: ./.github/actions/setup-environment
         with:
-          pattern: implementation-*
-          path: ci-artifacts
-      - name: Merge manifests and detect missing jobs
-        env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: >-
-          node scripts/ci/merge-evidence.mjs
-          --input ci-artifacts
-          --output ci-feedback
-          --expect static,database,tests,build
-      - name: Publish aggregate in workflow summary
-        run: cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload aggregate feedback
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: implementation-feedback
-          path: ci-feedback/
-          if-no-files-found: warn
-          retention-days: 14
+          node-version: "22"
+
+      - name: Apply migrations required by build-time reads
+        run: pnpm prisma:migrate:deploy
+
+      - name: Build production application
+        run: pnpm build

@@ -1,0 +1,22 @@
+name: Setup Feedback Environment
+description: Setup for agent feedback (uses PR head)
+
+inputs:
+  ref:
+    description: SHA or ref to checkout
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check out PR head for feedback
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.ref }}
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
