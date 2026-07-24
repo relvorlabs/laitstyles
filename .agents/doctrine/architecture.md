@@ -22,6 +22,26 @@ import from `components`, `server`, and `lib`. `server` and `lib` must never imp
 `providers`, `features`, or `app`. `components` must never import from `server`. Server-only code
 must never reach a client bundle — the `src/lib/boundaries` check guards this seam.
 
+## Canonical commerce vocabulary
+
+The repository uses one semantic naming rule; the words are not interchangeable aliases:
+
+- **`storefront`** is the only architecture name for the customer-facing experience and its
+  presentation-specific contracts. Use it for `src/features/storefront/**`,
+  `src/lib/storefront/**`, route/client boundaries, UI state, auth presentation, loaders,
+  scripts, and symbols such as `StorefrontRouteBoundary` or `StorefrontAuthSession`.
+- **`commerce`** is reserved for shared business-domain code. Pure schemas and types that can
+  cross boundaries live in `src/lib/commerce/**`; server-only repositories, policies, and
+  services live in `src/server/commerce/**`.
+- **`store`** is not an architecture namespace. It is too ambiguous with client state stores,
+  persistence stores, merchant locations, and ordinary retail prose. Do not introduce
+  `src/features/store`, `src/lib/store`, `src/server/store`, `StoreProvider`, or similar aliases.
+
+Do not mechanically replace `storefront` with `commerce` or the reverse. A module moves between
+these names only when its ownership changes between presentation-specific storefront code and
+shared business-domain code. The architecture guard enforces namespace, import, filename, and
+common symbol rules.
+
 ## Route groups (`src/app`)
 
 `(home)`, `account`, `cart`, `checkout`, `collections`, `products`, `order-confirmation`,
@@ -39,8 +59,9 @@ must never reach a client bundle — the `src/lib/boundaries` check guards this 
 ## Cross-cutting (`src/lib`)
 
 `prisma` (client), `supabase` (client), `auth` (pure role/permission policies + `auth/server` redirect helpers),
-`query` (TanStack QueryClient factories), `commerce`, `catalogue.ts`, `order.ts`, `money`,
-`errors`, `assets`, `boundaries` (server/client boundary test), `admin`, `storefront`.
+`query` (TanStack QueryClient factories), `commerce` (shared domain schemas/types), `storefront`
+(presentation-specific consumer DTO contracts), `money`, `errors`, `assets`, `boundaries`
+(server/client boundary test), and `admin`.
 
 ## Providers (`src/providers`)
 

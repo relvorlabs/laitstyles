@@ -1,7 +1,8 @@
-// Storefront domain model — plain, serializable DTO types shaped for the
+// Storefront client contract — plain, serializable DTO types shaped for the
 // consumer experience and mapped 1:1 from the DB (see docs/storefront-v2/03).
-// These are the ONLY product/commerce shapes that cross into client components;
-// never a Prisma model, never a row containing cost / internal notes / audit.
+// These are the ONLY consumer-safe product and purchase shapes that cross into
+// client components; never a Prisma model, never a row containing cost,
+// internal notes, or audit fields.
 //
 // Money is integer kobo (see @/lib/money). Enum string unions mirror the DB
 // enums (product_inventory_mode, cloudinary_asset_kind, …) using consumer-safe

@@ -83,6 +83,19 @@ for (const path of requiredFiles) {
   }
 }
 
+const forbiddenArchitectureNamespaces = [
+  ["src/features/store", "src/features/storefront"],
+  ["src/features/commerce", "src/features/storefront"],
+  ["src/lib/store", "src/lib/storefront"],
+  ["src/server/store", "src/server/commerce"],
+  ["src/server/storefront", "src/server/commerce"],
+];
+for (const [forbiddenPath, canonicalPath] of forbiddenArchitectureNamespaces) {
+  if (existsSync(join(root, forbiddenPath))) {
+    errors.push(`Ambiguous architecture namespace exists at ${forbiddenPath}; use ${canonicalPath}.`);
+  }
+}
+
 const forbiddenAiFiles = [
   "scripts/ci/analyze-failures.mjs",
   "src/app/api/internal/ci/analyze/route.ts",
@@ -126,11 +139,42 @@ const forbiddenStorefrontImports = [
   "storefront/checkout/checkout-flow\"",
   "storefront/checkout/checkout-flow'",
 ];
+const forbiddenArchitectureImports = [
+  ["@/features/store/", "@/features/storefront/"],
+  ["@/features/commerce/", "@/features/storefront/"],
+  ["@/lib/store/", "@/lib/storefront/"],
+  ["@/server/store/", "@/server/commerce/"],
+  ["@/server/storefront/", "@/server/commerce/"],
+];
+const ambiguousSurfaceFilePatterns = [
+  /^src\/app\/(?:store|commerce)-/,
+  /^src\/features\/storefront\/.*\/(?:store|commerce)-/,
+  /^src\/lib\/storefront\/(?:store|commerce)-/,
+];
+const ambiguousSurfaceIdentifiers = [
+  /\bStore(?:Provider|ClientBoundary|RouteBoundary|AuthProvider|ClientStateProvider|Home|Shell)\b/,
+  /\bCommerce(?:Provider|ClientBoundary|RouteBoundary|AuthProvider|ClientStateProvider|Home|Shell)\b/,
+];
+
 for (const file of allSourceFiles) {
   const source = readFileSync(join(root, file), "utf8");
   for (const forbiddenImport of forbiddenStorefrontImports) {
     if (source.includes(forbiddenImport)) {
       errors.push(`Retired storefront import remains in ${file}: ${forbiddenImport}`);
+    }
+  }
+  for (const [forbiddenImport, canonicalImport] of forbiddenArchitectureImports) {
+    if (source.includes(forbiddenImport)) {
+      errors.push(`Ambiguous architecture import remains in ${file}: ${forbiddenImport}; use ${canonicalImport}.`);
+    }
+  }
+  if (ambiguousSurfaceFilePatterns.some((pattern) => pattern.test(file))) {
+    errors.push(`Ambiguous storefront filename uses store/commerce alias: ${file}.`);
+  }
+  for (const pattern of ambiguousSurfaceIdentifiers) {
+    const match = source.match(pattern)?.[0];
+    if (match) {
+      errors.push(`Ambiguous storefront symbol remains in ${file}: ${match}; use a Storefront-prefixed surface name.`);
     }
   }
 }
@@ -215,6 +259,7 @@ const summary = [
   `- Source files scanned for retired imports: ${allSourceFiles.length}`,
   `- Workflow files: ${actualWorkflows.join(", ") || "none"}`,
   `- Required repository contracts: ${requiredFiles.length}`,
+  `- Forbidden architecture namespaces found: ${forbiddenArchitectureNamespaces.filter(([path]) => existsSync(join(root, path))).length}`,
   `- Retired storefront files found: ${retiredStorefrontFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Forbidden OpenAI-key CI files found: ${forbiddenAiFiles.filter((path) => existsSync(join(root, path))).length}`,
   `- Errors: ${errors.length}`,

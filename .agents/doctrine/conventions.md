@@ -16,6 +16,15 @@ and domain contracts unless the task requires changing them.
 - Match the naming, comment density, and idioms of the surrounding code.
 - Colocate tests as `*.test.ts` beside the unit under test (the repo pattern).
 - Keep server-only modules out of anything a client component imports.
+- Use `storefront` for the customer-facing feature surface, presentation-specific contracts,
+  route/client boundaries, and their symbols.
+- Use `commerce` for shared business-domain schemas/types under `src/lib/commerce/**` and
+  server-only repositories, policies, and services under `src/server/commerce/**`.
+- Never shorten the architecture namespace to `store`, and never use `commerce` as a second name
+  for a storefront component or `storefront` as a second name for a shared domain service.
+- Prefer domain nouns below the namespace: `CatalogRepository`, `InventoryService`,
+  `StorefrontAuthProvider`. Avoid redundant aliases such as `CommerceCatalogRepository`,
+  `StoreProvider`, or `CommerceHome`.
 
 ## TypeScript
 
