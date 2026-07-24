@@ -6,7 +6,6 @@ import {
   type ReactNode,
   use,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -59,7 +58,6 @@ export function StorefrontAuthProvider({
   products: readonly Product[];
 }) {
   const router = useRouter();
-  const [session, setSession] = useState(authSession);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<StorefrontAuthMode>("signin");
   const [authState, setAuthState] = useState<StorefrontAuthState>("default");
@@ -70,8 +68,6 @@ export function StorefrontAuthProvider({
   const [remember, setRemember] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const authSuccessRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => setSession(authSession), [authSession]);
 
   const openAuth = useCallback((mode: StorefrontAuthMode, onSuccess?: () => void) => {
     authSuccessRef.current = onSuccess ?? null;
@@ -131,10 +127,7 @@ export function StorefrontAuthProvider({
     }
 
     setAuthState(result.status);
-    if (result.status === "success") {
-      setSession({ signedIn: true, email: result.email });
-      router.refresh();
-    }
+    if (result.status === "success") router.refresh();
   }, [authForm, authMode, authState, router, termsAccepted]);
 
   const onAuthOpenChange = useCallback((open: boolean) => {
@@ -151,23 +144,29 @@ export function StorefrontAuthProvider({
       toast.error(result.message);
       return;
     }
-    setSession({ signedIn: false, email: null });
     router.refresh();
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
   }, [router]);
 
-  const displayName = session.email?.split("@")[0] ?? null;
+  const displayName = authSession.email?.split("@")[0] ?? null;
   const value = useMemo<StorefrontAuthContextValue>(
     () => ({
       state: {
         authReady: true,
-        signedIn: session.signedIn,
-        userEmail: session.email,
+        signedIn: authSession.signedIn,
+        userEmail: authSession.email,
         userName: displayName,
       },
       actions: { openSignin, openSignup, signOut },
     }),
-    [displayName, openSignin, openSignup, session.email, session.signedIn, signOut],
+    [
+      authSession.email,
+      authSession.signedIn,
+      displayName,
+      openSignin,
+      openSignup,
+      signOut,
+    ],
   );
 
   return (
