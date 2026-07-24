@@ -1,122 +1,109 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import {
+  authFlowFailure,
+  mapAuthProviderError,
+  type AuthFlowFailure,
+} from "@/lib/auth/auth-errors";
+import {
+  authFieldErrors,
+  authFormDataInput,
+  passwordSignInSchema,
+  passwordSignUpSchema,
+} from "@/lib/auth/auth-schemas";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { getRequestOrigin } from "@/lib/auth/server/request-origin";
+import { err, ok, type Result } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 type PasswordAuthFieldErrors = Partial<
   Record<"email" | "password" | "first" | "last", string>
 >;
 
-export type PasswordAuthActionResult =
-  | { ok: true; status: "success" | "check-email"; email: string }
-  | {
-      ok: false;
-      message: string;
-      fieldErrors?: PasswordAuthFieldErrors;
-    };
+export type PasswordAuthSuccess = {
+  status: "success" | "check-email";
+  email: string;
+};
 
-export type SignOutActionResult = { ok: true } | { ok: false; message: string };
+export type PasswordAuthActionError = AuthFlowFailure & {
+  fieldErrors?: PasswordAuthFieldErrors;
+};
 
-function authFailureMessage(message: string) {
-  const normalized = message.toLowerCase();
-  if (normalized.includes("invalid login") || normalized.includes("invalid credentials")) {
-    return "The email or password is incorrect.";
-  }
-  if (normalized.includes("already registered") || normalized.includes("already exists")) {
-    return "An account already exists for this email. Sign in instead.";
-  }
-  if (normalized.includes("rate limit")) {
-    return "Too many attempts. Please wait a moment and try again.";
-  }
-  return "We could not complete that request. Please try again.";
-}
-
-function credentialsFrom(formData: FormData) {
-  return {
-    email: String(formData.get("email") ?? "").trim(),
-    password: String(formData.get("password") ?? ""),
-  };
-}
+export type PasswordAuthActionResult = Result<PasswordAuthSuccess, PasswordAuthActionError>;
+export type SignOutActionResult = Result<void, AuthFlowFailure>;
 
 export async function submitPasswordSignIn(
   formData: FormData,
 ): Promise<PasswordAuthActionResult> {
-  const { email, password } = credentialsFrom(formData);
-  const fieldErrors: PasswordAuthFieldErrors = {};
-
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    fieldErrors.email = "Enter a valid email address.";
-  }
-  if (!password) fieldErrors.password = "Enter your password.";
-  if (Object.keys(fieldErrors).length > 0) {
-    return { ok: false, message: "Check the highlighted fields.", fieldErrors };
+  const input = authFormDataInput(formData);
+  const parsed = passwordSignInSchema.safeParse({
+    email: input.email,
+    password: input.password,
+  });
+  if (!parsed.success) {
+    return err({
+      ...authFlowFailure("invalid-input"),
+      fieldErrors: authFieldErrors(parsed.error),
+    });
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { ok: false, message: authFailureMessage(error.message) };
-  return { ok: true, status: "success", email };
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error) return err(mapAuthProviderError(error));
+  return ok({ status: "success", email: parsed.data.email });
 }
 
 export async function submitPasswordSignUp(
   formData: FormData,
 ): Promise<PasswordAuthActionResult> {
-  const { email, password } = credentialsFrom(formData);
-  const first = String(formData.get("first") ?? "").trim();
-  const last = String(formData.get("last") ?? "").trim();
-  const next = getSafeNextPath(formData.get("next"), "/account");
-  const fieldErrors: PasswordAuthFieldErrors = {};
-
-  if (!first) fieldErrors.first = "Enter your first name.";
-  if (!last) fieldErrors.last = "Enter your last name.";
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    fieldErrors.email = "Enter a valid email address.";
-  }
-  if (password.length < 8) {
-    fieldErrors.password = "Password must be at least 8 characters.";
-  }
-  if (Object.keys(fieldErrors).length > 0) {
-    return { ok: false, message: "Check the highlighted fields.", fieldErrors };
+  const input = authFormDataInput(formData);
+  const parsed = passwordSignUpSchema.safeParse(input);
+  if (!parsed.success) {
+    return err({
+      ...authFlowFailure("invalid-input"),
+      fieldErrors: authFieldErrors(parsed.error),
+    });
   }
 
+  const next = getSafeNextPath(parsed.data.next, "/account");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
     options: {
       data: {
-        first_name: first,
-        last_name: last,
-        full_name: `${first} ${last}`.trim(),
+        first_name: parsed.data.first,
+        last_name: parsed.data.last,
+        full_name: `${parsed.data.first} ${parsed.data.last}`.trim(),
       },
       emailRedirectTo: `${await getRequestOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 
-  if (error) return { ok: false, message: authFailureMessage(error.message) };
-  return { ok: true, status: data.session ? "success" : "check-email", email };
+  if (error) return err(mapAuthProviderError(error));
+  return ok({
+    status: data.session ? "success" : "check-email",
+    email: parsed.data.email,
+  });
 }
 
 export async function signOutStorefrontSession(): Promise<SignOutActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
-  return error
-    ? { ok: false, message: "We could not sign you out. Please try again." }
-    : { ok: true };
+  return error ? err(authFlowFailure("sign-out-failed")) : ok(undefined);
 }
 
 export async function signInWithPassword(formData: FormData) {
   const next = getSafeNextPath(formData.get("next"), "/account");
   const result = await submitPasswordSignIn(formData);
-  if (!result.ok) redirect(withAuthErrorPath(result.message, next));
+  if (!result.ok) redirect(withAuthErrorPath(result.error.code, next));
   redirect(next);
 }
 
 export async function signUpWithPassword(formData: FormData) {
   const next = getSafeNextPath(formData.get("next"), "/account");
   const result = await submitPasswordSignUp(formData);
-  if (!result.ok) redirect(withAuthErrorPath(result.message, next));
+  if (!result.ok) redirect(withAuthErrorPath(result.error.code, next));
   redirect(next);
 }
