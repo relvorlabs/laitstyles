@@ -113,9 +113,11 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           rm .github/workflows/phase-3-biome-repair.yml
+          rm -rf node_modules prisma/generated .next biome-repair
+          rm -f biome-safe-fix.log biome-verify.log diff-check.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add -u
           git -c core.whitespace=cr-at-eol diff --cached --check
           git commit -m "style: apply verified Phase 3 validation repairs"
           git push origin "HEAD:${HEAD_REF}"
