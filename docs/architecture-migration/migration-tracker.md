@@ -7,7 +7,7 @@
 **Phase 3 merge:** `d7e3149c96f234d7deb41151ac603d6f652ceb4d`  
 **Current branch:** `refactor/phase-4-products-inventory-cutover`  
 **Current phase:** Phase 4 — Products and inventory cutover  
-**Overall status:** Phase 4 started; Phase 3 merged with validation debt
+**Overall status:** Source implementation complete; final-head certification pending
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
@@ -19,7 +19,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; final private source validation unresolved |
 | 2 | Consolidate layouts and provider scope | Merged with debt | Source implementation merged; route and visual parity evidence unresolved |
 | 3 | Create HTTP and domain-module foundation | Merged with debt | Source merged; final-head acceptance runs queued without execution at merge time |
-| 4 | Cut over products and inventory | In progress | Prisma-backed read/write parity through typed `/api/v1/**` transport with no UI change |
+| 4 | Cut over products and inventory | In progress | Source complete; final static, database, runtime and visual evidence must execute |
 | 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
 | 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
 | 7 | Consolidate authentication | Not started | Auth flow parity |
@@ -129,42 +129,39 @@ Implementation Quality: 30118703848
 Playwright UI Contract: 30118703866
 ```
 
-Phase 3 is therefore **Merged with debt**, not complete or 10/10. The queued final-head static, database, test, build, React Doctor, HTTP and browser checks must not be represented as passes unless later evidence proves them.
-
-Phase 3 did not migrate products or inventory. The exact Phase 4 legacy transport exception remained:
-
-```text
-src/features/admin/inventory/inventory-mutations.ts
-  -> src/features/admin/inventory/inventory-actions.ts
-```
+Phase 3 is therefore **Merged with debt**, not complete or 10/10. Queued checks are not passing evidence.
 
 ## Phase 4 execution
 
-The controlling status and source map are maintained in [`phase-4-products-inventory-status.md`](phase-4-products-inventory-status.md).
+The detailed implementation ledger is maintained in [`phase-4-implementation-report.md`](phase-4-implementation-report.md). The current acceptance state is maintained in [`phase-4-products-inventory-status.md`](phase-4-products-inventory-status.md).
 
-Phase 4 starts from the actual persisted system rather than the older assumption that Inventory is entirely in memory:
+Delivered source architecture:
 
-- admin product, taxonomy and stock-movement reads already query Prisma;
-- product save, lifecycle and taxonomy commands already persist transactionally;
-- the admin Inventory Server Component reads directly from the server operation;
-- browser reads still use unversioned raw JSON endpoints and a bespoke fetch repository;
-- browser writes still use TanStack Query importing Server Actions;
-- product definition, taxonomy and stock ownership still sit together under legacy `src/server/commerce/inventory/**`.
+- canonical product definition, lifecycle, taxonomy and public-read ownership under `src/modules/products/**`;
+- canonical stock, stock movement, adjustment, summary and database-pagination ownership under `src/modules/inventory/**`;
+- authenticated versioned product, taxonomy, inventory and movement APIs;
+- typed product and inventory browser clients with TanStack Query ownership;
+- removal of TanStack-to-Server-Action mutations and the exact architecture exception;
+- removal of the bespoke inventory repository, in-memory fallback and unversioned inventory APIs;
+- one public catalogue Prisma implementation under the product module, with legacy server paths reduced to export-only compatibility shims;
+- the shared loader, collection page and products page import the product module directly;
+- the duplicate storefront product writer was deleted; runtime smoke uses the canonical `saveProduct` command;
+- transactional stock adjustment records both an immutable stock movement and an audit event.
 
 | ID | Approved task | Status |
 | --- | --- | --- |
 | P4-T01 | Record Phase 3 handoff and current products/inventory source map | Complete |
-| P4-T02 | Define products and inventory module contracts from existing persisted operations | Not started |
-| P4-T03 | Move product definition, lifecycle and taxonomy ownership into `src/modules/products/**` | Not started |
-| P4-T04 | Move stock and stock-movement ownership into `src/modules/inventory/**` | Not started |
-| P4-T05 | Add authenticated versioned product/inventory read endpoints using Phase 3 envelopes | Not started |
-| P4-T06 | Replace bespoke browser reads with typed clients and TanStack Query options | Not started |
-| P4-T07 | Add versioned mutation endpoints calling transport-neutral domain commands | Not started |
-| P4-T08 | Remove TanStack-to-Server-Action mutations and the exact legacy exception | Not started |
-| P4-T09 | Remove unversioned endpoints and compatibility adapters after consumers move | Not started |
-| P4-T10 | Prove persistence, authorization, validation, error and invalidation parity | Not started |
-| P4-T11 | Run static, database, unit, build, React Doctor, HTTP and Playwright parity gates | Not started |
-| P4-T12 | Reconcile outstanding Phase 3 validation debt when executed evidence exists | Not started |
+| P4-T02 | Define products and inventory module contracts from existing persisted operations | Complete |
+| P4-T03 | Move product definition, lifecycle, taxonomy and public-read ownership into `src/modules/products/**` | Complete |
+| P4-T04 | Move stock, stock movement and adjustment ownership into `src/modules/inventory/**` | Complete |
+| P4-T05 | Add authenticated versioned product/inventory read endpoints using Phase 3 envelopes | Complete |
+| P4-T06 | Replace bespoke browser reads with typed clients and TanStack Query options | Complete |
+| P4-T07 | Add versioned mutation endpoints calling transport-neutral domain commands | Complete |
+| P4-T08 | Remove TanStack-to-Server-Action mutations and the exact legacy exception | Complete |
+| P4-T09 | Remove unversioned endpoints after consumers moved | Complete |
+| P4-T10 | Prove persistence, authorization, validation, error and invalidation parity | Implemented; execution pending |
+| P4-T11 | Run static, database, unit, build, React Doctor, HTTP and Playwright parity gates | Pending execution |
+| P4-T12 | Reconcile outstanding Phase 3 validation debt when executed evidence exists | Pending execution |
 
 ## Decision safeguards
 
@@ -177,4 +174,4 @@ Phase 4 starts from the actual persisted system rather than the older assumption
 - URL owns navigable filters, sorting, pagination and search.
 - Zustand is limited to browser-owned shared state.
 - Storefront and admin share domains, not unrestricted actions.
-- Queued, skipped or unavailable checks remain debt rather than passes.
+- Queued, skipped, cancelled or unavailable checks remain debt rather than passes.
