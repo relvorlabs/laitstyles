@@ -1,9 +1,10 @@
 # Architecture Migration Tracker
 
 **Baseline commit:** `6f5087f4aa08a5d9bce5989bad7b230344cdb493`  
-**Current phase:** Phase 0 — Freeze and record current behaviour  
-**Overall status:** Complete  
-**Phase 0 score:** 10/10 evidence checklist
+**Phase 0 merge:** `072cc92aa5301342f060633663094f956089ef1a`  
+**Current branch:** `refactor/phase-1-architecture-guards`  
+**Current phase:** Phase 1 — Establish architecture rules and language  
+**Overall status:** In progress
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
 
@@ -12,7 +13,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
 | Phase | Goal | Status | Gate |
 | --- | --- | --- | --- |
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
-| 1 | Establish architecture rules and language | Not started | Guards pass with documented exceptions |
+| 1 | Establish architecture rules and language | In progress | Guards pass with documented exceptions |
 | 2 | Consolidate layouts and provider scope | Not started | Route and visual parity |
 | 3 | Create HTTP and domain-module foundation | Not started | Typed transport contract proven |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
@@ -23,67 +24,88 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
 | 9 | Delete legacy architecture | Not started | No legacy imports |
 | 10 | Final validation and release readiness | Not started | Full gates and visual parity |
 
-## Phase 0 tasks
+## Phase 0 result
 
-| ID | Task | Status | Evidence or recorded limitation |
-| --- | --- | --- | --- |
-| P0-T01 | Record current default-branch commit SHA | Complete | `6f5087f4aa08a5d9bce5989bad7b230344cdb493` |
-| P0-T02 | Record storefront, auth, account, API, and admin routes | Complete | Source baseline plus machine-generated runtime manifests |
-| P0-T03 | Capture desktop screenshots for primary routes | Complete | Homepage, product interaction, and admin access boundary captured |
-| P0-T04 | Capture tablet and mobile screenshots | Complete | `768x1024` and `375x812` projects captured |
-| P0-T05 | Capture light and dark theme screenshots | Complete | Full-page and viewport captures for all projects |
-| P0-T06 | Record header, footer, homepage, catalogue, cards, and PDP behaviour | Complete | Preservation contract, screenshots, link inventory, and product interaction evidence |
-| P0-T07 | Record cart, saved-item, modal, drawer, and checkout interaction ownership | Complete | Source ownership map plus current product quick-view runtime behaviour |
-| P0-T08 | Record admin table, form, inventory, navigation, and access boundaries | Complete | Source composition mapped; unauthenticated redirects captured; credentials intentionally excluded from public runner |
-| P0-T09 | Add and execute Playwright characterization tests | Complete | 15/15 passing in external runner run `30099471635` |
-| P0-T10 | Create production dummy-data inventory | Complete | Exact seed and in-memory ownership chains recorded |
-| P0-T11 | Map every migration-relevant provider, store, query cache, and context | Complete | `phase-0-source-inventory.md` |
-| P0-T12 | Map production imports from fixture or in-memory modules | Complete | Admin layout -> seed -> AdminStore -> in-memory repository chain recorded |
-| P0-T13 | Preserve downloadable Playwright evidence | Complete | Artifact `8599046423`, digest recorded, expiry `2026-08-23` |
-| P0-T14 | Record runtime console, page, and request failures | Complete | Zero homepage errors or failed requests across six theme/viewport runs |
-| P0-T15 | Record deployment/source route discrepancies | Complete | Twelve deployment 404s recorded without guessing the cause |
-
-## Phase 0 runtime evidence
+Phase 0 completed its evidence checklist and merged through PR #37.
 
 ```text
-Runner repository: relvorlabs/agent-controller
-Workflow run: 30099471635
-Target: https://laitstyles.vercel.app/
-Playwright: 1.61.1
+Playwright run: 30099471635
 Result: 15 passed, 0 failed, 0 skipped, 0 errors
-Artifact: laitstyles-phase0-playwright-30099471635
 Artifact ID: 8599046423
 Digest: sha256:26ccedc1296d92480be077a327f1b9a0fbe813e5bbd663cd8266f101f7ffa6c3
 ```
 
-## Recorded limitations, not hidden passes
+The public deployment/source mismatch and excluded authenticated admin mutations remain recorded
+baseline limitations. They are not hidden passes.
 
-- The public deployment cannot be cryptographically tied to baseline commit `6f5087f4`; route differences are recorded for fresh-deployment verification.
-- Authenticated admin mutations were not run because credentials were not placed in a public runner.
-- Lint, TypeScript, unit tests, build, Prisma validation, architecture guards, and React Doctor were not run by the external browser runner. PR #37 changes documentation only; all source-level gates remain mandatory from Phase 1 onward.
+## Phase 1 tasks
 
-These limitations do not leave Phase 0 tasks open because the required behaviour and environment boundaries are now explicitly characterized. They must not be converted into implied passes in later phases.
+| ID | Task | Status | Evidence |
+| --- | --- | --- | --- |
+| P1-T01 | Add product, inventory, catalogue, storefront, and admin language contract | Complete | `.agents/doctrine/architecture.md` and `conventions.md` |
+| P1-T02 | Mark `features/**` as legacy for new code | Complete | Doctrine plus new-file architecture guard |
+| P1-T03 | Mark top-level `server/**` as legacy for new business modules | Complete | Doctrine plus new-file architecture guard |
+| P1-T04 | Add import-boundary rules | Complete | Architecture guard indexes imports and local module targets |
+| P1-T05 | Prevent production imports from fixture directories | Complete | Guard scans production `src/**` imports |
+| P1-T06 | Prevent Client Components from importing Prisma or server modules | Complete | Guard scans all Client Components |
+| P1-T07 | Prevent TanStack hooks from importing `"use server"` modules | Complete | Guard resolves Server Action modules; one exact Phase 4 exception documented |
+| P1-T08 | Prevent Route Handlers from importing Server Actions | Complete | Guard resolves route-handler imports with no allowlist |
+| P1-T09 | Prevent mixed `catalog` and `catalogue` spelling | Complete | Changed files may not increase American-spelled catalogue debt |
+| P1-T10 | Add migration-status document listing every domain | Complete | `phase-1-domain-status.md` |
+
+## Phase 1 exact legacy exception
+
+```text
+src/features/admin/inventory/inventory-mutations.ts
+  -> src/features/admin/inventory/inventory-actions.ts
+Removal: Phase 4
+```
+
+The exception is machine-readable and stale-exception checked. No exception exists for Route
+Handlers importing Server Actions, Client Components importing server/Prisma code, fixture
+imports, or new runtime modules under legacy folders.
+
+## Phase 1 acceptance gate
+
+Implementation is present, but the phase remains **in progress** until these run against a secure
+repository checkout:
+
+```bash
+pnpm check:architecture
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+Local syntax validation and a synthetic guard fixture can validate the guard implementation, but
+they do not replace repository-level checks.
+
+If a guard blocks valid Next.js behaviour rather than an architecture defect, narrow the guard
+and record the reason. Do not bypass it with a broad allowlist.
+
+## Phase 1 explicit exclusions
+
+Phase 1 does not:
+
+- create or migrate runtime domain modules;
+- move storefront routes or layouts;
+- relocate QueryProvider;
+- replace AdminStore or in-memory repositories;
+- replace Server Actions with API routes;
+- introduce Zustand;
+- consolidate authentication;
+- change checkout/payment authority;
+- alter visible UI.
 
 ## Decision safeguards
 
-- No phase may intentionally redesign the UI.
-- No phase may call a Server Action from a Route Handler.
-- Server Components must not call internal APIs for their own reads.
+- No phase intentionally redesigns the UI.
+- Route Handlers do not call Server Actions.
+- Server Components do not call internal APIs for their own reads.
 - Client remote state uses typed API clients and TanStack Query.
 - Prisma remains the persistent source of truth.
-- URL owns filters, sort, pagination, search, and other navigable state.
+- URL owns navigable filters, sorting, pagination, and search.
 - Zustand is limited to browser-owned shared state.
 - Storefront and admin share domains, not unrestricted actions.
-- A phase is not complete without its acceptance gate.
-
-## Next phase
-
-Phase 1 may begin only after PR #37 is reviewed and accepted.
-
-Phase 1 must:
-
-1. update repository doctrine to the approved domain-module architecture;
-2. add or update architecture guards without breaking the current tree prematurely;
-3. record temporary exceptions for legacy paths that later phases will remove;
-4. preserve the Phase 0 screenshot and runtime contract;
-5. rerun the relevant source-level checks on a secure checkout environment.
+- A later phase may not begin until the current acceptance gate passes.
