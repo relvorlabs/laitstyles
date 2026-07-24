@@ -3,7 +3,7 @@
 **Baseline commit:** `6f5087f4aa08a5d9bce5989bad7b230344cdb493`  
 **Phase 0 merge:** `072cc92aa5301342f060633663094f956089ef1a`  
 **Current branch:** `refactor/phase-1-architecture-guards`  
-**Current phase:** Phase 1 — Establish architecture rules and language  
+**Current phase:** Phase 1 — Establish architecture rules, language, and permanent validation  
 **Overall status:** In progress
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
@@ -13,7 +13,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
 | Phase | Goal | Status | Gate |
 | --- | --- | --- | --- |
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
-| 1 | Establish architecture rules and language | In progress | Guards pass with documented exceptions |
+| 1 | Establish architecture rules, language, and permanent validation | In progress | Guards and private validation pass with documented exceptions |
 | 2 | Consolidate layouts and provider scope | Not started | Route and visual parity |
 | 3 | Create HTTP and domain-module foundation | Not started | Typed transport contract proven |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
@@ -52,6 +52,12 @@ baseline limitations. They are not hidden passes.
 | P1-T08 | Prevent Route Handlers from importing Server Actions | Complete | Guard resolves route-handler imports with no allowlist |
 | P1-T09 | Prevent mixed `catalog` and `catalogue` spelling | Complete | Changed files may not increase American-spelled catalogue debt |
 | P1-T10 | Add migration-status document listing every domain | Complete | `phase-1-domain-status.md` |
+| P1-T11 | Add one permanent local command surface for Biome, TypeScript, tests, React Doctor, database, build, and Playwright | Complete | `package.json`, `run-gates.mjs`, and `run-local-verification.mjs` |
+| P1-T12 | Remove paid hosted-runner dependence without exposing private source | Complete | Configurable `laitstyles-ci` self-hosted workflows plus public-deployment-only fallback contract |
+| P1-T13 | Restore executable evidence, rerun, and deterministic repair feedback | Complete | Functional `task-progress.yml`, manifests, artifacts, PR commands, and Biome patch mode |
+
+P1-T11 through P1-T13 were added by direct user instruction on July 24, 2026. They extend Phase 1
+validation infrastructure only; they do not authorize Phase 2 runtime architecture changes.
 
 ## Phase 1 exact legacy exception
 
@@ -67,22 +73,25 @@ imports, or new runtime modules under legacy folders.
 
 ## Phase 1 acceptance gate
 
-Implementation is present, but the phase remains **in progress** until these run against a secure
-repository checkout:
+Implementation is present, but the phase remains **in progress** until a trusted `laitstyles-ci`
+runner is registered and the private source suites execute successfully:
 
 ```bash
-pnpm check:architecture
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm validate
+pnpm validate:full
+pnpm validate:browser
 ```
 
-Local syntax validation and a synthetic guard fixture can validate the guard implementation, but
-they do not replace repository-level checks.
+The equivalent PR workflows must produce the required `static`, `tests`, `database`, `build`,
+`browser-preflight`, and three Playwright project manifests. React Doctor warnings touching changed
+scope must be resolved even though the legacy-wide scan remains advisory.
 
-If a guard blocks valid Next.js behaviour rather than an architecture defect, narrow the guard
-and record the reason. Do not bypass it with a broad allowlist.
+The public deployment workflow confirms availability and visual/browser smoke only. It does not
+replace private architecture, Biome, TypeScript, test, Prisma, build, React Doctor, or source-backed
+Playwright evidence.
+
+If a guard blocks valid Next.js behaviour rather than an architecture defect, narrow the guard and
+record the reason. Do not bypass it with a broad allowlist.
 
 ## Phase 1 explicit exclusions
 
