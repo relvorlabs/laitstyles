@@ -5,26 +5,33 @@ import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { ensureConsumerProfile } from "@/server/auth/profile";
+import {
+  ensureConsumerAccount,
+  type AuthUserMetadata,
+} from "@/server/auth/profile";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 export type VerifiedIdentity = {
   authUserId: string;
   email: string | null;
+  userMetadata: AuthUserMetadata;
 };
 
 export type ConsumerSession = {
   kind: "consumer";
   authUserId: string;
   email: string | null;
-  customerId: string | null;
+  displayName: string | null;
+  phone: string | null;
+  customerId: string;
 };
 
 export type StaffSession = {
   kind: "staff";
   authUserId: string;
   email: string | null;
+  displayName: string | null;
   role: StaffRole;
 };
 
@@ -35,6 +42,12 @@ export type CurrentSession =
   | ConsumerSession
   | StaffSession;
 
+function readUserMetadata(value: unknown): AuthUserMetadata {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
 export async function getVerifiedIdentity(
   supabase: SupabaseServerClient,
 ): Promise<VerifiedIdentity | null> {
@@ -44,27 +57,54 @@ export async function getVerifiedIdentity(
     return {
       authUserId: claims.sub,
       email: typeof claims.email === "string" ? claims.email : null,
+      userMetadata: readUserMetadata(claims.user_metadata),
     };
   }
 
   const userResult = await supabase.auth.getUser();
   const user = userResult.data.user;
-  return user ? { authUserId: user.id, email: user.email ?? null } : null;
+  return user
+    ? {
+        authUserId: user.id,
+        email: user.email ?? null,
+        userMetadata: readUserMetadata(user.user_metadata),
+      }
+    : null;
 }
 
-// The one current-user read for every server surface. Read-only in steady state:
-// profile provisioning happens at sign-in (auth callback); the create-if-missing
-// fallback below only covers sessions that pre-date callback-time provisioning.
+// The one current-user read for every server surface. Auth callback and the
+// database trigger provision eagerly; this path repairs pre-existing or partial
+// accounts only when the profile/customer invariant is missing.
 export async function getCurrentSession(): Promise<CurrentSession> {
   const identity = await getVerifiedIdentity(await createClient());
   if (!identity) return { kind: "anonymous" };
 
   try {
-    const profile =
-      (await prisma.profiles.findUnique({
-        where: { id: identity.authUserId },
-        select: { role: true, status: true },
-      })) ?? (await ensureConsumerProfile(identity.authUserId, identity.email));
+    let profile = await prisma.profiles.findUnique({
+      where: { id: identity.authUserId },
+      select: {
+        role: true,
+        status: true,
+        display_name: true,
+        phone: true,
+        customer: { select: { id: true } },
+      },
+    });
+
+    if (!profile || (profile.role === "consumer" && !profile.customer)) {
+      const ensured = await ensureConsumerAccount({
+        id: identity.authUserId,
+        email: identity.email,
+        userMetadata: identity.userMetadata,
+      });
+      profile = {
+        role: ensured.profile.role,
+        status: ensured.profile.status,
+        display_name: ensured.profile.display_name,
+        phone: ensured.profile.phone,
+        customer: ensured.customerId ? { id: ensured.customerId } : null,
+      };
+    }
 
     if (profile.status !== "active") {
       return { kind: "suspended", authUserId: identity.authUserId, email: identity.email };
@@ -74,19 +114,22 @@ export async function getCurrentSession(): Promise<CurrentSession> {
         kind: "staff",
         authUserId: identity.authUserId,
         email: identity.email,
+        displayName: profile.display_name,
         role: profile.role,
       };
     }
 
-    const customer = await prisma.customers.findFirst({
-      where: { profile_id: identity.authUserId },
-      select: { id: true },
-    });
+    if (!profile.customer) {
+      throw new Error("Consumer account provisioning completed without a customer record.");
+    }
+
     return {
       kind: "consumer",
       authUserId: identity.authUserId,
       email: identity.email,
-      customerId: customer?.id ?? null,
+      displayName: profile.display_name,
+      phone: profile.phone,
+      customerId: profile.customer.id,
     };
   } catch (error) {
     return {
