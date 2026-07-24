@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { InventoryControls } from "@/features/admin/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/admin/inventory/inventory-detail-sheet";
 import { InventoryEmptyState } from "@/features/admin/inventory/inventory-empty-state";
@@ -24,10 +23,6 @@ import { ProductMediaViewer } from "@/features/admin/inventory/product-media-vie
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
-  inventoryProductsQueryOptions,
-  inventoryTaxonomyQueryOptions,
-} from "@/lib/admin/inventory/inventory-query-options";
-import {
   defaultInventoryQuery,
   getInventoryFacetOptions,
   getInventorySummary,
@@ -40,6 +35,10 @@ import type {
   InventoryPresentation,
   InventoryQuery,
 } from "@/lib/admin/shared/types";
+import {
+  adminProductsQueryOptions,
+  productTaxonomyQueryOptions,
+} from "@/modules/products/client/hooks";
 
 type InventoryWorkspaceProps = {
   initialQuery: InventoryQuery;
@@ -58,9 +57,8 @@ export function InventoryWorkspace({
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
   const { state } = useAdmin();
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
-  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
+  const { data: catalogueTaxonomy = [] } = useQuery(productTaxonomyQueryOptions());
   const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] = useState<InventoryPresentation>(initialPresentation);
