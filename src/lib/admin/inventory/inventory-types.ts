@@ -1,16 +1,23 @@
 import type {
   InventoryCounts,
-  StockMovement,
+  InventoryModeFilter,
+  InventorySavedView,
+  InventorySortKey,
+  InventoryStockFilter,
 } from "@/modules/inventory/types";
 import type {
   AdminProduct,
   CatalogueChannel,
-  InventoryMode,
   ProductMedia,
 } from "@/modules/products/types";
 
 export type {
   InventoryCounts,
+  InventoryModeFilter,
+  InventorySavedView,
+  InventoryStockFilter,
+  InventorySummary,
+  InventorySortKey,
   StockMovement,
   StockMovementKind,
 } from "@/modules/inventory/types";
@@ -31,37 +38,6 @@ export type {
   UniqueProduct,
   VariantProduct,
 } from "@/modules/products/types";
-
-export type InventorySavedView =
-  | "all"
-  | "live"
-  | "drafts"
-  | "intake"
-  | "low-stock"
-  | "out-of-stock"
-  | "held"
-  | "sold"
-  | "unpublished"
-  | "needs-attention";
-
-export type InventoryModeFilter = "all" | InventoryMode;
-
-export type InventoryStockFilter =
-  | "all"
-  | "healthy"
-  | "low-stock"
-  | "out-of-stock"
-  | "held"
-  | "sold";
-
-export type InventorySortKey =
-  | "updated-desc"
-  | "stock-asc"
-  | "stock-desc"
-  | "sold-desc"
-  | "price-asc"
-  | "price-desc"
-  | "name-asc";
 
 export type InventoryPresentation = "grid" | "table";
 
@@ -109,15 +85,4 @@ export type InventoryListItem = {
 export type InventoryFacetOptions = {
   categories: string[];
   collections: string[];
-};
-
-export type InventorySummary = {
-  totalProducts: number;
-  liveProducts: number;
-  availableUnits: number;
-  reservedUnits: number;
-  soldUnits: number;
-  lowStockProducts: number;
-  outOfStockProducts: number;
-  intakeProducts: number;
 };
