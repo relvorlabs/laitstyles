@@ -15,27 +15,27 @@ Status values:
 - `Migrated` — target module, transport, persistence, authorization, and reload behaviour satisfy
   the acceptance gate.
 
-| Domain/capability | Current ownership and source of truth | Target ownership | Planned phase | Status |
+| Domain/capability | Current ownership and source of truth | Target ownership | Approved migration point | Status |
 | --- | --- | --- | --- | --- |
-| Auth | Fragmented across `app/auth/**`, `lib/auth/server/**`, and `server/auth/**`; Supabase session with Prisma profile/account work | `modules/auth/**` with thin route/action adapters | 7 | Legacy mapped |
-| Products | Public catalogue code under `server/commerce/catalogue/**`; admin product editing under `features/admin/inventory/**`; Prisma and client/admin projections overlap | `modules/products/**` | 4 | Partially persisted |
-| Inventory | Admin inventory query path is fetch-backed, while editor/lifecycle state and taxonomy still overlap AdminStore, actions, and TanStack cache | `modules/inventory/**` | 4 | Partially persisted |
-| Orders | Account reads under `server/commerce/orders/**`; admin orders remain in AdminStore/in-memory repositories | `modules/orders/**` | 5 | Partially persisted |
-| Holds/reservations | AdminStore and in-memory repositories; storefront hold intent also exists as browser-owned state | `modules/holds/**` for server records; focused cart/hold browser state where appropriate | 5 and 6 | Legacy mapped |
-| Returns | AdminStore and in-memory repositories | `modules/returns/**` | 5 | Legacy mapped |
-| Customers | AdminStore and in-memory repositories | `modules/customers/**` | 5 | Legacy mapped |
-| Settings | AdminStore defaults/reducer and in-memory repository | owning settings domain/module determined during Phase 5 implementation | 5 | Legacy mapped |
-| Overview/reporting | Projection over AdminStore snapshots and seeded sales pulse | domain-owned read projection over persisted records | 5 | Legacy mapped |
-| Reviews | Prisma-backed server code under `server/commerce/reviews/**` with a feature-owned Server Action/form | product/reviews domain ownership under `modules/**`, preserving verified-purchase policy | 4 or focused follow-up | Partially persisted |
-| Catalogue | Public read model spread across storefront feature code and `server/commerce/catalogue/**`; not an independent persistence domain | public product read model inside `modules/products/**` plus storefront UI | 4 | Legacy mapped |
-| Cart | Storefront Context/client-state provider and browser persistence | `stores/cart.store.ts` plus checkout domain integration | 6 | Browser-owned |
-| Saved items | Storefront Context/client-state provider | `stores/saved-items.store.ts` with IDs only | 6 | Browser-owned |
-| Storefront UI state | Broad StorefrontProvider owns filters, overlays, search, measurements, forms, and header scroll | URL state, local component state, and `stores/storefront-ui.store.ts` according to ownership | 6 | Browser-owned |
-| Checkout | Storefront feature flow; current completion/receipt authority requires server hardening | `modules/checkout/**` | 8 | Legacy mapped |
-| Payments | Existing payment route handlers and Paystack integration are not yet the single idempotent settlement authority | `modules/payments/**` plus `/api/v1/payments/**` adapters | 8 | Partially persisted |
-| Delivery | No complete production ownership confirmed by Phase 0 evidence | `modules/delivery/**` only when required by checkout settlement | 8 | Not implemented |
-| Storefront shell | `features/storefront/shell/**` and repeated route wrappers | `modules/storefront-shell/**` with one `(storefront)` layout | 2 and later relocation | Legacy mapped |
-| Admin shell | `features/admin/shell/**`, AdminProvider, controller providers, and admin layout | `modules/admin-shell/**`; remote records removed from AdminStore by domain | 2 and 5 | Legacy mapped |
+| Auth | Fragmented across `app/auth/**`, `lib/auth/server/**`, and `server/auth/**`; Supabase session with Prisma profile/account work | `modules/auth/**` with thin route/action adapters | Phase 7 | Legacy mapped |
+| Products | Public catalogue code under `server/commerce/catalogue/**`; admin product editing under `features/admin/inventory/**`; Prisma and client/admin projections overlap | `modules/products/**` | Phase 4 | Partially persisted |
+| Inventory | Admin inventory query path is fetch-backed, while editor/lifecycle state and taxonomy still overlap AdminStore, actions, and TanStack cache | `modules/inventory/**` | Phase 4 | Partially persisted |
+| Orders | Account reads under `server/commerce/orders/**`; admin orders remain in AdminStore/in-memory repositories | `modules/orders/**` | Phase 5 | Partially persisted |
+| Holds/reservations | AdminStore and in-memory repositories; storefront hold intent also exists as browser-owned state | `modules/holds/**` for server records; focused browser state where appropriate | Phases 5 and 6 | Legacy mapped |
+| Returns | AdminStore and in-memory repositories | `modules/returns/**` | Phase 5 | Legacy mapped |
+| Customers | AdminStore and in-memory repositories | `modules/customers/**` | Phase 5 | Legacy mapped |
+| Settings | AdminStore defaults/reducer and in-memory repository | Owning settings domain/module defined during the approved settings migration | Phase 5 | Legacy mapped |
+| Overview/reporting | Projection over AdminStore snapshots and seeded sales pulse | Domain-owned read projection over persisted records | Phase 5 | Legacy mapped |
+| Reviews | Prisma-backed server code under `server/commerce/reviews/**` with a feature-owned Server Action/form | Domain ownership under `modules/**`, preserving verified-purchase policy | Not assigned separately; resolve before Phase 9 legacy deletion | Partially persisted |
+| Catalogue | Public read model spread across storefront feature code and `server/commerce/catalogue/**`; not an independent persistence domain | Public product read model inside `modules/products/**` plus storefront UI | Phase 4 | Legacy mapped |
+| Cart | Storefront Context/client-state provider and browser persistence | `stores/cart.store.ts` plus checkout integration | Phase 6 | Browser-owned |
+| Saved items | Storefront Context/client-state provider | `stores/saved-items.store.ts` with IDs only | Phase 6 | Browser-owned |
+| Storefront UI state | Broad StorefrontProvider owns filters, overlays, search, measurements, forms, and header scroll | URL state, local component state, and `stores/storefront-ui.store.ts` according to ownership | Phase 6 | Browser-owned |
+| Checkout | Storefront feature flow; current completion/receipt authority requires server hardening | `modules/checkout/**` | Phase 8 | Legacy mapped |
+| Payments | Existing payment route handlers and Paystack integration are not yet the single idempotent settlement authority | `modules/payments/**` plus `/api/v1/payments/**` adapters | Phase 8 | Partially persisted |
+| Delivery | No complete production ownership confirmed by Phase 0 evidence | `modules/delivery/**` only when required by checkout settlement | Phase 8 | Not implemented |
+| Storefront shell | `features/storefront/shell/**` and repeated route wrappers | One `(storefront)` layout first; final module ownership before legacy deletion | Phase 2 structure; final relocation not separately assigned | Legacy mapped |
+| Admin shell | `features/admin/shell/**`, AdminProvider, controller providers, and admin layout | Preserve `admin/layout.tsx`; final module ownership before legacy deletion | Phase 2 provider/layout scope; final relocation not separately assigned | Legacy mapped |
 
 ## Surface terms that are not persistence domains
 
@@ -44,6 +44,12 @@ Status values:
 - **Commerce** is a conceptual umbrella only.
 
 They must not acquire duplicate product, inventory, order, payment, or customer persistence.
+
+## Unassigned current ownership
+
+The approved plan does not give reviews or final shell-module relocation a standalone task ID.
+Phase 1 records that gap instead of inventing work. Before Phase 9 deletes legacy paths, the
+active implementation phase must explicitly assign and validate those consumers.
 
 ## Phase 1 boundary
 
