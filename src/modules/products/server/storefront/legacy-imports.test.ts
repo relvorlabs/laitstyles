@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
+const legacyCatalogueRoot = path.join(sourceRoot, "server/commerce/catalogue");
 const legacyCataloguePrefix = "@/server/commerce/catalogue/";
 const canonicalCataloguePrefix = "@/modules/products/server/storefront/";
 
@@ -22,6 +23,26 @@ describe("public product query ownership", () => {
     }
 
     expect(offenders, `Use ${canonicalCataloguePrefix} instead.`).toEqual([]);
+  });
+
+  it("keeps every legacy production catalogue file export-only", async () => {
+    const legacyFiles = await collectSourceFiles(legacyCatalogueRoot);
+    const offenders: string[] = [];
+
+    for (const filePath of legacyFiles) {
+      const relative = normalize(path.relative(repositoryRoot, filePath));
+      if (relative.includes(".test.") || relative.includes(".spec.")) continue;
+
+      const source = (await readFile(filePath, "utf8")).trim();
+      if (!/^export \* from "@\/modules\/products\/server\/storefront\/[a-z-]+";$/.test(source)) {
+        offenders.push(relative);
+      }
+    }
+
+    expect(
+      offenders,
+      "Legacy catalogue paths may forward exports only; implementation belongs to modules/products.",
+    ).toEqual([]);
   });
 });
 
