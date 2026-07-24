@@ -25,6 +25,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "25"
+
       - name: Apply final source repair
         run: node scripts/ci/finalize-phase-3.mjs
 
