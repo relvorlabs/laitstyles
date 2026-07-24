@@ -40,7 +40,7 @@ jobs:
          startsWith(github.event.comment.body, '/ci status') ||
          startsWith(github.event.comment.body, '/ci rerun-failed') ||
          startsWith(github.event.comment.body, '/ci safe-repair-plan')))
-    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64"]') }}
     timeout-minutes: 45
 
     steps:
