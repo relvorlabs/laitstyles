@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   saveInventoryProduct: vi.fn(),
   archiveInventoryProduct: vi.fn(),
   createInventoryTaxonomy: vi.fn(),
+  renameInventoryTaxonomy: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ revalidateTag: mocks.revalidateTag }));
@@ -19,16 +20,19 @@ vi.mock("@/server/commerce/inventory/inventory-service", () => ({
   restoreInventoryProduct: vi.fn(),
   deleteInventoryProduct: vi.fn(),
   createInventoryTaxonomy: mocks.createInventoryTaxonomy,
-  renameInventoryTaxonomy: vi.fn(),
+  renameInventoryTaxonomy: mocks.renameInventoryTaxonomy,
   deleteInventoryTaxonomy: vi.fn(),
 }));
 
 import {
   archiveProductAction,
   createCatalogueTaxonomyAction,
+  renameCatalogueTaxonomyAction,
   saveProductAction,
 } from "./inventory-actions";
 
+const productId = "123e4567-e89b-42d3-a456-426614174000";
+const taxonomyId = "category:123e4567-e89b-42d3-a456-426614174000";
 const staff = {
   kind: "staff" as const,
   authUserId: "019f65c1-74fe-7bd3-8400-000000000099",
@@ -49,11 +53,39 @@ describe("inventory actions", () => {
     expect(mocks.saveInventoryProduct).not.toHaveBeenCalled();
   });
 
+  it("does not disguise session infrastructure failures as permission errors", async () => {
+    mocks.getCurrentSession.mockResolvedValueOnce({ kind: "unavailable", error: "Database offline" });
+
+    await expect(archiveProductAction(productId)).rejects.toThrow("Database offline");
+    expect(mocks.archiveInventoryProduct).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed product inputs before the domain service", async () => {
+    await expect(archiveProductAction("product-1")).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "product-not-found",
+        productId: "product-1",
+        message: "The selected product could not be found.",
+      },
+    });
+    expect(mocks.archiveInventoryProduct).not.toHaveBeenCalled();
+
+    await expect(saveProductAction({ inventoryMode: "stocked" }, "delete")).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "validation-failed",
+        message: "Review the highlighted product fields and try again.",
+      },
+    });
+    expect(mocks.saveInventoryProduct).not.toHaveBeenCalled();
+  });
+
   it("invalidates both old and new product cache tags after save", async () => {
     mocks.saveInventoryProduct.mockResolvedValueOnce({
       ok: true,
       value: {
-        product: { id: "product-1", slug: "new-slug" },
+        product: { id: productId, slug: "new-slug" },
         previousSlug: "old-slug",
         intent: "draft",
         message: "Saved.",
@@ -70,28 +102,45 @@ describe("inventory actions", () => {
     mocks.archiveInventoryProduct.mockResolvedValueOnce({
       ok: true,
       value: {
-        productId: "product-1",
+        productId,
         slug: "test-product",
         deleted: false,
         message: "Archived.",
       },
     });
-    const result = await archiveProductAction("product-1");
+    const result = await archiveProductAction(productId);
     expect(result.ok).toBe(true);
+    expect(mocks.archiveInventoryProduct).toHaveBeenCalledWith(staff, productId);
     expect(mocks.revalidateTag).toHaveBeenCalledWith("product-test-product", "max");
   });
 
-  it("invalidates catalogue data after taxonomy mutation", async () => {
+  it("normalizes taxonomy input and invalidates catalogue data", async () => {
     mocks.createInventoryTaxonomy.mockResolvedValueOnce({
       ok: true,
       value: {
-        item: { id: "category:1", kind: "category", name: "Tops", slug: "tops" },
+        item: { id: taxonomyId, kind: "category", name: "Tops", slug: "tops" },
         message: "Created.",
         affectedProductSlugs: [],
       },
     });
-    const result = await createCatalogueTaxonomyAction({ kind: "category", name: "Tops" });
+    const result = await createCatalogueTaxonomyAction({ kind: "category", name: "  Tops  " });
     expect(result.ok).toBe(true);
+    expect(mocks.createInventoryTaxonomy).toHaveBeenCalledWith(staff, {
+      kind: "category",
+      name: "Tops",
+    });
     expect(mocks.revalidateTag).toHaveBeenCalledWith("catalogue", "max");
+  });
+
+  it("returns typed taxonomy failures for malformed identifiers", async () => {
+    await expect(renameCatalogueTaxonomyAction("category:not-a-uuid", "Archive")).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "taxonomy-not-found",
+        taxonomyId: "category:not-a-uuid",
+        message: "The selected catalogue group could not be found.",
+      },
+    });
+    expect(mocks.renameInventoryTaxonomy).not.toHaveBeenCalled();
   });
 });
