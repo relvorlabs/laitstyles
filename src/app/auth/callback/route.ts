@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { mapAuthProviderError } from "@/lib/auth/auth-errors";
+import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { ensureConsumerProfile } from "@/server/auth/profile";
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
   const next = getSafeNextPath(requestUrl.searchParams.get("next"), "/account");
 
   if (!code) {
+    logAuthProviderFailure("oauth-callback", { name: "MissingOAuthCallbackCode" });
     return NextResponse.redirect(
       new URL(withAuthErrorPath("oauth-callback-invalid", next), requestUrl),
     );
@@ -19,6 +21,7 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
+    logAuthProviderFailure("oauth-callback", error);
     const failure = mapAuthProviderError(error, "oauth-callback-invalid");
     return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
   }
