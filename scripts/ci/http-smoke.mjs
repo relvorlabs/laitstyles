@@ -22,10 +22,11 @@ const cases = [
     validate: assertVersionedHealth,
   },
   {
-    name: "inventory-api",
+    name: "versioned-admin-products-api",
     method: "GET",
-    path: "/api/admin/inventory/products",
-    allowed: [200, 302, 307, 401, 403],
+    path: "/api/v1/admin/products?page=1&pageSize=25",
+    allowed: [200, 401, 403],
+    validate: assertVersionedAdminProducts,
   },
 ];
 
@@ -151,14 +152,17 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 }
 if (failures.length) process.exit(1);
 
-function assertVersionedHealth({ response, raw }) {
+function assertJsonRequestId(response) {
   if (!response.headers.get("content-type")?.includes("application/json")) {
-    throw new Error("Versioned health response is not JSON.");
+    throw new Error("Versioned API response is not JSON.");
   }
   if (!response.headers.get("x-request-id")) {
-    throw new Error("Versioned health response is missing x-request-id.");
+    throw new Error("Versioned API response is missing x-request-id.");
   }
+}
 
+function assertVersionedHealth({ response, raw }) {
+  assertJsonRequestId(response);
   const payload = JSON.parse(raw);
   if (
     payload?.data?.status !== "ok" ||
@@ -167,5 +171,26 @@ function assertVersionedHealth({ response, raw }) {
     payload?.meta?.version !== "v1"
   ) {
     throw new Error("Versioned health response does not match the Phase 3 contract.");
+  }
+}
+
+function assertVersionedAdminProducts({ response, raw }) {
+  assertJsonRequestId(response);
+  const payload = JSON.parse(raw);
+  if (response.status === 200) {
+    if (
+      !Array.isArray(payload?.data) ||
+      typeof payload?.meta?.page !== "number" ||
+      typeof payload?.meta?.pageSize !== "number" ||
+      typeof payload?.meta?.total !== "number" ||
+      typeof payload?.meta?.pageCount !== "number"
+    ) {
+      throw new Error("Admin products success response does not match the paginated envelope.");
+    }
+    return;
+  }
+
+  if (typeof payload?.error?.code !== "string" || typeof payload?.error?.message !== "string") {
+    throw new Error("Admin products authorization response does not match the error envelope.");
   }
 }
