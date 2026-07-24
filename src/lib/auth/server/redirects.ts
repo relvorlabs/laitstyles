@@ -1,3 +1,5 @@
+import type { AuthFlowErrorCode } from "@/lib/auth/auth-errors";
+
 const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
 
 export function getSafeNextPath(
@@ -20,9 +22,9 @@ export function getSafeNextPath(
   }
 }
 
-export function withAuthErrorPath(message: string, next: string) {
+export function withAuthErrorPath(code: AuthFlowErrorCode, next: string) {
   const params = new URLSearchParams({
-    message,
+    code,
     next: getSafeNextPath(next, "/"),
   });
 
