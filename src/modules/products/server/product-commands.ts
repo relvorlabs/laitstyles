@@ -16,6 +16,7 @@ import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
 import {
   assertProductInventoryModeCanChange,
+  InventoryRuleViolation,
   writeProductStockAndVariants,
 } from "@/modules/inventory/server/stock-write";
 import { adminProductInclude } from "@/modules/products/server/mappers";
@@ -291,7 +292,9 @@ export async function saveProduct(
           : `${saved.name} published.`;
     return ok({ product: saved, intent, message, previousSlug });
   } catch (error) {
-    if (error instanceof ProductRuleViolation) return err(error.actionError);
+    if (error instanceof ProductRuleViolation || error instanceof InventoryRuleViolation) {
+      return err(error.actionError);
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         return err({
