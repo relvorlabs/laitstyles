@@ -109,7 +109,7 @@ async function runGate(definition) {
     const child = spawn(definition.command, definition.args, {
       cwd: process.cwd(),
       env: { ...process.env, FORCE_COLOR: "0" },
-      shell: false,
+      shell: process.platform === "win32",
       stdio: ["ignore", "pipe", "pipe"],
     });
     const timer = setTimeout(() => {
