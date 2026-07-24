@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { InventoryControls } from "@/features/admin/inventory/inventory-controls";
 import { InventoryDetailSheet } from "@/features/admin/inventory/inventory-detail-sheet";
@@ -24,21 +24,48 @@ import { useProductEditorController } from "@/features/admin/product-editor/prod
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
   defaultInventoryQuery,
-  getInventoryFacetOptions,
-  getInventorySummary,
-  getInventoryViewCounts,
-  queryInventory,
   toInventoryListItem,
 } from "@/lib/admin/inventory/inventory-selectors";
 import type {
   InventoryFacetOptions,
+  InventoryListItem,
   InventoryPresentation,
   InventoryQuery,
 } from "@/lib/admin/shared/types";
+import { inventoryProductPageQueryOptions } from "@/modules/inventory/client/hooks";
+import type {
+  InventoryProductListInput,
+  InventorySummary,
+  InventoryViewCounts,
+} from "@/modules/inventory/types";
 import {
-  adminProductsQueryOptions,
+  adminProductQueryOptions,
   productTaxonomyQueryOptions,
 } from "@/modules/products/client/hooks";
+
+const emptySummary: InventorySummary = {
+  totalProducts: 0,
+  liveProducts: 0,
+  availableUnits: 0,
+  reservedUnits: 0,
+  soldUnits: 0,
+  lowStockProducts: 0,
+  outOfStockProducts: 0,
+  intakeProducts: 0,
+};
+
+const emptyViewCounts: InventoryViewCounts = {
+  all: 0,
+  live: 0,
+  drafts: 0,
+  intake: 0,
+  "low-stock": 0,
+  "out-of-stock": 0,
+  held: 0,
+  sold: 0,
+  unpublished: 0,
+  "needs-attention": 0,
+};
 
 type InventoryWorkspaceProps = {
   initialQuery: InventoryQuery;
@@ -57,14 +84,15 @@ export function InventoryWorkspace({
 }: InventoryWorkspaceProps) {
   const pathname = usePathname();
   const { state } = useAdmin();
-  const { data: products = [] } = useQuery(adminProductsQueryOptions());
-  const { data: catalogueTaxonomy = [] } = useQuery(productTaxonomyQueryOptions());
   const { openExistingProduct } = useProductEditorController();
   const [query, setQuery] = useState(initialQuery);
   const [presentation, setPresentation] = useState<InventoryPresentation>(initialPresentation);
   const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [selectedItems, setSelectedItems] = useState<Map<string, InventoryListItem>>(
+    () => new Map(),
+  );
   const [openProductId, setOpenProductId] = useState<string | null>(initialOpenProductId);
   const [openMedia, setOpenMedia] = useState<{
     productId: string;
@@ -72,33 +100,74 @@ export function InventoryWorkspace({
   } | null>(null);
   const [exportedCount, setExportedCount] = useState<number | null>(null);
 
-  const items = useMemo(() => queryInventory(products, query), [query, products]);
-  const summary = useMemo(() => getInventorySummary(products), [products]);
-  const facets = useMemo<InventoryFacetOptions>(() => {
-    const productFacets = getInventoryFacetOptions(products);
-    return {
-      ...productFacets,
+  const pageInput = useMemo<InventoryProductListInput>(
+    () => ({
+      view: query.view,
+      q: query.search,
+      mode: query.mode,
+      stock: query.stock,
+      category: query.category,
+      collection: query.collection,
+      channel: query.channel,
+      sort: query.sort,
+      page,
+      pageSize,
+    }),
+    [page, pageSize, query],
+  );
+  const { data: productPage } = useQuery(inventoryProductPageQueryOptions(pageInput));
+  const { data: catalogueTaxonomy = [] } = useQuery(productTaxonomyQueryOptions());
+  const { data: openedProduct = null } = useQuery({
+    ...adminProductQueryOptions(openProductId ?? "closed"),
+    enabled: Boolean(openProductId),
+  });
+
+  const products = productPage?.products ?? [];
+  const items = useMemo(() => products.map(toInventoryListItem), [products]);
+  const summary = productPage?.summary ?? emptySummary;
+  const viewCounts = productPage?.viewCounts ?? emptyViewCounts;
+  const pagination = productPage?.pagination ?? {
+    page,
+    pageSize,
+    total: 0,
+    pageCount: 0,
+  };
+  const facets = useMemo<InventoryFacetOptions>(
+    () => ({
       categories: mergeOptions(
-        productFacets.categories,
+        ["Uncategorised"],
         catalogueTaxonomy.filter((item) => item.kind === "category").map((item) => item.name),
       ),
       collections: mergeOptions(
-        productFacets.collections,
+        [],
         catalogueTaxonomy.filter((item) => item.kind === "collection").map((item) => item.name),
       ),
-    };
-  }, [catalogueTaxonomy, products]);
-  const viewCounts = useMemo(() => getInventoryViewCounts(products), [products]);
-  const allItems = useMemo(() => products.map(toInventoryListItem), [products]);
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-  const safePage = Math.min(Math.max(page, 1), totalPages);
-  const pageItems = useMemo(
-    () => items.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [items, pageSize, safePage],
+    }),
+    [catalogueTaxonomy],
   );
-  const openItem = allItems.find((item) => item.product.id === openProductId) ?? null;
-  const mediaItem = allItems.find((item) => item.product.id === openMedia?.productId) ?? null;
+  const totalPages = Math.max(1, pagination.pageCount);
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const openItem = openedProduct
+    ? toInventoryListItem(openedProduct)
+    : items.find((item) => item.product.id === openProductId) ?? null;
+  const mediaItem = items.find((item) => item.product.id === openMedia?.productId) ?? null;
   const isIntake = query.view === "intake";
+
+  useEffect(() => {
+    if (!productPage || page <= totalPages) return;
+    setPage(totalPages);
+    window.history.replaceState(
+      null,
+      "",
+      buildInventoryHref(pathname, {
+        query,
+        presentation,
+        productId: openProductId,
+        page: totalPages,
+        pageSize,
+      }),
+    );
+  }, [openProductId, page, pageSize, pathname, presentation, productPage, query, totalPages]);
 
   function replaceUrl(
     nextQuery = query,
@@ -120,11 +189,16 @@ export function InventoryWorkspace({
     );
   }
 
+  function clearSelection() {
+    setSelectedIds(new Set());
+    setSelectedItems(new Map());
+  }
+
   function patchQuery(patch: Partial<InventoryQuery>) {
     const nextQuery = { ...query, ...patch };
     setQuery(nextQuery);
     setPage(1);
-    setSelectedIds(new Set());
+    clearSelection();
     setExportedCount(null);
     replaceUrl(nextQuery, presentation, openProductId, 1);
   }
@@ -132,7 +206,7 @@ export function InventoryWorkspace({
   function resetQuery() {
     setQuery(defaultInventoryQuery);
     setPage(1);
-    setSelectedIds(new Set());
+    clearSelection();
     setExportedCount(null);
     replaceUrl(defaultInventoryQuery, presentation, openProductId, 1);
   }
@@ -152,7 +226,7 @@ export function InventoryWorkspace({
   function changePageSize(nextPageSize: number) {
     setPageSize(nextPageSize);
     setPage(1);
-    setSelectedIds(new Set());
+    clearSelection();
     replaceUrl(query, presentation, openProductId, 1, nextPageSize);
   }
 
@@ -176,9 +250,16 @@ export function InventoryWorkspace({
   }
 
   function setProductSelected(productId: string, selected: boolean) {
+    const item = items.find((entry) => entry.product.id === productId);
     setSelectedIds((current) => {
       const next = new Set(current);
       if (selected) next.add(productId);
+      else next.delete(productId);
+      return next;
+    });
+    setSelectedItems((current) => {
+      const next = new Map(current);
+      if (selected && item) next.set(productId, item);
       else next.delete(productId);
       return next;
     });
@@ -188,8 +269,16 @@ export function InventoryWorkspace({
   function selectVisible(selected: boolean) {
     setSelectedIds((current) => {
       const next = new Set(current);
-      for (const item of pageItems) {
+      for (const item of items) {
         if (selected) next.add(item.product.id);
+        else next.delete(item.product.id);
+      }
+      return next;
+    });
+    setSelectedItems((current) => {
+      const next = new Map(current);
+      for (const item of items) {
+        if (selected) next.set(item.product.id, item);
         else next.delete(item.product.id);
       }
       return next;
@@ -198,7 +287,7 @@ export function InventoryWorkspace({
   }
 
   function exportSelection() {
-    const selected = allItems.filter((item) => selectedIds.has(item.product.id));
+    const selected = [...selectedItems.values()];
     if (!selected.length) return;
 
     downloadInventoryCsv(selected, state.reportingDate);
@@ -228,7 +317,7 @@ export function InventoryWorkspace({
           onReset={resetQuery}
           presentation={presentation}
           query={query}
-          resultCount={items.length}
+          resultCount={pagination.total}
         />
       </Card>
 
@@ -240,7 +329,7 @@ export function InventoryWorkspace({
         ) : (
           <>
             <InventoryMobileList
-              items={pageItems}
+              items={items}
               onOpen={openProduct}
               onOpenMedia={openProductMedia}
               onSelectedChange={setProductSelected}
@@ -251,7 +340,7 @@ export function InventoryWorkspace({
             >
               <InventoryGrid
                 className={presentation === "table" ? "grid gap-4 md:grid-cols-2" : undefined}
-                items={pageItems}
+                items={items}
                 onOpen={openProduct}
                 onOpenMedia={openProductMedia}
                 onSelectedChange={setProductSelected}
@@ -260,7 +349,7 @@ export function InventoryWorkspace({
             </div>
             {presentation === "table" ? (
               <InventoryTable
-                items={pageItems}
+                items={items}
                 onOpen={openProduct}
                 onOpenMedia={openProductMedia}
                 onSelectedChange={setProductSelected}
@@ -273,17 +362,17 @@ export function InventoryWorkspace({
               onPageSizeChange={changePageSize}
               page={safePage}
               pageSize={pageSize}
-              totalItems={items.length}
+              totalItems={pagination.total}
             />
           </>
         )
       ) : (
-        <InventoryEmptyState hasProducts={products.length > 0} onReset={resetQuery} />
+        <InventoryEmptyState hasProducts={summary.totalProducts > 0} onReset={resetQuery} />
       )}
 
       {!isIntake ? (
         <InventorySelectionBar
-          onClear={() => setSelectedIds(new Set())}
+          onClear={clearSelection}
           onExport={exportSelection}
           onOpenSelected={openSelected}
           selectedCount={selectedIds.size}
