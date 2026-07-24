@@ -16,6 +16,7 @@ concurrency:
 
 env:
   CI: "1"
+  CI_BASE_REF: ${{ github.base_ref }}
 
   # Required by Prisma generation and application configuration.
   # Only jobs with a Postgres service can actually connect to this URL.
@@ -142,6 +143,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup-environment
