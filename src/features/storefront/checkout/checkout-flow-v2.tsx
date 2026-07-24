@@ -37,8 +37,8 @@ import { ReviewRow } from "@/features/storefront/checkout/components/review-row"
 import { StepIndicator } from "@/features/storefront/checkout/components/step-indicator";
 import {
   createOrderNumber,
-  writeLatestOrderReceipt,
   type OrderReceipt,
+  writeLatestOrderReceipt,
 } from "@/features/storefront/checkout/order-receipt";
 import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";

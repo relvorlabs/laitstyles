@@ -35,9 +35,7 @@ describe("parseCatalogueSearchParams", () => {
   });
 
   it("falls back safely for invalid pagination, prices and sort", () => {
-    expect(
-      parseCatalogueSearchParams({ page: "-2", max: "-1", sort: "random" }),
-    ).toMatchObject({
+    expect(parseCatalogueSearchParams({ page: "-2", max: "-1", sort: "random" })).toMatchObject({
       page: 1,
       maxPriceNaira: undefined,
       sort: "curated",
@@ -53,8 +51,6 @@ describe("catalogueHref", () => {
       page: "4",
     });
 
-    expect(catalogueHref(current, { page: 1, search: "" })).toBe(
-      "/products?category=Women",
-    );
+    expect(catalogueHref(current, { page: 1, search: "" })).toBe("/products?category=Women");
   });
 });

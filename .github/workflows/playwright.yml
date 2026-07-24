@@ -31,7 +31,7 @@ env:
 jobs:
   browser:
     name: Browser runtime / ${{ matrix.project }}
-    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 65
     strategy:
       fail-fast: false
@@ -68,8 +68,7 @@ jobs:
         with:
           node-version: "25"
 
-      - name: Verify browser doctrine and skills
-        if: matrix.project == 'desktop-chromium'
+      - name: Verify browser doctrine
         shell: bash
         run: |
           set -euo pipefail
@@ -77,23 +76,11 @@ jobs:
             AGENTS.md
             .agents/doctrine/ui-and-design-system.md
             .agents/doctrine/validation-and-reporting.md
-            .ci/agent-controller/skills/web-design-guidelines/SKILL.md
-            .ci/agent-controller/skills/ui-ux-pro-max/SKILL.md
-            .ci/agent-controller/skills/react-doctor/SKILL.md
-            .ci/agent-controller/skills/vercel-react-best-practices/SKILL.md
+            .agents/doctrine/toolchain-and-skills.md
           )
           for path in "${required[@]}"; do
             test -f "$path" || { echo "Missing browser guidance: $path"; exit 1; }
           done
-
-      - name: Verify repository browser doctrine
-        if: matrix.project != 'desktop-chromium'
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f AGENTS.md
-          test -f .agents/doctrine/ui-and-design-system.md
-          test -f .agents/doctrine/validation-and-reporting.md
 
       - name: Capture browser implementation context
         if: matrix.project == 'desktop-chromium'
@@ -168,6 +155,7 @@ jobs:
           fi
 
       - uses: ./.github/actions/upload-evidence
+        if: always()
         with:
           name: playwright-${{ matrix.project }}
           path: ci-evidence/browser/${{ matrix.project }}/
@@ -191,7 +179,7 @@ jobs:
     name: Aggregate browser evidence
     if: always() && !cancelled()
     needs: [browser]
-    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
       - name: Check out trusted scripts

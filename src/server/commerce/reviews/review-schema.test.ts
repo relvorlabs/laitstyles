@@ -1,5 +1,4 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-
 import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
 import type { ReviewActionState, ReviewInput } from "@/lib/commerce/reviews/review-types";
 
@@ -71,6 +70,7 @@ describe("reviewInputSchema", () => {
   it("exposes inferred input fields to typed action errors", () => {
     const state: ReviewActionState = {
       status: "error",
+      code: "invalid-review-fields",
       message: "Check the highlighted fields.",
       fieldErrors: { body: ["Write at least 20 characters."] },
     };

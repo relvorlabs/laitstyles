@@ -29,9 +29,9 @@ describe("inventory action schemas", () => {
       kind: "category",
       name: "Evening Wear",
     });
-    expect(
-      catalogueTaxonomyInputSchema.safeParse({ kind: "tag", name: "Archive" }).success,
-    ).toBe(false);
+    expect(catalogueTaxonomyInputSchema.safeParse({ kind: "tag", name: "Archive" }).success).toBe(
+      false,
+    );
     expect(
       catalogueTaxonomyRenameSchema.safeParse({
         taxonomyId: `category:${uuid}`,

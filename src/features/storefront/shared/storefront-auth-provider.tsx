@@ -1,29 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  createContext,
-  type ReactNode,
-  use,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, type ReactNode, use, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   signOutStorefrontSession,
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
-import type { StorefrontAuthSession } from "./storefront-auth-session";
+import type { Product } from "./catalogue-data";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
   type StorefrontAuthMode,
   type StorefrontAuthState,
 } from "./storefront-auth-dialog";
-import type { Product } from "./catalogue-data";
+import type { StorefrontAuthSession } from "./storefront-auth-session";
 
 type StorefrontAuthContextValue = {
   state: {
@@ -160,14 +152,7 @@ export function StorefrontAuthProvider({
       },
       actions: { openSignin, openSignup, signOut },
     }),
-    [
-      authSession.email,
-      authSession.signedIn,
-      displayName,
-      openSignin,
-      openSignup,
-      signOut,
-    ],
+    [authSession.email, authSession.signedIn, displayName, openSignin, openSignup, signOut],
   );
 
   return (
@@ -209,11 +194,7 @@ export function useStorefrontAuth() {
   return context;
 }
 
-function validateAuth(
-  mode: StorefrontAuthMode,
-  form: StorefrontAuthForm,
-  termsAccepted: boolean,
-) {
+function validateAuth(mode: StorefrontAuthMode, form: StorefrontAuthForm, termsAccepted: boolean) {
   const errors: Record<string, string> = {};
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
     errors.email = "Enter a valid email address";

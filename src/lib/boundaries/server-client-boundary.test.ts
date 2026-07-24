@@ -25,17 +25,11 @@ const LAYER_RULES = [
   { layer: "src/components", forbidden: ["@/features", "@/app", "@/server"] },
 ] as const;
 
-// Known inversions slated for removal by the migration plan: Generation-1
-// storefront modules (Phases 2 and 4), the lib/admin mutation layer that reaches
-// up into the admin provider (Phases 3 and 7), and server code importing
-// feature-owned types (Phase 5). This list only burns down — never add an
-// entry; fix the import direction instead.
+// Known inversions slated for removal by the migration plan. This list only
+// burns down — never add an entry; fix the import direction instead.
 const LEGACY_INVERSION_ALLOWLIST = new Set([
-  "src/lib/catalogue.ts",
-  "src/components/shop/shop-provider.tsx",
   "src/lib/admin/customers/customers-mutations.ts",
   "src/lib/admin/holds/holds-mutations.ts",
-  "src/lib/admin/inventory/inventory-mutations.ts",
   "src/lib/admin/orders/orders-mutations.ts",
   "src/lib/admin/returns/returns-mutations.ts",
   "src/lib/admin/settings/settings-mutations.ts",

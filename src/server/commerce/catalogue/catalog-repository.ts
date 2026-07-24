@@ -197,10 +197,14 @@ function styleSmokeMatches(filters: CatalogueFilters) {
   }
   if (filters.categoryId && filters.categoryId !== styleSmokeCategory.id) return false;
   if (filters.collectionId && filters.collectionId !== styleSmokeCollection.id) return false;
-  if (filters.brands?.length && !filters.brands.includes(styleSmokeSummary.brand ?? "")) return false;
-  if (filters.conditions?.length && !filters.conditions.includes(styleSmokeSummary.condition ?? "")) return false;
-  if (filters.colours?.length && !filters.colours.includes(styleSmokeSummary.colour ?? "")) return false;
-  if (filters.sizes?.length && !filters.sizes.includes(styleSmokeSummary.sizeLabel ?? "")) return false;
+  if (filters.brands?.length && !filters.brands.includes(styleSmokeSummary.brand ?? ""))
+    return false;
+  if (filters.conditions?.length && !filters.conditions.includes(styleSmokeSummary.condition ?? ""))
+    return false;
+  if (filters.colours?.length && !filters.colours.includes(styleSmokeSummary.colour ?? ""))
+    return false;
+  if (filters.sizes?.length && !filters.sizes.includes(styleSmokeSummary.sizeLabel ?? ""))
+    return false;
   if (filters.modes?.length && !filters.modes.includes(styleSmokeSummary.mode)) return false;
   const priceNaira = styleSmokeSummary.price / 100;
   if (filters.priceMinNaira !== undefined && priceNaira < filters.priceMinNaira) return false;

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCheckoutSnapshot,
+  type CheckoutItem,
   formatSeconds,
   initialForm,
   validate,
-  type CheckoutItem,
 } from "./checkout-helpers";
 
 const items: CheckoutItem[] = [

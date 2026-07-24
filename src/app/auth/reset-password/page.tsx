@@ -46,9 +46,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
     redirect(withAuthErrorPath("recovery-invalid", "/auth/forgot-password"));
   }
 
-  const error = isAuthFlowErrorCode(params.error)
-    ? getAuthFlowErrorMessage(params.error)
-    : null;
+  const error = isAuthFlowErrorCode(params.error) ? getAuthFlowErrorMessage(params.error) : null;
 
   return (
     <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center bg-background px-4 py-12">
@@ -59,13 +57,16 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
           </p>
           <h1 className="mt-2 font-serif text-4xl font-medium">Choose a new password</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Use at least eight characters. Supabase may require a stronger password according to
-            the project password policy.
+            Use at least eight characters. Supabase may require a stronger password according to the
+            project password policy.
           </p>
         </div>
 
         {error ? (
-          <p className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground" role="alert">
+          <p
+            className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}
@@ -98,7 +99,10 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
           </Button>
         </form>
 
-        <Link className="text-sm font-semibold underline-offset-4 hover:underline" href="/auth/forgot-password">
+        <Link
+          className="text-sm font-semibold underline-offset-4 hover:underline"
+          href="/auth/forgot-password"
+        >
           Request a different reset link
         </Link>
       </Card>

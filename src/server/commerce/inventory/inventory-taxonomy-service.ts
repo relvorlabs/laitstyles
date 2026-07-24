@@ -1,23 +1,15 @@
 import "server-only";
 
-import { Prisma, prisma } from "@/lib/prisma";
-import { err, ok, type Result } from "@/lib/errors";
 import type {
   CatalogueTaxonomyActionError,
   CatalogueTaxonomyActionSuccess,
   CatalogueTaxonomyInput,
 } from "@/lib/admin/inventory/catalogue-taxonomy";
+import { err, ok, type Result } from "@/lib/errors";
+import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
-import {
-  decodeTaxonomyId,
-  mapTaxonomyRow,
-} from "@/server/commerce/inventory/inventory-mappers";
-import {
-  canStaff,
-  clean,
-  isUuid,
-  slugify,
-} from "@/server/commerce/inventory/inventory-rules";
+import { decodeTaxonomyId, mapTaxonomyRow } from "@/server/commerce/inventory/inventory-mappers";
+import { canStaff, clean, isUuid, slugify } from "@/server/commerce/inventory/inventory-rules";
 
 export type TaxonomyOutcome = CatalogueTaxonomyActionSuccess & {
   affectedProductSlugs: string[];
@@ -103,9 +95,7 @@ export async function renameInventoryTaxonomy(
     const outcome = await prisma.$transaction(async (tx) => {
       const affected = await tx.products.findMany({
         where:
-          decoded.kind === "category"
-            ? { category_id: decoded.id }
-            : { collection_id: decoded.id },
+          decoded.kind === "category" ? { category_id: decoded.id } : { collection_id: decoded.id },
         select: { slug: true },
       });
       const row =

@@ -6,8 +6,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // from here (or from "@/lib/prisma"). Server-only: never reaches the browser.
 import { Prisma, PrismaClient } from "../../../prisma/generated/prisma/client";
 
-export type { PrismaClient };
 export { Prisma };
+export type { PrismaClient };
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;

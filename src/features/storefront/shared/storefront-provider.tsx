@@ -408,18 +408,15 @@ export function StorefrontProvider({
     [clientState],
   );
 
-  const applyShop = useCallback(
-    (options: { category?: string; collection?: string | null }) => {
-      setCategory(options.category || "All");
-      setCollection(options.collection || null);
-      setConditions(new Set());
-      setInventories(new Set());
-      setInStock(false);
-      setMaxPrice(null);
-      setSearch("");
-    },
-    [],
-  );
+  const applyShop = useCallback((options: { category?: string; collection?: string | null }) => {
+    setCategory(options.category || "All");
+    setCollection(options.collection || null);
+    setConditions(new Set());
+    setInventories(new Set());
+    setInStock(false);
+    setMaxPrice(null);
+    setSearch("");
+  }, []);
 
   const clearFilters = useCallback(() => {
     setCategory("All");

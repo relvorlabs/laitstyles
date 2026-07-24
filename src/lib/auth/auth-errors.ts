@@ -67,9 +67,7 @@ export function getAuthFlowErrorMessage(code: AuthFlowErrorCode): string {
   return authFlowErrorMessages[code];
 }
 
-export function isAuthFlowErrorCode(
-  value: string | null | undefined,
-): value is AuthFlowErrorCode {
+export function isAuthFlowErrorCode(value: string | null | undefined): value is AuthFlowErrorCode {
   return typeof value === "string" && (authFlowErrorCodes as readonly string[]).includes(value);
 }
 

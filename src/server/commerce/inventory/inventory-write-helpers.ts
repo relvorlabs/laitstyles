@@ -1,8 +1,8 @@
 import "server-only";
 
-import type { Prisma } from "@/lib/prisma";
 import type { CatalogueTaxonomyKind } from "@/lib/admin/inventory/catalogue-taxonomy";
 import type { ProductEditorValues } from "@/lib/admin/product-editor/product-editor-types";
+import type { Prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
 import type { inventoryProductInclude } from "@/server/commerce/inventory/inventory-mappers";
 import {

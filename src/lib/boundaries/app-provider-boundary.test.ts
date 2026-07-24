@@ -1,70 +1,33 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const root = process.cwd();
+const rootLayoutSource = readFileSync(resolve(process.cwd(), "src/app/layout.tsx"), "utf8");
+const appProviderSource = readFileSync(
+  resolve(process.cwd(), "src/providers/providers.tsx"),
+  "utf8",
+);
+const adminLayoutSource = readFileSync(resolve(process.cwd(), "src/app/admin/layout.tsx"), "utf8");
 
-function sourceFiles(directory: string): string[] {
-  if (!existsSync(directory)) return [];
-
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return sourceFiles(path);
-    return /\.[cm]?[jt]sx?$/.test(entry.name) ? [path] : [];
-  });
-}
-
-function repoPath(path: string) {
-  return relative(root, path).replaceAll("\\", "/");
-}
-
-describe("app provider boundary", () => {
-  it("owns exactly one TanStack QueryClientProvider", () => {
-    const owners = sourceFiles(join(root, "src"))
-      .filter((path) => !/\.test\.[cm]?[jt]sx?$/.test(path))
-      .filter((path) => readFileSync(path, "utf8").includes("QueryClientProvider"))
-      .map(repoPath);
-
-    expect(owners).toEqual(["src/providers/query-provider.tsx"]);
+describe("application provider ownership", () => {
+  it("keeps the root layout thin and delegates global ownership to AppProvider", () => {
+    expect(rootLayoutSource).toContain("<AppProvider>{children}</AppProvider>");
+    expect(rootLayoutSource).not.toContain("QueryProvider");
+    expect(rootLayoutSource).not.toContain("ThemeProvider");
+    expect(rootLayoutSource).not.toContain("Toaster");
   });
 
-  it("keeps the root provider entry point app-wide and composition-only", () => {
-    const entry = readFileSync(join(root, "src/providers/providers.tsx"), "utf8");
-
-    expect(entry).toContain("export function AppProvider");
-    expect(entry).toContain("<ThemeProvider>");
-    expect(entry).toContain("<QueryProvider>");
-    expect(entry).not.toMatch(/export\s+\{/);
-
-    for (const featureProvider of [
-      "StorefrontProvider",
-      "StorefrontAuthProvider",
-      "StorefrontClientStateProvider",
-      "AdminProvider",
-      "AdminAccessProvider",
-      "ProductEditorControllerProvider",
-      "RecordSaleControllerProvider",
-    ]) {
-      expect(entry).not.toContain(featureProvider);
-    }
+  it("keeps only theme and toast concerns in the global provider", () => {
+    expect(appProviderSource).toContain("<ThemeProvider>");
+    expect(appProviderSource).toContain("<Toaster");
+    expect(appProviderSource).not.toContain("QueryProvider");
   });
 
-  it("retires duplicate root and route query provider modules", () => {
-    for (const path of [
-      "src/app/app-providers.tsx",
-      "src/app/admin/admin-query-provider.tsx",
-      "src/lib/query/query-provider.tsx",
-      "src/components/theme/theme-provider.tsx",
-    ]) {
-      expect(existsSync(join(root, path)), path).toBe(false);
-    }
-  });
-
-  it("mounts AppProvider once in the root layout", () => {
-    const layout = readFileSync(join(root, "src/app/layout.tsx"), "utf8");
-
-    expect(layout).toContain('import { AppProvider } from "@/providers/providers"');
-    expect(layout.match(/<AppProvider>/g)).toHaveLength(1);
-    expect(layout.match(/<\/AppProvider>/g)).toHaveLength(1);
+  it("scopes the remote-data provider to the admin surface", () => {
+    expect(adminLayoutSource).toContain(
+      'import { QueryProvider } from "@/providers/query-provider";',
+    );
+    expect(adminLayoutSource).toContain("<QueryProvider>");
+    expect(adminLayoutSource).toContain("</QueryProvider>");
   });
 });

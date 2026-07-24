@@ -37,9 +37,7 @@ describe("createFetchAdminInventoryRepository", () => {
   it("surfaces authorization failures instead of falling back to browser memory", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403 }));
 
-    await expect(
-      createFetchAdminInventoryRepository().listProducts(),
-    ).rejects.toThrow("403");
+    await expect(createFetchAdminInventoryRepository().listProducts()).rejects.toThrow("403");
   });
 
   it("fetches product-scoped movement history", async () => {

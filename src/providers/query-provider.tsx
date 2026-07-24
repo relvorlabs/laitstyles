@@ -3,10 +3,10 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { ReactNode } from "react";
-import { getQueryClient } from "@/lib/query/query-client";
+import { getAdminQueryClient } from "@/lib/query/admin-query-client";
 
 export function QueryProvider({ children }: { children: ReactNode }) {
-  const queryClient = getQueryClient();
+  const queryClient = getAdminQueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>

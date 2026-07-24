@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
+import type {
+  CatalogueTaxonomyActionError,
+  CatalogueTaxonomyActionSuccess,
+} from "@/lib/admin/inventory/catalogue-taxonomy";
 import {
   catalogueTaxonomyIdSchema,
   catalogueTaxonomyInputSchema,
@@ -8,10 +12,6 @@ import {
   inventoryProductActionSchema,
   inventoryProductIdSchema,
 } from "@/lib/admin/inventory/inventory-action-schema";
-import type {
-  CatalogueTaxonomyActionError,
-  CatalogueTaxonomyActionSuccess,
-} from "@/lib/admin/inventory/catalogue-taxonomy";
 import type {
   ProductLifecycleActionError,
   ProductLifecycleActionSuccess,
@@ -78,10 +78,7 @@ async function lifecycleAction(
     actor: StaffSession,
     productId: string,
   ) => Promise<
-    Result<
-      ProductLifecycleActionSuccess & { slug: string },
-      ProductLifecycleActionError
-    >
+    Result<ProductLifecycleActionSuccess & { slug: string }, ProductLifecycleActionError>
   >,
   value: unknown,
 ): Promise<Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>> {
@@ -111,15 +108,15 @@ async function lifecycleAction(
   return { ok: true, value: resultValue };
 }
 
-export function archiveProductAction(productId: unknown) {
+export async function archiveProductAction(productId: unknown) {
   return lifecycleAction(archiveInventoryProduct, productId);
 }
 
-export function restoreProductAction(productId: unknown) {
+export async function restoreProductAction(productId: unknown) {
   return lifecycleAction(restoreInventoryProduct, productId);
 }
 
-export function deleteProductAction(productId: unknown) {
+export async function deleteProductAction(productId: unknown) {
   return lifecycleAction(deleteInventoryProduct, productId);
 }
 

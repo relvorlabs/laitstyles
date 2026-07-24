@@ -300,7 +300,10 @@ export function StorefrontAuthDialog({
               {!signup ? (
                 <div className="mt-2 text-center text-xs text-muted-foreground">
                   Email still unconfirmed?{" "}
-                  <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/auth/resend-confirmation">
+                  <Link
+                    className="font-semibold text-foreground underline-offset-4 hover:underline"
+                    href="/auth/resend-confirmation"
+                  >
                     Send another link
                   </Link>
                 </div>

@@ -49,9 +49,7 @@ describe("password auth actions", () => {
   });
 
   it("rejects malformed sign-in data before calling Supabase", async () => {
-    const result = await submitPasswordSignIn(
-      formData({ email: "not-an-email", password: "" }),
-    );
+    const result = await submitPasswordSignIn(formData({ email: "not-an-email", password: "" }));
 
     expect(result).toEqual({
       ok: false,
@@ -88,10 +86,7 @@ describe("password auth actions", () => {
         message: "The email or password is incorrect.",
       },
     });
-    expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith(
-      "password-sign-in",
-      providerError,
-    );
+    expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith("password-sign-in", providerError);
     expect(JSON.stringify(result)).not.toContain("provider detail");
   });
 
@@ -101,9 +96,7 @@ describe("password auth actions", () => {
     });
 
     await expect(
-      submitPasswordSignIn(
-        formData({ email: "shopper@example.com", password: "password123" }),
-      ),
+      submitPasswordSignIn(formData({ email: "shopper@example.com", password: "password123" })),
     ).resolves.toEqual({
       ok: false,
       error: {
@@ -195,8 +188,7 @@ describe("password auth actions", () => {
       value: { status: "accepted", email: "shopper@example.com" },
     });
     expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith("shopper@example.com", {
-      redirectTo:
-        "https://laitstyle.example/auth/callback?next=%2Fauth%2Freset-password",
+      redirectTo: "https://laitstyle.example/auth/callback?next=%2Fauth%2Freset-password",
     });
   });
 

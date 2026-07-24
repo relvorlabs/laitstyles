@@ -67,8 +67,8 @@ export function InventoryIntakeQueue({ items }: { items: InventoryListItem[] }) 
                   {item.product.name}
                 </h3>
                 <p className="mt-2 text-[11.5px] leading-5 text-muted-foreground">
-                  Edit identity, media, stock, pricing and fulfilment on this same persistent product
-                  record.
+                  Edit identity, media, stock, pricing and fulfilment on this same persistent
+                  product record.
                 </p>
               </div>
 

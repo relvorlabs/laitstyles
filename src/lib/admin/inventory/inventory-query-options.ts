@@ -10,10 +10,7 @@ export function inventoryProductsQueryOptions(repositories: AdminRepositories) {
   });
 }
 
-export function inventoryProductQueryOptions(
-  repositories: AdminRepositories,
-  productId: string,
-) {
+export function inventoryProductQueryOptions(repositories: AdminRepositories, productId: string) {
   return queryOptions({
     queryKey: inventoryKeys.product(productId),
     queryFn: () => repositories.inventory.getProduct(productId),

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { ProductSummary } from "@/lib/storefront/types";
 import {
-  selectStorefrontCataloguePage,
   type StorefrontCataloguePageQuery,
+  selectStorefrontCataloguePage,
 } from "./storefront-page-selection";
 
 function product(id: string, overrides: Partial<ProductSummary> = {}): ProductSummary {
@@ -29,7 +29,9 @@ function product(id: string, overrides: Partial<ProductSummary> = {}): ProductSu
   };
 }
 
-function query(overrides: Partial<StorefrontCataloguePageQuery> = {}): StorefrontCataloguePageQuery {
+function query(
+  overrides: Partial<StorefrontCataloguePageQuery> = {},
+): StorefrontCataloguePageQuery {
   return {
     page: 1,
     pageSize: 2,
@@ -94,18 +96,18 @@ describe("selectStorefrontCataloguePage", () => {
       }),
     );
 
-    expect(selectStorefrontCataloguePage(products, query({ collection: "new", pageSize: 30 })).total).toBe(
-      20,
-    );
-    expect(selectStorefrontCataloguePage(products, query({ collection: "under-25" })).productIds).toEqual([
-      "0",
-    ]);
+    expect(
+      selectStorefrontCataloguePage(products, query({ collection: "new", pageSize: 30 })).total,
+    ).toBe(20);
+    expect(
+      selectStorefrontCataloguePage(products, query({ collection: "under-25" })).productIds,
+    ).toEqual(["0"]);
     expect(
       selectStorefrontCataloguePage(products, query({ collection: "grade-a-plus" })).productIds,
     ).toEqual(["1"]);
-    expect(selectStorefrontCataloguePage(products, query({ collection: "vintage" })).productIds).toEqual([
-      "2",
-    ]);
+    expect(
+      selectStorefrontCataloguePage(products, query({ collection: "vintage" })).productIds,
+    ).toEqual(["2"]);
     expect(
       selectStorefrontCataloguePage(products, query({ collection: "one-of-one" })).productIds,
     ).toEqual(["3"]);
@@ -116,11 +118,7 @@ describe("selectStorefrontCataloguePage", () => {
     const eligible = new Set(["21"]);
 
     expect(
-      selectStorefrontCataloguePage(
-        products,
-        query({ collection: "new", pageSize: 30 }),
-        eligible,
-      ),
+      selectStorefrontCataloguePage(products, query({ collection: "new", pageSize: 30 }), eligible),
     ).toEqual({ productIds: [], total: 0, page: 1, pageCount: 1 });
   });
 

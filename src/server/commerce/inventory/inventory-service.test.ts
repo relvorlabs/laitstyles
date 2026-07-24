@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { StaffSession } from "@/server/auth/session";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import type {
-  InventoryProduct,
-  ProductEditorValues,
-} from "@/lib/admin/shared/types";
+import type { InventoryProduct, ProductEditorValues } from "@/lib/admin/shared/types";
+import type { StaffSession } from "@/server/auth/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
 const VARIANT_ID = "019f65c1-74fe-7bd3-8400-000000000011";
@@ -12,6 +9,7 @@ const actor: StaffSession = {
   kind: "staff",
   authUserId: "019f65c1-74fe-7bd3-8400-000000000099",
   email: "admin@example.com",
+  displayName: "Admin",
   role: "admin",
 };
 
@@ -128,9 +126,7 @@ const harness = vi.hoisted(() => {
     PrismaClientKnownRequestError,
   };
   const prisma = {
-    $transaction: vi.fn(
-      async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
-    ),
+    $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx)),
     products: {
       findUnique: vi.fn(async () => ({
         id: productId,
@@ -307,30 +303,30 @@ beforeEach(() => {
   harness.state.movements = 0;
   harness.state.saved = 0;
   for (const values of Object.values(harness.recorded)) values.length = 0;
+  getInventoryProductMock.mockReset();
   vi.clearAllMocks();
 });
 
 describe("saveInventoryProduct", () => {
-  it.each(["unique", "stocked", "variant"] as const)(
-    "creates a %s product without a client-supplied database id",
-    async (mode) => {
-      getInventoryProductMock
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(savedProduct(mode));
+  it.each([
+    "unique",
+    "stocked",
+    "variant",
+  ] as const)("creates a %s product without a client-supplied database id", async (mode) => {
+    getInventoryProductMock.mockResolvedValueOnce(savedProduct(mode));
 
-      const result = await saveInventoryProduct(actor, valuesFor(mode), "draft");
+    const result = await saveInventoryProduct(actor, valuesFor(mode), "draft");
 
-      expect(result.ok).toBe(true);
-      expect(harness.recorded.productCreates[0]).not.toHaveProperty("id");
-      if (mode === "variant") {
-        expect(harness.recorded.variantCreates[0]).not.toHaveProperty("id");
-      }
-      expect(harness.recorded.auditCreates[0]).toMatchObject({
-        actor_profile_id: actor.authUserId,
-        action: "inventory:create",
-      });
-    },
-  );
+    expect(result.ok).toBe(true);
+    expect(harness.recorded.productCreates[0]).not.toHaveProperty("id");
+    if (mode === "variant") {
+      expect(harness.recorded.variantCreates[0]).not.toHaveProperty("id");
+    }
+    expect(harness.recorded.auditCreates[0]).toMatchObject({
+      actor_profile_id: actor.authUserId,
+      action: "inventory:create",
+    });
+  });
 
   it("rejects local preview media before any database write", async () => {
     getInventoryProductMock.mockResolvedValueOnce(null);
@@ -363,9 +359,7 @@ describe("saveInventoryProduct", () => {
       returned: 0,
       damaged: 1,
     };
-    getInventoryProductMock
-      .mockResolvedValueOnce(existing)
-      .mockResolvedValueOnce(existing);
+    getInventoryProductMock.mockResolvedValueOnce(existing).mockResolvedValueOnce(existing);
     harness.state.currentRow = {
       ...baseCurrentRow("stocked"),
       stock_levels: [
@@ -383,6 +377,7 @@ describe("saveInventoryProduct", () => {
       ],
     };
     const values = valuesFor("stocked");
+    if (values.inventoryMode !== "stocked") throw new Error("fixture mismatch");
     values.productId = PRODUCT_ID;
     values.stocked.quantity = 9;
 
@@ -405,6 +400,7 @@ describe("saveInventoryProduct", () => {
     harness.state.currentRow = baseCurrentRow("variant");
     harness.state.movements = 1;
     const values = valuesFor("variant");
+    if (values.inventoryMode !== "variant") throw new Error("fixture mismatch");
     values.productId = PRODUCT_ID;
     values.variant.variants = [];
 
@@ -438,9 +434,7 @@ describe("lifecycle and taxonomy writes", () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.item?.id).toBe(
-        "category:019f65c1-74fe-7bd3-8400-000000000021",
-      );
+      expect(result.value.item?.id).toBe("category:019f65c1-74fe-7bd3-8400-000000000021");
     }
     expect(harness.recorded.auditCreates[0]).toMatchObject({
       action: "inventory:category:create",

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
+import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 import type { StaffSession } from "@/server/auth/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
@@ -8,6 +8,7 @@ const actor: StaffSession = {
   kind: "staff",
   authUserId: "019f65c1-74fe-7bd3-8400-000000000099",
   email: "admin@example.com",
+  displayName: "Admin",
   role: "admin",
 };
 

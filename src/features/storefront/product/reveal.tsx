@@ -1,8 +1,8 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
-import { createElement, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 
 type RevealOwnProps<T extends ElementType> = {
   as?: T;
@@ -55,9 +55,5 @@ export function Reveal<T extends ElementType = "div">({
 
   const classes = ["reveal", visible ? "visible" : null, className].filter(Boolean).join(" ");
 
-  return createElement(
-    Component,
-    { ref, className: classes, ...rest },
-    children,
-  );
+  return createElement(Component, { ref, className: classes, ...rest }, children);
 }

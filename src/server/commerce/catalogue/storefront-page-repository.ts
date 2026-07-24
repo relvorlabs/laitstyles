@@ -3,8 +3,8 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
 import type { ProductSummary } from "@/lib/storefront/types";
-import { MAX_STOREFRONT_CATALOGUE_DETAILS } from "@/server/commerce/catalogue/catalogue-limits";
 import { listPublishedProducts } from "@/server/commerce/catalogue/catalog-repository";
+import { MAX_STOREFRONT_CATALOGUE_DETAILS } from "@/server/commerce/catalogue/catalogue-limits";
 import { mapProductSummary, productSummaryInclude } from "@/server/commerce/catalogue/mappers";
 import {
   buildStorefrontCatalogueWhere,
@@ -13,9 +13,9 @@ import {
   storefrontStandardOrderBy,
 } from "@/server/commerce/catalogue/storefront-page-query";
 import {
-  selectStorefrontCataloguePage,
   type StorefrontCataloguePage,
   type StorefrontCataloguePageQuery,
+  selectStorefrontCataloguePage,
 } from "@/server/commerce/catalogue/storefront-page-selection";
 import { publishedProductWhere } from "@/server/commerce/catalogue/visibility";
 
@@ -102,26 +102,11 @@ export async function queryStorefrontCataloguePageFromDatabase(
 
   let products: ProductSummary[];
   if (query.sort === "condition") {
-    products = await fetchAcrossBuckets(
-      where,
-      storefrontConditionBuckets,
-      skip,
-      query.pageSize,
-    );
+    products = await fetchAcrossBuckets(where, storefrontConditionBuckets, skip, query.pageSize);
   } else if (query.sort === "one") {
-    products = await fetchAcrossBuckets(
-      where,
-      storefrontInventoryBuckets,
-      skip,
-      query.pageSize,
-    );
+    products = await fetchAcrossBuckets(where, storefrontInventoryBuckets, skip, query.pageSize);
   } else {
-    products = await fetchRows(
-      where,
-      skip,
-      query.pageSize,
-      storefrontStandardOrderBy(query.sort),
-    );
+    products = await fetchRows(where, skip, query.pageSize, storefrontStandardOrderBy(query.sort));
   }
 
   return {

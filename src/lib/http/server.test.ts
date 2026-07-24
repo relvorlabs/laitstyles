@@ -1,0 +1,110 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
+import { ApiError } from "@/lib/errors/api-error";
+import { handleApiRequest } from "@/lib/http/server";
+
+const loggerError = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/logger", () => ({
+  logger: {
+    error: loggerError,
+  },
+}));
+
+afterEach(() => {
+  loggerError.mockClear();
+});
+
+describe("handleApiRequest", () => {
+  it("returns the standard success envelope and request ID", async () => {
+    const request = new Request("http://localhost/api/v1/health", {
+      headers: { "x-request-id": "phase-3-test" },
+    });
+    const response = await handleApiRequest(request, async () => ({
+      data: { id: "health" },
+      meta: { version: "v1" },
+      status: 201,
+    }));
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get("x-request-id")).toBe("phase-3-test");
+    await expect(response.json()).resolves.toEqual({
+      data: { id: "health" },
+      meta: { version: "v1" },
+    });
+  });
+
+  it("omits meta when the operation does not provide it", async () => {
+    const response = await handleApiRequest(async () => ({ data: { id: "health" } }));
+
+    await expect(response.json()).resolves.toEqual({ data: { id: "health" } });
+  });
+
+  it("maps expected API errors without exposing internals", async () => {
+    const response = await handleApiRequest(async () => {
+      throw new ApiError({
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+        status: 404,
+      });
+    });
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "RESOURCE_NOT_FOUND",
+        message: "The requested resource was not found.",
+      },
+    });
+    expect(loggerError).not.toHaveBeenCalled();
+  });
+
+  it("maps Zod issues to stable field errors", async () => {
+    const response = await handleApiRequest(async () => {
+      z.object({ name: z.string().min(1) }).parse({ name: "" });
+      return { data: null };
+    });
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "The request contains invalid fields.",
+        fieldErrors: {
+          name: expect.any(String),
+        },
+      },
+    });
+    expect(loggerError).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes and correlates unexpected failures", async () => {
+    const request = new Request("http://localhost/api/v1/products?page=2", {
+      method: "POST",
+      headers: { "x-request-id": "failure-test" },
+    });
+    const response = await handleApiRequest(request, async () => {
+      throw new Error("private database detail");
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get("x-request-id")).toBe("failure-test");
+    const payload = await response.json();
+    expect(payload).toEqual({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The request could not be completed.",
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain("private database detail");
+    expect(loggerError).toHaveBeenCalledWith(
+      {
+        requestId: "failure-test",
+        method: "POST",
+        pathname: "/api/v1/products",
+        errorName: "Error",
+      },
+      "Unhandled API route failure",
+    );
+  });
+});

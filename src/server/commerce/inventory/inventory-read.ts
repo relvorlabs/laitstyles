@@ -43,9 +43,7 @@ export async function listInventoryTaxonomy(): Promise<CatalogueTaxonomyItem[]> 
   ];
 }
 
-export async function listInventoryStockMovements(
-  productId?: string,
-): Promise<StockMovement[]> {
+export async function listInventoryStockMovements(productId?: string): Promise<StockMovement[]> {
   if (productId && !isUuid(productId)) return [];
   const rows = await prisma.stock_movements.findMany({
     where: productId ? { product_id: productId } : {},

@@ -58,9 +58,15 @@ const baseFixtureSchema = z.object({
 
 export const productFixtureSchema = z
   .discriminatedUnion("mode", [
-    baseFixtureSchema.extend({ mode: z.literal("unique"), archiveNumber: z.string().min(1) }).strict(),
     baseFixtureSchema
-      .extend({ mode: z.literal("stocked"), sku: z.string().min(1), stock: z.number().int().min(0) })
+      .extend({ mode: z.literal("unique"), archiveNumber: z.string().min(1) })
+      .strict(),
+    baseFixtureSchema
+      .extend({
+        mode: z.literal("stocked"),
+        sku: z.string().min(1),
+        stock: z.number().int().min(0),
+      })
       .strict(),
     baseFixtureSchema
       .extend({ mode: z.literal("variant"), variants: z.array(variantSchema).min(1) })
@@ -77,7 +83,8 @@ export const productFixtureSchema = z
     if (fixture.collectionSlug && !fixture.collectionName) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "collectionName is required alongside collectionSlug (used if the collection is new).",
+        message:
+          "collectionName is required alongside collectionSlug (used if the collection is new).",
         path: ["collectionName"],
       });
     }

@@ -4,9 +4,7 @@ import { addCartLine, type CartLine, type CartSelection } from "./cart-lines";
 import type { Product } from "./catalogue-data";
 import type { StorefrontCartIntent } from "./storefront-client-state";
 
-type VariantOptionsByProductId = Readonly<
-  Record<string, readonly ProductVariantOption[]>
->;
+type VariantOptionsByProductId = Readonly<Record<string, readonly ProductVariantOption[]>>;
 
 function resolveVariantSelection(
   product: Product,
@@ -38,8 +36,7 @@ export function restoreCartLines(
 ): readonly CartLine[] {
   return intents.reduce<readonly CartLine[]>((lines, intent) => {
     const product = products.find(
-      (candidate) =>
-        candidate.id === intent.productId || candidate.databaseId === intent.productId,
+      (candidate) => candidate.id === intent.productId || candidate.databaseId === intent.productId,
     );
     if (!product) return lines;
 

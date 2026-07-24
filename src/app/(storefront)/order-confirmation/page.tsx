@@ -19,10 +19,7 @@ export default function OrderConfirmationPage() {
     getLatestOrderSnapshot,
     getServerOrderSnapshot,
   );
-  const receipt = useMemo(
-    () => parseOrderReceiptSnapshot(receiptSnapshot),
-    [receiptSnapshot],
-  );
+  const receipt = useMemo(() => parseOrderReceiptSnapshot(receiptSnapshot), [receiptSnapshot]);
 
   if (!receipt) return <MissingReceipt />;
 

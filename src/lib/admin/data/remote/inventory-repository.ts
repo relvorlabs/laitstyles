@@ -15,8 +15,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export function createFetchAdminInventoryRepository(): InventoryRepository {
   return {
-    listProducts: () =>
-      fetchJson<InventoryProduct[]>("/api/admin/inventory/products"),
+    listProducts: () => fetchJson<InventoryProduct[]>("/api/admin/inventory/products"),
     getProduct: async (productId) => {
       const url = `/api/admin/inventory/products/${encodeURIComponent(productId)}`;
       const response = await fetch(url, { cache: "no-store" });
@@ -26,8 +25,7 @@ export function createFetchAdminInventoryRepository(): InventoryRepository {
       }
       return response.json() as Promise<InventoryProduct>;
     },
-    listTaxonomy: () =>
-      fetchJson<CatalogueTaxonomyItem[]>("/api/admin/inventory/taxonomy"),
+    listTaxonomy: () => fetchJson<CatalogueTaxonomyItem[]>("/api/admin/inventory/taxonomy"),
     listStockMovements: (productId) =>
       fetchJson<StockMovement[]>(
         productId

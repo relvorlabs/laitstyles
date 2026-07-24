@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import {
@@ -13,6 +13,8 @@ import {
   writeJson,
   writeText,
 } from "./lib.mjs";
+
+await configureSelfHostedDatabaseHost();
 
 const args = parseArgs();
 const suiteName = String(args.get("suite") ?? "");
@@ -215,3 +217,47 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 }
 
 if (failedRequired.length) process.exit(1);
+
+async function configureSelfHostedDatabaseHost() {
+  if (!process.env.GITHUB_ACTIONS) return;
+
+  const routeTable = await readFile("/proc/net/route", "utf8").catch(() => "");
+  const defaultRoute = routeTable
+    .split(/\r?\n/)
+    .slice(1)
+    .map((line) => line.trim().split(/\s+/))
+    .find((columns) => columns[1] === "00000000" && columns[2] !== "00000000");
+  const gateway = defaultRoute ? littleEndianHexToIpv4(defaultRoute[2]) : null;
+  if (!gateway) return;
+
+  const updates = [];
+  for (const name of ["DATABASE_URL", "DIRECT_URL"]) {
+    const current = process.env[name];
+    if (!current) continue;
+
+    let parsed;
+    try {
+      parsed = new URL(current);
+    } catch {
+      continue;
+    }
+    if (parsed.hostname !== "127.0.0.1" && parsed.hostname !== "localhost") continue;
+
+    parsed.hostname = gateway;
+    process.env[name] = parsed.toString();
+    updates.push(`${name}=${process.env[name]}`);
+  }
+
+  if (updates.length && process.env.GITHUB_ENV) {
+    await appendFile(process.env.GITHUB_ENV, `${updates.join("\n")}\n`, "utf8");
+  }
+}
+
+function littleEndianHexToIpv4(value) {
+  if (!/^[A-Fa-f0-9]{8}$/.test(value)) return null;
+  return value
+    .match(/../g)
+    .reverse()
+    .map((part) => Number.parseInt(part, 16))
+    .join(".");
+}

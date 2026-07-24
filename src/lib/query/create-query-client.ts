@@ -4,10 +4,14 @@ import { defaultShouldDehydrateQuery, QueryClient } from "@tanstack/react-query"
 export interface CreateQueryClientOptions {
   /** Milliseconds before a query is considered stale. Required — no silent default. */
   staleTime: number;
+  /** Milliseconds before an inactive query is garbage-collected. */
+  gcTime?: number;
   /** Defaults to TanStack's own default (3) if omitted. */
   retry?: number | false;
   /** Defaults to TanStack's own default (true) if omitted. */
   refetchOnWindowFocus?: boolean;
+  /** Defaults to TanStack's own default (true) if omitted. */
+  refetchOnReconnect?: boolean;
   /** Overrides the dehydrate predicate; omit to use TanStack's own default. */
   shouldDehydrateQuery?: (query: Query) => boolean;
 }
@@ -17,9 +21,13 @@ export function createQueryClient(options: CreateQueryClientOptions): QueryClien
     defaultOptions: {
       queries: {
         staleTime: options.staleTime,
+        ...(options.gcTime !== undefined ? { gcTime: options.gcTime } : {}),
         ...(options.retry !== undefined ? { retry: options.retry } : {}),
         ...(options.refetchOnWindowFocus !== undefined
           ? { refetchOnWindowFocus: options.refetchOnWindowFocus }
+          : {}),
+        ...(options.refetchOnReconnect !== undefined
+          ? { refetchOnReconnect: options.refetchOnReconnect }
           : {}),
       },
       ...(options.shouldDehydrateQuery

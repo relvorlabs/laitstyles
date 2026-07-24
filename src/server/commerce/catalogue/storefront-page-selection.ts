@@ -122,9 +122,7 @@ export function selectStorefrontCataloguePage(
     );
   }
   if (query.sort === "one") {
-    list.sort(
-      (a, b) => Number(b.product.mode === "unique") - Number(a.product.mode === "unique"),
-    );
+    list.sort((a, b) => Number(b.product.mode === "unique") - Number(a.product.mode === "unique"));
   }
 
   const total = list.length;
