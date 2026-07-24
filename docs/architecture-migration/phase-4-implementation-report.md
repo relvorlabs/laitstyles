@@ -2,47 +2,42 @@
 
 **Branch:** `refactor/phase-4-products-inventory-cutover`  
 **Pull request:** #41  
-**Status:** Implementation substantially complete; final validation is not yet executed  
+**Source status:** Complete  
+**Certification status:** Pending executed final-head evidence  
 **UI contract:** No intentional redesign
 
 ## Predecessor truth
 
-Phase 4 starts from the merged Phase 3 foundation at merge commit `d7e3149c96f234d7deb41151ac603d6f652ceb4d`.
+Phase 4 starts from Phase 3 merge commit `d7e3149c96f234d7deb41151ac603d6f652ceb4d`.
 
-Phase 3 was merged with validation debt. Its final-head Implementation Quality and Playwright UI Contract runs (`30118703848` and `30118703866`) were queued without executing. Phase 4 must not reinterpret those runs as passing.
+Phase 3 was merged with validation debt. Its final-head Implementation Quality and Playwright UI Contract runs (`30118703848` and `30118703866`) did not execute before merge. Phase 4 does not reinterpret queued, skipped, cancelled or superseded runs as passing evidence.
 
-## Implemented architecture
+## Canonical ownership
 
-### Product domain
+### Products
 
-Canonical product ownership now lives under `src/modules/products/**`:
+`src/modules/products/**` owns:
 
-- schemas and product/taxonomy identifiers;
 - product, variant, media, lifecycle, publication and taxonomy contracts;
-- admin product queries and ordered ID hydration;
-- product save, lifecycle and taxonomy commands;
-- product policy and rule enforcement;
-- Prisma-to-domain mappers;
-- cache invalidation;
-- typed browser API client;
-- TanStack Query keys, read options and mutations;
-- public/storefront product queries and page read models under `server/storefront/**`.
+- admin product list/detail queries;
+- product save, archive, restore, delete and taxonomy commands;
+- validation, authorization rules and Prisma-to-domain mapping;
+- browser API transport, TanStack Query keys, reads and mutations;
+- public catalogue queries, public mapping, visibility rules and catalogue-page database pagination under `server/storefront/**`.
 
-### Inventory domain
+### Inventory
 
-Canonical stock ownership now lives under `src/modules/inventory/**`:
+`src/modules/inventory/**` owns:
 
-- stock balances and stock movement contracts;
+- stock balance and movement contracts;
 - stock and variant write invariants;
-- stock movement queries;
-- inventory URL/search schema;
-- stock-aware database filtering and sorting;
-- database pagination;
-- summary and saved-view counts;
-- typed browser API client;
-- TanStack Query keys and read options.
+- stock movement reads;
+- stock-aware database filtering, sorting and pagination;
+- Inventory summaries and saved-view counts;
+- typed browser transport and TanStack Query reads;
+- transactional stock adjustment with balance guards, optimistic concurrency, immutable ledger movement and audit event.
 
-### Versioned API adapters
+## Versioned API adapters
 
 Implemented machine-readable adapters:
 
@@ -60,54 +55,89 @@ Implemented machine-readable adapters:
 - `GET /api/v1/admin/inventory`
 - `GET /api/v1/admin/inventory/stock-movements`
 
-Each adapter uses Phase 3 request handling, Zod validation, staff capability checks, request correlation, stable envelopes and direct domain operations. No Route Handler calls a Server Action.
+Each adapter uses the Phase 3 request boundary, Zod validation, staff capability checks, request correlation, stable envelopes and direct domain operations. Route Handlers do not call Server Actions.
 
-### Browser cutover
+Publishing is represented by the existing product create/update contract with `intent: "publish"`. A separate unused publish endpoint was not introduced because no current consumer needs one.
 
-Interactive product and inventory consumers now use:
+## Browser cutover
+
+Interactive admin consumers use:
 
 ```text
 Client Component
-  → TanStack Query
-  → typed domain API client
-  → /api/v1 Route Handler
-  → domain query or command
-  → Prisma
+  -> TanStack Query
+  -> typed domain API client
+  -> /api/v1 Route Handler
+  -> domain query or command
+  -> Prisma
 ```
 
-The migrated consumers include the Inventory workspace, detail sheet, lifecycle controls, taxonomy manager, product editor, record-sale product selection and the admin command menu.
+Migrated consumers include:
 
-### Database pagination
+- Inventory workspace and detail sheet;
+- lifecycle controls;
+- taxonomy manager;
+- product editor;
+- record-sale product selection and review;
+- admin command menu.
 
-The Inventory workspace no longer downloads a fixed product collection and paginates it in the browser.
+No TanStack mutation imports a Server Action.
 
-The versioned Inventory endpoint validates every result-affecting URL value and executes stock-aware PostgreSQL filtering, searching, sorting, total counting, saved-view counting and summary aggregation before loading only the requested product page.
+## Public storefront cutover
 
-All saved views, including Intake, expose the existing pagination control.
-
-### Removed legacy paths
-
-Deleted:
-
-- TanStack mutations importing Server Actions;
-- the inventory Server Actions and their action-specific tests;
-- the temporary architecture exception for that dependency;
-- the bespoke browser inventory repository and its tests;
-- inventory ownership from `AdminRepositories` and the provider;
-- the in-memory inventory repository fallback;
-- unversioned `/api/admin/inventory/**` routes;
-- the transitional inventory query-options and mutation files;
-- the former `src/server/commerce/inventory/**` implementation.
-
-### Public catalogue transition
-
-The canonical storefront product implementation now lives under:
+Public product reads now have one Prisma implementation owner:
 
 ```text
 src/modules/products/server/storefront/**
 ```
 
-The live catalogue loader imports the product module directly. Existing legacy catalogue files contain transitional exports only so unchanged page and test imports do not retain duplicate Prisma logic. Those export-only files are explicit legacy-deletion debt for the later cleanup phase; they are not represented as a second implementation.
+The following live consumers import the product module directly:
+
+- shared catalogue loader;
+- `/products` page;
+- `/collections/[slug]` page.
+
+The legacy `src/server/commerce/catalogue/**` query, mapper, visibility, page-selection and page-repository files are export-only compatibility shims. They contain no second Prisma implementation and remain only for unchanged legacy tests/imports until the approved Phase 9 deletion.
+
+A broad architecture test scans production `src/**` files and fails if any consumer outside the legacy shim folder imports `@/server/commerce/catalogue/**`.
+
+The previously duplicated storefront product writer was deleted. The runtime storefront smoke now creates through the canonical `saveProduct` command and reloads through the canonical public product query.
+
+## Inventory database pagination
+
+The Inventory workspace no longer downloads a fixed product collection and slices it in the browser.
+
+PostgreSQL now handles:
+
+- text search;
+- saved views;
+- inventory mode;
+- stock health;
+- category and collection;
+- publication channel;
+- sorting;
+- page and page size;
+- filtered total;
+- global Inventory summary;
+- saved-view counts.
+
+Only requested product IDs are hydrated into detailed product read models. All saved views, including Intake, expose the existing pagination component.
+
+## Removed legacy paths
+
+Deleted or removed from production ownership:
+
+- TanStack mutations importing Server Actions;
+- Inventory Server Actions and their action-specific tests;
+- the temporary architecture exception for that dependency;
+- bespoke browser Inventory repository and tests;
+- Inventory ownership from `AdminRepositories` and its provider;
+- production in-memory Inventory repository fallback;
+- unversioned `/api/admin/inventory/**` routes;
+- transitional Inventory query-options and mutation files;
+- former `src/server/commerce/inventory/**` implementation;
+- duplicate storefront product writers and obsolete writer test;
+- duplicate Prisma catalogue/query/page implementations from the legacy catalogue folder.
 
 ## Behavioral preservation
 
@@ -116,59 +146,61 @@ No intentional changes were made to:
 - header or footer;
 - homepage composition;
 - product cards;
-- catalogue and product-detail layouts;
-- admin Inventory grid/table/editor composition;
+- catalogue or product-detail layouts;
+- Inventory grid, table or editor composition;
 - typography, spacing, colours, themes or breakpoints;
-- dialogs, drawers or button presentation.
+- dialogs, drawers or buttons.
 
-The Intake view now reuses the existing Inventory pagination component when more than one database page exists. This is a correctness repair required by database pagination, not a new visual system.
+The Intake view reuses the existing Inventory pagination component when the result spans multiple database pages. This exposes previously inaccessible results without creating a new visual system.
 
-## Tests and evidence added
+## Focused tests and evidence added
 
-Focused tests now cover:
+Source tests cover:
 
-- product collection API authorization, pagination and create validation;
+- product API authorization, pagination, create and validation behavior;
 - Inventory API authorization, complete search parsing and page-size rejection;
-- product browser transport, cancellation, POST/PATCH selection and field-error mapping;
-- Inventory browser URL serialization, cancellation and response metadata;
-- product command transaction orchestration, durable media and uniqueness mapping;
+- browser transport cancellation, method selection, URL serialization and metadata;
+- product transaction orchestration, durable media and uniqueness handling;
 - stock balance preservation and variant-history protection;
-- product lifecycle archive, restore and deletion safety;
+- stock adjustment validation, variant ownership, concurrency protection, movement and audit writes;
+- lifecycle archive, restore and permanent-delete safety;
 - taxonomy creation, uniqueness and in-use protection;
-- database inventory page metadata, summaries and saved-view counts.
+- database Inventory page metadata, summaries and saved-view counts;
+- public loader detail behavior through the canonical module mock;
+- architecture protection against any renewed production legacy catalogue import.
 
-The HTTP smoke suite now verifies `/api/v1/admin/products` success or authorization envelopes in addition to the Phase 3 health endpoint.
+HTTP smoke verifies the versioned admin product contract in addition to health. The runtime storefront smoke uses the canonical product write/read loop.
 
 ## Task status
 
 | Task | Status | Evidence |
 | --- | --- | --- |
-| P4-T01 Phase 3 handoff and source map | Complete | Phase 3 debt and exact merge SHA recorded |
+| P4-T01 Phase 3 handoff and source map | Complete | Phase 3 debt and merge SHA recorded |
 | P4-T02 Define product/inventory contracts | Complete | Canonical module-owned contracts |
-| P4-T03 Move product definition/lifecycle/taxonomy ownership | Complete | `modules/products/**`; legacy public files export only |
-| P4-T04 Move stock/movement ownership | Complete | `modules/inventory/**`; old inventory server folder deleted |
-| P4-T05 Add authenticated versioned reads | Complete | Product, taxonomy, inventory and movement endpoints |
+| P4-T03 Move product definition/lifecycle/taxonomy/public-read ownership | Complete | `modules/products/**`; live storefront consumers use module paths |
+| P4-T04 Move stock/movement/adjustment ownership | Complete | `modules/inventory/**`; old Inventory server implementation removed |
+| P4-T05 Add authenticated versioned reads | Complete | Product, taxonomy, Inventory and movement endpoints |
 | P4-T06 Typed API clients and TanStack reads | Complete | Direct module consumers with cancellation and keyed URL state |
 | P4-T07 Versioned mutation endpoints | Complete | Save, archive, restore, delete and taxonomy commands |
-| P4-T08 Remove TanStack-to-Server-Action edge | Complete | Actions and exception deleted |
-| P4-T09 Remove compatibility endpoints | Complete | Unversioned inventory API routes deleted |
-| P4-T10 Persistence/auth/validation/error/invalidation parity | Implemented; execution pending | Focused tests and cache rules exist; final suites not executed |
-| P4-T11 Static, DB, unit, build, React Doctor, HTTP and Playwright gates | Pending execution | Current final-head workflows remain queued |
+| P4-T08 Remove TanStack-to-Server-Action edge | Complete | Actions and exact exception deleted |
+| P4-T09 Remove unversioned compatibility endpoints | Complete | Unversioned Inventory API routes deleted after consumer cutover |
+| P4-T10 Persistence/auth/validation/error/invalidation parity | Implemented; execution pending | Focused source tests, cache rules and runtime smoke exist |
+| P4-T11 Static, DB, unit, build, React Doctor, HTTP and Playwright gates | Pending execution | Requires final-head workflow results and artifacts |
 | P4-T12 Reconcile Phase 3 validation debt | Pending | Requires executed evidence, not queue state |
 
-## 10/10 certification rule
+## Certification rule
 
-Phase 4 must not be called 10/10, complete, validated or merge-ready until the current final head has executed and passed:
+Phase 4 must not be called 10/10, fully validated or merge-ready until the current final head executes and passes:
 
-- formatting and Biome;
-- architecture guard;
+- architecture guard and Biome;
 - TypeScript;
-- Prisma validation and database-backed tests;
-- unit/integration/API contract tests;
+- Prisma validation, migrations and database-backed checks;
+- unit, component, integration and API contract tests;
 - production build;
 - React Doctor;
 - HTTP smoke;
-- Playwright UI contract with retained artifacts;
+- desktop, tablet and mobile Playwright UI contract;
+- retained workflow artifacts;
 - review-thread and final-head reconciliation.
 
-A queued, skipped, cancelled or superseded run is not passing evidence.
+A queued, skipped, cancelled or superseded workflow is not passing evidence.
