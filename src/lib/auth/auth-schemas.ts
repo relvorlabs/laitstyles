@@ -18,8 +18,16 @@ export const passwordSignInSchema = z.object({
 });
 
 export const passwordSignUpSchema = passwordSignInSchema.extend({
-  first: z.string().trim().min(1, "Enter your first name.").max(100, "First name is too long."),
-  last: z.string().trim().min(1, "Enter your last name.").max(100, "Last name is too long."),
+  first: z
+    .string()
+    .trim()
+    .min(1, "Enter your first name.")
+    .max(100, "First name is too long."),
+  last: z
+    .string()
+    .trim()
+    .min(1, "Enter your last name.")
+    .max(100, "Last name is too long."),
   password: passwordSchema.min(8, "Password must be at least 8 characters."),
   terms: z.preprocess(
     (value) => value === true || value === "true",
