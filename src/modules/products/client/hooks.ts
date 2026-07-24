@@ -53,6 +53,11 @@ function upsertProductInCache(
     : [product, ...products];
 }
 
+function invalidateInventory(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
+  queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
+}
+
 export function useSaveProduct() {
   const queryClient = useQueryClient();
 
@@ -65,8 +70,7 @@ export function useSaveProduct() {
         upsertProductInCache(previous, product),
       );
       queryClient.setQueryData(productKeys.detail(product.id), product);
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.stockMovements(product.id) });
-      queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
+      invalidateInventory(queryClient);
     },
   });
 }
@@ -80,7 +84,7 @@ export function useArchiveProduct() {
       if (!result.ok) return;
       queryClient.invalidateQueries({ queryKey: productKeys.list() });
       queryClient.invalidateQueries({ queryKey: productKeys.detail(result.value.productId) });
-      queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
+      invalidateInventory(queryClient);
     },
   });
 }
@@ -94,7 +98,7 @@ export function useRestoreProduct() {
       if (!result.ok) return;
       queryClient.invalidateQueries({ queryKey: productKeys.list() });
       queryClient.invalidateQueries({ queryKey: productKeys.detail(result.value.productId) });
-      queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
+      invalidateInventory(queryClient);
     },
   });
 }
@@ -110,7 +114,7 @@ export function useDeleteProduct() {
         previous?.filter((entry) => entry.id !== result.value.productId),
       );
       queryClient.removeQueries({ queryKey: productKeys.detail(result.value.productId) });
-      queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
+      invalidateInventory(queryClient);
     },
   });
 }
@@ -143,6 +147,7 @@ export function useRenameProductTaxonomy() {
         previous?.map((entry) => (entry.id === item.id ? item : entry)),
       );
       queryClient.invalidateQueries({ queryKey: productKeys.list() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
   });
 }
