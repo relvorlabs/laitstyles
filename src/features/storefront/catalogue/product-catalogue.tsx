@@ -88,6 +88,8 @@ function CatalogueApp({
   });
   const serverFilterSignature = searchFilterSignature(search);
 
+  // The serialized signature contains every server-owned value read below.
+  // Storefront setters are stable React state setters.
   // biome-ignore lint/correctness/useExhaustiveDependencies: signature-driven synchronization is intentional.
   useEffect(() => {
     setFiltersReady(false);
@@ -104,6 +106,8 @@ function CatalogueApp({
     return () => window.cancelAnimationFrame(frame);
   }, [serverFilterSignature]);
 
+  // Local controls keep their existing behavior; this effect makes their state
+  // shareable by serializing it into the route rather than filtering in-browser.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the serialized signature is the dependency contract.
   useEffect(() => {
     if (!filtersReady || localFilterSignature === lastAppliedFilterSignature.current) return;
@@ -128,6 +132,8 @@ function CatalogueApp({
     const product = storefront.productById(id);
     return product ? [product] : [];
   });
+  const pages = pageCount;
+  const current = page;
 
   const applyQuick = (key: string) => {
     if (key === "all") storefront.applyShop({});
@@ -253,59 +259,119 @@ function CatalogueApp({
               </div>
             </div>
           </div>
+          {storefront.activeFilterChips.length > 0 ? (
+            <div className="active-filters" id="activeFilters">
+              {storefront.activeFilterChips.map((chip) => (
+                <Button
+                  key={`${chip.type}-${chip.value ?? chip.label}`}
+                  onClick={() => storefront.removeFilter(chip.type, chip.value)}
+                  type="button"
+                  variant="secondary"
+                >
+                  {chip.label} ×
+                </Button>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 
-      <section className="shell catalogue-layout" id="products">
-        {sidebarVisible ? (
-          <aside className="catalogue-sidebar">
-            <FilterControls />
+      <section className="catalogue" id="products">
+        <div className={`shell catalogue-layout${sidebarVisible ? "" : " no-sidebar"}`}>
+          <aside aria-label="Catalogue filters" className="filter-sidebar" hidden={!sidebarVisible}>
+            <div className="filter-panel">
+              <div className="filter-head">
+                <h2>Refine the rack</h2>
+                <Button onClick={storefront.clearFilters} type="button" variant="ghost">
+                  Clear all
+                </Button>
+              </div>
+              <FilterControls />
+            </div>
           </aside>
-        ) : null}
-        <div className="catalogue-content">
-          {pageItems.length > 0 ? (
-            <div className={`product-grid ${density === "compact" ? "compact" : ""}`}>
-              {renderCards(pageItems)}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <h2>No pieces match these filters</h2>
-              <p>Clear a filter or browse the full archive.</p>
-              <Button onClick={storefront.clearFilters} type="button">
-                Clear filters
-              </Button>
-            </div>
-          )}
 
-          {pageCount > 1 ? (
-            <nav aria-label="Catalogue pages" className="pagination">
-              <Button
-                disabled={page <= 1}
-                onClick={() => goToPage(page - 1)}
-                type="button"
-                variant="outline"
-              >
-                Previous
-              </Button>
-              <span className="mono">
-                Page {page} of {pageCount}
-              </span>
-              <Button
-                disabled={page >= pageCount}
-                onClick={() => goToPage(page + 1)}
-                type="button"
-                variant="outline"
-              >
-                Next
-              </Button>
-            </nav>
-          ) : null}
+          <div className="results">
+            {total > 0 ? (
+              <div aria-live="polite" className={`product-grid ${density}`} id="productGrid">
+                {renderCards(pageItems)}
+              </div>
+            ) : (
+              <div className="empty-state" id="emptyState">
+                <h2>No pieces match this edit.</h2>
+                <p>Clear one or more filters or return to the complete rack.</p>
+                <Button onClick={storefront.clearFilters} type="button">
+                  Clear filters
+                </Button>
+              </div>
+            )}
+            {total > 0 && pages > 1 ? (
+              <nav aria-label="Product result pages" className="pagination" id="pagination">
+                <Button
+                  aria-label="Previous page"
+                  disabled={current === 1}
+                  onClick={() => goToPage(Math.max(1, current - 1))}
+                  type="button"
+                  variant="outline"
+                >
+                  ←
+                </Button>
+                {Array.from({ length: pages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  const active = current === pageNumber;
+                  return (
+                    <Button
+                      aria-current={active ? "page" : undefined}
+                      aria-label={`Page ${pageNumber}`}
+                      key={pageNumber}
+                      onClick={() => goToPage(pageNumber)}
+                      type="button"
+                      variant={active ? "default" : "outline"}
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+                <Button
+                  aria-label="Next page"
+                  disabled={current === pages}
+                  onClick={() => goToPage(Math.min(pages, current + 1))}
+                  type="button"
+                  variant="outline"
+                >
+                  →
+                </Button>
+              </nav>
+            ) : null}
+          </div>
         </div>
       </section>
     </main>
   );
 }
 
-export function ProductCatalogue(props: Parameters<typeof CatalogueApp>[0]) {
-  return <CatalogueApp {...props} />;
+export function ProductCatalogue({
+  fontClassName,
+  productIds,
+  total,
+  page,
+  pageCount,
+  search,
+}: {
+  fontClassName: string;
+  productIds: readonly string[];
+  total: number;
+  page: number;
+  pageCount: number;
+  search: ParsedCatalogueSearch;
+}) {
+  void fontClassName;
+  return (
+    <CatalogueApp
+      page={page}
+      pageCount={pageCount}
+      productIds={productIds}
+      search={search}
+      total={total}
+    />
+  );
 }
