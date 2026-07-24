@@ -27,6 +27,9 @@ export const passwordSignUpSchema = passwordSignInSchema.extend({
 export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
 export type PasswordSignUpInput = z.infer<typeof passwordSignUpSchema>;
 
+type AuthField = "email" | "password" | "first" | "last";
+const authFields = new Set<AuthField>(["email", "password", "first", "last"]);
+
 export function authFormDataInput(formData: FormData) {
   return {
     email: formData.get("email"),
@@ -37,14 +40,13 @@ export function authFormDataInput(formData: FormData) {
   };
 }
 
-export function authFieldErrors(
-  error: z.ZodError,
-): Partial<Record<"email" | "password" | "first" | "last", string>> {
-  const flattened = error.flatten().fieldErrors;
-  return {
-    email: flattened.email?.[0],
-    password: flattened.password?.[0],
-    first: flattened.first?.[0],
-    last: flattened.last?.[0],
-  };
+export function authFieldErrors(error: z.ZodError): Partial<Record<AuthField, string>> {
+  const fields: Partial<Record<AuthField, string>> = {};
+  for (const issue of error.issues) {
+    const field = issue.path[0];
+    if (typeof field !== "string" || !authFields.has(field as AuthField)) continue;
+    const authField = field as AuthField;
+    fields[authField] ??= issue.message;
+  }
+  return fields;
 }
