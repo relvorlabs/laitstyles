@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
-import { useTheme } from "@/components/theme/theme-provider";
+import { useTheme } from "@/providers/theme-provider";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
