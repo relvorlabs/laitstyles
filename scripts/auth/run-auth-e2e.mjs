@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "../..");
 const evidenceDir = resolve(root, "ci-evidence/local-auth");
 const envPath = resolve(root, ".env.auth-test.local");
+const runAllBrowserTests = process.argv.includes("--all");
 mkdirSync(evidenceDir, { recursive: true });
 
 let server;
@@ -18,14 +19,10 @@ try {
   const env = {
     ...process.env,
     ...authEnv,
-    AUTH_E2E: "1",
-    PLAYWRIGHT_OUTPUT_DIR: "ci-evidence/local-auth/test-results",
-    PLAYWRIGHT_REPORT_DIR: "ci-evidence/local-auth/playwright-report",
-    PLAYWRIGHT_JSON_OUTPUT: "ci-evidence/local-auth/test-results/results.json",
-    PLAYWRIGHT_JUNIT_OUTPUT: "ci-evidence/local-auth/test-results/junit.xml",
   };
 
   run("pnpm", ["build"], { env });
+  run("pnpm", ["exec", "playwright", "install", "chromium"], { env });
 
   serverLog = openSync(resolve(evidenceDir, "server.log"), "w");
   server = spawn(
@@ -41,30 +38,29 @@ try {
 
   await waitForHttp("http://127.0.0.1:3000/auth/sign-up", server);
 
-  const testResult = spawnSync(
-    "pnpm",
-    [
-      "exec",
-      "playwright",
-      "test",
-      "tests/e2e/auth-flows.spec.ts",
-      "--project=desktop-chromium",
-    ],
+  if (runAllBrowserTests) {
+    const generalResult = runPlaywright(
+      ["test"],
+      "playwright-responsive",
+      {
+        ...env,
+        AUTH_E2E: "0",
+      },
+    );
+    if (generalResult !== 0) {
+      exitCode = generalResult;
+      throw new Error("Responsive Playwright suite failed; Auth journey was not started.");
+    }
+  }
+
+  exitCode = runPlaywright(
+    ["test", "tests/e2e/auth-flows.spec.ts", "--project=desktop-chromium"],
+    "playwright-auth",
     {
-      cwd: root,
-      env,
-      encoding: "utf8",
-      shell: process.platform === "win32",
+      ...env,
+      AUTH_E2E: "1",
     },
   );
-
-  writeFileSync(resolve(evidenceDir, "playwright.stdout.log"), testResult.stdout ?? "", "utf8");
-  writeFileSync(resolve(evidenceDir, "playwright.stderr.log"), testResult.stderr ?? "", "utf8");
-  process.stdout.write(testResult.stdout ?? "");
-  process.stderr.write(testResult.stderr ?? "");
-
-  if (testResult.error) throw testResult.error;
-  exitCode = testResult.status ?? 1;
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
 } finally {
@@ -78,6 +74,37 @@ try {
 }
 
 process.exit(exitCode);
+
+function runPlaywright(args, evidenceName, env) {
+  const outputDir = `ci-evidence/local-auth/${evidenceName}/test-results`;
+  const result = spawnSync("pnpm", ["exec", "playwright", ...args], {
+    cwd: root,
+    env: {
+      ...env,
+      PLAYWRIGHT_OUTPUT_DIR: outputDir,
+      PLAYWRIGHT_REPORT_DIR: `ci-evidence/local-auth/${evidenceName}/playwright-report`,
+      PLAYWRIGHT_JSON_OUTPUT: `${outputDir}/results.json`,
+      PLAYWRIGHT_JUNIT_OUTPUT: `${outputDir}/junit.xml`,
+    },
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  });
+
+  writeFileSync(
+    resolve(evidenceDir, `${evidenceName}.stdout.log`),
+    result.stdout ?? "",
+    "utf8",
+  );
+  writeFileSync(
+    resolve(evidenceDir, `${evidenceName}.stderr.log`),
+    result.stderr ?? "",
+    "utf8",
+  );
+  process.stdout.write(result.stdout ?? "");
+  process.stderr.write(result.stderr ?? "");
+  if (result.error) throw result.error;
+  return result.status ?? 1;
+}
 
 function parseEnvFile(path) {
   const result = {};
