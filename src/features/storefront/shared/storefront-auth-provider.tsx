@@ -120,14 +120,14 @@ export function StorefrontAuthProvider({
         : await submitPasswordSignIn(formData);
 
     if (!result.ok) {
-      setAuthErrors({ ...(result.fieldErrors ?? {}), form: result.message });
+      setAuthErrors({ ...(result.error.fieldErrors ?? {}), form: result.error.message });
       setShowAuthErrors(true);
       setAuthState("default");
       return;
     }
 
-    setAuthState(result.status);
-    if (result.status === "success") router.refresh();
+    setAuthState(result.value.status);
+    if (result.value.status === "success") router.refresh();
   }, [authForm, authMode, authState, router, termsAccepted]);
 
   const onAuthOpenChange = useCallback((open: boolean) => {
@@ -141,7 +141,7 @@ export function StorefrontAuthProvider({
   const signOut = useCallback(async () => {
     const result = await signOutStorefrontSession();
     if (!result.ok) {
-      toast.error(result.message);
+      toast.error(result.error.message);
       return;
     }
     router.refresh();
