@@ -14,6 +14,8 @@ function sourceFiles(directory: string): string[] {
 
 const retiredFiles = [
   "src/components/shop/shop-provider.tsx",
+  "src/features/storefront/shared/cart-persistence.ts",
+  "src/features/storefront/shared/cart-persistence.test.ts",
   "src/features/storefront/shared/storefront-experience-provider.tsx",
   "src/features/storefront/shared/storefront-experience-data.ts",
   "src/features/storefront/checkout/checkout-flow.tsx",
@@ -23,6 +25,7 @@ const retiredFiles = [
 
 const retiredImports = [
   "@/components/shop/shop-provider",
+  "./cart-persistence",
   "storefront-experience-provider",
   "storefront-experience-data",
   "@/lib/catalogue",
