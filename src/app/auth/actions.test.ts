@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn(),
+  logAuthProviderFailure: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -11,6 +12,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/lib/auth/server/request-origin", () => ({
   getRequestOrigin: vi.fn(async () => "https://laitstyle.example"),
+}));
+vi.mock("@/lib/auth/server/auth-provider-diagnostics", () => ({
+  logAuthProviderFailure: mocks.logAuthProviderFailure,
 }));
 
 import {
@@ -50,12 +54,17 @@ describe("password auth actions", () => {
       },
     });
     expect(mocks.signInWithPassword).not.toHaveBeenCalled();
+    expect(mocks.logAuthProviderFailure).not.toHaveBeenCalled();
   });
 
-  it("maps provider codes without returning raw provider text", async () => {
-    mocks.signInWithPassword.mockResolvedValueOnce({
-      error: { code: "invalid_credentials", message: "provider detail" },
-    });
+  it("maps provider codes, records diagnostics, and hides raw provider text", async () => {
+    const providerError = {
+      code: "invalid_credentials",
+      status: 400,
+      name: "AuthApiError",
+      message: "provider detail",
+    };
+    mocks.signInWithPassword.mockResolvedValueOnce({ error: providerError });
 
     const result = await submitPasswordSignIn(
       formData({ email: "shopper@example.com", password: "password123" }),
@@ -68,6 +77,10 @@ describe("password auth actions", () => {
         message: "The email or password is incorrect.",
       },
     });
+    expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith(
+      "password-sign-in",
+      providerError,
+    );
     expect(JSON.stringify(result)).not.toContain("provider detail");
   });
 
@@ -123,10 +136,14 @@ describe("password auth actions", () => {
     });
   });
 
-  it("returns fixed sign-out copy", async () => {
-    mocks.signOut.mockResolvedValueOnce({
-      error: { code: "provider_error", message: "internal auth service detail" },
-    });
+  it("returns fixed sign-out copy and records diagnostics", async () => {
+    const providerError = {
+      code: "provider_error",
+      status: 503,
+      name: "AuthRetryableFetchError",
+      message: "internal auth service detail",
+    };
+    mocks.signOut.mockResolvedValueOnce({ error: providerError });
 
     await expect(signOutStorefrontSession()).resolves.toEqual({
       ok: false,
@@ -135,5 +152,6 @@ describe("password auth actions", () => {
         message: "We could not sign you out. Please try again.",
       },
     });
+    expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith("sign-out", providerError);
   });
 });
