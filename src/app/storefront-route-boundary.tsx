@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { AppShellFallback } from "@/app/app-shell-fallback";
 import { StorefrontProviders } from "@/app/storefront-providers";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import { loadStorefrontCatalog } from "@/features/storefront/shared/catalog-loader";
+import { loadStorefrontShellCatalog } from "@/features/storefront/shared/catalog-loader";
 import { getCurrentSession } from "@/server/auth/session";
 
 async function loadStorefrontAuthSession(): Promise<StorefrontAuthSession> {
@@ -15,7 +15,7 @@ async function loadStorefrontAuthSession(): Promise<StorefrontAuthSession> {
 }
 
 export function StorefrontRouteBoundary({ children }: { children: ReactNode }) {
-  const catalogPromise = loadStorefrontCatalog();
+  const catalogPromise = loadStorefrontShellCatalog();
   const authSessionPromise = loadStorefrontAuthSession();
 
   return (
