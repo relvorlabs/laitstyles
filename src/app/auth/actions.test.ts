@@ -71,6 +71,28 @@ describe("password auth actions", () => {
     expect(JSON.stringify(result)).not.toContain("provider detail");
   });
 
+  it("requires terms acceptance before calling the sign-up provider", async () => {
+    const result = await submitPasswordSignUp(
+      formData({
+        email: "shopper@example.com",
+        password: "password123",
+        first: "Ada",
+        last: "Lovelace",
+        terms: "false",
+      }),
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "invalid-input",
+        message: "Check the highlighted fields and try again.",
+        fieldErrors: { terms: "Please accept the Terms to continue." },
+      },
+    });
+    expect(mocks.signUp).not.toHaveBeenCalled();
+  });
+
   it("validates and normalizes sign-up input before the provider call", async () => {
     const result = await submitPasswordSignUp(
       formData({
@@ -78,6 +100,7 @@ describe("password auth actions", () => {
         password: "password123",
         first: " Ada ",
         last: " Lovelace ",
+        terms: "true",
         next: "https://attacker.example",
       }),
     );
