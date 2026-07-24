@@ -18,7 +18,14 @@ const harness = vi.hoisted(() => {
       this.code = code;
     }
   }
-  return { tx, prisma, Prisma: { PrismaClientKnownRequestError } };
+  return {
+    tx,
+    prisma,
+    Prisma: {
+      TransactionIsolationLevel: { Serializable: "Serializable" },
+      PrismaClientKnownRequestError,
+    },
+  };
 });
 
 vi.mock("@/lib/prisma", () => ({ Prisma: harness.Prisma, prisma: harness.prisma }));
