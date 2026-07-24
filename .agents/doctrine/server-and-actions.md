@@ -1,91 +1,133 @@
 # Doctrine: Server, API, actions & data access
 
-Owner of: server-vs-client rendering, Server Actions vs route handlers vs client adapters,
-Prisma/Supabase, authorization, transactions, Cache Components, TanStack Query.
+Owner of: server-vs-client rendering, Route Handlers, Server Actions, Prisma/Supabase,
+authorization, transactions, caching, and TanStack Query.
 Cited by: domain-engineer, data-engineer, ui-engineer.
 
-The repo uses **Next.js 16** and **React 19**.
+The repository uses Next.js 16 and React 19.
 
 ## Server-first rendering
 
-- Prefer Server Components for route composition, data access, and static boundaries.
-- Use Client Components only when browser APIs, interaction state, client query hooks, or
-  client-side form workflows require them. Avoid page-wide client rendering when only a
-  subsection is interactive.
-- Respect current async conventions for `params`, `searchParams`, `cookies`, `headers`.
-- Add `loading.tsx`, `error.tsx`, and not-found boundaries when the route needs them.
-- Avoid request waterfalls — start independent work together. Stream real async sections with
-  Suspense; do not wrap synchronous prototype data in Suspense for appearance.
-- Use `next/image` with accurate `sizes` for product imagery. Dynamically load heavy
-  client-only modules only for a real bundle or interaction benefit.
-- Keep server-only code, secrets, and privileged adapters out of client bundles.
+- Prefer Server Components for route composition, initial business reads, and SEO-sensitive
+  content.
+- Use Client Components only for browser APIs, interaction state, client query hooks, or
+  client-side forms.
+- Server Components call domain server queries directly. They do not call internal `/api/**`
+  routes for their own data.
+- Keep server-only code, secrets, privileged adapters, and Prisma out of client bundles.
+- Avoid request waterfalls; start independent work together and stream only real asynchronous
+  sections.
 
-## Choosing the write/read transport
+## Standard data flows
 
-- **Server Component read** — default for rendering business data.
-- **Server Action** (`'use server'`, colocated e.g. `app/auth/actions.ts`,
-  `features/**/review-actions.ts`) — for mutations invoked from the user's own forms/UI.
-  Server Actions are **not** browser query functions — do not call them as TanStack
-  `queryFn`.
-- **Route handler** (`app/api/**`) — for webhooks, external callers, and browser-safe
-  fetch/RPC endpoints (e.g. `api/payment/*`, `api/health`).
-- **Client-safe adapter** — browser-executed reads that contain no secrets and need no
-  server authority.
+### Interactive browser read or mutation
 
-## Data access: Prisma & Supabase
+```text
+Client Component
+  → TanStack Query hook
+  → typed API client
+  → Route Handler
+  → domain query or command
+  → Prisma
+```
 
-- **Prisma** is the schema, migration, and ordinary data-access authority: application CRUD,
-  relations, transactions, schema evolution, generated types. Client in `src/lib/prisma`.
-- **Supabase** provides PostgreSQL hosting and **authentication/session** handling
-  (`src/lib/supabase`). Do not use the Supabase JS client for ordinary application CRUD
-  unless an exception is documented.
-- Enforce authorization on the **server** (`src/server/auth` session + `src/lib/auth` policies).
-  Validate ownership, role, and access before sensitive reads/writes. Never rely on hidden UI
-  as enforcement.
-- Use transactions for multi-step writes that must succeed or fail together. Treat stock,
-  unique-item ownership, payment state, fulfilment, refunds, and reservation transitions as
-  concurrency-sensitive.
+### Server-rendered read
 
-## Cache Components & freshness
+```text
+Server Component
+  → domain server query
+  → Prisma
+```
 
-Cache Components are enabled repo-wide. Do not disable or reconfigure without approval.
+### Form-specific Server Action
 
-- Use `use cache`, `cacheTag`, `cacheLife` only where a real freshness boundary and
-  invalidation strategy exist. Do not cache in-memory prototype reads, seed arrays, or static
-  JSON.
-- A write that changes cached data must invalidate or update the corresponding tags.
-- The catalogue read path may cache with the `catalogue` / `product-${slug}` tags (a
-  catalogue-feature convention — see [architecture](architecture.md)).
-- **Boundary:** never add caching to make synchronous or static prototype code look
-  production-ready.
+```text
+Form or Client Component
+  → thin Server Action
+  → domain command
+  → Prisma
+```
 
-## TanStack Query (client server-state)
+### Webhook
 
-Use it only when a feature must synchronize server-like resource state in the browser
-(client in `src/lib/query`). Do not add it to wrap local arrays or imitate a backend.
+```text
+Route Handler
+  → idempotent domain command
+  → Prisma transaction
+```
 
-When used:
+Route Handlers and Server Actions are separate transport adapters. Neither calls the other for
+reuse. Both may call the same domain command or query.
 
-- Typed array query keys; one key factory per domain, colocated with the domain data layer.
-- Include every data-affecting filter, sort, saved view, pagination value, and identifier in
-  the key.
-- Configure stale time, retry, refetch, and GC intentionally. Distinguish initial-pending,
-  error, empty, stale, and background-refetch states; keep cached data visible during
-  background refetch.
-- Per-request server `QueryClient`, stable browser `QueryClient` when hydrating; never reuse
-  a server cache across requests.
-- Do not copy query data into Context/reducers/Zustand (see [state-and-data](state-and-data.md)).
+## Choosing the transport
 
-Mutations — prefer the least risky strategy in order: (1) exact cache replacement from the
-authoritative result, (2) targeted invalidation, (3) optimistic update only for reversible,
-low-conflict actions. Every optimistic update needs query cancellation, a previous-cache
-snapshot, a deterministic optimistic value, rollback on error, and reconciliation on settle.
-**Boundary:** never optimistically finalise sales, payments, fulfilment, stock release,
-returns, refunds, reservations, or unique-item ownership unless concurrency and rollback
-safety are proven.
+- **Server Component read** — default for initial rendering and server-owned reads.
+- **Route Handler** — machine-readable browser APIs, external clients, webhooks, explicit HTTP
+  semantics, polling, and client-side CRUD.
+- **Server Action** — optional thin adapter for progressively enhanced forms, route-owned
+  redirect/revalidation, or an interaction where action semantics are clearly simpler.
+- **Client API** — browser HTTP calls only; it must not import Prisma, sessions, or Server
+  Actions.
 
-**Boundary (prototype transport):** deterministic Promise-based in-memory repositories are
-fine for prototypes; server-only prototype repositories may be prefetched and dehydrated but
-browser refetch stays disabled until a browser-safe transport exists. Do not build fake API
-routes whose only purpose is to disguise local arrays, and do not add random latency or
-failures — test error/stale behaviour through deterministic injected adapters.
+A Server Action validates transport input, calls a domain operation, maps the result, and
+optionally redirects or revalidates. Reusable database and policy rules do not live inside the
+action.
+
+## Prohibited transport coupling
+
+- TanStack Query hooks must not import a `"use server"` module.
+- Route Handlers must not import Server Actions.
+- Client Components must not import Prisma or domain server modules.
+- Server Components must not fetch internal application APIs for their own reads.
+- API endpoints must not hide an in-memory store or dummy array behind `Promise.resolve()`.
+
+Temporary legacy exceptions must be exact, documented, machine-readable, and assigned to a
+removal phase.
+
+## Data access: Prisma and Supabase
+
+- Prisma is the schema, migration, transaction, and ordinary application-data authority.
+- Supabase provides PostgreSQL hosting and authentication/session handling.
+- Do not use the Supabase JavaScript client for ordinary CRUD unless an explicit exception is
+  documented.
+- Enforce authorization on the server before sensitive reads or writes.
+- Use transactions for stock, reservation, order, payment, fulfilment, refund, and other
+  multi-step state transitions.
+
+## Production data rule
+
+Production routes, providers, hooks, and modules must not import:
+
+```text
+tests/fixtures/
+tests/factories/
+stories/fixtures/
+scripts/seed/
+development/fixtures/
+```
+
+Seed and fixture data may support tests, stories, local development, or explicit seeding only.
+A successful production mutation must survive reload; no runtime fallback may silently restore
+mock data.
+
+## Cache Components
+
+Cache Components remain enabled. Use cache boundaries only with a real freshness and
+invalidation strategy.
+
+- Do not cache local arrays or prototype state to make them appear production-ready.
+- A write that changes cached data must invalidate or update the corresponding cache.
+- Cache tags are domain-specific implementation details and must not create a second data owner.
+
+## TanStack Query
+
+TanStack Query owns remote browser cache only.
+
+- Query functions call typed browser API clients.
+- Query keys include every result-affecting identifier, filter, sort, and pagination value.
+- Configure stale time, retries, refetch, garbage collection, and cancellation intentionally.
+- Do not copy query results into Context, AdminStore, reducers, or Zustand.
+- Mutations prefer authoritative cache replacement, then targeted invalidation; optimistic
+  updates require deterministic rollback and are not used casually for payments, stock,
+  reservations, fulfilment, refunds, or unique-item ownership.
+- Do not use TanStack Query around local arrays or Promise-wrapped client stores.
