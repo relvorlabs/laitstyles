@@ -2,19 +2,20 @@
 
 **Baseline commit:** `6f5087f4aa08a5d9bce5989bad7b230344cdb493`  
 **Phase 0 merge:** `072cc92aa5301342f060633663094f956089ef1a`  
-**Current branch:** `refactor/phase-1-architecture-guards`  
-**Current phase:** Phase 1 — Establish architecture rules, language, and permanent validation  
+**Phase 1 merge:** `1ca1b184207ea2a36fa41c10162b8a059abe5289`  
+**Current branch:** `refactor/phase-2-layout-provider-scope`  
+**Current phase:** Phase 2 — Consolidate layouts and provider scope  
 **Overall status:** In progress
 
-Status values: `Not started`, `In progress`, `Blocked`, `Complete`.
+Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
 ## Phase summary
 
 | Phase | Goal | Status | Gate |
 | --- | --- | --- | --- |
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
-| 1 | Establish architecture rules, language, and permanent validation | In progress | Guards and private validation pass with documented exceptions |
-| 2 | Consolidate layouts and provider scope | Not started | Route and visual parity |
+| 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; private source validation still queued for `laitstyles-ci` |
+| 2 | Consolidate layouts and provider scope | In progress | Route and visual parity |
 | 3 | Create HTTP and domain-module foundation | Not started | Typed transport contract proven |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
 | 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
@@ -38,74 +39,95 @@ Digest: sha256:26ccedc1296d92480be077a327f1b9a0fbe813e5bbd663cd8266f101f7ffa6c3
 The public deployment/source mismatch and excluded authenticated admin mutations remain recorded
 baseline limitations. They are not hidden passes.
 
-## Phase 1 tasks
+## Phase 1 result
 
-| ID | Task | Status | Evidence |
-| --- | --- | --- | --- |
-| P1-T01 | Add product, inventory, catalogue, storefront, and admin language contract | Complete | `.agents/doctrine/architecture.md` and `conventions.md` |
-| P1-T02 | Mark `features/**` as legacy for new code | Complete | Doctrine plus new-file architecture guard |
-| P1-T03 | Mark top-level `server/**` as legacy for new business modules | Complete | Doctrine plus new-file architecture guard |
-| P1-T04 | Add import-boundary rules | Complete | Architecture guard indexes imports and local module targets |
-| P1-T05 | Prevent production imports from fixture directories | Complete | Guard scans production `src/**` imports |
-| P1-T06 | Prevent Client Components from importing Prisma or server modules | Complete | Guard scans all Client Components |
-| P1-T07 | Prevent TanStack hooks from importing `"use server"` modules | Complete | Guard resolves Server Action modules; one exact Phase 4 exception documented |
-| P1-T08 | Prevent Route Handlers from importing Server Actions | Complete | Guard resolves route-handler imports with no allowlist |
-| P1-T09 | Prevent mixed `catalog` and `catalogue` spelling | Complete | Changed files may not increase American-spelled catalogue debt |
-| P1-T10 | Add migration-status document listing every domain | Complete | `phase-1-domain-status.md` |
-| P1-T11 | Add one permanent local command surface for Biome, TypeScript, tests, React Doctor, database, build, and Playwright | Complete | `package.json`, `run-gates.mjs`, and `run-local-verification.mjs` |
-| P1-T12 | Remove paid hosted-runner dependence without exposing private source | Complete | Configurable `laitstyles-ci` self-hosted workflows plus public-deployment-only fallback contract |
-| P1-T13 | Restore executable evidence, rerun, and deterministic repair feedback | Complete | Functional `task-progress.yml`, manifests, artifacts, PR commands, and Biome patch mode |
+Phase 1 architecture and validation tasks P1-T01 through P1-T13 were implemented and squash-merged
+through PR #38 as `1ca1b184207ea2a36fa41c10162b8a059abe5289`.
 
-P1-T11 through P1-T13 were added by direct user instruction on July 24, 2026. They extend Phase 1
-validation infrastructure only; they do not authorize Phase 2 runtime architecture changes.
+The repository owner explicitly directed the merge and Phase 2 start while these private workflows
+remained queued for the not-yet-registered `laitstyles-ci` runner:
 
-## Phase 1 exact legacy exception
+```text
+Implementation Quality: 30103043887
+Playwright UI Contract: 30103043857
+```
+
+Therefore Phase 1 is recorded as **Merged with debt**, not as privately validated. Biome,
+TypeScript, Vitest, Prisma, build, React Doctor and source-backed Playwright have not been converted
+into passes by the merge decision.
+
+The exact Phase 4 legacy transport exception remains:
 
 ```text
 src/features/admin/inventory/inventory-mutations.ts
   -> src/features/admin/inventory/inventory-actions.ts
-Removal: Phase 4
 ```
 
-The exception is machine-readable and stale-exception checked. No exception exists for Route
-Handlers importing Server Actions, Client Components importing server/Prisma code, fixture
-imports, or new runtime modules under legacy folders.
+## Phase 2 execution
 
-## Phase 1 acceptance gate
+The exact Phase 2 checklist and scope are maintained in
+[`phase-2-layout-provider-status.md`](phase-2-layout-provider-status.md).
 
-Implementation is present, but the phase remains **in progress** until a trusted `laitstyles-ci`
-runner is registered and the private source suites execute successfully:
+| ID | Task | Status |
+| --- | --- | --- |
+| P2-T01 | Add shared `(storefront)` layout using the existing route boundary | Complete |
+| P2-T02 | Move the homepage under `(storefront)/(home)` | Complete |
+| P2-T03 | Move products, collections, cart, checkout and order confirmation | Not started |
+| P2-T04 | Move account while retaining its nested shell | Not started |
+| P2-T05 | Remove duplicate storefront layout wrappers and retire compatibility layout | In progress |
+| P2-T06 | Remove QueryProvider from global root | Complete |
+| P2-T07 | Scope QueryProvider to the current admin TanStack surface | Complete |
+| P2-T08 | Add provider and layout architecture checks | Not started |
+| P2-T09 | Execute route, browser and visual parity validation | Blocked |
+| P2-T10 | Record final map, evidence, rollback and debt | In progress |
+
+## Phase 2 current composition
+
+```text
+RootLayout
+  -> AppProvider
+     -> ThemeProvider
+     -> routes
+     -> Toaster
+
+AdminLayout
+  -> staff access resolution
+  -> QueryProvider
+     -> AdminShell
+
+src/app/(storefront)/layout.tsx
+  -> StorefrontRouteBoundary
+```
+
+This phase changes route and provider composition only. It does not migrate domains, APIs,
+persistence, auth ownership, storefront state, checkout authority, or UI presentation.
+
+## Phase 2 acceptance gate
+
+Required before Phase 2 may be declared complete:
 
 ```bash
-pnpm validate
-pnpm validate:full
-pnpm validate:browser
+pnpm check:architecture
+pnpm biome
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm react-doctor
+pnpm test:e2e
 ```
 
-The equivalent PR workflows must produce the required `static`, `tests`, `database`, `build`,
-`browser-preflight`, and three Playwright project manifests. React Doctor warnings touching changed
-scope must be resolved even though the legacy-wide scan remains advisory.
+Also required:
 
-The public deployment workflow confirms availability and visual/browser smoke only. It does not
-replace private architecture, Biome, TypeScript, test, Prisma, build, React Doctor, or source-backed
-Playwright evidence.
+- every intended storefront route moved beneath the shared route group without URL changes;
+- no duplicate storefront layout wrappers;
+- all TanStack consumers beneath QueryProvider;
+- auth and admin redirect parity;
+- desktop, tablet and mobile Playwright evidence;
+- light and dark screenshot parity;
+- no increase in console, page or network errors.
 
-If a guard blocks valid Next.js behaviour rather than an architecture defect, narrow the guard and
-record the reason. Do not bypass it with a broad allowlist.
-
-## Phase 1 explicit exclusions
-
-Phase 1 does not:
-
-- create or migrate runtime domain modules;
-- move storefront routes or layouts;
-- relocate QueryProvider;
-- replace AdminStore or in-memory repositories;
-- replace Server Actions with API routes;
-- introduce Zustand;
-- consolidate authentication;
-- change checkout/payment authority;
-- alter visible UI.
+A queued runner, unavailable check, missing artifact, or public-deployment-only result must remain
+reported as blocked rather than passing.
 
 ## Decision safeguards
 
@@ -117,4 +139,3 @@ Phase 1 does not:
 - URL owns navigable filters, sorting, pagination, and search.
 - Zustand is limited to browser-owned shared state.
 - Storefront and admin share domains, not unrestricted actions.
-- A later phase may not begin until the current acceptance gate passes.
