@@ -20,6 +20,12 @@ const harness = vi.hoisted(() => {
     }
   }
 
+  class InventoryRuleViolation extends Error {
+    constructor(readonly actionError: { code: string; message: string }) {
+      super(actionError.message);
+    }
+  }
+
   const prisma = {
     $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx)),
   };
@@ -31,6 +37,7 @@ const harness = vi.hoisted(() => {
       TransactionIsolationLevel: { Serializable: "Serializable" },
       PrismaClientKnownRequestError,
     },
+    InventoryRuleViolation,
     getAdminProduct: vi.fn(),
     assertProductInventoryModeCanChange: vi.fn(),
     writeProductStockAndVariants: vi.fn(),
@@ -46,6 +53,7 @@ vi.mock("@/modules/products/server/queries", () => ({
   getAdminProduct: harness.getAdminProduct,
 }));
 vi.mock("@/modules/inventory/server/stock-write", () => ({
+  InventoryRuleViolation: harness.InventoryRuleViolation,
   assertProductInventoryModeCanChange: harness.assertProductInventoryModeCanChange,
   writeProductStockAndVariants: harness.writeProductStockAndVariants,
 }));
@@ -82,7 +90,7 @@ describe("saveProduct", () => {
   it("creates through one serializable transaction without a client database id", async () => {
     const values = validStockedValues();
     const saved = savedStockedProduct();
-    harness.getAdminProduct.mockResolvedValueOnce(null).mockResolvedValueOnce(saved);
+    harness.getAdminProduct.mockResolvedValueOnce(saved);
 
     const result = await saveProduct(actor, values, "draft");
 
@@ -123,7 +131,6 @@ describe("saveProduct", () => {
         source: "local-preview",
       },
     ];
-    harness.getAdminProduct.mockResolvedValueOnce(null);
 
     const result = await saveProduct(actor, values, "draft");
 
@@ -136,7 +143,6 @@ describe("saveProduct", () => {
 
   it("maps Prisma uniqueness failures to the stable product error", async () => {
     const values = validStockedValues();
-    harness.getAdminProduct.mockResolvedValueOnce(null);
     harness.tx.products.create.mockRejectedValueOnce(
       new harness.Prisma.PrismaClientKnownRequestError("duplicate", "P2002"),
     );
