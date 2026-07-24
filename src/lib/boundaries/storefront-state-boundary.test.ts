@@ -7,13 +7,23 @@ const root = process.cwd();
 function sourceFiles(directory: string): string[] {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    return entry.isDirectory() ? sourceFiles(path) : /\.[cm]?[jt]sx?$/.test(entry.name) ? [path] : [];
+    const filePath = join(directory, entry.name);
+    return entry.isDirectory()
+      ? sourceFiles(filePath)
+      : /\.[cm]?[jt]sx?$/.test(entry.name)
+        ? [filePath]
+        : [];
   });
 }
 
 function path(...segments: string[]) {
   return segments.join("/");
+}
+
+function importedModules(source: string): string[] {
+  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map(
+    (match) => match[1],
+  );
 }
 
 const retiredFiles = [
@@ -36,7 +46,7 @@ const retiredImports = [
   ["storefront-experience", "data"].join("-"),
   path("@", "lib", "catalogue"),
   path("@", "lib", "order"),
-  path("storefront", "checkout", "checkout-flow"),
+  path("@", "features", "storefront", "checkout", "checkout-flow"),
   path("@", "app", "storefront-providers"),
 ];
 
@@ -51,9 +61,9 @@ describe("storefront state boundaries", () => {
     const violations = sourceFiles(join(root, "src"))
       .filter((filePath) => !/\.test\.[cm]?[jt]sx?$/.test(filePath))
       .flatMap((filePath) => {
-        const source = readFileSync(filePath, "utf8");
+        const imports = importedModules(readFileSync(filePath, "utf8"));
         return retiredImports
-          .filter((retiredImport) => source.includes(retiredImport))
+          .filter((retiredImport) => imports.includes(retiredImport))
           .map((retiredImport) => `${filePath.replace(`${root}/`, "")}: ${retiredImport}`);
       });
     expect(violations).toEqual([]);

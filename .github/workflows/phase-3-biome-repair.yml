@@ -1,0 +1,64 @@
+name: Phase 3 Biome Repair Artifact
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase-3-biome-repair-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  repair:
+    if: github.event.pull_request.number == 40
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 25
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-environment
+        with:
+          node-version: "25"
+
+      - name: Apply Biome safe fixes in the workspace
+        id: biome
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm biome:fix 2>&1 | tee biome-safe-fix.log
+
+      - name: Package exact repaired files and patch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p biome-repair/files
+          git diff --binary > biome-repair/biome-safe-fix.patch
+          git diff --stat > biome-repair/stat.txt
+          git status --short > biome-repair/status.txt
+          cp biome-safe-fix.log biome-repair/biome-safe-fix.log
+          while IFS= read -r -d '' path; do
+            if [ -f "$path" ]; then
+              mkdir -p "biome-repair/files/$(dirname "$path")"
+              cp "$path" "biome-repair/files/$path"
+            fi
+          done < <(git diff --name-only -z)
+
+      - name: Upload safe repair artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-3-biome-safe-repair
+          path: biome-repair/
+          if-no-files-found: error
+          retention-days: 7
