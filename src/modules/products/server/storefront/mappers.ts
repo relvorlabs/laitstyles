@@ -14,6 +14,8 @@ import type {
   TaxonomyRef,
 } from "@/lib/storefront/types";
 
+// ---- Prisma include shapes + derived payload types -------------------------
+
 export const productSummaryInclude = {
   catalogue_categories: { select: { id: true, slug: true, name: true } },
   catalogue_collections: { select: { id: true, slug: true, name: true } },
@@ -42,6 +44,8 @@ type MediaRow = ProductDetailRow["product_media"][number];
 type StockRow = ProductSummaryRow["stock_levels"][number];
 type VariantRow = ProductSummaryRow["product_variants"][number];
 
+// ---- Primitive helpers -----------------------------------------------------
+
 function decimalToKobo(value: Prisma.Decimal): number {
   return Math.round(value.toNumber() * 100);
 }
@@ -50,6 +54,7 @@ function referencePriceKobo(
   price: Prisma.Decimal,
   reference: Prisma.Decimal | null,
 ): number | null {
+  // Only expose a compare-at price when it is strictly greater than the price.
   if (!reference || reference.lessThanOrEqualTo(price)) return null;
   return decimalToKobo(reference);
 }
@@ -80,6 +85,8 @@ function mapTaxonomy(row: { id: string; slug: string; name: string } | null): Ta
   return row ? { id: row.id, slug: row.slug, name: row.name } : null;
 }
 
+// ---- Availability ----------------------------------------------------------
+
 function deriveAvailability(
   mode: InventoryMode,
   available: number,
@@ -96,6 +103,7 @@ function deriveAvailability(
   return { state: "available", available, isOneOfOne };
 }
 
+/** Product-level stock is the row with no variant (unique/stocked). */
 function productStockRow(stockLevels: StockRow[]): StockRow | undefined {
   return stockLevels.find((row) => row.variant_id === null);
 }
@@ -108,11 +116,13 @@ function productAvailability(
 ): Availability {
   if (mode === "variant") {
     const available = variants.reduce(
-      (sum, variant) => sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.available, 0),
+      (sum, variant) =>
+        sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.available, 0),
       0,
     );
     const reserved = variants.reduce(
-      (sum, variant) => sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.reserved, 0),
+      (sum, variant) =>
+        sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.reserved, 0),
       0,
     );
     return deriveAvailability("variant", available, reserved, lowStockThreshold);
@@ -137,7 +147,13 @@ function mapVariant(variant: VariantRow, lowStockThreshold: number): ProductVari
 }
 
 function mapReviewSummary(reviews: { rating: number }[]): ReviewSummary {
-  const distribution: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  const distribution: Record<1 | 2 | 3 | 4 | 5, number> = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
   let total = 0;
   for (const { rating } of reviews) {
     const normalizedRating = Math.min(5, Math.max(1, rating)) as 1 | 2 | 3 | 4 | 5;
@@ -147,6 +163,8 @@ function mapReviewSummary(reviews: { rating: number }[]): ReviewSummary {
   const count = reviews.length;
   return { average: count ? total / count : 0, count, distribution };
 }
+
+// ---- Public mappers --------------------------------------------------------
 
 export function mapProductSummary(row: ProductSummaryRow): ProductSummary {
   const mode = row.inventory_mode as InventoryMode;
@@ -206,6 +224,9 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
     description: row.description,
     media,
     measurements,
+    // Public reviews are loaded through the verified order-line relation and
+    // merged at the product route. Keeping this mapper review-free avoids
+    // exposing order data through the catalogue query.
     reviewSummary: mapReviewSummary([]),
     careInstructions: row.care_instructions,
     flawNotes: row.flaw_notes,
@@ -222,7 +243,9 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
       ...common,
       mode: "variant",
       availability,
-      variants: row.product_variants.map((variant) => mapVariant(variant, row.low_stock_threshold)),
+      variants: row.product_variants.map((variant) =>
+        mapVariant(variant, row.low_stock_threshold),
+      ),
     };
   }
   return {
