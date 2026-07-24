@@ -2,19 +2,22 @@
 
 **Branch:** `refactor/phase-3-http-module-foundation`  
 **Base commit:** `558e34852f38f0982c7ce9d7c32422f09bbf8775`  
-**Status:** In progress  
-**Goal:** Prove the approved typed browser transport and domain-module contract without migrating a Phase 4 business domain or changing presentation.
+**Status:** Source implementation complete; acceptance validation pending  
+**Goal:** Establish the reusable API-first browser transport and domain-module foundation without
+migrating a Phase 4 business domain or changing presentation.
 
 ## Authority and predecessor debt
 
-This phase is controlled by `decision-and-migration-review.md`, especially the approved browser flow:
+This phase is controlled by `decision-and-migration-review.md`, especially the approved browser
+flow:
 
 ```text
 Client Component
+  -> TanStack Query hook
   -> typed browser API client
   -> /api/v1 Route Handler
-  -> domain operation
-  -> persistence when the domain requires it
+  -> domain query or command
+  -> Prisma when the domain requires persistence
 ```
 
 Phase 2 was squash-merged by explicit repository-owner direction as
@@ -25,137 +28,155 @@ That validation debt remains active and is not represented as passing.
 
 Phase 3 may:
 
-- establish client-compatible API envelope types;
-- establish server-only Route Handler response and error mapping;
-- establish a typed browser `fetch` client;
+- establish client-compatible API success, error and pagination contracts;
+- establish server-only Route Handler response, validation, correlation and error mapping;
+- establish reusable API authentication and permission adapters over the current auth boundary;
+- establish a typed browser `fetch` client that preserves cancellation;
 - create `/api/v1/**` as the machine-readable API namespace;
-- create the smallest useful module proving shared schema, server query and browser client boundaries;
-- add colocated unit and Route Handler tests;
-- add machine checks for the transport and dependency contract;
+- create the smallest useful module proving shared schema, server query and browser client
+  boundaries;
+- define intentional admin QueryClient defaults and cache/invalidation rules;
+- add colocated unit, Route Handler and runtime HTTP smoke coverage;
 - preserve existing compatibility endpoints while consumers have not migrated;
-- update migration documentation.
+- update migration documentation and machine-readable guards.
 
 Phase 3 must not:
 
 - migrate product or inventory reads, writes, policies or Prisma ownership;
 - replace existing admin inventory API consumers;
 - remove the exact Phase 4 TanStack-to-Server-Action exception;
-- migrate auth, checkout, payment, order, customer, return or delivery domains;
+- migrate auth ownership, checkout, payments, orders, customers, returns or delivery;
 - move or rewrite storefront/admin UI;
 - add a repository or service class without a real replaceable boundary;
 - route Server Components through internal HTTP;
 - call a Server Action from a Route Handler.
 
-## Implemented source slice
+## Implemented foundation
 
-### Shared HTTP contract
+### Shared API contract
 
 `src/lib/http/contracts.ts` defines:
 
 ```text
-ApiSuccess<TData, TMeta> = { data, meta }
-ApiFailure = { error: { code, message, fieldErrors? } }
+Success: { data, meta? }
+Error:   { error: { code, message, fieldErrors? } }
+Page:    { page, pageSize, total, pageCount }
 ```
 
-The contract includes runtime guards used by the browser client. It does not replace the canonical
-business `Result` type in `src/lib/errors/index.ts`.
+`meta` is optional so single-resource responses match the approved contract. `fieldErrors` maps each
+field to one stable human-readable message.
 
-### Server transport adapter
+### Server transport and request correlation
 
-`src/lib/http/server.ts` is server-only and provides:
+`src/lib/http/server.ts` and `src/lib/http/request-context.ts` provide:
 
 - `handleApiRequest` for thin Route Handler adapters;
-- standard success envelopes;
+- standard success and failure envelopes;
+- safe incoming or generated `x-request-id` correlation;
+- structured unexpected-error logging with request ID, method and pathname;
 - stable expected API errors;
-- Zod validation mapping to `VALIDATION_ERROR` with field errors;
+- Zod validation mapping to `VALIDATION_ERROR`;
 - sanitized unexpected failures using `INTERNAL_ERROR`;
-- structured server logging without returning raw exception details.
+- response headers that preserve caller headers and include the request ID.
 
-`src/lib/errors/api-error.ts` owns the transport-specific `ApiError`. Reusable domain failures may
-be mapped into it at the Route Handler boundary; domain logic does not depend on Next.js responses.
+### Request validation
 
-### Browser transport adapter
+`src/lib/http/request.ts` provides:
 
-`src/lib/http/client.ts` provides a generic typed `apiRequest` function that:
+- JSON content-type enforcement;
+- stable malformed-JSON errors;
+- schema-driven JSON body parsing;
+- scalar and repeated URL search-parameter parsing.
+
+### Authentication and policy adapters
+
+`src/lib/http/auth.ts` provides:
+
+- `requireApiSession()`;
+- `requireApiConsumer()`;
+- `requireApiStaff(capability)`.
+
+It maps anonymous, suspended, unavailable and missing-capability outcomes to stable HTTP errors while
+reusing the current Phase 1 session and capability primitives. Auth ownership itself remains a Phase
+7 migration.
+
+`src/lib/http/policy.ts` provides `requireApiPermission()` so domain policies can deny with a stable
+`403` or conceal a resource with `404` without importing Next.js response objects.
+
+### Pagination
+
+`src/lib/http/pagination.ts` provides:
+
+- bounded `page` and `pageSize` parsing;
+- defaults of page `1` and page size `25`;
+- a standard `{ page, pageSize, total, pageCount }` response helper.
+
+### Typed browser client
+
+`src/lib/http/client.ts`:
 
 - requests JSON;
 - returns typed success envelopes;
 - throws `ApiClientError` for stable API failures;
-- rejects malformed JSON and non-contract payloads;
+- maps transport failures to `NETWORK_ERROR`;
+- rejects malformed or non-contract responses;
+- preserves `AbortError` so TanStack Query cancellation works;
 - imports no Prisma, session, server module or Server Action.
 
-### Module and route proof
+### Admin QueryClient defaults
+
+`src/lib/query/admin-query-client.ts` replaces the ambiguous app-wide query-client module. The
+existing provider remains scoped under the admin layout and uses intentional defaults documented in
+`phase-3-cache-invalidation-contract.md`.
+
+### Module and runtime proof
 
 The minimal `health` module proves the target dependency direction:
 
 ```text
-src/modules/health/schema.ts
-src/modules/health/server/queries.ts
 src/modules/health/client/api.ts
-src/app/api/v1/health/route.ts
+  -> src/lib/http/client.ts
+  -> GET /api/v1/health
+  -> src/lib/http/server.ts
+  -> src/modules/health/server/queries.ts
 ```
 
-Resulting flow:
-
-```text
-fetchHealthStatus
-  -> apiRequest("/api/v1/health")
-  -> GET route
-  -> handleApiRequest
-  -> getHealthStatus
-```
-
-The existing `/api/health` endpoint remains unchanged as a compatibility endpoint. Product and
-inventory transport remains legacy until Phase 4.
-
-### Contract tests and guard
-
-Tests are authored for:
-
-- success envelopes;
-- expected stable API errors;
-- Zod field validation errors;
-- sanitized unexpected failures;
-- browser success/error/malformed-response handling;
-- the real `/api/v1/health` response and schema.
-
-`scripts/checks/http-module-contract.mjs` is part of `pnpm check:architecture`. It rejects:
-
-- missing Phase 3 foundation files;
-- a non-server-only server HTTP adapter or health query;
-- client imports of server modules or persistence infrastructure;
-- `/api/v1/**` routes that bypass `handleApiRequest` with ad hoc `NextResponse.json` payloads;
-- Route Handler imports that appear to target Server Actions;
-- removal of the existing `/api/health` compatibility endpoint during this phase.
+The route passes its `Request` into the shared adapter, returns `x-request-id`, and is included in the
+production-server HTTP smoke suite. The existing `/api/health` endpoint remains unchanged for
+compatibility. Product and inventory transport remains legacy until Phase 4.
 
 ## Execution checklist
 
-| ID | Task | Status | Evidence |
+| ID | Approved task | Source status | Evidence |
 | --- | --- | --- | --- |
-| P3-T01 | Add typed success and error envelopes | Complete | `src/lib/http/contracts.ts` |
-| P3-T02 | Add stable server error mapping and sanitized fallback | Complete | `src/lib/errors/api-error.ts`, `src/lib/http/server.ts` |
-| P3-T03 | Add typed browser API client | Complete | `src/lib/http/client.ts` |
-| P3-T04 | Establish `/api/v1/**` with a thin proof Route Handler | Complete | `src/app/api/v1/health/route.ts` |
-| P3-T05 | Prove the target module dependency direction | Complete | `src/modules/health/**` |
-| P3-T06 | Add unit and route contract coverage | Implemented; not executed | Three colocated Vitest files |
-| P3-T07 | Add machine-readable architecture guard | Complete | `scripts/checks/http-module-contract.mjs` and `package.json` |
-| P3-T08 | Preserve existing compatibility transport until consumer migration | Complete | `/api/health` retained; legacy inventory routes untouched |
-| P3-T09 | Execute architecture, Biome, TypeScript, Vitest, build and React Doctor | Blocked | Trusted `laitstyles-ci` runner remains unavailable |
-| P3-T10 | Prove runtime `/api/v1/health` response and review final diff | Blocked | Requires executable source environment or trusted runner |
+| P3-T01 | Create `src/modules` | Complete | `src/modules/health/**` proves the module contract |
+| P3-T02 | Create a typed browser HTTP client | Complete | `src/lib/http/client.ts` |
+| P3-T03 | Define standard success and error envelopes | Complete | `src/lib/http/contracts.ts` |
+| P3-T04 | Add JSON parsing and malformed-response handling | Complete | browser and request helpers plus tests |
+| P3-T05 | Add request validation helpers | Complete | `src/lib/http/request.ts` |
+| P3-T06 | Add API authentication helpers | Complete | `src/lib/http/auth.ts` |
+| P3-T07 | Add permission-policy helpers | Complete | `src/lib/http/policy.ts` |
+| P3-T08 | Add API logging and request correlation | Complete | request context, response header and structured log tests |
+| P3-T09 | Define pagination response metadata | Complete | `src/lib/http/pagination.ts` |
+| P3-T10 | Define API contract tests | Complete in source; execution pending | colocated HTTP, auth, policy, pagination, query and route tests |
+| P3-T11 | Add admin-scoped QueryClient defaults | Complete | `src/lib/query/admin-query-client.ts` |
+| P3-T12 | Document cache and invalidation rules | Complete | `phase-3-cache-invalidation-contract.md` |
 
 ## Acceptance gate
 
 Phase 3 is complete only when:
 
-1. `pnpm check:architecture` passes, including the HTTP/module contract;
-2. Biome and TypeScript pass for the new files;
-3. all HTTP, module and Route Handler Vitest tests pass;
+1. `pnpm check:architecture` passes, including the complete Phase 3 contract;
+2. Biome and TypeScript pass for the changed source;
+3. all HTTP, auth, policy, pagination, QueryClient and Route Handler tests pass;
 4. a production build proves server/client boundaries compile correctly;
 5. React Doctor reports no new changed-scope problem;
-6. `/api/v1/health` returns the documented success envelope at runtime;
-7. expected, validation and unexpected error tests prove stable sanitized responses;
-8. no legacy API consumer or public URL regresses;
-9. Phase 2 validation debt remains reported honestly while unresolved.
+6. source-backed runtime smoke proves `/api/v1/health`, its typed envelope and `x-request-id`;
+7. expected, validation, authentication, permission and unexpected failures are stable and
+   sanitized;
+8. browser cancellation reaches `fetch` through `AbortSignal`;
+9. no legacy API consumer or public URL regresses;
+10. Phase 1 and Phase 2 validation debt remains reported honestly while unresolved.
 
 Required command surface:
 
@@ -168,10 +189,12 @@ pnpm build
 pnpm react-doctor
 ```
 
-A queued job, unexecuted test file, unavailable runner or public-deployment-only result is not a pass.
+The source-backed Playwright workflow also executes the HTTP smoke against the production server and
+retains the existing desktop, tablet and mobile UI contract. A queued job, unexecuted test,
+unavailable runner or public-deployment-only result is not a pass.
 
 ## Rollback
 
-Before merge, close the Phase 3 PR or revert its commits. After a squash merge, revert the Phase 3
-squash commit as one unit. Do not partially keep `/api/v1/health` while removing its shared contract,
-server adapter or module query, because that would leave an unsupported transport path.
+Before merge, close this PR or revert its commits. After a squash merge, revert the Phase 3 squash
+commit as one unit. Do not partially keep `/api/v1/health` while removing its shared contract,
+validation, auth/policy adapters or request-correlation boundary.

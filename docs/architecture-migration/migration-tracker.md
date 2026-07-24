@@ -6,7 +6,7 @@
 **Phase 2 merge:** `558e34852f38f0982c7ce9d7c32422f09bbf8775`  
 **Current branch:** `refactor/phase-3-http-module-foundation`  
 **Current phase:** Phase 3 — Typed HTTP and module foundation  
-**Overall status:** In progress; executable validation blocked
+**Overall status:** Source implementation complete; acceptance validation pending
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
@@ -17,7 +17,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
 | 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; private source validation still queued for `laitstyles-ci` |
 | 2 | Consolidate layouts and provider scope | Merged with debt | Source implementation merged; route and visual parity evidence unavailable |
-| 3 | Create HTTP and domain-module foundation | In progress | Typed transport contract proven with tests and runtime evidence |
+| 3 | Create HTTP and domain-module foundation | In progress | Complete source plus executed static, test, build, React Doctor and runtime evidence |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
 | 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
 | 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
@@ -113,20 +113,24 @@ is a route group.
 ## Phase 3 execution
 
 The exact Phase 3 scope and evidence are maintained in
-[`phase-3-http-module-status.md`](phase-3-http-module-status.md).
+[`phase-3-http-module-status.md`](phase-3-http-module-status.md). Cache ownership and mutation
+invalidation rules are maintained in
+[`phase-3-cache-invalidation-contract.md`](phase-3-cache-invalidation-contract.md).
 
-| ID | Task | Status |
+| ID | Approved task | Source status |
 | --- | --- | --- |
-| P3-T01 | Add typed success and error envelopes | Complete |
-| P3-T02 | Add stable server error mapping and sanitized fallback | Complete |
-| P3-T03 | Add typed browser API client | Complete |
-| P3-T04 | Establish `/api/v1/**` with a thin proof Route Handler | Complete |
-| P3-T05 | Prove the target module dependency direction | Complete |
-| P3-T06 | Add unit and route contract coverage | Implemented; not executed |
-| P3-T07 | Add machine-readable architecture guard | Complete |
-| P3-T08 | Preserve existing compatibility transport until consumer migration | Complete |
-| P3-T09 | Execute architecture, Biome, TypeScript, Vitest, build and React Doctor | Blocked |
-| P3-T10 | Prove runtime `/api/v1/health` response and review final diff | Blocked |
+| P3-T01 | Create `src/modules` | Complete |
+| P3-T02 | Create a typed browser HTTP client | Complete |
+| P3-T03 | Define standard success and error envelopes | Complete |
+| P3-T04 | Add JSON parsing and malformed-response handling | Complete |
+| P3-T05 | Add request validation helpers | Complete |
+| P3-T06 | Add API authentication helpers | Complete |
+| P3-T07 | Add permission-policy helpers | Complete |
+| P3-T08 | Add API logging and request correlation | Complete |
+| P3-T09 | Define pagination response metadata | Complete |
+| P3-T10 | Define API contract tests | Complete in source; execution pending |
+| P3-T11 | Add admin-scoped QueryClient defaults | Complete |
+| P3-T12 | Document cache and invalidation rules | Complete |
 
 ## Phase 3 current composition
 
@@ -138,16 +142,22 @@ src/modules/health/client/api.ts
   -> src/modules/health/server/queries.ts
 ```
 
-The shared response contract is:
+Shared contracts:
 
 ```text
-Success: { data, meta }
+Success: { data, meta? }
 Error:   { error: { code, message, fieldErrors? } }
+Page:    { page, pageSize, total, pageCount }
 ```
 
-This phase does not migrate products, inventory, auth, checkout, payments, orders or UI. The
-existing `/api/health` endpoint and legacy admin inventory endpoints remain until their consumers
-move in the approved later phases.
+The server adapter adds `x-request-id`, structured failure logging and stable error mapping. Shared
+helpers cover JSON/search validation, session/capability enforcement, domain-policy denial and
+pagination. The admin-scoped QueryClient now has explicit cache defaults and cancellation reaches
+browser `fetch` through `AbortSignal`.
+
+This phase does not migrate products, inventory, auth ownership, checkout, payments, orders or UI.
+The existing `/api/health` endpoint and legacy admin inventory endpoints remain until their
+consumers move in the approved later phases.
 
 ## Phase 3 acceptance gate
 
@@ -164,10 +174,10 @@ pnpm react-doctor
 
 Also required:
 
-- the authored HTTP and Route Handler tests execute successfully;
-- `/api/v1/health` returns the typed success envelope at runtime;
-- expected, validation and unexpected failures return stable sanitized errors;
-- browser code remains unable to import server module or persistence infrastructure;
+- the HTTP, auth, policy, pagination, QueryClient and Route Handler tests execute successfully;
+- `/api/v1/health` returns the typed success envelope and `x-request-id` at runtime;
+- expected, validation, authentication, permission and unexpected failures remain sanitized;
+- browser cancellation is preserved;
 - existing API and public route compatibility remains intact;
 - Phase 1 and Phase 2 validation debt remains reported honestly while unresolved.
 

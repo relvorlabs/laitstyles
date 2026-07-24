@@ -1,27 +1,43 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { ApiError } from "@/lib/errors/api-error";
 import { handleApiRequest } from "@/lib/http/server";
 
+const loggerError = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/logger", () => ({
   logger: {
-    error: vi.fn(),
+    error: loggerError,
   },
 }));
 
+afterEach(() => {
+  loggerError.mockClear();
+});
+
 describe("handleApiRequest", () => {
-  it("returns the standard success envelope", async () => {
-    const response = await handleApiRequest(async () => ({
+  it("returns the standard success envelope and request ID", async () => {
+    const request = new Request("http://localhost/api/v1/health", {
+      headers: { "x-request-id": "phase-3-test" },
+    });
+    const response = await handleApiRequest(request, async () => ({
       data: { id: "health" },
       meta: { version: "v1" },
       status: 201,
     }));
 
     expect(response.status).toBe(201);
+    expect(response.headers.get("x-request-id")).toBe("phase-3-test");
     await expect(response.json()).resolves.toEqual({
       data: { id: "health" },
       meta: { version: "v1" },
     });
+  });
+
+  it("omits meta when the operation does not provide it", async () => {
+    const response = await handleApiRequest(async () => ({ data: { id: "health" } }));
+
+    await expect(response.json()).resolves.toEqual({ data: { id: "health" } });
   });
 
   it("maps expected API errors without exposing internals", async () => {
@@ -40,6 +56,7 @@ describe("handleApiRequest", () => {
         message: "The requested resource was not found.",
       },
     });
+    expect(loggerError).not.toHaveBeenCalled();
   });
 
   it("maps Zod issues to stable field errors", async () => {
@@ -54,18 +71,24 @@ describe("handleApiRequest", () => {
         code: "VALIDATION_ERROR",
         message: "The request contains invalid fields.",
         fieldErrors: {
-          name: [expect.any(String)],
+          name: expect.any(String),
         },
       },
     });
+    expect(loggerError).not.toHaveBeenCalled();
   });
 
-  it("sanitizes unexpected failures", async () => {
-    const response = await handleApiRequest(async () => {
+  it("sanitizes and correlates unexpected failures", async () => {
+    const request = new Request("http://localhost/api/v1/products?page=2", {
+      method: "POST",
+      headers: { "x-request-id": "failure-test" },
+    });
+    const response = await handleApiRequest(request, async () => {
       throw new Error("private database detail");
     });
 
     expect(response.status).toBe(500);
+    expect(response.headers.get("x-request-id")).toBe("failure-test");
     const payload = await response.json();
     expect(payload).toEqual({
       error: {
@@ -74,5 +97,14 @@ describe("handleApiRequest", () => {
       },
     });
     expect(JSON.stringify(payload)).not.toContain("private database detail");
+    expect(loggerError).toHaveBeenCalledWith(
+      {
+        requestId: "failure-test",
+        method: "POST",
+        pathname: "/api/v1/products",
+        errorName: "Error",
+      },
+      "Unhandled API route failure",
+    );
   });
 });

@@ -2,13 +2,17 @@ import type { QueryClient } from "@tanstack/react-query";
 import { defaultShouldDehydrateQuery, isServer } from "@tanstack/react-query";
 import { createQueryClient } from "@/lib/query/create-query-client";
 
-// One QueryClient contract for every route. The server still receives a fresh
-// client per request, while the browser reuses one client for the app session.
-export function makeQueryClient(): QueryClient {
+export const ADMIN_QUERY_DEFAULTS = {
+  staleTime: 30_000,
+  gcTime: 5 * 60_000,
+  retry: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: true,
+} as const;
+
+export function makeAdminQueryClient(): QueryClient {
   return createQueryClient({
-    staleTime: 30_000,
-    retry: false,
-    refetchOnWindowFocus: false,
+    ...ADMIN_QUERY_DEFAULTS,
     shouldDehydrateQuery: (query) =>
       defaultShouldDehydrateQuery(query) || query.state.status === "pending",
   });
@@ -16,13 +20,13 @@ export function makeQueryClient(): QueryClient {
 
 let browserQueryClient: QueryClient | undefined;
 
-export function getQueryClient(): QueryClient {
+export function getAdminQueryClient(): QueryClient {
   if (isServer) {
-    return makeQueryClient();
+    return makeAdminQueryClient();
   }
 
   if (!browserQueryClient) {
-    browserQueryClient = makeQueryClient();
+    browserQueryClient = makeAdminQueryClient();
   }
 
   return browserQueryClient;

@@ -31,6 +31,22 @@ describe("apiRequest", () => {
     expect((requestInit.headers as Headers).get("Accept")).toBe("application/json");
   });
 
+  it("accepts a valid success envelope without meta", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ data: { status: "ok" } }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    await expect(apiRequest("/api/v1/health")).resolves.toEqual({
+      data: { status: "ok" },
+    });
+  });
+
   it("throws a typed client error for API failures", async () => {
     vi.stubGlobal(
       "fetch",
@@ -40,7 +56,7 @@ describe("apiRequest", () => {
             error: {
               code: "VALIDATION_ERROR",
               message: "The request contains invalid fields.",
-              fieldErrors: { name: ["Name is required."] },
+              fieldErrors: { name: "Name is required." },
             },
           }),
           {
@@ -56,8 +72,24 @@ describe("apiRequest", () => {
       code: "VALIDATION_ERROR",
       message: "The request contains invalid fields.",
       status: 422,
-      fieldErrors: { name: ["Name is required."] },
+      fieldErrors: { name: "Name is required." },
     });
+  });
+
+  it("maps network failures without swallowing query cancellation", async () => {
+    const networkFailure = new TypeError("fetch failed");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValueOnce(networkFailure));
+
+    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject<ApiClientError>({
+      code: "NETWORK_ERROR",
+      message: "The server could not be reached.",
+      status: 0,
+    });
+
+    const abortFailure = new DOMException("The operation was aborted.", "AbortError");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValueOnce(abortFailure));
+
+    await expect(apiRequest("/api/v1/health")).rejects.toBe(abortFailure);
   });
 
   it("rejects malformed JSON responses", async () => {

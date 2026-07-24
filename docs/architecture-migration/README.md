@@ -19,8 +19,10 @@ July 24, 2026.
   removal phases.
 - [`phase-2-layout-provider-status.md`](phase-2-layout-provider-status.md) — exact Phase 2 scope,
   final route/provider map, acceptance state and rollback.
-- [`phase-3-http-module-status.md`](phase-3-http-module-status.md) — exact Phase 3 transport scope,
-  implemented foundation, tests, acceptance state and rollback.
+- [`phase-3-http-module-status.md`](phase-3-http-module-status.md) — complete Phase 3 source scope,
+  tests, acceptance state and rollback.
+- [`phase-3-cache-invalidation-contract.md`](phase-3-cache-invalidation-contract.md) — remote cache,
+  query-key, cancellation and invalidation rules for later domain cutovers.
 - [`migration-tracker.md`](migration-tracker.md) — phase/task status and acceptance gates.
 - [`../ci/permanent-validation.md`](../ci/permanent-validation.md) — local commands, private
   self-hosted runner, public deployment fallback, and repair loop.
@@ -39,20 +41,24 @@ Phase 2 was squash-merged through PR #39 in
 route and visual validation remained blocked. Its route/provider implementation is merged, but the
 unexecuted gate remains validation debt.
 
-Phase 3 is **in progress** on `refactor/phase-3-http-module-foundation`.
+Phase 3 source implementation is complete on `refactor/phase-3-http-module-foundation`; its
+acceptance gate remains pending until the private workflows execute.
 
-Phase 3 is limited to:
+Phase 3 includes:
 
-- client-compatible typed success and error envelopes;
-- server-only Route Handler response and error mapping;
-- a typed browser API client;
+- client-compatible typed success, error and pagination contracts;
+- server-only Route Handler response, validation and error mapping;
+- safe `x-request-id` correlation and structured failure logging;
+- reusable API session, staff capability and permission-policy helpers;
+- a typed browser API client with stable transport errors and preserved cancellation;
 - the `/api/v1/**` machine-readable namespace;
 - the smallest useful module proving shared schema, server query and browser client boundaries;
-- colocated transport tests and architecture guards;
+- intentional admin QueryClient defaults and cache/invalidation rules;
+- colocated contract tests, runtime HTTP smoke and architecture guards;
 - compatibility preservation for existing endpoints and consumers.
 
-It does not migrate products, inventory, auth, checkout, payments, orders, customers, returns,
-delivery, Prisma ownership or UI presentation.
+It does not migrate products, inventory, auth ownership, checkout, payments, orders, customers,
+returns, delivery, Prisma ownership or UI presentation.
 
 ## Phase 3 source composition
 
@@ -64,11 +70,12 @@ src/modules/health/client/api.ts
   -> src/modules/health/server/queries.ts
 ```
 
-Response contract:
+Response contracts:
 
 ```text
-Success: { data, meta }
+Success: { data, meta? }
 Error:   { error: { code, message, fieldErrors? } }
+Page:    { page, pageSize, total, pageCount }
 ```
 
 The existing `/api/health` endpoint remains unchanged. Legacy admin inventory endpoints remain in

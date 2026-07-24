@@ -9,6 +9,11 @@ import type {
   ApiMeta,
   ApiSuccess,
 } from "@/lib/http/contracts";
+import {
+  createApiRequestContext,
+  type ApiRequestContext,
+  withRequestId,
+} from "@/lib/http/request-context";
 import { logger } from "@/lib/logger";
 
 export type ApiRouteResult<TData, TMeta extends ApiMeta = ApiMeta> = {
@@ -18,18 +23,41 @@ export type ApiRouteResult<TData, TMeta extends ApiMeta = ApiMeta> = {
   headers?: HeadersInit;
 };
 
+type ApiOperation<TData, TMeta extends ApiMeta> = (
+  context: ApiRequestContext,
+) => ApiRouteResult<TData, TMeta> | Promise<ApiRouteResult<TData, TMeta>>;
+
+export function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
+  operation: ApiOperation<TData, TMeta>,
+): Promise<NextResponse<ApiSuccess<TData, TMeta> | ApiFailure>>;
+export function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
+  request: Request,
+  operation: ApiOperation<TData, TMeta>,
+): Promise<NextResponse<ApiSuccess<TData, TMeta> | ApiFailure>>;
 export async function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
-  operation: () => ApiRouteResult<TData, TMeta> | Promise<ApiRouteResult<TData, TMeta>>,
-) {
+  requestOrOperation: Request | ApiOperation<TData, TMeta>,
+  maybeOperation?: ApiOperation<TData, TMeta>,
+): Promise<NextResponse<ApiSuccess<TData, TMeta> | ApiFailure>> {
+  const request = typeof requestOrOperation === "function" ? undefined : requestOrOperation;
+  const operation = typeof requestOrOperation === "function" ? requestOrOperation : maybeOperation;
+
+  if (!operation) {
+    throw new TypeError("handleApiRequest requires an API operation.");
+  }
+
+  const context = createApiRequestContext(request);
+
   try {
-    const result = await operation();
+    const result = await operation(context);
     return apiSuccess(result.data, {
-      headers: result.headers,
+      headers: withRequestId(result.headers, context.requestId),
       meta: result.meta,
       status: result.status,
     });
   } catch (error) {
-    return apiFailure(mapApiError(error));
+    return apiFailure(mapApiError(error, context), {
+      headers: withRequestId(undefined, context.requestId),
+    });
   }
 }
 
@@ -41,18 +69,21 @@ export function apiSuccess<TData, TMeta extends ApiMeta = ApiMeta>(
     headers?: HeadersInit;
   } = {},
 ): NextResponse<ApiSuccess<TData, TMeta>> {
-  const meta = (options.meta ?? {}) as TMeta;
+  const payload: ApiSuccess<TData, TMeta> = {
+    data,
+    ...(options.meta === undefined ? {} : { meta: options.meta }),
+  };
 
-  return NextResponse.json(
-    { data, meta },
-    {
-      status: options.status ?? 200,
-      headers: options.headers,
-    },
-  );
+  return NextResponse.json(payload, {
+    status: options.status ?? 200,
+    headers: options.headers,
+  });
 }
 
-export function apiFailure(error: ApiError): NextResponse<ApiFailure> {
+export function apiFailure(
+  error: ApiError,
+  options: { headers?: HeadersInit } = {},
+): NextResponse<ApiFailure> {
   const payload: ApiFailure = {
     error: {
       code: error.code,
@@ -61,10 +92,13 @@ export function apiFailure(error: ApiError): NextResponse<ApiFailure> {
     },
   };
 
-  return NextResponse.json(payload, { status: error.status });
+  return NextResponse.json(payload, {
+    status: error.status,
+    headers: options.headers,
+  });
 }
 
-export function mapApiError(error: unknown): ApiError {
+export function mapApiError(error: unknown, context?: ApiRequestContext): ApiError {
   if (isApiError(error)) return error;
 
   if (error instanceof ZodError) {
@@ -79,6 +113,9 @@ export function mapApiError(error: unknown): ApiError {
 
   logger.error(
     {
+      requestId: context?.requestId ?? null,
+      method: context?.method ?? null,
+      pathname: context?.pathname ?? null,
       errorName: error instanceof Error ? error.name : typeof error,
     },
     "Unhandled API route failure",
@@ -94,8 +131,9 @@ export function mapApiError(error: unknown): ApiError {
 
 function toFieldErrors(error: ZodError): ApiFieldErrors {
   return Object.fromEntries(
-    Object.entries(error.flatten().fieldErrors).filter(
-      (entry): entry is [string, string[]] => Array.isArray(entry[1]) && entry[1].length > 0,
-    ),
+    Object.entries(error.flatten().fieldErrors).flatMap(([field, messages]) => {
+      const firstMessage = messages?.[0];
+      return firstMessage ? [[field, firstMessage]] : [];
+    }),
   );
 }

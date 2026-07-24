@@ -30,10 +30,22 @@ export async function apiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
   const headers = new Headers(init?.headers);
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
-  const response = await fetch(input, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(input, {
+      ...init,
+      headers,
+    });
+  } catch (cause) {
+    if (isAbortFailure(cause, init?.signal)) throw cause;
+
+    throw new ApiClientError({
+      code: "NETWORK_ERROR",
+      message: "The server could not be reached.",
+      status: 0,
+      cause,
+    });
+  }
 
   let payload: unknown;
   try {
@@ -65,4 +77,9 @@ export async function apiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
   }
 
   return payload as ApiSuccess<TData, TMeta>;
+}
+
+function isAbortFailure(cause: unknown, signal: AbortSignal | null | undefined): boolean {
+  if (signal?.aborted) return true;
+  return cause instanceof DOMException && cause.name === "AbortError";
 }
