@@ -14,7 +14,9 @@ const tx = {
 vi.mock("@/lib/prisma", () => ({
   Prisma: { TransactionIsolationLevel: { Serializable: "Serializable" } },
   prisma: {
-    $transaction: vi.fn(async (operation: (client: typeof tx) => Promise<unknown>) => operation(tx)),
+    $transaction: vi.fn(
+      async (operation: (client: typeof tx) => Promise<unknown>) => operation(tx),
+    ),
   },
 }));
 
@@ -50,7 +52,10 @@ const stock = {
 describe("adjustInventoryStock", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    tx.products.findUnique.mockResolvedValue({ inventory_mode: "stocked", product_variants: [] });
+    tx.products.findUnique.mockResolvedValue({
+      inventory_mode: "stocked",
+      product_variants: [],
+    });
     tx.stock_levels.findFirst.mockResolvedValue(stock);
     tx.stock_levels.updateMany.mockResolvedValue({ count: 1 });
     tx.stock_levels.findUniqueOrThrow.mockResolvedValue({
@@ -160,7 +165,8 @@ describe("adjustInventoryStock", () => {
       ok: false,
       error: {
         code: "invalid-adjustment",
-        message: "The stock balance changed while this adjustment was being applied. Try again.",
+        message:
+          "The stock balance changed while this adjustment was being applied. Try again.",
       },
     });
     expect(tx.stock_movements.create).not.toHaveBeenCalled();
