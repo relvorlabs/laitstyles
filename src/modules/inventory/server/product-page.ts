@@ -69,9 +69,8 @@ const inventoryCte = Prisma.sql`
   )
 `;
 
-const lowStockPredicate = Prisma.sql`
+const lowStockShapePredicate = Prisma.sql`
   i.inventory_mode <> 'unique'
-  AND i.lifecycle = 'active'
   AND (
     (i.inventory_mode = 'variant' AND i.variant_low_stock)
     OR (
@@ -82,20 +81,37 @@ const lowStockPredicate = Prisma.sql`
   )
 `;
 
+const lowStockHealthPredicate = Prisma.sql`
+  i.lifecycle = 'active'
+  AND i.publication = 'published'
+  AND (${lowStockShapePredicate})
+`;
+
 const fullySoldPredicate = Prisma.sql`
   i.total_received > 0
   AND i.sold = i.total_received
 `;
 
-const outOfStockPredicate = Prisma.sql`
-  i.inventory_mode <> 'unique'
-  AND i.lifecycle = 'active'
+const outOfStockHealthPredicate = Prisma.sql`
+  i.lifecycle = 'active'
+  AND i.publication = 'published'
   AND i.available = 0
   AND i.reserved = 0
   AND NOT (${fullySoldPredicate})
 `;
 
-const heldPredicate = Prisma.sql`i.reserved > 0`;
+const outOfStockAttentionPredicate = Prisma.sql`
+  i.inventory_mode <> 'unique'
+  AND i.available = 0
+  AND i.reserved = 0
+`;
+
+const heldHealthPredicate = Prisma.sql`
+  i.lifecycle = 'active'
+  AND i.publication = 'published'
+  AND i.available = 0
+  AND i.reserved > 0
+`;
 
 const soldHealthPredicate = Prisma.sql`
   i.lifecycle = 'active'
@@ -108,15 +124,15 @@ const soldHealthPredicate = Prisma.sql`
 const healthyPredicate = Prisma.sql`
   i.lifecycle = 'active'
   AND i.publication = 'published'
-  AND NOT (i.available = 0 AND i.reserved > 0)
-  AND NOT (${fullySoldPredicate})
-  AND NOT (${outOfStockPredicate})
-  AND NOT (${lowStockPredicate})
+  AND NOT (${heldHealthPredicate})
+  AND NOT (${soldHealthPredicate})
+  AND NOT (${outOfStockHealthPredicate})
+  AND NOT (${lowStockHealthPredicate})
 `;
 
 const needsAttentionPredicate = Prisma.sql`
-  (${lowStockPredicate})
-  OR (${outOfStockPredicate})
+  (${lowStockShapePredicate})
+  OR (${outOfStockAttentionPredicate})
   OR i.damaged > 0
   OR i.returned > 0
   OR i.publication <> 'published'
@@ -177,12 +193,12 @@ export async function findInventoryProductPage(
         COALESCE(SUM(i.available), 0) AS "availableUnits",
         COALESCE(SUM(i.reserved), 0) AS "reservedUnits",
         COALESCE(SUM(i.sold), 0) AS "soldUnits",
-        COUNT(*) FILTER (WHERE ${lowStockPredicate}) AS "lowStockProducts",
-        COUNT(*) FILTER (WHERE ${outOfStockPredicate}) AS "outOfStockProducts",
+        COUNT(*) FILTER (WHERE ${lowStockHealthPredicate}) AS "lowStockProducts",
+        COUNT(*) FILTER (WHERE ${outOfStockHealthPredicate}) AS "outOfStockProducts",
         COUNT(*) FILTER (WHERE i.lifecycle = 'intake') AS "intakeProducts",
         COUNT(*) AS "allView",
         COUNT(*) FILTER (WHERE i.lifecycle = 'draft') AS "draftsView",
-        COUNT(*) FILTER (WHERE ${heldPredicate}) AS "heldView",
+        COUNT(*) FILTER (WHERE ${heldHealthPredicate}) AS "heldView",
         COUNT(*) FILTER (WHERE ${soldHealthPredicate}) AS "soldView",
         COUNT(*) FILTER (WHERE i.publication <> 'published') AS "unpublishedView",
         COUNT(*) FILTER (WHERE ${needsAttentionPredicate}) AS "needsAttentionView"
@@ -240,7 +256,7 @@ function buildWhere(input: InventoryProductListInput): Prisma.Sql {
         OR LOWER(COALESCE(i.brand, '')) LIKE ${pattern}
         OR LOWER(COALESCE(i.archive_number, '')) LIKE ${pattern}
         OR LOWER(COALESCE(i.sku, '')) LIKE ${pattern}
-        OR LOWER(COALESCE(i.category_name, '')) LIKE ${pattern}
+        OR LOWER(COALESCE(i.category_name, 'Uncategorised')) LIKE ${pattern}
         OR LOWER(COALESCE(i.collection_name, '')) LIKE ${pattern}
         OR EXISTS (
           SELECT 1
@@ -253,7 +269,11 @@ function buildWhere(input: InventoryProductListInput): Prisma.Sql {
   }
 
   if (input.mode !== "all") conditions.push(Prisma.sql`i.inventory_mode = ${input.mode}`);
-  if (input.category !== "all") conditions.push(Prisma.sql`i.category_name = ${input.category}`);
+  if (input.category === "Uncategorised") {
+    conditions.push(Prisma.sql`i.category_name IS NULL`);
+  } else if (input.category !== "all") {
+    conditions.push(Prisma.sql`i.category_name = ${input.category}`);
+  }
   if (input.collection !== "all") {
     conditions.push(Prisma.sql`i.collection_name = ${input.collection}`);
   }
@@ -292,11 +312,11 @@ function savedViewCondition(view: InventoryProductListInput["view"]): Prisma.Sql
     case "intake":
       return Prisma.sql`i.lifecycle = 'intake'`;
     case "low-stock":
-      return lowStockPredicate;
+      return lowStockHealthPredicate;
     case "out-of-stock":
-      return outOfStockPredicate;
+      return outOfStockHealthPredicate;
     case "held":
-      return heldPredicate;
+      return heldHealthPredicate;
     case "sold":
       return soldHealthPredicate;
     case "unpublished":
@@ -315,11 +335,11 @@ function stockFilterCondition(
     case "healthy":
       return healthyPredicate;
     case "low-stock":
-      return lowStockPredicate;
+      return lowStockHealthPredicate;
     case "out-of-stock":
-      return outOfStockPredicate;
+      return outOfStockHealthPredicate;
     case "held":
-      return heldPredicate;
+      return heldHealthPredicate;
     case "sold":
       return soldHealthPredicate;
   }
