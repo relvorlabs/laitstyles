@@ -13,13 +13,14 @@ export type StockMovementKind =
   | "released"
   | "sold"
   | "returned"
+  | "restocked"
   | "damaged"
   | "adjusted";
 
 export type StockMovement = {
   id: string;
   productId: string;
-  variantId?: string | null;
+  variantId: string | null;
   kind: StockMovementKind;
   quantity: number;
   occurredAt: string;
