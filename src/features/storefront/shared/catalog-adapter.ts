@@ -1,6 +1,7 @@
 import type {
   StorefrontCatalogPayload,
   StorefrontCategory,
+  StorefrontShellCatalogPayload,
 } from "@/features/storefront/shared/catalog-types";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { koboToNaira } from "@/lib/money";
@@ -99,6 +100,28 @@ export function projectLegacyProduct(detail: ProductDetail, index: number): Prod
     ...(detail.mode === "variant"
       ? { variants: variants.map((variant) => variant.size ?? variant.label) }
       : {}),
+  };
+}
+
+export function projectShellProduct(product: Product): Product {
+  return {
+    ...product,
+    images: product.images.slice(0, 1),
+    flaw: "",
+    careInstructions: "",
+    fit: product.size,
+    variants: undefined,
+  };
+}
+
+export function buildStorefrontShellCatalog(
+  payload: StorefrontCatalogPayload,
+): StorefrontShellCatalogPayload {
+  return {
+    products: payload.products.map(projectShellProduct),
+    categories: payload.categories,
+    measurementsCm: payload.measurementsCm,
+    variantOptionsByProductId: payload.variantOptionsByProductId,
   };
 }
 
