@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -114,8 +114,7 @@ function runSuite(suite, project = "") {
   let status = exitCode === 0 ? "passed" : "failed";
 
   try {
-    const manifestPath = resolve(suiteOutput, "manifest.json");
-    const manifest = JSON.parse(requireFile(manifestPath));
+    const manifest = JSON.parse(readFileSync(resolve(suiteOutput, "manifest.json"), "utf8"));
     status = manifest.status;
   } catch {
     // Missing evidence is a failure, never an implied pass.
@@ -129,10 +128,6 @@ function runSuite(suite, project = "") {
     exitCode,
     detail: result.error?.message ?? null,
   });
-}
-
-function requireFile(path) {
-  return require("node:fs").readFileSync(path, "utf8");
 }
 
 async function checkBrowserTarget(baseUrl) {
