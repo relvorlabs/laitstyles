@@ -22,6 +22,7 @@ const retiredFiles = [
   "src/features/storefront/checkout/checkout-flow.tsx",
   "src/lib/catalogue.ts",
   "src/lib/order.ts",
+  "src/app/storefront-providers.tsx",
 ];
 
 const retiredImports = [
@@ -33,6 +34,7 @@ const retiredImports = [
   "@/lib/order",
   'storefront/checkout/checkout-flow"',
   "storefront/checkout/checkout-flow'",
+  "@/app/storefront-providers",
 ];
 
 describe("storefront state boundaries", () => {
@@ -50,15 +52,18 @@ describe("storefront state boundaries", () => {
     expect(violations).toEqual([]);
   });
 
-  it("mounts client state and auth only inside the storefront boundary", () => {
-    const rootProviders = readFileSync(join(root, "src/app/app-providers.tsx"), "utf8");
-    const storefrontProviders = readFileSync(join(root, "src/app/storefront-providers.tsx"), "utf8");
+  it("mounts client state and auth only inside the storefront client boundary", () => {
+    const appProvider = readFileSync(join(root, "src/providers/providers.tsx"), "utf8");
+    const clientBoundary = readFileSync(
+      join(root, "src/app/storefront-client-boundary.tsx"),
+      "utf8",
+    );
     const routeBoundary = readFileSync(join(root, "src/app/storefront-route-boundary.tsx"), "utf8");
 
-    expect(rootProviders).not.toContain("StorefrontClientStateProvider");
-    expect(rootProviders).not.toContain("StorefrontAuthProvider");
-    expect(storefrontProviders).toContain("StorefrontClientStateProvider");
-    expect(storefrontProviders).toContain("StorefrontAuthProvider");
+    expect(appProvider).not.toContain("StorefrontClientStateProvider");
+    expect(appProvider).not.toContain("StorefrontAuthProvider");
+    expect(clientBoundary).toContain("StorefrontClientStateProvider");
+    expect(clientBoundary).toContain("StorefrontAuthProvider");
     expect(routeBoundary).toContain("getCurrentSession");
     expect(routeBoundary).toContain("loadStorefrontShellCatalog");
     expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalog\b/);

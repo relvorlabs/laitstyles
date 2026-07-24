@@ -7,7 +7,7 @@ import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared
 import { StorefrontClientStateProvider } from "@/features/storefront/shared/storefront-client-state-provider";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 
-export function StorefrontProviders({
+export function StorefrontClientBoundary({
   authSessionPromise,
   catalogPromise,
   children,

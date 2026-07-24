@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { AppProviders } from "@/app/app-providers";
 // The canonical Manrope/Newsreader typography is loaded once here via next/font
 // and exposed as --font-storefront-* for the whole app.
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { cn } from "@/lib/utils";
+import { AppProvider } from "@/providers/providers";
 import "./theme-entry.css";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <AppProviders>{children}</AppProviders>
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );
