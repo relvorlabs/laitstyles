@@ -1,123 +1,235 @@
-import type { ProductVariant } from "@/lib/catalog/types";
+import "server-only";
+
+import type { Prisma } from "@/lib/prisma";
 import type {
-  PublishedProductDetailRow,
-  ProductCardRow,
-} from "@/modules/products/server/storefront/visibility";
-import {
-  getAvailableProductCardVariants,
-  getProductCardAvailability,
-} from "@/modules/products/server/storefront/visibility";
-import { getProductConditionLabel, getProductStateLabel } from "@/lib/storefront/product-labels";
-import type { StorefrontProduct } from "@/lib/storefront/types";
+  Availability,
+  InventoryMode,
+  Measurement,
+  ProductDetail,
+  ProductImage,
+  ProductImageKind,
+  ProductSummary,
+  ProductVariantOption,
+  ReviewSummary,
+  TaxonomyRef,
+} from "@/lib/storefront/types";
 
-export function mapProductCardRow(row: ProductCardRow): StorefrontProduct {
-  const availableVariants = getAvailableProductCardVariants(row);
-  const stock = getProductCardAvailability(row);
-  const condition = getProductConditionLabel(row.condition);
-  const state = getProductStateLabel(row.lifecycle);
-  const coverAsset = row.product_media.find((media) => media.kind === "product_cover")
-    ?.cloudinary_assets;
-  const fallbackAsset = row.product_media[0]?.cloudinary_assets;
-  const imageAsset = coverAsset ?? fallbackAsset;
-  const fallbackPrice = row.price.toNumber();
-  const variantPrices = availableVariants
-    .map((variant) => variant.price?.toNumber() ?? fallbackPrice)
-    .filter(Number.isFinite);
-  const price = variantPrices.length ? Math.min(...variantPrices) : fallbackPrice;
-  const sizeLabels = uniqueSorted(availableVariants.map((variant) => variant.size));
-  const colorLabels = uniqueSorted(availableVariants.map((variant) => variant.colour));
+export const productSummaryInclude = {
+  catalogue_categories: { select: { id: true, slug: true, name: true } },
+  catalogue_collections: { select: { id: true, slug: true, name: true } },
+  product_media: {
+    where: { kind: "product_cover" },
+    orderBy: { position: "asc" },
+    take: 1,
+    include: { cloudinary_assets: true },
+  },
+  stock_levels: true,
+  product_variants: { include: { stock_levels: true } },
+} satisfies Prisma.productsInclude;
 
+export const productDetailInclude = {
+  catalogue_categories: { select: { id: true, slug: true, name: true } },
+  catalogue_collections: { select: { id: true, slug: true, name: true } },
+  product_media: { orderBy: { position: "asc" }, include: { cloudinary_assets: true } },
+  product_measurements: { orderBy: { position: "asc" } },
+  stock_levels: true,
+  product_variants: { orderBy: { position: "asc" }, include: { stock_levels: true } },
+} satisfies Prisma.productsInclude;
+
+type ProductSummaryRow = Prisma.productsGetPayload<{ include: typeof productSummaryInclude }>;
+type ProductDetailRow = Prisma.productsGetPayload<{ include: typeof productDetailInclude }>;
+type MediaRow = ProductDetailRow["product_media"][number];
+type StockRow = ProductSummaryRow["stock_levels"][number];
+type VariantRow = ProductSummaryRow["product_variants"][number];
+
+function decimalToKobo(value: Prisma.Decimal): number {
+  return Math.round(value.toNumber() * 100);
+}
+
+function referencePriceKobo(
+  price: Prisma.Decimal,
+  reference: Prisma.Decimal | null,
+): number | null {
+  if (!reference || reference.lessThanOrEqualTo(price)) return null;
+  return decimalToKobo(reference);
+}
+
+const imageKindMap: Record<string, ProductImageKind | undefined> = {
+  product_cover: "cover",
+  product_detail: "detail",
+  product_defect: "defect",
+};
+
+function mapImage(media: MediaRow): ProductImage | null {
+  const kind = imageKindMap[media.kind];
+  if (!kind) return null;
+  const asset = media.cloudinary_assets;
+  return {
+    id: media.id,
+    url: asset.delivery_url ?? asset.secure_url,
+    alt: asset.alt,
+    kind,
+    position: media.position,
+    width: asset.width,
+    height: asset.height,
+    variantId: media.variant_id,
+  };
+}
+
+function mapTaxonomy(row: { id: string; slug: string; name: string } | null): TaxonomyRef | null {
+  return row ? { id: row.id, slug: row.slug, name: row.name } : null;
+}
+
+function deriveAvailability(
+  mode: InventoryMode,
+  available: number,
+  reserved: number,
+  lowStockThreshold: number,
+): Availability {
+  const isOneOfOne = mode === "unique";
+  if (available <= 0) {
+    return { state: reserved > 0 ? "reserved_by_others" : "sold_out", available: 0, isOneOfOne };
+  }
+  if (mode !== "unique" && available <= lowStockThreshold) {
+    return { state: "low", available, isOneOfOne };
+  }
+  return { state: "available", available, isOneOfOne };
+}
+
+function productStockRow(stockLevels: StockRow[]): StockRow | undefined {
+  return stockLevels.find((row) => row.variant_id === null);
+}
+
+function productAvailability(
+  mode: InventoryMode,
+  stockLevels: StockRow[],
+  variants: VariantRow[],
+  lowStockThreshold: number,
+): Availability {
+  if (mode === "variant") {
+    const available = variants.reduce(
+      (sum, variant) => sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.available, 0),
+      0,
+    );
+    const reserved = variants.reduce(
+      (sum, variant) => sum + variant.stock_levels.reduce((stockSum, stock) => stockSum + stock.reserved, 0),
+      0,
+    );
+    return deriveAvailability("variant", available, reserved, lowStockThreshold);
+  }
+  const stock = productStockRow(stockLevels);
+  return deriveAvailability(mode, stock?.available ?? 0, stock?.reserved ?? 0, lowStockThreshold);
+}
+
+function mapVariant(variant: VariantRow, lowStockThreshold: number): ProductVariantOption {
+  const available = variant.stock_levels.reduce((sum, stock) => sum + stock.available, 0);
+  const reserved = variant.stock_levels.reduce((sum, stock) => sum + stock.reserved, 0);
+  return {
+    id: variant.id,
+    label: variant.label,
+    sku: variant.sku,
+    size: variant.size,
+    colour: variant.colour,
+    colourHex: null,
+    price: variant.price ? decimalToKobo(variant.price) : null,
+    availability: deriveAvailability("stocked", available, reserved, lowStockThreshold),
+  };
+}
+
+function mapReviewSummary(reviews: { rating: number }[]): ReviewSummary {
+  const distribution: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let total = 0;
+  for (const { rating } of reviews) {
+    const normalizedRating = Math.min(5, Math.max(1, rating)) as 1 | 2 | 3 | 4 | 5;
+    distribution[normalizedRating] += 1;
+    total += normalizedRating;
+  }
+  const count = reviews.length;
+  return { average: count ? total / count : 0, count, distribution };
+}
+
+export function mapProductSummary(row: ProductSummaryRow): ProductSummary {
+  const mode = row.inventory_mode as InventoryMode;
+  const cover = row.product_media[0] ? mapImage(row.product_media[0]) : null;
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    description: row.description,
-    category: row.catalogue_categories?.name ?? "Uncategorised",
-    brand: row.brand ?? "Unlabelled",
-    image: imageAsset?.delivery_url ?? imageAsset?.secure_url ?? "/product-placeholder.svg",
-    price,
-    referencePrice: row.reference_price?.toNumber() ?? null,
-    condition,
-    state,
-    stock,
-    available: stock > 0,
-    inventoryMode: row.inventory_mode,
-    sizeOptions: sizeLabels,
-    colourOptions: colorLabels,
-    hasVariantPriceRange:
-      variantPrices.length > 1 && Math.min(...variantPrices) !== Math.max(...variantPrices),
-    publishedAt: row.published_at?.toISOString() ?? row.updated_at.toISOString(),
-  };
-}
-
-export function mapPublishedProductDetailRow(row: PublishedProductDetailRow): StorefrontProduct {
-  const base = mapProductCardRow(row);
-  const media = row.product_media.map((entry, index) => ({
-    id: `${row.id}-media-${index + 1}`,
-    url:
-      entry.cloudinary_assets.delivery_url ??
-      entry.cloudinary_assets.secure_url ??
-      "/product-placeholder.svg",
-    alt: entry.cloudinary_assets.alt || row.name,
-    kind: entry.kind === "product_defect" ? ("defect" as const) : ("detail" as const),
-  }));
-  const variants: ProductVariant[] = row.product_variants
-    .map((variant) => {
-      const available = variant.stock_levels.reduce((sum, stock) => sum + stock.available, 0);
-      const image = variant.product_media[0]?.cloudinary_assets;
-      return {
-        id: variant.id,
-        label: variant.label,
-        size: variant.size ?? "One size",
-        colour: variant.colour ?? "Default",
-        price: variant.price?.toNumber() ?? row.price.toNumber(),
-        image: image?.delivery_url ?? image?.secure_url ?? null,
-        available: variant.status === "available" && available > 0,
-        measurements: {
-          bust: variant.bust ?? undefined,
-          waist: variant.waist ?? undefined,
-          hips: variant.hips ?? undefined,
-          length: variant.length ?? undefined,
-        },
-      } satisfies ProductVariant;
-    })
-    .filter((variant) => variant.available);
-
-  return {
-    ...base,
-    collection: row.catalogue_collections?.name ?? null,
+    brand: row.brand,
+    price: decimalToKobo(row.price),
+    referencePrice: referencePriceKobo(row.price, row.reference_price),
+    archiveNumber: row.archive_number,
+    condition: row.condition,
     material: row.material,
-    style: row.style,
     fit: row.fit,
-    careInstructions: row.care_instructions,
-    packagingNotes: row.packaging_notes,
-    deliveryRestrictions: row.delivery_restrictions,
-    flawNotes: row.flaw_notes,
-    media,
-    variants,
-    measurements: row.product_measurements.map((measurement) => ({
-      label: measurement.label,
-      value: measurement.value,
-    })),
-    reviews: row.reviews.map((review) => ({
-      rating: review.rating,
-      title: review.title,
-      body: review.body,
-      author: review.profiles?.display_name ?? "Verified buyer",
-      createdAt: review.created_at.toISOString(),
-      media: review.review_media.map((entry) => ({
-        url:
-          entry.cloudinary_assets.delivery_url ??
-          entry.cloudinary_assets.secure_url ??
-          "/product-placeholder.svg",
-        alt: entry.cloudinary_assets.alt || `${row.name} review image`,
-      })),
-    })),
+    style: row.style,
+    category: mapTaxonomy(row.catalogue_categories),
+    collection: mapTaxonomy(row.catalogue_collections),
+    cover,
+    mode,
+    sizeLabel: row.size_label,
+    colour: row.colour,
+    availability: productAvailability(
+      mode,
+      row.stock_levels,
+      row.product_variants,
+      row.low_stock_threshold,
+    ),
   };
 }
 
-function uniqueSorted(values: Array<string | null>) {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))].toSorted((a, b) =>
-    a.localeCompare(b, "en-NG"),
+export function mapProductDetail(row: ProductDetailRow): ProductDetail {
+  const mode = row.inventory_mode as InventoryMode;
+  const media = row.product_media
+    .map(mapImage)
+    .filter((image): image is ProductImage => image !== null);
+  const measurements: Measurement[] = row.product_measurements.map((measurement) => ({
+    label: measurement.label,
+    value: measurement.value,
+    position: measurement.position,
+  }));
+  const common = {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    brand: row.brand,
+    price: decimalToKobo(row.price),
+    referencePrice: referencePriceKobo(row.price, row.reference_price),
+    archiveNumber: row.archive_number,
+    condition: row.condition,
+    material: row.material,
+    fit: row.fit,
+    style: row.style,
+    category: mapTaxonomy(row.catalogue_categories),
+    collection: mapTaxonomy(row.catalogue_collections),
+    cover: media.find((image) => image.kind === "cover") ?? null,
+    description: row.description,
+    media,
+    measurements,
+    reviewSummary: mapReviewSummary([]),
+    careInstructions: row.care_instructions,
+    flawNotes: row.flaw_notes,
+  };
+  const availability = productAvailability(
+    mode,
+    row.stock_levels,
+    row.product_variants,
+    row.low_stock_threshold,
   );
+
+  if (mode === "variant") {
+    return {
+      ...common,
+      mode: "variant",
+      availability,
+      variants: row.product_variants.map((variant) => mapVariant(variant, row.low_stock_threshold)),
+    };
+  }
+  return {
+    ...common,
+    mode,
+    availability,
+    sizeLabel: row.size_label,
+    colour: row.colour,
+  };
 }
