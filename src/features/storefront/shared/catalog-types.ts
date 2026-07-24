@@ -24,7 +24,7 @@ export interface StorefrontCatalogPayload {
  * Global shell projection. It keeps card/search/cart compatibility while the
  * server withholds product-detail-only media and copy from the client boundary.
  */
-export interface StorefrontShellCatalogPayload extends StorefrontCatalogPayload {}
+export type StorefrontShellCatalogPayload = StorefrontCatalogPayload;
 
 export interface StorefrontProductPageData {
   product: Product;
