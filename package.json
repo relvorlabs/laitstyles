@@ -15,7 +15,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "check:architecture": "node scripts/checks/architecture-guard.mjs",
+    "check:architecture": "node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs",
     "audit:buttons": "node scripts/audit-buttons.mjs --strict",
     "test:e2e": "playwright test",
     "ci:context": "node scripts/ci/collect-context.mjs",
