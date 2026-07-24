@@ -4,10 +4,22 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // Single coupling point to the generated client. Nothing else in the app
 // imports from prisma/generated/** — repositories import `prisma`/`Prisma`
 // from here (or from "@/lib/prisma"). Server-only: never reaches the browser.
-import { Prisma, PrismaClient } from "../../../prisma/generated/prisma/client";
+import {
+  Prisma as GeneratedPrisma,
+  PrismaClient,
+} from "../../../prisma/generated/prisma/client";
 
 export type { PrismaClient };
-export { Prisma };
+
+// Prisma 7's generated namespace exposes the runtime error constructor without
+// a useful construct signature. Preserve the generated namespace while making
+// `instanceof Prisma.PrismaClientKnownRequestError` narrow unknown catch values.
+type KnownRequestError = Error & { readonly code: string };
+type KnownRequestErrorConstructor = new (...args: never[]) => KnownRequestError;
+
+export const Prisma = GeneratedPrisma as typeof GeneratedPrisma & {
+  PrismaClientKnownRequestError: KnownRequestErrorConstructor;
+};
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;

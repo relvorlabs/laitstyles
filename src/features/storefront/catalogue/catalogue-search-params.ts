@@ -26,6 +26,13 @@ export interface ParsedCatalogueSearch {
   sizes: string[];
 }
 
+type CatalogueHrefPatch = Partial<
+  Omit<ParsedCatalogueSearch, "conditions" | "inventories">
+> & {
+  conditions?: readonly string[];
+  inventories?: readonly string[];
+};
+
 function values(value: string | string[] | undefined): string[] {
   const raw = Array.isArray(value) ? value : value ? [value] : [];
   return raw
@@ -100,7 +107,7 @@ export function parseCatalogueSearchParams(
 
 export function catalogueHref(
   current: ParsedCatalogueSearch,
-  patch: Partial<ParsedCatalogueSearch>,
+  patch: CatalogueHrefPatch,
 ): string {
   const next = { ...current, ...patch };
   const params = new URLSearchParams();

@@ -1,7 +1,5 @@
 import "server-only";
 
-import { Prisma, prisma } from "@/lib/prisma";
-import { err, ok, type Result } from "@/lib/errors";
 import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import {
   productEditorDraftSchema,
@@ -16,6 +14,8 @@ import type {
   ProductEditorIssue,
   ProductEditorValues,
 } from "@/lib/admin/product-editor/product-editor-types";
+import { err, ok, type Result } from "@/lib/errors";
+import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/server/auth/session";
 import { inventoryProductInclude } from "@/server/commerce/inventory/inventory-mappers";
 import { getInventoryProduct } from "@/server/commerce/inventory/inventory-read";
@@ -173,7 +173,11 @@ export async function saveInventoryProduct(
   const slug = slugify(values.name || `draft-${values.inventoryMode}`);
   const publication = publicationFor(intent);
   const lifecycle =
-    intent === "draft" ? (existing?.lifecycle === "intake" ? "intake" : "draft") : "active";
+    intent === "draft"
+      ? existing?.lifecycle === "intake"
+        ? ("intake" as const)
+        : ("draft" as const)
+      : ("active" as const);
 
   try {
     const productId = await prisma.$transaction(
@@ -191,7 +195,12 @@ export async function saveInventoryProduct(
           });
         }
 
-        await assertInventoryModeCanChange(tx, values.productId ?? "", currentRow, values.inventoryMode);
+        await assertInventoryModeCanChange(
+          tx,
+          values.productId ?? "",
+          currentRow,
+          values.inventoryMode,
+        );
 
         const categoryId = await resolveTaxonomyId(tx, "category", values.category);
         const collectionId = await resolveTaxonomyId(tx, "collection", values.collection);

@@ -111,15 +111,15 @@ async function lifecycleAction(
   return { ok: true, value: resultValue };
 }
 
-export function archiveProductAction(productId: unknown) {
+export async function archiveProductAction(productId: unknown) {
   return lifecycleAction(archiveInventoryProduct, productId);
 }
 
-export function restoreProductAction(productId: unknown) {
+export async function restoreProductAction(productId: unknown) {
   return lifecycleAction(restoreInventoryProduct, productId);
 }
 
-export function deleteProductAction(productId: unknown) {
+export async function deleteProductAction(productId: unknown) {
   return lifecycleAction(deleteInventoryProduct, productId);
 }
 

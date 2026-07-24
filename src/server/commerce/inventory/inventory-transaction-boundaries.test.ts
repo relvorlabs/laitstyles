@@ -7,6 +7,7 @@ const actor: StaffSession = {
   kind: "staff",
   authUserId: "019f65c1-74fe-7bd3-8400-000000000099",
   email: "admin@example.com",
+  displayName: "Admin",
   role: "admin",
 };
 

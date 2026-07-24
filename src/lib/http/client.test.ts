@@ -67,7 +67,7 @@ describe("apiRequest", () => {
       ),
     );
 
-    await expect(apiRequest("/api/v1/products")).rejects.toMatchObject<ApiClientError>({
+    await expect(apiRequest("/api/v1/products")).rejects.toMatchObject({
       name: "ApiClientError",
       code: "VALIDATION_ERROR",
       message: "The request contains invalid fields.",
@@ -80,7 +80,7 @@ describe("apiRequest", () => {
     const networkFailure = new TypeError("fetch failed");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValueOnce(networkFailure));
 
-    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject<ApiClientError>({
+    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject({
       code: "NETWORK_ERROR",
       message: "The server could not be reached.",
       status: 0,
@@ -95,7 +95,7 @@ describe("apiRequest", () => {
   it("rejects malformed JSON responses", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("not-json", { status: 200 })));
 
-    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject<ApiClientError>({
+    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject({
       code: "INVALID_API_RESPONSE",
       message: "The server returned an unreadable response.",
       status: 200,
@@ -113,7 +113,7 @@ describe("apiRequest", () => {
       ),
     );
 
-    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject<ApiClientError>({
+    await expect(apiRequest("/api/v1/health")).rejects.toMatchObject({
       code: "INVALID_API_RESPONSE",
       message: "The server returned an unexpected response.",
       status: 200,

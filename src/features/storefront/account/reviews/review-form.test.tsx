@@ -145,7 +145,7 @@ describe("ReviewForm", () => {
     mocks.withdraw.mockResolvedValueOnce({
       status: "error",
       code: "withdrawal-failed",
-      message: "We could not withdraw this review. Return to your order and try again.",
+      message: "We could not withdraw your review. Return to your order and try again.",
     });
     const user = userEvent.setup();
     render(
@@ -161,9 +161,9 @@ describe("ReviewForm", () => {
     await user.click(screen.getByRole("button", { name: "Withdraw review" }));
     await user.click(screen.getByRole("button", { name: "Yes, withdraw review" }));
 
-    expect(await screen.findByText("We could not withdraw this review")).toBeTruthy();
+    expect(await screen.findByText("We could not withdraw your review")).toBeTruthy();
     expect(
-      screen.getByText("We could not withdraw this review. Return to your order and try again."),
+      screen.getByText("We could not withdraw your review. Return to your order and try again."),
     ).toBeTruthy();
   });
 });

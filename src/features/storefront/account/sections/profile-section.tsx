@@ -4,7 +4,7 @@ import { useActionState, useEffect } from "react";
 import {
   INITIAL_PROFILE_ACTION_STATE,
   updateAccountProfile,
-} from "@/app/account/profile/actions";
+} from "@/app/(storefront)/account/profile/actions";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";

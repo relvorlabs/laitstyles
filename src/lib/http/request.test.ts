@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { ApiError } from "@/lib/errors/api-error";
 import { parseJsonBody, parseSearchParams } from "@/lib/http/request";
 
 describe("HTTP request validation", () => {
@@ -24,7 +23,7 @@ describe("HTTP request validation", () => {
 
     await expect(
       parseJsonBody(missingContentType, z.object({ name: z.string() })),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       code: "INVALID_CONTENT_TYPE",
       status: 400,
     });
@@ -37,7 +36,7 @@ describe("HTTP request validation", () => {
 
     await expect(
       parseJsonBody(malformed, z.object({ name: z.string() })),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       code: "INVALID_JSON",
       status: 400,
     });

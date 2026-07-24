@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { StaffSession } from "@/server/auth/session";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import type {
-  InventoryProduct,
-  ProductEditorValues,
-} from "@/lib/admin/shared/types";
+import type { InventoryProduct, ProductEditorValues } from "@/lib/admin/shared/types";
+import type { StaffSession } from "@/server/auth/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
 const VARIANT_ID = "019f65c1-74fe-7bd3-8400-000000000011";
@@ -12,6 +9,7 @@ const actor: StaffSession = {
   kind: "staff",
   authUserId: "019f65c1-74fe-7bd3-8400-000000000099",
   email: "admin@example.com",
+  displayName: "Admin",
   role: "admin",
 };
 
@@ -307,6 +305,7 @@ beforeEach(() => {
   harness.state.movements = 0;
   harness.state.saved = 0;
   for (const values of Object.values(harness.recorded)) values.length = 0;
+  getInventoryProductMock.mockReset();
   vi.clearAllMocks();
 });
 
@@ -314,9 +313,7 @@ describe("saveInventoryProduct", () => {
   it.each(["unique", "stocked", "variant"] as const)(
     "creates a %s product without a client-supplied database id",
     async (mode) => {
-      getInventoryProductMock
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(savedProduct(mode));
+      getInventoryProductMock.mockResolvedValueOnce(savedProduct(mode));
 
       const result = await saveInventoryProduct(actor, valuesFor(mode), "draft");
 
@@ -383,6 +380,7 @@ describe("saveInventoryProduct", () => {
       ],
     };
     const values = valuesFor("stocked");
+    if (values.inventoryMode !== "stocked") throw new Error("fixture mismatch");
     values.productId = PRODUCT_ID;
     values.stocked.quantity = 9;
 
@@ -405,6 +403,7 @@ describe("saveInventoryProduct", () => {
     harness.state.currentRow = baseCurrentRow("variant");
     harness.state.movements = 1;
     const values = valuesFor("variant");
+    if (values.inventoryMode !== "variant") throw new Error("fixture mismatch");
     values.productId = PRODUCT_ID;
     values.variant.variants = [];
 

@@ -132,8 +132,8 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
 function toFieldErrors(error: ZodError): ApiFieldErrors {
   return Object.fromEntries(
     Object.entries(error.flatten().fieldErrors).flatMap(([field, messages]) => {
-      const firstMessage = messages?.[0];
-      return firstMessage ? [[field, firstMessage]] : [];
+      const firstMessage = Array.isArray(messages) ? messages[0] : undefined;
+      return typeof firstMessage === "string" ? [[field, firstMessage]] : [];
     }),
   );
 }

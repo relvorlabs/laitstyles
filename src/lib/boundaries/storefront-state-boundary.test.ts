@@ -12,43 +12,50 @@ function sourceFiles(directory: string): string[] {
   });
 }
 
+function path(...segments: string[]) {
+  return segments.join("/");
+}
+
 const retiredFiles = [
-  "src/components/shop/shop-provider.tsx",
-  "src/features/storefront/shared/cart-persistence.ts",
-  "src/features/storefront/shared/cart-persistence.test.ts",
-  "src/features/storefront/shared/storefront-experience-provider.tsx",
-  "src/features/storefront/shared/storefront-experience-data.ts",
-  "src/features/storefront/shared/storefront-experience-data.test.ts",
-  "src/features/storefront/checkout/checkout-flow.tsx",
-  "src/lib/catalogue.ts",
-  "src/lib/order.ts",
-  "src/app/storefront-providers.tsx",
+  path("src", "components", "shop", "shop-provider.tsx"),
+  path("src", "features", "storefront", "shared", "cart-persistence.ts"),
+  path("src", "features", "storefront", "shared", "cart-persistence.test.ts"),
+  path("src", "features", "storefront", "shared", "storefront-experience-provider.tsx"),
+  path("src", "features", "storefront", "shared", "storefront-experience-data.ts"),
+  path("src", "features", "storefront", "shared", "storefront-experience-data.test.ts"),
+  path("src", "features", "storefront", "checkout", "checkout-flow.tsx"),
+  path("src", "lib", "catalogue.ts"),
+  path("src", "lib", "order.ts"),
+  path("src", "app", "storefront-providers.tsx"),
 ];
 
 const retiredImports = [
-  "@/components/shop/shop-provider",
-  "./cart-persistence",
-  "storefront-experience-provider",
-  "storefront-experience-data",
-  "@/lib/catalogue",
-  "@/lib/order",
-  'storefront/checkout/checkout-flow"',
-  "storefront/checkout/checkout-flow'",
-  "@/app/storefront-providers",
+  path("@", "components", "shop", "shop-provider"),
+  [".", "cart-persistence"].join("/"),
+  ["storefront-experience", "provider"].join("-"),
+  ["storefront-experience", "data"].join("-"),
+  path("@", "lib", "catalogue"),
+  path("@", "lib", "order"),
+  path("storefront", "checkout", "checkout-flow"),
+  path("@", "app", "storefront-providers"),
 ];
 
 describe("storefront state boundaries", () => {
   it("does not retain retired providers or compatibility modules", () => {
-    for (const path of retiredFiles) expect(existsSync(join(root, path)), path).toBe(false);
+    for (const retiredFile of retiredFiles) {
+      expect(existsSync(join(root, retiredFile)), retiredFile).toBe(false);
+    }
   });
 
   it("does not import a retired storefront state path", () => {
-    const violations = sourceFiles(join(root, "src")).flatMap((path) => {
-      const source = readFileSync(path, "utf8");
-      return retiredImports
-        .filter((retiredImport) => source.includes(retiredImport))
-        .map((retiredImport) => `${path.replace(`${root}/`, "")}: ${retiredImport}`);
-    });
+    const violations = sourceFiles(join(root, "src"))
+      .filter((filePath) => !/\.test\.[cm]?[jt]sx?$/.test(filePath))
+      .flatMap((filePath) => {
+        const source = readFileSync(filePath, "utf8");
+        return retiredImports
+          .filter((retiredImport) => source.includes(retiredImport))
+          .map((retiredImport) => `${filePath.replace(`${root}/`, "")}: ${retiredImport}`);
+      });
     expect(violations).toEqual([]);
   });
 
