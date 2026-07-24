@@ -30,10 +30,12 @@ jobs:
           node-version: "25"
 
       - name: Apply and verify repository-safe Biome fixes
+        id: verify
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          pnpm biome:fix || true
+          pnpm biome:fix > biome-safe-fix.log 2>&1 || true
 
           cat > src/server/commerce/catalogue/variant-measurements.ts <<'EOF'
           import type { Measurement } from "@/lib/storefront/types";
@@ -62,10 +64,33 @@ jobs:
           }
           EOF
 
-          pnpm biome
-          git diff --check
+          pnpm biome > biome-verify.log 2>&1
+          git diff --check > diff-check.log 2>&1
+
+      - name: Package repair diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p biome-repair
+          cp biome-safe-fix.log biome-repair/ 2>/dev/null || true
+          cp biome-verify.log biome-repair/ 2>/dev/null || true
+          cp diff-check.log biome-repair/ 2>/dev/null || true
+          git diff --binary > biome-repair/repair.patch
+          git diff --stat > biome-repair/stat.txt
+          git status --short > biome-repair/status.txt
+
+      - name: Upload repair diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-3-biome-repair-diagnostics
+          path: biome-repair/
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Commit verified safe fixes and remove this workflow
+        if: steps.verify.outcome == 'success'
         shell: bash
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
@@ -80,3 +105,10 @@ jobs:
           git diff --cached --check
           git commit -m "style: apply verified Biome safe fixes"
           git push origin "HEAD:${HEAD_REF}"
+
+      - name: Enforce verification result
+        if: always()
+        shell: bash
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: test "$VERIFY_OUTCOME" = "success"
