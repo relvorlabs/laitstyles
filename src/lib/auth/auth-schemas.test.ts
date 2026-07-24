@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  authEmailSchema,
   authFieldErrors,
   passwordSignInSchema,
   passwordSignUpSchema,
+  recoveredPasswordSchema,
 } from "@/lib/auth/auth-schemas";
 
 describe("password auth schemas", () => {
@@ -53,6 +55,25 @@ describe("password auth schemas", () => {
       first: "Enter your first name.",
       last: "Enter your last name.",
       terms: "Please accept the Terms to continue.",
+    });
+  });
+
+  it("normalizes recovery email input", () => {
+    expect(authEmailSchema.parse({ email: " shopper@example.com " })).toEqual({
+      email: "shopper@example.com",
+    });
+  });
+
+  it("requires recovered passwords to match", () => {
+    const result = recoveredPasswordSchema.safeParse({
+      password: "password123",
+      confirmPassword: "different123",
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    expect(authFieldErrors(result.error)).toEqual({
+      confirmPassword: "Passwords do not match.",
     });
   });
 });
