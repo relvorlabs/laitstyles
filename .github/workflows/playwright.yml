@@ -30,7 +30,6 @@ env:
 
 jobs:
   browser:
-    if: github.event_name != 'pull_request' || github.event.pull_request.number != 40
     name: Browser runtime / ${{ matrix.project }}
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 65
@@ -156,6 +155,7 @@ jobs:
           fi
 
       - uses: ./.github/actions/upload-evidence
+        if: always()
         with:
           name: playwright-${{ matrix.project }}
           path: ci-evidence/browser/${{ matrix.project }}/
@@ -177,7 +177,7 @@ jobs:
 
   aggregate:
     name: Aggregate browser evidence
-    if: (github.event_name != 'pull_request' || github.event.pull_request.number != 40) && always() && !cancelled()
+    if: always() && !cancelled()
     needs: [browser]
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
