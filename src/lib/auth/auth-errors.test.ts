@@ -15,6 +15,14 @@ describe("auth provider error mapping", () => {
       code: "account-exists",
       message: "An account already exists for this email. Sign in instead.",
     });
+    expect(mapAuthProviderError({ code: "email_not_confirmed" })).toEqual({
+      code: "email-not-confirmed",
+      message: "Confirm your email before signing in. You can request a new confirmation link.",
+    });
+    expect(mapAuthProviderError({ code: "weak_password" })).toEqual({
+      code: "weak-password",
+      message: "Choose a stronger password that meets the security requirements.",
+    });
   });
 
   it("never exposes an unknown provider message", () => {
@@ -32,8 +40,16 @@ describe("auth provider error mapping", () => {
     expect(result.message).not.toContain(providerError.message);
   });
 
+  it("uses the operation-specific fallback for unknown provider codes", () => {
+    expect(mapAuthProviderError({ code: "unknown" }, "recovery-failed")).toEqual({
+      code: "recovery-failed",
+      message: "We could not send a password-reset email. Please try again.",
+    });
+  });
+
   it("accepts only allow-listed redirect codes", () => {
     expect(isAuthFlowErrorCode("rate-limited")).toBe(true);
+    expect(isAuthFlowErrorCode("recovery-invalid")).toBe(true);
     expect(isAuthFlowErrorCode("postgres://secret")).toBe(false);
     expect(getAuthFlowErrorMessage("oauth-callback-invalid")).toContain("sign-in link");
   });
