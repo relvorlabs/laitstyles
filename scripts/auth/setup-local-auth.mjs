@@ -42,6 +42,7 @@ writeFileSync(
 const childEnv = { ...process.env, ...authEnv };
 run("pnpm", ["prisma:generate"], { env: childEnv });
 run("pnpm", ["prisma:migrate:deploy"], { env: childEnv });
+run("pnpm", ["db:seed:storefront"], { env: childEnv });
 
 console.log(`Local Supabase Auth is ready. Test environment written to ${envPath}`);
 console.log("Auth email inbox: http://127.0.0.1:54324");
