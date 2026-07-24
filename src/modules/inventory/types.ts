@@ -1,9 +1,28 @@
-import type {
-  InventoryCounts as LegacyInventoryCounts,
-  StockMovement as LegacyStockMovement,
-  StockMovementKind as LegacyStockMovementKind,
-} from "@/lib/admin/inventory/inventory-types";
+export type InventoryCounts = {
+  totalReceived: number;
+  available: number;
+  reserved: number;
+  sold: number;
+  returned: number;
+  damaged: number;
+};
 
-export type InventoryCounts = LegacyInventoryCounts;
-export type StockMovement = LegacyStockMovement;
-export type StockMovementKind = LegacyStockMovementKind;
+export type StockMovementKind =
+  | "received"
+  | "reserved"
+  | "released"
+  | "sold"
+  | "returned"
+  | "damaged"
+  | "adjusted";
+
+export type StockMovement = {
+  id: string;
+  productId: string;
+  variantId?: string | null;
+  kind: StockMovementKind;
+  quantity: number;
+  occurredAt: string;
+  actor: string;
+  note: string;
+};
