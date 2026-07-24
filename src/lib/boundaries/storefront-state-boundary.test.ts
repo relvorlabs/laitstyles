@@ -18,6 +18,7 @@ const retiredFiles = [
   "src/features/storefront/shared/cart-persistence.test.ts",
   "src/features/storefront/shared/storefront-experience-provider.tsx",
   "src/features/storefront/shared/storefront-experience-data.ts",
+  "src/features/storefront/shared/storefront-experience-data.test.ts",
   "src/features/storefront/checkout/checkout-flow.tsx",
   "src/lib/catalogue.ts",
   "src/lib/order.ts",
@@ -59,7 +60,8 @@ describe("storefront state boundaries", () => {
     expect(storefrontProviders).toContain("StorefrontClientStateProvider");
     expect(storefrontProviders).toContain("StorefrontAuthProvider");
     expect(routeBoundary).toContain("getCurrentSession");
-    expect(routeBoundary).toContain("loadStorefrontCatalog");
+    expect(routeBoundary).toContain("loadStorefrontShellCatalog");
+    expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalog\b/);
   });
 
   it("persists only minimal intent fields", () => {
