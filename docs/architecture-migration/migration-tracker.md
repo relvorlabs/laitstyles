@@ -3,9 +3,10 @@
 **Baseline commit:** `6f5087f4aa08a5d9bce5989bad7b230344cdb493`  
 **Phase 0 merge:** `072cc92aa5301342f060633663094f956089ef1a`  
 **Phase 1 merge:** `1ca1b184207ea2a36fa41c10162b8a059abe5289`  
-**Current branch:** `refactor/phase-2-layout-provider-scope`  
-**Current phase:** Phase 2 — Consolidate layouts and provider scope  
-**Overall status:** Implementation complete; acceptance validation blocked
+**Phase 2 merge:** `558e34852f38f0982c7ce9d7c32422f09bbf8775`  
+**Current branch:** `refactor/phase-3-http-module-foundation`  
+**Current phase:** Phase 3 — Typed HTTP and module foundation  
+**Overall status:** In progress; executable validation blocked
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
@@ -15,8 +16,8 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | --- | --- | --- | --- |
 | 0 | Freeze and record current behaviour | Complete | Baseline evidence complete |
 | 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; private source validation still queued for `laitstyles-ci` |
-| 2 | Consolidate layouts and provider scope | Blocked | Source implementation complete; route and visual parity evidence unavailable |
-| 3 | Create HTTP and domain-module foundation | Not started | Typed transport contract proven |
+| 2 | Consolidate layouts and provider scope | Merged with debt | Source implementation merged; route and visual parity evidence unavailable |
+| 3 | Create HTTP and domain-module foundation | In progress | Typed transport contract proven with tests and runtime evidence |
 | 4 | Cut over products and inventory | Not started | Prisma-backed parity |
 | 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
 | 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
@@ -63,25 +64,23 @@ src/features/admin/inventory/inventory-mutations.ts
   -> src/features/admin/inventory/inventory-actions.ts
 ```
 
-## Phase 2 execution
+## Phase 2 result
 
-The exact Phase 2 checklist and scope are maintained in
-[`phase-2-layout-provider-status.md`](phase-2-layout-provider-status.md).
+Phase 2 source implementation tasks P2-T01 through P2-T08 and P2-T10 were squash-merged through
+PR #39 as `558e34852f38f0982c7ce9d7c32422f09bbf8775`.
 
-| ID | Task | Status |
-| --- | --- | --- |
-| P2-T01 | Add shared `(storefront)` layout using the existing route boundary | Complete |
-| P2-T02 | Move the homepage under `(storefront)/(home)` | Complete |
-| P2-T03 | Move products, collections, cart, checkout and order confirmation | Complete |
-| P2-T04 | Move the full account subtree while retaining `AccountShell` | Complete |
-| P2-T05 | Remove duplicate storefront layout wrappers and retire compatibility layout | Complete |
-| P2-T06 | Remove QueryProvider from global root | Complete |
-| P2-T07 | Scope QueryProvider to the current admin TanStack surface | Complete |
-| P2-T08 | Add provider and final route-map architecture checks | Complete |
-| P2-T09 | Execute route, browser and visual parity validation | Blocked |
-| P2-T10 | Record final map, validation state, rollback and debt | Complete |
+The repository owner explicitly directed the merge and Phase 3 start while these source-backed
+workflows remained queued:
 
-## Phase 2 final composition
+```text
+Implementation Quality: 30106477826
+Playwright UI Contract: 30106477740
+```
+
+Phase 2 is therefore recorded as **Merged with debt**. P2-T09 route, auth, browser and visual parity
+validation remains unresolved and must not be represented as passing.
+
+The merged composition is:
 
 ```text
 RootLayout
@@ -107,17 +106,52 @@ src/app/(storefront)/layout.tsx
         -> AccountShell         /account/**
 ```
 
-The moved files retain their existing blobs except for the account layout, which removes the now
-redundant nested `StorefrontRouteBoundary`. The compatibility layout and all per-segment storefront
-layout re-exports are gone. Public segment names are unchanged because `(storefront)` is a route
-group and is omitted from URLs.
+The moved route files retain their existing implementation except for the account layout removing
+the redundant nested `StorefrontRouteBoundary`. Public URLs remain unchanged because `(storefront)`
+is a route group.
 
-This phase changes route and provider composition only. It does not migrate domains, APIs,
-persistence, auth ownership, storefront state, checkout authority, or UI presentation.
+## Phase 3 execution
 
-## Phase 2 acceptance gate
+The exact Phase 3 scope and evidence are maintained in
+[`phase-3-http-module-status.md`](phase-3-http-module-status.md).
 
-Required before Phase 2 may be declared complete:
+| ID | Task | Status |
+| --- | --- | --- |
+| P3-T01 | Add typed success and error envelopes | Complete |
+| P3-T02 | Add stable server error mapping and sanitized fallback | Complete |
+| P3-T03 | Add typed browser API client | Complete |
+| P3-T04 | Establish `/api/v1/**` with a thin proof Route Handler | Complete |
+| P3-T05 | Prove the target module dependency direction | Complete |
+| P3-T06 | Add unit and route contract coverage | Implemented; not executed |
+| P3-T07 | Add machine-readable architecture guard | Complete |
+| P3-T08 | Preserve existing compatibility transport until consumer migration | Complete |
+| P3-T09 | Execute architecture, Biome, TypeScript, Vitest, build and React Doctor | Blocked |
+| P3-T10 | Prove runtime `/api/v1/health` response and review final diff | Blocked |
+
+## Phase 3 current composition
+
+```text
+src/modules/health/client/api.ts
+  -> src/lib/http/client.ts
+  -> GET /api/v1/health
+  -> src/lib/http/server.ts
+  -> src/modules/health/server/queries.ts
+```
+
+The shared response contract is:
+
+```text
+Success: { data, meta }
+Error:   { error: { code, message, fieldErrors? } }
+```
+
+This phase does not migrate products, inventory, auth, checkout, payments, orders or UI. The
+existing `/api/health` endpoint and legacy admin inventory endpoints remain until their consumers
+move in the approved later phases.
+
+## Phase 3 acceptance gate
+
+Required before Phase 3 may be declared complete:
 
 ```bash
 pnpm check:architecture
@@ -126,24 +160,19 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm react-doctor
-pnpm test:e2e
 ```
 
 Also required:
 
-- route continuity for `/`, products, collections, cart, checkout, confirmation and all account routes;
-- authenticated and unauthenticated auth/admin redirect parity;
-- desktop, tablet and mobile Playwright evidence;
-- light and dark screenshot parity;
-- no increase in console, page or network errors.
+- the authored HTTP and Route Handler tests execute successfully;
+- `/api/v1/health` returns the typed success envelope at runtime;
+- expected, validation and unexpected failures return stable sanitized errors;
+- browser code remains unable to import server module or persistence infrastructure;
+- existing API and public route compatibility remains intact;
+- Phase 1 and Phase 2 validation debt remains reported honestly while unresolved.
 
-Source implementation tasks P2-T01 through P2-T08 and P2-T10 are complete. P2-T09 remains blocked
-because the trusted `laitstyles-ci` runner is not online and no source-backed branch preview evidence
-is available. A queued runner, unavailable check, missing artifact, or public-deployment-only result
-must remain reported as blocked rather than passing.
-
-Phase 3 must not start until the repository owner explicitly accepts this blocked evidence state or
-the Phase 2 validation gate executes successfully.
+A queued runner, unavailable check, unexecuted test or public-deployment-only result must remain
+reported as blocked rather than passing.
 
 ## Decision safeguards
 
@@ -152,6 +181,6 @@ the Phase 2 validation gate executes successfully.
 - Server Components do not call internal APIs for their own reads.
 - Client remote state uses typed API clients and TanStack Query.
 - Prisma remains the persistent source of truth.
-- URL owns navigable filters, sorting, pagination, and search.
+- URL owns navigable filters, sorting, pagination and search.
 - Zustand is limited to browser-owned shared state.
 - Storefront and admin share domains, not unrestricted actions.
