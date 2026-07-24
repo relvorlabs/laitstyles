@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { AppShellFallback } from "@/app/app-shell-fallback";
-import { StorefrontProviders } from "@/app/storefront-providers";
+import { StorefrontClientBoundary } from "@/app/storefront-client-boundary";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import { loadStorefrontShellCatalog } from "@/features/storefront/shared/catalog-loader";
 import { getCurrentSession } from "@/server/auth/session";
@@ -24,12 +24,12 @@ export function StorefrontRouteBoundary({ children }: { children: ReactNode }) {
 
   return (
     <Suspense fallback={<AppShellFallback />}>
-      <StorefrontProviders
+      <StorefrontClientBoundary
         authSessionPromise={authSessionPromise}
         catalogPromise={catalogPromise}
       >
         {children}
-      </StorefrontProviders>
+      </StorefrontClientBoundary>
     </Suspense>
   );
 }
