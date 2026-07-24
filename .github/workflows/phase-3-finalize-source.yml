@@ -33,15 +33,16 @@ jobs:
       - name: Apply final source repair
         run: node scripts/ci/finalize-phase-3.mjs
 
-      - name: Commit repair and remove temporary files
+      - name: Commit source and guard repairs
         shell: bash
         run: |
           set -euo pipefail
-          rm .github/workflows/phase-3-finalize-source.yml
-          rm scripts/ci/finalize-phase-3.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add \
+            src/lib/prisma/client.ts \
+            src/lib/boundaries/storefront-state-boundary.test.ts \
+            scripts/checks/architecture-guard.mjs
           git status --short
-          git commit -m "fix(phase-3): restore final validation contract"
+          git commit -m "fix(phase-3): restore final source contract"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
