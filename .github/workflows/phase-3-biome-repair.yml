@@ -64,6 +64,7 @@ jobs:
           }
           EOF
 
+          pnpm exec biome format --write src/server/commerce/catalogue/variant-measurements.ts
           pnpm biome > biome-verify.log 2>&1
           git diff --check > diff-check.log 2>&1
 
