@@ -6,87 +6,125 @@ Base: `20e178cc01feb0efb13c1f8196f0811bdc969cfa`
 
 ## State
 
-`implementation — storage contract complete, provider cutover in progress`
+`source implementation complete — executable validation blocked — draft — not merge-ready`
+
+No lint, typecheck, test, build or browser gate is recorded as passing. GitHub-hosted jobs currently terminate before checkout, and the available runtime cannot clone GitHub independently.
 
 ## Objective
 
-Replace overlapping storefront state owners with one truthful client-state owner for cart, saved products and client-only holds, while preserving the server-owned catalogue, existing public routes and approved storefront design.
+Replace overlapping storefront state owners with one truthful client-state owner for cart, saved products and client-only holds, while preserving server catalogue authority, public routes and the approved storefront composition.
 
-## Role chain
+## Final ownership
 
-`orchestrator → planner → domain-engineer (auth contract only) → ui-engineer → reviewer`
+### `StorefrontClientStateProvider`
 
-The fixed role roster in `AGENTS.md` applies. No invented or nested child roles.
+The only owner of durable shared client intent:
 
-## Current source truth
+- cart line intents;
+- saved product IDs;
+- client-only hold expiries;
+- one storage migration/write path;
+- one hold countdown and hold alert.
 
-- `StorefrontProvider` owns catalogue projection, cart, saved products, recent products, filters and shared overlays.
-- `StorefrontExperienceProvider` owns client auth mirrors, auth-dialog transport, account seed items, storefront-originated holds, hold feedback and a second toast system.
-- `ShopProvider` owns another independent hold list, another timer and another persistence key for `/cart`.
-- `SiteChrome` mounts `ShopProvider`, `StorefrontProvider` and `QueryProvider`; `StorefrontProviders` mounts `StorefrontExperienceProvider` above it.
-- The catalogue remains server-owned and enters the storefront boundary through `loadStorefrontCatalog()`.
+The persisted `v3` snapshot contains IDs, quantities and expiries only. Product names, prices, images and availability do not enter storage.
 
-## Scope
+### `StorefrontAuthProvider`
 
-- One storefront client-state owner for minimal cart, saved and hold intent records.
-- One versioned storage snapshot and explicit migration/reset behaviour.
-- One state source for `/cart`, the cart sheet, saved interactions and hold interactions.
-- Overlay state narrowed to local ownership or a dedicated overlay boundary.
-- Sign-in dialog moved to the canonical auth Server Actions.
-- Client identity mirrors removed where they can disagree with server cookies.
-- `ShopProvider`, `StorefrontExperienceProvider`, `src/lib/catalogue.ts`, `src/lib/order.ts` and other compatibility paths removed only after every live consumer is migrated.
-- Storefront route grouping retained without changing public URLs; admin/auth routes must not mount storefront providers.
+Owns auth-dialog interaction state only. Identity comes from the server-resolved session. Password sign-in, sign-up and sign-out use canonical Server Actions; no browser Supabase subscription or mutable signed-in mirror remains.
 
-## Exclusions
+### `StorefrontProvider`
+
+Retains storefront presentation composition, filters, local overlay state, recent products and compatibility selectors. Cart and saved mutations delegate to `StorefrontClientStateProvider`; it has no independent persistence path.
+
+### Server catalogue boundary
+
+`StorefrontRouteBoundary` loads `loadStorefrontShellCatalog()`, not the full detail catalogue. The shell projection retains summary and variant-selection data required by search, cards, cart restoration and quick selection while withholding detail galleries, flaw notes, care instructions and product variant-label arrays. Full PDP data remains loaded per slug on the server.
+
+## Implemented work
+
+1. **Unified state and storage**
+   - added `laitstyles-storefront:v3:client-state`;
+   - migrated every live cart, saved and hold compatibility key;
+   - deduplicated lines and IDs, validated quantities and pruned expired holds;
+   - recovered from malformed or wrong-version canonical snapshots;
+   - preserved legacy recovery data when a canonical storage write fails;
+   - extracted canonical cart restoration from minimal intents and current variant availability.
+2. **Provider cutover**
+   - mounted client state and auth only inside the storefront route boundary;
+   - moved `/cart`, the header bag, checkout, saved interactions and product holds to one state owner;
+   - removed duplicate hold timers and persistence writers;
+   - moved the global hold alert to the unified provider.
+3. **Authentication**
+   - added typed, user-safe password Server Action results;
+   - preserved redirect-based auth pages;
+   - moved the modal to canonical actions;
+   - removed browser auth duplication and client identity authority.
+4. **Cart, checkout and receipt correctness**
+   - fixed cart mutations that incorrectly used product IDs instead of stable line keys;
+   - made cart page, cart sheet and checkout consume the same lines and quantities;
+   - removed the fabricated checkout catalogue selection and synthetic hold timer;
+   - added an explicit session receipt written only by the prototype completion callback;
+   - made confirmation read that receipt and clear the same cart/holds.
+5. **Compatibility removal**
+   - deleted `ShopProvider`;
+   - deleted `StorefrontExperienceProvider` and its compatibility data/tests;
+   - deleted the duplicate cart-persistence module/tests;
+   - deleted the legacy checkout controller;
+   - deleted `src/lib/catalogue.ts` and `src/lib/order.ts`.
+6. **Regression protection**
+   - architecture guard rejects retired files/imports and a full-catalogue route boundary;
+   - boundary tests enforce provider placement and minimal persistence;
+   - focused tests cover migration, failed storage, cart restoration, checkout totals/holds and receipts;
+   - Playwright journeys cover shared cart/saved state, reload persistence, real hold expiries and URL-driven auth validation;
+   - protected catalogue composition was diff-reviewed and restored after an interim drift was detected.
+
+## Explicit exclusions preserved
 
 - No admin Inventory persistence; Phase 3 owns it.
-- No real checkout or payment execution.
-- No database reservation semantics.
-- No new global state dependency without demonstrated need.
-- No visual redesign, typography change, spacing change or public route change.
-- No canonical product identifier or availability-contract change without #19 coordination.
+- No verified payment execution or gateway callback was added.
+- No database-backed reservation semantics were added.
+- No new state library was introduced.
+- No public route, typography, spacing or approved catalogue layout change was intentionally introduced.
+- No canonical product identifier or availability contract changed.
 
-## Implementation slices
+## Validation authored
 
-1. **State contract and migration**
-   - versioned minimal snapshot `{cart, saved, holds}`;
-   - migrate all existing session/local storage keys;
-   - prune expired holds and malformed entries;
-   - remove legacy keys only after the v3 snapshot is persisted.
-2. **Hold-source cutover**
-   - move `/cart` and product hold actions to the unified state owner;
-   - retire the independent `ShopProvider` timer and `laitstyle-held-items-v1` write path.
-3. **Cart and saved cutover**
-   - move current `StorefrontProvider` cart/saved ownership behind the unified state contract;
-   - keep compatibility selectors only while live consumers migrate.
-4. **Auth and overlay narrowing**
-   - submit canonical auth actions;
-   - remove browser-auth duplication and client identity authority;
-   - split overlay-only state from durable client intent state.
-5. **Compatibility deletion and route proof**
-   - delete retired providers/modules;
-   - prove admin/auth do not mount storefront state;
-   - complete browser and bundle/RSC review.
+- state normalization and migration tests;
+- failed storage-write and cleanup tests;
+- canonical cart-restoration tests;
+- checkout calculation and validation tests;
+- receipt serialization/persistence tests;
+- storefront state boundary tests;
+- shell catalogue projection tests;
+- mobile/tablet/desktop Playwright client-state journeys;
+- architecture guard assertions for retired modules, provider placement and shell catalogue loading.
 
-## Required evidence
+## Validation blocker
 
-- Focused unit tests for normalization, migration, expiry pruning and cleanup.
-- Provider/selector tests for cart, saved and holds.
-- Browser flows at mobile and desktop widths for cart, auth dialog and navigation.
-- Proof that admin/auth routes do not mount storefront providers.
-- Proof that no full catalogue is serialized into the persisted client snapshot.
-- `pnpm` architecture, lint, typecheck, test and build evidence.
-- Reviewer completion report before leaving draft.
+GitHub Actions was tested repeatedly on current PR commits. Application jobs and browser jobs finish with no allocated steps or logs. A temporary runner probe tested `ubuntu-24.04`, `windows-latest` and `macos-latest`; all three failed before the first echo or checkout step with `steps: null`. The probe workflow was then deleted.
+
+The connected GitHub app exposes run inspection and rerun actions but not repository Actions settings or billing controls. The execution runtime also cannot resolve GitHub for an independent clone. Therefore the source is implemented and reviewable, but no command is represented as passing until runner access is restored and the real gates execute.
+
+## Required before completion
+
+- restore GitHub-hosted runner allocation for the repository/account;
+- run architecture guard, Prisma validation, strict button audit and Biome;
+- run TypeScript and the complete Vitest suite;
+- run production build and React review;
+- run mobile, tablet and desktop Playwright suites;
+- inspect logs/artifacts and fix every actual failure;
+- rerun until all required checks pass;
+- reviewer posts an evidence-backed completion report before the PR leaves draft.
 
 ## Progress ledger
 
 ```text
-State: implementation
-Completed: Phase 3 merged; fresh Phase 4 branch created from current main; v3 minimal client-state snapshot, legacy migration, expiry pruning and cleanup tests added
-Current: wire the unified state owner into the storefront provider boundary, beginning with holds and /cart
-Blocked by: GitHub-hosted ubuntu-latest jobs currently terminate before step allocation; source validation remains unexecuted until runner access is restored
-Contracts changed: new versioned client-state storage contract only; no public UI or product DTO changes
-Files/surfaces owned: storefront shared state, shell composition, cart/saved/hold consumers, compatibility provider deletion
-Validation evidence: source tests authored; no runner-executed evidence yet
-Next handoff: planner → ui-engineer hold-source cutover → reviewer
+State: source implementation complete; executable validation blocked; draft; not merge-ready
+Completed: unified cart/saved/hold owner; storage migration; canonical auth actions; server session boundary; cart/checkout/receipt cutover; compatibility deletion; shell catalogue projection; focused and browser tests; architecture enforcement
+Current: wait only for executable gate evidence, then fix actual reported failures on the same branch
+Blocked by: GitHub Actions cannot allocate Linux, Windows or macOS hosted runners; every job ends before checkout with no steps or logs; independent clone is unavailable in the current runtime
+Contracts changed: internal v3 client-intent storage; typed auth action results; explicit prototype receipt; lightweight shell catalogue projection
+Files/surfaces owned: storefront shared state/auth, shell composition, cart, checkout, receipt, product hold consumers, tests and architecture guard
+Validation evidence: tests and workflows authored; no runtime gate has passed because no runner executed
+Next handoff: infrastructure restoration → reviewer executes gates → owning engineer fixes evidenced failures → rerun until green
 ```
