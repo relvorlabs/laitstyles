@@ -2,94 +2,95 @@
 
 Tracking: [#22](https://github.com/relvorlabs/laitstyles/issues/22)  
 Coordination: [#19](https://github.com/relvorlabs/laitstyles/issues/19)  
-Base: current `main` after merged Phase 3 and Phase 4 contracts
+Base: `main@082224f67f37e02fe95defd378b1e6fd5375ffc0`
 
 ## State
 
-`planning and implementation — draft — validation pending`
+`source implementation complete — executable validation blocked — draft — not merge-ready`
 
-No lint, typecheck, test, build, or browser gate is recorded as passing until GitHub executes the repository commands.
+No architecture, Prisma, button, Biome, TypeScript, Vitest, build, React-review, or browser gate is recorded as passing. GitHub-hosted jobs currently terminate before checkout with `steps: null` and no logs.
 
 ## Goal
 
-Establish one canonical typed expected-failure contract, validate relevant server entry points with Zod, prevent provider internals from reaching users, and replace expected-state throws or message-string control flow with typed codes while preserving unexpected failures for logging and error boundaries.
+Establish one canonical typed expected-failure contract, validate live untrusted server entry points with Zod, prevent provider internals from reaching users, and replace expected-state throws or message-string control flow with typed codes while preserving unexpected failures for diagnostics and error boundaries.
 
-## Stable dependency contracts
+## Stable dependency contracts preserved
 
-Phase 3 and Phase 4 are merged into `main`.
-
-- Inventory actions/services return typed product, lifecycle, and taxonomy results.
+- Phase 3 Inventory product, lifecycle, taxonomy, and cache-invalidation business rules remain unchanged.
+- Phase 4 storefront client-state ownership and server-session identity authority remain unchanged.
 - Inventory product condition remains a lossless database label.
-- Storefront password sign-in/sign-up/sign-out use typed Server Action results.
-- Server session remains identity authority.
-- Cart/saved/hold ownership is outside Phase 5 and must not change.
+- Account persistence, payment execution, and visual redesign remain outside Phase 5.
 
-## Initial inventory
+## Implemented contracts
 
-- Canonical cross-cutting result helpers currently live in `src/lib/errors/index.ts`.
-- A duplicate generic result implementation remains in `src/lib/admin/shared/result.ts` and is imported by prototype/admin reducers and validation modules.
-- Auth actions parse `FormData` manually and map provider failures by searching raw message text.
-- OAuth callback redirects one raw Supabase `error.message` into a user-visible query parameter.
-- Inventory action inputs and identified review/account/admin server entries require boundary-by-boundary validation review.
-- Expected failures must remain typed; programmer and infrastructure faults must still throw.
+### Canonical Result
 
-## Scope
+- `src/lib/errors/index.ts` remains the only `Result<T, E>` implementation.
+- Representative admin callers now import directly from `@/lib/errors`.
+- `src/lib/admin/shared/result.ts` is a zero-logic compatibility re-export for untouched legacy reducers; the architecture contract rejects any second implementation.
+- Domain-specific error unions remain feature-owned.
 
-1. **Canonical result contract**
-   - keep exactly one `Result<T, E>` implementation under `src/lib/errors/**`;
-   - migrate duplicate admin imports;
-   - preserve existing domain-specific discriminated error unions.
-2. **Validation boundaries**
-   - Zod-parse password auth `FormData`;
-   - Zod-parse externally supplied inventory action identifiers and taxonomy inputs;
-   - review other live Server Actions in account/reviews/admin and add validation only where an untrusted boundary exists.
-3. **Safe provider mapping**
-   - map Supabase/auth callback failures to fixed codes and copy;
-   - never expose raw provider messages, stack traces, or database details in redirects or UI;
-   - retain unexpected failure observability.
-4. **Typed expected states**
-   - replace known `Error.message` comparisons and expected bare throws with typed result codes;
-   - make UI handling exhaustive where a discriminated result is consumed;
-   - do not redesign any screen.
-5. **Regression protection**
-   - unit tests for result helpers, schemas, safe provider mapping, redirects, and representative action handling;
-   - architecture checks that reject duplicate Result primitives and raw provider errors in user-visible auth redirects.
+### Auth validation and provider safety
 
-## Explicit exclusions
+- Password sign-in/sign-up `FormData` is Zod-parsed and normalized.
+- Sign-up terms acceptance is enforced by the Server Action, not only the checkbox UI.
+- Password, Google OAuth start, OAuth callback, and sign-out failures map provider codes to fixed allow-listed customer copy.
+- Auth redirects serialize an allow-listed error code and safe internal return path only.
+- The auth error page ignores arbitrary message query values.
+- Provider failures retain server-only structured diagnostics containing operation, provider code, status, and error class; raw messages, credentials, and customer inputs are excluded.
+- The storefront auth provider consumes canonical `{ ok, value | error }` Results.
 
-- No broad repository-wide exception rewrite.
-- No swallowed unexpected failures.
-- No Phase 3 business-rule changes.
-- No Phase 4 state ownership changes.
-- No account persistence implementation; Phase 6 consumes this contract.
-- No payment/checkout execution or visual redesign.
+### Inventory action boundaries
+
+- Product payloads reuse the canonical product-editor Zod schema.
+- Product lifecycle IDs, save intents, taxonomy kinds, encoded taxonomy IDs, and taxonomy names are validated before domain services run.
+- Session-resolution outages remain unexpected errors; they are not disguised as permission failures.
+- Existing Phase 3 domain services remain the authority for business rules.
+
+### Verified-review expected failures
+
+- Order and order-line identifiers are Zod-validated.
+- Signed-out, missing-customer, malformed-link, eligibility, validation, and withdrawal failures return typed action-state codes and fixed copy.
+- Review submission and withdrawal render expected failures inline.
+- Session/database unavailability still throws to the error boundary.
+
+## Regression protection authored
+
+- canonical Result discriminant tests;
+- auth schemas, provider-code mapping, Server Action result, redirect, and diagnostics tests;
+- Inventory action schema and adapter tests;
+- review submission/withdrawal action and component tests;
+- browser tests proving auth query text is not reflected at desktop, tablet, or mobile viewports;
+- `scripts/checks/error-validation-contract.mjs`, included by `pnpm check:architecture`, enforcing one Result implementation, Zod boundaries, server-enforced terms, code-only auth redirects, structured diagnostics, non-reflection coverage, and typed review/Inventory failures.
+
+## Explicit non-changes
+
+- No repository-wide exception rewrite.
+- No swallowed infrastructure or programmer failures.
 - No new error framework or dependency.
-
-## Role chain
-
-`orchestrator → planner → domain-engineer → ui-engineer → reviewer`
-
-The fixed `AGENTS.md` roster applies. No invented or nested child roles.
+- No Phase 3 inventory policy change.
+- No Phase 4 provider/state ownership change.
+- No public-route, layout, typography, spacing, or responsive-design change.
 
 ## Required evidence before completion
 
-- exactly one canonical Result implementation;
-- relevant auth/action boundaries Zod-validated;
-- no raw Supabase/provider error reaches a visible redirect or result;
-- no traced expected-state branch compares `Error.message` strings;
-- focused Vitest coverage;
-- architecture guard, Prisma validation, strict button audit, Biome, TypeScript, full Vitest, production build, React review, and relevant Playwright flows;
-- reviewer completion report.
+1. Restore GitHub-hosted runner allocation.
+2. Run `pnpm check:architecture`, Prisma validation, strict button audit, and Biome.
+3. Run TypeScript and the complete Vitest suite.
+4. Run the production build and React review.
+5. Run relevant Playwright journeys on mobile, tablet, and desktop.
+6. Fix every evidenced source failure on this branch and rerun until the required checks genuinely pass.
+7. Reviewer posts an evidence-backed completion report before the PR leaves draft.
 
 ## Progress ledger
 
 ```text
-State: planning and implementation
-Completed: dependency gate opened; fresh branch created from current main; initial live-contract inventory recorded
-Current: enumerate duplicate result imports, auth/provider exposure, raw action inputs, expected throws, and message-string branches
-Blocked by: no source blocker; executable validation may remain blocked by GitHub-hosted runner allocation
-Contracts changed: none yet
-Files/surfaces owned: src/lib/errors/**, duplicate result module/imports, auth actions/callback, traced expected-failure adapters and tests
-Validation evidence: none yet
-Next handoff: planner inventory → domain contract → caller migration → reviewer
+State: source implementation complete; executable validation blocked
+Completed: canonical Result consolidation; auth Zod/code/diagnostics hardening; Inventory boundary validation; typed review expected failures; unit, architecture, component, and browser regressions authored
+Current: hold PR draft and inspect the exact-head workflows for the first runner-executed evidence
+Blocked by: repository/account GitHub-hosted runners terminate before checkout with steps=null and no logs
+Contracts changed: typed auth action Results; code-only auth redirects; typed review action-state codes; validated Inventory action adapters
+Files/surfaces owned: shared errors, auth actions/routes/provider-safe mapping, Inventory action adapters, verified-review actions/form, focused tests and architecture contract
+Validation evidence: source review only; no command is represented as executed or passing
+Next handoff: reviewer after real runner allocation is restored
 ```
