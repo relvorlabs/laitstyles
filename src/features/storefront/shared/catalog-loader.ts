@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import {
   buildStorefrontCatalog,
+  buildStorefrontShellCatalog,
   projectLegacyProduct,
 } from "@/features/storefront/shared/catalog-adapter";
 import type {
@@ -20,9 +21,11 @@ import {
 
 export {
   buildStorefrontCatalog,
+  buildStorefrontShellCatalog,
   measurementsCmFor,
   projectLegacyProduct,
   projectLegacyProductSummary,
+  projectShellProduct,
 } from "@/features/storefront/shared/catalog-adapter";
 
 // react.cache keeps one repository round-trip per request. Repository reads use
@@ -39,29 +42,12 @@ const getCatalog = cache(async () => {
 const getProductDetail = cache((slug: string) => getPublishedProductBySlug(slug));
 const getProductSlugs = cache(() => listPublishedProductSlugs());
 
-function projectShellProduct(product: Product): Product {
-  return {
-    ...product,
-    images: product.images.slice(0, 1),
-    flaw: "",
-    careInstructions: "",
-    fit: product.size,
-    variants: undefined,
-  };
-}
-
 export async function loadStorefrontCatalog(): Promise<StorefrontCatalogPayload> {
   return (await getCatalog()).payload;
 }
 
 export async function loadStorefrontShellCatalog(): Promise<StorefrontShellCatalogPayload> {
-  const payload = (await getCatalog()).payload;
-  return {
-    products: payload.products.map(projectShellProduct),
-    categories: payload.categories,
-    measurementsCm: payload.measurementsCm,
-    variantOptionsByProductId: payload.variantOptionsByProductId,
-  };
+  return buildStorefrontShellCatalog((await getCatalog()).payload);
 }
 
 export async function loadStorefrontProductSlugs(): Promise<string[]> {
