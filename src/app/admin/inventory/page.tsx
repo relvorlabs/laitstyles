@@ -15,8 +15,8 @@ import type {
   InventorySortKey,
   InventoryStockFilter,
 } from "@/lib/admin/shared/types";
+import { listAdminProducts } from "@/modules/products/server/queries";
 import { getStaffAccess } from "@/server/auth/session";
-import { listInventoryProducts } from "@/server/commerce/inventory/inventory-read";
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -59,7 +59,11 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const access = await getStaffAccess("inventory:read");
   if (!access.ok) return <AdminAccessDenied reason={access.reason} />;
 
-  const [params, products] = await Promise.all([searchParams, listInventoryProducts()]);
+  const [params, productResult] = await Promise.all([
+    searchParams,
+    listAdminProducts({ page: 1, pageSize: 500 }),
+  ]);
+  const products = productResult.data;
   const facets = getInventoryFacetOptions(products);
   const categoryValues = new Set(facets.categories);
   const collectionValues = new Set(facets.collections);
