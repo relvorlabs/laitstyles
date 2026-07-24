@@ -3,12 +3,23 @@ import { mapAuthProviderError } from "@/lib/auth/auth-errors";
 import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
-import { ensureConsumerProfile } from "@/server/auth/profile";
+import { ensureConsumerAccount } from "@/server/auth/profile";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const providerErrorCode =
+    requestUrl.searchParams.get("error_code") ?? requestUrl.searchParams.get("error");
   const next = getSafeNextPath(requestUrl.searchParams.get("next"), "/account");
+
+  if (providerErrorCode) {
+    logAuthProviderFailure("oauth-callback", {
+      name: "OAuthCallbackProviderError",
+      code: providerErrorCode,
+    });
+    const failure = mapAuthProviderError({ code: providerErrorCode }, "oauth-callback-invalid");
+    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
+  }
 
   if (!code) {
     logAuthProviderFailure("oauth-callback", { name: "MissingOAuthCallbackCode" });
@@ -25,8 +36,21 @@ export async function GET(request: NextRequest) {
     const failure = mapAuthProviderError(error, "oauth-callback-invalid");
     return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
   }
-  const { data } = await supabase.auth.getUser();
-  if (data.user) await ensureConsumerProfile(data.user.id, data.user.email ?? null);
+
+  const { data, error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    logAuthProviderFailure("oauth-callback-user", userError);
+    const failure = mapAuthProviderError(userError, "oauth-callback-invalid");
+    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
+  }
+
+  if (data.user) {
+    await ensureConsumerAccount({
+      id: data.user.id,
+      email: data.user.email ?? null,
+      userMetadata: data.user.user_metadata,
+    });
+  }
 
   return NextResponse.redirect(new URL(next, requestUrl));
 }
