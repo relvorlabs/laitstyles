@@ -1,11 +1,11 @@
 import { parseStoreSettingsInput } from "@/lib/admin/settings/settings-schema";
-import { err, ok, type Result } from "@/lib/admin/shared/result";
 import type {
   ControlRoomState,
   SaveStoreSettingsInput,
   StoreSettingsActionError,
   StoreSettingsActionSuccess,
 } from "@/lib/admin/shared/types";
+import { err, ok, type Result } from "@/lib/errors";
 
 export type StoreSettingsStateResult = {
   state: ControlRoomState;

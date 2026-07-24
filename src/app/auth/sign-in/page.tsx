@@ -102,6 +102,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                     id="auth-email"
                     name="email"
                     placeholder="you@example.com"
+                    required
                     type="email"
                   />
                 </label>
@@ -110,9 +111,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                   <Input
                     autoComplete="current-password"
                     id="auth-password"
-                    minLength={8}
                     name="password"
                     placeholder="Your password"
+                    required
                     type="password"
                   />
                 </label>
@@ -120,6 +121,15 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                   Sign in with email
                 </Button>
               </form>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <Link className="font-semibold underline-offset-4 hover:underline" href="/auth/forgot-password">
+                  Forgot password?
+                </Link>
+                <Link className="text-muted-foreground underline-offset-4 hover:underline" href="/auth/resend-confirmation">
+                  Resend confirmation
+                </Link>
+              </div>
 
               <p className="rounded-xl border border-border bg-muted/35 p-4 text-xs leading-5 text-muted-foreground">
                 This page is reserved for Admin staff. Customer sign-in and account creation happen

@@ -112,6 +112,7 @@ export function StorefrontAuthProvider({
     formData.set("password", authForm.password);
     formData.set("first", authForm.first.trim());
     formData.set("last", authForm.last.trim());
+    formData.set("terms", String(termsAccepted));
     formData.set("next", `${window.location.pathname}${window.location.search}`);
 
     const result =
@@ -120,14 +121,14 @@ export function StorefrontAuthProvider({
         : await submitPasswordSignIn(formData);
 
     if (!result.ok) {
-      setAuthErrors({ ...(result.fieldErrors ?? {}), form: result.message });
+      setAuthErrors({ ...(result.error.fieldErrors ?? {}), form: result.error.message });
       setShowAuthErrors(true);
       setAuthState("default");
       return;
     }
 
-    setAuthState(result.status);
-    if (result.status === "success") router.refresh();
+    setAuthState(result.value.status);
+    if (result.value.status === "success") router.refresh();
   }, [authForm, authMode, authState, router, termsAccepted]);
 
   const onAuthOpenChange = useCallback((open: boolean) => {
@@ -141,14 +142,14 @@ export function StorefrontAuthProvider({
   const signOut = useCallback(async () => {
     const result = await signOutStorefrontSession();
     if (!result.ok) {
-      toast.error(result.message);
+      toast.error(result.error.message);
       return;
     }
     router.refresh();
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
   }, [router]);
 
-  const displayName = authSession.email?.split("@")[0] ?? null;
+  const displayName = authSession.displayName ?? authSession.email?.split("@")[0] ?? null;
   const value = useMemo<StorefrontAuthContextValue>(
     () => ({
       state: {
@@ -217,7 +218,11 @@ function validateAuth(
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
     errors.email = "Enter a valid email address";
   }
-  if (form.password.length < 8) errors.password = "Password must be at least 8 characters";
+  if (mode === "signup" && form.password.length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  } else if (!form.password) {
+    errors.password = "Enter your password";
+  }
   if (mode === "signup") {
     if (!form.first.trim()) errors.first = "Required";
     if (!form.last.trim()) errors.last = "Required";

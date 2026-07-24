@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { startTransition, useActionState, useEffect, useState, useTransition } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -76,10 +76,19 @@ export function ReviewForm({
     },
   });
   const [state, formAction, pending] = useActionState(submitReviewAction, initialActionState);
+  const [withdrawState, withdrawAction, withdrawPending] = useActionState(
+    withdrawReviewAction,
+    initialActionState,
+  );
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [withdrawPending, beginWithdrawal] = useTransition();
   const bodyValue = useWatch({ control: form.control, name: "body" }) ?? "";
   const isMutating = pending || withdrawPending;
+  const actionError =
+    state.status === "error"
+      ? { title: "We could not save your review", state }
+      : withdrawState.status === "error"
+        ? { title: "We could not withdraw your review", state: withdrawState }
+        : null;
 
   useEffect(() => {
     if (!form.formState.isDirty || isMutating) return;
@@ -126,15 +135,16 @@ export function ReviewForm({
     const data = new FormData();
     data.set("orderNumber", orderNumber);
     data.set("orderLineId", orderLineId);
-    beginWithdrawal(() => withdrawReviewAction(data));
+    setWithdrawOpen(false);
+    startTransition(() => withdrawAction(data));
   }
 
   return (
     <div className="space-y-6">
-      {state.status === "error" ? (
+      {actionError ? (
         <Alert variant="destructive">
-          <AlertTitle>We could not save your review</AlertTitle>
-          <AlertDescription>{state.message}</AlertDescription>
+          <AlertTitle>{actionError.title}</AlertTitle>
+          <AlertDescription>{actionError.state.message}</AlertDescription>
         </Alert>
       ) : null}
 

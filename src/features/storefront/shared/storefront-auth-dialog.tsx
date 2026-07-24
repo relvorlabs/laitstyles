@@ -2,6 +2,7 @@
 
 import { Check, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -124,7 +125,7 @@ export function StorefrontAuthDialog({
               </h2>
               <p className="mx-auto m-0 mb-[26px] max-w-[320px] text-sm leading-[1.6] text-muted-foreground">
                 {state === "check-email"
-                  ? "We sent a secure confirmation link to your email. Your guest bag and saved pieces will stay in this session."
+                  ? "If this address can receive a confirmation email, a secure link is on its way. Your guest bag and saved pieces will stay in this session."
                   : "Your holds, saved pieces and addresses are ready. Let&apos;s find the next one-of-one."}
               </p>
               <Button size="lg" className="w-full max-w-[300px]" onClick={onFinish}>
@@ -250,7 +251,12 @@ export function StorefrontAuthDialog({
                     />
                     Keep me signed in
                   </Label>
-                  <span className="text-[12px] text-muted-foreground">Secure Supabase session</span>
+                  <Link
+                    className="text-[12px] font-semibold text-foreground underline-offset-4 hover:underline"
+                    href="/auth/forgot-password"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
               ) : (
                 <div className="mt-4">
@@ -291,6 +297,14 @@ export function StorefrontAuthDialog({
                   {signup ? "Sign in" : "Create one"}
                 </Button>
               </div>
+              {!signup ? (
+                <div className="mt-2 text-center text-xs text-muted-foreground">
+                  Email still unconfirmed?{" "}
+                  <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/auth/resend-confirmation">
+                    Send another link
+                  </Link>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

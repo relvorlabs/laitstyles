@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSafeNextPath } from "@/lib/auth/server/redirects";
+import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 
 describe("auth redirect safety", () => {
   it("allows internal relative paths", () => {
@@ -15,5 +15,11 @@ describe("auth redirect safety", () => {
 
   it("falls back for missing values", () => {
     expect(getSafeNextPath(null, "/account")).toBe("/account");
+  });
+
+  it("carries only an allow-listed error code and safe return path", () => {
+    const path = withAuthErrorPath("invalid-credentials", "https://example.com/admin");
+    expect(path).toBe("/auth/error?code=invalid-credentials&next=%2F");
+    expect(path).not.toContain("message=");
   });
 });

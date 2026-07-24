@@ -57,10 +57,19 @@ export interface ReviewInput {
   fit: ReviewFit;
 }
 
+export type ReviewActionErrorCode =
+  | "authentication-required"
+  | "customer-profile-required"
+  | "invalid-review-link"
+  | "invalid-review-fields"
+  | "withdrawal-failed"
+  | ReviewEligibilityReason;
+
 export type ReviewActionState =
   | { status: "idle" }
   | {
       status: "error";
+      code: ReviewActionErrorCode;
       message: string;
       fieldErrors?: Partial<Record<keyof ReviewInput, string[]>>;
     };

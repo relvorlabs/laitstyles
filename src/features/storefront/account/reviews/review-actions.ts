@@ -2,18 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
 import type { ReviewActionState } from "@/lib/commerce/reviews/review-types";
 import { getCurrentSession } from "@/server/auth/session";
 import {
-  type SubmitReviewResult,
   submitReview,
+  type SubmitReviewResult,
   withdrawReview,
 } from "@/server/commerce/reviews/review-repository";
 
 type ReviewErrorState = Extract<ReviewActionState, { status: "error" }>;
 
-const submitFailureCopy: Record<Extract<SubmitReviewResult, { ok: false }>["reason"], string> = {
+const reviewIdentifiersSchema = z.object({
+  orderNumber: z.string().trim().min(1).max(64),
+  orderLineId: z.string().trim().min(1).max(128),
+});
+
+const submitFailureCopy: Record<
+  Extract<SubmitReviewResult, { ok: false }>["reason"],
+  string
+> = {
   order_line_not_found: "We could not find this item in your orders.",
   awaiting_delivery: "You can review this item after it is delivered.",
   cancelled: "This item was cancelled and cannot be reviewed.",
@@ -29,20 +38,19 @@ function textField(formData: FormData, name: string): string {
 }
 
 function readIdentifiers(formData: FormData) {
-  const orderNumber = textField(formData, "orderNumber");
-  const orderLineId = textField(formData, "orderLineId");
-  if (!orderNumber || orderNumber.length > 64 || !orderLineId || orderLineId.length > 128) {
-    return null;
-  }
-  return { orderNumber, orderLineId };
+  const parsed = reviewIdentifiersSchema.safeParse({
+    orderNumber: formData.get("orderNumber"),
+    orderLineId: formData.get("orderLineId"),
+  });
+  return parsed.success ? parsed.data : null;
 }
 
 async function getCustomerId(): Promise<
   { ok: true; customerId: string } | { ok: false; state: ReviewErrorState }
 > {
   const session = await getCurrentSession();
-  // Session resolution failures (e.g. database outage) are unexpected: surface
-  // them to the error boundary instead of disguising them as an auth error.
+  // Session resolution failures (for example a database outage) are unexpected:
+  // surface them to the error boundary instead of disguising them as an auth error.
   if (session.kind === "unavailable") {
     throw new Error(session.error);
   }
@@ -51,6 +59,7 @@ async function getCustomerId(): Promise<
       ok: false,
       state: {
         status: "error",
+        code: "authentication-required",
         message: "Sign in with your customer account to review this item.",
       },
     };
@@ -60,7 +69,9 @@ async function getCustomerId(): Promise<
       ok: false,
       state: {
         status: "error",
-        message: "Your customer profile is not ready for reviews yet. Contact support for help.",
+        code: "customer-profile-required",
+        message:
+          "Your customer profile is not ready for reviews yet. Contact support for help.",
       },
     };
   }
@@ -78,6 +89,7 @@ export async function submitReviewAction(
   if (!identifiers) {
     return {
       status: "error",
+      code: "invalid-review-link",
       message: "This review link is incomplete. Return to your order and try again.",
     };
   }
@@ -91,6 +103,7 @@ export async function submitReviewAction(
   if (!parsed.success) {
     return {
       status: "error",
+      code: "invalid-review-fields",
       message: "Check the highlighted review fields and try again.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
@@ -102,7 +115,11 @@ export async function submitReviewAction(
     input: parsed.data,
   });
   if (!result.ok) {
-    return { status: "error", message: submitFailureCopy[result.reason] };
+    return {
+      status: "error",
+      code: result.reason,
+      message: submitFailureCopy[result.reason],
+    };
   }
 
   const orderPath = `/account/orders/${encodeURIComponent(identifiers.orderNumber)}`;
@@ -111,23 +128,32 @@ export async function submitReviewAction(
   redirect(`${orderPath}?review=submitted`);
 }
 
-export async function withdrawReviewAction(formData: FormData): Promise<void> {
+export async function withdrawReviewAction(
+  _previous: ReviewActionState,
+  formData: FormData,
+): Promise<ReviewActionState> {
   const identity = await getCustomerId();
-  if (!identity.ok) {
-    throw new Error(identity.state.message);
-  }
+  if (!identity.ok) return identity.state;
 
   const identifiers = readIdentifiers(formData);
   if (!identifiers) {
-    throw new Error("This review link is incomplete.");
+    return {
+      status: "error",
+      code: "invalid-review-link",
+      message: "This review link is incomplete. Return to your order and try again.",
+    };
   }
 
   const result = await withdrawReview({ customerId: identity.customerId, ...identifiers });
-  const orderPath = `/account/orders/${encodeURIComponent(identifiers.orderNumber)}`;
   if (!result.ok) {
-    redirect(`${orderPath}?review=withdrawal_failed`);
+    return {
+      status: "error",
+      code: "withdrawal-failed",
+      message: "We could not withdraw this review. Return to your order and try again.",
+    };
   }
 
+  const orderPath = `/account/orders/${encodeURIComponent(identifiers.orderNumber)}`;
   revalidatePath(orderPath);
   revalidatePath(`/products/${encodeURIComponent(result.productSlug)}`);
   redirect(`${orderPath}?review=withdrawn`);

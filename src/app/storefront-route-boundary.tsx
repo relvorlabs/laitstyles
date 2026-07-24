@@ -9,9 +9,13 @@ import { getCurrentSession } from "@/server/auth/session";
 async function loadStorefrontAuthSession(): Promise<StorefrontAuthSession> {
   const session = await getCurrentSession();
   if (session.kind === "consumer" || session.kind === "staff") {
-    return { signedIn: true, email: session.email };
+    return {
+      signedIn: true,
+      email: session.email,
+      displayName: session.displayName,
+    };
   }
-  return { signedIn: false, email: null };
+  return { signedIn: false, email: null, displayName: null };
 }
 
 export function StorefrontRouteBoundary({ children }: { children: ReactNode }) {

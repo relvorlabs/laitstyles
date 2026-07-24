@@ -4,7 +4,7 @@ import type {
   InventoryDataset,
   InventoryValidationIssue,
 } from "@/lib/admin/inventory/inventory-validation-types";
-import { err, ok, type Result } from "@/lib/admin/shared/result";
+import { err, ok, type Result } from "@/lib/errors";
 
 export function validateInventoryDataset(
   dataset: InventoryDataset,

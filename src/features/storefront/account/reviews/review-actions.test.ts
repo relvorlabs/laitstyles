@@ -57,6 +57,7 @@ describe("review Server Actions", () => {
 
     await expect(submitReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
       status: "error",
+      code: "authentication-required",
       message: "Sign in with your customer account to review this item.",
     });
     expect(mocks.submitReview).not.toHaveBeenCalled();
@@ -84,6 +85,7 @@ describe("review Server Actions", () => {
 
     await expect(submitReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
       status: "error",
+      code: "customer-profile-required",
       message: "Your customer profile is not ready for reviews yet. Contact support for help.",
     });
     expect(mocks.submitReview).not.toHaveBeenCalled();
@@ -119,17 +121,19 @@ describe("review Server Actions", () => {
 
     expect(result).toMatchObject({
       status: "error",
+      code: "invalid-review-fields",
       message: "Check the highlighted review fields and try again.",
       fieldErrors: { rating: expect.any(Array), body: expect.any(Array) },
     });
     expect(mocks.submitReview).not.toHaveBeenCalled();
   });
 
-  it("turns repository eligibility failures into plain customer copy", async () => {
+  it("turns repository eligibility failures into typed customer copy", async () => {
     mocks.submitReview.mockResolvedValueOnce({ ok: false, reason: "fully_refunded" });
 
     await expect(submitReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
       status: "error",
+      code: "fully_refunded",
       message: "This item has been fully refunded and can no longer be reviewed.",
     });
   });
@@ -142,12 +146,46 @@ describe("review Server Actions", () => {
     expect(mocks.redirect).toHaveBeenCalledWith("/account/orders/LS-1001?review=submitted");
   });
 
+  it("returns expected withdrawal auth failures instead of throwing", async () => {
+    mocks.getCurrentSession.mockResolvedValueOnce({ kind: "anonymous" });
+
+    await expect(withdrawReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
+      status: "error",
+      code: "authentication-required",
+      message: "Sign in with your customer account to review this item.",
+    });
+    expect(mocks.withdrawReview).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed withdrawal identifiers before the repository", async () => {
+    const formData = new FormData();
+    formData.set("orderNumber", "");
+    formData.set("orderLineId", "line-a");
+
+    await expect(withdrawReviewAction({ status: "idle" }, formData)).resolves.toEqual({
+      status: "error",
+      code: "invalid-review-link",
+      message: "This review link is incomplete. Return to your order and try again.",
+    });
+    expect(mocks.withdrawReview).not.toHaveBeenCalled();
+  });
+
+  it("returns fixed copy when the review cannot be withdrawn", async () => {
+    mocks.withdrawReview.mockResolvedValueOnce({ ok: false, reason: "review_not_found" });
+
+    await expect(withdrawReviewAction({ status: "idle" }, validFormData())).resolves.toEqual({
+      status: "error",
+      code: "withdrawal-failed",
+      message: "We could not withdraw this review. Return to your order and try again.",
+    });
+  });
+
   it("withdraws by owned identifiers and redirects with a withdrawal notice", async () => {
     const formData = new FormData();
     formData.set("orderNumber", "LS-1001");
     formData.set("orderLineId", "line-a");
 
-    await withdrawReviewAction(formData);
+    await withdrawReviewAction({ status: "idle" }, formData);
 
     expect(mocks.withdrawReview).toHaveBeenCalledWith({
       customerId: "customer-a",
