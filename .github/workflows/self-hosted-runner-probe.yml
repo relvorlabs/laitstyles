@@ -1,0 +1,24 @@
+name: Self-hosted Runner Probe
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Default-label runner probe
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Confirm runner allocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=$RUNNER_NAME"
+          echo "runner_os=$RUNNER_OS"
+          echo "runner_arch=$RUNNER_ARCH"
