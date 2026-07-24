@@ -325,7 +325,16 @@ export function InventoryWorkspace({
 
       {items.length ? (
         isIntake ? (
-          <InventoryIntakeQueue items={items} />
+          <>
+            <InventoryIntakeQueue items={items} totalItems={pagination.total} />
+            <InventoryPagination
+              onPageChange={changePage}
+              onPageSizeChange={changePageSize}
+              page={safePage}
+              pageSize={pageSize}
+              totalItems={pagination.total}
+            />
+          </>
         ) : (
           <>
             <InventoryMobileList
