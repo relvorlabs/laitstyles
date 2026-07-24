@@ -74,7 +74,7 @@ for (const path of versionedRoutes) {
   if (source.includes("NextResponse.json")) {
     errors.push(`${path} must not construct an ad hoc JSON envelope with NextResponse.json.`);
   }
-  if (/from\s+["'][^"']*(?:actions|action)["']/.test(source)) {
+  if (/from\s+["'][^"']*\/(?:actions?|[^/"']+-actions?)["']/.test(source)) {
     errors.push(`${path} must call a domain operation directly, not a Server Action.`);
   }
 }
