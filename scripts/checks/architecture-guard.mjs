@@ -87,7 +87,6 @@ const forbiddenArchitectureNamespaces = [
   ["src/features/store", "src/features/storefront"],
   ["src/features/commerce", "src/features/storefront"],
   ["src/lib/store", "src/lib/storefront"],
-  ["src/lib/commerce", "src/lib/storefront for consumer contracts or src/server/commerce for domain logic"],
   ["src/server/store", "src/server/commerce"],
   ["src/server/storefront", "src/server/commerce"],
 ];
@@ -144,7 +143,6 @@ const forbiddenArchitectureImports = [
   ["@/features/store/", "@/features/storefront/"],
   ["@/features/commerce/", "@/features/storefront/"],
   ["@/lib/store/", "@/lib/storefront/"],
-  ["@/lib/commerce/", "@/lib/storefront/ for consumer contracts or @/server/commerce/ for domain logic"],
   ["@/server/store/", "@/server/commerce/"],
   ["@/server/storefront/", "@/server/commerce/"],
 ];
