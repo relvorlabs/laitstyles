@@ -13,7 +13,6 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   getAvailableForSale,
   getSaleUnitPrice,
@@ -21,13 +20,12 @@ import {
   getSellableProducts,
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { getProductCover } from "@/lib/admin/inventory/inventory-selectors";
 import { formatNaira } from "@/lib/admin/shared/formatters";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function RecordSaleItemStep() {
-  const repositories = useAdminRepositories();
-  const { data: allProducts = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: allProducts = [] } = useQuery(adminProductsQueryOptions());
   const methods = useFormContext<RecordSaleValues>();
   const productId = useWatch({ control: methods.control, name: "productId" });
   const variantId = useWatch({ control: methods.control, name: "variantId" });
