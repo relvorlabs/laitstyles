@@ -149,7 +149,7 @@ export function StorefrontAuthProvider({
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
   }, [router]);
 
-  const displayName = authSession.email?.split("@")[0] ?? null;
+  const displayName = authSession.displayName ?? authSession.email?.split("@")[0] ?? null;
   const value = useMemo<StorefrontAuthContextValue>(
     () => ({
       state: {
@@ -218,7 +218,11 @@ function validateAuth(
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
     errors.email = "Enter a valid email address";
   }
-  if (form.password.length < 8) errors.password = "Password must be at least 8 characters";
+  if (mode === "signup" && form.password.length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  } else if (!form.password) {
+    errors.password = "Enter your password";
+  }
   if (mode === "signup") {
     if (!form.first.trim()) errors.first = "Required";
     if (!form.last.trim()) errors.last = "Required";
