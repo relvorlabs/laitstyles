@@ -7,7 +7,10 @@ export function publishedProductWhere(now: Date = new Date()): Prisma.productsWh
   return {
     lifecycle: "active",
     price: { gt: 0 },
-    OR: [{ publication: "published" }, { publication: "scheduled", scheduled_at: { lte: now } }],
+    OR: [
+      { publication: "published" },
+      { publication: "scheduled", scheduled_at: { lte: now } },
+    ],
     product_channels: { some: { channel: "storefront" } },
     product_media: { some: { kind: "product_cover" } },
   };
