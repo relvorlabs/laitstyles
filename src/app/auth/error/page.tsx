@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  getAuthFlowErrorMessage,
+  isAuthFlowErrorCode,
+} from "@/lib/auth/auth-errors";
 import { getSafeNextPath } from "@/lib/auth/server/redirects";
 
 export const metadata: Metadata = {
@@ -10,7 +14,7 @@ export const metadata: Metadata = {
 
 type AuthErrorPageProps = {
   searchParams: Promise<{
-    message?: string;
+    code?: string;
     next?: string;
   }>;
 };
@@ -18,7 +22,9 @@ type AuthErrorPageProps = {
 export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps) {
   const params = await searchParams;
   const next = getSafeNextPath(params.next, "/account");
-  const message = params.message ?? "We could not complete that sign-in request.";
+  const message = isAuthFlowErrorCode(params.code)
+    ? getAuthFlowErrorMessage(params.code)
+    : "We could not complete that sign-in request.";
   const signInHref = `/auth/sign-in?next=${encodeURIComponent(next)}`;
 
   return (
