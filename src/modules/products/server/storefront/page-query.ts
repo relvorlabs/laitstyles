@@ -1,133 +1,147 @@
-import type { StorefrontPageData } from "@/lib/storefront/page-data";
-import type { StorefrontProduct } from "@/lib/storefront/types";
-import {
-  FEATURED_COLLECTION_PRODUCT_LIMIT,
-  NEW_ARRIVALS_PRODUCT_LIMIT,
-  STORE_PRODUCT_LIMIT,
-} from "@/modules/products/server/storefront/catalogue-limits";
-import {
-  getPublishedProductCards,
-  getPublishedProductCardsByCategory,
-  getPublishedProductCardsByIds,
-  getStorefrontCategoryBySlug,
-  getStorefrontCollectionBySlug,
-} from "@/modules/products/server/storefront/queries";
-import { selectHomepageCategories } from "@/modules/products/server/storefront/page-selection";
-import type { StorefrontPageSource } from "@/modules/products/server/storefront/page-repository";
+import type { Prisma } from "@/lib/prisma";
+import type {
+  StorefrontCataloguePageQuery,
+  StorefrontConditionFilter,
+  StorefrontInventoryFilter,
+} from "@/modules/products/server/storefront/page-selection";
+import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
 
-export async function buildStorefrontPageData(
-  source: StorefrontPageSource,
-): Promise<StorefrontPageData> {
-  const config = await source.getConfig();
-  const allCategories = await source.listCategoryTiles();
-  const categories = selectHomepageCategories(allCategories, config);
-
-  const featuredProduct = await resolveConfiguredProduct(
-    config.featuredProductId,
-    source.getProductById,
-  );
-  const configuredFeaturedCollection = config.featuredCollectionSlug
-    ? await getStorefrontCollectionBySlug(config.featuredCollectionSlug)
-    : null;
-  const featuredCollectionProducts = configuredFeaturedCollection
-    ? await source.listProductsByCollection(
-        configuredFeaturedCollection.slug,
-        FEATURED_COLLECTION_PRODUCT_LIMIT,
-      )
-    : [];
-
-  const fallbackFeaturedProduct =
-    featuredProduct ??
-    featuredCollectionProducts[0] ??
-    (await source.listProducts(STORE_PRODUCT_LIMIT))[0] ??
-    null;
-  const featuredCollection = configuredFeaturedCollection
-    ? {
-        name: configuredFeaturedCollection.name,
-        description: `A focused edit of ${configuredFeaturedCollection.name.toLocaleLowerCase("en-NG")}.`,
-        products: featuredCollectionProducts,
-      }
-    : fallbackFeaturedProduct
-      ? await resolveFallbackFeaturedCollection(fallbackFeaturedProduct)
-      : null;
-
-  const productSelection = config.showAllProducts
-    ? await source.listProducts(STORE_PRODUCT_LIMIT)
-    : await source.listProductsByIds(config.selectedProductIds, STORE_PRODUCT_LIMIT);
-  const products = fallbackFeaturedProduct
-    ? dedupeProducts([fallbackFeaturedProduct, ...productSelection]).slice(0, STORE_PRODUCT_LIMIT)
-    : productSelection;
-  const newArrivals = await source.listProducts(NEW_ARRIVALS_PRODUCT_LIMIT);
-
-  return {
-    hero: config.hero,
-    promo: config.promo,
-    trustItems: config.trustItems,
-    products,
-    categories,
-    featuredCollection,
-    newArrivals,
-  };
-}
-
-async function resolveConfiguredProduct(
-  productId: string | null,
-  getProductById: (id: string) => Promise<StorefrontProduct | null>,
-) {
-  return productId ? getProductById(productId) : Promise.resolve(null);
-}
-
-async function resolveFallbackFeaturedCollection(product: StorefrontProduct) {
-  const category = await getStorefrontCategoryBySlug(slugify(product.category));
-  const categoryName = category?.name ?? product.category;
-  const products = await getPublishedProductCardsByCategory(categoryName, {
-    limit: FEATURED_COLLECTION_PRODUCT_LIMIT,
-  });
-  return {
-    name: `${categoryName} Edit`,
-    description: `A focused edit of ${categoryName.toLocaleLowerCase("en-NG")}.`,
-    products,
-  };
-}
-
-export function createDefaultStorefrontPageSource(): StorefrontPageSource {
-  return {
-    getConfig: async () => {
-      const { getStorefrontHomeConfig } = await import("@/lib/storefront/home-config");
-      return getStorefrontHomeConfig();
-    },
-    listCategoryTiles: async () => {
-      const { getStorefrontCategories } = await import("@/lib/storefront/home-config");
-      return getStorefrontCategories();
-    },
-    listProducts: (limit) => getPublishedProductCards({ sort: "newest" }, { limit }),
-    listProductsByIds: (ids, limit) => getPublishedProductCardsByIds(ids, { limit }),
-    listProductsByCollection: async (collectionSlug, limit) => {
-      const { getPublishedProductCardsByCollectionSlug } = await import(
-        "@/modules/products/server/storefront/queries"
-      );
-      return getPublishedProductCardsByCollectionSlug(collectionSlug, { limit });
-    },
-    getProductById: async (id) => {
-      const [product] = await getPublishedProductCardsByIds([id], { limit: 1 });
-      return product ?? null;
-    },
-  };
-}
-
-function dedupeProducts(products: StorefrontProduct[]) {
-  const seen = new Set<string>();
-  return products.filter((product) => {
-    if (seen.has(product.id)) return false;
-    seen.add(product.id);
-    return true;
+function databaseConditions(
+  conditions: readonly StorefrontConditionFilter[],
+): Prisma.productsWhereInput[] {
+  return conditions.map((condition) => {
+    if (condition === "A+") return { condition: "Excellent" };
+    if (condition === "B+") return { condition: "Fair" };
+    return {
+      OR: [{ condition: null }, { condition: { notIn: ["Excellent", "Fair"] } }],
+    };
   });
 }
 
-function slugify(value: string) {
-  return value
-    .trim()
-    .toLocaleLowerCase("en-NG")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function databaseModes(inventories: readonly StorefrontInventoryFilter[]) {
+  return inventories.map((inventory) => {
+    if (inventory === "one-of-one") return "unique" as const;
+    if (inventory === "matching-stock") return "stocked" as const;
+    return "variant" as const;
+  });
 }
+
+function searchWhere(search: string): Prisma.productsWhereInput | null {
+  const term = search.trim();
+  if (!term) return null;
+  const lower = term.toLowerCase();
+  const semanticConditions: Prisma.productsWhereInput[] = [];
+  if (lower === "a+") semanticConditions.push({ condition: "Excellent" });
+  if (lower === "b+") semanticConditions.push({ condition: "Fair" });
+  if (lower === "a") {
+    semanticConditions.push({
+      OR: [{ condition: null }, { condition: { notIn: ["Excellent", "Fair"] } }],
+    });
+  }
+  if ("unbranded".includes(lower)) semanticConditions.push({ brand: null });
+  if ("unisex".includes(lower)) semanticConditions.push({ collection_id: null });
+  if ("pieces".includes(lower)) semanticConditions.push({ category_id: null });
+
+  return {
+    OR: [
+      { name: { contains: term, mode: "insensitive" } },
+      { brand: { contains: term, mode: "insensitive" } },
+      { style: { contains: term, mode: "insensitive" } },
+      { material: { contains: term, mode: "insensitive" } },
+      { colour: { contains: term, mode: "insensitive" } },
+      {
+        catalogue_categories: {
+          is: { name: { contains: term, mode: "insensitive" } },
+        },
+      },
+      {
+        catalogue_collections: {
+          is: { name: { contains: term, mode: "insensitive" } },
+        },
+      },
+      ...semanticConditions,
+    ],
+  };
+}
+
+export function buildStorefrontCatalogueWhere(
+  query: StorefrontCataloguePageQuery,
+  newestIds: readonly string[] = [],
+): Prisma.productsWhereInput {
+  const and: Prisma.productsWhereInput[] = [publishedProductWhere()];
+  const search = searchWhere(query.search);
+  if (search) and.push(search);
+
+  if (query.category) {
+    and.push({
+      OR: [
+        {
+          catalogue_categories: {
+            is: { name: { equals: query.category, mode: "insensitive" } },
+          },
+        },
+        {
+          catalogue_collections: {
+            is: { name: { equals: query.category, mode: "insensitive" } },
+          },
+        },
+      ],
+    });
+  }
+
+  if (query.collection === "new") and.push({ id: { in: [...newestIds] } });
+  if (query.collection === "one-of-one") and.push({ inventory_mode: "unique" });
+  if (query.collection === "under-25") and.push({ price: { lt: 25_000 } });
+  if (query.collection === "grade-a-plus") and.push({ condition: "Excellent" });
+  if (query.collection === "vintage") {
+    and.push({ style: { equals: "Vintage", mode: "insensitive" } });
+  }
+
+  if (query.conditions.length) and.push({ OR: databaseConditions(query.conditions) });
+  if (query.inventories.length) {
+    and.push({ inventory_mode: { in: databaseModes(query.inventories) } });
+  }
+  if (query.inStock) {
+    and.push({ stock_levels: { some: { available: { gt: 0 } } } });
+  }
+  if (query.maxPriceNaira !== undefined) {
+    and.push({ price: { lte: query.maxPriceNaira } });
+  }
+  if (query.colours.length) {
+    and.push({
+      OR: [
+        { colour: { in: [...query.colours] } },
+        { product_variants: { some: { colour: { in: [...query.colours] } } } },
+      ],
+    });
+  }
+  if (query.sizes.length) {
+    and.push({
+      OR: [
+        { size_label: { in: [...query.sizes] } },
+        { product_variants: { some: { size: { in: [...query.sizes] } } } },
+      ],
+    });
+  }
+
+  return and.length === 1 ? and[0] : { AND: and };
+}
+
+export function storefrontStandardOrderBy(
+  sort: StorefrontCataloguePageQuery["sort"],
+): Prisma.productsOrderByWithRelationInput[] {
+  if (sort === "price-low") return [{ price: "asc" }, { id: "asc" }];
+  if (sort === "price-high") return [{ price: "desc" }, { id: "asc" }];
+  return [{ created_at: "desc" }, { id: "asc" }];
+}
+
+export const storefrontConditionBuckets = [
+  { condition: "Excellent" },
+  { OR: [{ condition: null }, { condition: { notIn: ["Excellent", "Fair"] } }] },
+  { condition: "Fair" },
+] satisfies Prisma.productsWhereInput[];
+
+export const storefrontInventoryBuckets = [
+  { inventory_mode: "unique" },
+  { inventory_mode: { not: "unique" } },
+] satisfies Prisma.productsWhereInput[];
