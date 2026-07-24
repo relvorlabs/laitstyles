@@ -7,17 +7,20 @@ Cited by: every engineering role. This file is the map roles use to know their t
 
 ```
 src/app/**          Routing, layouts, route-group composition, API route handlers.
-src/features/**      Feature composition: screens assembled from components + data hooks.
-src/components/**     Reusable presentational + primitive UI (design system lives here).
-src/server/**         Server-only domain logic: repositories, mappers, policies, authorization.
-src/lib/**            Cross-cutting utilities and typed clients shared by the layers above.
-prisma/  supabase/    Schema, migrations, and hosted-service config.
+src/providers/**    App-wide client infrastructure composed by the root layout.
+src/features/**     Feature composition: screens assembled from components + data hooks.
+src/components/**   Reusable presentational + primitive UI (design system lives here).
+src/server/**       Server-only domain logic: repositories, mappers, policies, authorization.
+src/lib/**          Cross-cutting utilities and typed clients shared by the layers above.
+prisma/  supabase/  Schema, migrations, and hosted-service config.
 ```
 
-Dependencies flow **downward only**. `app` and `features` may import from `components`,
-`server`, and `lib`. `server` and `lib` must never import from `features` or `app`.
-`components` must never import from `server`. Server-only code must never reach a client
-bundle — the `src/lib/boundaries` check guards this seam.
+Dependencies flow **downward only**. `app` may import from `providers`, `features`,
+`components`, `server`, and `lib`. `providers` may compose app-wide client infrastructure from
+`components` and `lib`, but must not import feature state or server-only modules. `features` may
+import from `components`, `server`, and `lib`. `server` and `lib` must never import from
+`providers`, `features`, or `app`. `components` must never import from `server`. Server-only code
+must never reach a client bundle — the `src/lib/boundaries` check guards this seam.
 
 ## Route groups (`src/app`)
 
@@ -36,8 +39,18 @@ bundle — the `src/lib/boundaries` check guards this seam.
 ## Cross-cutting (`src/lib`)
 
 `prisma` (client), `supabase` (client), `auth` (pure role/permission policies + `auth/server` redirect helpers),
-`query` (TanStack client + provider), `commerce`, `catalogue.ts`, `order.ts`, `money`,
+`query` (TanStack QueryClient factories), `commerce`, `catalogue.ts`, `order.ts`, `money`,
 `errors`, `assets`, `boundaries` (server/client boundary test), `admin`, `storefront`.
+
+## Providers (`src/providers`)
+
+`providers.tsx` is the root-layout composition entry point. It contains only app-wide client
+infrastructure. The current app-wide boundaries are theme and TanStack Query; global UI such as
+the toaster may be mounted there without being reclassified as a provider.
+
+Feature contexts remain in their owning feature folders and are mounted at the lowest route or
+shell that has the data and lifecycle they require. Controllers, shells, overlays, and ordinary
+components must not be moved into `src/providers` or re-exported from the root provider entry point.
 
 ## Features (`src/features`)
 
