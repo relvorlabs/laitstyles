@@ -18,6 +18,8 @@ July 24, 2026.
 - [`phase-1-legacy-exceptions.md`](phase-1-legacy-exceptions.md) — exact temporary exceptions and
   removal phases.
 - [`migration-tracker.md`](migration-tracker.md) — phase/task status and acceptance gates.
+- [`../ci/permanent-validation.md`](../ci/permanent-validation.md) — local commands, private
+  self-hosted runner, public deployment fallback, and repair loop.
 
 ## Current status
 
@@ -31,8 +33,9 @@ Phase 1 is limited to:
 - replacing obsolete doctrine with the approved domain-module target;
 - marking `features/**` and top-level `server/**` as legacy for new business code;
 - adding migration-safe architecture rules;
-- documenting current domain ownership;
-- recording exact temporary exceptions.
+- documenting current domain ownership and exact temporary exceptions;
+- establishing permanent local and private-runner validation;
+- restoring an executable evidence, rerun, and deterministic repair loop.
 
 It does not move routes, providers, runtime domains, data access, or UI.
 
@@ -48,23 +51,32 @@ Artifact digest: sha256:26ccedc1296d92480be077a327f1b9a0fbe813e5bbd663cd8266f101
 Artifact expiry: 2026-08-23
 ```
 
-The private-repository GitHub jobs were billing-blocked before checkout. That remains an
-environment limitation, not a test failure or pass.
+That public run remains a deployment/browser characterization only. It does not expose or validate
+the private source tree.
+
+## Permanent validation model
+
+The private workflows default to a trusted Linux x64 self-hosted runner carrying the custom label
+`laitstyles-ci`. This avoids GitHub-hosted billing while preserving private-source confidentiality.
+The public `agent-controller` workflow remains available for public deployment smoke tests only.
+
+Local entry points:
+
+```bash
+pnpm validate
+pnpm validate:fix
+pnpm validate:full
+pnpm validate:browser
+```
 
 ## Phase 1 acceptance gate
 
-Phase 1 may complete only when the updated architecture guard and repository checks run on a
-secure checkout and either pass or expose explicitly documented, valid temporary exceptions.
+Phase 1 may complete only after the self-hosted runner is registered and the private required suites
+produce passing evidence for architecture, Biome, TypeScript, tests, Prisma, build, and source-backed
+Playwright. React Doctor findings touching changed scope must be resolved.
 
-Required source-level validation:
-
-```bash
-pnpm check:architecture
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-```
+A queued runner, zero-step workflow, unavailable artifact, or public-deployment-only run is not a
+private source pass.
 
 Phase 2 must not begin while this gate is open.
 
