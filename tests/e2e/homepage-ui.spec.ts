@@ -5,7 +5,9 @@ const THEME_STORAGE_KEY = "laitstyle-theme";
 
 function monitorRuntime(page: Page) {
   const errors: string[] = [];
-  const appOrigin = new URL(process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000").origin;
+  const appOrigin = new URL(
+    process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000",
+  ).origin;
 
   page.on("pageerror", (error) => {
     errors.push(`Page error: ${error.message}`);
@@ -38,18 +40,18 @@ async function expectNoHorizontalOverflow(page: Page) {
     return documentWidth - viewportWidth;
   });
 
-  expect.soft(overflowPixels, `Homepage exceeds the viewport by ${overflowPixels}px`).toBeLessThanOrEqual(1);
+  expect
+    .soft(overflowPixels, `Homepage exceeds the viewport by ${overflowPixels}px`)
+    .toBeLessThanOrEqual(1);
 }
 
 async function expectNoContrastViolations(page: Page, theme: "light" | "dark") {
   const results = await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
+  const details = results.violations
+    .map((violation) => `${violation.help}: ${violation.nodes.length} node(s)`)
+    .join("\n");
 
-  expect.soft(
-    results.violations,
-    `${theme} theme contrast violations:\n${results.violations
-      .map((violation) => `${violation.help}: ${violation.nodes.length} node(s)`) 
-      .join("\n")}`,
-  ).toEqual([]);
+  expect.soft(results.violations, `${theme} theme contrast violations:\n${details}`).toEqual([]);
 }
 
 async function attachScreenshot(page: Page, testInfo: TestInfo, name: string) {
@@ -62,16 +64,18 @@ async function attachScreenshot(page: Page, testInfo: TestInfo, name: string) {
 test("homepage is responsive, themed, accessible and interactive", async ({ page }, testInfo) => {
   const runtimeErrors = monitorRuntime(page);
 
-  await page.addInitScript((storageKey) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.evaluate((storageKey) => {
     window.localStorage.setItem(storageKey, "light");
   }, THEME_STORAGE_KEY);
-
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.reload({ waitUntil: "domcontentloaded" });
 
   await expect(page).toHaveTitle(/Laitstyles/i);
   await expect(page.locator("#header")).toBeVisible();
   await expect(page.locator("#homeView")).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Wear it now\. Keep it longer\./i })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Wear it now\. Keep it longer\./i }),
+  ).toBeVisible();
   await expect(page.locator("footer")).toBeVisible();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
 
@@ -95,9 +99,11 @@ test("homepage is responsive, themed, accessible and interactive", async ({ page
   await expect(darkThemeButton).toBeEnabled();
   await darkThemeButton.click();
   await expect(page.locator("html")).toHaveClass(/dark/);
-  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), THEME_STORAGE_KEY)).toBe(
-    "dark",
-  );
+  await expect
+    .poll(() =>
+      page.evaluate((storageKey) => localStorage.getItem(storageKey), THEME_STORAGE_KEY),
+    )
+    .toBe("dark");
 
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.locator("#homeView")).toBeVisible();
