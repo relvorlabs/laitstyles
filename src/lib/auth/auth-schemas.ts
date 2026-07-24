@@ -21,14 +21,18 @@ export const passwordSignUpSchema = passwordSignInSchema.extend({
   first: z.string().trim().min(1, "Enter your first name.").max(100, "First name is too long."),
   last: z.string().trim().min(1, "Enter your last name.").max(100, "Last name is too long."),
   password: passwordSchema.min(8, "Password must be at least 8 characters."),
+  terms: z.preprocess(
+    (value) => value === true || value === "true",
+    z.boolean().refine(Boolean, "Please accept the Terms to continue."),
+  ),
   next: z.string().optional(),
 });
 
 export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
 export type PasswordSignUpInput = z.infer<typeof passwordSignUpSchema>;
 
-type AuthField = "email" | "password" | "first" | "last";
-const authFields = new Set<AuthField>(["email", "password", "first", "last"]);
+type AuthField = "email" | "password" | "first" | "last" | "terms";
+const authFields = new Set<AuthField>(["email", "password", "first", "last", "terms"]);
 
 export function authFormDataInput(formData: FormData) {
   const next = formData.get("next");
@@ -37,6 +41,7 @@ export function authFormDataInput(formData: FormData) {
     password: formData.get("password"),
     first: formData.get("first"),
     last: formData.get("last"),
+    terms: formData.get("terms"),
     next: typeof next === "string" ? next : undefined,
   };
 }
