@@ -112,6 +112,7 @@ export function StorefrontAuthProvider({
     formData.set("password", authForm.password);
     formData.set("first", authForm.first.trim());
     formData.set("last", authForm.last.trim());
+    formData.set("terms", String(termsAccepted));
     formData.set("next", `${window.location.pathname}${window.location.search}`);
 
     const result =
