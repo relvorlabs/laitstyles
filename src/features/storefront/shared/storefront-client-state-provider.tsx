@@ -9,10 +9,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import { koboToNaira } from "@/lib/money";
 import type { ProductVariantOption } from "@/lib/storefront/types";
-import { addCartLine, type CartLine, type CartSelection } from "./cart-lines";
-import { productById, type Product } from "./catalogue-data";
+import type { CartLine } from "./cart-lines";
+import { restoreCartLines } from "./cart-restoration";
+import type { Product } from "./catalogue-data";
+import { productById } from "./catalogue-data";
 import {
   loadStorefrontClientState,
   persistStorefrontClientState,
@@ -44,46 +45,6 @@ const StorefrontClientStateContext = createContext<StorefrontClientStateContextV
 type VariantOptionsByProductId = Readonly<
   Record<string, readonly ProductVariantOption[]>
 >;
-
-function resolveVariantSelection(
-  product: Product,
-  token: string | null,
-  variants: readonly ProductVariantOption[],
-): CartSelection | null {
-  if (product.inventory !== "variant" || !token) return null;
-  const matches = variants.filter(
-    (variant) => variant.id === token || variant.label === token || variant.size === token,
-  );
-  if (matches.length !== 1) return null;
-  const variant = matches[0];
-  if (!variant || variant.availability.available < 1) return null;
-  return {
-    variantId: variant.id,
-    variantLabel: variant.label,
-    colour: variant.colour,
-    size: variant.size,
-    unitPriceNaira: koboToNaira(variant.price ?? product.price * 100),
-    maxQuantity: variant.availability.available,
-  };
-}
-
-function restoreCartLines(
-  snapshot: StorefrontClientStateSnapshot,
-  products: readonly Product[],
-  variantOptionsByProductId: VariantOptionsByProductId,
-): readonly CartLine[] {
-  return snapshot.cart.reduce<readonly CartLine[]>((lines, intent) => {
-    const product = productById(products, intent.productId);
-    if (!product) return lines;
-    const selection = resolveVariantSelection(
-      product,
-      intent.variantId,
-      variantOptionsByProductId[product.id] ?? [],
-    );
-    if (product.inventory === "variant" && !selection) return lines;
-    return addCartLine(lines, product, selection, intent.quantity);
-  }, []);
-}
 
 function snapshotFromState(
   cart: readonly CartLine[],
@@ -121,7 +82,9 @@ export function StorefrontClientStateProvider({
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       const loaded = loadStorefrontClientState(window.sessionStorage, window.localStorage);
-      setCartState(restoreCartLines(loaded.snapshot, products, variantOptionsByProductId));
+      setCartState(
+        restoreCartLines(loaded.snapshot.cart, products, variantOptionsByProductId),
+      );
       setSavedState(new Set(loaded.snapshot.saved));
       setHolds(loaded.snapshot.holds);
       setNow(Date.now());
