@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
-const legacyQuerySpecifier = "@/server/commerce/catalogue/catalog-repository";
-const canonicalQuerySpecifier = "@/modules/products/server/storefront/queries";
+const legacyCataloguePrefix = "@/server/commerce/catalogue/";
+const canonicalCataloguePrefix = "@/modules/products/server/storefront/";
 
 describe("public product query ownership", () => {
   it("keeps production consumers on the product module", async () => {
@@ -18,10 +18,10 @@ describe("public product query ownership", () => {
       if (relative.startsWith("src/server/commerce/catalogue/")) continue;
 
       const source = await readFile(filePath, "utf8");
-      if (source.includes(legacyQuerySpecifier)) offenders.push(relative);
+      if (source.includes(legacyCataloguePrefix)) offenders.push(relative);
     }
 
-    expect(offenders, `Use ${canonicalQuerySpecifier} instead.`).toEqual([]);
+    expect(offenders, `Use ${canonicalCataloguePrefix} instead.`).toEqual([]);
   });
 });
 
