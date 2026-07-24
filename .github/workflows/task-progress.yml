@@ -24,7 +24,7 @@ permissions:
   checks: read
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: github-agent-feedback-${{ github.event.issue.number || github.event.workflow_run.head_sha || inputs.pull_request }}-${{ inputs.mode || 'event' }}
@@ -38,9 +38,10 @@ jobs:
       (github.event.issue.pull_request != null &&
         (startsWith(github.event.comment.body, '/ci analyze') ||
          startsWith(github.event.comment.body, '/ci status') ||
-         startsWith(github.event.comment.body, '/ci rerun-failed')))
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+         startsWith(github.event.comment.body, '/ci rerun-failed') ||
+         startsWith(github.event.comment.body, '/ci safe-repair-plan')))
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '["self-hosted","linux","x64","laitstyles-ci"]') }}
+    timeout-minutes: 45
 
     steps:
       - name: Resolve command, authorization and pull request
@@ -50,53 +51,163 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # ... (keeping your original complex context resolution logic unchanged)
-          # (The full script is long — I kept it identical for safety)
-          # Output: mode, pr_number, head_sha
-          # [Your original bash script goes here - unchanged]
+
+          mode=""
+          pr_number=""
+          head_sha=""
+          skip="false"
+
+          case "$GITHUB_EVENT_NAME" in
+            workflow_run)
+              mode="analyze"
+              pr_number="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+              head_sha="$(jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH")"
+              if [ -z "$pr_number" ]; then
+                skip="true"
+              fi
+              ;;
+            issue_comment)
+              association="$(jq -r '.comment.author_association' "$GITHUB_EVENT_PATH")"
+              case "$association" in
+                OWNER|MEMBER|COLLABORATOR) ;;
+                *)
+                  echo "Ignoring unauthorized CI command from association: $association"
+                  skip="true"
+                  ;;
+              esac
+
+              body="$(jq -r '.comment.body' "$GITHUB_EVENT_PATH")"
+              case "$body" in
+                "/ci analyze"*|"/ci status"*) mode="analyze" ;;
+                "/ci rerun-failed"*) mode="rerun-failed" ;;
+                "/ci safe-repair-plan"*) mode="safe-repair-plan" ;;
+                *) skip="true" ;;
+              esac
+              pr_number="$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")"
+              ;;
+            workflow_dispatch)
+              mode="${{ inputs.mode }}"
+              pr_number="${{ inputs.pull_request }}"
+              ;;
+            *)
+              skip="true"
+              ;;
+          esac
+
+          if [ "$skip" != "true" ] && [ -z "$head_sha" ]; then
+            head_sha="$(gh pr view "$pr_number" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')"
+          fi
+
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
           echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
 
-      # ====================== RERUN MODE ======================
       - name: Rerun latest failed validation workflows
-        if: steps.context.outputs.mode == 'rerun-failed'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'rerun-failed'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.context.outputs.head_sha }}
         run: |
           set -euo pipefail
-          # [Your original rerun logic - unchanged]
-          # ... (full script)
+          rerun_count=0
+
+          for workflow in "Implementation Quality" "Playwright UI Contract"; do
+            run_id="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow "$workflow" \
+              --commit "$HEAD_SHA" \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')"
+
+            if [ -n "$run_id" ]; then
+              gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY" --failed || \
+                gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
+              rerun_count=$((rerun_count + 1))
+            fi
+          done
+
+          test "$rerun_count" -gt 0 || {
+            echo "No matching validation runs were found for $HEAD_SHA."
+            exit 1
+          }
 
       - name: Comment rerun status
-        if: steps.context.outputs.mode == 'rerun-failed'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'rerun-failed'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.context.outputs.pr_number }}
         run: >-
-          gh pr comment "$PR_NUMBER" --body "Requested reruns for the latest failed Implementation Quality and Playwright UI Contract runs on the current PR head."
+          gh pr comment "$PR_NUMBER"
+          --repo "$GITHUB_REPOSITORY"
+          --body "Requested reruns for the latest failed Implementation Quality and Playwright UI Contract runs on the current PR head."
 
-      # ====================== ANALYZE MODE ======================
       - uses: ./.github/actions/setup-feedback
-        if: steps.context.outputs.mode == 'analyze'
+        if: >-
+          steps.context.outputs.skip != 'true' &&
+          (steps.context.outputs.mode == 'analyze' || steps.context.outputs.mode == 'safe-repair-plan')
         with:
           ref: ${{ steps.context.outputs.head_sha }}
 
       - name: Collect runs, jobs, logs, artifacts and PR context
-        if: steps.context.outputs.mode == 'analyze'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.context.outputs.pr_number }}
           HEAD_SHA: ${{ steps.context.outputs.head_sha }}
         run: |
-          # [Your original data collection script - unchanged]
-          # ... (full script)
+          set -euo pipefail
+          mkdir -p ci-artifacts/meta ci-artifacts/runs ci-artifacts/downloads
+
+          gh pr view "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json number,title,url,baseRefName,headRefName,headRefOid,author,files \
+            > ci-artifacts/meta/pr.json
+          gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --name-only \
+            > ci-artifacts/meta/changed-files.txt
+          gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --patch \
+            > ci-artifacts/meta/patch.diff
+
+          for workflow in "Implementation Quality" "Playwright UI Contract"; do
+            slug="$(printf '%s' "$workflow" | tr '[:upper:] ' '[:lower:]-')"
+            directory="ci-artifacts/runs/$slug"
+            mkdir -p "$directory"
+
+            gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow "$workflow" \
+              --commit "$HEAD_SHA" \
+              --limit 5 \
+              --json databaseId,name,status,conclusion,url,event,headSha,createdAt,updatedAt \
+              > "$directory/list.json"
+
+            run_id="$(jq -r '.[0].databaseId // empty' "$directory/list.json")"
+            if [ -z "$run_id" ]; then
+              printf '{"missing":true,"workflow":"%s","headSha":"%s"}\n' "$workflow" "$HEAD_SHA" \
+                > "$directory/run.json"
+              continue
+            fi
+
+            gh run view "$run_id" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json databaseId,name,workflowName,status,conclusion,url,event,headBranch,headSha,createdAt,updatedAt,jobs \
+              > "$directory/run.json"
+            gh api "/repos/$GITHUB_REPOSITORY/actions/runs/$run_id/jobs?per_page=100" \
+              > "$directory/jobs.json"
+            gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --log-failed \
+              > "$directory/failed.log" 2>&1 || true
+            gh run download "$run_id" \
+              --repo "$GITHUB_REPOSITORY" \
+              --dir "ci-artifacts/downloads/$slug" || true
+          done
+
+          node scripts/ci/collect-context.mjs --output ci-artifacts/meta/context
 
       - name: Merge execution evidence
-        if: steps.context.outputs.mode == 'analyze'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         env:
           PR_NUMBER: ${{ steps.context.outputs.pr_number }}
           HEAD_SHA: ${{ steps.context.outputs.head_sha }}
@@ -107,15 +218,15 @@ jobs:
           --expect static,database,tests,build,browser-preflight,playwright:desktop-chromium,playwright:tablet-chromium,playwright:mobile-chromium
 
       - name: Build keyless GitHub agent handoff
-        if: steps.context.outputs.mode == 'analyze'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         run: >-
           node scripts/ci/build-agent-handoff.mjs
           --feedback ci-feedback/ci-feedback.json
-          --context ci-artifacts/meta/context.json
+          --context ci-artifacts/meta/context/context.json
           --output ci-feedback
 
       - name: Publish sticky pull-request feedback
-        if: steps.context.outputs.mode == 'analyze'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.context.outputs.pr_number }}
@@ -126,62 +237,56 @@ jobs:
           --handoff ci-feedback/agent-handoff.md
 
       - name: Add feedback to workflow summary
-        if: steps.context.outputs.mode == 'analyze'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         run: |
           cat ci-feedback/ci-feedback.md >> "$GITHUB_STEP_SUMMARY"
           cat ci-feedback/agent-handoff.md >> "$GITHUB_STEP_SUMMARY"
 
       - uses: ./.github/actions/upload-evidence
-        if: always() && steps.context.outputs.mode == 'analyze'
+        if: always() && steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'analyze'
         with:
           name: task-runtime-feedback-${{ steps.context.outputs.pr_number }}
           path: |
             ci-feedback/
             ci-artifacts/meta/
-            ci-artifacts/runs/*/run.json
-            ci-artifacts/runs/*/jobs.json
-            ci-artifacts/runs/*/failed.log
+            ci-artifacts/runs/
 
-      # ====================== SAFE REPAIR PLAN MODE ======================
-      - name: Check out PR head (for feedback scripts + analysis)
-        if: steps.context.outputs.mode == 'analyze'
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.context.outputs.head_sha }}   # Use the actual PR head SHA
-          fetch-depth: 0
-          persist-credentials: false
+      - name: Set up pnpm for deterministic repair
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
+        uses: pnpm/action-setup@v4
 
-      - uses: ./.github/actions/setup-environment
-        if: steps.context.outputs.mode == 'safe-repair-plan'
-        with:
-          node-version: 22
+      - name: Install locked dependencies without lifecycle scripts
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run deterministic safe formatter repair
-        if: steps.context.outputs.mode == 'safe-repair-plan'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
         continue-on-error: true
         run: node scripts/ci/run-gates.mjs --suite safe-repair --output ci-repair/evidence
 
       - name: Produce reviewable repair patch
-        if: steps.context.outputs.mode == 'safe-repair-plan'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
         shell: bash
         run: |
           mkdir -p ci-repair
           git diff --binary > ci-repair/safe-repair.patch
           git diff --stat > ci-repair/safe-repair.stat
           if [ ! -s ci-repair/safe-repair.patch ]; then
-            echo 'No deterministic formatting changes were available.' > ci-repair/README.txt
+            echo 'No deterministic Biome changes were available.' > ci-repair/README.txt
           fi
 
       - uses: ./.github/actions/upload-evidence
-        if: steps.context.outputs.mode == 'safe-repair-plan'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
         with:
           name: safe-repair-plan-pr-${{ steps.context.outputs.pr_number }}
           path: ci-repair/
 
       - name: Comment repair-plan location
-        if: steps.context.outputs.mode == 'safe-repair-plan'
+        if: steps.context.outputs.skip != 'true' && steps.context.outputs.mode == 'safe-repair-plan'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.context.outputs.pr_number }}
         run: >-
-          gh pr comment "$PR_NUMBER" --body "A deterministic Biome repair patch was generated as the **safe-repair-plan-pr-${PR_NUMBER}** workflow artifact. It was not pushed automatically."
+          gh pr comment "$PR_NUMBER"
+          --repo "$GITHUB_REPOSITORY"
+          --body "A deterministic Biome repair patch was generated as the **safe-repair-plan-pr-${PR_NUMBER}** workflow artifact. It was not pushed automatically. Semantic fixes still require an evidenced code change and validation rerun."
