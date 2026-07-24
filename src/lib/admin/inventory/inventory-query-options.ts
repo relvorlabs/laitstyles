@@ -1,38 +1,33 @@
-import { queryOptions } from "@tanstack/react-query";
 import type { AdminRepositories } from "@/lib/admin/data/repositories";
-import { inventoryKeys } from "@/lib/admin/inventory/inventory-query-keys";
+import { stockMovementsQueryOptions } from "@/modules/inventory/client/hooks";
+import {
+  adminProductQueryOptions,
+  adminProductsQueryOptions,
+  productTaxonomyQueryOptions,
+} from "@/modules/products/client/hooks";
 
-export function inventoryProductsQueryOptions(repositories: AdminRepositories) {
-  return queryOptions({
-    queryKey: inventoryKeys.products(),
-    queryFn: () => repositories.inventory.listProducts(),
-    staleTime: 30_000,
-  });
+/** @deprecated Phase 4 consumers should import from the owning domain module. */
+export function inventoryProductsQueryOptions(_repositories?: AdminRepositories) {
+  return adminProductsQueryOptions();
 }
 
-export function inventoryProductQueryOptions(repositories: AdminRepositories, productId: string) {
-  return queryOptions({
-    queryKey: inventoryKeys.product(productId),
-    queryFn: () => repositories.inventory.getProduct(productId),
-    staleTime: 30_000,
-  });
+/** @deprecated Phase 4 consumers should import from the owning domain module. */
+export function inventoryProductQueryOptions(
+  _repositories: AdminRepositories | undefined,
+  productId: string,
+) {
+  return adminProductQueryOptions(productId);
 }
 
-export function inventoryTaxonomyQueryOptions(repositories: AdminRepositories) {
-  return queryOptions({
-    queryKey: inventoryKeys.taxonomy(),
-    queryFn: () => repositories.inventory.listTaxonomy(),
-    staleTime: 30_000,
-  });
+/** @deprecated Phase 4 consumers should import from the owning domain module. */
+export function inventoryTaxonomyQueryOptions(_repositories?: AdminRepositories) {
+  return productTaxonomyQueryOptions();
 }
 
+/** @deprecated Phase 4 consumers should import from the owning domain module. */
 export function inventoryStockMovementsQueryOptions(
-  repositories: AdminRepositories,
+  _repositories?: AdminRepositories,
   productId?: string,
 ) {
-  return queryOptions({
-    queryKey: inventoryKeys.stockMovements(productId),
-    queryFn: () => repositories.inventory.listStockMovements(productId),
-    staleTime: 30_000,
-  });
+  return stockMovementsQueryOptions(productId);
 }
