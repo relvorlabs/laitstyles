@@ -9,7 +9,7 @@
 **Phase 5 merge:** `cd12b89e9ec2eb9210704e200e30731d864646e1`  
 **Current branch:** `refactor/phase-6-storefront-state-zustand`  
 **Current phase:** Phase 6 — Storefront state and Zustand migration  
-**Overall status:** Phase 6 bootstrap complete; runtime implementation not started
+**Overall status:** Phase 6 ownership migration implemented in source; dependency-lock repair and exact-head certification remain
 
 Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Merged with debt`.
 
@@ -23,7 +23,7 @@ Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Mer
 | 3 | Create HTTP and domain-module foundation | Merged with debt | Final-head workflows did not execute before merge |
 | 4 | Cut over products and inventory | Merged with debt | Exact-head workflows did not execute before merge |
 | 5 | Remove remaining admin dummy domains | Merged with debt | Source scope merged; exact-head gates did not execute |
-| 6 | Split storefront state and add Zustand | In progress | State ownership, storage migration, hydration and UI parity |
+| 6 | Split storefront state and add Zustand | In progress | Lockfile, runtime, storage, history and UI parity |
 | 7 | Consolidate authentication | Not started | Auth flow parity |
 | 8 | Make checkout and payment server-authoritative | Not started | Idempotent settlement |
 | 9 | Delete remaining legacy architecture | Not started | No undocumented legacy imports |
@@ -88,162 +88,133 @@ Playwright UI Contract: 30150645124
 
 Phase 4 remains **Merged with debt**.
 
-## Phase 5 result
+### Phase 5
 
 Phase 5 was squash-merged through PR #43 as `cd12b89e9ec2eb9210704e200e30731d864646e1` at the repository owner’s explicit direction.
 
-Controlling documents:
+Source outcomes:
 
-- [`phase-5-mission.md`](phase-5-mission.md)
-- [`phase-5-admin-dummy-domain-status.md`](phase-5-admin-dummy-domain-status.md)
+- Orders, Holds, Returns, Customers, Settings and Overview moved to Prisma-backed domain/API/TanStack paths.
+- AdminStore business-record ownership was removed.
+- Admin repository context, contracts and in-memory implementation were removed.
+- Runtime seed and reducer ownership for migrated domains was removed.
+- A permanent persistence boundary protects the migrated domains.
 
-Approved dependency order:
-
-1. Orders
-2. Holds and reservations
-3. Returns
-4. Customers
-5. Settings
-6. Overview/reporting projections
-7. seed/store/repository deletion
-
-Every source workstream in this order was implemented before merge.
-
-### Canonical runtime paths
-
-```text
-Orders UI    -> modules/orders/client    -> /api/v1/admin/orders/**    -> modules/orders/server    -> Prisma
-Holds UI     -> modules/holds/client     -> /api/v1/admin/holds/**     -> modules/holds/server     -> Prisma
-Returns UI   -> modules/returns/client   -> /api/v1/admin/returns/**   -> modules/returns/server   -> Prisma
-Customers UI -> modules/customers/client -> /api/v1/admin/customers/** -> modules/customers/server -> Prisma
-Settings UI  -> modules/settings/client  -> /api/v1/admin/settings     -> modules/settings/server  -> Prisma
-Overview UI  -> modules/overview/client  -> /api/v1/admin/overview     -> modules/overview/server  -> Prisma
-```
-
-### Source outcomes
-
-- Orders database reads, transitions and in-person Paystack initialization implemented and repaired.
-- Holds database reads, expiry, release and pending-payment conversion implemented.
-- Returns database reads, creation, transitions, stock disposition and refund accounting implemented.
-- Customers database segmentation, relationship projection, detail and persisted notes implemented.
-- Settings singleton and normalized delivery persistence implemented; first-read bootstrap is transaction-locked and idempotent.
-- Overview database projections replace aggregate seed selectors.
-- Admin command menu and record-sale consumers use canonical bounded queries.
-- AdminStore, repository context, repository contracts and in-memory repository implementation are deleted.
-- `activeAdminSeed`, `newStoreAdminSeed` and all physical `src/lib/admin/shared/seed/**` business records are deleted.
-- Legacy reducer/query/mutation ownership for the migrated domains is deleted.
-- One permanent Phase 5 architecture guard protects all migrated domains.
-- Canonical route tests cover Returns, Customers, Settings and Overview.
-- HTTP smoke covers the four new domain APIs.
-
-### Merge-time validation debt
-
-The squash commit explicitly records that the exact Phase 5 head had no executed final evidence:
+Merge-time validation debt:
 
 ```text
 Implementation Quality: 30164712987 — queued at merge
 Playwright UI Contract: 30164712918 — queued at merge
 ```
 
-Phase 5 is therefore **Merged with debt**, not exact-head certified.
+Phase 5 remains **Merged with debt**.
 
-## Phase 6 bootstrap
+## Phase 6 current state
 
 Controlling document:
 
 - [`phase-6-storefront-state-status.md`](phase-6-storefront-state-status.md)
+
+Audited implementation head before status reconciliation:
+
+```text
+8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2
+```
 
 ### Current runtime composition
 
 ```text
 StorefrontRouteBoundary
   -> StorefrontClientBoundary
-     -> StorefrontClientStateProvider
-        -> StorefrontAuthProvider
-           -> SiteChrome
-              -> StorefrontProvider
+     -> StorefrontQueryProvider
+        -> StorefrontStateHydrator
+           -> StorefrontAuthProvider
+              -> SiteChrome
                  -> SiteHeader / route / SiteFooter / StorefrontOverlays
+           -> StorefrontAuthDialogHost
 ```
 
-### Confirmed ownership map
+### Implemented ownership
 
-- `StorefrontClientStateProvider` owns persisted cart lines, saved IDs, local hold intents, hydration and the hold clock.
-- `StorefrontProvider` owns complete shell product records plus broad catalogue, overlay, cart projection, viewer, search, measurement, newsletter, delivery and header state.
-- `StorefrontAuthProvider` owns the session projection and auth-dialog state; Phase 7 retains auth transport consolidation.
-- `ProductCatalogue` copies parsed URL filters into provider state and serializes provider changes back into the URL through synchronization effects.
-- Zustand is not yet installed.
+- `cart.store.ts` owns minimal cart-line intents and actions.
+- `saved-items.store.ts` owns saved product IDs and actions.
+- `storefront-ui.store.ts` owns shared overlay identity, recent IDs, utility dismissal and non-authoritative hold intents.
+- The storefront catalogue remains TanStack-backed and is not copied into Zustand.
+- The hydration boundary preserves the version-3 cart/saved/hold migration and persists minimal identifiers only.
+- Catalogue filters, sorting, search and pagination are URL-owned.
+- Quick view, image viewer, measurement unit, newsletter, delivery estimate, header scroll, catalogue density/sidebar and auth-dialog fields moved to narrow local boundaries.
+- `StorefrontProvider` and `StorefrontClientStateProvider` are deleted.
+- Architecture tests reject the retired files/imports and forbidden store ownership from returning.
+- Phase 6 unit, API and Playwright contracts are authored.
 
-### Phase 6 target ownership
+### Confirmed dependency blocker
 
-```text
-cart.store.ts            -> cart browser intents and actions
-saved-items.store.ts     -> saved product IDs and actions
-storefront-ui.store.ts   -> genuinely shared browser UI state only
-URL search parameters    -> catalogue filters, sort, search and page
-local component state    -> viewer, quick view, forms, header scroll and temporary controls
-Prisma/TanStack Query     -> persistent and remote business data
+`package.json` declares `zustand@^5.0.14`, but `pnpm-lock.yaml` does not contain a Zustand importer entry or package snapshot.
+
+The repository installs dependencies with:
+
+```bash
+pnpm install --frozen-lockfile
 ```
 
-### Bootstrap outcomes
-
-- Phase 6 branch created from the exact Phase 5 squash merge.
-- Current provider, persistence and URL synchronization ownership recorded.
-- Implementation sequence and rollback triggers documented.
-- A non-expansion architecture test permits only the three approved store files.
-- The guard blocks Zustand definitions outside `src/stores`, server imports, complete Product records and new storefront provider layers.
-- No runtime state or UI behaviour has changed.
-- No unused Zustand dependency has been added.
+The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must remain enabled.
 
 ### Phase 6 task ledger
 
 | ID | Approved task | Source status | Evidence status |
 | --- | --- | --- | --- |
 | P6-T00 | Record Phase 5 merge and validation debt | Complete | Recorded |
-| P6-T00A | Map provider, persistence and URL ownership | Complete | Source-audited |
-| P6-T00B | Add storefront-state non-expansion guard | Complete | Test execution pending |
-| P6-T01 | Add Zustand | Not started | — |
-| P6-T02 | Create cart store | Not started | — |
-| P6-T03 | Create saved-items store | Not started | — |
-| P6-T04 | Create storefront UI store | Not started | — |
-| P6-T05 | Preserve versioned storage migration | Not started | — |
-| P6-T06 | Add hydration-safe selectors | Not started | — |
-| P6-T07 | Prevent complete product persistence | Guard authored | Execution pending |
-| P6-T08 | Move catalogue filters to URL ownership | Not started | — |
-| P6-T09 | Keep pagination in URL ownership | Existing server path; cutover audit pending | — |
-| P6-T10 | Keep sorting in URL ownership | Compatibility sync remains | — |
-| P6-T11 | Keep navigational search in URL ownership | Compatibility sync remains | — |
-| P6-T12 | Remove URL/context synchronization effects | Not started | — |
-| P6-T13 | Move image viewer state locally | Not started | — |
-| P6-T14 | Move measurements to PDP boundary | Not started | — |
-| P6-T15 | Move newsletter state locally | Not started | — |
-| P6-T16 | Move delivery-estimate state locally | Not started | — |
-| P6-T17 | Move header scroll state into header | Not started | — |
-| P6-T18 | Separate auth-dialog local state | Not started; Phase 7 transport preserved | — |
-| P6-T19 | Remove migrated values from StorefrontProvider | Not started | — |
-| P6-T20 | Remove unused context selectors | Not started | — |
-| P6-T21 | Delete final provider after last consumer | Not started | — |
+| P6-T00A | Map original provider, persistence and URL ownership | Complete | Source-audited |
+| P6-T00B | Add storefront-state non-expansion guard | Complete | Execution pending |
+| P6-T01 | Add Zustand | Blocked | Package declared; lockfile not reconciled |
+| P6-T02 | Create cart store | Source complete | Unit execution pending |
+| P6-T03 | Create saved-items store | Source complete | Unit execution pending |
+| P6-T04 | Create storefront UI store | Source complete | Unit execution pending |
+| P6-T05 | Preserve versioned storage migration | Source complete | Migration/hydration execution pending |
+| P6-T06 | Add hydration-safe selectors | Source complete | Runtime execution pending |
+| P6-T07 | Prevent complete product persistence | Source complete | Guard/browser execution pending |
+| P6-T08 | Move catalogue filters to URL ownership | Source complete | Browser execution pending |
+| P6-T09 | Keep pagination in URL ownership | Source complete | Browser execution pending |
+| P6-T10 | Keep sorting in URL ownership | Source complete | Browser execution pending |
+| P6-T11 | Keep navigational search in URL ownership | Source complete | Browser execution pending |
+| P6-T12 | Remove URL/context synchronisation effects | Source complete | Architecture/browser execution pending |
+| P6-T13 | Move image viewer state locally | Source complete | Browser execution pending |
+| P6-T14 | Move measurement state to narrow shared boundary | Source complete | Browser execution pending |
+| P6-T15 | Move newsletter state locally | Source complete | Browser execution pending |
+| P6-T16 | Move delivery-estimate state locally | Source complete | Browser execution pending |
+| P6-T17 | Move header scroll state into header | Source complete | Browser execution pending |
+| P6-T18 | Separate auth-dialog local state | Source complete | Auth/browser execution pending |
+| P6-T19 | Remove migrated values from `StorefrontProvider` | Complete | Provider deleted |
+| P6-T20 | Remove unused context selectors and consumers | Source complete | TypeScript/guard execution pending |
+| P6-T21 | Delete final legacy provider after last consumer | Complete | Both providers deleted |
 | P6-T22 | Pass static, unit, build, React Doctor and browser gates | Not started | Exact-head evidence required |
 
-## Phase 6 validation truth
+### Exact-head evidence state
 
-Phase 6 is not complete until its exact final head executes and passes:
+For head `8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2`:
 
-- storefront-state architecture guard and Biome;
-- TypeScript;
-- storage migration and hydration tests;
-- cart, saved-items and URL-history unit/component tests;
-- production build;
-- React Doctor;
-- storefront HTTP/server smoke where affected;
-- desktop, tablet and mobile Playwright contract;
-- light and dark visual comparison;
-- retained artifacts and review reconciliation.
+```text
+Implementation Quality: 30169398436 — queued
+Playwright UI Contract: 30169398438 — queued
+```
 
-Queued, cancelled, skipped, superseded or unavailable checks remain validation debt.
+Queued, cancelled, skipped, superseded or unavailable checks remain validation debt. There are no submitted reviews and no unresolved review threads.
+
+## Phase 6 remaining order
+
+1. Regenerate and commit the pnpm 11.13.0 lockfile with Zustand.
+2. Prove frozen installation on the resulting exact head.
+3. Run architecture guard, Biome and TypeScript.
+4. Run focused and full Vitest suites.
+5. Run production build and React Doctor.
+6. Run desktop, tablet and mobile Playwright plus light/dark visual comparison.
+7. Inspect artifacts, logs, traces and screenshots.
+8. Repair only evidenced failures.
+9. Reconcile the final task ledger, PR body and review state.
 
 ## Decision safeguards
 
-- UI remains unchanged unless a verified defect requires a correction.
+- UI remains unchanged unless a verified defect requires correction.
 - Zustand owns browser state only and never becomes a remote-data cache.
 - Complete Product records are not persisted in Zustand.
 - URL owns navigable filters, sorting, pagination and search.
