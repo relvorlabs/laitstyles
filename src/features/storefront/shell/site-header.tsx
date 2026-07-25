@@ -132,7 +132,7 @@ export function SiteHeader({
             variant="ghost"
           >
             <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M4 7h16M4 12h10M4 17h16" />
+              <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </Button>
 
