@@ -2,15 +2,6 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
-import type {
-  CatalogueSort,
-  CategoryWithImage,
-  InventoryMode,
-  ProductDetail,
-  ProductSummary,
-  StorefrontFacetOptions,
-  TaxonomyRef,
-} from "@/lib/storefront/types";
 import {
   MAX_STOREFRONT_CATALOGUE_DETAILS,
   normalizePublishedProductDetailLimit,
@@ -21,6 +12,15 @@ import {
   productDetailInclude,
   productSummaryInclude,
 } from "@/modules/products/server/storefront/mappers";
+import type {
+  CatalogueSort,
+  CategoryWithImage,
+  InventoryMode,
+  ProductDetail,
+  ProductSummary,
+  StorefrontFacetOptions,
+  TaxonomyRef,
+} from "@/modules/products/server/storefront/types";
 import { groupVariantMeasurements } from "@/modules/products/server/storefront/variant-measurements";
 import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
 
