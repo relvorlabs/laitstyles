@@ -6,11 +6,6 @@ import type {
   CustomerNoteActionSuccess,
 } from "@/lib/admin/customers/customer-types";
 import {
-  applyHoldConversion,
-  applyHoldExtension,
-  applyHoldRelease,
-} from "@/lib/admin/holds/hold-reducer";
-import {
   applyCreateCatalogueTaxonomy,
   applyDeleteCatalogueTaxonomy,
   applyRenameCatalogueTaxonomy,
@@ -26,8 +21,6 @@ import {
   type ProductLifecycleActionError,
   type ProductLifecycleActionSuccess,
 } from "@/lib/admin/inventory/product-lifecycle-reducer";
-import { applyOfflineSale } from "@/lib/admin/orders/offline-sale-reducer";
-import { applyOrderTransition } from "@/lib/admin/orders/order-reducer";
 import {
   applyIntakeTransition,
   applyProductEditorAction,
@@ -39,15 +32,9 @@ import { applySaveStoreSettings } from "@/lib/admin/settings/settings-reducer";
 import type { Result } from "@/lib/admin/shared/result";
 import type {
   AdminState,
-  ConvertHoldInput,
   CreateReturnInput,
-  HoldActionSuccess,
   IntakeStage,
   IntakeTransitionSuccess,
-  OfflineSaleInput,
-  OfflineSaleSuccess,
-  OrderStatus,
-  OrderTransitionSuccess,
   ProductEditorActionError,
   ProductEditorActionSuccess,
   ProductEditorIntent,
@@ -63,9 +50,6 @@ import type {
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
 type IntakeActionResult = Result<IntakeTransitionSuccess, ProductEditorActionError>;
-type OrderActionResult = Result<OrderTransitionSuccess, SalesActionError>;
-type HoldResult = Result<HoldActionSuccess, SalesActionError>;
-type OfflineSaleResult = Result<OfflineSaleSuccess, SalesActionError>;
 type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
 type CustomerNoteResult = Result<CustomerNoteActionSuccess, CustomerActionError>;
 type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
@@ -82,11 +66,6 @@ export type AdminStore = {
   renameCatalogueTaxonomy: (taxonomyId: string, name: string) => CatalogueTaxonomyResult;
   deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
   transitionIntake: (productId: string, nextStage: IntakeStage) => IntakeActionResult;
-  transitionOrder: (orderId: string, nextStatus: OrderStatus) => OrderActionResult;
-  extendHold: (holdId: string, minutes: number) => HoldResult;
-  releaseHold: (holdId: string) => HoldResult;
-  convertHold: (input: ConvertHoldInput) => HoldResult;
-  recordOfflineSale: (input: OfflineSaleInput) => OfflineSaleResult;
   createReturn: (input: CreateReturnInput) => ReturnResult;
   transitionReturn: (returnId: string, nextStatus: ReturnStatus) => ReturnResult;
   addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
@@ -142,21 +121,6 @@ export function createAdminStore(initialState: AdminState, now?: () => string): 
     },
     transitionIntake(productId, nextStage) {
       return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
-    },
-    transitionOrder(orderId, nextStatus) {
-      return commitAction(applyOrderTransition(state, orderId, nextStatus, getNow()));
-    },
-    extendHold(holdId, minutes) {
-      return commitAction(applyHoldExtension(state, holdId, minutes, getNow()));
-    },
-    releaseHold(holdId) {
-      return commitAction(applyHoldRelease(state, holdId, getNow()));
-    },
-    convertHold(input) {
-      return commitAction(applyHoldConversion(state, input, getNow()));
-    },
-    recordOfflineSale(input) {
-      return commitAction(applyOfflineSale(state, input, getNow()));
     },
     createReturn(input) {
       return commitAction(applyCreateReturn(state, input, getNow()));
