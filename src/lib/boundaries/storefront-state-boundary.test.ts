@@ -21,7 +21,9 @@ function path(...segments: string[]) {
 }
 
 function importedModules(source: string): string[] {
-  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map((match) => match[1]);
+  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map(
+    (match) => match[1],
+  );
 }
 
 const retiredFiles = [
@@ -67,18 +69,24 @@ describe("storefront state boundaries", () => {
     expect(violations).toEqual([]);
   });
 
-  it("mounts client state and auth only inside the storefront client boundary", () => {
+  it("mounts the storefront query, hydration and auth boundaries only inside the storefront client boundary", () => {
     const appProvider = readFileSync(join(root, "src/providers/providers.tsx"), "utf8");
     const clientBoundary = readFileSync(
       join(root, "src/app/storefront-client-boundary.tsx"),
       "utf8",
     );
-    const routeBoundary = readFileSync(join(root, "src/app/storefront-route-boundary.tsx"), "utf8");
+    const routeBoundary = readFileSync(
+      join(root, "src/app/storefront-route-boundary.tsx"),
+      "utf8",
+    );
 
-    expect(appProvider).not.toContain("StorefrontClientStateProvider");
+    expect(appProvider).not.toContain("StorefrontQueryProvider");
+    expect(appProvider).not.toContain("StorefrontStateHydrator");
     expect(appProvider).not.toContain("StorefrontAuthProvider");
-    expect(clientBoundary).toContain("StorefrontClientStateProvider");
+    expect(clientBoundary).toContain("StorefrontQueryProvider");
+    expect(clientBoundary).toContain("StorefrontStateHydrator");
     expect(clientBoundary).toContain("StorefrontAuthProvider");
+    expect(clientBoundary).not.toContain("StorefrontClientStateProvider");
     expect(routeBoundary).toContain("getCurrentSession");
     expect(routeBoundary).toContain("loadStorefrontShellCatalog");
     expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalog\b/);
