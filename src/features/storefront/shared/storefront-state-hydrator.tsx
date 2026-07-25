@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
-import { useStorefrontCatalog } from "@/modules/products/client/storefront-catalog";
+import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import { cartStore, selectCartHydrated, selectCartLines, useCartStore } from "@/stores/cart.store";
 import {
   savedItemsStore,
@@ -22,15 +22,15 @@ import {
   persistStorefrontClientState,
   STOREFRONT_CLIENT_STATE_VERSION,
 } from "./storefront-client-state";
-import { StorefrontHoldClockBoundary, useStorefrontHoldNow } from "./storefront-hold-clock";
 import { StorefrontHoldAlert } from "./storefront-feedback";
+import { StorefrontHoldClockBoundary, useStorefrontHoldNow } from "./storefront-hold-clock";
 
 const RECENT_STORAGE_KEY = "laitstyles-storefront:v1:recent";
 const LEGACY_RECENT_STORAGE_KEY = "laitstyles-recent";
 const UTILITY_STORAGE_KEY = "laitstyles-storefront:v1:utility";
 
 export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
-  const catalogue = useStorefrontCatalog();
+  const catalogue = useStorefrontCatalogue();
   const hydrationStarted = useRef(false);
   const cart = useCartStore(selectCartLines);
   const cartHydrated = useCartStore(selectCartHydrated);
