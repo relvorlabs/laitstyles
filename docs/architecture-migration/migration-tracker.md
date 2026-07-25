@@ -8,9 +8,9 @@
 **Phase 4 merge:** `646ad2942ec2afbdb42e5269bad6d1993b01444b`  
 **Current branch:** `refactor/phase-5-admin-dummy-domain-cutover`  
 **Current phase:** Phase 5 — Remove remaining admin dummy domains  
-**Overall status:** Orders blockers repaired and Holds source cut over; exact-head certification pending
+**Overall status:** Phase 5 source scope implemented; exact-head certification pending
 
-Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
+Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Merged with debt`.
 
 ## Phase summary
 
@@ -20,17 +20,19 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | 1 | Establish architecture rules, language and validation | Merged with debt | Final private source validation unresolved |
 | 2 | Consolidate layouts and provider scope | Merged with debt | Route and visual parity debt recorded |
 | 3 | Create HTTP and domain-module foundation | Merged with debt | Final-head workflows did not execute before merge |
-| 4 | Cut over products and inventory | Merged with debt | Exact-head quality and Playwright runs did not execute before merge |
-| 5 | Remove remaining admin dummy domains | In progress | Orders and Holds exact-head gates must pass before Returns |
+| 4 | Cut over products and inventory | Merged with debt | Exact-head workflows did not execute before merge |
+| 5 | Remove remaining admin dummy domains | Source complete | Exact-head static, DB, runtime and visual evidence required |
 | 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
 | 7 | Consolidate authentication | Not started | Auth flow parity |
 | 8 | Make checkout and payment server-authoritative | Not started | Idempotent settlement |
-| 9 | Delete legacy architecture | Not started | No legacy imports |
+| 9 | Delete remaining legacy architecture | Not started | No undocumented legacy imports |
 | 10 | Final validation and release readiness | Not started | Full gates and visual parity |
 
-## Phase 0 result
+## Historical evidence state
 
-Phase 0 merged through PR #37 with the recorded baseline evidence:
+### Phase 0
+
+Phase 0 merged through PR #37 with recorded baseline evidence:
 
 ```text
 Playwright run: 30099471635
@@ -39,45 +41,31 @@ Artifact ID: 8599046423
 Digest: sha256:26ccedc1296d92480be077a327f1b9a0fbe813e5bbd663cd8266f101f7ffa6c3
 ```
 
-The public deployment/source mismatch and excluded authenticated admin mutations remain recorded baseline limitations.
+### Phase 1
 
-## Phase 1 result
-
-Phase 1 merged through PR #38 as `1ca1b184207ea2a36fa41c10162b8a059abe5289` while these workflows were queued:
+Phase 1 merged through PR #38 while its final workflows remained queued:
 
 ```text
 Implementation Quality: 30103043887
 Playwright UI Contract: 30103043857
 ```
 
-Phase 1 is **Merged with debt**, not privately validated.
+Phase 1 remains **Merged with debt**.
 
-## Phase 2 result
+### Phase 2
 
-Phase 2 merged through PR #39 as `558e34852f38f0982c7ce9d7c32422f09bbf8775` while these workflows were queued:
+Phase 2 merged through PR #39 while its final workflows remained queued:
 
 ```text
 Implementation Quality: 30106477826
 Playwright UI Contract: 30106477740
 ```
 
-The merged provider/layout composition remains one root layout, one storefront route-group layout and one admin layout with QueryProvider scoped to admin. Phase 2 remains **Merged with debt** because route/auth/browser/visual parity evidence was unresolved.
+Phase 2 remains **Merged with debt**.
 
-## Phase 3 result
+### Phase 3
 
-Phase 3 merged through PR #40 as `d7e3149c96f234d7deb41151ac603d6f652ceb4d`.
-
-Delivered contracts:
-
-```text
-Success: { data, meta? }
-Error:   { error: { code, message, fieldErrors? } }
-Page:    { page, pageSize, total, pageCount }
-```
-
-It established typed HTTP transport, validation, API authentication, staff capabilities, pagination, request correlation, structured error logging, QueryClient defaults and cancellation semantics.
-
-Earlier repair evidence reached database validation and 460 passing Vitest tests, but the final-head runs did not execute before merge:
+Phase 3 merged through PR #40. Earlier repair evidence reached database validation and 460 passing Vitest tests, but final-head workflows did not execute before merge:
 
 ```text
 Implementation Quality: 30118703848
@@ -86,34 +74,27 @@ Playwright UI Contract: 30118703866
 
 Phase 3 remains **Merged with debt**.
 
-## Phase 4 result
+### Phase 4
 
-Phase 4 merged through PR #41 as `646ad2942ec2afbdb42e5269bad6d1993b01444b`.
+Phase 4 merged through PR #41. It delivered canonical Product and Inventory ownership, versioned APIs, typed clients, TanStack ownership, database pagination, transactional stock adjustments and duplicate persistence removal.
 
-Detailed ledgers:
-
-- [`phase-4-implementation-report.md`](phase-4-implementation-report.md)
-- [`phase-4-products-inventory-status.md`](phase-4-products-inventory-status.md)
-
-Delivered source architecture includes canonical Product and Inventory ownership, versioned APIs, typed clients, TanStack ownership, database pagination, transactional stock adjustments and removal of the production Inventory fallback and duplicate catalogue persistence.
-
-The exact final-head workflows did not start before merge:
+Final-head workflows did not execute before merge:
 
 ```text
 Implementation Quality: 30150645155
 Playwright UI Contract: 30150645124
 ```
 
-Phase 4 remains **Merged with debt**, not certified 10/10.
+Phase 4 remains **Merged with debt**.
 
-## Phase 5 — Orders-first admin cutover
+## Phase 5 result
 
 Controlling documents:
 
 - [`phase-5-mission.md`](phase-5-mission.md)
 - [`phase-5-admin-dummy-domain-status.md`](phase-5-admin-dummy-domain-status.md)
 
-Dependency order:
+Approved dependency order:
 
 1. Orders
 2. Holds and reservations
@@ -121,108 +102,84 @@ Dependency order:
 4. Customers
 5. Settings
 6. Overview/reporting projections
-7. deletion of the seed/store/repository layer
+7. seed/store/repository deletion
 
-The repository owner explicitly directed implementation of the identified Orders repairs and Holds while Orders checks remained queued. This authorized source work only; it did not mark the acceptance gate passed.
+Every source workstream in this order is implemented.
 
-### Remaining global compatibility chain
-
-```text
-AdminLayout
-  -> activeAdminSeed
-  -> AdminShell(initialState)
-  -> AdminProvider
-  -> AdminStore
-  -> AdminRepositoryProvider
-  -> createInMemoryAdminRepositories
-```
-
-This chain now serves Returns, Customers, Settings and Overview. Orders and Holds repositories and mutation actions were removed. The legacy aggregate snapshot still contains read-only order/hold records for the not-yet-migrated Overview projection; that compatibility debt is removed with Overview.
-
-### Orders status
+### Canonical runtime paths
 
 ```text
-Orders Client Component
-  -> TanStack Query
-  -> typed Orders API client
-  -> /api/v1/admin/orders/**
-  -> authenticated Orders query/command
-  -> Prisma
+Orders UI    -> modules/orders/client    -> /api/v1/admin/orders/**    -> modules/orders/server    -> Prisma
+Holds UI     -> modules/holds/client     -> /api/v1/admin/holds/**     -> modules/holds/server     -> Prisma
+Returns UI   -> modules/returns/client   -> /api/v1/admin/returns/**   -> modules/returns/server   -> Prisma
+Customers UI -> modules/customers/client -> /api/v1/admin/customers/** -> modules/customers/server -> Prisma
+Settings UI  -> modules/settings/client  -> /api/v1/admin/settings     -> modules/settings/server  -> Prisma
+Overview UI  -> modules/overview/client  -> /api/v1/admin/overview     -> modules/overview/server  -> Prisma
 ```
 
-Implemented and repaired:
+### Source outcomes
 
-- canonical Orders schemas, types, rules and read models;
-- Prisma list/detail reads with database filtering, search, sort, summaries and pagination;
-- URL-owned navigation/query state;
-- authenticated list/detail/transition/offline-sale/sale-customer APIs;
-- persisted Paystack-ready customer options;
-- exact pending-order and reservation linkage for in-person Paystack checkout;
-- no browser-authoritative payment status;
-- pre-delivery returns prohibited;
-- delivery/cancellation stock transitions corrected;
-- distinct concurrent stock conflicts;
-- hold and quantity metadata retained through HTTP;
-- reducer-backed Orders mutations and order/offline-sale reducers deleted;
-- one shared admin pagination component.
-
-Phase 8 retains Paystack verification, signed webhook settlement, idempotency and final reserved/committed/sold reconciliation.
-
-### Holds status
-
-```text
-Holds Client Component
-  -> TanStack Query
-  -> typed Holds API client
-  -> /api/v1/admin/holds/**
-  -> authenticated Holds query/command
-  -> Prisma
-```
-
-Implemented:
-
-- canonical Holds schemas, types and read models;
-- Prisma list/detail reads with database filters, search, sort, summaries and pagination;
-- exact UUID hold search and URL-owned query state;
-- authenticated list/detail/extend/release/convert APIs;
-- transactional expiry extension and audit;
-- exact reserved-stock release;
-- pending-payment conversion that preserves the reservation;
-- no manual paid/cash/POS/transfer control;
-- UI table, mobile cards, detail sheet and dialogs cut from AdminState joins;
-- legacy Holds repositories, query wrappers, mutations and reducer deleted.
+- Orders database reads, transitions and in-person Paystack initialization implemented and repaired.
+- Holds database reads, expiry, release and pending-payment conversion implemented.
+- Returns database reads, creation, transitions, stock disposition and refund accounting implemented.
+- Customers database segmentation, relationship projection, detail and persisted notes implemented.
+- Settings singleton and normalized delivery persistence implemented; first-read bootstrap is transaction-locked and idempotent.
+- Overview database projections replace aggregate seed selectors.
+- Admin command menu and record-sale consumers use canonical bounded queries.
+- AdminStore, repository context, repository contracts and in-memory repository implementation are deleted.
+- `activeAdminSeed`, `newStoreAdminSeed` and all physical `src/lib/admin/shared/seed/**` business records are deleted.
+- Legacy reducer/query/mutation ownership for the migrated domains is deleted.
+- One permanent Phase 5 architecture guard protects all migrated domains.
+- Canonical route tests cover Returns, Customers, Settings and Overview.
+- HTTP smoke covers the four new domain APIs.
 
 ### Phase 5 task ledger
 
 | ID | Approved task | Source status | Evidence status |
 | --- | --- | --- | --- |
 | P5-T01 | Record Phase 4 merge and validation debt | Complete | Recorded |
-| P5-T02 | Freeze seed/provider/repository/query/mutation map | Complete | Recorded |
-| P5-T03 | Implement Orders module, APIs and database pagination | Implemented | Awaiting exact-head execution |
-| P5-T04 | Repair in-person Paystack sale and exact reservation | Implemented and repaired | Awaiting exact-head execution |
-| P5-T05 | Cut Orders consumers from legacy ownership | Implemented | Awaiting exact-head execution |
-| P5-T06 | Implement Holds reads and transactional commands | Implemented | Awaiting exact-head execution |
-| P5-T07 | Cut Holds consumers from local reducers/repositories | Implemented | Awaiting exact-head execution |
-| P5-T08 | Implement Returns reads, creation and transitions | Not started | Locked until current gates pass |
-| P5-T09 | Cut Returns consumers from local reducers | Not started | Follows Returns module |
-| P5-T10 | Implement Customers reads/details/notes | Not started | Follows Returns |
-| P5-T11 | Cut Customers consumers from legacy repositories | Not started | Follows Customers module |
-| P5-T12 | Implement persisted Store settings | Not started | Follows Customers |
-| P5-T13 | Cut Settings consumers/default hydration | Not started | Follows Settings module |
-| P5-T14 | Replace Overview selectors with database projections | Not started | Runs after dependencies |
-| P5-T15 | Remove remaining AdminRepositories/context | In progress | Orders/Holds entries removed |
-| P5-T16 | Remove activeAdminSeed and persistent AdminStore records/actions | In progress | Orders/Holds actions removed; Overview snapshot debt remains |
-| P5-T17 | Remove duplicate legacy implementations | In progress | Orders/Holds duplicates deleted |
-| P5-T18 | Add permanent seed/in-memory/reducer guards | In progress | Orders/Holds guards authored |
-| P5-T19 | Prove persistence/auth/error/invalidation/reload parity | In progress | Tests authored; execution pending |
-| P5-T20 | Pass static, DB, unit, build, React Doctor, HTTP and Playwright gates | Not complete | Exact-head evidence required |
+| P5-T02 | Freeze legacy ownership map | Complete | Recorded |
+| P5-T03 | Implement Orders module, APIs and database pagination | Complete | Exact-head execution pending |
+| P5-T04 | Repair in-person Paystack sale and exact reservation | Complete | Exact-head execution pending |
+| P5-T05 | Cut Orders consumers from legacy ownership | Complete | Exact-head execution pending |
+| P5-T06 | Implement Holds reads and transactional commands | Complete | Exact-head execution pending |
+| P5-T07 | Cut Holds consumers from reducers/repositories | Complete | Exact-head execution pending |
+| P5-T08 | Implement Returns reads, creation and transitions | Complete | Exact-head execution pending |
+| P5-T09 | Cut Returns consumers from reducers/repositories | Complete | Exact-head execution pending |
+| P5-T10 | Implement Customer reads, details and notes | Complete | Exact-head execution pending |
+| P5-T11 | Cut Customer consumers from legacy repositories | Complete | Exact-head execution pending |
+| P5-T12 | Implement persisted Store settings | Complete | Exact-head execution pending |
+| P5-T13 | Cut Settings consumers and browser defaults | Complete | Exact-head execution pending |
+| P5-T14 | Replace Overview selectors with database projections | Complete | Exact-head execution pending |
+| P5-T15 | Remove AdminRepositories/context | Complete | Guard execution pending |
+| P5-T16 | Remove active seed and AdminStore business records | Complete | Guard execution pending |
+| P5-T17 | Remove duplicate Phase 5 implementations | Complete | Guard execution pending |
+| P5-T18 | Add permanent seed/store/repository/reducer guards | Complete | Test execution pending |
+| P5-T19 | Add persistence/auth/error/invalidation/reload evidence | Source tests and HTTP smoke authored | DB/runtime execution pending |
+| P5-T20 | Pass static, DB, tests, build, React Doctor, HTTP and Playwright | Requested | Exact-head runs required |
+
+## Validation truth
+
+Phase 5 is not certified until the exact final head executes and passes:
+
+- architecture guard and Biome;
+- TypeScript;
+- Prisma validation, migration deployment/status and database integrity;
+- unit, component, integration and API tests;
+- production build;
+- React Doctor;
+- HTTP smoke;
+- desktop, tablet and mobile Playwright contract;
+- retained artifacts and review reconciliation.
+
+Queued, cancelled, skipped, superseded or unavailable checks remain validation debt. PR #43 remains draft and unmerged until explicitly directed otherwise.
 
 ## Decision safeguards
 
-- UI remains unchanged except owner-approved functional payment controls.
+- UI remains unchanged except the approved payment-control correction.
 - Route Handlers do not call Server Actions.
 - Client remote state uses typed API clients and TanStack Query.
 - Prisma remains the persistent source of truth.
 - URL owns navigable filters, sorting, pagination and search.
-- Runtime arrays and reducers are not persistence abstractions.
-- Queued, skipped, cancelled, superseded or unavailable checks remain debt rather than passes.
+- Production fixtures and reducer arrays are not persistence abstractions.
+- Source implementation and executed certification are reported separately.
