@@ -32,7 +32,7 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
       const params = new URLSearchParams();
       if (options.category) params.set("category", options.category);
       if (options.collection) {
-        if (options.collection === "under-25") params.set("max", "25000");
+        if (options.collection === "under-25") params.set("maxPrice", "25000");
         else if (options.collection === "grade-a-plus") params.set("condition", "A+");
         else params.set("collection", options.collection);
       }
@@ -55,7 +55,11 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
           id="underRail"
           onAction={() => openShop({ collection: "under-25" })}
           products={underTwentyFive}
-          title={<>Under <span className="serif"><em>₦25,000</em></span></>}
+          title={
+            <>
+              Under <span className="serif"><em>₦25,000</em></span>
+            </>
+          }
         />
         <ProductRailSection
           actionLabel="Shop Grade A+"
@@ -63,7 +67,11 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
           id="essentialRail"
           onAction={() => openShop({ collection: "grade-a-plus" })}
           products={gradeAPlusEssentials}
-          title={<>Grade A+ <span className="serif"><em>essentials</em></span></>}
+          title={
+            <>
+              Grade A+ <span className="serif"><em>essentials</em></span>
+            </>
+          }
         />
         <TrustSection />
         <RecentlyViewedSection />
