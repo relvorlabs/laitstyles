@@ -1,8 +1,10 @@
 "use client";
 
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { customerKeys } from "@/features/admin/customers/data/customer-keys";
 import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
+import { customerKeys } from "@/modules/customers/client/keys";
+import { inventoryKeys } from "@/modules/inventory/client/keys";
+import { orderKeys } from "@/modules/orders/client/keys";
 import {
   createReturnRequest,
   getAdminReturnRequest,
@@ -12,8 +14,6 @@ import {
 } from "@/modules/returns/client/api";
 import { returnKeys } from "@/modules/returns/client/keys";
 import type { ReturnListInput } from "@/modules/returns/types";
-import { inventoryKeys } from "@/modules/inventory/client/keys";
-import { orderKeys } from "@/modules/orders/client/keys";
 
 export function adminReturnsQueryOptions(input: ReturnListInput) {
   return queryOptions({
