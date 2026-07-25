@@ -20,6 +20,7 @@ export type InPersonSalesChannel = Extract<
 export type PaymentStatus = "pending" | "paid" | "deposit" | "failed" | "refunded";
 
 export type PaymentMethod =
+  | "paystack"
   | "cash"
   | "bank-transfer"
   | "card"
