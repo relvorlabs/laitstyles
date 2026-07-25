@@ -6,8 +6,8 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { customerKeys } from "@/features/admin/customers/data/customer-keys";
 import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
+import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
   getAdminOrderRequest,
