@@ -44,7 +44,7 @@ beforeEach(() => {
 });
 
 describe("transitionOrder stock invariants", () => {
-  it("moves committed stock and line state to sold when handoff is delivered", async () => {
+  it("moves committed inventory to sold when customer handoff is delivered", async () => {
     const tx = createTx("ready-for-pickup", "committed");
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -62,14 +62,11 @@ describe("transitionOrder stock invariants", () => {
         relatedOrderId: orderId,
       }),
     );
-    expect(tx.order_lines.update).toHaveBeenCalledWith({
-      where: { id: lineId },
-      data: { stock_state: "sold" },
-    });
+    expect(tx.order_lines.update).not.toHaveBeenCalled();
   });
 
-  it("moves sold stock and line state to returned after delivery", async () => {
-    const tx = createTx("delivered", "sold");
+  it("moves sold inventory into returned and marks the delivered line returned", async () => {
+    const tx = createTx("delivered", "committed");
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
     );
