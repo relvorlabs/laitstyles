@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo } from "react";
 import { toast as sonnerToast } from "sonner";
-import { cartSubtotal, type CartSelection } from "@/features/storefront/shared/cart-lines";
+import { cartSubtotal, type CartSelection } from "@/modules/cart/cart-lines";
+import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { productById } from "@/features/storefront/shared/catalogue-data";
 import { useStorefrontHoldNow } from "@/features/storefront/shared/storefront-hold-clock";
@@ -10,7 +11,6 @@ import {
   closeStorefrontOverlays,
   openStorefrontOverlay as openCoordinatedStorefrontOverlay,
 } from "@/features/storefront/shared/storefront-overlay-events";
-import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import {
   selectCartCount,
   selectCartHydrated,
