@@ -7,17 +7,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { IconClose, IconSearch } from "@/features/storefront/shared/storefront-icons";
+import { StorefrontAccountMenu } from "@/features/storefront/shell/storefront-account-menu";
+import { StorefrontCartSheet } from "@/features/storefront/shell/storefront-cart-sheet";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontOverlay,
   useStorefrontSavedItems,
   useStorefrontUtility,
-} from "@/features/storefront/shared/storefront-runtime";
-import { StorefrontAccountMenu } from "@/features/storefront/shell/storefront-account-menu";
-import { StorefrontCartSheet } from "@/features/storefront/shell/storefront-cart-sheet";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 import { BrandMark } from "./brand-mark";
 
 export type NavShop = (opts: { category?: string; collection?: string | null }) => void;
@@ -32,7 +32,7 @@ export function SiteHeader({
   onNavNew: () => void;
 }) {
   const pathname = usePathname();
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const saved = useStorefrontSavedItems();
   const utility = useStorefrontUtility();
   const overlay = useStorefrontOverlay();
