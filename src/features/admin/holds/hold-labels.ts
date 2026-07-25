@@ -1,11 +1,5 @@
 import type { HoldWorkspaceRisk } from "@/features/admin/holds/hold-types";
-import type {
-  HoldSource,
-  HoldStage,
-  HoldStatus,
-  PaymentMethod,
-  PaymentStatus,
-} from "@/lib/admin/shared/types";
+import type { HoldSource, HoldStage, HoldStatus } from "@/modules/holds/types";
 
 const holdDateFormatter = new Intl.DateTimeFormat("en-NG", {
   day: "numeric",
@@ -35,6 +29,7 @@ export const holdStatusLabels: Record<HoldStatus, string> = {
   released: "Released",
   converted: "Converted",
   expired: "Expired",
+  cancelled: "Cancelled",
 };
 
 export const holdRiskLabels: Record<HoldWorkspaceRisk, string> = {
@@ -44,24 +39,6 @@ export const holdRiskLabels: Record<HoldWorkspaceRisk, string> = {
   expired: "Expired",
   released: "Released",
   converted: "Converted",
-};
-
-export const conversionPaymentLabels: Record<
-  Extract<PaymentStatus, "pending" | "paid" | "deposit">,
-  string
-> = {
-  pending: "Payment pending",
-  paid: "Paid in full",
-  deposit: "Deposit received",
-};
-
-export const paymentMethodLabels: Record<PaymentMethod, string> = {
-  cash: "Cash",
-  "bank-transfer": "Bank transfer",
-  card: "Card",
-  pos: "POS",
-  "pay-on-delivery": "Pay on delivery",
-  other: "Other",
 };
 
 export function formatHoldDate(value: string) {
