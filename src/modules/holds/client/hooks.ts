@@ -6,8 +6,8 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { customerKeys } from "@/features/admin/customers/data/customer-keys";
 import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
+import { customerKeys } from "@/modules/customers/client/keys";
 import {
   convertHoldRequest,
   extendHoldRequest,
@@ -28,8 +28,6 @@ export function adminHoldsQueryOptions(input: HoldListInput) {
     queryFn: ({ signal }) => listAdminHoldsRequest(input, signal),
     placeholderData: keepPreviousData,
     staleTime: 15_000,
-    // Holds expire asynchronously. Reconcile only while active holds exist and
-    // never poll in a background tab; the one-second countdown remains local UI state.
     refetchInterval: (query) =>
       query.state.data?.meta.summary.activeHolds
         ? activeHoldReconciliationIntervalMs
