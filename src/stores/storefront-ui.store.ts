@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { StorefrontHoldIntent } from "@/features/storefront/shared/storefront-client-state";
 
 export type StorefrontOverlayId =
+  | "mobileMenu"
   | "searchModal"
   | "savedDrawer"
   | "legacyCartDrawer"
