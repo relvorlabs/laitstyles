@@ -33,6 +33,10 @@ const retiredFiles = [
   path("src", "features", "storefront", "shared", ["storefront-experience", "provider.tsx"].join("-")),
   path("src", "features", "storefront", "shared", ["storefront-experience", "data.ts"].join("-")),
   path("src", "features", "storefront", "shared", ["storefront-experience", "data.test.ts"].join("-")),
+  path("src", "features", "storefront", "shared", "storefront-provider.tsx"),
+  path("src", "features", "storefront", "shared", "storefront-client-state-provider.tsx"),
+  path("src", "features", "storefront", "shared", "overlays", "legacy-cart-drawer.tsx"),
+  path("src", "features", "storefront", "home", "components", "home-shop-view.tsx"),
   path("src", "features", "storefront", "checkout", "checkout-flow.tsx"),
   path("src", "lib", "catalogue.ts"),
   path("src", "lib", "order.ts"),
@@ -44,6 +48,10 @@ const retiredImports = [
   [".", "cart-persistence"].join("/"),
   ["storefront-experience", "provider"].join("-"),
   ["storefront-experience", "data"].join("-"),
+  path("@", "features", "storefront", "shared", "storefront-provider"),
+  path("@", "features", "storefront", "shared", "storefront-client-state-provider"),
+  path("@", "features", "storefront", "shared", "overlays", "legacy-cart-drawer"),
+  path("@", "features", "storefront", "home", "components", "home-shop-view"),
   path("@", "lib", "catalogue"),
   path("@", "lib", "order"),
   path("@", "features", "storefront", "checkout", "checkout-flow"),
@@ -87,6 +95,7 @@ describe("storefront state boundaries", () => {
     expect(clientBoundary).toContain("StorefrontStateHydrator");
     expect(clientBoundary).toContain("StorefrontAuthProvider");
     expect(clientBoundary).not.toContain("StorefrontClientStateProvider");
+    expect(clientBoundary).not.toContain("StorefrontProvider");
     expect(routeBoundary).toContain("getCurrentSession");
     expect(routeBoundary).toContain("loadStorefrontShellCatalog");
     expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalog\b/);
