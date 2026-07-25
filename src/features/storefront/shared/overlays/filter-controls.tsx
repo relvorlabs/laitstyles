@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
-import { getFilterCategories, type Product } from "../catalogue-data";
+import { getFilterCategories, type Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 
 const inventoryRows: [Product["inventory"], string][] = [
   ["one-of-one", "One-of-one"],
@@ -12,7 +12,7 @@ const inventoryRows: [Product["inventory"], string][] = [
 ];
 
 export function FilterControls() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const navigation = useCatalogueNavigation();
   const { search } = navigation;
   const filterCategories = getFilterCategories(products);
