@@ -139,8 +139,8 @@ Delivered source architecture:
 
 - canonical product definition, lifecycle, taxonomy and public-read ownership under `src/modules/products/**`;
 - canonical stock, stock movement, adjustment, summary and database-pagination ownership under `src/modules/inventory/**`;
-- authenticated versioned product, taxonomy, inventory and movement APIs;
-- typed product and inventory browser clients with TanStack Query ownership;
+- authenticated versioned product, taxonomy, inventory, movement and stock-adjustment APIs;
+- typed product and inventory browser clients with TanStack Query ownership, including the stock-adjustment mutation and targeted invalidation;
 - removal of TanStack-to-Server-Action mutations and the exact architecture exception;
 - removal of the bespoke inventory repository, in-memory fallback and unversioned inventory APIs;
 - one public catalogue Prisma implementation under the product module, with legacy server paths reduced to export-only compatibility shims;
