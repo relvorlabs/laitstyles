@@ -17,7 +17,7 @@ import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { money, type Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import { useStorefrontSavedItems } from "@/features/storefront/shared/storefront-runtime";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import type { UseProductSelection } from "./use-product-selection";
 
@@ -37,7 +37,9 @@ export interface ProductPurchasePanelProps {
   anchorRef: RefObject<HTMLDivElement | null>;
   canAdd: boolean;
   quantity: number;
+  error: string;
   onQuantityChange: (nextQuantity: number) => void;
+  onClearError: () => void;
   onAdd: () => void;
   onBuyNow: () => void;
 }
@@ -49,11 +51,13 @@ export function ProductPurchasePanel({
   anchorRef,
   canAdd,
   quantity,
+  error,
   onQuantityChange,
+  onClearError,
   onAdd,
   onBuyNow,
 }: ProductPurchasePanelProps) {
-  const storefront = useStorefront();
+  const savedItems = useStorefrontSavedItems();
   const selectedColour = selection.selectedColour ?? product.colour ?? "Not specified";
   const available = product.status === "available";
   const displayPrice = selection.displayPrice;
@@ -61,8 +65,6 @@ export function ProductPurchasePanel({
     selection.referencePrice && selection.referencePrice > displayPrice
       ? Math.round((1 - displayPrice / selection.referencePrice) * 100)
       : presentation.discountPercent;
-  // Sizes compatible with the chosen colour; fall back to the presentation sizes
-  // for non-variant products (single size), never fabricating options.
   const sizeOptions =
     selection.compatibleSizes.length > 0
       ? selection.compatibleSizes.map((variant) => ({
@@ -72,22 +74,22 @@ export function ProductPurchasePanel({
         }))
       : presentation.sizes;
   const maxQuantity = product.inventory === "one-of-one" ? 1 : Math.max(1, product.stock);
-  const saved = storefront.saved.has(product.id);
+  const saved = savedItems.idSet.has(product.id);
   const reviewLabel =
     presentation.reviewSummary.count > 0
       ? `${presentation.reviewSummary.average.toFixed(1)} · ${presentation.reviewSummary.count} reviews`
       : "No reviews yet";
 
   return (
-    <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start" aria-labelledby="product-title">
+    <aside aria-labelledby="product-title" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
       <div className="flex items-start gap-5">
         <div>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
             Laitstyles / {product.new ? "New season" : product.category}
           </p>
           <h1
-            id="product-title"
             className="mt-3 font-serif text-[46px] font-medium leading-[0.95] tracking-[-0.035em] sm:text-[56px]"
+            id="product-title"
           >
             {product.name}
           </h1>
@@ -97,47 +99,52 @@ export function ProductPurchasePanel({
         </div>
 
         <Button
-          type="button"
           aria-label={`${saved ? "Remove" : "Add"} ${product.name} ${saved ? "from" : "to"} wishlist`}
           aria-pressed={saved}
-          onClick={() => storefront.toggleSaved(product.id)}
           className="ml-auto shrink-0 rounded-full"
+          onClick={() => savedItems.toggleProduct(product.id)}
           size="icon-lg"
+          type="button"
           variant={saved ? "default" : "outline"}
         >
           <HugeiconsIcon
             aria-hidden="true"
+            fill={saved ? "currentColor" : "none"}
             icon={FavouriteIcon}
             size={20}
             strokeWidth={1.6}
-            fill={saved ? "currentColor" : "none"}
           />
         </Button>
       </div>
 
       <Button
-        type="button"
-        onClick={() => scrollToSection("reviews-section")}
-        className="mt-4 min-h-11 rounded-full px-1 text-left text-[11px] font-semibold"
-        variant="link"
         aria-label={`${reviewLabel}. Go to ratings and reviews.`}
+        className="mt-4 min-h-11 rounded-full px-1 text-left text-[11px] font-semibold"
+        onClick={() => scrollToSection("reviews-section")}
+        type="button"
+        variant="link"
       >
-        <span className="flex gap-0.5 text-star" aria-hidden="true">
+        <span aria-hidden="true" className="flex gap-0.5 text-star">
           {STAR_RATINGS.map((star) => (
             <HugeiconsIcon
               aria-hidden="true"
-              key={star}
-              icon={StarIcon}
-              size={14}
-              strokeWidth={1.6}
               fill={
                 star <= Math.round(presentation.reviewSummary.average) ? "currentColor" : "none"
               }
+              icon={StarIcon}
+              key={star}
+              size={14}
+              strokeWidth={1.6}
             />
           ))}
         </span>
         <span className="underline decoration-border-strong underline-offset-4">{reviewLabel}</span>
-        <HugeiconsIcon aria-hidden="true" icon={ArrowDownRight01Icon} size={16} strokeWidth={1.6} />
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={ArrowDownRight01Icon}
+          size={16}
+          strokeWidth={1.6}
+        />
       </Button>
 
       <div className="mt-5 flex flex-wrap items-end gap-3">
@@ -160,14 +167,14 @@ export function ProductPurchasePanel({
       </p>
 
       <div className="mt-7 grid grid-cols-3 border-y border-border py-4">
-        <Assurance icon={DeliveryTruck01Icon} title="Fast delivery" body="Lagos 1–2 days" />
+        <Assurance body="Lagos 1–2 days" icon={DeliveryTruck01Icon} title="Fast delivery" />
         <Assurance
+          body="Protected checkout"
           bordered
           icon={DeliverySecure01Icon}
           title="Secure payment"
-          body="Protected checkout"
         />
-        <Assurance bordered icon={RefreshIcon} title="Easy returns" body="Within 7 days" />
+        <Assurance body="Within 7 days" bordered icon={RefreshIcon} title="Easy returns" />
       </div>
 
       <fieldset className="mt-7">
@@ -179,18 +186,21 @@ export function ProductPurchasePanel({
             const selected = colour.name === selectedColour;
             return (
               <button
-                key={colour.name}
-                type="button"
                 aria-label={colour.name}
                 aria-pressed={selected}
-                title={colour.name}
-                onClick={() => selection.selectColour(colour.name)}
-                style={colour.hex ? { backgroundColor: colour.hex } : undefined}
                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-[outline] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring ${
                   selected
                     ? "border-border-strong outline-2 outline-offset-4 outline-foreground"
                     : "border-border-strong"
                 } ${colour.hex ? "" : "bg-surface-sunken"}`}
+                key={colour.name}
+                onClick={() => {
+                  selection.selectColour(colour.name);
+                  onClearError();
+                }}
+                style={colour.hex ? { backgroundColor: colour.hex } : undefined}
+                title={colour.name}
+                type="button"
               >
                 {colour.hex ? null : (
                   <span className="font-mono text-[8px] font-semibold uppercase tracking-tight text-foreground">
@@ -209,9 +219,9 @@ export function ProductPurchasePanel({
             Size: <span>{selection.selectedSize ?? (product.size || "One size")}</span>
           </legend>
           <Button
-            type="button"
-            onClick={() => scrollToSection("size-guide")}
             className="h-auto px-0 text-[10px] font-semibold"
+            onClick={() => scrollToSection("size-guide")}
+            type="button"
             variant="link"
           >
             Size guide
@@ -225,15 +235,15 @@ export function ProductPurchasePanel({
                 : size.value === product.size || sizeOptions.length === 1;
             return (
               <Button
-                key={size.value}
-                type="button"
-                disabled={!size.available}
                 aria-pressed={selected}
+                className="min-h-12 disabled:line-through"
+                disabled={!size.available}
+                key={size.value}
                 onClick={() => {
                   selection.selectSize(size.value);
-                  storefront.setQuickError("");
+                  onClearError();
                 }}
-                className="min-h-12 disabled:line-through"
+                type="button"
                 variant={selected ? "default" : "outline"}
               >
                 {size.label}
@@ -245,49 +255,49 @@ export function ProductPurchasePanel({
           {product.fit} fit. Choose your usual size unless the measurements suggest otherwise.
         </p>
         <p className="mt-1 min-h-4 text-[10px] text-destructive" role="alert">
-          {storefront.quickError}
+          {error}
         </p>
       </fieldset>
 
-      <div ref={anchorRef} className="mt-6">
+      <div className="mt-6" ref={anchorRef}>
         <div className="flex gap-3">
           <div className="flex h-14 w-[130px] items-center justify-between rounded-md border border-border bg-control px-2">
             <Button
-              type="button"
               aria-label="Decrease quantity"
               disabled={quantity <= 1}
               onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
               size="icon"
+              type="button"
               variant="ghost"
             >
               <HugeiconsIcon aria-hidden="true" icon={MinusSignIcon} size={16} strokeWidth={1.7} />
             </Button>
             <span className="text-[12px] font-semibold tabular-nums">{quantity}</span>
             <Button
-              type="button"
               aria-label="Increase quantity"
               disabled={quantity >= maxQuantity}
               onClick={() => onQuantityChange(Math.min(maxQuantity, quantity + 1))}
               size="icon"
+              type="button"
               variant="ghost"
             >
               <HugeiconsIcon aria-hidden="true" icon={PlusSignIcon} size={16} strokeWidth={1.7} />
             </Button>
           </div>
           <Button
-            type="button"
+            className="h-14 flex-1 text-[12px] font-bold"
             disabled={!canAdd}
             onClick={onAdd}
-            className="h-14 flex-1 text-[12px] font-bold"
+            type="button"
           >
             {available ? `Add to bag · ${money(displayPrice * quantity)}` : product.status}
           </Button>
         </div>
         <Button
-          type="button"
+          className="mt-3 h-14 w-full text-[12px] font-bold"
           disabled={!canAdd}
           onClick={onBuyNow}
-          className="mt-3 h-14 w-full text-[12px] font-bold"
+          type="button"
           variant="outline"
         >
           Buy now
@@ -295,20 +305,16 @@ export function ProductPurchasePanel({
       </div>
 
       <div className="mt-5 rounded-sm border border-border bg-surface-raised p-5 shadow-storefront-1">
-        <Info
-          icon={PackageDeliveredIcon}
-          title="Estimated delivery"
-          body="Lagos · 1–2 business days"
-        />
+        <Info body="Lagos · 1–2 business days" icon={PackageDeliveredIcon} title="Estimated delivery" />
         <div className="mt-4 border-t border-border pt-4">
           <Info
-            icon={PackageIcon}
-            title={available ? "In stock" : product.status}
             body={
               available
                 ? `${product.stock} ${product.stock === 1 ? "piece" : "pieces"} currently available.`
                 : "This piece cannot currently be added to a bag."
             }
+            icon={PackageIcon}
+            title={available ? "In stock" : product.status}
           />
         </div>
       </div>
