@@ -30,7 +30,11 @@ beforeEach(() => {
 describe("POST /api/v1/admin/inventory/adjustments", () => {
   it("returns the standard authorization error envelope", async () => {
     mocks.requireApiStaff.mockRejectedValueOnce(
-      new ApiError({ code: "AUTH_REQUIRED", message: "Authentication required.", status: 401 }),
+      new ApiError({
+        code: "AUTH_REQUIRED",
+        message: "Authentication required.",
+        status: 401,
+      }),
     );
 
     const response = await POST(adjustmentRequest({ quantityDelta: 2 }));
@@ -48,7 +52,10 @@ describe("POST /api/v1/admin/inventory/adjustments", () => {
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: "INVALID_BODY", fieldErrors: { quantityDelta: expect.any(String) } },
+      error: {
+        code: "INVALID_BODY",
+        fieldErrors: { quantityDelta: expect.any(String) },
+      },
     });
     expect(mocks.adjustInventoryStock).not.toHaveBeenCalled();
   });
