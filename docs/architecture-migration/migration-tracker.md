@@ -190,6 +190,8 @@ Remaining runtime domains:
 
 The approved dependency order is Customers → Orders/offline sales → Holds → Returns → Settings → Overview → deletion of the seed/store/repository layer.
 
+The bootstrap boundary test freezes the current `activeAdminSeed` and `createInMemoryAdminRepositories` production import edges so the legacy ownership can shrink but cannot spread.
+
 | ID | Approved task | Status |
 | --- | --- | --- |
 | P5-T01 | Record Phase 4 merge and validation debt | Complete |
@@ -204,7 +206,7 @@ The approved dependency order is Customers → Orders/offline sales → Holds �
 | P5-T10 | Remove AdminRepositories, in-memory repositories and repository context | Not started |
 | P5-T11 | Remove activeAdminSeed and persistent business records/actions from AdminStore/AdminProvider | Not started |
 | P5-T12 | Remove duplicate legacy implementations after all consumers move | Not started |
-| P5-T13 | Add permanent guards against production seed and in-memory persistence | Not started |
+| P5-T13 | Add permanent guards against production seed and in-memory persistence | In progress |
 | P5-T14 | Prove persistence, authorization, validation, invalidation and reload parity | Not started |
 | P5-T15 | Pass final-head static, DB, test, build, React Doctor, HTTP and Playwright gates | Not started |
 
