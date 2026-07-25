@@ -12,7 +12,7 @@ import type {
   ProductVariantOption,
   ReviewSummary,
   TaxonomyRef,
-} from "@/modules/products/server/storefront/types";
+} from "@/modules/products/storefront-types";
 
 // ---- Prisma include shapes + derived payload types -------------------------
 
