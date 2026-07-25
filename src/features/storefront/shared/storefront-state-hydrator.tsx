@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { useStorefrontCatalog } from "@/modules/products/client/storefront-catalog";
 import { cartStore, selectCartHydrated, selectCartLines, useCartStore } from "@/stores/cart.store";
 import {
@@ -22,6 +22,7 @@ import {
   persistStorefrontClientState,
   STOREFRONT_CLIENT_STATE_VERSION,
 } from "./storefront-client-state";
+import { StorefrontHoldClockBoundary, useStorefrontHoldNow } from "./storefront-hold-clock";
 import { StorefrontHoldAlert } from "./storefront-feedback";
 
 const RECENT_STORAGE_KEY = "laitstyles-storefront:v1:recent";
@@ -29,7 +30,7 @@ const LEGACY_RECENT_STORAGE_KEY = "laitstyles-recent";
 const UTILITY_STORAGE_KEY = "laitstyles-storefront:v1:utility";
 
 export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
-  const catalog = useStorefrontCatalog();
+  const catalogue = useStorefrontCatalog();
   const hydrationStarted = useRef(false);
   const cart = useCartStore(selectCartLines);
   const cartHydrated = useCartStore(selectCartHydrated);
@@ -42,7 +43,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const ready = cartHydrated && savedHydrated && uiHydrated;
 
   useEffect(() => {
-    if (hydrationStarted.current || !catalog.data) return;
+    if (hydrationStarted.current || !catalogue.data) return;
     hydrationStarted.current = true;
 
     const frame = window.requestAnimationFrame(() => {
@@ -59,8 +60,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
         .hydrate(
           restoreCartLines(
             loaded.snapshot.cart,
-            catalog.data.products,
-            catalog.data.variantOptionsByProductId,
+            catalogue.data.products,
+            catalogue.data.variantOptionsByProductId,
           ),
         );
       savedItemsStore.getState().hydrate(loaded.snapshot.saved);
@@ -72,7 +73,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [catalog.data]);
+  }, [catalogue.data]);
 
   useEffect(() => {
     if (!ready) return;
@@ -102,10 +103,10 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   }, [cart, holds, ready, recentIds, saved, utilityDismissed]);
 
   return (
-    <>
+    <StorefrontHoldClockBoundary>
       {children}
       <StorefrontHoldAlertRuntime />
-    </>
+    </StorefrontHoldClockBoundary>
   );
 }
 
@@ -113,21 +114,13 @@ function StorefrontHoldAlertRuntime() {
   const holds = useStorefrontUiStore(selectHolds);
   const dismissed = useStorefrontUiStore((state) => state.holdAlertDismissed);
   const dismiss = useStorefrontUiStore((state) => state.dismissHoldAlert);
-  const removeExpired = useStorefrontUiStore((state) => state.removeExpired);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (holds.length === 0) return;
-    const timer = window.setInterval(() => {
-      const current = Date.now();
-      setNow(current);
-      removeExpired(current);
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [holds.length, removeExpired]);
+  const now = useStorefrontHoldNow();
 
   const seconds = useMemo(
-    () => holds.map((hold) => Math.max(0, Math.ceil((hold.expiresAt - now) / 1000))).filter(Boolean),
+    () =>
+      holds
+        .map((hold) => Math.max(0, Math.ceil((hold.expiresAt - now) / 1000)))
+        .filter(Boolean),
     [holds, now],
   );
 
