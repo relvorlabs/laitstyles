@@ -56,6 +56,15 @@ Concrete ownership still present at bootstrap:
 - domain query-option files read through `AdminRepositories` rather than Prisma-backed module clients;
 - domain mutation hooks call `useAdmin()` and wrap synchronous reducers in `Promise.resolve`.
 
+## Bootstrap architecture guard
+
+`src/lib/admin/data/in-memory/phase-5-boundary.test.ts` freezes the two current production entry edges:
+
+- `activeAdminSeed` may currently be imported only by `src/app/admin/layout.tsx`;
+- `createInMemoryAdminRepositories` may currently be imported only by `src/features/admin/data/admin-repository-context.tsx`.
+
+The guard allows those files to stop importing the legacy paths as Phase 5 progresses, but fails if any new production consumer is introduced. This is an initial non-expansion guard; P5-T19 remains in progress until all seed, in-memory repository and reducer-persistence edges are permanently prohibited.
+
 ## Remaining runtime dummy domains
 
 ### Customers
@@ -191,7 +200,7 @@ Client mutation
 | P5-T16 | Remove `AdminRepositories`, `createInMemoryAdminRepositories` and repository context after all consumers move | Not started |
 | P5-T17 | Remove production `activeAdminSeed` injection and persistent business records/actions from AdminStore/AdminProvider | Not started |
 | P5-T18 | Delete or reduce old `lib/admin/**` implementations to temporary export-only compatibility paths without duplicate logic | Not started |
-| P5-T19 | Add architecture guards preventing production seed, in-memory repository and reducer-persistence imports | Not started |
+| P5-T19 | Add architecture guards preventing production seed, in-memory repository and reducer-persistence imports | In progress |
 | P5-T20 | Prove persistence, authorization, validation, errors, invalidation and reload parity with focused tests | Not started |
 | P5-T21 | Pass static, database, unit, build, React Doctor, HTTP and desktop/tablet/mobile Playwright gates on the final head | Not started |
 | P5-T22 | Reconcile inherited Phase 1–4 validation debt only with executed evidence | Not started |
