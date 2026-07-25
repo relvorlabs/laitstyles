@@ -37,6 +37,7 @@ import type { ControlRoomHold, ConvertHoldInput } from "@/modules/holds/types";
 
 export function HoldDetailSheet({
   hold,
+  now,
   feedback,
   onOpenChange,
   onExtend,
@@ -44,6 +45,7 @@ export function HoldDetailSheet({
   onConvert,
 }: {
   hold: ControlRoomHold | null;
+  now: number | null;
   feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
   onExtend: (holdId: string, minutes: number) => Promise<string | null>;
@@ -55,7 +57,7 @@ export function HoldDetailSheet({
 
   if (!hold) return <Sheet onOpenChange={onOpenChange} open={false} />;
 
-  const item = toHoldWorkspaceItem(hold);
+  const item = toHoldWorkspaceItem(hold, now);
   const customer = hold.customer;
   const active = item.status === "active" && item.risk !== "expired";
 
