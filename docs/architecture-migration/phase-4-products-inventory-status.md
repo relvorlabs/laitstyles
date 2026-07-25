@@ -32,13 +32,14 @@ Server Component or server loader
   -> Prisma
 ```
 
-Product owns definition, lifecycle, taxonomy and public product read models. Inventory owns balances, movements, database pagination and stock adjustments. Catalogue remains a public read-model term rather than a second persistence domain.
+Product owns definition, editor/mutation contracts, validation, lifecycle, taxonomy and public product read models. Inventory owns balances, movements, database pagination, stock adjustments and committed-stock edit policy. Catalogue remains a public read-model term rather than a second persistence domain.
 
 ## Completed source work
 
 - Product and inventory contracts are module-owned.
+- Product editor and mutation contracts plus validation schema are canonical under `src/modules/products/**`.
 - Product save, lifecycle and taxonomy commands are module-owned and Prisma-backed.
-- Inventory balances, stock movements, page filtering, aggregation and adjustment are module-owned.
+- Inventory balances, stock movements, page filtering, aggregation, adjustment and committed-stock policy are module-owned.
 - Product and inventory browser consumers use typed API clients and TanStack Query.
 - Versioned authenticated endpoints replace the unversioned Inventory API.
 - The stock-adjustment command is exposed through a validated versioned endpoint, typed request client and TanStack mutation with targeted invalidation.
@@ -48,10 +49,11 @@ Product owns definition, lifecycle, taxonomy and public product read models. Inv
 - Public catalogue queries, mappers, visibility rules and page pagination have one implementation owner under `src/modules/products/server/storefront/**`.
 - The live catalogue loader, collection page and products page import that module directly.
 - `src/server/commerce/catalogue/**` contains export-only compatibility shims; it contains no duplicate Prisma implementation.
+- Legacy product-editor type, schema and stock-policy paths are export-only compatibility shims.
 - The duplicate storefront product writer and its obsolete test were deleted.
 - The runtime storefront smoke uses the same canonical `saveProduct` command as the API.
 - A transactional inventory adjustment command guards invalid balances and concurrent changes, then records an immutable stock movement and audit event.
-- An architecture test rejects any production `src/**` import from the legacy catalogue path.
+- Architecture tests reject production legacy catalogue imports, module-to-legacy editor dependencies and renewed logic inside compatibility files.
 
 ## Versioned APIs
 
