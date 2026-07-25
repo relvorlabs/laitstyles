@@ -21,7 +21,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { ProductMediaPanel } from "@/features/admin/inventory/inventory-detail-media";
 import { ProductPricingPanel } from "@/features/admin/inventory/inventory-detail-pricing";
 import {
@@ -32,8 +31,8 @@ import { ProductStockPanel } from "@/features/admin/inventory/inventory-detail-s
 import { ProductSummaryPanel } from "@/features/admin/inventory/inventory-detail-summary";
 import { InventoryProductLifecycleActions } from "@/features/admin/inventory/inventory-product-lifecycle-actions";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { inventoryStockMovementsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
+import { stockMovementsQueryOptions } from "@/modules/inventory/client/hooks";
 
 type InventoryDetailSheetProps = {
   item: InventoryListItem | null;
@@ -77,10 +76,9 @@ function DeferredDomainPanel({ domain }: DeferredDomainPanelProps) {
 
 export function InventoryDetailSheet({ item, onOpenChange, onEdit }: InventoryDetailSheetProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("summary");
-  const repositories = useAdminRepositories();
   const productId = item?.product.id ?? null;
   const { data: movements = [] } = useQuery({
-    ...inventoryStockMovementsQueryOptions(repositories, productId ?? undefined),
+    ...stockMovementsQueryOptions(productId ?? undefined),
     enabled: Boolean(productId),
   });
 

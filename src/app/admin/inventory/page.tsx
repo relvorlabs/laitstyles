@@ -3,7 +3,6 @@ import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspa
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import {
   defaultInventoryQuery,
-  getInventoryFacetOptions,
   inventorySavedViews,
   inventorySortOptions,
 } from "@/lib/admin/inventory/inventory-selectors";
@@ -15,8 +14,8 @@ import type {
   InventorySortKey,
   InventoryStockFilter,
 } from "@/lib/admin/shared/types";
+import { productIdSchema } from "@/modules/products/schema";
 import { getStaffAccess } from "@/server/auth/session";
-import { listInventoryProducts } from "@/server/commerce/inventory/inventory-read";
 
 type InventoryPageProps = {
   searchParams: Promise<{
@@ -59,46 +58,34 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const access = await getStaffAccess("inventory:read");
   if (!access.ok) return <AdminAccessDenied reason={access.reason} />;
 
-  const [params, products] = await Promise.all([searchParams, listInventoryProducts()]);
-  const facets = getInventoryFacetOptions(products);
-  const categoryValues = new Set(facets.categories);
-  const collectionValues = new Set(facets.collections);
+  const params = await searchParams;
   const requestedView = first(params.view);
   const requestedPresentation = first(params.presentation);
   const requestedProduct = first(params.product);
-  const requestedCategory = first(params.category);
-  const requestedCollection = first(params.collection);
-
-  const view = pick(requestedView, savedViewValues, "all");
-  const presentation: InventoryPresentation = requestedPresentation === "table" ? "table" : "grid";
-  const productId = products.some((product) => product.id === requestedProduct)
-    ? (requestedProduct ?? null)
-    : null;
   const requestedPage = Number(first(params.page));
   const requestedPageSize = Number(first(params.pageSize));
   const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const pageSize = pageSizeValues.has(requestedPageSize)
     ? requestedPageSize
     : defaultInventoryPageSize;
+  const productId = productIdSchema.safeParse(requestedProduct).success
+    ? (requestedProduct ?? null)
+    : null;
 
   return (
     <InventoryWorkspace
       initialOpenProductId={productId}
       initialPage={page}
       initialPageSize={pageSize}
-      initialPresentation={presentation}
+      initialPresentation={requestedPresentation === "table" ? "table" : "grid"}
       initialQuery={{
         ...defaultInventoryQuery,
-        view,
-        search: first(params.q) ?? "",
+        view: pick(requestedView, savedViewValues, "all"),
+        search: first(params.q)?.slice(0, 200) ?? "",
         mode: pick(first(params.mode), modeValues, "all"),
         stock: pick(first(params.stock), stockValues, "all"),
-        category:
-          requestedCategory && categoryValues.has(requestedCategory) ? requestedCategory : "all",
-        collection:
-          requestedCollection && collectionValues.has(requestedCollection)
-            ? requestedCollection
-            : "all",
+        category: normalizedFilter(first(params.category)),
+        collection: normalizedFilter(first(params.collection)),
         channel: pick(first(params.channel), channelValues, "all"),
         sort: pick(first(params.sort), sortValues, "updated-desc"),
       }}
@@ -108,6 +95,11 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizedFilter(value: string | undefined) {
+  const normalized = value?.trim().slice(0, 120);
+  return normalized || "all";
 }
 
 function pick<TValue extends string>(

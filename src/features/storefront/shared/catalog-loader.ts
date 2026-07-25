@@ -17,7 +17,7 @@ import {
   listPublishedProductDetails,
   listPublishedProductSlugs,
   listStorefrontCategories,
-} from "@/server/commerce/catalogue/catalog-repository";
+} from "@/modules/products/server/storefront/queries";
 
 export {
   buildStorefrontCatalog,
@@ -28,7 +28,7 @@ export {
   projectShellProduct,
 } from "@/features/storefront/shared/catalog-adapter";
 
-// react.cache keeps one repository round-trip per request. Repository reads use
+// react.cache keeps one repository round-trip per request. Domain reads use
 // explicit catalogue cache tags; the pure adapter only preserves the approved
 // client-facing product contract and is not an independent data source.
 const getCatalog = cache(async () => {

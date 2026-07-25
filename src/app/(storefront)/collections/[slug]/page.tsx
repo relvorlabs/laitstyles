@@ -7,7 +7,7 @@ import {
   countPublishedProducts,
   getStorefrontCollectionBySlug,
   listPublishedProducts,
-} from "@/server/commerce/catalogue/catalog-repository";
+} from "@/modules/products/server/storefront/queries";
 
 type Params = { slug: string };
 type SearchParams = { sort?: string | string[] };

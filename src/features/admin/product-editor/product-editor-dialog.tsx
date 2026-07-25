@@ -22,12 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
-import { useSaveProduct } from "@/features/admin/inventory/inventory-mutations";
 import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
 import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
@@ -48,6 +45,10 @@ import type {
   ProductEditorStep,
   ProductEditorValues,
 } from "@/lib/admin/shared/types";
+import {
+  adminProductsQueryOptions,
+  useSaveProduct,
+} from "@/modules/products/client/hooks";
 
 export function ProductEditorDialog({
   open,
@@ -60,8 +61,7 @@ export function ProductEditorDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const product = productId ? products.find((item) => item.id === productId) : undefined;
 
   if (!open) return null;

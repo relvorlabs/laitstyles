@@ -7,7 +7,6 @@ import { useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import {
   type EditorFieldName,
@@ -15,13 +14,12 @@ import {
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function VariantProductFields() {
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const {
     control,
     getValues,

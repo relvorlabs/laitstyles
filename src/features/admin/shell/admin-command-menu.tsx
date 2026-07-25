@@ -28,9 +28,9 @@ import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
 import { holdsListQueryOptions } from "@/lib/admin/holds/holds-query-options";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { ordersListQueryOptions } from "@/lib/admin/orders/orders-query-options";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 const overviewTargets = [
   {
@@ -82,7 +82,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
   const router = useRouter();
   const { state } = useAdmin();
   const repositories = useAdminRepositories();
-  const { data: allProducts = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: allProducts = [] } = useQuery(adminProductsQueryOptions());
   const { data: allOrders = [] } = useQuery(ordersListQueryOptions(repositories));
   const { data: allCustomers = [] } = useQuery(customersListQueryOptions(repositories));
   const { data: allHolds = [] } = useQuery(holdsListQueryOptions(repositories));

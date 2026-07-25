@@ -13,17 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
-import {
-  useCreateCatalogueTaxonomy,
-  useDeleteCatalogueTaxonomy,
-  useRenameCatalogueTaxonomy,
-} from "@/features/admin/inventory/inventory-mutations";
-import {
-  inventoryProductsQueryOptions,
-  inventoryTaxonomyQueryOptions,
-} from "@/lib/admin/inventory/inventory-query-options";
 import type { CatalogueTaxonomyKind } from "@/lib/admin/shared/types";
+import {
+  adminProductsQueryOptions,
+  productTaxonomyQueryOptions,
+  useCreateProductTaxonomy,
+  useDeleteProductTaxonomy,
+  useRenameProductTaxonomy,
+} from "@/modules/products/client/hooks";
 
 type TaxonomyValueEvent = {
   kind: CatalogueTaxonomyKind;
@@ -51,12 +48,11 @@ export function CatalogueTaxonomyManager({
   onRename?: (event: TaxonomyRenameEvent) => void;
   onDelete?: (event: TaxonomyValueEvent) => void;
 }) {
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
-  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
-  const createCatalogueTaxonomyMutation = useCreateCatalogueTaxonomy();
-  const renameCatalogueTaxonomyMutation = useRenameCatalogueTaxonomy();
-  const deleteCatalogueTaxonomyMutation = useDeleteCatalogueTaxonomy();
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
+  const { data: catalogueTaxonomy = [] } = useQuery(productTaxonomyQueryOptions());
+  const createCatalogueTaxonomyMutation = useCreateProductTaxonomy();
+  const renameCatalogueTaxonomyMutation = useRenameProductTaxonomy();
+  const deleteCatalogueTaxonomyMutation = useDeleteProductTaxonomy();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<CatalogueTaxonomyKind>(initialKind);
   const [newName, setNewName] = useState("");

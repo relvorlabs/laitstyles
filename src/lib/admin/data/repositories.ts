@@ -1,13 +1,10 @@
 import type {
-  CatalogueTaxonomyItem,
   ControlRoomCustomer,
   ControlRoomHold,
   ControlRoomOrder,
   ControlRoomReturn,
-  InventoryProduct,
   OverviewSnapshot,
   SalesPulsePoint,
-  StockMovement,
   StoreSettings,
 } from "@/lib/admin/shared/types";
 
@@ -17,13 +14,6 @@ export type OverviewResource = {
   asOf: string;
   salesPulse: SalesPulsePoint[];
   openOrders: ControlRoomOrder[];
-};
-
-export type InventoryRepository = {
-  listProducts: () => Promise<InventoryProduct[]>;
-  getProduct: (productId: string) => Promise<InventoryProduct | null>;
-  listTaxonomy: () => Promise<CatalogueTaxonomyItem[]>;
-  listStockMovements: (productId?: string) => Promise<StockMovement[]>;
 };
 
 export type OrderRepository = {
@@ -55,7 +45,6 @@ export type OverviewRepository = {
 };
 
 export type AdminRepositories = {
-  inventory: InventoryRepository;
   orders: OrderRepository;
   holds: HoldRepository;
   returns: ReturnRepository;

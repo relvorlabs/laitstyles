@@ -11,13 +11,13 @@ import {
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import { formatNaira } from "@/lib/admin/shared/formatters";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function RecordSaleReviewStep() {
   const repositories = useAdminRepositories();
   const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const methods = useFormContext<RecordSaleValues>();
   const values = useWatch({ control: methods.control }) as RecordSaleValues;
   const product = getSelectedSaleProduct(products, values.productId);

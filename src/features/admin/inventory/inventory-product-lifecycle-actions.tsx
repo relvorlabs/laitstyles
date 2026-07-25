@@ -13,12 +13,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import type { ProductLifecycle } from "@/lib/admin/shared/types";
 import {
   useArchiveProduct,
   useDeleteProduct,
   useRestoreProduct,
-} from "@/features/admin/inventory/inventory-mutations";
-import type { ProductLifecycle } from "@/lib/admin/shared/types";
+} from "@/modules/products/client/hooks";
 
 type PendingAction = "archive" | "restore" | "delete" | null;
 

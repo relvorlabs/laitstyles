@@ -6,24 +6,22 @@ import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
 import {
   EditorSelectField,
   EditorTextareaField,
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
-import {
-  inventoryProductsQueryOptions,
-  inventoryTaxonomyQueryOptions,
-} from "@/lib/admin/inventory/inventory-query-options";
 import { generateProductSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import {
+  adminProductsQueryOptions,
+  productTaxonomyQueryOptions,
+} from "@/modules/products/client/hooks";
 
 export function ProductIdentityStep() {
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
-  const { data: catalogueTaxonomy = [] } = useQuery(inventoryTaxonomyQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
+  const { data: catalogueTaxonomy = [] } = useQuery(productTaxonomyQueryOptions());
   const { control, setValue } = useFormContext<ProductEditorValues>();
   const [mode, name, brand, category, collection] = useWatch({
     control,

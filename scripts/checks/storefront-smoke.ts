@@ -1,12 +1,12 @@
 /**
- * Phase 1 runtime acceptance smoke test (docs/storefront-v2/06 Phase 1).
- * Exercises the REAL server data layer against the dev DB:
- *   - storefront reads published products via the repository
- *   - the discriminated union + availability derive correctly
- *   - the admin write path creates a product the storefront then reads
+ * Runtime acceptance smoke test for the canonical product domain.
+ * Exercises the real server data layer against the development database:
+ *   - storefront reads published products through the product module
+ *   - the public read model and availability derive correctly
+ *   - the canonical product command persists a product the storefront can read
  *
- * Run AFTER the seed, under the react-server condition so `server-only` and
- * React `cache()` resolve:
+ * Run after the seed, under the react-server condition so `server-only` and
+ * React cache primitives resolve:
  *   NODE_OPTIONS=--conditions=react-server pnpm exec tsx scripts/checks/storefront-smoke.ts
  */
 import { config as loadEnv } from "dotenv";
@@ -14,18 +14,24 @@ import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
+const SMOKE_SLUG = "smoke-admin-write";
 
-async function main() {  const { listPublishedProducts, countPublishedProducts, getPublishedProductBySlug } = await import(
-    "@/server/commerce/catalogue/catalog-repository"
+async function main() {
+  const { createEmptyProductEditorValues } = await import(
+    "@/lib/admin/product-editor/product-editor-defaults"
   );
-  const { createPublishedProduct } = await import("@/server/commerce/catalogue/product-write");
+  const { saveProduct } = await import("@/modules/products/server/product-commands");
+  const { countPublishedProducts, getPublishedProductBySlug, listPublishedProducts } = await import(
+    "@/modules/products/server/storefront/queries"
+  );
+
   const before = await countPublishedProducts();
-  console.warn(`published products (read via repository): ${before}`);
+  console.warn(`published products (read via product module): ${before}`);
 
   const list = await listPublishedProducts({ limit: 20 });
-  for (const p of list) {
+  for (const product of list) {
     console.warn(
-      `  • ${p.slug} [${p.mode}] ${p.availability.state} avail=${p.availability.available} ₦${p.price / 100}${p.referencePrice ? ` (was ₦${p.referencePrice / 100})` : ""}`,
+      `  • ${product.slug} [${product.mode}] ${product.availability.state} avail=${product.availability.available} ₦${product.price / 100}${product.referencePrice ? ` (was ₦${product.referencePrice / 100})` : ""}`,
     );
   }
 
@@ -38,29 +44,53 @@ async function main() {  const { listPublishedProducts, countPublishedProducts,
   const variantCount = variant && variant.mode === "variant" ? variant.variants.length : 0;
   console.warn(`PDP variant: ${variant?.name} mode=${variant?.mode} variants=${variantCount}`);
 
-  // Admin write path -> storefront read loop.
-  const result = await createPublishedProduct(
-    { profileId: OWNER_ID },
-    {
-      slug: "smoke-admin-write",
-      name: "Smoke Admin Write",
-      description: "Created via the admin write path during the Phase 1 smoke test.",
-      mode: "stocked",
-      priceKobo: 1_500_000,
-      cover: {
-        publicId: "sample",
-        secureUrl: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+  const existing = await getPublishedProductBySlug(SMOKE_SLUG);
+  if (!existing) {
+    const values = createEmptyProductEditorValues("stocked");
+    if (values.inventoryMode !== "stocked") {
+      throw new Error("The stocked product editor factory returned an incompatible mode.");
+    }
+    values.name = "Smoke Admin Write";
+    values.category = "Smoke checks";
+    values.brand = "Laitstyles";
+    values.description = "Created through the canonical product command during runtime verification.";
+    values.internalReference = "SMOKE-ADMIN-WRITE";
+    values.media = [
+      {
+        id: "smoke-cover",
+        url: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
         alt: "Smoke admin write",
+        kind: "cover",
+        position: 0,
+        source: "url",
       },
-      stock: 3,
-    },
-  );
-  console.warn(
-    `admin write path: ${result.ok ? `OK created ${result.value.slug}` : `expected-fail ${result.error.kind} (${result.error.message})`}`,
-  );
+    ];
+    values.sellingPrice = 15_000;
+    values.channels = ["storefront"];
+    values.stocked = { sizeLabel: "One size", colour: "Neutral", quantity: 3 };
 
-  const written = await getPublishedProductBySlug("smoke-admin-write");
-  console.warn(`storefront reads admin-written product: ${written ? "YES" : "NO"}`);
+    const result = await saveProduct(
+      {
+        kind: "staff",
+        authUserId: OWNER_ID,
+        email: null,
+        displayName: "Storefront smoke runner",
+        role: "admin",
+      },
+      values,
+      "publish",
+    );
+    if (!result.ok) {
+      throw new Error(`Canonical product write failed: ${result.error.message}`);
+    }
+    console.warn(`canonical product write: OK created ${result.value.product.slug}`);
+  } else {
+    console.warn(`canonical product write: existing ${existing.slug} reused`);
+  }
+
+  const written = await getPublishedProductBySlug(SMOKE_SLUG);
+  if (!written) throw new Error("The storefront could not reload the product created by saveProduct.");
+  console.warn("storefront reads canonical product write: YES");
 
   const after = await countPublishedProducts();
   console.warn(`published products after write: ${after}`);

@@ -3,17 +3,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext, useWatch } from "react-hook-form";
 import { FieldGroup } from "@/components/ui/field";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   EditorNumberField,
   EditorTextField,
 } from "@/features/admin/product-editor/product-editor-fields";
-import { inventoryProductsQueryOptions } from "@/lib/admin/inventory/inventory-query-options";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function StockedProductFields() {
-  const repositories = useAdminRepositories();
-  const { data: products = [] } = useQuery(inventoryProductsQueryOptions(repositories));
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const { control } = useFormContext<ProductEditorValues>();
   const [productId, quantity] = useWatch({
     control,
