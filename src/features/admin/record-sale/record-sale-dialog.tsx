@@ -24,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { RecordSaleCustomerStep } from "@/features/admin/record-sale/record-sale-customer-step";
 import { RecordSaleItemStep } from "@/features/admin/record-sale/record-sale-item-step";
 import { RecordSalePaymentStep } from "@/features/admin/record-sale/record-sale-payment-step";
@@ -46,8 +45,11 @@ import {
   recordSaleSteps,
   toOfflineSaleInput,
 } from "@/features/admin/record-sale/record-sale-types";
-import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
-import { useRecordOfflineSale } from "@/modules/orders/client/hooks";
+import {
+  saleCustomersQueryOptions,
+  useRecordOfflineSale,
+} from "@/modules/orders/client/hooks";
+import type { AdminOrderCustomer } from "@/modules/orders/types";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 import type { AdminProduct } from "@/modules/products/types";
 
@@ -60,13 +62,13 @@ export function RecordSaleDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
 }) {
-  const repositories = useAdminRepositories();
   const { data: products = [] } = useQuery(adminProductsQueryOptions());
-  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
+  const { data: customers = [] } = useQuery(saleCustomersQueryOptions());
   if (!open) return null;
 
   return (
     <RecordSaleForm
+      customers={customers}
       initialValues={createRecordSaleDefaults(products, customers)}
       key={`record-sale-${products.length}-${customers.length}`}
       onCompleted={onCompleted}
@@ -78,12 +80,14 @@ export function RecordSaleDialog({
 }
 
 function RecordSaleForm({
+  customers,
   initialValues,
   open,
   onOpenChange,
   onCompleted,
   products,
 }: {
+  customers: AdminOrderCustomer[];
   initialValues: RecordSaleValues;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -236,7 +240,7 @@ function RecordSaleForm({
                 />
                 <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 sm:py-8 lg:px-9">
                   <div className="mx-auto w-full max-w-[800px]">
-                    <StepContent step={activeStep} />
+                    <StepContent customers={customers} step={activeStep} />
                   </div>
                 </div>
               </div>
@@ -294,12 +298,18 @@ function RecordSaleForm({
   );
 }
 
-function StepContent({ step }: { step: RecordSaleStep }) {
+function StepContent({
+  customers,
+  step,
+}: {
+  customers: AdminOrderCustomer[];
+  step: RecordSaleStep;
+}) {
   switch (step) {
     case "item":
       return <RecordSaleItemStep />;
     case "customer":
-      return <RecordSaleCustomerStep />;
+      return <RecordSaleCustomerStep customers={customers} />;
     case "payment":
       return <RecordSalePaymentStep />;
     case "review":
