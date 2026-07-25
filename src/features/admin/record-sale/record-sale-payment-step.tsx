@@ -1,11 +1,17 @@
 "use client";
 
+import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { useFormContext } from "react-hook-form";
 
 export function RecordSalePaymentStep() {
   const methods = useFormContext<RecordSaleValues>();
