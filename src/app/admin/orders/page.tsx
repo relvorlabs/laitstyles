@@ -39,11 +39,9 @@ const pageSizeValues = new Set([10, 25, 50, 100]);
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
-  const initialOpenOrderId = first(params.order)?.trim() || null;
 
   return (
     <OrdersWorkspace
-      initialOpenOrderId={initialOpenOrderId}
       initialQuery={{
         ...defaultOrderQuery,
         view: pick(first(params.view), viewValues, "all"),
