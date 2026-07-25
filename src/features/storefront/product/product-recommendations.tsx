@@ -3,9 +3,15 @@
 import Link from "next/link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  showStorefrontToast,
+  useStorefrontCart,
+  useStorefrontCatalogData,
+  useStorefrontHolds,
+  useStorefrontSavedItems,
+} from "@/features/storefront/shared/storefront-runtime";
 import { selectProductRecommendations } from "./product-detail-presentation";
 
 export function ProductRecommendations({
@@ -19,9 +25,12 @@ export function ProductRecommendations({
   eyebrow: string;
   columns: "styled" | "related";
 }) {
-  const storefront = useStorefront();
-  const clientState = useStorefrontClientState();
-  const groups = selectProductRecommendations(storefront.products, product);
+  const catalog = useStorefrontCatalogData();
+  const cart = useStorefrontCart();
+  const saved = useStorefrontSavedItems();
+  const holds = useStorefrontHolds();
+  const productLookup = new Map(catalog.products.map((candidate) => [candidate.id, candidate]));
+  const groups = selectProductRecommendations(catalog.products, product);
   const products = columns === "styled" ? groups.styledWith : groups.related;
 
   return (
@@ -32,8 +41,8 @@ export function ProductRecommendations({
             {eyebrow}
           </p>
           <h2
-            id={`${columns}-recommendations-title`}
             className={`mt-2 font-serif font-medium ${columns === "styled" ? "text-3xl" : "text-4xl"}`}
+            id={`${columns}-recommendations-title`}
           >
             {title}
           </h2>
@@ -53,23 +62,23 @@ export function ProductRecommendations({
         >
           {products.map((candidate) => (
             <ProductCard
-              holdSeconds={clientState.holdSecondsByProduct[candidate.id] ?? null}
-              isHeld={candidate.id in clientState.holdSecondsByProduct}
-              isSaved={storefront.saved.has(candidate.id)}
+              holdSeconds={holds.secondsByProduct[candidate.id] ?? null}
+              isHeld={candidate.id in holds.secondsByProduct}
+              isSaved={saved.idSet.has(candidate.id)}
               key={candidate.id}
               onAdd={(id) => {
-                clientState.releaseProduct(id);
-                storefront.addToCart(id);
+                holds.releaseProduct(id);
+                cart.addProduct(id);
               }}
               onHold={(id) => {
-                const target = storefront.productById(id);
-                if (target && clientState.holdProduct(id)) {
-                  storefront.showToast(`${target.name} is held for 15 minutes.`);
-                }
+                const target = productLookup.get(id);
+                if (!target || target.status !== "available") return;
+                holds.holdProduct(id);
+                showStorefrontToast(`${target.name} is held for 15 minutes.`);
               }}
-              onQuickView={storefront.openQuick}
-              onRelease={clientState.releaseProduct}
-              onSave={storefront.toggleSaved}
+              onQuickView={openQuickView}
+              onRelease={holds.releaseProduct}
+              onSave={saved.toggleProduct}
               product={candidate}
             />
           ))}
