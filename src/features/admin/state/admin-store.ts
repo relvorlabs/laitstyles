@@ -21,7 +21,6 @@ import {
   createInitialIntakeRecords,
 } from "@/lib/admin/product-editor/product-editor-reducer";
 import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
-import { applySaveStoreSettings } from "@/lib/admin/settings/settings-reducer";
 import type { Result } from "@/lib/admin/shared/result";
 import type {
   AdminState,
@@ -31,15 +30,11 @@ import type {
   ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
-  SaveStoreSettingsInput,
-  StoreSettingsActionError,
-  StoreSettingsActionSuccess,
 } from "@/lib/admin/shared/types";
 
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
 type IntakeActionResult = Result<IntakeTransitionSuccess, ProductEditorActionError>;
-type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
 type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
 
 export type AdminStore = {
@@ -53,7 +48,6 @@ export type AdminStore = {
   renameCatalogueTaxonomy: (taxonomyId: string, name: string) => CatalogueTaxonomyResult;
   deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
   transitionIntake: (productId: string, nextStage: IntakeStage) => IntakeActionResult;
-  saveStoreSettings: (input: SaveStoreSettingsInput) => StoreSettingsResult;
   resetPrototypeState: () => void;
 };
 
@@ -105,9 +99,6 @@ export function createAdminStore(initialState: AdminState, now?: () => string): 
     },
     transitionIntake(productId, nextStage) {
       return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
-    },
-    saveStoreSettings(input) {
-      return commitAction(applySaveStoreSettings(state, input, getNow()));
     },
     resetPrototypeState() {
       emit(normalizedInitialState);
