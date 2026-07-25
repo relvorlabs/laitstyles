@@ -4,19 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import {
   getSelectedSaleProduct,
   getSelectedSaleVariant,
 } from "@/features/admin/record-sale/record-sale-selectors";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
 import { formatNaira } from "@/lib/admin/shared/formatters";
+import { saleCustomersQueryOptions } from "@/modules/orders/client/hooks";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function RecordSaleReviewStep() {
-  const repositories = useAdminRepositories();
-  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
+  const { data: customers = [] } = useQuery(saleCustomersQueryOptions());
   const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const methods = useFormContext<RecordSaleValues>();
   const values = useWatch({ control: methods.control }) as RecordSaleValues;
