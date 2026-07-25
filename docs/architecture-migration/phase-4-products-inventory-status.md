@@ -41,6 +41,7 @@ Product owns definition, lifecycle, taxonomy and public product read models. Inv
 - Inventory balances, stock movements, page filtering, aggregation and adjustment are module-owned.
 - Product and inventory browser consumers use typed API clients and TanStack Query.
 - Versioned authenticated endpoints replace the unversioned Inventory API.
+- The stock-adjustment command is exposed through a validated versioned endpoint, typed request client and TanStack mutation with targeted invalidation.
 - TanStack mutations no longer import Server Actions.
 - The bespoke browser Inventory repository and production in-memory fallback are deleted.
 - Inventory list pagination, filtering, sorting, totals and saved-view counts execute in PostgreSQL.
@@ -62,6 +63,7 @@ Product owns definition, lifecycle, taxonomy and public product read models. Inv
 - `PATCH/DELETE /api/v1/admin/products/taxonomy/[id]`
 - `GET /api/v1/admin/inventory`
 - `GET /api/v1/admin/inventory/stock-movements`
+- `POST /api/v1/admin/inventory/adjustments`
 
 Publishing is an explicit `publish` intent on the existing create/update product contract. A separate unused publish route was not added because no current consumer requires it.
 
@@ -75,7 +77,7 @@ Publishing is an explicit `publish` intent on the existing create/update product
 | P4-T04 | Move stock, movement and adjustment ownership | Complete |
 | P4-T05 | Add authenticated versioned reads | Complete |
 | P4-T06 | Replace bespoke browser reads with typed clients and TanStack Query | Complete |
-| P4-T07 | Add versioned product and taxonomy mutations | Complete |
+| P4-T07 | Add versioned product, taxonomy and inventory mutations | Complete |
 | P4-T08 | Remove TanStack-to-Server-Action mutations and exception | Complete |
 | P4-T09 | Remove unversioned Inventory endpoints after consumer cutover | Complete |
 | P4-T10 | Prove authorization, validation, errors, persistence and invalidation | Implemented; execution pending |
