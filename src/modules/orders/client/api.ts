@@ -1,6 +1,7 @@
 import { err, ok, type Result } from "@/lib/errors";
 import { apiRequest, ApiClientError } from "@/lib/http/client";
 import type {
+  AdminOrderCustomer,
   AdminOrderListResult,
   ControlRoomOrder,
   OfflineSaleInput,
@@ -14,6 +15,7 @@ import type {
 
 const ORDERS_URL = "/api/v1/admin/orders";
 const OFFLINE_SALES_URL = `${ORDERS_URL}/offline-sales`;
+const SALE_CUSTOMERS_URL = `${ORDERS_URL}/sale-customers`;
 const salesActionErrorCodes = new Set<string>([
   "invalid-quantity",
   "invalid-price",
@@ -76,6 +78,14 @@ export async function getAdminOrderRequest(
     if (error instanceof ApiClientError && error.status === 404) return null;
     throw error;
   }
+}
+
+export async function listSaleCustomersRequest(signal?: AbortSignal) {
+  const response = await apiRequest<AdminOrderCustomer[]>(SALE_CUSTOMERS_URL, {
+    cache: "no-store",
+    signal,
+  });
+  return response.data;
 }
 
 export async function transitionOrderRequest({
