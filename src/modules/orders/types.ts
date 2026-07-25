@@ -47,7 +47,6 @@ export type OrderLineStockState =
   | "uncommitted"
   | "reserved"
   | "committed"
-  | "sold"
   | "returned"
   | "released";
 
