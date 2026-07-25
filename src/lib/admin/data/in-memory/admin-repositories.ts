@@ -15,15 +15,6 @@ export function createInMemoryAdminRepositories(store: AdminStore): AdminReposit
     Promise.resolve(cloneValue(selector(store.getSnapshot())));
 
   return {
-    orders: {
-      listOrders: () => read((state) => state.orders),
-      getOrder: (orderId) =>
-        read((state) => state.orders.find((order) => order.id === orderId) ?? null),
-    },
-    holds: {
-      listHolds: () => read((state) => state.holds),
-      getHold: (holdId) => read((state) => state.holds.find((hold) => hold.id === holdId) ?? null),
-    },
     returns: {
       listReturns: () => read((state) => state.returns ?? []),
       getReturn: (returnId) =>
