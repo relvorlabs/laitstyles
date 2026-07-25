@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { ProductCard } from "@/features/storefront/shared/product-card";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
   useStorefrontCart,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontHolds,
   useStorefrontSavedItems,
-} from "@/features/storefront/shared/storefront-runtime";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 import { selectProductRecommendations } from "./product-detail-presentation";
 
 export function ProductRecommendations({
@@ -25,12 +25,14 @@ export function ProductRecommendations({
   eyebrow: string;
   columns: "styled" | "related";
 }) {
-  const catalog = useStorefrontCatalogData();
+  const catalogue = useStorefrontCatalogueData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
-  const productLookup = new Map(catalog.products.map((candidate) => [candidate.id, candidate]));
-  const groups = selectProductRecommendations(catalog.products, product);
+  const productLookup = new Map(
+    catalogue.products.map((candidate) => [candidate.id, candidate]),
+  );
+  const groups = selectProductRecommendations(catalogue.products, product);
   const products = columns === "styled" ? groups.styledWith : groups.related;
 
   return (
