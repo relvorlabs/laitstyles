@@ -1,10 +1,4 @@
 import { hydrateCustomerProfiles } from "@/lib/admin/customers/customer-profile-seed";
-import { applyAddCustomerNote } from "@/lib/admin/customers/customer-reducer";
-import type {
-  AddCustomerNoteInput,
-  CustomerActionError,
-  CustomerNoteActionSuccess,
-} from "@/lib/admin/customers/customer-types";
 import {
   applyCreateCatalogueTaxonomy,
   applyDeleteCatalogueTaxonomy,
@@ -45,7 +39,6 @@ import type {
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
 type IntakeActionResult = Result<IntakeTransitionSuccess, ProductEditorActionError>;
-type CustomerNoteResult = Result<CustomerNoteActionSuccess, CustomerActionError>;
 type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
 type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
 
@@ -60,7 +53,6 @@ export type AdminStore = {
   renameCatalogueTaxonomy: (taxonomyId: string, name: string) => CatalogueTaxonomyResult;
   deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
   transitionIntake: (productId: string, nextStage: IntakeStage) => IntakeActionResult;
-  addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
   saveStoreSettings: (input: SaveStoreSettingsInput) => StoreSettingsResult;
   resetPrototypeState: () => void;
 };
@@ -109,13 +101,10 @@ export function createAdminStore(initialState: AdminState, now?: () => string): 
       return commitAction(applyRenameCatalogueTaxonomy(state, taxonomyId, name, getNow()));
     },
     deleteCatalogueTaxonomy(taxonomyId) {
-      return commitAction(applyDeleteCatalogueTaxonomy(state, taxonomyId, getNow()));
+      return commitAction(applyDeleteCatalogueTaxonomy(state, taxonomyId, name, getNow()));
     },
     transitionIntake(productId, nextStage) {
       return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
-    },
-    addCustomerNote(input) {
-      return commitAction(applyAddCustomerNote(state, input, getNow()));
     },
     saveStoreSettings(input) {
       return commitAction(applySaveStoreSettings(state, input, getNow()));
