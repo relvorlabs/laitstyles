@@ -18,9 +18,11 @@ import type { ControlRoomHold } from "@/modules/holds/types";
 
 export function HoldsTable({
   holds,
+  now,
   onOpen,
 }: {
   holds: ControlRoomHold[];
+  now: number | null;
   onOpen: (holdId: string) => void;
 }) {
   return (
@@ -41,7 +43,7 @@ export function HoldsTable({
         </TableHeader>
         <TableBody>
           {holds.map((hold) => {
-            const item = toHoldWorkspaceItem(hold);
+            const item = toHoldWorkspaceItem(hold, now);
             return (
               <TableRow key={hold.id}>
                 <TableCell className="overflow-hidden">
