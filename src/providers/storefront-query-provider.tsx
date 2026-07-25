@@ -3,20 +3,22 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { makeStorefrontQueryClient } from "@/lib/query/storefront-query-client";
-import { storefrontCatalogQueryKey } from "@/modules/products/client/storefront-catalog";
+import {
+  storefrontCatalogueQueryKey,
+} from "@/modules/products/client/storefront-catalogue";
+import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 
 export function StorefrontQueryProvider({
   children,
-  initialCatalog,
+  initialCatalogue,
 }: {
   children: ReactNode;
-  initialCatalog: StorefrontShellCatalogPayload;
+  initialCatalogue: StorefrontShellCataloguePayload;
 }) {
   const [queryClient] = useState(() => {
     const client = makeStorefrontQueryClient();
-    client.setQueryData(storefrontCatalogQueryKey, initialCatalog);
+    client.setQueryData(storefrontCatalogueQueryKey, initialCatalogue);
     return client;
   });
 
