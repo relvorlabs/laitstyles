@@ -12,6 +12,7 @@ import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
   getAdminOrderRequest,
   listAdminOrdersRequest,
+  listSaleCustomersRequest,
   recordOfflineSaleRequest,
   transitionOrderRequest,
 } from "@/modules/orders/client/api";
@@ -33,6 +34,14 @@ export function adminOrderQueryOptions(orderId: string) {
     queryFn: ({ signal }) => getAdminOrderRequest(orderId, signal),
     enabled: Boolean(orderId.trim()),
     staleTime: 15_000,
+  });
+}
+
+export function saleCustomersQueryOptions() {
+  return queryOptions({
+    queryKey: orderKeys.saleCustomers(),
+    queryFn: ({ signal }) => listSaleCustomersRequest(signal),
+    staleTime: 30_000,
   });
 }
 
