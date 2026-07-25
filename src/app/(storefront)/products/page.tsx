@@ -4,8 +4,8 @@ import {
   parseCatalogueSearchParams,
 } from "@/features/storefront/catalogue/catalogue-search-params";
 import { ProductCatalogue } from "@/features/storefront/catalogue/product-catalogue";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { queryStorefrontCataloguePage } from "@/modules/products/server/storefront/page";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 
 export const metadata: Metadata = {
   title: "Shop all pieces — Laitstyles",
