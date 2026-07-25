@@ -22,17 +22,14 @@ import {
 } from "@/features/admin/customers/customer-status-badges";
 import { CustomerTimelinePanel } from "@/features/admin/customers/customer-timeline-panel";
 import type { CustomerActionFeedback } from "@/features/admin/customers/customer-types";
-import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
-import type { AdminState } from "@/lib/admin/shared/types";
+import type { CustomerRelationshipProfile } from "@/modules/customers/types";
 
 export function CustomerDetailSheet({
-  state,
   profile,
   feedback,
   onOpenChange,
   onAddNote,
 }: {
-  state: AdminState;
   profile: CustomerRelationshipProfile | null;
   feedback: CustomerActionFeedback | null;
   onOpenChange: (open: boolean) => void;
@@ -57,7 +54,7 @@ export function CustomerDetailSheet({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {customerTypeLabels[customer.type ?? "individual"]} · {customer.city || "No city"}
+                {customerTypeLabels[customer.type]} · {customer.city || "No city"}
               </p>
               <SheetTitle className="mt-2 text-balance font-serif text-[31px] font-medium leading-none">
                 {customer.name}
@@ -110,7 +107,7 @@ export function CustomerDetailSheet({
               <CustomerTimelinePanel events={profile.timeline} />
             </TabsContent>
             <TabsContent className="pt-4" value="products">
-              <CustomerProductsPanel relationships={profile.products} state={state} />
+              <CustomerProductsPanel relationships={profile.products} />
             </TabsContent>
             <TabsContent className="pt-4" value="delivery">
               <CustomerDeliveryPanel profile={profile} />

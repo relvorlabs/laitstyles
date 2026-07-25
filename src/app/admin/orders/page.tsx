@@ -10,7 +10,6 @@ import type {
   OrderSortKey,
 } from "@/features/admin/orders/order-types";
 import { OrdersWorkspace } from "@/features/admin/orders/orders-workspace";
-import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 
 type OrdersPageProps = {
   searchParams: Promise<{
@@ -19,6 +18,8 @@ type OrdersPageProps = {
     channel?: string | string[];
     payment?: string | string[];
     sort?: string | string[];
+    page?: string | string[];
+    pageSize?: string | string[];
     order?: string | string[];
   }>;
 };
@@ -34,17 +35,13 @@ const paymentValues = new Set<OrderPaymentFilter>([
   "refunded",
 ]);
 const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option.value));
+const pageSizeValues = new Set([10, 25, 50, 100]);
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const params = await searchParams;
-  const requestedOrder = first(params.order);
-  const initialOpenOrderId = activeAdminSeed.orders.some((order) => order.id === requestedOrder)
-    ? (requestedOrder ?? null)
-    : null;
 
   return (
     <OrdersWorkspace
-      initialOpenOrderId={initialOpenOrderId}
       initialQuery={{
         ...defaultOrderQuery,
         view: pick(first(params.view), viewValues, "all"),
@@ -52,6 +49,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         channel: pick(first(params.channel), channelValues, "all"),
         payment: pick(first(params.payment), paymentValues, "all"),
         sort: pick(first(params.sort), sortValues, "placed-desc"),
+        page: positiveInteger(first(params.page), 1),
+        pageSize: pickNumber(first(params.pageSize), pageSizeValues, 25),
       }}
     />
   );
@@ -67,4 +66,14 @@ function pick<TValue extends string>(
   fallback: TValue,
 ): TValue {
   return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
+}
+
+function positiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function pickNumber(value: string | undefined, allowed: Set<number>, fallback: number) {
+  const parsed = Number(value);
+  return allowed.has(parsed) ? parsed : fallback;
 }

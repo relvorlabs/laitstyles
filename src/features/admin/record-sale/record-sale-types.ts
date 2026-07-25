@@ -1,9 +1,7 @@
 import type {
+  InPersonSalesChannel,
   OfflineSaleInput,
-  PaymentMethod,
-  PaymentStatus,
-  SalesChannel,
-} from "@/lib/admin/shared/types";
+} from "@/modules/orders/types";
 
 export const recordSaleSteps = ["item", "customer", "payment", "review"] as const;
 export type RecordSaleStep = (typeof recordSaleSteps)[number];
@@ -13,15 +11,13 @@ export type RecordSaleValues = {
   variantId: string;
   quantity: number;
   unitPrice: number;
-  channel: Exclude<SalesChannel, "online">;
+  channel: InPersonSalesChannel;
   customerMode: "existing" | "new";
   customerId: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
   customerCity: string;
-  paymentMethod: PaymentMethod;
-  paymentStatus: Extract<PaymentStatus, "pending" | "paid" | "deposit">;
   notes: string;
 };
 
@@ -29,6 +25,9 @@ export type RecordSaleCompletion = {
   orderId: string;
   customerId: string;
   message: string;
+  authorizationUrl: string;
+  accessCode: string;
+  reference: string;
 };
 
 export function toOfflineSaleInput(values: RecordSaleValues): OfflineSaleInput {
@@ -52,8 +51,6 @@ export function toOfflineSaleInput(values: RecordSaleValues): OfflineSaleInput {
             phone: values.customerPhone,
             city: values.customerCity,
           },
-    paymentMethod: values.paymentMethod,
-    paymentStatus: values.paymentStatus,
     notes: values.notes,
   };
 }

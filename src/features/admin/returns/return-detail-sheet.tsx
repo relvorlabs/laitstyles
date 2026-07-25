@@ -23,23 +23,23 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { returnStatusLabels } from "@/features/admin/returns/return-labels";
-import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors";
+import {
+  getPermittedReturnTransitions,
+  toReturnWorkspaceItem,
+} from "@/features/admin/returns/return-selectors";
 import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
 import type { ReturnActionFeedback } from "@/features/admin/returns/return-types";
-import { getPermittedReturnTransitions } from "@/lib/admin/orders/sales-selectors";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomReturn, ReturnStatus } from "@/lib/admin/shared/types";
+import type { ControlRoomReturn, ReturnStatus } from "@/modules/returns/types";
 
 const confirmationStatuses = new Set<ReturnStatus>(["refunded", "damaged", "rejected"]);
 
 export function ReturnDetailSheet({
-  state,
   returnRecord,
   feedback,
   onOpenChange,
   onTransition,
 }: {
-  state: AdminState;
   returnRecord: ControlRoomReturn | null;
   feedback: ReturnActionFeedback | null;
   onOpenChange: (open: boolean) => void;
@@ -51,10 +51,10 @@ export function ReturnDetailSheet({
     return <Sheet onOpenChange={onOpenChange} open={false} />;
   }
 
-  const item = toReturnWorkspaceItem(state, returnRecord);
-  const order = state.orders.find((entry) => entry.id === returnRecord.orderId);
+  const item = toReturnWorkspaceItem(returnRecord);
   const permitted = getPermittedReturnTransitions(returnRecord.status);
   const returnId = returnRecord.id;
+  const asOf = new Date().toISOString();
 
   function requestTransition(status: ReturnStatus) {
     if (confirmationStatuses.has(status)) {
@@ -115,7 +115,7 @@ export function ReturnDetailSheet({
                   </h2>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Updated {formatRelativeTime(state.asOf, returnRecord.updatedAt)}
+                  Updated {formatRelativeTime(asOf, returnRecord.updatedAt)}
                 </p>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -165,11 +165,11 @@ export function ReturnDetailSheet({
                   <p className="mt-2 text-sm leading-6">{returnRecord.reason}</p>
                 </div>
                 <div className="rounded-[16px] border border-border bg-card p-4 text-sm leading-6 text-muted-foreground">
-                  Requested {formatRelativeTime(state.asOf, returnRecord.requestedAt)}
+                  Requested {formatRelativeTime(asOf, returnRecord.requestedAt)}
                   <br />
-                  Order total {formatNaira(order?.total ?? 0)}
+                  Order total {formatNaira(returnRecord.orderTotal)}
                   <br />
-                  Payment {order?.paymentStatus.replaceAll("-", " ") ?? "Unavailable"}
+                  Payment {returnRecord.orderPaymentStatus.replaceAll("-", " ")}
                 </div>
               </div>
               {returnRecord.note ? (
@@ -210,9 +210,9 @@ export function ReturnDetailSheet({
                 </p>
               )}
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                “Refund recorded” changes only the prototype record; it does not send money. Restock
-                and damage actions move the exact returned quantity into the selected inventory
-                bucket.
+                “Refund recorded” updates the persisted order and payment history; it does not send
+                money. Restock and damage actions move the exact returned quantity into the selected
+                inventory bucket.
               </p>
             </section>
           </div>
@@ -272,7 +272,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function getConfirmationDescription(status: ReturnStatus | null, record: ControlRoomReturn) {
   if (status === "refunded") {
-    return `${formatNaira(record.refundAmount)} will be marked as refunded in the prototype. No payment provider or bank transfer is triggered.`;
+    return `${formatNaira(record.refundAmount)} will be recorded against the order. No payment provider or bank transfer is triggered.`;
   }
   if (status === "damaged") {
     return `${record.lines.reduce((total, line) => total + line.quantity, 0)} returned unit${record.lines.reduce((total, line) => total + line.quantity, 0) === 1 ? "" : "s"} will move from returned stock into damaged stock.`;
@@ -280,5 +280,5 @@ function getConfirmationDescription(status: ReturnStatus | null, record: Control
   if (status === "rejected") {
     return "The request will be marked rejected and removed from active return work. Stock will not change.";
   }
-  return "This return status will be updated in the current prototype session.";
+  return "This return status will be persisted and remain after reload.";
 }

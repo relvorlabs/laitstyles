@@ -1,14 +1,17 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { getProductStock } from "@/lib/admin/shared/selectors";
-import type { InventoryProduct } from "@/lib/admin/shared/types";
+import type { OverviewInventoryItem } from "@/modules/overview/types";
 
 export function InventoryWatch({
   lowStock,
+  lowStockCount,
   unpublished,
+  unpublishedCount,
 }: {
-  lowStock: InventoryProduct[];
-  unpublished: InventoryProduct[];
+  lowStock: OverviewInventoryItem[];
+  lowStockCount: number;
+  unpublished: OverviewInventoryItem[];
+  unpublishedCount: number;
 }) {
   return (
     <section
@@ -28,11 +31,11 @@ export function InventoryWatch({
 
       <h3 className="mt-5 flex items-baseline justify-between gap-3 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
         Low stock
-        <span className="tabular-nums">{lowStock.length}</span>
+        <span className="tabular-nums">{lowStockCount}</span>
       </h3>
       {lowStock.length ? (
         <div className="mt-1 divide-y divide-border">
-          {lowStock.slice(0, 4).map((product) => (
+          {lowStock.map((product) => (
             <LowStockRow key={product.id} product={product} />
           ))}
         </div>
@@ -44,11 +47,11 @@ export function InventoryWatch({
 
       <h3 className="mt-6 flex items-baseline justify-between gap-3 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
         Not visible to shoppers
-        <span className="tabular-nums">{unpublished.length}</span>
+        <span className="tabular-nums">{unpublishedCount}</span>
       </h3>
       {unpublished.length ? (
         <div className="mt-1 divide-y divide-border">
-          {unpublished.slice(0, 4).map((product) => (
+          {unpublished.map((product) => (
             <UnpublishedRow key={product.id} product={product} />
           ))}
         </div>
@@ -61,24 +64,28 @@ export function InventoryWatch({
   );
 }
 
-function LowStockRow({ product }: { product: InventoryProduct }) {
-  const inventory = getProductStock(product);
-
+function LowStockRow({ product }: { product: OverviewInventoryItem }) {
   return (
     <article className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 py-3">
       <div className="relative aspect-[4/5] w-10 overflow-hidden rounded-sm bg-secondary">
-        <Image alt={product.name} className="object-cover" fill sizes="40px" src={product.image} />
+        <Image
+          alt={product.imageAlt}
+          className="object-cover"
+          fill
+          sizes="40px"
+          src={product.image}
+        />
       </div>
       <div className="min-w-0">
         <h4 className="truncate text-[13px] font-semibold">{product.name}</h4>
         <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
           {modeLabel(product)} · threshold {product.lowStockThreshold}
-          {inventory.reserved ? ` · ${inventory.reserved} reserved` : ""}
+          {product.reserved ? ` · ${product.reserved} reserved` : ""}
         </p>
       </div>
       <div className="text-right">
         <span className="font-serif text-[20px] font-medium leading-none tabular-nums text-oxblood">
-          {inventory.available}
+          {product.available}
         </span>
         <span className="block font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           left
@@ -88,12 +95,12 @@ function LowStockRow({ product }: { product: InventoryProduct }) {
   );
 }
 
-function UnpublishedRow({ product }: { product: InventoryProduct }) {
+function UnpublishedRow({ product }: { product: OverviewInventoryItem }) {
   return (
     <article className="grid grid-cols-[40px_minmax(0,1fr)] items-center gap-3 py-3">
       <div className="relative aspect-[4/5] w-10 overflow-hidden rounded-sm bg-secondary">
         <Image
-          alt={product.name}
+          alt={product.imageAlt}
           className="object-cover opacity-80"
           fill
           sizes="40px"
@@ -115,8 +122,8 @@ function UnpublishedRow({ product }: { product: InventoryProduct }) {
   );
 }
 
-function modeLabel(product: InventoryProduct) {
+function modeLabel(product: OverviewInventoryItem) {
   if (product.inventoryMode === "unique") return "Unique piece";
   if (product.inventoryMode === "stocked") return "Stocked product";
-  return `${product.variants.length} variants`;
+  return `${product.variantCount} variants`;
 }

@@ -1,12 +1,17 @@
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import type { AdminState, InventoryProduct } from "@/lib/admin/shared/types";
+import type { AdminOrderCustomer } from "@/modules/orders/types";
+import type { AdminProduct } from "@/modules/products/types";
 
-export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
-  const firstProduct = getSellableProducts(state.products)[0];
+export function createRecordSaleDefaults(
+  products: AdminProduct[],
+  customers: AdminOrderCustomer[],
+): RecordSaleValues {
+  const firstProduct = getSellableProducts(products)[0];
   const firstVariant =
     firstProduct?.inventoryMode === "variant"
       ? firstProduct.variants.find((variant) => variant.stock.available > 0)
       : undefined;
+  const firstPaystackCustomer = customers[0];
 
   return {
     productId: firstProduct?.id ?? "",
@@ -14,19 +19,17 @@ export function createRecordSaleDefaults(state: AdminState): RecordSaleValues {
     quantity: 1,
     unitPrice: firstVariant?.price ?? firstProduct?.price ?? 0,
     channel: "physical-store",
-    customerMode: "existing",
-    customerId: state.customers[0]?.id ?? "",
+    customerMode: firstPaystackCustomer ? "existing" : "new",
+    customerId: firstPaystackCustomer?.id ?? "",
     customerName: "",
     customerEmail: "",
     customerPhone: "",
     customerCity: "Lagos",
-    paymentMethod: "pos",
-    paymentStatus: "paid",
     notes: "",
   };
 }
 
-export function getSellableProducts(products: InventoryProduct[]) {
+export function getSellableProducts(products: AdminProduct[]) {
   return products.filter(
     (product) =>
       product.lifecycle === "active" &&
@@ -35,7 +38,7 @@ export function getSellableProducts(products: InventoryProduct[]) {
   );
 }
 
-export function getAvailableForSale(product: InventoryProduct, variantId?: string) {
+export function getAvailableForSale(product: AdminProduct, variantId?: string) {
   if (product.inventoryMode !== "variant") return product.stock.available;
   if (!variantId) {
     return product.variants.reduce((total, variant) => total + variant.stock.available, 0);
@@ -43,16 +46,16 @@ export function getAvailableForSale(product: InventoryProduct, variantId?: strin
   return product.variants.find((variant) => variant.id === variantId)?.stock.available ?? 0;
 }
 
-export function getSelectedSaleProduct(products: InventoryProduct[], productId: string) {
+export function getSelectedSaleProduct(products: AdminProduct[], productId: string) {
   return products.find((product) => product.id === productId) ?? null;
 }
 
-export function getSelectedSaleVariant(product: InventoryProduct | null, variantId: string) {
+export function getSelectedSaleVariant(product: AdminProduct | null, variantId: string) {
   if (!product || product.inventoryMode !== "variant") return null;
   return product.variants.find((variant) => variant.id === variantId) ?? null;
 }
 
-export function getSaleUnitPrice(product: InventoryProduct | null, variantId: string) {
+export function getSaleUnitPrice(product: AdminProduct | null, variantId: string) {
   if (!product) return 0;
   const variant = getSelectedSaleVariant(product, variantId);
   return variant?.price ?? product.price;

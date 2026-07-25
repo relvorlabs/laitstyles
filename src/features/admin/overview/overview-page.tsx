@@ -1,5 +1,9 @@
+"use client";
+
 import { ArrowRight01Icon, Search01Icon, Store01Icon } from "@hugeicons/core-free-icons";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { ActivityStream } from "@/features/admin/overview/activity-stream";
 import { AttentionQueue } from "@/features/admin/overview/attention-queue";
@@ -11,12 +15,34 @@ import { SalesPulse } from "@/features/admin/overview/sales-pulse";
 import { TodayStrip } from "@/features/admin/overview/today-strip";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatReportingDate } from "@/lib/admin/shared/formatters";
-import { getOverviewSnapshot } from "@/lib/admin/shared/selectors";
-import type { ControlRoomState } from "@/lib/admin/shared/types";
+import { adminOverviewQueryOptions } from "@/modules/overview/client/hooks";
 
-export function OverviewPage({ state }: { state: ControlRoomState }) {
-  const snapshot = getOverviewSnapshot(state);
-  const reportingLabel = formatReportingDate(state.reportingDate);
+export function OverviewPage() {
+  const overviewQuery = useQuery(adminOverviewQueryOptions());
+
+  if (overviewQuery.isPending) {
+    return (
+      <p className="mx-auto w-full max-w-[1480px] px-4 py-10 text-sm text-muted-foreground sm:px-6 lg:px-8">
+        Loading the persisted operating view…
+      </p>
+    );
+  }
+  if (overviewQuery.isError || !overviewQuery.data) {
+    return (
+      <Alert className="mx-auto mt-10 w-[min(92vw,900px)]" variant="destructive">
+        <AlertTitle>Overview could not be loaded</AlertTitle>
+        <AlertDescription>
+          {overviewQuery.error instanceof Error
+            ? overviewQuery.error.message
+            : "Refresh and try loading the persisted operating view again."}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const data = overviewQuery.data;
+  const snapshot = data.snapshot;
+  const reportingLabel = formatReportingDate(data.reportingDate);
   const attentionCount = snapshot.attention.length;
 
   return (
@@ -43,23 +69,14 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
 
         <div className="flex flex-wrap gap-2 xl:justify-end">
           <Link
-            className={buttonVariants({
-              variant: "outline",
-              size: "lg",
-            })}
+            className={buttonVariants({ variant: "outline", size: "lg" })}
             data-slot="button"
             href="/"
           >
             <AdminIcon icon={Store01Icon} size={16} />
             Preview storefront
           </Link>
-          <a
-            className={buttonVariants({
-              size: "lg",
-            })}
-            data-slot="button"
-            href="#attention"
-          >
+          <a className={buttonVariants({ size: "lg" })} data-slot="button" href="#attention">
             <AdminIcon icon={Search01Icon} size={16} />
             Review attention
             {attentionCount ? (
@@ -79,32 +96,28 @@ export function OverviewPage({ state }: { state: ControlRoomState }) {
         <div className="order-1 xl:col-start-1 xl:row-start-1">
           <AttentionQueue items={snapshot.attention} />
         </div>
-
         <div className="order-2 xl:col-start-2 xl:row-start-1">
           <ContinueWorking task={snapshot.continueTask} />
         </div>
-
         <div className="order-3 xl:col-start-1 xl:row-start-2">
-          <OpenOrdersPreview state={state} />
+          <OpenOrdersPreview asOf={data.asOf} orders={data.openOrders} />
         </div>
-
         <div className="order-4 xl:col-start-2 xl:row-start-2">
           <FulfilmentLane items={snapshot.fulfilment} />
         </div>
-
         <div className="order-5 xl:col-start-1 xl:row-start-3">
-          <SalesPulse points={state.salesPulse} />
+          <SalesPulse points={data.salesPulse} />
         </div>
-
         <div className="order-6 xl:col-start-2 xl:row-start-3">
           <InventoryWatch
             lowStock={snapshot.lowStockProducts}
+            lowStockCount={snapshot.lowStockCount}
             unpublished={snapshot.unpublishedProducts}
+            unpublishedCount={snapshot.unpublishedCount}
           />
         </div>
-
         <div className="order-7 xl:col-start-2 xl:row-start-4">
-          <ActivityStream activities={snapshot.recentActivities} asOf={state.asOf} />
+          <ActivityStream activities={snapshot.recentActivities} asOf={data.asOf} />
         </div>
       </div>
     </div>

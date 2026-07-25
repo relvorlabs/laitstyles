@@ -7,21 +7,20 @@ import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors
 import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomReturn } from "@/lib/admin/shared/types";
+import type { ControlRoomReturn } from "@/modules/returns/types";
 
 export function ReturnsMobileList({
-  state,
   returns,
   onOpen,
 }: {
-  state: AdminState;
   returns: ControlRoomReturn[];
   onOpen: (returnId: string) => void;
 }) {
+  const asOf = new Date().toISOString();
   return (
     <div className="flex flex-col gap-3 lg:hidden">
       {returns.map((record) => {
-        const item = toReturnWorkspaceItem(state, record);
+        const item = toReturnWorkspaceItem(record);
         return (
           <Card key={record.id} className="gap-0 py-0">
             <CardContent className="p-4 sm:p-5">
@@ -41,7 +40,7 @@ export function ReturnsMobileList({
               <div className="mt-4 grid grid-cols-3 gap-2 rounded-[14px] bg-secondary/60 p-3">
                 <Metric label="Quantity" value={String(item.quantity)} />
                 <Metric label="Value" value={formatNaira(record.refundAmount)} />
-                <Metric label="Updated" value={formatRelativeTime(state.asOf, record.updatedAt)} />
+                <Metric label="Updated" value={formatRelativeTime(asOf, record.updatedAt)} />
               </div>
 
               <div className="mt-4 flex items-center justify-between gap-3">

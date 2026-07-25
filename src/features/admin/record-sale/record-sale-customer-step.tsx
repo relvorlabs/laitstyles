@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -13,31 +12,20 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
-import type { SalesChannel } from "@/lib/admin/shared/types";
+import type { AdminOrderCustomer, InPersonSalesChannel } from "@/modules/orders/types";
 
-const channelLabels: Record<Exclude<SalesChannel, "online">, string> = {
+const channelLabels: Record<InPersonSalesChannel, string> = {
   "physical-store": "Physical store",
-  whatsapp: "WhatsApp",
-  instagram: "Instagram",
-  phone: "Phone",
   "pop-up": "Pop-up event",
   "staff-assisted": "Staff-assisted",
-  other: "Other",
 };
 
-const channels = Object.keys(channelLabels) as Array<Exclude<SalesChannel, "online">>;
+const channels = Object.keys(channelLabels) as InPersonSalesChannel[];
 
-export function RecordSaleCustomerStep() {
-  const repositories = useAdminRepositories();
-  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
+export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCustomer[] }) {
   const methods = useFormContext<RecordSaleValues>();
-  const customerMode = useWatch({
-    control: methods.control,
-    name: "customerMode",
-  });
+  const customerMode = useWatch({ control: methods.control, name: "customerMode" });
   const channel = useWatch({ control: methods.control, name: "channel" });
   const customerId = useWatch({ control: methods.control, name: "customerId" });
   const customer = customers.find((item) => item.id === customerId);
@@ -60,7 +48,7 @@ export function RecordSaleCustomerStep() {
         name="channel"
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="record-sale-channel">Sale channel</FieldLabel>
+            <FieldLabel htmlFor="record-sale-channel">In-person sale channel</FieldLabel>
             <Select onValueChange={(value) => value && field.onChange(value)} value={field.value}>
               <SelectTrigger
                 aria-invalid={fieldState.invalid}
@@ -71,7 +59,7 @@ export function RecordSaleCustomerStep() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Where the sale happened</SelectLabel>
+                  <SelectLabel>Where the customer is paying</SelectLabel>
                   {channels.map((value) => (
                     <SelectItem key={value} value={value}>
                       {channelLabels[value]}
@@ -81,7 +69,7 @@ export function RecordSaleCustomerStep() {
               </SelectContent>
             </Select>
             <FieldDescription>
-              This label is used in Orders, revenue reporting and customer history.
+              Offline sales are limited to physical, pop-up or staff-assisted in-person sales.
             </FieldDescription>
             <FieldError errors={[fieldState.error]} />
           </Field>
@@ -92,6 +80,7 @@ export function RecordSaleCustomerStep() {
         <FieldLabel>Customer record</FieldLabel>
         <div className="grid grid-cols-2 gap-2 rounded-[14px] border border-border bg-secondary/40 p-1.5">
           <Button
+            disabled={customers.length === 0}
             onClick={() => setCustomerMode("existing")}
             type="button"
             variant={customerMode === "existing" ? "default" : "ghost"}
@@ -106,6 +95,10 @@ export function RecordSaleCustomerStep() {
             New customer
           </Button>
         </div>
+        <FieldDescription>
+          Existing customers without an email are hidden because Paystack requires an email to
+          initialize Checkout.
+        </FieldDescription>
       </Field>
 
       {customerMode === "existing" ? (
@@ -127,10 +120,10 @@ export function RecordSaleCustomerStep() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Existing customers</SelectLabel>
+                    <SelectLabel>Paystack-ready customers</SelectLabel>
                     {customers.map((item) => (
                       <SelectItem key={item.id} value={item.id}>
-                        {item.name} · {item.city}
+                        {item.name} · {item.email}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -185,10 +178,11 @@ export function RecordSaleCustomerStep() {
               aria-invalid={Boolean(methods.formState.errors.customerEmail)}
               autoComplete="email"
               id="record-sale-customer-email"
-              placeholder="Optional when phone is provided"
+              placeholder="Required for Paystack checkout"
               type="email"
               {...methods.register("customerEmail")}
             />
+            <FieldDescription>Paystack uses this email for the one-time transaction.</FieldDescription>
             <FieldError errors={[methods.formState.errors.customerEmail]} />
           </Field>
         </div>

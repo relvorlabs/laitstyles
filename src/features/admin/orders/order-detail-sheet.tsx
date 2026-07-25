@@ -20,27 +20,21 @@ import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/or
 import { OrderTimeline } from "@/features/admin/orders/order-timeline";
 import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
 import { formatNaira } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/shared/types";
+import type { ControlRoomOrder, OrderStatus } from "@/modules/orders/types";
 
 export function OrderDetailSheet({
-  state,
   order,
   onOpenChange,
   onTransition,
 }: {
-  state: AdminState;
   order: ControlRoomOrder | null;
   onOpenChange: (open: boolean) => void;
   onTransition: (orderId: string, status: OrderStatus) => void;
 }) {
-  if (!order) {
-    return <Sheet onOpenChange={onOpenChange} open={false} />;
-  }
+  if (!order) return <Sheet onOpenChange={onOpenChange} open={false} />;
 
-  const item = toOrderWorkspaceItem(state, order);
-  const customer = order.customerId
-    ? state.customers.find((entry) => entry.id === order.customerId)
-    : undefined;
+  const item = toOrderWorkspaceItem(order);
+  const customer = order.customer;
 
   return (
     <Sheet onOpenChange={onOpenChange} open>
@@ -117,34 +111,27 @@ export function OrderDetailSheet({
               </Badge>
             </div>
             <div className="mt-4 grid gap-3">
-              {order.lines.map((line) => {
-                const product = state.products.find((entry) => entry.id === line.productId);
-                const variant =
-                  product?.inventoryMode === "variant"
-                    ? product.variants.find((entry) => entry.id === line.variantId)
-                    : undefined;
-                return (
-                  <Card key={line.id} className="gap-0 py-0">
-                    <CardContent className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                      <div>
-                        <p className="text-[13px] font-semibold">{product?.name ?? "Product"}</p>
-                        <p className="mt-1 text-[10.5px] text-muted-foreground">
-                          {variant?.label ?? product?.category ?? "Catalogue item"}
-                          {line.stockState ? ` · ${line.stockState} stock` : ""}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between gap-6 sm:text-right">
-                        <span className="text-[11px] text-muted-foreground tabular-nums">
-                          {line.quantity} × {formatNaira(line.unitPrice)}
-                        </span>
-                        <span className="font-semibold tabular-nums">
-                          {formatNaira(line.quantity * line.unitPrice)}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {order.lines.map((line) => (
+                <Card key={line.id} className="gap-0 py-0">
+                  <CardContent className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div>
+                      <p className="text-[13px] font-semibold">{line.productName}</p>
+                      <p className="mt-1 text-[10.5px] text-muted-foreground">
+                        {line.variantLabel ?? line.productCategory}
+                        {line.stockState ? ` · ${line.stockState} stock` : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-6 sm:text-right">
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
+                        {line.quantity} × {formatNaira(line.unitPrice)}
+                      </span>
+                      <span className="font-semibold tabular-nums">
+                        {formatNaira(line.quantity * line.unitPrice)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </section>
 
@@ -160,8 +147,9 @@ export function OrderDetailSheet({
                 {paymentStatusLabels[order.paymentStatus]}
               </h2>
               <p className="mt-3 text-[11.5px] leading-5 text-muted-foreground">
-                Method: {order.paymentMethod?.replaceAll("-", " ") ?? "Not captured"}. Status
-                changes here update only the session prototype; no gateway or bank is contacted.
+                Method: {order.paymentMethod?.replaceAll("-", " ") ?? "Not captured"}. In-person
+                Paystack orders remain pending until server verification or a signed webhook
+                confirms the persisted reference and amount.
               </p>
             </section>
 
@@ -178,7 +166,9 @@ export function OrderDetailSheet({
               <p className="mt-3 text-[11.5px] leading-5 text-muted-foreground">
                 {order.courier
                   ? `${order.courier.name} · ${order.courier.statusLabel} · ${order.courier.trackingCode}`
-                  : "No courier integration is connected. Delivery status is an internal operational record."}
+                  : order.source === "offline-sale"
+                    ? "In-person pickup or handoff. Stock is not sold until the paid order is handed to the customer."
+                    : "No courier integration is connected. Delivery status is an internal operational record."}
               </p>
             </section>
           </div>

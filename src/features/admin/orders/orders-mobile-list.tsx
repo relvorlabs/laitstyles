@@ -9,21 +9,19 @@ import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomOrder } from "@/lib/admin/shared/types";
+import type { ControlRoomOrder } from "@/modules/orders/types";
 
 export function OrdersMobileList({
-  state,
   orders,
   onOpen,
 }: {
-  state: AdminState;
   orders: ControlRoomOrder[];
   onOpen: (orderId: string) => void;
 }) {
   return (
     <div className="grid gap-3 lg:hidden md:grid-cols-2">
       {orders.map((order) => {
-        const item = toOrderWorkspaceItem(state, order);
+        const item = toOrderWorkspaceItem(order);
         return (
           <Card className="gap-0 overflow-hidden py-0" key={order.id}>
             <div className="border-b border-border bg-secondary/45 px-4 py-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,12 +21,8 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  getEligibleReturnOrders,
-  getEligibleReturnQuantity,
-} from "@/features/admin/returns/return-selectors";
 import { formatNaira } from "@/lib/admin/shared/formatters";
-import type { AdminState, CreateReturnInput } from "@/lib/admin/shared/types";
+import type { CreateReturnInput, EligibleReturnOrder } from "@/modules/returns/types";
 
 type ReturnFormError = {
   field: "selection" | "quantity" | "reason" | "form";
@@ -34,24 +30,21 @@ type ReturnFormError = {
 };
 
 export function CreateReturnDialog({
-  state,
+  orders,
   open,
   onOpenChange,
   onSubmit,
 }: {
-  state: AdminState;
+  orders: EligibleReturnOrder[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: CreateReturnInput) => Promise<string | null>;
 }) {
-  const orders = useMemo(() => getEligibleReturnOrders(state), [state]);
   const [orderId, setOrderId] = useState(orders[0]?.id ?? "");
   const order = orders.find((entry) => entry.id === orderId) ?? orders[0];
-  const eligibleLines =
-    order?.lines.filter((line) => getEligibleReturnQuantity(state, order, line.id) > 0) ?? [];
-  const [orderLineId, setOrderLineId] = useState(eligibleLines[0]?.id ?? "");
-  const line = eligibleLines.find((entry) => entry.id === orderLineId) ?? eligibleLines[0];
-  const eligible = order && line ? getEligibleReturnQuantity(state, order, line.id) : 0;
+  const [orderLineId, setOrderLineId] = useState(order?.lines[0]?.id ?? "");
+  const line = order?.lines.find((entry) => entry.id === orderLineId) ?? order?.lines[0];
+  const eligible = line?.eligibleQuantity ?? 0;
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -59,11 +52,8 @@ export function CreateReturnDialog({
 
   function changeOrder(nextOrderId: string) {
     const nextOrder = orders.find((entry) => entry.id === nextOrderId);
-    const nextLine = nextOrder?.lines.find(
-      (entry) => getEligibleReturnQuantity(state, nextOrder, entry.id) > 0,
-    );
     setOrderId(nextOrderId);
-    setOrderLineId(nextLine?.id ?? "");
+    setOrderLineId(nextOrder?.lines[0]?.id ?? "");
     setQuantity(1);
     setError(null);
   }
@@ -98,11 +88,10 @@ export function CreateReturnDialog({
     setError(actionError ? { field: "form", message: actionError } : null);
   }
 
-  const product = line ? state.products.find((entry) => entry.id === line.productId) : null;
-  const productLabel = product
-    ? product.inventoryMode === "variant"
-      ? `${product.name} · ${product.variants.find((entry) => entry.id === line?.variantId)?.label ?? "Variant"}`
-      : product.name
+  const productLabel = line
+    ? line.variantLabel
+      ? `${line.productName} · ${line.variantLabel}`
+      : line.productName
     : "Choose an order line";
 
   return (
@@ -123,10 +112,7 @@ export function CreateReturnDialog({
             <FieldGroup>
               <Field data-invalid={error?.field === "selection"}>
                 <FieldLabel htmlFor="return-order">Delivered order</FieldLabel>
-                <Select
-                  onValueChange={(value) => value && changeOrder(value)}
-                  value={order?.id ?? ""}
-                >
+                <Select onValueChange={(value) => value && changeOrder(value)} value={order?.id ?? ""}>
                   <SelectTrigger
                     aria-invalid={error?.field === "selection"}
                     className="h-12 w-full"
@@ -171,17 +157,11 @@ export function CreateReturnDialog({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Eligible order lines</SelectLabel>
-                      {eligibleLines.map((entry) => {
-                        const entryProduct = state.products.find(
-                          (productEntry) => productEntry.id === entry.productId,
-                        );
-                        return (
-                          <SelectItem key={entry.id} value={entry.id}>
-                            {entryProduct?.name ?? "Product"} ·{" "}
-                            {order ? getEligibleReturnQuantity(state, order, entry.id) : 0} eligible
-                          </SelectItem>
-                        );
-                      })}
+                      {order?.lines.map((entry) => (
+                        <SelectItem key={entry.id} value={entry.id}>
+                          {entry.productName} · {entry.eligibleQuantity} eligible
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

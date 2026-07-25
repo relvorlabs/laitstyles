@@ -22,14 +22,13 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { settingsSections } from "@/features/admin/settings/settings-config";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
-import { holdsListQueryOptions } from "@/lib/admin/holds/holds-query-options";
-import { ordersListQueryOptions } from "@/lib/admin/orders/orders-query-options";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
+import { adminCustomersQueryOptions } from "@/modules/customers/client/hooks";
+import { adminHoldsQueryOptions } from "@/modules/holds/client/hooks";
+import { adminOrdersQueryOptions } from "@/modules/orders/client/hooks";
+import { adminOverviewQueryOptions } from "@/modules/overview/client/hooks";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 const overviewTargets = [
@@ -71,6 +70,33 @@ const inventoryTargets = [
   },
 ] as const;
 
+const commandOrdersInput = {
+  view: "all",
+  search: "",
+  channel: "all",
+  payment: "all",
+  sort: "placed-desc",
+  page: 1,
+  pageSize: 10,
+} as const;
+const commandCustomersInput = {
+  search: "",
+  view: "all",
+  type: "all",
+  sort: "recent-desc",
+  page: 1,
+  pageSize: 10,
+} as const;
+const commandHoldsInput = {
+  view: "active",
+  search: "",
+  source: "all",
+  stage: "all",
+  sort: "expiry-asc",
+  page: 1,
+  pageSize: 10,
+} as const;
+
 const terminalOrderStatuses = new Set(["delivered", "cancelled", "refunded", "returned"]);
 
 type AdminCommandMenuProps = {
@@ -80,12 +106,15 @@ type AdminCommandMenuProps = {
 
 export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) {
   const router = useRouter();
-  const { state } = useAdmin();
-  const repositories = useAdminRepositories();
+  const { data: overview } = useQuery(adminOverviewQueryOptions());
   const { data: allProducts = [] } = useQuery(adminProductsQueryOptions());
-  const { data: allOrders = [] } = useQuery(ordersListQueryOptions(repositories));
-  const { data: allCustomers = [] } = useQuery(customersListQueryOptions(repositories));
-  const { data: allHolds = [] } = useQuery(holdsListQueryOptions(repositories));
+  const { data: orderResult } = useQuery(adminOrdersQueryOptions(commandOrdersInput));
+  const { data: customerResult } = useQuery(adminCustomersQueryOptions(commandCustomersInput));
+  const { data: holdResult } = useQuery(adminHoldsQueryOptions(commandHoldsInput));
+  const allOrders = orderResult?.data ?? [];
+  const allCustomers = customerResult?.data.map((profile) => profile.customer) ?? [];
+  const allHolds = holdResult?.data ?? [];
+  const asOf = overview?.asOf ?? new Date(0).toISOString();
   const toggleOpen = useEffectEvent(() => onOpenChange(!open));
 
   const records = useMemo(() => {
@@ -102,7 +131,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
       .slice(0, 6);
     const customers = allCustomers.slice(0, 6);
     const holds = allHolds
-      .filter((hold) => !hold.status || hold.status === "active")
+      .filter((hold) => hold.status === "active")
       .toSorted(
         (left, right) => new Date(left.expiresAt).getTime() - new Date(right.expiresAt).getTime(),
       )
@@ -188,7 +217,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
           <CommandGroup heading="Open orders">
             {records.orders.map((order) => (
               <CommandRecord
-                detail={`${order.customerLabel ?? "Customer"} · ${formatNaira(order.total)} · ${formatRelativeTime(state.asOf, order.placedAt)}`}
+                detail={`${order.customerLabel ?? "Customer"} · ${formatNaira(order.total)} · ${formatRelativeTime(asOf, order.placedAt)}`}
                 icon={Store01Icon}
                 key={order.id}
                 label={`${order.id} · ${order.fulfilmentStatus.replaceAll("-", " ")}`}
@@ -212,7 +241,7 @@ export function AdminCommandMenu({ open, onOpenChange }: AdminCommandMenuProps) 
             ))}
             {records.holds.map((hold) => (
               <CommandRecord
-                detail={`${hold.customerLabel} · ${hold.stage} · expires ${formatRelativeTime(hold.expiresAt, state.asOf)}`}
+                detail={`${hold.customerLabel} · ${hold.stage} · expires ${formatRelativeTime(asOf, hold.expiresAt)}`}
                 icon={Store01Icon}
                 key={hold.id}
                 label={`Hold ${hold.id}`}

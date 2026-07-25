@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
-import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
 import { QueryProvider } from "@/providers/query-provider";
 import { getStaffAccess } from "@/server/auth/session";
 
@@ -25,9 +24,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <QueryProvider>
-      <AdminShell initialState={activeAdminSeed} role={access.role}>
-        {children}
-      </AdminShell>
+      <AdminShell role={access.role}>{children}</AdminShell>
     </QueryProvider>
   );
 }

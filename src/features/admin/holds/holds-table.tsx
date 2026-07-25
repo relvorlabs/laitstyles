@@ -14,15 +14,15 @@ import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-l
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { AdminState, ControlRoomHold } from "@/lib/admin/shared/types";
+import type { ControlRoomHold } from "@/modules/holds/types";
 
 export function HoldsTable({
-  state,
   holds,
+  now,
   onOpen,
 }: {
-  state: AdminState;
   holds: ControlRoomHold[];
+  now: number | null;
   onOpen: (holdId: string) => void;
 }) {
   return (
@@ -43,7 +43,7 @@ export function HoldsTable({
         </TableHeader>
         <TableBody>
           {holds.map((hold) => {
-            const item = toHoldWorkspaceItem(state, hold);
+            const item = toHoldWorkspaceItem(hold, now);
             return (
               <TableRow key={hold.id}>
                 <TableCell className="overflow-hidden">

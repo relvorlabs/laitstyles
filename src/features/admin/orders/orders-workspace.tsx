@@ -1,84 +1,132 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { OrderControls } from "@/features/admin/orders/order-controls";
 import { OrderDetailSheet } from "@/features/admin/orders/order-detail-sheet";
-import { OrderSavedViews } from "@/features/admin/orders/order-saved-views";
 import {
   defaultOrderQuery,
-  getOrderSavedViewCounts,
-  getOrderWorkspaceSummary,
-  queryOrders,
+  orderSavedViews,
+  orderSortOptions,
 } from "@/features/admin/orders/order-selectors";
-import type { OrderQuery } from "@/features/admin/orders/order-types";
+import { OrderSavedViews } from "@/features/admin/orders/order-saved-views";
+import type {
+  OrderChannelFilter,
+  OrderPaymentFilter,
+  OrderQuery,
+  OrderSavedView,
+  OrderSortKey,
+} from "@/features/admin/orders/order-types";
 import { OrdersEmptyState } from "@/features/admin/orders/orders-empty-state";
 import { OrdersHeader } from "@/features/admin/orders/orders-header";
 import { OrdersMobileList } from "@/features/admin/orders/orders-mobile-list";
 import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip";
 import { OrdersTable } from "@/features/admin/orders/orders-table";
 import { buildOrdersHref } from "@/features/admin/orders/orders-url";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { useTransitionOrder } from "@/lib/admin/orders/orders-mutations";
-import type { OrderStatus } from "@/lib/admin/shared/types";
+import { AdminPagination } from "@/features/admin/shared/admin-pagination";
+import {
+  adminOrderQueryOptions,
+  adminOrdersQueryOptions,
+  useTransitionOrder,
+} from "@/modules/orders/client/hooks";
+import type {
+  OrderSavedViewCounts,
+  OrderStatus,
+  OrderWorkspaceSummary,
+} from "@/modules/orders/types";
 
-export function OrdersWorkspace({
-  initialQuery,
-  initialOpenOrderId,
-}: {
-  initialQuery: OrderQuery;
-  initialOpenOrderId: string | null;
-}) {
+const emptyCounts: OrderSavedViewCounts = {
+  all: 0,
+  "needs-attention": 0,
+  "pending-payment": 0,
+  fulfilment: 0,
+  delivered: 0,
+  closed: 0,
+};
+const emptySummary: OrderWorkspaceSummary = {
+  totalOrders: 0,
+  needsAttention: 0,
+  pendingPayment: 0,
+  inFulfilment: 0,
+  delivered: 0,
+  netRevenue: 0,
+};
+const viewValues = new Set<OrderSavedView>(orderSavedViews.map((view) => view.value));
+const channelValues = new Set<OrderChannelFilter>(["all", "online", "offline"]);
+const paymentValues = new Set<OrderPaymentFilter>([
+  "all",
+  "pending",
+  "paid",
+  "deposit",
+  "failed",
+  "refunded",
+]);
+const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option.value));
+const pageSizeValues = new Set([10, 25, 50, 100]);
+
+type SearchParamsReader = {
+  get(name: string): string | null;
+};
+
+export function OrdersWorkspace({ initialQuery }: { initialQuery: OrderQuery }) {
   const pathname = usePathname();
-  const { state } = useAdmin();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const transitionOrderMutation = useTransitionOrder();
-  const [query, setQuery] = useState(initialQuery);
-  const [openOrderId, setOpenOrderId] = useState<string | null>(initialOpenOrderId);
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error";
     title: string;
     message: string;
   } | null>(null);
 
-  const orders = useMemo(() => queryOrders(state, query), [query, state]);
-  const counts = useMemo(() => getOrderSavedViewCounts(state.orders), [state.orders]);
-  const summary = useMemo(() => getOrderWorkspaceSummary(state), [state]);
-  const openOrder = state.orders.find((order) => order.id === openOrderId) ?? null;
+  const query = useMemo(
+    () => readQueryFromUrl(searchParams, initialQuery),
+    [initialQuery, searchParams],
+  );
+  const openOrderId = searchParams.get("order")?.trim() || null;
+  const ordersQuery = useQuery(adminOrdersQueryOptions(query));
+  const detailQuery = useQuery(adminOrderQueryOptions(openOrderId ?? ""));
+  const orders = ordersQuery.data?.data ?? [];
+  const meta = ordersQuery.data?.meta;
+  const counts = meta?.counts ?? emptyCounts;
+  const summary = meta?.summary ?? emptySummary;
+  const openOrder = detailQuery.data ?? null;
 
   function replaceUrl(nextQuery = query, nextOrderId = openOrderId) {
-    window.history.replaceState(
-      null,
-      "",
+    router.replace(
       buildOrdersHref(pathname, {
         query: nextQuery,
         orderId: nextOrderId,
       }),
+      { scroll: false },
     );
   }
 
   function patchQuery(patch: Partial<OrderQuery>) {
-    const nextQuery = { ...query, ...patch };
-    setQuery(nextQuery);
+    const affectsResultSet = Object.keys(patch).some((key) => key !== "page");
+    const nextQuery = {
+      ...query,
+      ...patch,
+      ...(affectsResultSet ? { page: 1 } : {}),
+    };
     setFeedback(null);
     replaceUrl(nextQuery);
   }
 
   function resetQuery() {
-    setQuery(defaultOrderQuery);
     setFeedback(null);
     replaceUrl(defaultOrderQuery);
   }
 
   function openOrderRecord(orderId: string) {
-    setOpenOrderId(orderId);
     setFeedback(null);
     replaceUrl(query, orderId);
   }
 
   function closeOrderRecord() {
-    setOpenOrderId(null);
     replaceUrl(query, null);
   }
 
@@ -115,7 +163,7 @@ export function OrdersWorkspace({
           onQueryChange={patchQuery}
           onReset={resetQuery}
           query={query}
-          resultCount={orders.length}
+          resultCount={meta?.total ?? orders.length}
         />
       </Card>
 
@@ -126,13 +174,39 @@ export function OrdersWorkspace({
         </Alert>
       ) : null}
 
+      {ordersQuery.isError ? (
+        <Alert aria-live="polite" variant="destructive">
+          <AlertTitle>Orders could not be loaded</AlertTitle>
+          <AlertDescription>
+            {ordersQuery.error instanceof Error
+              ? ordersQuery.error.message
+              : "Refresh and try loading the persisted orders again."}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {orders.length ? (
         <>
-          <OrdersMobileList onOpen={openOrderRecord} orders={orders} state={state} />
-          <OrdersTable onOpen={openOrderRecord} orders={orders} state={state} />
+          <OrdersMobileList onOpen={openOrderRecord} orders={orders} />
+          <OrdersTable onOpen={openOrderRecord} orders={orders} />
+          {meta ? (
+            <AdminPagination
+              noun="Orders"
+              onPageChange={(page) => patchQuery({ page })}
+              onPageSizeChange={(pageSize) => patchQuery({ pageSize })}
+              page={meta.page}
+              pageCount={meta.pageCount}
+              pageSize={meta.pageSize}
+              totalItems={meta.total}
+            />
+          ) : null}
         </>
+      ) : ordersQuery.isPending ? (
+        <p className="rounded-[18px] border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground">
+          Loading orders…
+        </p>
       ) : (
-        <OrdersEmptyState hasOrders={state.orders.length > 0} onReset={resetQuery} />
+        <OrdersEmptyState hasOrders={summary.totalOrders > 0} onReset={resetQuery} />
       )}
 
       <OrderDetailSheet
@@ -141,8 +215,37 @@ export function OrdersWorkspace({
         }}
         onTransition={moveOrder}
         order={openOrder}
-        state={state}
       />
     </div>
   );
+}
+
+function readQueryFromUrl(searchParams: SearchParamsReader, fallback: OrderQuery): OrderQuery {
+  return {
+    view: pick(searchParams.get("view"), viewValues, fallback.view),
+    search: searchParams.get("q") ?? fallback.search,
+    channel: pick(searchParams.get("channel"), channelValues, fallback.channel),
+    payment: pick(searchParams.get("payment"), paymentValues, fallback.payment),
+    sort: pick(searchParams.get("sort"), sortValues, fallback.sort),
+    page: positiveInteger(searchParams.get("page"), fallback.page),
+    pageSize: pickNumber(searchParams.get("pageSize"), pageSizeValues, fallback.pageSize),
+  };
+}
+
+function pick<TValue extends string>(
+  value: string | null,
+  allowed: ReadonlySet<TValue>,
+  fallback: TValue,
+): TValue {
+  return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
+}
+
+function positiveInteger(value: string | null, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function pickNumber(value: string | null, allowed: ReadonlySet<number>, fallback: number) {
+  const parsed = Number(value);
+  return allowed.has(parsed) ? parsed : fallback;
 }

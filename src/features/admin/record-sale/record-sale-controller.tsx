@@ -30,24 +30,35 @@ export function RecordSaleControllerProvider({ children }: { children: ReactNode
       {result ? (
         <Alert
           aria-live="polite"
-          className="fixed right-4 bottom-4 z-[80] w-[min(92vw,440px)] border-primary/25 bg-background text-foreground shadow-xl"
+          className="fixed right-4 bottom-4 z-[80] w-[min(92vw,520px)] border-primary/25 bg-background text-foreground shadow-xl"
         >
           <AdminIcon className="text-primary" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Inventory, Orders, revenue and activity now use this session-only sale record.
+            Order {result.orderId} is pending payment. Stock is reserved under Paystack reference{
+            " "
+          }
+            <span className="font-medium text-foreground">{result.reference}</span>; revenue has not
+            been recognised.
           </AlertDescription>
           <AlertAction>
-            <Link
-              className={buttonVariants({
-                variant: "ghost",
-                size: "sm",
-              })}
-              href={`/admin/orders?order=${encodeURIComponent(result.orderId)}`}
-              onClick={() => setResult(null)}
-            >
-              Open order
-            </Link>
+            <div className="flex flex-wrap justify-end gap-2">
+              <a
+                className={buttonVariants({ variant: "default", size: "sm" })}
+                href={result.authorizationUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Open checkout
+              </a>
+              <Link
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+                href={`/admin/orders?order=${encodeURIComponent(result.orderId)}`}
+                onClick={() => setResult(null)}
+              >
+                Open order
+              </Link>
+            </div>
           </AlertAction>
         </Alert>
       ) : null}

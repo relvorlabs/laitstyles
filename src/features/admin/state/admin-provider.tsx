@@ -1,58 +1,26 @@
 "use client";
 
-import { createContext, type ReactNode, use, useMemo, useState, useSyncExternalStore } from "react";
-import { AdminRepositoryProvider } from "@/features/admin/data/admin-repository-context";
-import { type AdminStore, createAdminStore } from "@/features/admin/state/admin-store";
-import type { AdminState } from "@/lib/admin/shared/types";
+import { createContext, type ReactNode, use, useMemo, useState } from "react";
 
-const AdminContext = createContext<AdminStore | null>(null);
+const AdminContext = createContext<{ state: { reportingDate: string } } | null>(null);
 
-export function AdminProvider({
-  children,
-  initialState,
-}: {
-  children: ReactNode;
-  initialState: AdminState;
-}) {
-  const [store] = useState(() => createAdminStore(initialState));
-
-  return (
-    <AdminContext.Provider value={store}>
-      <AdminRepositoryProvider store={store}>{children}</AdminRepositoryProvider>
-    </AdminContext.Provider>
+export function AdminProvider({ children }: { children: ReactNode }) {
+  const [reportingDate] = useState(() =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Lagos",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date()),
   );
+  const value = useMemo(() => ({ state: { reportingDate } }), [reportingDate]);
+  return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }
 
 export function useAdmin() {
-  const store = use(AdminContext);
-  if (!store) {
+  const context = use(AdminContext);
+  if (!context) {
     throw new Error("useAdmin must be used inside AdminProvider");
   }
-
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
-
-  return useMemo(
-    () => ({
-      state,
-      saveProduct: store.saveProduct,
-      archiveProduct: store.archiveProduct,
-      restoreProduct: store.restoreProduct,
-      deleteProduct: store.deleteProduct,
-      createCatalogueTaxonomy: store.createCatalogueTaxonomy,
-      renameCatalogueTaxonomy: store.renameCatalogueTaxonomy,
-      deleteCatalogueTaxonomy: store.deleteCatalogueTaxonomy,
-      transitionIntake: store.transitionIntake,
-      transitionOrder: store.transitionOrder,
-      extendHold: store.extendHold,
-      releaseHold: store.releaseHold,
-      convertHold: store.convertHold,
-      recordOfflineSale: store.recordOfflineSale,
-      createReturn: store.createReturn,
-      transitionReturn: store.transitionReturn,
-      addCustomerNote: store.addCustomerNote,
-      saveStoreSettings: store.saveStoreSettings,
-      resetPrototypeState: store.resetPrototypeState,
-    }),
-    [state, store],
-  );
+  return context;
 }

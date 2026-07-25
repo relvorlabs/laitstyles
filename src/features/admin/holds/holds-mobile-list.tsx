@@ -9,21 +9,21 @@ import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-l
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { AdminState, ControlRoomHold } from "@/lib/admin/shared/types";
+import type { ControlRoomHold } from "@/modules/holds/types";
 
 export function HoldsMobileList({
-  state,
   holds,
+  now,
   onOpen,
 }: {
-  state: AdminState;
   holds: ControlRoomHold[];
+  now: number | null;
   onOpen: (holdId: string) => void;
 }) {
   return (
     <div className="grid gap-3 lg:hidden md:grid-cols-2">
       {holds.map((hold) => {
-        const item = toHoldWorkspaceItem(state, hold);
+        const item = toHoldWorkspaceItem(hold, now);
         return (
           <Card className="gap-0 overflow-hidden py-0" key={hold.id}>
             <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-4 p-4">

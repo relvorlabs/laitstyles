@@ -4,8 +4,11 @@ import type {
   OrderWorkspaceItem,
   OrderWorkspaceSummary,
 } from "@/features/admin/orders/order-types";
-import { getOrderNetRevenue } from "@/lib/admin/orders/sales-selectors";
-import type { AdminState, ControlRoomOrder, OrderStatus } from "@/lib/admin/shared/types";
+import type {
+  ControlRoomOrder,
+  OrderSavedViewCounts,
+  OrderStatus,
+} from "@/modules/orders/types";
 
 export const defaultOrderQuery: OrderQuery = {
   view: "all",
@@ -13,6 +16,8 @@ export const defaultOrderQuery: OrderQuery = {
   channel: "all",
   payment: "all",
   sort: "placed-desc",
+  page: 1,
+  pageSize: 25,
 };
 
 export const orderSavedViews: Array<{
@@ -20,7 +25,7 @@ export const orderSavedViews: Array<{
   label: string;
   description: string;
 }> = [
-  { value: "all", label: "All", description: "Every order in this session." },
+  { value: "all", label: "All", description: "Every persisted order." },
   {
     value: "needs-attention",
     label: "Needs attention",
@@ -66,62 +71,48 @@ const fulfilmentStatuses = new Set<OrderStatus>([
   "dispatched",
   "out-for-delivery",
 ]);
-
 const closedStatuses = new Set<OrderStatus>(["cancelled", "refunded", "returned"]);
 
-export function queryOrders(state: AdminState, query: OrderQuery): ControlRoomOrder[] {
+/** Compatibility helpers for focused tests and transitional consumers. */
+export function queryOrders(orders: ControlRoomOrder[], query: OrderQuery): ControlRoomOrder[] {
   const normalizedSearch = normalize(query.search);
-
-  return state.orders
+  return orders
     .filter((order) => matchesSavedView(order, query.view))
     .filter((order) => {
       if (query.channel === "all") return true;
       return query.channel === "online" ? order.channel === "online" : order.channel !== "online";
     })
     .filter((order) => query.payment === "all" || order.paymentStatus === query.payment)
-    .filter((order) => matchesSearch(state, order, normalizedSearch))
+    .filter((order) => matchesSearch(order, normalizedSearch))
     .toSorted((left, right) => compareOrders(left, right, query.sort));
 }
 
-export function getOrderSavedViewCounts(
-  orders: ControlRoomOrder[],
-): Record<OrderSavedView, number> {
+export function getOrderSavedViewCounts(orders: ControlRoomOrder[]): OrderSavedViewCounts {
   return Object.fromEntries(
     orderSavedViews.map((view) => [
       view.value,
       orders.filter((order) => matchesSavedView(order, view.value)).length,
     ]),
-  ) as Record<OrderSavedView, number>;
+  ) as OrderSavedViewCounts;
 }
 
-export function getOrderWorkspaceSummary(state: AdminState): OrderWorkspaceSummary {
+export function getOrderWorkspaceSummary(orders: ControlRoomOrder[]): OrderWorkspaceSummary {
   return {
-    totalOrders: state.orders.length,
-    needsAttention: state.orders.filter((order) => Boolean(order.attention)).length,
-    pendingPayment: state.orders.filter((order) => order.fulfilmentStatus === "pending-payment")
-      .length,
-    inFulfilment: state.orders.filter((order) => fulfilmentStatuses.has(order.fulfilmentStatus))
-      .length,
-    delivered: state.orders.filter((order) => order.fulfilmentStatus === "delivered").length,
-    netRevenue: state.orders.reduce((total, order) => total + getOrderNetRevenue(order), 0),
+    totalOrders: orders.length,
+    needsAttention: orders.filter((order) => Boolean(order.attention)).length,
+    pendingPayment: orders.filter((order) => order.fulfilmentStatus === "pending-payment").length,
+    inFulfilment: orders.filter((order) => fulfilmentStatuses.has(order.fulfilmentStatus)).length,
+    delivered: orders.filter((order) => order.fulfilmentStatus === "delivered").length,
+    netRevenue: orders.reduce((total, order) => total + getOrderNetRevenue(order), 0),
   };
 }
 
-export function toOrderWorkspaceItem(
-  state: AdminState,
-  order: ControlRoomOrder,
-): OrderWorkspaceItem {
-  const customer = order.customerId
-    ? state.customers.find((item) => item.id === order.customerId)
-    : undefined;
-
+export function toOrderWorkspaceItem(order: ControlRoomOrder): OrderWorkspaceItem {
   return {
     orderId: order.id,
-    customerName: customer?.name ?? order.customerLabel ?? "Guest customer",
-    customerCity: customer?.city ?? order.deliveryCity,
-    productNames: order.lines.map(
-      (line) => state.products.find((product) => product.id === line.productId)?.name ?? "Product",
-    ),
+    customerName: order.customer?.name ?? order.customerLabel ?? "Guest customer",
+    customerCity: order.customer?.city ?? order.deliveryCity,
+    productNames: order.lines.map((line) => line.productName),
     unitCount: order.lines.reduce((total, line) => total + line.quantity, 0),
     netRevenue: getOrderNetRevenue(order),
     channel: order.channel,
@@ -146,9 +137,15 @@ export function matchesSavedView(order: ControlRoomOrder, view: OrderSavedView) 
   }
 }
 
-function matchesSearch(state: AdminState, order: ControlRoomOrder, normalizedSearch: string) {
+function getOrderNetRevenue(order: ControlRoomOrder) {
+  const refundedAmount =
+    order.refundedAmount ?? (order.paymentStatus === "refunded" ? order.total : 0);
+  return Math.max(0, order.total - refundedAmount);
+}
+
+function matchesSearch(order: ControlRoomOrder, normalizedSearch: string) {
   if (!normalizedSearch) return true;
-  const item = toOrderWorkspaceItem(state, order);
+  const item = toOrderWorkspaceItem(order);
   const searchable = normalize(
     [
       order.id,
@@ -161,7 +158,6 @@ function matchesSearch(state: AdminState, order: ControlRoomOrder, normalizedSea
       ...item.productNames,
     ].join(" "),
   );
-
   return normalizedSearch.split(/\s+/).every((token) => searchable.includes(token));
 }
 

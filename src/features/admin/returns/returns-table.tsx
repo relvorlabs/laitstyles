@@ -14,17 +14,16 @@ import { toReturnWorkspaceItem } from "@/features/admin/returns/return-selectors
 import { ReturnStatusBadge } from "@/features/admin/returns/return-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomReturn } from "@/lib/admin/shared/types";
+import type { ControlRoomReturn } from "@/modules/returns/types";
 
 export function ReturnsTable({
-  state,
   returns,
   onOpen,
 }: {
-  state: AdminState;
   returns: ControlRoomReturn[];
   onOpen: (returnId: string) => void;
 }) {
+  const asOf = new Date().toISOString();
   return (
     <div className="hidden overflow-hidden rounded-[18px] border border-border bg-card lg:block">
       <Table className="table-fixed">
@@ -43,7 +42,7 @@ export function ReturnsTable({
         </TableHeader>
         <TableBody>
           {returns.map((record) => {
-            const item = toReturnWorkspaceItem(state, record);
+            const item = toReturnWorkspaceItem(record);
             return (
               <TableRow key={record.id}>
                 <TableCell>
@@ -56,7 +55,7 @@ export function ReturnsTable({
                     <span>
                       <span className="block text-[12.5px] font-semibold">{record.id}</span>
                       <span className="mt-1 block text-[10.5px] text-muted-foreground">
-                        {record.orderId} · {formatRelativeTime(state.asOf, record.updatedAt)}
+                        {record.orderId} · {formatRelativeTime(asOf, record.updatedAt)}
                       </span>
                     </span>
                   </Button>
