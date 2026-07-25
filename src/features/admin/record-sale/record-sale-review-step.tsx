@@ -27,6 +27,7 @@ export function RecordSaleReviewStep() {
       ? customers.find((item) => item.id === values.customerId)
       : null;
   const customerName = customer?.name || values.customerName.trim() || "Walk-in customer";
+  const customerEmail = customer?.email || values.customerEmail.trim() || "Email required";
   const total = (Number(values.quantity) || 0) * (Number(values.unitPrice) || 0);
 
   return (
@@ -35,7 +36,7 @@ export function RecordSaleReviewStep() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Sale record
+              In-person order
             </p>
             <h3 className="mt-1 font-serif text-[28px] font-medium">
               {product?.name ?? "Product not selected"}
@@ -45,7 +46,7 @@ export function RecordSaleReviewStep() {
                 (product?.inventoryMode === "unique" ? "One-of-one piece" : "Standard stock")}
             </p>
           </div>
-          <Badge variant="secondary">{values.paymentStatus.replaceAll("-", " ")}</Badge>
+          <Badge variant="secondary">Paystack pending</Badge>
         </div>
 
         <Separator className="my-5" />
@@ -55,8 +56,8 @@ export function RecordSaleReviewStep() {
           <ReviewRow label="Price per unit" value={formatNaira(values.unitPrice || 0)} />
           <ReviewRow label="Channel" value={values.channel.replaceAll("-", " ")} />
           <ReviewRow label="Customer" value={customerName} />
-          <ReviewRow label="Payment method" value={values.paymentMethod.replaceAll("-", " ")} />
-          <ReviewRow label="Payment status" value={values.paymentStatus.replaceAll("-", " ")} />
+          <ReviewRow label="Checkout email" value={customerEmail} />
+          <ReviewRow label="Payment" value="Paystack one-time checkout" />
         </dl>
 
         {values.notes.trim() ? (
@@ -71,14 +72,14 @@ export function RecordSaleReviewStep() {
 
       <aside className="self-start rounded-[16px] bg-primary p-5 text-primary-foreground sm:p-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/65">
-          Confirmed total
+          Checkout total
         </p>
         <p className="mt-2 font-serif text-[38px] font-medium leading-none tabular-nums">
           {formatNaira(total)}
         </p>
         <p className="mt-4 text-sm leading-6 text-primary-foreground/72">
-          Confirming creates one connected order, updates the selected stock bucket, records a
-          movement and activity event, and updates paid revenue when applicable.
+          Generating checkout creates one pending order, reserves the exact stock and records a
+          Paystack attempt. Revenue remains unchanged until the server verifies the payment.
         </p>
       </aside>
     </div>
@@ -89,7 +90,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm font-medium capitalize">{value}</dd>
+      <dd className="mt-1 break-words text-sm font-medium capitalize">{value}</dd>
     </div>
   );
 }
