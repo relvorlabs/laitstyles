@@ -2,33 +2,39 @@
 
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
 import { IconClose } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
+import { showStorefrontToast, useStorefrontOverlay } from "../storefront-runtime";
 import { FilterControls } from "./filter-controls";
 
 export function FilterDrawer() {
-  const storefront = useStorefront();
+  const overlay = useStorefrontOverlay();
+  const navigation = useCatalogueNavigation();
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
+    if (event.target === event.currentTarget) overlay.close();
+  };
+  const clearFilters = () => {
+    navigation.clear();
+    showStorefrontToast("Filters cleared.");
   };
 
   return (
     <div
-      id="filterDrawer"
-      className={`overlay${storefront.openId === "filterDrawer" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Filter products"
+      aria-modal="true"
+      className={`overlay${overlay.openId === "filterDrawer" ? " open" : ""}`}
+      id="filterDrawer"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <aside className="drawer">
         <div className="drawer-head">
           <h2>Filter products</h2>
           <Button
-            type="button"
             aria-label="Close filters"
-            onClick={storefront.closeAll}
+            onClick={overlay.close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
@@ -38,10 +44,10 @@ export function FilterDrawer() {
           <FilterControls />
         </div>
         <div className="filter-footer">
-          <Button type="button" onClick={storefront.clearFilters} variant="outline">
+          <Button onClick={clearFilters} type="button" variant="outline">
             Clear all
           </Button>
-          <Button type="button" onClick={storefront.closeAll}>
+          <Button onClick={overlay.close} type="button">
             Show products
           </Button>
         </div>
