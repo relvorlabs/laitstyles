@@ -5,7 +5,6 @@ import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -30,9 +29,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
-import type { ReviewActionState, ReviewInput } from "@/lib/commerce/reviews/review-types";
-
+import { reviewInputSchema } from "@/modules/reviews/schema";
+import type { ReviewActionState, ReviewInput } from "@/modules/reviews/types";
 import { submitReviewAction, withdrawReviewAction } from "./review-actions";
 
 export type ReviewFormIntent = "create" | "edit" | "revise" | "resubmit";
