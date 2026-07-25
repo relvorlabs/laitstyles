@@ -23,10 +23,10 @@ import type {
 import { OrdersEmptyState } from "@/features/admin/orders/orders-empty-state";
 import { OrdersHeader } from "@/features/admin/orders/orders-header";
 import { OrdersMobileList } from "@/features/admin/orders/orders-mobile-list";
-import { OrdersPagination } from "@/features/admin/orders/orders-pagination";
 import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip";
 import { OrdersTable } from "@/features/admin/orders/orders-table";
 import { buildOrdersHref } from "@/features/admin/orders/orders-url";
+import { AdminPagination } from "@/features/admin/shared/admin-pagination";
 import {
   adminOrderQueryOptions,
   adminOrdersQueryOptions,
@@ -190,7 +190,8 @@ export function OrdersWorkspace({ initialQuery }: { initialQuery: OrderQuery }) 
           <OrdersMobileList onOpen={openOrderRecord} orders={orders} />
           <OrdersTable onOpen={openOrderRecord} orders={orders} />
           {meta ? (
-            <OrdersPagination
+            <AdminPagination
+              noun="Orders"
               onPageChange={(page) => patchQuery({ page })}
               onPageSizeChange={(pageSize) => patchQuery({ pageSize })}
               page={meta.page}
