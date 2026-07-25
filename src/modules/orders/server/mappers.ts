@@ -55,7 +55,9 @@ const orderStatuses = new Set<OrderStatus>([
   "returned",
 ]);
 
-export function mapDatabaseOrderStatus(row: Pick<AdminOrderRow, "payment_status" | "fulfilment_status" | "fulfilment_method">): OrderStatus {
+export function mapDatabaseOrderStatus(
+  row: Pick<AdminOrderRow, "payment_status" | "fulfilment_status" | "fulfilment_method">,
+): OrderStatus {
   if (row.fulfilment_status === "cancelled") return "cancelled";
   if (row.fulfilment_status === "returned" || row.fulfilment_status === "partially_returned") {
     return "returned";
@@ -117,6 +119,7 @@ function mapPaymentMethod(value: string | null): PaymentMethod | null {
   if (!value) return null;
   const normalized = value.replaceAll("_", "-");
   switch (normalized) {
+    case "paystack":
     case "cash":
     case "bank-transfer":
     case "card":
@@ -128,7 +131,9 @@ function mapPaymentMethod(value: string | null): PaymentMethod | null {
   }
 }
 
-function mapStockState(value: AdminOrderRow["order_lines"][number]["stock_state"]): OrderLineStockState {
+function mapStockState(
+  value: AdminOrderRow["order_lines"][number]["stock_state"],
+): OrderLineStockState {
   if (value === "committed") return "committed";
   if (value === "reserved") return "reserved";
   if (value === "returned") return "returned";
