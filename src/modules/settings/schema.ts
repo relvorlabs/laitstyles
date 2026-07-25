@@ -40,6 +40,14 @@ export const storeSettingsInputSchema = z
     }
   });
 
+const settingsSectionSchemas = {
+  identity: storeIdentitySettingsSchema,
+  selling: sellingPreferencesSettingsSchema,
+  delivery: deliverySettingsSchema,
+  payments: paymentSettingsSchema,
+  notifications: notificationSettingsSchema,
+} as const;
+
 export function parseStoreSettingsInput(
   value: unknown,
 ): { ok: true; value: SaveStoreSettingsInput } | { ok: false; issues: SettingsValidationIssue[] } {
@@ -53,6 +61,19 @@ export function parseStoreSettingsInput(
       section: getSettingsSection(issue.path[0]),
     })),
   };
+}
+
+export function validateSettingsSection(
+  input: SaveStoreSettingsInput,
+  section: SettingsSection,
+): SettingsValidationIssue[] {
+  const result = settingsSectionSchemas[section].safeParse(input[section]);
+  if (result.success) return [];
+  return result.error.issues.map((issue) => ({
+    path: [section, ...issue.path].join("."),
+    message: issue.message,
+    section,
+  }));
 }
 
 function getSettingsSection(value: PropertyKey | undefined): SettingsSection {
