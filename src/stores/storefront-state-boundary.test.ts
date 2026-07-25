@@ -14,13 +14,15 @@ const approvedStoreFiles = new Set([
   "storefront-state-boundary.test.ts",
 ]);
 
-const legacyProviderFiles = [
+const deletedProviderPaths = [
   "src/features/storefront/shared/storefront-provider.tsx",
   "src/features/storefront/shared/storefront-client-state-provider.tsx",
-  "src/features/storefront/shared/storefront-auth-provider.tsx",
 ] as const;
-
-const allowedStorefrontProviderFiles = new Set(legacyProviderFiles.map((file) => path.basename(file)));
+const deletedProviderImports = [
+  "@/features/storefront/shared/storefront-provider",
+  "@/features/storefront/shared/storefront-client-state-provider",
+] as const;
+const allowedStorefrontProviderFiles = new Set(["storefront-auth-provider.tsx"]);
 
 const forbiddenStoreImports = [
   "@/lib/prisma",
@@ -43,12 +45,6 @@ const forbiddenStoreRecordPatterns = [
   /\b(?:readonly\s+)?Product\s*\[\s*\]/,
   /\bSet\s*<\s*Product\s*>/,
   /\bProduct\s*\|\s*null/,
-] as const;
-
-const providerExpansionPatterns = [
-  /from\s+["']@\/lib\/prisma/,
-  /from\s+["'][^"']*\/server\//,
-  /\buseReducer\b/,
 ] as const;
 
 describe("Phase 6 storefront state boundary", () => {
@@ -104,7 +100,27 @@ describe("Phase 6 storefront state boundary", () => {
     ).toEqual([]);
   });
 
-  it("does not create additional storefront context providers during the split", async () => {
+  it("keeps the deleted god-provider paths deleted and unimported", async () => {
+    const sourceFiles = await collectSourceFiles(sourceRoot);
+    const offenders: string[] = [];
+
+    for (const relative of deletedProviderPaths) {
+      expect(await exists(path.join(repositoryRoot, relative)), relative).toBe(false);
+    }
+
+    for (const file of sourceFiles) {
+      const relative = normalize(path.relative(repositoryRoot, file));
+      if (relative.includes(".test.")) continue;
+      const source = await readFile(file, "utf8");
+      for (const importPath of deletedProviderImports) {
+        if (source.includes(importPath)) offenders.push(`${relative} -> ${importPath}`);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("does not create replacement storefront context providers", async () => {
     const files = await collectFilesIfPresent(storefrontSharedRoot);
     const providerFiles = files
       .map((file) => path.basename(file))
@@ -113,29 +129,13 @@ describe("Phase 6 storefront state boundary", () => {
 
     expect(
       unexpected,
-      "Phase 6 must reduce the provider graph rather than create replacement god providers.",
+      "Only the Phase 7 auth session/actions provider may remain in storefront shared code.",
     ).toEqual([]);
-  });
-
-  it("prevents the temporary provider layer from gaining new server or reducer ownership", async () => {
-    const offenders: string[] = [];
-
-    for (const relative of legacyProviderFiles) {
-      const file = path.join(repositoryRoot, relative);
-      if (!(await exists(file))) continue;
-      const source = await readFile(file, "utf8");
-      for (const pattern of providerExpansionPatterns) {
-        if (pattern.test(source)) offenders.push(`${relative} -> ${pattern}`);
-      }
-    }
-
-    expect(offenders).toEqual([]);
   });
 
   it("keeps catalogue navigation on the Next router instead of direct history mutation", async () => {
     const relative = "src/features/storefront/catalogue/product-catalogue.tsx";
-    const file = path.join(repositoryRoot, relative);
-    const source = await readFile(file, "utf8");
+    const source = await readFile(path.join(repositoryRoot, relative), "utf8");
 
     expect(source).not.toContain("window.history.replaceState");
     expect(source).not.toContain("window.history.pushState");
