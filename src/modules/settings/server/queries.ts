@@ -6,24 +6,26 @@ import { mapStoreSettings, settingsJsonInput } from "@/modules/settings/server/m
 
 export async function getStoreSettings() {
   return prisma.$transaction(async (tx) => {
-    let row = await tx.store_settings.findUnique({ where: { id: 1 } });
-    if (!row) {
-      const json = settingsJsonInput(defaultStoreSettingsInput);
-      row = await tx.store_settings.create({
-        data: {
-          id: 1,
-          identity: json.identity,
-          selling: json.selling,
-          payments: json.payments,
-          notifications: json.notifications,
-        },
-      });
-    }
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('laitstyles-store-settings-bootstrap', 0))`;
+
+    const defaults = settingsJsonInput(defaultStoreSettingsInput);
+    let row = await tx.store_settings.upsert({
+      where: { id: 1 },
+      create: {
+        id: 1,
+        identity: defaults.identity,
+        selling: defaults.selling,
+        payments: defaults.payments,
+        notifications: defaults.notifications,
+      },
+      update: {},
+    });
 
     const [zoneCount, pickupCount] = await Promise.all([
       tx.delivery_zones.count({ where: { position: { gte: 0 } } }),
       tx.pickup_locations.count({ where: { position: { gte: 0 } } }),
     ]);
+
     if (!zoneCount && !pickupCount) {
       await tx.delivery_zones.createMany({
         data: defaultStoreSettingsInput.delivery.zones.map((zone, position) => ({
@@ -38,6 +40,7 @@ export async function getStoreSettings() {
           position,
         })),
       });
+
       for (const [position, pickup] of defaultStoreSettingsInput.delivery.pickupLocations.entries()) {
         await tx.pickup_locations.create({
           data: {
@@ -48,11 +51,12 @@ export async function getStoreSettings() {
           },
         });
       }
+
       const persistedPickups = await tx.pickup_locations.findMany({
         where: { position: { gte: 0 } },
         orderBy: { position: "asc" },
       });
-      const json = settingsJsonInput({
+      const initialized = settingsJsonInput({
         ...defaultStoreSettingsInput,
         delivery: {
           ...defaultStoreSettingsInput.delivery,
@@ -64,7 +68,7 @@ export async function getStoreSettings() {
       });
       row = await tx.store_settings.update({
         where: { id: 1 },
-        data: { selling: json.selling },
+        data: { selling: initialized.selling },
       });
     }
 
@@ -78,6 +82,7 @@ export async function getStoreSettings() {
         orderBy: { position: "asc" },
       }),
     ]);
+
     return mapStoreSettings(row, zones, pickups);
   });
 }
