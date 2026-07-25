@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontCatalogueData } from "@/features/storefront/shared/storefront-runtime";
 import { CategorySection } from "./sections/category-section";
 import { HeroSection } from "./sections/hero-section";
 import { NewArrivalsSection } from "./sections/new-arrivals-section";
@@ -15,7 +15,7 @@ import { TrustSection } from "./sections/trust-section";
 export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
   void fontClassName;
   const router = useRouter();
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const newArrivals = products.filter((product) => product.new).slice(0, 8);
   const oneOfOneEdit = products
     .filter((product) => product.inventory === "one-of-one" && product.status === "available")
