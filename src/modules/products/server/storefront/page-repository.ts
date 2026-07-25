@@ -2,9 +2,11 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 import { type Prisma, prisma } from "@/lib/prisma";
-import type { ProductSummary } from "@/lib/storefront/types";
 import { MAX_STOREFRONT_CATALOGUE_DETAILS } from "@/modules/products/server/storefront/catalogue-limits";
-import { mapProductSummary, productSummaryInclude } from "@/modules/products/server/storefront/mappers";
+import {
+  mapProductSummary,
+  productSummaryInclude,
+} from "@/modules/products/server/storefront/mappers";
 import {
   buildStorefrontCatalogueWhere,
   storefrontConditionBuckets,
@@ -17,6 +19,7 @@ import {
   selectStorefrontCataloguePage,
 } from "@/modules/products/server/storefront/page-selection";
 import { listPublishedProducts } from "@/modules/products/server/storefront/queries";
+import type { ProductSummary } from "@/modules/products/server/storefront/types";
 import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
 
 const useStyleSmokeCatalogue = process.env.STOREFRONT_STYLE_SMOKE === "1";
