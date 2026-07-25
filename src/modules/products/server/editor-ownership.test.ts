@@ -12,10 +12,13 @@ const legacyFiles = {
     "src/lib/admin/product-editor/product-editor-stock-guard.ts",
   ),
 };
-const legacyEditorPrefix = "@/lib/admin/product-editor/";
+const forbiddenModuleSpecifiers = [
+  "@/lib/admin/product-editor/",
+  "@/lib/admin/inventory/inventory-types",
+];
 
-describe("product editor domain ownership", () => {
-  it("keeps production modules independent from legacy admin editor paths", async () => {
+describe("product and inventory domain ownership", () => {
+  it("keeps production modules independent from legacy admin contracts", async () => {
     const sourceFiles = await collectSourceFiles(modulesRoot);
     const offenders: string[] = [];
 
@@ -24,12 +27,14 @@ describe("product editor domain ownership", () => {
       if (relative.includes(".test.") || relative.includes(".spec.")) continue;
 
       const source = await readFile(filePath, "utf8");
-      if (source.includes(legacyEditorPrefix)) offenders.push(relative);
+      if (forbiddenModuleSpecifiers.some((specifier) => source.includes(specifier))) {
+        offenders.push(relative);
+      }
     }
 
     expect(
       offenders,
-      "Production modules must import editor contracts and policies from domain modules.",
+      "Production modules must import contracts and policies from domain modules.",
     ).toEqual([]);
   });
 
