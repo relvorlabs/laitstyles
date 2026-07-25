@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontCatalogueData } from "@/features/storefront/shared/storefront-runtime";
 import {
   type AuthDialogRequest,
   subscribeAuthDialog,
@@ -23,7 +23,7 @@ const blankAuthForm: StorefrontAuthForm = {
 };
 
 export function StorefrontAuthDialogHost() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const { actions } = useStorefrontAuth();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<StorefrontAuthMode>("signin");
