@@ -16,9 +16,11 @@ import {
 import { money } from "@/features/storefront/shared/catalogue-data";
 import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export function StorefrontCartSheet({ className }: { className?: string }) {
   const storefront = useStorefront();
+  const navigate = useRouter();
   const recommendations = storefront.products
     .filter(
       (product) =>
@@ -85,13 +87,16 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 Add a piece from the archive and it will stay here as you move through the shop.
               </p>
             </div>
-            <Link
-              className={buttonVariants({ size: "lg" })}
-              href="/products"
-              onClick={storefront.closeAll}
+            <Button
+              size="lg"
+              className={"rounded-full"}
+              onClick={() => {
+                storefront.closeAll();
+                navigate.push("/products");
+              }}
             >
               Shop the archive
-            </Link>
+            </Button>
           </div>
         ) : (
           <>
