@@ -1,6 +1,6 @@
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import type { ProductDetail as CanonicalProductDetail } from "@/lib/storefront/types";
-import type { PublicProductReviews } from "@/server/commerce/reviews/public-reviews";
+import type { PublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
 import { ProductCampaign } from "./product-campaign";
 import { buildProductDetailPresentation } from "./product-detail-presentation";
 import {
