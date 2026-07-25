@@ -1,4 +1,4 @@
-import type { Measurement } from "@/lib/storefront/types";
+import type { Measurement } from "@/modules/products/server/storefront/types";
 
 type MeasurementInput = {
   bust?: number;
