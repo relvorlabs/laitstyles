@@ -3,8 +3,8 @@ import {
   OrderDetailSection,
   type OrderReviewNotice,
 } from "@/features/storefront/account/sections/order-detail-section";
+import { getAccountOrder } from "@/modules/orders/server/account-orders";
 import { getCurrentSession } from "@/server/auth/session";
-import { getAccountOrder } from "@/server/commerce/orders/account-orders";
 
 export default async function AccountOrderDetailPage({
   params,
