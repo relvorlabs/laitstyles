@@ -61,7 +61,6 @@ function buildHoldWhere(input: HoldListInput, now: Date): Prisma.holdsWhereInput
     const contains = { contains: input.search, mode: "insensitive" as const };
     clauses.push({
       OR: [
-        { id: contains },
         { source: contains },
         { note: contains },
         { customers: { is: { name: contains } } },
