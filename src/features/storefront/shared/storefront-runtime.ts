@@ -5,12 +5,12 @@ import { toast as sonnerToast } from "sonner";
 import { cartSubtotal, type CartSelection } from "@/features/storefront/shared/cart-lines";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { productById } from "@/features/storefront/shared/catalogue-data";
+import { useStorefrontHoldNow } from "@/features/storefront/shared/storefront-hold-clock";
 import {
   closeStorefrontOverlays,
   openStorefrontOverlay as openCoordinatedStorefrontOverlay,
 } from "@/features/storefront/shared/storefront-overlay-events";
-import { useStorefrontHoldNow } from "@/features/storefront/shared/storefront-hold-clock";
-import { useStorefrontCatalog } from "@/modules/products/client/storefront-catalog";
+import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import {
   selectCartCount,
   selectCartHydrated,
@@ -52,8 +52,8 @@ export function showStorefrontToast(
   });
 }
 
-export function useStorefrontCatalogData() {
-  const query = useStorefrontCatalog();
+export function useStorefrontCatalogueData() {
+  const query = useStorefrontCatalogue();
   if (!query.data) {
     throw new Error("The storefront catalogue is unavailable.");
   }
@@ -61,12 +61,12 @@ export function useStorefrontCatalogData() {
 }
 
 export function useStorefrontProduct(productId: string | null | undefined) {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   return productId ? productById(products, productId) : undefined;
 }
 
 export function useStorefrontCart() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const lines = useCartStore(selectCartLines);
   const count = useCartStore(selectCartCount);
   const hydrated = useCartStore(selectCartHydrated);
@@ -152,7 +152,7 @@ export function useStorefrontCart() {
 }
 
 export function useStorefrontSavedItems() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const ids = useSavedItemsStore(selectSavedIds);
   const hydrated = useSavedItemsStore(selectSavedHydrated);
   const toggle = useSavedItemsStore((state) => state.toggle);
@@ -194,11 +194,14 @@ export function useStorefrontOverlay() {
 }
 
 export function useStorefrontRecent() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const ids = useStorefrontUiStore(selectRecentIds);
   const add = useStorefrontUiStore((state) => state.addRecent);
   const items = useMemo(
-    () => ids.map((id) => productById(products, id)).filter((item): item is Product => Boolean(item)),
+    () =>
+      ids
+        .map((id) => productById(products, id))
+        .filter((item): item is Product => Boolean(item)),
     [ids, products],
   );
   return { ids, items, add };
