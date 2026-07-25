@@ -3,30 +3,12 @@ import "server-only";
 import { hasCapability } from "@/lib/auth/permissions";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
-import type { InventoryCounts, StockMovement } from "@/modules/inventory/types";
+import type {
+  StockAdjustmentError,
+  StockAdjustmentInput,
+  StockAdjustmentOutcome,
+} from "@/modules/inventory/types";
 import type { StaffSession } from "@/server/auth/session";
-
-export type StockAdjustmentInput = {
-  productId: string;
-  variantId: string | null;
-  quantityDelta: number;
-  note: string;
-};
-
-export type StockAdjustmentOutcome = {
-  balance: InventoryCounts & { committed: number };
-  movement: StockMovement;
-};
-
-export type StockAdjustmentError = {
-  code:
-    | "forbidden"
-    | "invalid-adjustment"
-    | "product-not-found"
-    | "variant-not-found"
-    | "stock-level-not-found";
-  message: string;
-};
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
