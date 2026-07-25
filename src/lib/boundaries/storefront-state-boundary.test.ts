@@ -105,17 +105,19 @@ describe("storefront state boundaries", () => {
   });
 
   it("keeps the storefront catalogue contract British and module-owned", () => {
-    const violations = sourceFiles(join(root, "src")).flatMap((filePath) => {
-      const source = readFileSync(filePath, "utf8");
-      const relativePath = filePath.replace(`${root}/`, "");
-      const symbolViolations = retiredCatalogSymbols
-        .filter((symbol) => source.includes(symbol))
-        .map((symbol) => `${relativePath}: ${symbol}`);
-      const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
-        ? [`${relativePath}: /api/v1/storefront/catalog`]
-        : [];
-      return [...symbolViolations, ...routeViolation];
-    });
+    const violations = sourceFiles(join(root, "src"))
+      .filter((filePath) => !filePath.endsWith("storefront-state-boundary.test.ts"))
+      .flatMap((filePath) => {
+        const source = readFileSync(filePath, "utf8");
+        const relativePath = filePath.replace(`${root}/`, "");
+        const symbolViolations = retiredCatalogSymbols
+          .filter((symbol) => source.includes(symbol))
+          .map((symbol) => `${relativePath}: ${symbol}`);
+        const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
+          ? [`${relativePath}: /api/v1/storefront/catalog`]
+          : [];
+        return [...symbolViolations, ...routeViolation];
+      });
 
     expect(violations).toEqual([]);
 
