@@ -5,6 +5,7 @@ import { useStorefrontCatalogData } from "@/features/storefront/shared/storefron
 import {
   type AuthDialogRequest,
   subscribeAuthDialog,
+  subscribeTransientOverlayClose,
 } from "@/features/storefront/shared/storefront-overlay-events";
 import {
   StorefrontAuthDialog,
@@ -35,6 +36,12 @@ export function StorefrontAuthDialogHost() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const successRef = useRef<(() => void) | null>(null);
 
+  const closeDialog = useCallback(() => {
+    setOpen(false);
+    setState("default");
+    successRef.current = null;
+  }, []);
+
   const openDialog = useCallback((request: AuthDialogRequest) => {
     successRef.current = request.onSuccess ?? null;
     setMode(request.mode);
@@ -44,7 +51,14 @@ export function StorefrontAuthDialogHost() {
     setOpen(true);
   }, []);
 
-  useEffect(() => subscribeAuthDialog(openDialog), [openDialog]);
+  useEffect(() => {
+    const unsubscribeOpen = subscribeAuthDialog(openDialog);
+    const unsubscribeClose = subscribeTransientOverlayClose(closeDialog);
+    return () => {
+      unsubscribeOpen();
+      unsubscribeClose();
+    };
+  }, [closeDialog, openDialog]);
 
   const submit = useCallback(async () => {
     if (state === "signing-in") return;
@@ -68,13 +82,16 @@ export function StorefrontAuthDialogHost() {
     setState(result.value.status);
   }, [actions, form, mode, state, termsAccepted]);
 
-  const onOpenChange = useCallback((nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setState("default");
-      successRef.current = null;
-    }
-  }, []);
+  const onOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        setOpen(true);
+        return;
+      }
+      closeDialog();
+    },
+    [closeDialog],
+  );
 
   const finish = useCallback(() => {
     const completed = state === "success";
