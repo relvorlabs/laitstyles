@@ -1,31 +1,33 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  use,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import type { ProductVariantOption } from "@/lib/storefront/types";
+import type { ReactNode } from "react";
+import { useCallback, useMemo } from "react";
 import type { CartLine } from "./cart-lines";
-import { restoreCartLines } from "./cart-restoration";
-import type { Product } from "./catalogue-data";
+import type { StorefrontHoldIntent } from "./storefront-client-state";
+import {
+  useStorefrontCatalogData,
+  useStorefrontHolds,
+} from "./storefront-runtime";
 import { productById } from "./catalogue-data";
 import {
-  loadStorefrontClientState,
-  persistStorefrontClientState,
-  STOREFRONT_CLIENT_STATE_VERSION,
-  type StorefrontClientStateSnapshot,
-  type StorefrontHoldIntent,
-} from "./storefront-client-state";
-import { StorefrontHoldAlert } from "./storefront-feedback";
+  cartStore,
+  selectCartHydrated,
+  selectCartLines,
+  useCartStore,
+} from "@/stores/cart.store";
+import {
+  savedItemsStore,
+  selectSavedHydrated,
+  selectSavedIds,
+  useSavedItemsStore,
+} from "@/stores/saved-items.store";
+import {
+  selectHolds,
+  selectUiHydrated,
+  useStorefrontUiStore,
+} from "@/stores/storefront-ui.store";
 
-const DEFAULT_HOLD_SECONDS = 15 * 60;
-
-type StorefrontClientStateContextValue = {
+type StorefrontClientStateValue = {
   ready: boolean;
   cart: readonly CartLine[];
   saved: Set<string>;
@@ -40,173 +42,70 @@ type StorefrontClientStateContextValue = {
   clearCart: () => void;
 };
 
-const StorefrontClientStateContext = createContext<StorefrontClientStateContextValue | null>(null);
-
-type VariantOptionsByProductId = Readonly<Record<string, readonly ProductVariantOption[]>>;
-
-function snapshotFromState(
-  cart: readonly CartLine[],
-  saved: ReadonlySet<string>,
-  holds: readonly StorefrontHoldIntent[],
-): StorefrontClientStateSnapshot {
-  return {
-    version: STOREFRONT_CLIENT_STATE_VERSION,
-    cart: cart.map((line) => ({
-      productId: line.productId,
-      variantId: line.variantId,
-      quantity: line.qty,
-    })),
-    saved: [...saved],
-    holds: [...holds],
-  };
+/**
+ * Temporary Phase 6 compatibility shell. It owns no state and exists only until
+ * the final StorefrontProvider consumers are migrated to focused hooks.
+ */
+export function StorefrontClientStateProvider({ children }: { children: ReactNode }) {
+  return children;
 }
 
-export function StorefrontClientStateProvider({
-  children,
-  products,
-  variantOptionsByProductId,
-}: {
-  children: ReactNode;
-  products: readonly Product[];
-  variantOptionsByProductId: VariantOptionsByProductId;
-}) {
-  const [ready, setReady] = useState(false);
-  const [cart, setCartState] = useState<readonly CartLine[]>([]);
-  const [saved, setSavedState] = useState<Set<string>>(new Set());
-  const [holds, setHolds] = useState<StorefrontHoldIntent[]>([]);
-  const [now, setNow] = useState(0);
-  const [holdAlertDismissed, setHoldAlertDismissed] = useState(false);
+export function useStorefrontClientState(): StorefrontClientStateValue {
+  const { products } = useStorefrontCatalogData();
+  const cart = useCartStore(selectCartLines);
+  const cartHydrated = useCartStore(selectCartHydrated);
+  const savedIds = useSavedItemsStore(selectSavedIds);
+  const savedHydrated = useSavedItemsStore(selectSavedHydrated);
+  const holds = useStorefrontUiStore(selectHolds);
+  const uiHydrated = useStorefrontUiStore(selectUiHydrated);
+  const holdRuntime = useStorefrontHolds();
+  const saved = useMemo(() => new Set(savedIds), [savedIds]);
 
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const loaded = loadStorefrontClientState(window.sessionStorage, window.localStorage);
-      setCartState(restoreCartLines(loaded.snapshot.cart, products, variantOptionsByProductId));
-      setSavedState(new Set(loaded.snapshot.saved));
-      setHolds(loaded.snapshot.holds);
-      setNow(Date.now());
-      setReady(true);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [products, variantOptionsByProductId]);
-
-  useEffect(() => {
-    if (!ready) return;
-    persistStorefrontClientState(
-      window.sessionStorage,
-      window.localStorage,
-      snapshotFromState(cart, saved, holds),
-    );
-  }, [cart, holds, ready, saved]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      const current = Date.now();
-      setNow(current);
-      setHolds((existing) => {
-        const active = existing.filter((hold) => hold.expiresAt > current);
-        return active.length === existing.length ? existing : active;
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
+  const setCart = useCallback((next: readonly CartLine[]) => {
+    cartStore.setState({ lines: [...next] });
   }, []);
-
-  const findProduct = useCallback(
-    (productId: string) => productById(products, productId),
-    [products],
-  );
-
-  const holdProduct = useCallback(
-    (productId: string) => {
-      const product = findProduct(productId);
-      if (!product || product.status !== "available") return false;
-      const expiresAt = Date.now() + DEFAULT_HOLD_SECONDS * 1000;
-      setHolds((existing) => [
-        ...existing.filter((hold) => hold.productId !== product.id),
-        { productId: product.id, expiresAt },
-      ]);
-      setHoldAlertDismissed(false);
-      return true;
-    },
-    [findProduct],
-  );
-
-  const releaseProduct = useCallback((productId: string) => {
-    setHolds((existing) => existing.filter((hold) => hold.productId !== productId));
-  }, []);
-
-  const reholdProduct = useCallback((productId: string) => holdProduct(productId), [holdProduct]);
-
-  const setCart = useCallback((next: readonly CartLine[]) => setCartState(next), []);
   const updateCart = useCallback(
-    (updater: (current: readonly CartLine[]) => readonly CartLine[]) =>
-      setCartState((current) => updater(current)),
+    (updater: (current: readonly CartLine[]) => readonly CartLine[]) => {
+      cartStore.setState((state) => ({ lines: updater(state.lines) }));
+    },
     [],
   );
-  const setSaved = useCallback((next: Set<string>) => setSavedState(new Set(next)), []);
-  const clearCart = useCallback(() => setCartState([]), []);
-
-  const holdSecondsByProduct = useMemo(() => {
-    const seconds: Record<string, number> = {};
-    for (const hold of holds) {
-      const remaining = Math.max(0, Math.ceil((hold.expiresAt - now) / 1000));
-      if (remaining > 0) seconds[hold.productId] = remaining;
-    }
-    return seconds;
-  }, [holds, now]);
-  const activeHoldSeconds = Object.values(holdSecondsByProduct);
-  const soonestHoldSeconds = activeHoldSeconds.length ? Math.min(...activeHoldSeconds) : 0;
-
-  const value = useMemo<StorefrontClientStateContextValue>(
-    () => ({
-      ready,
-      cart,
-      saved,
-      holds,
-      holdSecondsByProduct,
-      setCart,
-      updateCart,
-      setSaved,
-      holdProduct,
-      releaseProduct,
-      reholdProduct,
-      clearCart,
-    }),
-    [
-      cart,
-      clearCart,
-      holdProduct,
-      holdSecondsByProduct,
-      holds,
-      ready,
-      reholdProduct,
-      releaseProduct,
-      saved,
-      setCart,
-      setSaved,
-      updateCart,
-    ],
+  const setSaved = useCallback((next: Set<string>) => {
+    savedItemsStore.setState({ ids: [...next] });
+  }, []);
+  const holdProduct = useCallback(
+    (productId: string) => {
+      const product = productById(products, productId);
+      if (!product || product.status !== "available") return false;
+      holdRuntime.holdProduct(product.id);
+      return true;
+    },
+    [holdRuntime.holdProduct, products],
   );
-
-  return (
-    <StorefrontClientStateContext.Provider value={value}>
-      {children}
-      {activeHoldSeconds.length > 0 && !holdAlertDismissed ? (
-        <StorefrontHoldAlert
-          count={activeHoldSeconds.length}
-          onDismiss={() => setHoldAlertDismissed(true)}
-          secondsLeft={soonestHoldSeconds}
-        />
-      ) : null}
-    </StorefrontClientStateContext.Provider>
+  const releaseProduct = useCallback(
+    (productId: string) => holdRuntime.releaseProduct(productId),
+    [holdRuntime.releaseProduct],
   );
-}
+  const reholdProduct = useCallback(
+    (productId: string) => holdProduct(productId),
+    [holdProduct],
+  );
+  const clearCart = useCallback(() => cartStore.getState().clear(), []);
 
-export function useStorefrontClientState() {
-  const context = use(StorefrontClientStateContext);
-  if (!context) {
-    throw new Error("useStorefrontClientState must be used within StorefrontClientStateProvider");
-  }
-  return context;
+  return {
+    ready: cartHydrated && savedHydrated && uiHydrated,
+    cart,
+    saved,
+    holds,
+    holdSecondsByProduct: holdRuntime.secondsByProduct,
+    setCart,
+    updateCart,
+    setSaved,
+    holdProduct,
+    releaseProduct,
+    reholdProduct,
+    clearCart,
+  };
 }
 
 export function formatHoldTime(seconds: number) {
