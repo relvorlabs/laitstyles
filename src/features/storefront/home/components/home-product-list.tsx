@@ -1,15 +1,15 @@
 "use client";
 
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
-import { ProductCard } from "@/features/storefront/shared/product-card";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
   useStorefrontCart,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontHolds,
   useStorefrontSavedItems,
-} from "@/features/storefront/shared/storefront-runtime";
+} from "@/modules/storefront-shell/client/storefront-runtime";
+import { ProductCard } from "@/features/storefront/shared/product-card";
 
 export function HomeProductList({
   products,
@@ -20,11 +20,11 @@ export function HomeProductList({
   className: string;
   id: string;
 }) {
-  const catalog = useStorefrontCatalogData();
+  const catalogue = useStorefrontCatalogueData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
-  const lookup = new Map(catalog.products.map((product) => [product.id, product]));
+  const lookup = new Map(catalogue.products.map((product) => [product.id, product]));
 
   return (
     <div className={className} id={id}>
