@@ -1,28 +1,49 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { OrderControls } from "@/features/admin/orders/order-controls";
 import { OrderDetailSheet } from "@/features/admin/orders/order-detail-sheet";
+import { defaultOrderQuery } from "@/features/admin/orders/order-selectors";
 import { OrderSavedViews } from "@/features/admin/orders/order-saved-views";
-import {
-  defaultOrderQuery,
-  getOrderSavedViewCounts,
-  getOrderWorkspaceSummary,
-  queryOrders,
-} from "@/features/admin/orders/order-selectors";
 import type { OrderQuery } from "@/features/admin/orders/order-types";
 import { OrdersEmptyState } from "@/features/admin/orders/orders-empty-state";
 import { OrdersHeader } from "@/features/admin/orders/orders-header";
 import { OrdersMobileList } from "@/features/admin/orders/orders-mobile-list";
+import { OrdersPagination } from "@/features/admin/orders/orders-pagination";
 import { OrdersSummaryStrip } from "@/features/admin/orders/orders-summary-strip";
 import { OrdersTable } from "@/features/admin/orders/orders-table";
 import { buildOrdersHref } from "@/features/admin/orders/orders-url";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { useTransitionOrder } from "@/lib/admin/orders/orders-mutations";
-import type { OrderStatus } from "@/lib/admin/shared/types";
+import {
+  adminOrderQueryOptions,
+  adminOrdersQueryOptions,
+  useTransitionOrder,
+} from "@/modules/orders/client/hooks";
+import type {
+  OrderSavedViewCounts,
+  OrderStatus,
+  OrderWorkspaceSummary,
+} from "@/modules/orders/types";
+
+const emptyCounts: OrderSavedViewCounts = {
+  all: 0,
+  "needs-attention": 0,
+  "pending-payment": 0,
+  fulfilment: 0,
+  delivered: 0,
+  closed: 0,
+};
+const emptySummary: OrderWorkspaceSummary = {
+  totalOrders: 0,
+  needsAttention: 0,
+  pendingPayment: 0,
+  inFulfilment: 0,
+  delivered: 0,
+  netRevenue: 0,
+};
 
 export function OrdersWorkspace({
   initialQuery,
@@ -32,7 +53,7 @@ export function OrdersWorkspace({
   initialOpenOrderId: string | null;
 }) {
   const pathname = usePathname();
-  const { state } = useAdmin();
+  const router = useRouter();
   const transitionOrderMutation = useTransitionOrder();
   const [query, setQuery] = useState(initialQuery);
   const [openOrderId, setOpenOrderId] = useState<string | null>(initialOpenOrderId);
@@ -42,24 +63,31 @@ export function OrdersWorkspace({
     message: string;
   } | null>(null);
 
-  const orders = useMemo(() => queryOrders(state, query), [query, state]);
-  const counts = useMemo(() => getOrderSavedViewCounts(state.orders), [state.orders]);
-  const summary = useMemo(() => getOrderWorkspaceSummary(state), [state]);
-  const openOrder = state.orders.find((order) => order.id === openOrderId) ?? null;
+  const ordersQuery = useQuery(adminOrdersQueryOptions(query));
+  const detailQuery = useQuery(adminOrderQueryOptions(openOrderId ?? ""));
+  const orders = ordersQuery.data?.data ?? [];
+  const meta = ordersQuery.data?.meta;
+  const counts = meta?.counts ?? emptyCounts;
+  const summary = meta?.summary ?? emptySummary;
+  const openOrder = detailQuery.data ?? null;
 
   function replaceUrl(nextQuery = query, nextOrderId = openOrderId) {
-    window.history.replaceState(
-      null,
-      "",
+    router.replace(
       buildOrdersHref(pathname, {
         query: nextQuery,
         orderId: nextOrderId,
       }),
+      { scroll: false },
     );
   }
 
   function patchQuery(patch: Partial<OrderQuery>) {
-    const nextQuery = { ...query, ...patch };
+    const affectsResultSet = Object.keys(patch).some((key) => key !== "page");
+    const nextQuery = {
+      ...query,
+      ...patch,
+      ...(affectsResultSet ? { page: 1 } : {}),
+    };
     setQuery(nextQuery);
     setFeedback(null);
     replaceUrl(nextQuery);
@@ -115,7 +143,7 @@ export function OrdersWorkspace({
           onQueryChange={patchQuery}
           onReset={resetQuery}
           query={query}
-          resultCount={orders.length}
+          resultCount={meta?.total ?? orders.length}
         />
       </Card>
 
@@ -126,13 +154,38 @@ export function OrdersWorkspace({
         </Alert>
       ) : null}
 
+      {ordersQuery.isError ? (
+        <Alert aria-live="polite" variant="destructive">
+          <AlertTitle>Orders could not be loaded</AlertTitle>
+          <AlertDescription>
+            {ordersQuery.error instanceof Error
+              ? ordersQuery.error.message
+              : "Refresh and try loading the persisted orders again."}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {orders.length ? (
         <>
-          <OrdersMobileList onOpen={openOrderRecord} orders={orders} state={state} />
-          <OrdersTable onOpen={openOrderRecord} orders={orders} state={state} />
+          <OrdersMobileList onOpen={openOrderRecord} orders={orders} />
+          <OrdersTable onOpen={openOrderRecord} orders={orders} />
+          {meta ? (
+            <OrdersPagination
+              onPageChange={(page) => patchQuery({ page })}
+              onPageSizeChange={(pageSize) => patchQuery({ pageSize })}
+              page={meta.page}
+              pageCount={meta.pageCount}
+              pageSize={meta.pageSize}
+              totalItems={meta.total}
+            />
+          ) : null}
         </>
+      ) : ordersQuery.isPending ? (
+        <p className="rounded-[18px] border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground">
+          Loading orders…
+        </p>
       ) : (
-        <OrdersEmptyState hasOrders={state.orders.length > 0} onReset={resetQuery} />
+        <OrdersEmptyState hasOrders={summary.totalOrders > 0} onReset={resetQuery} />
       )}
 
       <OrderDetailSheet
@@ -141,7 +194,6 @@ export function OrdersWorkspace({
         }}
         onTransition={moveOrder}
         order={openOrder}
-        state={state}
       />
     </div>
   );
