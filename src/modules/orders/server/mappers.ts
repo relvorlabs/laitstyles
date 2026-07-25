@@ -56,7 +56,10 @@ const orderStatuses = new Set<OrderStatus>([
 ]);
 
 export function mapDatabaseOrderStatus(
-  row: Pick<AdminOrderRow, "payment_status" | "fulfilment_status" | "fulfilment_method">,
+  row: Pick<
+    AdminOrderRow,
+    "payment_status" | "fulfilment_status" | "fulfilment_method" | "order_timeline_events"
+  >,
 ): OrderStatus {
   if (row.fulfilment_status === "cancelled") return "cancelled";
   if (row.fulfilment_status === "returned" || row.fulfilment_status === "partially_returned") {
@@ -66,12 +69,50 @@ export function mapDatabaseOrderStatus(
     return "refunded";
   }
   if (row.fulfilment_status === "delivered") return "delivered";
+
+  const timelineStatus = latestTimelineStatus(row.order_timeline_events);
+  if (
+    row.fulfilment_status === "dispatched" &&
+    (timelineStatus === "dispatched" || timelineStatus === "out-for-delivery")
+  ) {
+    return timelineStatus;
+  }
+  if (
+    row.fulfilment_status === "ready_for_dispatch" &&
+    (timelineStatus === "packed" ||
+      timelineStatus === "ready-for-pickup" ||
+      timelineStatus === "dispatched")
+  ) {
+    return timelineStatus;
+  }
+  if (row.fulfilment_status === "processing" && timelineStatus === "preparing") {
+    return "preparing";
+  }
+  if (
+    row.fulfilment_status === "unfulfilled" &&
+    (timelineStatus === "pending-payment" || timelineStatus === "payment-confirmed")
+  ) {
+    return timelineStatus;
+  }
+
   if (row.fulfilment_status === "dispatched") return "dispatched";
   if (row.fulfilment_status === "ready_for_dispatch") {
     return row.fulfilment_method === "pickup" ? "ready-for-pickup" : "packed";
   }
   if (row.fulfilment_status === "processing") return "preparing";
   return row.payment_status === "paid" ? "payment-confirmed" : "pending-payment";
+}
+
+function latestTimelineStatus(
+  events: Pick<AdminOrderRow["order_timeline_events"][number], "status">[],
+): OrderStatus | null {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const normalized = events[index]?.status.replaceAll("_", "-");
+    if (normalized && orderStatuses.has(normalized as OrderStatus)) {
+      return normalized as OrderStatus;
+    }
+  }
+  return null;
 }
 
 function mapPaymentStatus(value: AdminOrderRow["payment_status"]): PaymentStatus {
