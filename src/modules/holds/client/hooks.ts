@@ -6,7 +6,6 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import { customerKeys } from "@/modules/customers/client/keys";
 import {
   convertHoldRequest,
@@ -19,6 +18,7 @@ import { holdKeys } from "@/modules/holds/client/keys";
 import type { HoldListInput } from "@/modules/holds/types";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import { orderKeys } from "@/modules/orders/client/keys";
+import { overviewKeys } from "@/modules/overview/client/keys";
 
 const activeHoldReconciliationIntervalMs = 30_000;
 
