@@ -6,7 +6,6 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
@@ -18,6 +17,7 @@ import {
 } from "@/modules/orders/client/api";
 import { orderKeys } from "@/modules/orders/client/keys";
 import type { ControlRoomOrder, OrderListInput } from "@/modules/orders/types";
+import { overviewKeys } from "@/modules/overview/client/keys";
 
 export function adminOrdersQueryOptions(input: OrderListInput) {
   return queryOptions({
