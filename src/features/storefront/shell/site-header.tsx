@@ -3,6 +3,7 @@
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function SiteHeader({
   onGoHome: () => void;
   onNavNew: () => void;
 }) {
+  const pathname = usePathname();
   const { products } = useStorefrontCatalogData();
   const saved = useStorefrontSavedItems();
   const utility = useStorefrontUtility();
@@ -43,6 +45,10 @@ export function SiteHeader({
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    overlay.close();
+  }, [pathname, overlay.close]);
 
   const mobileNavigate = (action: () => void) => {
     overlay.close();
@@ -126,7 +132,7 @@ export function SiteHeader({
             variant="ghost"
           >
             <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M4 7h16M4 12h16M4 17h16" />
+              <path d="M4 7h16M4 12h10M4 17h16" />
             </svg>
           </Button>
 
