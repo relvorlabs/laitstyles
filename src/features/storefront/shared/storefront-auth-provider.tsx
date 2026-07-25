@@ -12,7 +12,6 @@ import {
   type StorefrontAuthForm,
   type StorefrontAuthMode,
 } from "./storefront-auth-dialog";
-import { StorefrontAuthDialogHost } from "./storefront-auth-dialog-host";
 import { openAuthDialog } from "./storefront-overlay-events";
 import type { StorefrontAuthSession } from "./storefront-auth-session";
 
@@ -115,12 +114,7 @@ export function StorefrontAuthProvider({
     ],
   );
 
-  return (
-    <StorefrontAuthContext.Provider value={value}>
-      {children}
-      <StorefrontAuthDialogHost />
-    </StorefrontAuthContext.Provider>
-  );
+  return <StorefrontAuthContext.Provider value={value}>{children}</StorefrontAuthContext.Provider>;
 }
 
 export function useStorefrontAuth() {
