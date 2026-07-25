@@ -4,17 +4,21 @@ import { throwOrderActionError } from "@/modules/orders/server/api-errors";
 
 describe("throwOrderActionError", () => {
   it("maps concurrency conflicts to 409 without losing their identity", () => {
-    expect(() =>
+    let thrown: unknown;
+    try {
       throwOrderActionError({
         code: "stock-write-conflict",
         message: "Stock changed while the order was being updated.",
-      }),
-    ).toThrowError(
-      expect.objectContaining<ApiError>({
-        code: "STOCK_WRITE_CONFLICT",
-        status: 409,
-      }),
-    );
+      });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(ApiError);
+    expect(thrown).toMatchObject({
+      code: "STOCK_WRITE_CONFLICT",
+      status: 409,
+    });
   });
 
   it("preserves quantities and active hold identifiers", () => {
