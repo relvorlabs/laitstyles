@@ -12,6 +12,8 @@ import {
   productDetailInclude,
   productSummaryInclude,
 } from "@/modules/products/server/storefront/mappers";
+import { groupVariantMeasurements } from "@/modules/products/server/storefront/variant-measurements";
+import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
 import type {
   CatalogueSort,
   CategoryWithImage,
@@ -20,9 +22,7 @@ import type {
   ProductSummary,
   StorefrontFacetOptions,
   TaxonomyRef,
-} from "@/modules/products/server/storefront/types";
-import { groupVariantMeasurements } from "@/modules/products/server/storefront/variant-measurements";
-import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
+} from "@/modules/products/storefront-types";
 
 export interface CatalogueFilters {
   search?: string;
