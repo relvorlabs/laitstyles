@@ -12,9 +12,6 @@ const SearchOverlay = dynamic(() =>
 const SavedItemsDrawer = dynamic(() =>
   import("./overlays/saved-items-drawer").then((module) => module.SavedItemsDrawer),
 );
-const LegacyCartDrawer = dynamic(() =>
-  import("./overlays/legacy-cart-drawer").then((module) => module.LegacyCartDrawer),
-);
 const FilterDrawer = dynamic(() =>
   import("./overlays/filter-drawer").then((module) => module.FilterDrawer),
 );
@@ -44,7 +41,6 @@ export function StorefrontOverlays() {
   let sharedOverlay: React.ReactNode = null;
   if (overlay.openId === "searchModal") sharedOverlay = <SearchOverlay />;
   else if (overlay.openId === "savedDrawer") sharedOverlay = <SavedItemsDrawer />;
-  else if (overlay.openId === "legacyCartDrawer") sharedOverlay = <LegacyCartDrawer />;
   else if (overlay.openId === "filterDrawer") sharedOverlay = <FilterDrawer />;
   else if (overlay.openId === "sortSheet") sharedOverlay = <SortOverlay />;
   else if (overlay.openId && informationOverlayIds.has(overlay.openId)) {
