@@ -12,7 +12,7 @@ import type {
   ProductVariantOption,
   ReviewSummary,
   TaxonomyRef,
-} from "@/lib/storefront/types";
+} from "@/modules/products/server/storefront/types";
 
 // ---- Prisma include shapes + derived payload types -------------------------
 
@@ -237,7 +237,6 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
     row.product_variants,
     row.low_stock_threshold,
   );
-
   if (mode === "variant") {
     return {
       ...common,
