@@ -12,11 +12,7 @@ const legacyFiles = {
     "src/lib/admin/product-editor/product-editor-stock-guard.ts",
   ),
 };
-const forbiddenModulePrefixes = [
-  "@/lib/admin/product-editor/product-editor-types",
-  "@/lib/admin/product-editor/product-editor-schema",
-  "@/lib/admin/product-editor/product-editor-stock-guard",
-];
+const legacyEditorPrefix = "@/lib/admin/product-editor/";
 
 describe("product editor domain ownership", () => {
   it("keeps production modules independent from legacy admin editor paths", async () => {
@@ -28,9 +24,7 @@ describe("product editor domain ownership", () => {
       if (relative.includes(".test.") || relative.includes(".spec.")) continue;
 
       const source = await readFile(filePath, "utf8");
-      if (forbiddenModulePrefixes.some((prefix) => source.includes(prefix))) {
-        offenders.push(relative);
-      }
+      if (source.includes(legacyEditorPrefix)) offenders.push(relative);
     }
 
     expect(
