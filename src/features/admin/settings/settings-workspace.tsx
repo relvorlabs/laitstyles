@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   type FieldErrors,
@@ -11,7 +11,7 @@ import {
   type Resolver,
   useForm,
 } from "react-hook-form";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { settingsSections } from "@/features/admin/settings/settings-config";
 import {
   countSettingsSectionErrors,
@@ -27,26 +27,59 @@ import { SettingsSectionContent } from "@/features/admin/settings/settings-secti
 import { SettingsStatusStrip } from "@/features/admin/settings/settings-status-strip";
 import { buildSettingsHref } from "@/features/admin/settings/settings-url";
 import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
-import { useSaveStoreSettings } from "@/lib/admin/settings/settings-mutations";
-import { settingsQueryOptions } from "@/lib/admin/settings/settings-query-options";
-import { storeSettingsInputSchema } from "@/lib/admin/settings/settings-schema";
+import { storeSettingsInputSchema } from "@/modules/settings/schema";
+import {
+  storeSettingsQueryOptions,
+  useSaveStoreSettings,
+} from "@/modules/settings/client/hooks";
 import type {
   SaveStoreSettingsInput,
   SettingsSection,
   StoreSettings,
-} from "@/lib/admin/shared/types";
+} from "@/modules/settings/types";
 
 export function SettingsWorkspace({ initialSection }: { initialSection: SettingsSection }) {
+  const settingsQuery = useQuery(storeSettingsQueryOptions());
+  if (settingsQuery.isPending) {
+    return (
+      <p className="mx-auto w-full max-w-[1480px] px-4 py-10 text-sm text-muted-foreground sm:px-6 lg:px-8">
+        Loading persisted store settings…
+      </p>
+    );
+  }
+  if (settingsQuery.isError || !settingsQuery.data) {
+    return (
+      <Alert className="mx-auto mt-10 w-[min(92vw,900px)]" variant="destructive">
+        <AlertTitle>Store settings could not be loaded</AlertTitle>
+        <AlertDescription>
+          {settingsQuery.error instanceof Error
+            ? settingsQuery.error.message
+            : "Refresh and try loading the persisted settings again."}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  return (
+    <PersistedSettingsForm
+      initialSection={initialSection}
+      key={settingsQuery.data.updatedAt}
+      persistedSettings={settingsQuery.data}
+    />
+  );
+}
+
+function PersistedSettingsForm({
+  initialSection,
+  persistedSettings,
+}: {
+  initialSection: SettingsSection;
+  persistedSettings: StoreSettings;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
   const { can } = useAdminAccess();
   const canEdit = can("settings:update");
-  const { state } = useAdmin();
-  const repositories = useAdminRepositories();
-  const { data: settings } = useQuery(settingsQueryOptions(repositories));
   const saveSettingsMutation = useSaveStoreSettings();
-  const persistedSettings = settings ?? createDefaultStoreSettings(state.asOf);
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [feedback, setFeedback] = useState<SettingsFeedback | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -97,7 +130,7 @@ export function SettingsWorkspace({ initialSection }: { initialSection: Settings
 
   function changeSection(section: SettingsSection) {
     setActiveSection(section);
-    window.history.replaceState(null, "", buildSettingsHref(pathname, section));
+    router.replace(buildSettingsHref(pathname, section), { scroll: false });
   }
 
   function applyIssues(issues: Array<{ path: string; message: string; section: SettingsSection }>) {
