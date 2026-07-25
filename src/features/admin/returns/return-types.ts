@@ -1,21 +1,13 @@
-import type { ReturnStatus } from "@/lib/admin/shared/types";
+import type {
+  ReturnListInput,
+  ReturnSavedView,
+  ReturnSortKey,
+  ReturnStatus,
+} from "@/modules/returns/types";
 
-export type ReturnSavedView =
-  | "all"
-  | "open"
-  | "awaiting-item"
-  | "inspection"
-  | "refund"
-  | "resolved";
+export type { ReturnSavedView, ReturnSortKey, ReturnStatus } from "@/modules/returns/types";
 
-export type ReturnSortKey = "updated-desc" | "requested-desc" | "value-desc";
-
-export type ReturnQuery = {
-  view: ReturnSavedView;
-  search: string;
-  status: ReturnStatus | "all";
-  sort: ReturnSortKey;
-};
+export type ReturnQuery = ReturnListInput;
 
 export type ReturnWorkspaceItem = {
   returnId: string;
@@ -29,16 +21,13 @@ export type ReturnWorkspaceItem = {
   updatedAt: string;
 };
 
-export type ReturnWorkspaceSummary = {
-  totalReturns: number;
-  openReturns: number;
-  awaitingItem: number;
-  inspecting: number;
-  refundValue: number;
-};
-
 export type ReturnActionFeedback = {
   tone: "success" | "error";
   title: string;
   message: string;
+};
+
+export type ReturnQueryValues = {
+  views: readonly ReturnSavedView[];
+  sorts: readonly ReturnSortKey[];
 };
