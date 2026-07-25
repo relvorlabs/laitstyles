@@ -1,17 +1,15 @@
 import "server-only";
 
-import type {
-  CatalogueChannel,
-  ProductMedia,
-  ProductMediaKind,
-  ProductVariant,
-} from "@/lib/admin/inventory/inventory-types";
 import type { Prisma } from "@/lib/prisma";
 import { mapInventoryCounts } from "@/modules/inventory/server/mappers";
 import type {
   AdminProduct,
+  CatalogueChannel,
+  ProductMedia,
+  ProductMediaKind,
   ProductTaxonomyItem,
   ProductTaxonomyKind,
+  ProductVariant,
 } from "@/modules/products/types";
 
 export const adminProductInclude = {
