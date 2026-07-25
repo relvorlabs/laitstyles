@@ -9,7 +9,7 @@
 **Phase 5 merge:** `cd12b89e9ec2eb9210704e200e30731d864646e1`  
 **Current branch:** `refactor/phase-6-storefront-state-zustand`  
 **Current phase:** Phase 6 — Storefront state and Zustand migration  
-**Overall status:** Phase 6 ownership migration implemented in source; dependency-lock repair and exact-head certification remain
+**Overall status:** Phase 6 architecture corrections implemented; dependency-lock repair and exact-head certification remain
 
 Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Merged with debt`.
 
@@ -115,12 +115,6 @@ Controlling document:
 
 - [`phase-6-storefront-state-status.md`](phase-6-storefront-state-status.md)
 
-Audited implementation head before status reconciliation:
-
-```text
-8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2
-```
-
 ### Current runtime composition
 
 ```text
@@ -128,6 +122,7 @@ StorefrontRouteBoundary
   -> StorefrontClientBoundary
      -> StorefrontQueryProvider
         -> StorefrontStateHydrator
+           -> StorefrontHoldClockBoundary
            -> StorefrontAuthProvider
               -> SiteChrome
                  -> SiteHeader / route / SiteFooter / StorefrontOverlays
@@ -139,13 +134,18 @@ StorefrontRouteBoundary
 - `cart.store.ts` owns minimal cart-line intents and actions.
 - `saved-items.store.ts` owns saved product IDs and actions.
 - `storefront-ui.store.ts` owns shared overlay identity, recent IDs, utility dismissal and non-authoritative hold intents.
+- One `StorefrontHoldClockBoundary` serves all mounted countdown consumers and expires stale hold intents.
 - The storefront catalogue remains TanStack-backed and is not copied into Zustand.
+- `STOREFRONT_QUERY_DEFAULTS` is the single storefront cache-policy definition.
 - The hydration boundary preserves the version-3 cart/saved/hold migration and persists minimal identifiers only.
-- Catalogue filters, sorting, search and pagination are URL-owned.
-- Quick view, image viewer, measurement unit, newsletter, delivery estimate, header scroll, catalogue density/sidebar and auth-dialog fields moved to narrow local boundaries.
+- Catalogue filters, sorting, search, quick links, chip removal and pagination mutate the URL through `useCatalogueNavigation()` only.
+- Quick view, image viewer, auth and Zustand overlays transition through one coordinator so they cannot remain stacked.
+- Product catalogue contracts and projection code are owned by the Products module.
+- The public client and API contract uses British `catalogue` naming throughout.
+- The original cart empty-state copy and storefront presentation contract are preserved.
 - `StorefrontProvider` and `StorefrontClientStateProvider` are deleted.
-- Architecture tests reject the retired files/imports and forbidden store ownership from returning.
-- Phase 6 unit, API and Playwright contracts are authored.
+- Architecture tests reject retired providers, American catalogue paths/symbols, duplicate router ownership and reversed server dependencies.
+- Focused store, clock, overlay, catalogue-projection, API and Playwright contracts are authored.
 
 ### Confirmed dependency blocker
 
@@ -157,7 +157,7 @@ The repository installs dependencies with:
 pnpm install --frozen-lockfile
 ```
 
-The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must remain enabled.
+The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must remain enabled, and the lockfile must not be fabricated manually.
 
 ### Phase 6 task ledger
 
@@ -165,7 +165,7 @@ The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelat
 | --- | --- | --- | --- |
 | P6-T00 | Record Phase 5 merge and validation debt | Complete | Recorded |
 | P6-T00A | Map original provider, persistence and URL ownership | Complete | Source-audited |
-| P6-T00B | Add storefront-state non-expansion guard | Complete | Execution pending |
+| P6-T00B | Add storefront-state non-expansion guards | Complete | Execution pending |
 | P6-T01 | Add Zustand | Blocked | Package declared; lockfile not reconciled |
 | P6-T02 | Create cart store | Source complete | Unit execution pending |
 | P6-T03 | Create saved-items store | Source complete | Unit execution pending |
@@ -186,25 +186,18 @@ The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelat
 | P6-T18 | Separate auth-dialog local state | Source complete | Auth/browser execution pending |
 | P6-T19 | Remove migrated values from `StorefrontProvider` | Complete | Provider deleted |
 | P6-T20 | Remove unused context selectors and consumers | Source complete | TypeScript/guard execution pending |
-| P6-T21 | Delete final legacy provider after last consumer | Complete | Both providers deleted |
-| P6-T22 | Pass static, unit, build, React Doctor and browser gates | Not started | Exact-head evidence required |
+| P6-T21 | Delete final legacy provider after consumer cutover | Complete | Both providers deleted |
+| P6-T22 | Pass static, unit, build, React Doctor and browser gates | Pending | Exact-head evidence required |
 
 ### Exact-head evidence state
 
-For head `8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2`:
-
-```text
-Implementation Quality: 30169398436 — queued
-Playwright UI Contract: 30169398438 — queued
-```
-
-Queued, cancelled, skipped, superseded or unavailable checks remain validation debt. There are no submitted reviews and no unresolved review threads.
+The PR workflows remain queued or pending. Queued, cancelled, skipped, superseded or unavailable checks remain validation debt and are never reported as passes.
 
 ## Phase 6 remaining order
 
 1. Regenerate and commit the pnpm 11.13.0 lockfile with Zustand.
 2. Prove frozen installation on the resulting exact head.
-3. Run architecture guard, Biome and TypeScript.
+3. Run architecture guards, Biome and TypeScript.
 4. Run focused and full Vitest suites.
 5. Run production build and React Doctor.
 6. Run desktop, tablet and mobile Playwright plus light/dark visual comparison.
