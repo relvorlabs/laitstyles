@@ -7,33 +7,34 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { money as naira } from "@/features/storefront/shared/catalogue-data";
 import {
-  formatHoldTime,
-  useStorefrontClientState,
-} from "@/features/storefront/shared/storefront-client-state-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+  useStorefrontCart,
+  useStorefrontHolds,
+} from "@/features/storefront/shared/storefront-runtime";
 
 const USD_RATE = 1600;
 
 type Currency = "NGN" | "USD";
 
 export default function CartPage() {
-  const storefront = useStorefront();
-  const clientState = useStorefrontClientState();
+  const cart = useStorefrontCart();
+  const holds = useStorefrontHolds();
   const [currency, setCurrency] = useState<Currency>("NGN");
   const [discountInput, setDiscountInput] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountMessage, setDiscountMessage] = useState("");
 
-  const heldLines = storefront.cartLines.filter(
-    ({ product }) => (clientState.holdSecondsByProduct[product.id] ?? 0) > 0,
+  const heldLines = cart.views.filter(
+    ({ product }) => (holds.secondsByProduct[product.id] ?? 0) > 0,
   );
   const soonestHoldSeconds = heldLines.length
-    ? Math.min(...heldLines.map(({ product }) => clientState.holdSecondsByProduct[product.id] ?? 0))
+    ? Math.min(
+        ...heldLines.map(({ product }) => holds.secondsByProduct[product.id] ?? 0),
+      )
     : 0;
-  const itemCount = storefront.cartLines.reduce((sum, line) => sum + line.lineQty, 0);
+  const itemCount = cart.count;
 
   const totals = useMemo(() => {
-    const subtotal = storefront.cartLines.reduce(
+    const subtotal = cart.views.reduce(
       (sum, line) => sum + line.unitPriceNaira * line.lineQty,
       0,
     );
@@ -47,7 +48,7 @@ export default function CartPage() {
       vat,
       total: subtotal - discount + shipping + vat,
     };
-  }, [discountApplied, itemCount, storefront.cartLines]);
+  }, [cart.views, discountApplied, itemCount]);
 
   function formatMoney(value: number) {
     if (currency === "NGN") return naira(value);
@@ -86,7 +87,7 @@ export default function CartPage() {
           </div>
         </div>
 
-        {storefront.cartLines.length ? (
+        {cart.views.length ? (
           <div className="flex flex-wrap items-start gap-[22px]">
             <section className="min-w-[300px] flex-[1_1_560px] rounded-[16px] bg-white px-8 pb-[34px] pt-[30px] shadow-[0_30px_80px_rgba(0,0,0,.10)] max-sm:px-5">
               <div className="mb-1.5 flex items-baseline justify-between gap-4">
@@ -117,7 +118,9 @@ export default function CartPage() {
                   {soonestHoldSeconds > 0 ? (
                     <>
                       Your next hold releases in{" "}
-                      <strong className="tabular-nums">{formatHoldTime(soonestHoldSeconds)}</strong>
+                      <strong className="tabular-nums">
+                        {formatHoldTime(soonestHoldSeconds)}
+                      </strong>
                     </>
                   ) : (
                     "Availability is confirmed again when you continue to checkout."
@@ -126,9 +129,9 @@ export default function CartPage() {
               </div>
 
               <div>
-                {storefront.cartLines.map(
+                {cart.views.map(
                   ({ product, lineKey, lineQty, variantLabel, colour, size, unitPriceNaira }) => {
-                    const holdSeconds = clientState.holdSecondsByProduct[product.id] ?? 0;
+                    const holdSeconds = holds.secondsByProduct[product.id] ?? 0;
                     const held = holdSeconds > 0;
                     return (
                       <article
@@ -179,12 +182,14 @@ export default function CartPage() {
                               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                                 <Clock aria-hidden="true" className="size-3" />
                                 Held ·{" "}
-                                <span className="tabular-nums">{formatHoldTime(holdSeconds)}</span>
+                                <span className="tabular-nums">
+                                  {formatHoldTime(holdSeconds)}
+                                </span>
                               </span>
                             ) : product.inventory === "one-of-one" ? (
                               <Button
                                 className="h-auto px-0 text-[11.5px]"
-                                onClick={() => clientState.reholdProduct(product.id)}
+                                onClick={() => holds.holdProduct(product.id)}
                                 type="button"
                                 variant="link"
                               >
@@ -198,8 +203,8 @@ export default function CartPage() {
                             <Button
                               className="h-auto gap-1.5"
                               onClick={() => {
-                                storefront.removeFromCart(lineKey);
-                                clientState.releaseProduct(product.id);
+                                cart.removeLine(lineKey);
+                                holds.releaseProduct(product.id);
                               }}
                               type="button"
                               variant="link"
@@ -294,7 +299,7 @@ export default function CartPage() {
             </div>
             <h1 className="mt-6 font-serif text-[34px] font-medium">Your bag is waiting</h1>
             <p className="mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-              Add something from the drop and it will appear here and in the header bag.
+              Add something from the drop and it will stay here while you continue browsing.
             </p>
             <Link
               className="mt-6 flex h-12 items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14px] font-semibold text-white"
@@ -307,6 +312,12 @@ export default function CartPage() {
       </div>
     </main>
   );
+}
+
+function formatHoldTime(seconds: number) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  return `${minutes}:${String(safeSeconds % 60).padStart(2, "0")}`;
 }
 
 function CurrencyButton({
