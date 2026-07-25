@@ -5,9 +5,10 @@
 **Phase 1 merge:** `1ca1b184207ea2a36fa41c10162b8a059abe5289`  
 **Phase 2 merge:** `558e34852f38f0982c7ce9d7c32422f09bbf8775`  
 **Phase 3 merge:** `d7e3149c96f234d7deb41151ac603d6f652ceb4d`  
-**Current branch:** `refactor/phase-4-products-inventory-cutover`  
-**Current phase:** Phase 4 — Products and inventory cutover  
-**Overall status:** Source implementation complete; final-head certification pending
+**Phase 4 merge:** `646ad2942ec2afbdb42e5269bad6d1993b01444b`  
+**Current branch:** `refactor/phase-5-admin-dummy-domain-cutover`  
+**Current phase:** Phase 5 — Remove remaining admin dummy domains  
+**Overall status:** Phase 5 bootstrap complete; domain implementation not started
 
 Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with debt`.
 
@@ -19,8 +20,8 @@ Status values: `Not started`, `In progress`, `Blocked`, `Complete`, `Merged with
 | 1 | Establish architecture rules, language, and permanent validation | Merged with debt | Implementation merged; final private source validation unresolved |
 | 2 | Consolidate layouts and provider scope | Merged with debt | Source implementation merged; route and visual parity evidence unresolved |
 | 3 | Create HTTP and domain-module foundation | Merged with debt | Source merged; final-head acceptance runs queued without execution at merge time |
-| 4 | Cut over products and inventory | In progress | Source complete; final static, database, runtime and visual evidence must execute |
-| 5 | Remove remaining admin dummy domains | Not started | No runtime in-memory business data |
+| 4 | Cut over products and inventory | Merged with debt | Source merged; exact-head quality and Playwright runs did not start before merge |
+| 5 | Remove remaining admin dummy domains | In progress | No runtime in-memory business data |
 | 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
 | 7 | Consolidate authentication | Not started | Auth flow parity |
 | 8 | Make checkout and payment server-authoritative | Not started | Idempotent settlement |
@@ -42,7 +43,7 @@ The public deployment/source mismatch and excluded authenticated admin mutations
 
 ## Phase 1 result
 
-Phase 1 tasks P1-T01 through P1-T13 were implemented and squash-merged through PR #38 as `1ca1b184207ea2a36fa41c10162b8a059abe5289`.
+Phase 1 architecture and validation tasks P1-T01 through P1-T13 were squash-merged through PR #38 as `1ca1b184207ea2a36fa41c10162b8a059abe5289`.
 
 The repository owner directed the merge while these private workflows remained queued for the then-unavailable runner:
 
@@ -131,37 +132,81 @@ Playwright UI Contract: 30118703866
 
 Phase 3 is therefore **Merged with debt**, not complete or 10/10. Queued checks are not passing evidence.
 
-## Phase 4 execution
+## Phase 4 result
 
-The detailed implementation ledger is maintained in [`phase-4-implementation-report.md`](phase-4-implementation-report.md). The current acceptance state is maintained in [`phase-4-products-inventory-status.md`](phase-4-products-inventory-status.md).
+Phase 4 source implementation was squash-merged through PR #41 as `646ad2942ec2afbdb42e5269bad6d1993b01444b` after the repository owner explicitly directed the merge.
+
+Detailed source and acceptance ledgers remain in:
+
+- [`phase-4-implementation-report.md`](phase-4-implementation-report.md)
+- [`phase-4-products-inventory-status.md`](phase-4-products-inventory-status.md)
 
 Delivered source architecture:
 
-- canonical product definition, lifecycle, taxonomy and public-read ownership under `src/modules/products/**`;
-- canonical stock, stock movement, adjustment, summary and database-pagination ownership under `src/modules/inventory/**`;
+- canonical Product definition, editor/mutation contracts, lifecycle, taxonomy, public DTO and public-read ownership under `src/modules/products/**`;
+- canonical stock, movement, adjustment, committed-stock policy, summary and database-pagination ownership under `src/modules/inventory/**`;
 - authenticated versioned product, taxonomy, inventory, movement and stock-adjustment APIs;
-- typed product and inventory browser clients with TanStack Query ownership, including the stock-adjustment mutation and targeted invalidation;
-- removal of TanStack-to-Server-Action mutations and the exact architecture exception;
-- removal of the bespoke inventory repository, in-memory fallback and unversioned inventory APIs;
-- one public catalogue Prisma implementation under the product module, with legacy server paths reduced to export-only compatibility shims;
-- the shared loader, collection page and products page import the product module directly;
-- the duplicate storefront product writer was deleted; runtime smoke uses the canonical `saveProduct` command;
-- transactional stock adjustment records both an immutable stock movement and an audit event.
+- typed product and inventory browser clients with TanStack Query ownership;
+- removal of TanStack-to-Server-Action product and Inventory mutations;
+- removal of the bespoke Inventory repository, production in-memory Inventory fallback and unversioned Inventory APIs;
+- one public catalogue Prisma implementation under the Product module;
+- export-only compatibility paths for the old catalogue, product-editor and storefront type locations;
+- transactional stock adjustment with immutable movement and audit records.
+
+The exact final-head workflows did not start before merge:
+
+```text
+Implementation Quality: 30150645155
+Playwright UI Contract: 30150645124
+```
+
+All four quality jobs and all three browser jobs remained queued before step execution with no logs or artifacts. Phase 4 is therefore **Merged with debt**, not certified 10/10.
+
+## Phase 5 bootstrap
+
+The controlling status and source map are maintained in [`phase-5-admin-dummy-domain-status.md`](phase-5-admin-dummy-domain-status.md).
+
+The remaining production dummy-data chain is:
+
+```text
+AdminLayout
+  -> activeAdminSeed
+  -> AdminShell(initialState)
+  -> AdminProvider
+  -> AdminStore
+  -> AdminRepositoryProvider
+  -> createInMemoryAdminRepositories
+  -> local reducers and Promise.resolve wrappers
+```
+
+Remaining runtime domains:
+
+1. Customers and notes
+2. Orders and offline sales
+3. Holds
+4. Returns
+5. Store settings
+6. Overview projections
+
+The approved dependency order is Customers → Orders/offline sales → Holds → Returns → Settings → Overview → deletion of the seed/store/repository layer.
 
 | ID | Approved task | Status |
 | --- | --- | --- |
-| P4-T01 | Record Phase 3 handoff and current products/inventory source map | Complete |
-| P4-T02 | Define products and inventory module contracts from existing persisted operations | Complete |
-| P4-T03 | Move product definition, lifecycle, taxonomy and public-read ownership into `src/modules/products/**` | Complete |
-| P4-T04 | Move stock, stock movement and adjustment ownership into `src/modules/inventory/**` | Complete |
-| P4-T05 | Add authenticated versioned product/inventory read endpoints using Phase 3 envelopes | Complete |
-| P4-T06 | Replace bespoke browser reads with typed clients and TanStack Query options | Complete |
-| P4-T07 | Add versioned mutation endpoints calling transport-neutral domain commands | Complete |
-| P4-T08 | Remove TanStack-to-Server-Action mutations and the exact legacy exception | Complete |
-| P4-T09 | Remove unversioned endpoints after consumers moved | Complete |
-| P4-T10 | Prove persistence, authorization, validation, error and invalidation parity | Implemented; execution pending |
-| P4-T11 | Run static, database, unit, build, React Doctor, HTTP and Playwright parity gates | Pending execution |
-| P4-T12 | Reconcile outstanding Phase 3 validation debt when executed evidence exists | Pending execution |
+| P5-T01 | Record Phase 4 merge and validation debt | Complete |
+| P5-T02 | Freeze the current seed, provider, repository, query and mutation source map | Complete |
+| P5-T03 | Migrate Customers reads and note mutations to a Prisma-backed module | Not started |
+| P5-T04 | Migrate Orders, timelines, status transitions and offline sales | Not started |
+| P5-T05 | Migrate Holds reads and extend/release/convert commands | Not started |
+| P5-T06 | Migrate Returns reads, creation and transitions | Not started |
+| P5-T07 | Migrate persisted Store settings | Not started |
+| P5-T08 | Replace Overview selectors over AdminState with a database-backed projection | Not started |
+| P5-T09 | Move list URL state through query keys, API requests and database pagination | Not started |
+| P5-T10 | Remove AdminRepositories, in-memory repositories and repository context | Not started |
+| P5-T11 | Remove activeAdminSeed and persistent business records/actions from AdminStore/AdminProvider | Not started |
+| P5-T12 | Remove duplicate legacy implementations after all consumers move | Not started |
+| P5-T13 | Add permanent guards against production seed and in-memory persistence | Not started |
+| P5-T14 | Prove persistence, authorization, validation, invalidation and reload parity | Not started |
+| P5-T15 | Pass final-head static, DB, test, build, React Doctor, HTTP and Playwright gates | Not started |
 
 ## Decision safeguards
 
@@ -170,8 +215,9 @@ Delivered source architecture:
 - Server Components do not call internal APIs for their own reads.
 - Client remote state uses typed API clients and TanStack Query.
 - Prisma remains the persistent source of truth.
-- Product owns definition and CRUD; inventory owns stock; catalogue is a read model.
+- Product owns definition and CRUD; Inventory owns stock; catalogue is a read model.
 - URL owns navigable filters, sorting, pagination and search.
 - Zustand is limited to browser-owned shared state.
 - Storefront and admin share domains, not unrestricted actions.
+- Runtime arrays and reducers are not persistence abstractions.
 - Queued, skipped, cancelled or unavailable checks remain debt rather than passes.
