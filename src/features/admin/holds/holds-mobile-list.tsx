@@ -13,15 +13,17 @@ import type { ControlRoomHold } from "@/modules/holds/types";
 
 export function HoldsMobileList({
   holds,
+  now,
   onOpen,
 }: {
   holds: ControlRoomHold[];
+  now: number | null;
   onOpen: (holdId: string) => void;
 }) {
   return (
     <div className="grid gap-3 lg:hidden md:grid-cols-2">
       {holds.map((hold) => {
-        const item = toHoldWorkspaceItem(hold);
+        const item = toHoldWorkspaceItem(hold, now);
         return (
           <Card className="gap-0 overflow-hidden py-0" key={hold.id}>
             <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-4 p-4">
