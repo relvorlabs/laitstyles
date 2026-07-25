@@ -3,14 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { reviewInputSchema } from "@/lib/commerce/reviews/review-schema";
-import type { ReviewActionState } from "@/lib/commerce/reviews/review-types";
-import { getCurrentSession } from "@/server/auth/session";
+import { reviewInputSchema } from "@/modules/reviews/schema";
 import {
   type SubmitReviewResult,
   submitReview,
   withdrawReview,
-} from "@/server/commerce/reviews/review-repository";
+} from "@/modules/reviews/server/repository";
+import type { ReviewActionState } from "@/modules/reviews/types";
+import { getCurrentSession } from "@/server/auth/session";
 
 type ReviewErrorState = Extract<ReviewActionState, { status: "error" }>;
 
@@ -46,11 +46,7 @@ async function getCustomerId(): Promise<
   { ok: true; customerId: string } | { ok: false; state: ReviewErrorState }
 > {
   const session = await getCurrentSession();
-  // Session resolution failures (for example a database outage) are unexpected:
-  // surface them to the error boundary instead of disguising them as an auth error.
-  if (session.kind === "unavailable") {
-    throw new Error(session.error);
-  }
+  if (session.kind === "unavailable") throw new Error(session.error);
   if (session.kind !== "consumer") {
     return {
       ok: false,
