@@ -1,7 +1,7 @@
 "use client";
 
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
+import { overviewKeys } from "@/modules/overview/client/keys";
 import {
   getStoreSettingsRequest,
   saveStoreSettingsRequest,
