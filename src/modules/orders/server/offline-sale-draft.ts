@@ -55,8 +55,6 @@ export async function createOfflineSaleDraft(
         });
       }
 
-      // All product, variant, quantity and price validation has completed before
-      // this point. A new CRM customer cannot be committed for an invalid sale.
       const customer = await resolveSaleCustomer(tx, input);
       if (!customer.ok) return customer;
 
@@ -318,14 +316,11 @@ async function resolveSaleCustomer(
 }
 
 function mapStockError(error: OperationalStockError): SalesActionError {
-  const code =
-    error.code === "stock-level-not-found"
-      ? "product-not-found"
-      : error.code === "stock-write-conflict"
-        ? "insufficient-available-stock"
-        : error.code;
   return {
-    code: code as SalesActionError["code"],
+    code:
+      error.code === "stock-level-not-found"
+        ? "product-not-found"
+        : (error.code as SalesActionError["code"]),
     message: error.message,
     productId: error.context.productId,
     ...(error.context.variantId ? { variantId: error.context.variantId } : {}),
