@@ -133,14 +133,24 @@ describe("Phase 6 storefront state boundary", () => {
     ).toEqual([]);
   });
 
-  it("keeps catalogue navigation on the Next router instead of direct history mutation", async () => {
-    const relative = "src/features/storefront/catalogue/product-catalogue.tsx";
-    const source = await readFile(path.join(repositoryRoot, relative), "utf8");
+  it("keeps all catalogue URL mutation in the navigation hook", async () => {
+    const catalogueSource = await readFile(
+      path.join(repositoryRoot, "src/features/storefront/catalogue/product-catalogue.tsx"),
+      "utf8",
+    );
+    const navigationSource = await readFile(
+      path.join(repositoryRoot, "src/features/storefront/catalogue/use-catalogue-navigation.ts"),
+      "utf8",
+    );
 
-    expect(source).not.toContain("window.history.replaceState");
-    expect(source).not.toContain("window.history.pushState");
-    expect(source).toContain("catalogueHref");
-    expect(source).toMatch(/router\.(?:push|replace)\(/);
+    expect(catalogueSource).not.toContain("window.history.replaceState");
+    expect(catalogueSource).not.toContain("window.history.pushState");
+    expect(catalogueSource).not.toContain("catalogueHref");
+    expect(catalogueSource).not.toMatch(/router\.(?:push|replace)\(/);
+    expect(catalogueSource).toContain("useCatalogueNavigation");
+
+    expect(navigationSource).toContain("catalogueHref");
+    expect(navigationSource).toMatch(/router\.(?:push|replace)\(/);
   });
 });
 
