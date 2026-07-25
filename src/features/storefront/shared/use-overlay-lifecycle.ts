@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 let bodyLockCount = 0;
 
@@ -13,8 +13,7 @@ export function useOverlayLifecycle({
   onEscape?: () => void;
   focusId?: string;
 }) {
-  const escapeRef = useRef(onEscape);
-  escapeRef.current = onEscape;
+  const handleEscape = useEffectEvent(() => onEscape?.());
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +31,7 @@ export function useOverlayLifecycle({
     };
     const frame = window.requestAnimationFrame(focusTarget);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") escapeRef.current?.();
+      if (event.key === "Escape") handleEscape();
     };
     document.addEventListener("keydown", onKeyDown);
 
