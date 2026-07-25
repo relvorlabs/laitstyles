@@ -20,12 +20,21 @@ import type { HoldListInput } from "@/modules/holds/types";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import { orderKeys } from "@/modules/orders/client/keys";
 
+const activeHoldReconciliationIntervalMs = 30_000;
+
 export function adminHoldsQueryOptions(input: HoldListInput) {
   return queryOptions({
     queryKey: holdKeys.list(input),
     queryFn: ({ signal }) => listAdminHoldsRequest(input, signal),
     placeholderData: keepPreviousData,
     staleTime: 15_000,
+    // Holds expire asynchronously. Reconcile only while active holds exist and
+    // never poll in a background tab; the one-second countdown remains local UI state.
+    refetchInterval: (query) =>
+      query.state.data?.meta.summary.activeHolds
+        ? activeHoldReconciliationIntervalMs
+        : false,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -35,6 +44,9 @@ export function adminHoldQueryOptions(holdId: string) {
     queryFn: ({ signal }) => getAdminHoldRequest(holdId, signal),
     enabled: Boolean(holdId.trim()),
     staleTime: 15_000,
+    refetchInterval: (query) =>
+      query.state.data?.status === "active" ? activeHoldReconciliationIntervalMs : false,
+    refetchIntervalInBackground: false,
   });
 }
 
