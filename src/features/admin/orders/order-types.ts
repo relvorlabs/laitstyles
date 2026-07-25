@@ -1,24 +1,22 @@
-import type { PaymentStatus, SalesChannel } from "@/lib/admin/shared/types";
+import type {
+  OrderChannelFilter,
+  OrderListInput,
+  OrderPaymentFilter,
+  OrderSavedView,
+  OrderSortKey,
+  OrderWorkspaceSummary,
+  SalesChannel,
+} from "@/modules/orders/types";
 
-export type OrderSavedView =
-  | "all"
-  | "needs-attention"
-  | "pending-payment"
-  | "fulfilment"
-  | "delivered"
-  | "closed";
-
-export type OrderChannelFilter = "all" | "online" | "offline";
-export type OrderPaymentFilter = PaymentStatus | "all";
-export type OrderSortKey = "placed-desc" | "placed-asc" | "total-desc" | "total-asc";
-
-export type OrderQuery = {
-  view: OrderSavedView;
-  search: string;
-  channel: OrderChannelFilter;
-  payment: OrderPaymentFilter;
-  sort: OrderSortKey;
+export type {
+  OrderChannelFilter,
+  OrderPaymentFilter,
+  OrderSavedView,
+  OrderSortKey,
+  OrderWorkspaceSummary,
 };
+
+export type OrderQuery = OrderListInput;
 
 export type OrderWorkspaceItem = {
   orderId: string;
@@ -29,13 +27,4 @@ export type OrderWorkspaceItem = {
   netRevenue: number;
   channel: SalesChannel;
   needsAttention: boolean;
-};
-
-export type OrderWorkspaceSummary = {
-  totalOrders: number;
-  needsAttention: number;
-  pendingPayment: number;
-  inFulfilment: number;
-  delivered: number;
-  netRevenue: number;
 };
