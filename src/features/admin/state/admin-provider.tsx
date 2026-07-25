@@ -42,7 +42,6 @@ export function useAdmin() {
       renameCatalogueTaxonomy: store.renameCatalogueTaxonomy,
       deleteCatalogueTaxonomy: store.deleteCatalogueTaxonomy,
       transitionIntake: store.transitionIntake,
-      addCustomerNote: store.addCustomerNote,
       saveStoreSettings: store.saveStoreSettings,
       resetPrototypeState: store.resetPrototypeState,
     }),
