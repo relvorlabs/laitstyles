@@ -10,7 +10,9 @@ test.describe("Phase 6 storefront state ownership", () => {
     });
   });
 
-  test("saved IDs and cart intents survive navigation without hydration warnings", async ({ page }) => {
+  test("saved IDs and cart intents survive navigation without hydration warnings", async ({
+    page,
+  }) => {
     const consoleErrors: string[] = [];
     page.on("console", (message) => {
       if (severeConsoleMessages.includes(message.type())) consoleErrors.push(message.text());
@@ -20,31 +22,40 @@ test.describe("Phase 6 storefront state ownership", () => {
     const firstCard = page.locator("[data-card]").first();
     await expect(firstCard).toBeVisible();
 
-    const saveButton = firstCard.getByRole("button", { name: /^Save / });
-    await saveButton.click();
+    await firstCard.getByRole("button", { name: /^Save / }).click();
     await expect(firstCard.getByRole("button", { name: /^Remove / })).toBeVisible();
 
-    const addButton = firstCard.getByRole("button", { name: /add|choose/i }).last();
-    await addButton.click();
+    await firstCard.getByRole("button", { name: /add|choose/i }).last().click();
     const quickView = page.getByRole("dialog", { name: "Product quick view" });
     if (await quickView.isVisible().catch(() => false)) {
-      const availableOption = quickView.getByRole("button", { name: /^(?!Close|Open|View|Save).+/ }).filter({ visible: true }).first();
-      if (await availableOption.isEnabled().catch(() => false)) await availableOption.click();
+      const availableOption = quickView
+        .locator("button:not([disabled])")
+        .filter({ hasText: /^(?:XS|S|M|L|XL|XXL|\d+)/ })
+        .first();
+      if (await availableOption.isVisible().catch(() => false)) await availableOption.click();
       await quickView.getByRole("button", { name: /Add to bag/i }).click();
     }
 
     await page.goto("/");
     await page.goto("/products");
-    await expect(page.locator("[data-card]").first().getByRole("button", { name: /^Remove / })).toBeVisible();
+    await expect(
+      page.locator("[data-card]").first().getByRole("button", { name: /^Remove / }),
+    ).toBeVisible();
 
-    const stored = await page.evaluate(() => sessionStorage.getItem("laitstyles-storefront:v3:client-state"));
+    const stored = await page.evaluate(() =>
+      sessionStorage.getItem("laitstyles-storefront:v3:client-state"),
+    );
     expect(stored).not.toBeNull();
     expect(stored).not.toContain('"name"');
     expect(stored).not.toContain('"images"');
-    expect(consoleErrors.filter((message) => /hydration|zustand|storefront/i.test(message))).toEqual([]);
+    expect(consoleErrors.filter((message) => /hydration|zustand|storefront/i.test(message))).toEqual(
+      [],
+    );
   });
 
-  test("catalogue filters, sorting, search and pagination are restored by browser history", async ({ page }) => {
+  test("catalogue filters, sorting, search and pagination are restored by browser history", async ({
+    page,
+  }) => {
     await page.goto("/products");
 
     const women = page.getByRole("radio", { name: /Women/ }).first();
@@ -73,7 +84,9 @@ test.describe("Phase 6 storefront state ownership", () => {
 
   test("shell overlays and theme remain functional without horizontal overflow", async ({ page }) => {
     await page.goto("/");
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
     expect(overflow).toBeLessThanOrEqual(1);
 
     const themeButton = page.getByRole("button", { name: /theme|appearance/i }).first();
