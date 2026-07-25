@@ -1,13 +1,12 @@
 import { StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress, ProgressLabel } from "@/components/ui/progress";
 import type {
   PublicProductReview,
   PublicProductReviews,
-} from "@/server/commerce/reviews/public-reviews";
+} from "@/modules/reviews/server/public-product-reviews";
 import { reviewLifecycleMarkerCopy } from "../account/orders/order-state-copy";
 import { productReviewAccessCopy, reviewDistributionRows } from "./product-detail-presentation";
 
