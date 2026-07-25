@@ -101,7 +101,7 @@ export function createAdminStore(initialState: AdminState, now?: () => string): 
       return commitAction(applyRenameCatalogueTaxonomy(state, taxonomyId, name, getNow()));
     },
     deleteCatalogueTaxonomy(taxonomyId) {
-      return commitAction(applyDeleteCatalogueTaxonomy(state, taxonomyId, name, getNow()));
+      return commitAction(applyDeleteCatalogueTaxonomy(state, taxonomyId, getNow()));
     },
     transitionIntake(productId, nextStage) {
       return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
