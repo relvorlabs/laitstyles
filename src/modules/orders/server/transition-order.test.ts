@@ -37,13 +37,14 @@ const actor = {
 };
 const orderId = "22222222-2222-4222-8222-222222222222";
 const productId = "33333333-3333-4333-8333-333333333333";
+const lineId = "55555555-5555-4555-8555-555555555555";
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("transitionOrder stock invariants", () => {
-  it("moves committed stock to sold when customer handoff is delivered", async () => {
+  it("moves committed stock and line state to sold when handoff is delivered", async () => {
     const tx = createTx("ready-for-pickup", "committed");
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -61,6 +62,34 @@ describe("transitionOrder stock invariants", () => {
         relatedOrderId: orderId,
       }),
     );
+    expect(tx.order_lines.update).toHaveBeenCalledWith({
+      where: { id: lineId },
+      data: { stock_state: "sold" },
+    });
+  });
+
+  it("moves sold stock and line state to returned after delivery", async () => {
+    const tx = createTx("delivered", "sold");
+    mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
+      callback(tx),
+    );
+
+    const result = await transitionOrder(actor, "LS-TEST1234", "returned");
+
+    expect(result.ok).toBe(true);
+    expect(mocks.stockMutation).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        productId,
+        quantity: 1,
+        kind: "return-sold",
+        relatedOrderId: orderId,
+      }),
+    );
+    expect(tx.order_lines.update).toHaveBeenCalledWith({
+      where: { id: lineId },
+      data: { stock_state: "returned" },
+    });
   });
 
   it("releases reserved stock when a pending order is cancelled", async () => {
@@ -114,7 +143,7 @@ function createTx(currentStatus: string, stockState: string) {
     customer_id: "44444444-4444-4444-8444-444444444444",
     order_lines: [
       {
-        id: "55555555-5555-4555-8555-555555555555",
+        id: lineId,
         product_id: productId,
         variant_id: null,
         quantity: 1,
