@@ -38,6 +38,14 @@ const retiredFiles = [
   path("src", "features", "storefront", "shared", "overlays", "legacy-cart-drawer.tsx"),
   path("src", "features", "storefront", "home", "components", "home-shop-view.tsx"),
   path("src", "features", "storefront", "checkout", "checkout-flow.tsx"),
+  path("src", "features", "storefront", "shared", "catalog-adapter.ts"),
+  path("src", "features", "storefront", "shared", "catalog-adapter.test.ts"),
+  path("src", "features", "storefront", "shared", "catalog-loader.ts"),
+  path("src", "features", "storefront", "shared", "catalog-loader.test.ts"),
+  path("src", "features", "storefront", "shared", "catalog-types.ts"),
+  path("src", "modules", "products", "client", "storefront-catalog.ts"),
+  path("src", "app", "api", "v1", "storefront", "catalog", "route.ts"),
+  path("src", "app", "api", "v1", "storefront", "catalog", "route.test.ts"),
   path("src", "lib", "catalogue.ts"),
   path("src", "lib", "order.ts"),
   path("src", "app", "storefront-providers.tsx"),
@@ -52,10 +60,29 @@ const retiredImports = [
   path("@", "features", "storefront", "shared", "storefront-client-state-provider"),
   path("@", "features", "storefront", "shared", "overlays", "legacy-cart-drawer"),
   path("@", "features", "storefront", "home", "components", "home-shop-view"),
+  path("@", "features", "storefront", "shared", "catalog-adapter"),
+  path("@", "features", "storefront", "shared", "catalog-loader"),
+  path("@", "features", "storefront", "shared", "catalog-types"),
+  path("@", "modules", "products", "client", "storefront-catalog"),
   path("@", "lib", "catalogue"),
   path("@", "lib", "order"),
   path("@", "features", "storefront", "checkout", "checkout-flow"),
   path("@", "app", "storefront-providers"),
+];
+
+const retiredCatalogSymbols = [
+  "StorefrontCatalogPayload",
+  "StorefrontShellCatalogPayload",
+  "storefrontCatalogQueryKey",
+  "getStorefrontShellCatalog",
+  "loadStorefrontCatalog",
+  "loadStorefrontShellCatalog",
+  "useStorefrontCatalog",
+  "useStorefrontCatalogData",
+  "buildStorefrontCatalog",
+  "buildStorefrontShellCatalog",
+  "projectLegacyProduct",
+  "projectLegacyProductSummary",
 ];
 
 describe("storefront state boundaries", () => {
@@ -75,6 +102,30 @@ describe("storefront state boundaries", () => {
           .map((retiredImport) => `${filePath.replace(`${root}/`, "")}: ${retiredImport}`);
       });
     expect(violations).toEqual([]);
+  });
+
+  it("keeps the storefront catalogue contract British and module-owned", () => {
+    const violations = sourceFiles(join(root, "src")).flatMap((filePath) => {
+      const source = readFileSync(filePath, "utf8");
+      const relativePath = filePath.replace(`${root}/`, "");
+      const symbolViolations = retiredCatalogSymbols
+        .filter((symbol) => source.includes(symbol))
+        .map((symbol) => `${relativePath}: ${symbol}`);
+      const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
+        ? [`${relativePath}: /api/v1/storefront/catalog`]
+        : [];
+      return [...symbolViolations, ...routeViolation];
+    });
+
+    expect(violations).toEqual([]);
+
+    const shellQuery = readFileSync(
+      join(root, "src/modules/products/server/storefront/shell-query.ts"),
+      "utf8",
+    );
+    expect(shellQuery).not.toContain("@/features/storefront/");
+    expect(shellQuery).toContain("catalogue-projection");
+    expect(shellQuery).toContain("catalogue-contract");
   });
 
   it("mounts the storefront query, hydration and auth boundaries only inside the storefront client boundary", () => {
@@ -97,8 +148,8 @@ describe("storefront state boundaries", () => {
     expect(clientBoundary).not.toContain("StorefrontClientStateProvider");
     expect(clientBoundary).not.toContain("StorefrontProvider");
     expect(routeBoundary).toContain("getCurrentSession");
-    expect(routeBoundary).toContain("loadStorefrontShellCatalog");
-    expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalog\b/);
+    expect(routeBoundary).toContain("loadStorefrontShellCatalogue");
+    expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalogue\b/);
   });
 
   it("persists only minimal intent fields", () => {
