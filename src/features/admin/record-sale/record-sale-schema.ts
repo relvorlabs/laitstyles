@@ -13,31 +13,29 @@ export const recordSaleSchema = z
       .int("Quantity must be a whole number.")
       .min(1, "Quantity must be at least one."),
     unitPrice: z.coerce.number().min(0, "Final selling price cannot be negative."),
-    channel: z.enum([
-      "physical-store",
-      "whatsapp",
-      "instagram",
-      "phone",
-      "pop-up",
-      "staff-assisted",
-      "other",
-    ]),
+    channel: z.enum(["physical-store", "pop-up", "staff-assisted"]),
     customerMode: z.enum(["existing", "new"]),
     customerId: z.string(),
     customerName: z.string(),
     customerEmail: z.string(),
     customerPhone: z.string(),
     customerCity: z.string(),
-    paymentMethod: z.enum(["cash", "bank-transfer", "card", "pos", "pay-on-delivery", "other"]),
-    paymentStatus: z.enum(["pending", "paid", "deposit"]),
     notes: z.string().max(500, "Keep notes under 500 characters."),
   })
   .superRefine((values, context) => {
+    if ((Number(values.quantity) || 0) * (Number(values.unitPrice) || 0) < 100) {
+      context.addIssue({
+        code: "custom",
+        path: ["unitPrice"],
+        message: "The total must be at least ₦100 to keep Paystack bank transfer available.",
+      });
+    }
+
     if (values.customerMode === "existing" && !values.customerId) {
       context.addIssue({
         code: "custom",
         path: ["customerId"],
-        message: "Choose an existing customer.",
+        message: "Choose an existing customer with an email address.",
       });
     }
 
@@ -49,11 +47,11 @@ export const recordSaleSchema = z
           message: "Enter the customer name.",
         });
       }
-      if (!values.customerPhone.trim() && !values.customerEmail.trim()) {
+      if (!z.string().email().safeParse(values.customerEmail.trim()).success) {
         context.addIssue({
           code: "custom",
-          path: ["customerPhone"],
-          message: "Add a phone number or email address.",
+          path: ["customerEmail"],
+          message: "Enter a valid email for the Paystack checkout.",
         });
       }
       if (!values.customerCity.trim()) {
@@ -77,7 +75,7 @@ const stepFields: Record<RecordSaleStep, Array<keyof RecordSaleValues>> = {
     "customerPhone",
     "customerCity",
   ],
-  payment: ["paymentMethod", "paymentStatus", "notes"],
+  payment: ["notes"],
   review: [],
 };
 
