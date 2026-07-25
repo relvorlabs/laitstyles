@@ -1,11 +1,15 @@
 "use client";
 
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  useStorefrontOverlay,
+  useStorefrontRecent,
+} from "@/features/storefront/shared/storefront-runtime";
 import { HomeProductList } from "../components/home-product-list";
 import { HomeSectionHeading } from "../components/home-section-heading";
 
 export function RecentlyViewedSection() {
-  const storefront = useStorefront();
+  const recent = useStorefrontRecent();
+  const overlay = useStorefrontOverlay();
 
   return (
     <section className="section">
@@ -13,24 +17,13 @@ export function RecentlyViewedSection() {
         <HomeSectionHeading
           actionLabel="Open saved items"
           eyebrow="Keep exploring"
-          onAction={() => storefront.open("savedDrawer")}
-          title={
-            <>
-              Recently{" "}
-              <span className="serif">
-                <em>viewed</em>
-              </span>
-            </>
-          }
+          onAction={() => overlay.open("savedDrawer")}
+          title={<>Recently <span className="serif"><em>viewed</em></span></>}
         />
-        {storefront.recentList.length ? (
-          <HomeProductList
-            className="product-rail"
-            id="recentRail"
-            products={storefront.recentList}
-          />
+        {recent.items.length ? (
+          <HomeProductList className="product-rail" id="recentRail" products={recent.items} />
         ) : (
-          <div id="recentRail" className="product-rail">
+          <div className="product-rail" id="recentRail">
             <div className="search-empty col-[1/-1]">Products you inspect will appear here.</div>
           </div>
         )}

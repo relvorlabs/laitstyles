@@ -40,17 +40,19 @@ import {
   type OrderReceipt,
   writeLatestOrderReceipt,
 } from "@/features/storefront/checkout/order-receipt";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  useStorefrontCart,
+  useStorefrontHolds,
+} from "@/features/storefront/shared/storefront-runtime";
 import { cn } from "@/lib/utils";
 
 export function CheckoutFlowV2() {
   const router = useRouter();
-  const storefront = useStorefront();
-  const clientState = useStorefrontClientState();
+  const cart = useStorefrontCart();
+  const holds = useStorefrontHolds();
   const checkoutItems = useMemo<CheckoutItem[]>(
     () =>
-      storefront.cartLines.map((line) => ({
+      cart.views.map((line) => ({
         lineKey: line.lineKey,
         productId: line.product.id,
         slug: line.product.slug,
@@ -62,10 +64,10 @@ export function CheckoutFlowV2() {
         priceNum: line.unitPriceNaira * line.lineQty,
         img: line.product.images[0] ?? "",
       })),
-    [storefront.cartLines],
+    [cart.views],
   );
   const activeHoldSeconds = checkoutItems.flatMap((item) => {
-    const seconds = clientState.holdSecondsByProduct[item.productId];
+    const seconds = holds.secondsByProduct[item.productId];
     return seconds && seconds > 0 ? [seconds] : [];
   });
   const secondsLeft = activeHoldSeconds.length ? Math.min(...activeHoldSeconds) : null;
@@ -138,7 +140,7 @@ export function CheckoutFlowV2() {
       zoneName: snapshot.activeZone.name,
       eta: snapshot.activeZone.eta,
       paymentName: snapshot.activeMethod.name,
-      items: storefront.cartLines.map((line) => ({
+      items: cart.views.map((line) => ({
         lineKey: line.lineKey,
         productId: line.product.id,
         slug: line.product.slug,
@@ -158,8 +160,8 @@ export function CheckoutFlowV2() {
     };
 
     writeLatestOrderReceipt(window.sessionStorage, receipt);
-    for (const item of checkoutItems) clientState.releaseProduct(item.productId);
-    clientState.clearCart();
+    for (const item of checkoutItems) holds.releaseProduct(item.productId);
+    cart.clear();
     setPayState("idle");
     router.push("/order-confirmation");
   }
@@ -344,7 +346,9 @@ export function CheckoutFlowV2() {
                           <RadioDot active={active} />
                           <span className="flex-1">
                             <span className="block text-sm font-semibold">{item.name}</span>
-                            <span className="mt-0.5 block text-xs text-[#8A887E]">{item.sub}</span>
+                            <span className="mt-0.5 block text-xs text-[#8A887E]">
+                              {item.sub}
+                            </span>
                           </span>
                           <span className="flex items-center gap-[5px]">
                             {item.badges.map((badge) => (

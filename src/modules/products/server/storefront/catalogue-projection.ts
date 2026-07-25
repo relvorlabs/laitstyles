@@ -1,35 +1,40 @@
-import type {
-  StorefrontCatalogPayload,
-  StorefrontCategory,
-  StorefrontShellCatalogPayload,
-} from "@/features/storefront/shared/catalog-types";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { koboToNaira } from "@/lib/money";
 import type { CategoryWithImage, ProductDetail, ProductSummary } from "@/lib/storefront/types";
+import type {
+  StorefrontCatalogueCategory,
+  StorefrontCataloguePayload,
+  StorefrontCatalogueProduct,
+  StorefrontShellCataloguePayload,
+} from "@/modules/products/storefront/catalogue-contract";
 
 function detailVariants(detail: ProductDetail) {
   return detail.mode === "variant" ? detail.variants : [];
 }
 
-function legacyCondition(value: string | null): Product["condition"] {
+function storefrontCondition(value: string | null): StorefrontCatalogueProduct["condition"] {
   if (value === "Excellent") return "A+";
   if (value === "Fair") return "B+";
   return "A";
 }
 
-function legacyInventory(mode: ProductSummary["mode"]): Product["inventory"] {
+function storefrontInventory(
+  mode: ProductSummary["mode"],
+): StorefrontCatalogueProduct["inventory"] {
   if (mode === "unique") return "one-of-one";
   if (mode === "stocked") return "matching-stock";
   return "variant";
 }
 
-function legacyStatus(summary: ProductSummary): Product["status"] {
+function storefrontStatus(summary: ProductSummary): StorefrontCatalogueProduct["status"] {
   if (summary.availability.state === "sold_out") return "sold";
   if (summary.availability.state === "reserved_by_others") return "reserved";
   return "available";
 }
 
-export function projectLegacyProductSummary(summary: ProductSummary, index: number): Product {
+export function projectStorefrontProductSummary(
+  summary: ProductSummary,
+  index: number,
+): StorefrontCatalogueProduct {
   return {
     id: summary.id,
     databaseId: summary.id,
@@ -42,13 +47,13 @@ export function projectLegacyProductSummary(summary: ProductSummary, index: numb
     style: summary.style ?? "Essentials",
     price: koboToNaira(summary.price),
     referencePrice: summary.referencePrice === null ? null : koboToNaira(summary.referencePrice),
-    condition: legacyCondition(summary.condition),
+    condition: storefrontCondition(summary.condition),
     size: summary.sizeLabel ?? "One size",
     fit: summary.fit ?? summary.sizeLabel ?? "One size",
     colour: summary.colour ?? "",
-    inventory: legacyInventory(summary.mode),
+    inventory: storefrontInventory(summary.mode),
     stock: summary.availability.available,
-    status: legacyStatus(summary),
+    status: storefrontStatus(summary),
     new: index < 20,
     saved: 0,
     flaw: "None",
@@ -58,7 +63,10 @@ export function projectLegacyProductSummary(summary: ProductSummary, index: numb
   };
 }
 
-export function projectLegacyProduct(detail: ProductDetail, index: number): Product {
+export function projectStorefrontProduct(
+  detail: ProductDetail,
+  index: number,
+): StorefrontCatalogueProduct {
   const variants = detailVariants(detail);
   const sizeLabel = detail.mode === "variant" ? null : detail.sizeLabel;
   const colour = detail.mode === "variant" ? null : detail.colour;
@@ -84,7 +92,7 @@ export function projectLegacyProduct(detail: ProductDetail, index: number): Prod
   };
 
   return {
-    ...projectLegacyProductSummary(summary, index),
+    ...projectStorefrontProductSummary(summary, index),
     size:
       sizeLabel ??
       variants
@@ -103,7 +111,9 @@ export function projectLegacyProduct(detail: ProductDetail, index: number): Prod
   };
 }
 
-export function projectShellProduct(product: Product): Product {
+export function projectShellProduct(
+  product: StorefrontCatalogueProduct,
+): StorefrontCatalogueProduct {
   return {
     ...product,
     images: product.images.slice(0, 1),
@@ -114,9 +124,9 @@ export function projectShellProduct(product: Product): Product {
   };
 }
 
-export function buildStorefrontShellCatalog(
-  payload: StorefrontCatalogPayload,
-): StorefrontShellCatalogPayload {
+export function buildStorefrontShellCatalogue(
+  payload: StorefrontCataloguePayload,
+): StorefrontShellCataloguePayload {
   return {
     products: payload.products.map(projectShellProduct),
     categories: payload.categories,
@@ -135,11 +145,11 @@ export function measurementsCmFor(detail: ProductDetail | undefined): Record<str
   return Object.fromEntries(entries);
 }
 
-export function buildStorefrontCatalog(
+export function buildStorefrontCatalogue(
   details: readonly ProductDetail[],
   categories: readonly CategoryWithImage[],
-): StorefrontCatalogPayload {
-  const storefrontCategories: StorefrontCategory[] = categories.map((category) => ({
+): StorefrontCataloguePayload {
+  const storefrontCategories: StorefrontCatalogueCategory[] = categories.map((category) => ({
     id: category.id,
     slug: category.slug,
     name: category.name,
@@ -147,7 +157,7 @@ export function buildStorefrontCatalog(
     productCount: category.productCount,
   }));
   return {
-    products: details.map(projectLegacyProduct),
+    products: details.map(projectStorefrontProduct),
     categories: storefrontCategories,
     measurementsCm: measurementsCmFor(details[0]),
     variantOptionsByProductId: Object.fromEntries(

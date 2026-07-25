@@ -20,7 +20,7 @@ describe("parseCatalogueSearchParams", () => {
       conditions: ["A+"],
       inventories: ["one-of-one", "matching-stock"],
       inStock: true,
-      maxPriceNaira: 25000,
+      maxPriceNaira: 25_000,
       sort: "price-high",
       colours: ["Navy", "Black", "Stone"],
     });
@@ -41,6 +41,36 @@ describe("parseCatalogueSearchParams", () => {
       sort: "curated",
     });
   });
+
+  it("parses every result-affecting navigation value from one URL", () => {
+    expect(
+      parseCatalogueSearchParams({
+        page: "3",
+        q: "leather jacket",
+        category: "Women",
+        collection: "vintage",
+        condition: ["A+", "A"],
+        inventory: ["one-of-one", "variant"],
+        inStock: "true",
+        maxPrice: "40000",
+        sort: "price-low",
+        colour: ["Black", "Brown"],
+        size: ["M", "L"],
+      }),
+    ).toMatchObject({
+      page: 3,
+      search: "leather jacket",
+      category: "Women",
+      collection: "vintage",
+      conditions: ["A+", "A"],
+      inventories: ["one-of-one", "variant"],
+      inStock: true,
+      maxPriceNaira: 40_000,
+      sort: "price-low",
+      colours: ["Black", "Brown"],
+      sizes: ["M", "L"],
+    });
+  });
 });
 
 describe("catalogueHref", () => {
@@ -52,5 +82,48 @@ describe("catalogueHref", () => {
     });
 
     expect(catalogueHref(current, { page: 1, search: "" })).toBe("/products?category=Women");
+  });
+
+  it("removes stale values instead of synchronizing them back from component state", () => {
+    const current = parseCatalogueSearchParams({
+      page: "4",
+      category: "Men",
+      collection: "new",
+      condition: "A",
+      sort: "newest",
+    });
+
+    expect(
+      catalogueHref(current, {
+        page: 1,
+        category: null,
+        collection: "one-of-one",
+        conditions: [],
+        sort: "curated",
+        search: "",
+      }),
+    ).toBe("/products?collection=one-of-one");
+  });
+
+  it("keeps pagination, filters, search and sort in the generated URL", () => {
+    const href = catalogueHref(parseCatalogueSearchParams({}), {
+      page: 2,
+      category: "Unisex",
+      conditions: ["A+"],
+      inventories: ["variant"],
+      inStock: true,
+      maxPriceNaira: 25_000,
+      search: "denim",
+      sort: "price-low",
+    });
+
+    expect(href).toContain("page=2");
+    expect(href).toContain("search=denim");
+    expect(href).toContain("category=Unisex");
+    expect(href).toContain("condition=A%2B");
+    expect(href).toContain("inventory=variant");
+    expect(href).toContain("stock=1");
+    expect(href).toContain("max=25000");
+    expect(href).toContain("sort=price-low");
   });
 });

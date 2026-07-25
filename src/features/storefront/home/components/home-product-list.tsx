@@ -1,9 +1,15 @@
 "use client";
 
 import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  showStorefrontToast,
+  useStorefrontCart,
+  useStorefrontCatalogData,
+  useStorefrontHolds,
+  useStorefrontSavedItems,
+} from "@/features/storefront/shared/storefront-runtime";
 
 export function HomeProductList({
   products,
@@ -14,30 +20,33 @@ export function HomeProductList({
   className: string;
   id: string;
 }) {
-  const storefront = useStorefront();
-  const clientState = useStorefrontClientState();
+  const catalog = useStorefrontCatalogData();
+  const cart = useStorefrontCart();
+  const saved = useStorefrontSavedItems();
+  const holds = useStorefrontHolds();
+  const lookup = new Map(catalog.products.map((product) => [product.id, product]));
 
   return (
-    <div id={id} className={className}>
+    <div className={className} id={id}>
       {products.map((product) => (
         <ProductCard
-          holdSeconds={clientState.holdSecondsByProduct[product.id] ?? null}
-          isHeld={product.id in clientState.holdSecondsByProduct}
-          isSaved={storefront.saved.has(product.id)}
+          holdSeconds={holds.secondsByProduct[product.id] ?? null}
+          isHeld={product.id in holds.secondsByProduct}
+          isSaved={saved.idSet.has(product.id)}
           key={product.id}
           onAdd={(productId) => {
-            clientState.releaseProduct(productId);
-            storefront.addToCart(productId);
+            holds.releaseProduct(productId);
+            cart.addProduct(productId);
           }}
           onHold={(productId) => {
-            const target = storefront.productById(productId);
-            if (target && clientState.holdProduct(productId)) {
-              storefront.showToast(`${target.name} is held for 15 minutes.`);
-            }
+            const target = lookup.get(productId);
+            if (!target || target.status !== "available") return;
+            holds.holdProduct(productId);
+            showStorefrontToast(`${target.name} is held for 15 minutes.`);
           }}
-          onQuickView={storefront.openQuick}
-          onRelease={clientState.releaseProduct}
-          onSave={storefront.toggleSaved}
+          onQuickView={openQuickView}
+          onRelease={holds.releaseProduct}
+          onSave={saved.toggleProduct}
           product={product}
         />
       ))}

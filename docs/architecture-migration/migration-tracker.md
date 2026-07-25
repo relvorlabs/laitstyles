@@ -6,9 +6,10 @@
 **Phase 2 merge:** `558e34852f38f0982c7ce9d7c32422f09bbf8775`  
 **Phase 3 merge:** `d7e3149c96f234d7deb41151ac603d6f652ceb4d`  
 **Phase 4 merge:** `646ad2942ec2afbdb42e5269bad6d1993b01444b`  
-**Current branch:** `refactor/phase-5-admin-dummy-domain-cutover`  
-**Current phase:** Phase 5 — Remove remaining admin dummy domains  
-**Overall status:** Phase 5 source scope implemented; exact-head certification pending
+**Phase 5 merge:** `cd12b89e9ec2eb9210704e200e30731d864646e1`  
+**Current branch:** `refactor/phase-6-storefront-state-zustand`  
+**Current phase:** Phase 6 — Storefront state and Zustand migration  
+**Overall status:** Phase 6 architecture corrections implemented; dependency-lock repair and exact-head certification remain
 
 Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Merged with debt`.
 
@@ -21,8 +22,8 @@ Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Mer
 | 2 | Consolidate layouts and provider scope | Merged with debt | Route and visual parity debt recorded |
 | 3 | Create HTTP and domain-module foundation | Merged with debt | Final-head workflows did not execute before merge |
 | 4 | Cut over products and inventory | Merged with debt | Exact-head workflows did not execute before merge |
-| 5 | Remove remaining admin dummy domains | Source complete | Exact-head static, DB, runtime and visual evidence required |
-| 6 | Split storefront state and add Zustand | Not started | State ownership and UI parity |
+| 5 | Remove remaining admin dummy domains | Merged with debt | Source scope merged; exact-head gates did not execute |
+| 6 | Split storefront state and add Zustand | In progress | Lockfile, runtime, storage, history and UI parity |
 | 7 | Consolidate authentication | Not started | Auth flow parity |
 | 8 | Make checkout and payment server-authoritative | Not started | Idempotent settlement |
 | 9 | Delete remaining legacy architecture | Not started | No undocumented legacy imports |
@@ -87,99 +88,130 @@ Playwright UI Contract: 30150645124
 
 Phase 4 remains **Merged with debt**.
 
-## Phase 5 result
+### Phase 5
 
-Controlling documents:
+Phase 5 was squash-merged through PR #43 as `cd12b89e9ec2eb9210704e200e30731d864646e1` at the repository owner’s explicit direction.
 
-- [`phase-5-mission.md`](phase-5-mission.md)
-- [`phase-5-admin-dummy-domain-status.md`](phase-5-admin-dummy-domain-status.md)
+Source outcomes:
 
-Approved dependency order:
+- Orders, Holds, Returns, Customers, Settings and Overview moved to Prisma-backed domain/API/TanStack paths.
+- AdminStore business-record ownership was removed.
+- Admin repository context, contracts and in-memory implementation were removed.
+- Runtime seed and reducer ownership for migrated domains was removed.
+- A permanent persistence boundary protects the migrated domains.
 
-1. Orders
-2. Holds and reservations
-3. Returns
-4. Customers
-5. Settings
-6. Overview/reporting projections
-7. seed/store/repository deletion
-
-Every source workstream in this order is implemented.
-
-### Canonical runtime paths
+Merge-time validation debt:
 
 ```text
-Orders UI    -> modules/orders/client    -> /api/v1/admin/orders/**    -> modules/orders/server    -> Prisma
-Holds UI     -> modules/holds/client     -> /api/v1/admin/holds/**     -> modules/holds/server     -> Prisma
-Returns UI   -> modules/returns/client   -> /api/v1/admin/returns/**   -> modules/returns/server   -> Prisma
-Customers UI -> modules/customers/client -> /api/v1/admin/customers/** -> modules/customers/server -> Prisma
-Settings UI  -> modules/settings/client  -> /api/v1/admin/settings     -> modules/settings/server  -> Prisma
-Overview UI  -> modules/overview/client  -> /api/v1/admin/overview     -> modules/overview/server  -> Prisma
+Implementation Quality: 30164712987 — queued at merge
+Playwright UI Contract: 30164712918 — queued at merge
 ```
 
-### Source outcomes
+Phase 5 remains **Merged with debt**.
 
-- Orders database reads, transitions and in-person Paystack initialization implemented and repaired.
-- Holds database reads, expiry, release and pending-payment conversion implemented.
-- Returns database reads, creation, transitions, stock disposition and refund accounting implemented.
-- Customers database segmentation, relationship projection, detail and persisted notes implemented.
-- Settings singleton and normalized delivery persistence implemented; first-read bootstrap is transaction-locked and idempotent.
-- Overview database projections replace aggregate seed selectors.
-- Admin command menu and record-sale consumers use canonical bounded queries.
-- AdminStore, repository context, repository contracts and in-memory repository implementation are deleted.
-- `activeAdminSeed`, `newStoreAdminSeed` and all physical `src/lib/admin/shared/seed/**` business records are deleted.
-- Legacy reducer/query/mutation ownership for the migrated domains is deleted.
-- One permanent Phase 5 architecture guard protects all migrated domains.
-- Canonical route tests cover Returns, Customers, Settings and Overview.
-- HTTP smoke covers the four new domain APIs.
+## Phase 6 current state
 
-### Phase 5 task ledger
+Controlling document:
+
+- [`phase-6-storefront-state-status.md`](phase-6-storefront-state-status.md)
+
+### Current runtime composition
+
+```text
+StorefrontRouteBoundary
+  -> StorefrontClientBoundary
+     -> StorefrontQueryProvider
+        -> StorefrontStateHydrator
+           -> StorefrontHoldClockBoundary
+           -> StorefrontAuthProvider
+              -> SiteChrome
+                 -> SiteHeader / route / SiteFooter / StorefrontOverlays
+           -> StorefrontAuthDialogHost
+```
+
+### Implemented ownership
+
+- `cart.store.ts` owns minimal cart-line intents and actions.
+- `saved-items.store.ts` owns saved product IDs and actions.
+- `storefront-ui.store.ts` owns shared overlay identity, recent IDs, utility dismissal and non-authoritative hold intents.
+- One `StorefrontHoldClockBoundary` serves all mounted countdown consumers and expires stale hold intents.
+- The storefront catalogue remains TanStack-backed and is not copied into Zustand.
+- `STOREFRONT_QUERY_DEFAULTS` is the single storefront cache-policy definition.
+- The hydration boundary preserves the version-3 cart/saved/hold migration and persists minimal identifiers only.
+- Catalogue filters, sorting, search, quick links, chip removal and pagination mutate the URL through `useCatalogueNavigation()` only.
+- Quick view, image viewer, auth and Zustand overlays transition through one coordinator so they cannot remain stacked.
+- Product catalogue contracts and projection code are owned by the Products module.
+- The public client and API contract uses British `catalogue` naming throughout.
+- The original cart empty-state copy and storefront presentation contract are preserved.
+- `StorefrontProvider` and `StorefrontClientStateProvider` are deleted.
+- Architecture tests reject retired providers, American catalogue paths/symbols, duplicate router ownership and reversed server dependencies.
+- Focused store, clock, overlay, catalogue-projection, API and Playwright contracts are authored.
+
+### Confirmed dependency blocker
+
+`package.json` declares `zustand@^5.0.14`, but `pnpm-lock.yaml` does not contain a Zustand importer entry or package snapshot.
+
+The repository installs dependencies with:
+
+```bash
+pnpm install --frozen-lockfile
+```
+
+The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must remain enabled, and the lockfile must not be fabricated manually.
+
+### Phase 6 task ledger
 
 | ID | Approved task | Source status | Evidence status |
 | --- | --- | --- | --- |
-| P5-T01 | Record Phase 4 merge and validation debt | Complete | Recorded |
-| P5-T02 | Freeze legacy ownership map | Complete | Recorded |
-| P5-T03 | Implement Orders module, APIs and database pagination | Complete | Exact-head execution pending |
-| P5-T04 | Repair in-person Paystack sale and exact reservation | Complete | Exact-head execution pending |
-| P5-T05 | Cut Orders consumers from legacy ownership | Complete | Exact-head execution pending |
-| P5-T06 | Implement Holds reads and transactional commands | Complete | Exact-head execution pending |
-| P5-T07 | Cut Holds consumers from reducers/repositories | Complete | Exact-head execution pending |
-| P5-T08 | Implement Returns reads, creation and transitions | Complete | Exact-head execution pending |
-| P5-T09 | Cut Returns consumers from reducers/repositories | Complete | Exact-head execution pending |
-| P5-T10 | Implement Customer reads, details and notes | Complete | Exact-head execution pending |
-| P5-T11 | Cut Customer consumers from legacy repositories | Complete | Exact-head execution pending |
-| P5-T12 | Implement persisted Store settings | Complete | Exact-head execution pending |
-| P5-T13 | Cut Settings consumers and browser defaults | Complete | Exact-head execution pending |
-| P5-T14 | Replace Overview selectors with database projections | Complete | Exact-head execution pending |
-| P5-T15 | Remove AdminRepositories/context | Complete | Guard execution pending |
-| P5-T16 | Remove active seed and AdminStore business records | Complete | Guard execution pending |
-| P5-T17 | Remove duplicate Phase 5 implementations | Complete | Guard execution pending |
-| P5-T18 | Add permanent seed/store/repository/reducer guards | Complete | Test execution pending |
-| P5-T19 | Add persistence/auth/error/invalidation/reload evidence | Source tests and HTTP smoke authored | DB/runtime execution pending |
-| P5-T20 | Pass static, DB, tests, build, React Doctor, HTTP and Playwright | Requested | Exact-head runs required |
+| P6-T00 | Record Phase 5 merge and validation debt | Complete | Recorded |
+| P6-T00A | Map original provider, persistence and URL ownership | Complete | Source-audited |
+| P6-T00B | Add storefront-state non-expansion guards | Complete | Execution pending |
+| P6-T01 | Add Zustand | Blocked | Package declared; lockfile not reconciled |
+| P6-T02 | Create cart store | Source complete | Unit execution pending |
+| P6-T03 | Create saved-items store | Source complete | Unit execution pending |
+| P6-T04 | Create storefront UI store | Source complete | Unit execution pending |
+| P6-T05 | Preserve versioned storage migration | Source complete | Migration/hydration execution pending |
+| P6-T06 | Add hydration-safe selectors | Source complete | Runtime execution pending |
+| P6-T07 | Prevent complete product persistence | Source complete | Guard/browser execution pending |
+| P6-T08 | Move catalogue filters to URL ownership | Source complete | Browser execution pending |
+| P6-T09 | Keep pagination in URL ownership | Source complete | Browser execution pending |
+| P6-T10 | Keep sorting in URL ownership | Source complete | Browser execution pending |
+| P6-T11 | Keep navigational search in URL ownership | Source complete | Browser execution pending |
+| P6-T12 | Remove URL/context synchronisation effects | Source complete | Architecture/browser execution pending |
+| P6-T13 | Move image viewer state locally | Source complete | Browser execution pending |
+| P6-T14 | Move measurement state to narrow shared boundary | Source complete | Browser execution pending |
+| P6-T15 | Move newsletter state locally | Source complete | Browser execution pending |
+| P6-T16 | Move delivery-estimate state locally | Source complete | Browser execution pending |
+| P6-T17 | Move header scroll state into header | Source complete | Browser execution pending |
+| P6-T18 | Separate auth-dialog local state | Source complete | Auth/browser execution pending |
+| P6-T19 | Remove migrated values from `StorefrontProvider` | Complete | Provider deleted |
+| P6-T20 | Remove unused context selectors and consumers | Source complete | TypeScript/guard execution pending |
+| P6-T21 | Delete final legacy provider after consumer cutover | Complete | Both providers deleted |
+| P6-T22 | Pass static, unit, build, React Doctor and browser gates | Pending | Exact-head evidence required |
 
-## Validation truth
+### Exact-head evidence state
 
-Phase 5 is not certified until the exact final head executes and passes:
+The PR workflows remain queued or pending. Queued, cancelled, skipped, superseded or unavailable checks remain validation debt and are never reported as passes.
 
-- architecture guard and Biome;
-- TypeScript;
-- Prisma validation, migration deployment/status and database integrity;
-- unit, component, integration and API tests;
-- production build;
-- React Doctor;
-- HTTP smoke;
-- desktop, tablet and mobile Playwright contract;
-- retained artifacts and review reconciliation.
+## Phase 6 remaining order
 
-Queued, cancelled, skipped, superseded or unavailable checks remain validation debt. PR #43 remains draft and unmerged until explicitly directed otherwise.
+1. Regenerate and commit the pnpm 11.13.0 lockfile with Zustand.
+2. Prove frozen installation on the resulting exact head.
+3. Run architecture guards, Biome and TypeScript.
+4. Run focused and full Vitest suites.
+5. Run production build and React Doctor.
+6. Run desktop, tablet and mobile Playwright plus light/dark visual comparison.
+7. Inspect artifacts, logs, traces and screenshots.
+8. Repair only evidenced failures.
+9. Reconcile the final task ledger, PR body and review state.
 
 ## Decision safeguards
 
-- UI remains unchanged except the approved payment-control correction.
-- Route Handlers do not call Server Actions.
-- Client remote state uses typed API clients and TanStack Query.
-- Prisma remains the persistent source of truth.
+- UI remains unchanged unless a verified defect requires correction.
+- Zustand owns browser state only and never becomes a remote-data cache.
+- Complete Product records are not persisted in Zustand.
 - URL owns navigable filters, sorting, pagination and search.
-- Production fixtures and reducer arrays are not persistence abstractions.
+- TanStack Query owns remote browser data; Prisma owns persistent data.
+- Local state moves to the narrowest useful component boundary.
+- Phase 6 does not absorb Phase 7 auth consolidation or Phase 8 payment settlement.
 - Source implementation and executed certification are reported separately.

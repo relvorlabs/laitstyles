@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import type { MouseEvent } from "react";
+import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
+import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
+import { useStorefrontCatalogueData, useStorefrontOverlay } from "../storefront-runtime";
 import { money } from "../catalogue-data";
 import { IconClose, IconSearch } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
 
 const searchSuggestions: [string, string][] = [
   ["Levi's", "Levi’s denim"],
@@ -13,29 +15,60 @@ const searchSuggestions: [string, string][] = [
   ["Jacket", "Jackets"],
   ["Vintage", "Vintage"],
 ];
+
 export function SearchOverlay() {
-  const storefront = useStorefront();
+  const navigation = useCatalogueNavigation();
+  const overlay = useStorefrontOverlay();
+  const { products } = useStorefrontCatalogueData();
+  const [value, setValue] = useState("");
+  const results = useMemo(() => {
+    const query = value.trim().toLowerCase();
+    if (!query) return null;
+    return products
+      .filter((product) =>
+        [
+          product.name,
+          product.brand,
+          product.category,
+          product.type,
+          product.style,
+          `Grade ${product.condition}`,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query),
+      )
+      .slice(0, 7);
+  }, [products, value]);
+
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
+    if (event.target === event.currentTarget) overlay.close();
+  };
+  const navigateSearch = () => {
+    if (!navigation.searchFor(value)) return;
+    overlay.close();
+  };
+  const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") navigateSearch();
   };
 
   return (
     <div
-      id="searchModal"
-      className={`overlay modal-wrap${storefront.openId === "searchModal" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Search the rack"
+      aria-modal="true"
+      className={`overlay modal-wrap${overlay.openId === "searchModal" ? " open" : ""}`}
+      id="searchModal"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <section className="modal search-modal">
         <div className="modal-head">
           <h2>Search the rack</h2>
           <Button
-            type="button"
             aria-label="Close search"
-            onClick={storefront.closeAll}
+            onClick={overlay.close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
@@ -46,12 +79,13 @@ export function SearchOverlay() {
             Product, brand, category or grade
           </label>
           <input
-            id="searchInput"
-            className="min-h-[66px] w-full border-0 border-b border-[var(--line-strong)] bg-transparent pr-[52px] text-[1.35rem]"
             autoComplete="off"
+            className="min-h-[66px] w-full border-0 border-b border-[var(--line-strong)] bg-transparent pr-[52px] text-[1.35rem]"
+            id="searchInput"
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={onSearchKeyDown}
             placeholder="Try “Levi’s denim”"
-            value={storefront.searchValue}
-            onChange={(event) => storefront.setSearchValue(event.target.value)}
+            value={value}
           />
           <IconSearch className="absolute right-[14px] top-[22px] h-5 w-5 text-[var(--muted)]" />
         </div>
@@ -59,35 +93,35 @@ export function SearchOverlay() {
           {searchSuggestions.map(([term, label]) => (
             <Button
               key={term}
+              onClick={() => setValue(term)}
               type="button"
-              onClick={() => storefront.setSearchValue(term)}
               variant="outline"
             >
               {label}
             </Button>
           ))}
         </div>
-        <div id="searchResults" className="mt-6 grid gap-2.5">
-          {storefront.searchResults === null ? (
+        <div className="mt-6 grid gap-2.5" id="searchResults">
+          {results === null ? (
             <div className="search-empty">
               Start typing to search products, brands, categories or condition grades.
             </div>
-          ) : storefront.searchResults.length ? (
-            storefront.searchResults.map((product) => (
+          ) : results.length ? (
+            results.map((product) => (
               <Button
-                key={product.id}
                 className="grid h-auto w-full grid-cols-[74px_1fr_auto] items-center justify-stretch gap-[14px] text-left max-[600px]:grid-cols-[64px_1fr]"
+                key={product.id}
+                onClick={() => openQuickView(product.id)}
                 type="button"
-                onClick={() => storefront.openQuick(product.id)}
                 variant="ghost"
               >
                 <Image
-                  src={product.images[0]}
                   alt=""
-                  width={148}
+                  className="h-[92px] w-[74px] rounded-[4px] object-cover max-[600px]:h-20 max-[600px]:w-16"
                   height={184}
                   sizes="(max-width: 600px) 64px, 74px"
-                  className="h-[92px] w-[74px] rounded-[4px] object-cover max-[600px]:h-20 max-[600px]:w-16"
+                  src={product.images[0]}
+                  width={148}
                 />
                 <span>
                   <h3 className="m-0 text-[0.92rem]">{product.name}</h3>

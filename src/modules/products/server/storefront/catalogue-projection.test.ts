@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import type { CategoryWithImage, ProductDetail, ProductImage } from "@/lib/storefront/types";
+import type {
+  CategoryWithImage,
+  ProductDetail,
+  ProductImage,
+  ProductSummary,
+} from "@/lib/storefront/types";
 import {
-  buildStorefrontCatalog,
-  buildStorefrontShellCatalog,
+  buildStorefrontCatalogue,
+  buildStorefrontShellCatalogue,
   measurementsCmFor,
-  projectLegacyProduct,
-} from "./catalog-loader";
+  projectStorefrontProduct,
+  projectStorefrontProductSummary,
+} from "./catalogue-projection";
 
 function image(url: string, kind: ProductImage["kind"] = "cover", position = 0): ProductImage {
   return {
@@ -20,7 +26,7 @@ function image(url: string, kind: ProductImage["kind"] = "cover", position = 0):
   };
 }
 
-function uniqueDetail(overrides: Partial<ProductDetail> = {}): ProductDetail {
+function summary(overrides: Partial<ProductSummary> = {}): ProductSummary {
   return {
     id: "prod-1",
     slug: "archive-silk-dress",
@@ -36,6 +42,17 @@ function uniqueDetail(overrides: Partial<ProductDetail> = {}): ProductDetail {
     category: { id: "cat-1", slug: "dresses", name: "Dresses" },
     collection: { id: "col-1", slug: "women", name: "Women" },
     cover: image("https://img/cover.jpg"),
+    mode: "unique",
+    sizeLabel: "M",
+    colour: "Ivory",
+    availability: { state: "available", available: 1, isOneOfOne: true },
+    ...overrides,
+  };
+}
+
+function uniqueDetail(overrides: Partial<ProductDetail> = {}): ProductDetail {
+  return {
+    ...summary(),
     description: "One-of-one archive piece.",
     media: [image("https://img/cover.jpg"), image("https://img/detail.jpg", "detail", 1)],
     measurements: [
@@ -43,7 +60,11 @@ function uniqueDetail(overrides: Partial<ProductDetail> = {}): ProductDetail {
       { label: "Length", value: "71 cm", position: 1 },
       { label: "Weight", value: "300 g", position: 2 },
     ],
-    reviewSummary: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+    reviewSummary: {
+      average: 0,
+      count: 0,
+      distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    },
     careInstructions: "Dry clean only",
     flawNotes: "Small repaired seam",
     mode: "unique",
@@ -59,6 +80,8 @@ function variantDetail(): ProductDetail {
     id: "prod-2",
     slug: "varsity-jacket",
     mode: "variant",
+    sizeLabel: null,
+    colour: null,
     variants: [
       {
         id: "var-1",
@@ -107,9 +130,27 @@ const categories: CategoryWithImage[] = [
   { id: "cat-2", slug: "jackets", name: "Jackets", imageUrl: null, productCount: 2 },
 ];
 
-describe("projectLegacyProduct", () => {
-  it("converts kobo prices to naira and maps taxonomy into the legacy shape", () => {
-    const product = projectLegacyProduct(uniqueDetail(), 0);
+describe("storefront catalogue product projection", () => {
+  it("maps canonical summaries without inventing detail media", () => {
+    expect(projectStorefrontProductSummary(summary(), 19)).toMatchObject({
+      id: "prod-1",
+      databaseId: "prod-1",
+      category: "Women",
+      type: "Dresses",
+      price: 49_000,
+      referencePrice: 65_000,
+      condition: "A+",
+      inventory: "one-of-one",
+      stock: 1,
+      status: "available",
+      new: true,
+      images: ["https://img/cover.jpg"],
+    });
+    expect(projectStorefrontProductSummary(summary(), 20).new).toBe(false);
+  });
+
+  it("converts kobo prices and maps taxonomy into the storefront shape", () => {
+    const product = projectStorefrontProduct(uniqueDetail(), 0);
 
     expect(product).toMatchObject({
       id: "prod-1",
@@ -127,26 +168,28 @@ describe("projectLegacyProduct", () => {
     expect(product.images).toEqual(["https://img/cover.jpg", "https://img/detail.jpg"]);
   });
 
-  it("maps condition grades onto legacy letters", () => {
-    expect(projectLegacyProduct(uniqueDetail({ condition: "Excellent" }), 0).condition).toBe("A+");
-    expect(projectLegacyProduct(uniqueDetail({ condition: "Good" }), 0).condition).toBe("A");
-    expect(projectLegacyProduct(uniqueDetail({ condition: "Fair" }), 0).condition).toBe("B+");
-    expect(projectLegacyProduct(uniqueDetail({ condition: null }), 0).condition).toBe("A");
+  it("maps condition grades", () => {
+    expect(projectStorefrontProduct(uniqueDetail({ condition: "Excellent" }), 0).condition).toBe(
+      "A+",
+    );
+    expect(projectStorefrontProduct(uniqueDetail({ condition: "Good" }), 0).condition).toBe("A");
+    expect(projectStorefrontProduct(uniqueDetail({ condition: "Fair" }), 0).condition).toBe("B+");
+    expect(projectStorefrontProduct(uniqueDetail({ condition: null }), 0).condition).toBe("A");
   });
 
-  it("maps availability states onto legacy status", () => {
+  it("maps availability states", () => {
     const sold = uniqueDetail({
       availability: { state: "sold_out", available: 0, isOneOfOne: true },
     });
     const reserved = uniqueDetail({
       availability: { state: "reserved_by_others", available: 0, isOneOfOne: true },
     });
-    expect(projectLegacyProduct(sold, 0).status).toBe("sold");
-    expect(projectLegacyProduct(reserved, 0).status).toBe("reserved");
+    expect(projectStorefrontProduct(sold, 0).status).toBe("sold");
+    expect(projectStorefrontProduct(reserved, 0).status).toBe("reserved");
   });
 
   it("derives size and variant labels for variant products", () => {
-    const product = projectLegacyProduct(variantDetail(), 25);
+    const product = projectStorefrontProduct(variantDetail(), 25);
 
     expect(product.inventory).toBe("variant");
     expect(product.size).toBe("M–L");
@@ -154,8 +197,8 @@ describe("projectLegacyProduct", () => {
     expect(product.new).toBe(false);
   });
 
-  it("keeps stocked inventory distinct from unique and variant inventory", () => {
-    const product = projectLegacyProduct(stockedDetail(), 0);
+  it("keeps stocked inventory distinct", () => {
+    const product = projectStorefrontProduct(stockedDetail(), 0);
 
     expect(product.inventory).toBe("matching-stock");
     expect(product.stock).toBe(2);
@@ -164,9 +207,9 @@ describe("projectLegacyProduct", () => {
   });
 });
 
-describe("buildStorefrontCatalog", () => {
+describe("storefront catalogue payload projection", () => {
   it("assembles products, categories, measurements and variant options", () => {
-    const payload = buildStorefrontCatalog([uniqueDetail(), variantDetail()], categories);
+    const payload = buildStorefrontCatalogue([uniqueDetail(), variantDetail()], categories);
 
     expect(payload.products).toHaveLength(2);
     expect(payload.categories[0]).toEqual({
@@ -183,16 +226,14 @@ describe("buildStorefrontCatalog", () => {
   });
 
   it("is safe on an empty catalogue", () => {
-    const payload = buildStorefrontCatalog([], []);
+    const payload = buildStorefrontCatalogue([], []);
     expect(payload.products).toEqual([]);
     expect(measurementsCmFor(undefined)).toEqual({});
   });
-});
 
-describe("buildStorefrontShellCatalog", () => {
   it("removes product-detail-only data from the global client boundary", () => {
-    const full = buildStorefrontCatalog([uniqueDetail(), variantDetail()], categories);
-    const shell = buildStorefrontShellCatalog(full);
+    const full = buildStorefrontCatalogue([uniqueDetail(), variantDetail()], categories);
+    const shell = buildStorefrontShellCatalogue(full);
 
     expect(shell.products).toHaveLength(2);
     expect(shell.products[0]).toMatchObject({
@@ -211,10 +252,10 @@ describe("buildStorefrontShellCatalog", () => {
   });
 
   it("does not mutate the server-owned full catalogue", () => {
-    const full = buildStorefrontCatalog([uniqueDetail(), variantDetail()], categories);
+    const full = buildStorefrontCatalogue([uniqueDetail(), variantDetail()], categories);
     const original = structuredClone(full);
 
-    buildStorefrontShellCatalog(full);
+    buildStorefrontShellCatalogue(full);
 
     expect(full).toEqual(original);
     expect(full.products[0]?.images).toHaveLength(2);

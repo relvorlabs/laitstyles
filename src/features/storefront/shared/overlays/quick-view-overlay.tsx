@@ -1,228 +1,298 @@
 "use client";
 
 import Image from "next/image";
-import type { MouseEvent } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { inventoryLabel, money } from "../catalogue-data";
+import { koboToNaira } from "@/lib/money";
+import {
+  openImageViewer,
+  subscribeQuickView,
+  subscribeTransientOverlayClose,
+} from "../storefront-overlay-events";
+import {
+  useStorefrontCart,
+  useStorefrontCatalogueData,
+  useStorefrontOverlay,
+  useStorefrontRecent,
+  useStorefrontSavedItems,
+} from "../storefront-runtime";
+import { useOverlayLifecycle } from "../use-overlay-lifecycle";
+import { inventoryLabel, money, productById } from "../catalogue-data";
 import { IconClose, IconHeart } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
 
 export function QuickViewOverlay() {
-  const storefront = useStorefront();
+  const catalogue = useStorefrontCatalogueData();
+  const cart = useStorefrontCart();
+  const saved = useStorefrontSavedItems();
+  const overlay = useStorefrontOverlay();
+  const recent = useStorefrontRecent();
+  const [productId, setProductId] = useState<string | null>(null);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const close = useCallback(() => setProductId(null), []);
+
+  useEffect(
+    () =>
+      subscribeQuickView(({ productId: nextProductId }) => {
+        setProductId(nextProductId);
+        setImageIndex(0);
+        setSelectedVariantId(null);
+        setError("");
+        recent.add(nextProductId);
+      }),
+    [recent.add],
+  );
+
+  useEffect(() => subscribeTransientOverlayClose(close), [close]);
+
+  const active = useMemo(
+    () => (productId ? productById(catalogue.products, productId) : undefined),
+    [catalogue.products, productId],
+  );
+  const variants = active ? (catalogue.variantOptionsByProductId[active.id] ?? []) : [];
+
+  useOverlayLifecycle({ open: Boolean(active), onEscape: close, focusId: "quickView" });
+
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
+    if (event.target === event.currentTarget) close();
   };
-  const active = storefront.activeProduct;
-  const variants = active ? (storefront.variantOptionsByProductId[active.id] ?? []) : [];
+
+  if (!active) return null;
+
+  const addFromQuick = () => {
+    if (active.inventory === "variant") {
+      const variant = variants.find((option) => option.id === selectedVariantId);
+      if (!variant || variant.availability.available < 1) {
+        setError("Choose an available option before adding this piece.");
+        return;
+      }
+      const added = cart.addProduct(
+        active.id,
+        {
+          variantId: variant.id,
+          variantLabel: variant.label,
+          colour: variant.colour,
+          size: variant.size,
+          unitPriceNaira: koboToNaira(variant.price ?? active.price * 100),
+          maxQuantity: variant.availability.available,
+        },
+        1,
+      );
+      if (!added) return;
+    } else if (!cart.addProduct(active.id)) {
+      return;
+    }
+    overlay.open("cartDrawer");
+  };
 
   return (
     <div
-      id="quickView"
-      className={`overlay modal-wrap${storefront.openId === "quickView" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Product quick view"
+      aria-modal="true"
+      className="overlay modal-wrap open"
+      id="quickView"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <section className="modal">
         <div className="modal-head">
           <span className="eyebrow">Product quick view</span>
           <Button
-            type="button"
             aria-label="Close quick view"
-            onClick={storefront.closeAll}
+            onClick={close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
           </Button>
         </div>
-        {active ? (
-          <div id="quickBody">
-            <div className="mt-[22px] grid grid-cols-[1.05fr_0.95fr] gap-[34px] max-[860px]:grid-cols-1 max-[600px]:gap-[18px]">
-              <div>
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] bg-[var(--linen)]">
-                  <Image
-                    src={active.images[storefront.imageIndex]}
-                    alt={`${active.name}, front view`}
-                    fill
-                    sizes="(min-width: 861px) 50vw, 100vw"
-                    className="object-cover [filter:saturate(0.74)]"
-                  />
-                  <Button
-                    size="lg"
-                    type="button"
-                    aria-label="Open image viewer"
-                    className="absolute inset-0"
-                    onClick={() => storefront.openViewer(storefront.imageIndex)}
-                    variant="ghost"
-                  />
-                </div>
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {active.images.map((src, index) => (
-                    <Button
-                      key={src}
-                      className="relative aspect-square h-auto overflow-hidden p-0"
-                      type="button"
-                      aria-label={`View image ${index + 1}`}
-                      aria-pressed={index === storefront.imageIndex}
-                      onClick={() => storefront.setImageIndex(index)}
-                      variant={index === storefront.imageIndex ? "secondary" : "outline"}
-                    >
-                      <Image src={src} alt="" fill sizes="96px" className="object-cover" />
-                    </Button>
-                  ))}
-                </div>
+        <div id="quickBody">
+          <div className="mt-[22px] grid grid-cols-[1.05fr_0.95fr] gap-[34px] max-[860px]:grid-cols-1 max-[600px]:gap-[18px]">
+            <div>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] bg-[var(--linen)]">
+                <Image
+                  alt={`${active.name}, front view`}
+                  className="object-cover [filter:saturate(0.74)]"
+                  fill
+                  sizes="(min-width: 861px) 50vw, 100vw"
+                  src={active.images[imageIndex]}
+                />
+                <Button
+                  aria-label="Open image viewer"
+                  className="absolute inset-0"
+                  onClick={() =>
+                    openImageViewer({ productId: active.id, index: imageIndex })
+                  }
+                  size="lg"
+                  type="button"
+                  variant="ghost"
+                />
               </div>
-              <div className="py-1.5">
-                <div className="flex flex-wrap gap-[7px]">
-                  <span
-                    className={`badge${active.inventory === "one-of-one" ? " badge-solid" : ""}`}
-                  >
-                    {inventoryLabel(active.inventory)}
-                  </span>
+              <div className="mt-2 grid grid-cols-5 gap-2">
+                {active.images.map((src, index) => (
                   <Button
-                    size="lg"
-                    variant={active.condition === "A+" ? "secondary" : "outline"}
+                    aria-label={`View image ${index + 1}`}
+                    aria-pressed={index === imageIndex}
+                    className="relative aspect-square h-auto overflow-hidden p-0"
+                    key={src}
+                    onClick={() => setImageIndex(index)}
                     type="button"
-                    onClick={() => storefront.open("conditionModal")}
+                    variant={index === imageIndex ? "secondary" : "outline"}
                   >
-                    Grade {active.condition}
+                    <Image alt="" className="object-cover" fill sizes="96px" src={src} />
                   </Button>
-                  <Button
-                    size="lg"
-                    type="button"
-                    onClick={() => storefront.open("authModal")}
-                    variant="ghost"
-                  >
-                    {active.brandStatus}
-                  </Button>
-                </div>
-                <h2
-                  id="quickTitle"
-                  className="mt-3.5 text-[clamp(2rem,4vw,4rem)] font-[560] leading-[0.95] tracking-[-0.04em] max-[600px]:text-[2.35rem]"
+                ))}
+              </div>
+            </div>
+            <div className="py-1.5">
+              <div className="flex flex-wrap gap-[7px]">
+                <span
+                  className={`badge${active.inventory === "one-of-one" ? " badge-solid" : ""}`}
                 >
-                  {active.name}
-                </h2>
-                <p className="mt-2.5 text-[0.85rem] text-[var(--muted)]">
-                  {active.brand} · {active.category} · {active.style}
-                </p>
-                <p className="price mt-[22px] text-[1.2rem]">{money(active.price)}</p>
-                <p className="mt-5 max-w-[31rem] text-[var(--ink-soft)]">
-                  {active.inventory === "one-of-one"
-                    ? "You are buying the exact piece shown in these photographs."
-                    : active.inventory === "variant"
-                      ? "Choose your available size before adding this piece to the bag."
-                      : "Several matching units of this product are currently available."}
-                </p>
-                <div className="mt-[22px] grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      ["Tagged size", active.size],
-                      ["Recommended fit", active.fit],
-                      ["Condition", `Grade ${active.condition}`],
-                      ["Material", active.material],
-                    ] as [string, string][]
-                  ).map(([label, value]) => (
-                    <div key={label} className="rounded-[4px] border border-[var(--line)] p-[13px]">
-                      <span className="block text-[0.68rem] text-[var(--muted)]">{label}</span>
-                      <strong className="mt-[3px] block text-[0.87rem]">{value}</strong>
-                    </div>
-                  ))}
-                </div>
-                {active.inventory === "variant" && variants.length > 0 ? (
-                  <div className="mt-[23px]">
-                    <div className="mb-2.5 flex justify-between gap-5 text-[0.78rem]">
-                      <strong>Select size</strong>
-                      <Button
-                        size="lg"
-                        type="button"
-                        onClick={() => storefront.open("measureModal")}
-                        variant="link"
-                      >
-                        Size guide
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {variants.map((variant) => {
-                        const disabled = variant.availability.available < 1;
-                        const selected = storefront.selectedQuickVariantId === variant.id;
-                        return (
-                          <Button
-                            size="lg"
-                            key={variant.id}
-                            className="min-w-12 disabled:line-through"
-                            type="button"
-                            disabled={disabled}
-                            aria-pressed={selected}
-                            onClick={() => {
-                              storefront.setSelectedQuickVariantId(variant.id);
-                              storefront.setQuickError("");
-                            }}
-                            variant={selected ? "default" : "outline"}
-                          >
-                            {variant.label}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    <p
-                      id="quickError"
-                      className="mt-[7px] min-h-[19px] text-[0.75rem] text-[var(--error)]"
+                  {inventoryLabel(active.inventory)}
+                </span>
+                <Button
+                  onClick={() => overlay.open("conditionModal")}
+                  size="lg"
+                  type="button"
+                  variant={active.condition === "A+" ? "secondary" : "outline"}
+                >
+                  Grade {active.condition}
+                </Button>
+                <Button
+                  onClick={() => overlay.open("authModal")}
+                  size="lg"
+                  type="button"
+                  variant="ghost"
+                >
+                  {active.brandStatus}
+                </Button>
+              </div>
+              <h2
+                className="mt-3.5 text-[clamp(2rem,4vw,4rem)] font-[560] leading-[0.95] tracking-[-0.04em] max-[600px]:text-[2.35rem]"
+                id="quickTitle"
+              >
+                {active.name}
+              </h2>
+              <p className="mt-2.5 text-[0.85rem] text-[var(--muted)]">
+                {active.brand} · {active.category} · {active.style}
+              </p>
+              <p className="price mt-[22px] text-[1.2rem]">{money(active.price)}</p>
+              <p className="mt-5 max-w-[31rem] text-[var(--ink-soft)]">
+                {active.inventory === "one-of-one"
+                  ? "You are buying the exact piece shown in these photographs."
+                  : active.inventory === "variant"
+                    ? "Choose your available size before adding this piece to the bag."
+                    : "Several matching units of this product are currently available."}
+              </p>
+              <div className="mt-[22px] grid grid-cols-2 gap-2">
+                {([
+                  ["Tagged size", active.size],
+                  ["Recommended fit", active.fit],
+                  ["Condition", `Grade ${active.condition}`],
+                  ["Material", active.material],
+                ] as [string, string][]).map(([label, value]) => (
+                  <div className="rounded-[4px] border border-[var(--line)] p-[13px]" key={label}>
+                    <span className="block text-[0.68rem] text-[var(--muted)]">{label}</span>
+                    <strong className="mt-[3px] block text-[0.87rem]">{value}</strong>
+                  </div>
+                ))}
+              </div>
+              {active.inventory === "variant" && variants.length > 0 ? (
+                <div className="mt-[23px]">
+                  <div className="mb-2.5 flex justify-between gap-5 text-[0.78rem]">
+                    <strong>Select size</strong>
+                    <Button
+                      onClick={() => overlay.open("measureModal")}
+                      size="lg"
+                      type="button"
+                      variant="link"
                     >
-                      {storefront.quickError}
-                    </p>
+                      Size guide
+                    </Button>
                   </div>
-                ) : (
-                  <div className="mt-[23px]">
-                    <div className="mb-2.5 flex justify-between gap-5 text-[0.78rem]">
-                      <strong>Fit details</strong>
-                      <Button
-                        size="lg"
-                        type="button"
-                        onClick={() => storefront.open("measureModal")}
-                        variant="link"
-                      >
-                        View measurements
-                      </Button>
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {variants.map((variant) => {
+                      const disabled = variant.availability.available < 1;
+                      const selected = selectedVariantId === variant.id;
+                      return (
+                        <Button
+                          aria-pressed={selected}
+                          className="min-w-12 disabled:line-through"
+                          disabled={disabled}
+                          key={variant.id}
+                          onClick={() => {
+                            setSelectedVariantId(variant.id);
+                            setError("");
+                          }}
+                          size="lg"
+                          type="button"
+                          variant={selected ? "default" : "outline"}
+                        >
+                          {variant.label}
+                        </Button>
+                      );
+                    })}
                   </div>
-                )}
-                {active.flaw !== "None" ? (
-                  <Button
-                    className="mt-[18px] h-auto w-full justify-start text-left"
-                    type="button"
-                    onClick={() => storefront.openViewer(4)}
-                    variant="ghost"
+                  <p
+                    className="mt-[7px] min-h-[19px] text-[0.75rem] text-[var(--error)]"
+                    id="quickError"
                   >
-                    <span>
-                      <strong>Disclosed detail:</strong> {active.flaw}. <u>View detail image</u>
-                    </span>
-                  </Button>
-                ) : null}
-                <div className="mt-6 grid grid-cols-[1fr_auto] gap-2 max-[600px]:grid-cols-[1fr_48px]">
-                  <Button
-                    className="w-full"
-                    type="button"
-                    disabled={active.status !== "available"}
-                    onClick={() => storefront.addFromQuick(active.id)}
-                  >
-                    {active.status === "available" ? "Add to bag" : active.status}
-                  </Button>
-                  <Button
-                    type="button"
-                    aria-label={`${storefront.saved.has(active.id) ? "Remove" : "Save"} ${active.name}`}
-                    onClick={() => storefront.toggleSaved(active.id)}
-                    size="icon-lg"
-                    variant={storefront.saved.has(active.id) ? "secondary" : "outline"}
-                  >
-                    <IconHeart filled={storefront.saved.has(active.id)} />
-                  </Button>
+                    {error}
+                  </p>
                 </div>
+              ) : (
+                <div className="mt-[23px]">
+                  <div className="mb-2.5 flex justify-between gap-5 text-[0.78rem]">
+                    <strong>Fit details</strong>
+                    <Button
+                      onClick={() => overlay.open("measureModal")}
+                      size="lg"
+                      type="button"
+                      variant="link"
+                    >
+                      View measurements
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {active.flaw !== "None" ? (
+                <Button
+                  className="mt-[18px] h-auto w-full justify-start text-left"
+                  onClick={() => openImageViewer({ productId: active.id, index: 4 })}
+                  type="button"
+                  variant="ghost"
+                >
+                  <span>
+                    <strong>Disclosed detail:</strong> {active.flaw}. <u>View detail image</u>
+                  </span>
+                </Button>
+              ) : null}
+              <div className="mt-6 grid grid-cols-[1fr_auto] gap-2 max-[600px]:grid-cols-[1fr_48px]">
+                <Button
+                  className="w-full"
+                  disabled={active.status !== "available"}
+                  onClick={addFromQuick}
+                  type="button"
+                >
+                  {active.status === "available" ? "Add to bag" : active.status}
+                </Button>
+                <Button
+                  aria-label={`${saved.idSet.has(active.id) ? "Remove" : "Save"} ${active.name}`}
+                  onClick={() => saved.toggleProduct(active.id)}
+                  size="icon-lg"
+                  type="button"
+                  variant={saved.idSet.has(active.id) ? "secondary" : "outline"}
+                >
+                  <IconHeart filled={saved.idSet.has(active.id)} />
+                </Button>
               </div>
             </div>
           </div>
-        ) : null}
+        </div>
       </section>
     </div>
   );

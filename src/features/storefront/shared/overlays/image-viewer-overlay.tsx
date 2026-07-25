@@ -1,43 +1,113 @@
 "use client";
 
 import Image from "next/image";
-import type { CSSProperties, MouseEvent } from "react";
+import {
+  type CSSProperties,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
+import {
+  subscribeImageViewer,
+  subscribeTransientOverlayClose,
+  type ImageViewerRequest,
+} from "../storefront-overlay-events";
+import { useStorefrontCatalogueData } from "../storefront-runtime";
+import { useOverlayLifecycle } from "../use-overlay-lifecycle";
+import { productById } from "../catalogue-data";
 import { IconClose } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
 
 export function ImageViewerOverlay() {
-  const storefront = useStorefront();
-  const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
-  };
-  const viewerProduct = storefront.activeProduct ?? storefront.products[0];
-  if (!viewerProduct || viewerProduct.images.length === 0) return null;
-  const viewerLabels = [
+  const { products } = useStorefrontCatalogueData();
+  const [request, setRequest] = useState<ImageViewerRequest | null>(null);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [zoom, setZoom] = useState(1);
+
+  const close = useCallback(() => setRequest(null), []);
+
+  useEffect(
+    () =>
+      subscribeImageViewer((next) => {
+        setRequest(next);
+        setImageIndex(next.index ?? 0);
+        setZoom(1);
+      }),
+    [],
+  );
+
+  useEffect(() => subscribeTransientOverlayClose(close), [close]);
+
+  const product = useMemo(
+    () => (request ? productById(products, request.productId) : undefined),
+    [products, request],
+  );
+  const images = request?.images?.length ? [...request.images] : (product?.images ?? []);
+
+  useOverlayLifecycle({
+    open: Boolean(request && product && images.length),
+    onEscape: close,
+    focusId: "imageViewer",
+  });
+
+  useEffect(() => {
+    if (!request || !product || images.length === 0) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") {
+        setImageIndex((index) => (index + 1) % images.length);
+        setZoom(1);
+      }
+      if (event.key === "ArrowLeft") {
+        setImageIndex((index) => (index - 1 + images.length) % images.length);
+        setZoom(1);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [images.length, product, request]);
+
+  if (!request || !product || images.length === 0) return null;
+
+  const labels = [
     "Front view",
     "Back view",
     "Fabric detail",
     "Brand or care label",
-    viewerProduct.flaw !== "None" ? "Disclosed detail" : "Styled view",
+    product.flaw !== "None" ? "Disclosed detail" : "Styled view",
   ];
+  const safeIndex = Math.min(imageIndex, images.length - 1);
+  const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) close();
+  };
+
+  const showPrevious = () => {
+    setImageIndex((index) => (index - 1 + images.length) % images.length);
+    setZoom(1);
+  };
+  const showNext = () => {
+    setImageIndex((index) => (index + 1) % images.length);
+    setZoom(1);
+  };
 
   return (
     <div
-      id="imageViewer"
-      className={`overlay modal-wrap${storefront.openId === "imageViewer" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Product images"
+      aria-modal="true"
+      className="overlay modal-wrap open"
+      id="imageViewer"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <section className="modal image-modal">
         <div className="modal-head">
           <h2>Product images</h2>
           <Button
-            type="button"
             aria-label="Close image viewer"
-            onClick={storefront.closeAll}
+            onClick={close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
@@ -45,98 +115,89 @@ export function ImageViewerOverlay() {
         </div>
         <div className="mt-4 grid h-[calc(100%-72px)] grid-cols-[92px_1fr] gap-[14px] max-[600px]:grid-cols-1 max-[600px]:grid-rows-[1fr_auto]">
           <div
-            id="viewerThumbs"
             className="grid content-start gap-2 overflow-auto max-[600px]:order-2 max-[600px]:auto-cols-[72px] max-[600px]:grid-flow-col max-[600px]:overflow-x-auto"
+            id="viewerThumbs"
           >
-            {viewerProduct.images.map((src, index) => (
+            {images.map((src, index) => (
               <Button
-                key={src}
+                aria-label={labels[index] ?? `View image ${index + 1}`}
+                aria-pressed={index === safeIndex}
                 className="relative aspect-[4/5] h-auto overflow-hidden p-0"
-                type="button"
-                aria-label={viewerLabels[index]}
-                aria-pressed={index === storefront.imageIndex}
+                key={`${src}-${index}`}
                 onClick={() => {
-                  storefront.setImageIndex(index);
-                  storefront.setZoom(1);
+                  setImageIndex(index);
+                  setZoom(1);
                 }}
-                variant={index === storefront.imageIndex ? "secondary" : "outline"}
+                type="button"
+                variant={index === safeIndex ? "secondary" : "outline"}
               >
-                <Image src={src} alt="" fill sizes="92px" className="object-cover" />
+                <Image alt="" className="object-cover" fill sizes="92px" src={src} />
               </Button>
             ))}
           </div>
           <div
-            id="viewerMain"
             className="relative grid min-h-0 place-items-center overflow-hidden rounded-[5px] bg-[var(--bone-2)]"
-            style={{ "--zoom": storefront.zoom } as CSSProperties}
+            id="viewerMain"
+            style={{ "--zoom": zoom } as CSSProperties}
           >
             <Image
-              id="viewerImage"
-              src={viewerProduct.images[storefront.imageIndex]}
-              alt={`${viewerProduct.name}, ${viewerLabels[storefront.imageIndex]?.toLowerCase()}`}
-              fill
-              sizes="100vw"
+              alt={`${product.name}, ${(labels[safeIndex] ?? `view ${safeIndex + 1}`).toLowerCase()}`}
               className="object-contain [transform:scale(var(--zoom,1))] [transition:transform_220ms_var(--ease)]"
+              fill
+              id="viewerImage"
+              sizes="100vw"
+              src={images[safeIndex]}
             />
             <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3">
               <div className="flex gap-[7px]">
                 <Button
-                  id="prevImage"
-                  type="button"
                   aria-label="Previous image"
-                  onClick={() => {
-                    storefront.setImageIndex(
-                      (index) =>
-                        (index - 1 + viewerProduct.images.length) % viewerProduct.images.length,
-                    );
-                    storefront.setZoom(1);
-                  }}
+                  id="prevImage"
+                  onClick={showPrevious}
                   size="icon-lg"
+                  type="button"
                   variant="ghost"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="m15 18-6-6 6-6" />
                   </svg>
                 </Button>
                 <Button
-                  id="nextImage"
-                  type="button"
                   aria-label="Next image"
-                  onClick={() => {
-                    storefront.setImageIndex((index) => (index + 1) % viewerProduct.images.length);
-                    storefront.setZoom(1);
-                  }}
+                  id="nextImage"
+                  onClick={showNext}
                   size="icon-lg"
+                  type="button"
                   variant="ghost"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="m9 18 6-6-6-6" />
                   </svg>
                 </Button>
               </div>
               <span
-                id="viewerCount"
                 className="rounded-full bg-[rgba(243,240,232,0.9)] px-[13px] py-2.5 font-mono text-[0.7rem] font-medium leading-none"
+                id="viewerCount"
               >
-                {storefront.imageIndex + 1} / {viewerProduct.images.length}
+                {safeIndex + 1} / {images.length}
               </span>
               <div className="flex gap-[7px]">
                 <Button
-                  id="zoomOut"
-                  type="button"
                   aria-label="Zoom out"
-                  onClick={() => storefront.setZoom((zoom) => Math.max(1, zoom - 0.25))}
+                  id="zoomOut"
+                  onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
                   size="icon-lg"
+                  type="button"
                   variant="ghost"
                 >
                   −
                 </Button>
                 <Button
-                  id="zoomIn"
-                  type="button"
                   aria-label="Zoom in"
-                  onClick={() => storefront.setZoom((zoom) => Math.min(2.2, zoom + 0.25))}
+                  id="zoomIn"
+                  onClick={() => setZoom((value) => Math.min(2.2, value + 0.25))}
                   size="icon-lg"
+                  type="button"
                   variant="ghost"
                 >
                   +

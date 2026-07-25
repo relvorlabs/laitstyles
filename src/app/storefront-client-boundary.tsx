@@ -1,32 +1,34 @@
 "use client";
 
 import { type ReactNode, use } from "react";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
+import { StorefrontAuthDialogHost } from "@/features/storefront/shared/storefront-auth-dialog-host";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import { StorefrontClientStateProvider } from "@/features/storefront/shared/storefront-client-state-provider";
+import { StorefrontStateHydrator } from "@/features/storefront/shared/storefront-state-hydrator";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
+import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
+import { StorefrontQueryProvider } from "@/providers/storefront-query-provider";
 
 export function StorefrontClientBoundary({
   authSessionPromise,
-  catalogPromise,
+  cataloguePromise,
   children,
 }: {
   authSessionPromise: Promise<StorefrontAuthSession>;
-  catalogPromise: Promise<StorefrontShellCatalogPayload>;
+  cataloguePromise: Promise<StorefrontShellCataloguePayload>;
   children: ReactNode;
 }) {
   const authSession = use(authSessionPromise);
-  const catalog = use(catalogPromise);
+  const catalogue = use(cataloguePromise);
 
   return (
-    <StorefrontClientStateProvider
-      products={catalog.products}
-      variantOptionsByProductId={catalog.variantOptionsByProductId}
-    >
-      <StorefrontAuthProvider authSession={authSession} products={catalog.products}>
-        <SiteChrome catalog={catalog}>{children}</SiteChrome>
-      </StorefrontAuthProvider>
-    </StorefrontClientStateProvider>
+    <StorefrontQueryProvider initialCatalogue={catalogue}>
+      <StorefrontStateHydrator>
+        <StorefrontAuthProvider authSession={authSession}>
+          <SiteChrome>{children}</SiteChrome>
+          <StorefrontAuthDialogHost />
+        </StorefrontAuthProvider>
+      </StorefrontStateHydrator>
+    </StorefrontQueryProvider>
   );
 }

@@ -1,17 +1,25 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { ParsedCatalogueSearch } from "@/features/storefront/catalogue/catalogue-search-params";
 import {
-  catalogueHref,
-  type ParsedCatalogueSearch,
-} from "@/features/storefront/catalogue/catalogue-search-params";
+  type CatalogueFilterType,
+  useCatalogueNavigation,
+} from "@/features/storefront/catalogue/use-catalogue-navigation";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
+import { inventoryLabel, money } from "@/features/storefront/shared/catalogue-data";
+import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
+import {
+  showStorefrontToast,
+  useStorefrontCart,
+  useStorefrontCatalogueData,
+  useStorefrontHolds,
+  useStorefrontOverlay,
+  useStorefrontSavedItems,
+} from "@/features/storefront/shared/storefront-runtime";
 import { FilterControls } from "@/features/storefront/shared/overlays/filter-controls";
 import { ProductCard } from "@/features/storefront/shared/product-card";
-import { useStorefrontClientState } from "@/features/storefront/shared/storefront-client-state-provider";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 const quickLinks: [string, string][] = [
   ["all", "All"],
@@ -24,20 +32,8 @@ const quickLinks: [string, string][] = [
   ["grade-a-plus", "Grade A+"],
   ["vintage", "Vintage"],
 ];
-const genderByKey: Record<string, string> = { women: "Women", men: "Men", unisex: "Unisex" };
 
-function searchFilterSignature(search: ParsedCatalogueSearch) {
-  return JSON.stringify({
-    category: search.category ?? "All",
-    collection: search.collection,
-    conditions: [...search.conditions].sort(),
-    inventories: [...search.inventories].sort(),
-    inStock: search.inStock,
-    maxPrice: search.maxPriceNaira ?? null,
-    search: search.search,
-    sort: search.sort,
-  });
-}
+type FilterChip = { type: CatalogueFilterType; label: string; value?: string };
 
 function CatalogueApp({
   productIds,
@@ -52,13 +48,14 @@ function CatalogueApp({
   pageCount: number;
   search: ParsedCatalogueSearch;
 }) {
-  const router = useRouter();
-  const storefront = useStorefront();
-  const clientState = useStorefrontClientState();
+  const navigation = useCatalogueNavigation(search);
+  const { products } = useStorefrontCatalogueData();
+  const cart = useStorefrontCart();
+  const saved = useStorefrontSavedItems();
+  const holds = useStorefrontHolds();
+  const overlay = useStorefrontOverlay();
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [filtersReady, setFiltersReady] = useState(false);
-  const lastAppliedFilterSignature = useRef(searchFilterSignature(search));
 
   useEffect(() => {
     const storedDensity = sessionStorage.getItem("laitstyles-density");
@@ -67,114 +64,59 @@ function CatalogueApp({
     }
   }, []);
 
+  const productLookup = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  );
+  const pageItems = productIds.flatMap((id) => {
+    const product = productLookup.get(id);
+    return product ? [product] : [];
+  });
+  const chips = useMemo(() => activeFilterChips(navigation.search), [navigation.search]);
+
   const changeDensity = (nextDensity: "comfortable" | "compact") => {
     setDensity(nextDensity);
     try {
       sessionStorage.setItem("laitstyles-density", nextDensity);
     } catch {
-      // Ignore unavailable storage.
+      // Grid density remains local if storage is unavailable.
     }
   };
 
-  const localFilterSignature = JSON.stringify({
-    category: storefront.category,
-    collection: storefront.collection,
-    conditions: [...storefront.conditions].sort(),
-    inventories: [...storefront.inventories].sort(),
-    inStock: storefront.inStock,
-    maxPrice: storefront.maxPrice,
-    search: storefront.search,
-    sort: storefront.sort,
-  });
-  const serverFilterSignature = searchFilterSignature(search);
-
-  // The serialized signature contains every server-owned value read below.
-  // Storefront setters are stable React state setters.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: signature-driven synchronization is intentional.
-  useEffect(() => {
-    setFiltersReady(false);
-    lastAppliedFilterSignature.current = serverFilterSignature;
-    storefront.setCategory(search.category ?? "All");
-    storefront.setCollection(search.collection);
-    storefront.setConditions(new Set(search.conditions));
-    storefront.setInventories(new Set(search.inventories));
-    storefront.setInStock(search.inStock);
-    storefront.setMaxPrice(search.maxPriceNaira ?? null);
-    storefront.setSearch(search.search);
-    storefront.setSort(search.sort);
-    const frame = window.requestAnimationFrame(() => setFiltersReady(true));
-    return () => window.cancelAnimationFrame(frame);
-  }, [serverFilterSignature]);
-
-  // Local controls keep their existing behavior; this effect makes their state
-  // shareable by serializing it into the route rather than filtering in-browser.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the serialized signature is the dependency contract.
-  useEffect(() => {
-    if (!filtersReady || localFilterSignature === lastAppliedFilterSignature.current) return;
-    lastAppliedFilterSignature.current = localFilterSignature;
-    router.replace(
-      catalogueHref(search, {
-        page: 1,
-        category: storefront.category === "All" ? null : storefront.category,
-        collection: storefront.collection,
-        conditions: [...storefront.conditions],
-        inventories: [...storefront.inventories],
-        inStock: storefront.inStock,
-        maxPriceNaira: storefront.maxPrice ?? undefined,
-        search: storefront.search,
-        sort: storefront.sort as ParsedCatalogueSearch["sort"],
-      }),
-      { scroll: false },
-    );
-  }, [filtersReady, localFilterSignature]);
-
-  const pageItems = productIds.flatMap((id) => {
-    const product = storefront.productById(id);
-    return product ? [product] : [];
-  });
-  const pages = pageCount;
-  const current = page;
-
-  const applyQuick = (key: string) => {
-    if (key === "all") storefront.applyShop({});
-    else if (genderByKey[key]) storefront.applyShop({ category: genderByKey[key] });
-    else storefront.applyShop({ collection: key });
-  };
-  const quickActive = (key: string) => {
-    if (key === "all") return storefront.category === "All" && !storefront.collection;
-    if (genderByKey[key]) return storefront.category === genderByKey[key];
-    return storefront.collection === key;
+  const clearFilters = () => {
+    navigation.clear();
+    showStorefrontToast("Filters cleared.");
   };
 
   const cardHandlers = {
-    onQuickView: storefront.openQuick,
-    onSave: storefront.toggleSaved,
+    onQuickView: openQuickView,
+    onSave: saved.toggleProduct,
     onAdd: (id: string) => {
-      clientState.releaseProduct(id);
-      storefront.addToCart(id);
+      holds.releaseProduct(id);
+      cart.addProduct(id);
     },
     onHold: (id: string) => {
-      const product = storefront.productById(id);
-      if (product && clientState.holdProduct(id)) {
-        storefront.showToast(`${product.name} is held for 15 minutes.`);
-      }
+      const product = productLookup.get(id);
+      if (!product || product.status !== "available") return;
+      holds.holdProduct(id);
+      showStorefrontToast(`${product.name} is held for 15 minutes.`);
     },
-    onRelease: clientState.releaseProduct,
+    onRelease: holds.releaseProduct,
   };
   const renderCards = (items: Product[]) =>
     items.map((product) => (
       <ProductCard
         {...cardHandlers}
-        holdSeconds={clientState.holdSecondsByProduct[product.id] ?? null}
-        isHeld={product.id in clientState.holdSecondsByProduct}
-        isSaved={storefront.saved.has(product.id)}
+        holdSeconds={holds.secondsByProduct[product.id] ?? null}
+        isHeld={product.id in holds.secondsByProduct}
+        isSaved={saved.idSet.has(product.id)}
         key={product.id}
         product={product}
       />
     ));
 
   const goToPage = (nextPage: number) => {
-    router.push(catalogueHref(search, { page: nextPage }));
+    navigation.goToPage(nextPage);
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -183,12 +125,12 @@ function CatalogueApp({
       <div className="quick-nav-wrap">
         <nav aria-label="Quick collections" className="shell quick-nav">
           {quickLinks.map(([key, label]) => {
-            const active = quickActive(key);
+            const active = navigation.isQuickActive(key);
             return (
               <Button
                 aria-pressed={active}
                 key={key}
-                onClick={() => applyQuick(key)}
+                onClick={() => navigation.applyQuick(key)}
                 type="button"
                 variant={active ? "secondary" : "ghost"}
               >
@@ -204,14 +146,14 @@ function CatalogueApp({
           <div className="toolbar-main">
             <div className="toolbar-group">
               <Button
-                onClick={() => storefront.open("filterDrawer")}
+                onClick={() => overlay.open("filterDrawer")}
                 type="button"
                 variant="outline"
               >
                 <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
-                Filters <span className="mono">{storefront.activeFilterChips.length}</span>
+                Filters <span className="mono">{chips.length}</span>
               </Button>
               <Button
                 aria-pressed={sidebarVisible}
@@ -224,7 +166,11 @@ function CatalogueApp({
                 </svg>
                 {sidebarVisible ? "Hide filters" : "Show filters"}
               </Button>
-              <Button onClick={() => storefront.open("sortSheet")} type="button" variant="outline">
+              <Button
+                onClick={() => overlay.open("sortSheet")}
+                type="button"
+                variant="outline"
+              >
                 <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M8 7h10M8 12h7M8 17h4M4 5v14" />
                 </svg>
@@ -232,7 +178,7 @@ function CatalogueApp({
               </Button>
             </div>
             <div className="toolbar-group">
-              <span className="result-count mono" id="resultCount">
+              <span aria-live="polite" className="result-count mono" id="resultCount">
                 {total} products
               </span>
               <div aria-label="Product grid density" className="density-control" role="group">
@@ -259,12 +205,12 @@ function CatalogueApp({
               </div>
             </div>
           </div>
-          {storefront.activeFilterChips.length > 0 ? (
+          {chips.length > 0 ? (
             <div className="active-filters" id="activeFilters">
-              {storefront.activeFilterChips.map((chip) => (
+              {chips.map((chip) => (
                 <Button
                   key={`${chip.type}-${chip.value ?? chip.label}`}
-                  onClick={() => storefront.removeFilter(chip.type, chip.value)}
+                  onClick={() => navigation.removeFilter(chip.type, chip.value)}
                   type="button"
                   variant="secondary"
                 >
@@ -282,7 +228,7 @@ function CatalogueApp({
             <div className="filter-panel">
               <div className="filter-head">
                 <h2>Refine the rack</h2>
-                <Button onClick={storefront.clearFilters} type="button" variant="ghost">
+                <Button onClick={clearFilters} type="button" variant="ghost">
                   Clear all
                 </Button>
               </div>
@@ -299,25 +245,25 @@ function CatalogueApp({
               <div className="empty-state" id="emptyState">
                 <h2>No pieces match this edit.</h2>
                 <p>Clear one or more filters or return to the complete rack.</p>
-                <Button onClick={storefront.clearFilters} type="button">
+                <Button onClick={clearFilters} type="button">
                   Clear filters
                 </Button>
               </div>
             )}
-            {total > 0 && pages > 1 ? (
+            {total > 0 && pageCount > 1 ? (
               <nav aria-label="Product result pages" className="pagination" id="pagination">
                 <Button
                   aria-label="Previous page"
-                  disabled={current === 1}
-                  onClick={() => goToPage(Math.max(1, current - 1))}
+                  disabled={page === 1}
+                  onClick={() => goToPage(Math.max(1, page - 1))}
                   type="button"
                   variant="outline"
                 >
                   ←
                 </Button>
-                {Array.from({ length: pages }, (_, index) => {
+                {Array.from({ length: pageCount }, (_, index) => {
                   const pageNumber = index + 1;
-                  const active = current === pageNumber;
+                  const active = page === pageNumber;
                   return (
                     <Button
                       aria-current={active ? "page" : undefined}
@@ -333,8 +279,8 @@ function CatalogueApp({
                 })}
                 <Button
                   aria-label="Next page"
-                  disabled={current === pages}
-                  onClick={() => goToPage(Math.min(pages, current + 1))}
+                  disabled={page === pageCount}
+                  onClick={() => goToPage(Math.min(pageCount, page + 1))}
                   type="button"
                   variant="outline"
                 >
@@ -347,6 +293,30 @@ function CatalogueApp({
       </section>
     </main>
   );
+}
+
+function activeFilterChips(search: ParsedCatalogueSearch): FilterChip[] {
+  const values: FilterChip[] = [];
+  if (search.category) values.push({ type: "category", label: search.category });
+  if (search.collection) {
+    values.push({ type: "collection", label: search.collection.replaceAll("-", " ") });
+  }
+  for (const value of search.conditions) {
+    values.push({ type: "condition", label: `Grade ${value}`, value });
+  }
+  for (const value of search.inventories) {
+    values.push({
+      type: "inventory",
+      label: inventoryLabel(value as Product["inventory"]),
+      value,
+    });
+  }
+  if (search.inStock) values.push({ type: "stock", label: "In stock" });
+  if (search.maxPriceNaira !== undefined) {
+    values.push({ type: "price", label: `Under ${money(search.maxPriceNaira)}` });
+  }
+  if (search.search) values.push({ type: "search", label: `Search: ${search.search}` });
+  return values;
 }
 
 export function ProductCatalogue({

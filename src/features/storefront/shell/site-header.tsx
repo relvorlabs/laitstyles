@@ -3,10 +3,19 @@
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { IconClose, IconSearch } from "@/features/storefront/shared/storefront-icons";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  showStorefrontToast,
+  useStorefrontCatalogData,
+  useStorefrontOverlay,
+  useStorefrontSavedItems,
+  useStorefrontUtility,
+} from "@/features/storefront/shared/storefront-runtime";
 import { StorefrontAccountMenu } from "@/features/storefront/shell/storefront-account-menu";
 import { StorefrontCartSheet } from "@/features/storefront/shell/storefront-cart-sheet";
 import { BrandMark } from "./brand-mark";
@@ -22,18 +31,41 @@ export function SiteHeader({
   onGoHome: () => void;
   onNavNew: () => void;
 }) {
-  const s = useStorefront();
-  const mobileFeature = s.products[4] ?? s.products[0];
-  const headerCls =
+  const pathname = usePathname();
+  const { products } = useStorefrontCatalogData();
+  const saved = useStorefrontSavedItems();
+  const utility = useStorefrontUtility();
+  const overlay = useStorefrontOverlay();
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  const mobileFeature = products[4] ?? products[0];
+
+  useEffect(() => {
+    const onScroll = () => setHeaderScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    overlay.close();
+  }, [pathname, overlay.close]);
+
+  const mobileNavigate = (action: () => void) => {
+    overlay.close();
+    action();
+  };
+  const headerClassName =
     "sticky top-0 z-[60] border-b border-b-transparent backdrop-blur-[16px] [background:color-mix(in_srgb,var(--bone)_92%,transparent)] [transition:border-color_220ms_var(--ease),box-shadow_220ms_var(--ease)]" +
-    (s.headerScrolled ? " border-b-[var(--line)] shadow-[0_8px_28px_rgba(25,26,23,0.06)]" : "");
+    (headerScrolled
+      ? " border-b-[var(--line)] shadow-[0_8px_28px_rgba(25,26,23,0.06)]"
+      : "");
 
   return (
     <>
-      {!s.utilityDismissed && (
+      {!utility.dismissed ? (
         <div
-          id="utility"
           className="bg-[var(--ink)] text-[0.77rem] tracking-[0.02em] text-[var(--bone)]"
+          id="utility"
         >
           <div className="shell relative flex min-h-[34px] items-center justify-center gap-5 max-[600px]:justify-start max-[600px]:pr-10 max-[600px]:text-[0.7rem]">
             <p className="m-0">
@@ -41,7 +73,7 @@ export function SiteHeader({
             </p>
             <Button
               aria-label="Dismiss announcement"
-              onClick={s.dismissUtility}
+              onClick={utility.dismiss}
               size="icon-sm"
               type="button"
               variant="ghost"
@@ -50,9 +82,9 @@ export function SiteHeader({
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
 
-      <header id="header" className={headerCls}>
+      <header className={headerClassName} id="header">
         <div className="shell grid min-h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center gap-6">
           <nav
             aria-label="Primary navigation"
@@ -61,13 +93,25 @@ export function SiteHeader({
             <Button onClick={onNavNew} type="button" variant="ghost">
               New arrivals
             </Button>
-            <Button onClick={() => onNavShop({ category: "Women" })} type="button" variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Women" })}
+              type="button"
+              variant="ghost"
+            >
               Women
             </Button>
-            <Button onClick={() => onNavShop({ category: "Men" })} type="button" variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Men" })}
+              type="button"
+              variant="ghost"
+            >
               Men
             </Button>
-            <Button onClick={() => onNavShop({ category: "Unisex" })} type="button" variant="ghost">
+            <Button
+              onClick={() => onNavShop({ category: "Unisex" })}
+              type="button"
+              variant="ghost"
+            >
               Unisex
             </Button>
             <Button
@@ -82,7 +126,7 @@ export function SiteHeader({
           <Button
             aria-label="Open navigation"
             className="menu-button"
-            onClick={() => s.open("mobileMenu")}
+            onClick={() => overlay.open("mobileMenu")}
             size="icon-lg"
             type="button"
             variant="ghost"
@@ -92,7 +136,12 @@ export function SiteHeader({
             </svg>
           </Button>
 
-          <Button aria-label="Laitstyles home" onClick={onGoHome} type="button" variant="ghost">
+          <Button
+            aria-label="Laitstyles home"
+            onClick={onGoHome}
+            type="button"
+            variant="ghost"
+          >
             <span className="brand-symbol">
               <BrandMark />
             </span>
@@ -102,7 +151,7 @@ export function SiteHeader({
           <div className="flex items-center justify-self-end gap-1 max-[600px]:gap-0">
             <Button
               aria-label="Search products"
-              onClick={() => s.open("searchModal")}
+              onClick={() => overlay.open("searchModal")}
               size="icon-lg"
               type="button"
               variant="ghost"
@@ -110,20 +159,24 @@ export function SiteHeader({
               <IconSearch />
             </Button>
             <Button
-              aria-label={`Saved items, ${s.saved.size}`}
+              aria-label={`Saved items, ${saved.ids.length}`}
               className="relative"
-              onClick={() => s.open("savedDrawer")}
+              onClick={() => overlay.open("savedDrawer")}
               size="icon-lg"
               type="button"
               variant="ghost"
             >
-              <HugeiconsIcon aria-hidden="true" icon={FavouriteIcon} size={19} strokeWidth={1.6} />
-              {s.saved.size > 0 ? (
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={FavouriteIcon}
+                size={19}
+                strokeWidth={1.6}
+              />
+              {saved.ids.length > 0 ? (
                 <span className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-[var(--sage)]" />
               ) : null}
             </Button>
             <ThemeToggle className="max-[600px]:hidden" />
-
             <StorefrontCartSheet className="max-[600px]:size-10" />
             <StorefrontAccountMenu />
           </div>
@@ -133,9 +186,9 @@ export function SiteHeader({
       <div
         aria-label="Navigation"
         aria-modal="true"
-        className={`overlay${s.openId === "mobileMenu" ? " open" : ""}`}
+        className={`overlay${overlay.openId === "mobileMenu" ? " open" : ""}`}
         id="mobileMenu"
-        onClick={(event) => event.target === event.currentTarget && s.closeAll()}
+        onClick={(event) => event.target === event.currentTarget && overlay.close()}
         role="dialog"
       >
         <aside className="drawer">
@@ -148,7 +201,7 @@ export function SiteHeader({
             </div>
             <Button
               aria-label="Close navigation"
-              onClick={s.closeAll}
+              onClick={overlay.close}
               size="icon-lg"
               type="button"
               variant="ghost"
@@ -159,7 +212,7 @@ export function SiteHeader({
           <nav aria-label="Mobile navigation" className="mobile-nav">
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({ collection: "new" })}
+              onClick={() => mobileNavigate(() => onNavShop({ collection: "new" }))}
               type="button"
               variant="ghost"
             >
@@ -167,7 +220,7 @@ export function SiteHeader({
             </Button>
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({ category: "Women" })}
+              onClick={() => mobileNavigate(() => onNavShop({ category: "Women" }))}
               type="button"
               variant="ghost"
             >
@@ -175,7 +228,7 @@ export function SiteHeader({
             </Button>
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({ category: "Men" })}
+              onClick={() => mobileNavigate(() => onNavShop({ category: "Men" }))}
               type="button"
               variant="ghost"
             >
@@ -183,7 +236,7 @@ export function SiteHeader({
             </Button>
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({ category: "Unisex" })}
+              onClick={() => mobileNavigate(() => onNavShop({ category: "Unisex" }))}
               type="button"
               variant="ghost"
             >
@@ -191,7 +244,7 @@ export function SiteHeader({
             </Button>
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({ collection: "one-of-one" })}
+              onClick={() => mobileNavigate(() => onNavShop({ collection: "one-of-one" }))}
               type="button"
               variant="ghost"
             >
@@ -199,7 +252,7 @@ export function SiteHeader({
             </Button>
             <Button
               className="w-full justify-between"
-              onClick={() => onNavShop({})}
+              onClick={() => mobileNavigate(() => onNavShop({}))}
               type="button"
               variant="ghost"
             >
@@ -208,16 +261,20 @@ export function SiteHeader({
           </nav>
           <Button
             className="mobile-feature h-auto w-full justify-start p-0 text-left"
-            onClick={() => mobileFeature && s.openQuick(mobileFeature.id)}
+            onClick={() => {
+              if (!mobileFeature) return;
+              overlay.close();
+              openQuickView(mobileFeature.id);
+            }}
             type="button"
             variant="ghost"
           >
             <Image
               alt={mobileFeature?.name ?? "Laitstyles featured product"}
-              src={mobileFeature?.images[0] ?? "/brand/laitstyle-symbol.svg"}
-              width={900}
               height={1125}
               sizes="320px"
+              src={mobileFeature?.images[0] ?? "/brand/laitstyle-symbol.svg"}
+              width={900}
             />
             <p>Vintage sportswear edit →</p>
           </Button>
@@ -232,7 +289,7 @@ export function SiteHeader({
 }
 
 export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
-  const storefront = useStorefront();
+  const overlay = useStorefrontOverlay();
   const headingClass =
     "mb-[18px] mt-0 font-mono text-[0.68rem] font-medium uppercase leading-none tracking-[0.1em] text-[rgba(243,240,232,0.56)]";
 
@@ -269,7 +326,11 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
               >
                 Women
               </Button>
-              <Button onClick={() => onNavShop({ category: "Men" })} type="button" variant="ghost">
+              <Button
+                onClick={() => onNavShop({ category: "Men" })}
+                type="button"
+                variant="ghost"
+              >
                 Men
               </Button>
               <Button
@@ -285,23 +346,31 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
             <h3 className={headingClass}>Customer care</h3>
             <div className="footer-links">
               <Button
-                onClick={() => storefront.open("deliveryModal")}
+                onClick={() => overlay.open("deliveryModal")}
                 type="button"
                 variant="ghost"
               >
                 Delivery and returns
               </Button>
               <Button
-                onClick={() => storefront.open("conditionModal")}
+                onClick={() => overlay.open("conditionModal")}
                 type="button"
                 variant="ghost"
               >
                 Condition guide
               </Button>
-              <Button onClick={() => storefront.open("measureModal")} type="button" variant="ghost">
+              <Button
+                onClick={() => overlay.open("measureModal")}
+                type="button"
+                variant="ghost"
+              >
                 Measurements
               </Button>
-              <Button onClick={() => storefront.open("authModal")} type="button" variant="ghost">
+              <Button
+                onClick={() => overlay.open("authModal")}
+                type="button"
+                variant="ghost"
+              >
                 Brand labelling
               </Button>
             </div>
@@ -309,25 +378,27 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
           <div>
             <h3 className={headingClass}>Follow</h3>
             <div className="footer-links">
-              {/* TODO(button-action): Link to the verified Instagram profile when the public URL is configured. */}
               <Button
                 aria-label="Instagram"
-                onClick={() => storefront.showToast("Instagram is not available yet.")}
+                onClick={() => showStorefrontToast("Instagram is not available yet.")}
                 type="button"
                 variant="ghost"
               >
                 Instagram
               </Button>
-              {/* TODO(button-action): Link to the verified TikTok profile when the public URL is configured. */}
               <Button
                 aria-label="TikTok"
-                onClick={() => storefront.showToast("TikTok is not available yet.")}
+                onClick={() => showStorefrontToast("TikTok is not available yet.")}
                 type="button"
                 variant="ghost"
               >
                 TikTok
               </Button>
-              <Button onClick={() => storefront.open("supportModal")} type="button" variant="ghost">
+              <Button
+                onClick={() => overlay.open("supportModal")}
+                type="button"
+                variant="ghost"
+              >
                 Contact
               </Button>
             </div>

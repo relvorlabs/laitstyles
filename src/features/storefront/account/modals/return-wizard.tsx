@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
 import { cn } from "@/lib/utils";
-import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
 import {
@@ -29,7 +29,7 @@ const steps = [
 ];
 
 export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { products } = useStorefront();
+  const { products } = useStorefrontCatalogData();
   const { toast } = useAccountUi();
   const [step, setStep] = useState(1);
 
@@ -154,7 +154,6 @@ export function ReturnWizardModal({ open, onClose }: { open: boolean; onClose: (
               <p className="mt-3 text-[var(--acc-muted)]">
                 Required only when the policy or reason needs it.
               </p>
-              {/* TODO(button-action): Open a validated evidence picker after return uploads and storage are connected. */}
               <Button
                 type="button"
                 onClick={() => toast("Return evidence uploads are not available yet.")}

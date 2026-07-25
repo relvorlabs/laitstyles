@@ -1,63 +1,73 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { openQuickView } from "../storefront-overlay-events";
+import {
+  useStorefrontCart,
+  useStorefrontOverlay,
+  useStorefrontSavedItems,
+} from "../storefront-runtime";
 import { money } from "../catalogue-data";
 import { IconClose, IconHeart } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
 
 export function SavedItemsDrawer() {
-  const storefront = useStorefront();
+  const router = useRouter();
+  const overlay = useStorefrontOverlay();
+  const saved = useStorefrontSavedItems();
+  const cart = useStorefrontCart();
+
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
+    if (event.target === event.currentTarget) overlay.close();
   };
 
   return (
     <div
-      id="savedDrawer"
-      className={`overlay${storefront.openId === "savedDrawer" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Saved items"
+      aria-modal="true"
+      className={`overlay${overlay.openId === "savedDrawer" ? " open" : ""}`}
+      id="savedDrawer"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <aside className="drawer">
         <div className="drawer-head">
           <h2>Saved items</h2>
           <Button
-            type="button"
             aria-label="Close saved items"
-            onClick={storefront.closeAll}
+            onClick={overlay.close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
           </Button>
         </div>
-        <div id="savedList" className="mt-5 grid gap-3">
-          {storefront.savedList.length ? (
-            storefront.savedList.map((product) => (
+        <div className="mt-5 grid gap-3" id="savedList">
+          {saved.items.length ? (
+            saved.items.map((product) => (
               <article
-                key={product.id}
                 className="grid grid-cols-[94px_1fr] gap-[13px] border-b border-[var(--line)] pb-[14px]"
+                key={product.id}
               >
                 <Image
-                  src={product.images[0]}
                   alt={product.name}
-                  width={188}
+                  className="h-[118px] w-[94px] rounded-[4px] object-cover"
                   height={236}
                   sizes="94px"
-                  className="h-[118px] w-[94px] rounded-[4px] object-cover"
+                  src={product.images[0]}
+                  width={188}
                 />
                 <div>
                   <div className="flex justify-between gap-3">
                     <h3 className="m-0 text-[0.9rem] leading-[1.25]">{product.name}</h3>
                     <Button
-                      type="button"
                       aria-label={`Remove ${product.name}`}
-                      onClick={() => storefront.toggleSaved(product.id)}
+                      onClick={() => saved.toggleProduct(product.id)}
                       size="icon-sm"
+                      type="button"
                       variant="ghost"
                     >
                       ×
@@ -71,31 +81,34 @@ export function SavedItemsDrawer() {
                   </p>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <Button
+                      onClick={() => openQuickView(product.id)}
                       size="lg"
                       type="button"
-                      onClick={() => storefront.openQuick(product.id)}
                       variant="link"
                     >
                       View details
                     </Button>
                     {product.status === "available" ? (
                       <Button
-                        size="lg"
-                        type="button"
                         onClick={() =>
                           product.inventory === "variant"
-                            ? storefront.openQuick(product.id)
-                            : storefront.addToCart(product.id)
+                            ? openQuickView(product.id)
+                            : cart.addProduct(product.id)
                         }
+                        size="lg"
+                        type="button"
                         variant="outline"
                       >
                         {product.inventory === "variant" ? "Choose size" : "Add to bag"}
                       </Button>
                     ) : (
                       <Button
+                        onClick={() => {
+                          overlay.close();
+                          router.push("/products?collection=one-of-one");
+                        }}
                         size="lg"
                         type="button"
-                        onClick={() => storefront.applyShop({ collection: "one-of-one" })}
                         variant="link"
                       >
                         Find similar
@@ -114,7 +127,7 @@ export function SavedItemsDrawer() {
               <p className="mx-auto mb-[22px] mt-2.5 max-w-[20rem] text-[var(--muted)]">
                 Tap the heart on any product to keep it close.
               </p>
-              <Button type="button" onClick={storefront.closeAll}>
+              <Button onClick={overlay.close} type="button">
                 Browse products
               </Button>
             </div>

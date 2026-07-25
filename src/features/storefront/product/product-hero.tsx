@@ -1,9 +1,11 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import {
+  useStorefrontCart,
+  useStorefrontOverlay,
+} from "@/features/storefront/shared/storefront-runtime";
 import type { ProductDetail as CanonicalProductDetail } from "@/lib/storefront/types";
 import { MobileBuyBar } from "./mobile-buy-bar";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
@@ -22,20 +24,13 @@ export function ProductHero({
   presentation: ProductDetailPresentation;
   children?: ReactNode;
 }) {
-  const storefront = useStorefront();
+  const cart = useStorefrontCart();
+  const overlay = useStorefrontOverlay();
   const selection = useProductSelection(detail);
   const [showBar, setShowBar] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectionError, setSelectionError] = useState("");
   const purchaseAnchorRef = useRef<HTMLDivElement>(null);
-  const pendingTargetRef = useRef<number | null>(null);
-
-  // Mirror the reducer's resolved size into the storefront provider so the
-  // existing cart guardrails / variant selection stay in sync with the panel.
-  useEffect(() => {
-    storefront.setSelectedVariant(selection.selectedSize);
-    storefront.setQuickError("");
-  }, [selection.selectedSize, storefront.setQuickError, storefront.setSelectedVariant]);
-
   const colourLabel = selection.selectedColour ?? product.colour ?? "";
 
   useEffect(() => {
@@ -48,66 +43,62 @@ export function ProductHero({
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const target = pendingTargetRef.current;
-    if (target === null) return;
-    const line = storefront.cart.find((candidate) => candidate.productId === product.id);
-    if (!line) return;
-    const delta = target - line.qty;
-    pendingTargetRef.current = null;
-    if (delta !== 0) storefront.changeQty(line.key, delta);
-    storefront.open("cartDrawer");
-  }, [product.id, storefront.cart, storefront.changeQty, storefront.open]);
-
   const isVariant = product.inventory === "variant";
   const available = product.status === "available";
-  const canAdd = available && (!isVariant || Boolean(storefront.selectedVariant));
+  const canAdd = available && (!isVariant || Boolean(selection.selectedVariant));
 
   const addSelectedQuantity = () => {
-    if (isVariant && !storefront.selectedVariant) {
-      storefront.setQuickError("Choose an available size before adding this piece.");
+    if (isVariant && !selection.selectedVariant) {
+      setSelectionError("Choose an available size before adding this piece.");
       return;
     }
 
-    const existing = storefront.cart.find((line) => line.productId === product.id);
-    if (product.inventory === "one-of-one" && existing) {
-      storefront.addToCart(product.id);
-      storefront.open("cartDrawer");
-      return;
-    }
-
-    const initialQuantity = existing?.qty ?? 0;
-    const target = Math.min(product.stock, initialQuantity + quantity);
-    if (quantity > 1) pendingTargetRef.current = target;
-    storefront.addToCart(product.id);
-    if (quantity === 1) storefront.open("cartDrawer");
+    setSelectionError("");
+    const variant = selection.selectedVariant;
+    const added = cart.addProduct(
+      product.id,
+      variant
+        ? {
+            variantId: variant.id,
+            variantLabel: variant.label,
+            colour: variant.colour,
+            size: variant.size,
+            unitPriceNaira: selection.displayPrice,
+            maxQuantity: selection.availableQuantity,
+          }
+        : null,
+      quantity,
+    );
+    if (added) overlay.open("cartDrawer");
   };
 
   return (
     <>
       <section className="mx-auto grid max-w-[1500px] gap-8 px-4 pb-14 sm:px-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(390px,0.82fr)] lg:gap-12 lg:px-8">
         <div className="min-w-0">
-          <ProductGallery product={product} media={selection.media} colourLabel={colourLabel} />
+          <ProductGallery colourLabel={colourLabel} media={selection.media} product={product} />
           {children}
         </div>
         <ProductPurchasePanel
-          product={product}
-          presentation={presentation}
-          selection={selection}
           anchorRef={purchaseAnchorRef}
           canAdd={canAdd}
-          quantity={quantity}
-          onQuantityChange={setQuantity}
+          error={selectionError}
           onAdd={addSelectedQuantity}
           onBuyNow={addSelectedQuantity}
+          onClearError={() => setSelectionError("")}
+          onQuantityChange={setQuantity}
+          presentation={presentation}
+          product={product}
+          quantity={quantity}
+          selection={selection}
         />
       </section>
       <MobileBuyBar
-        product={product}
-        visible={showBar}
         canAdd={canAdd}
-        quantity={quantity}
         onAdd={addSelectedQuantity}
+        product={product}
+        quantity={quantity}
+        visible={showBar}
       />
     </>
   );

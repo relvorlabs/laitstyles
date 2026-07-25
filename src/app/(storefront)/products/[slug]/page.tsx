@@ -6,7 +6,7 @@ import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
-} from "@/features/storefront/shared/catalog-loader";
+} from "@/features/storefront/shared/catalogue-loader";
 import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
 import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";

@@ -4,12 +4,16 @@ import { ArrowExpand01Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import { openImageViewer } from "@/features/storefront/shared/storefront-overlay-events";
 import type { ProductImage } from "@/lib/storefront/types";
+
+type GallerySelection = {
+  mediaKey: string;
+  index: number;
+};
 
 export function ProductGallery({
   product,
@@ -20,21 +24,20 @@ export function ProductGallery({
   media: readonly ProductImage[];
   colourLabel: string;
 }) {
-  const storefront = useStorefront();
   const reduceMotion = useReducedMotion();
-  const [index, setIndex] = useState(0);
-  const count = media.length;
-  // Reset to the opening look whenever the resolved media set changes (e.g. colour switch).
   const mediaKey = media.map((image) => image.id).join("|");
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset when the resolved set changes.
-  useEffect(() => {
-    setIndex(0);
-  }, [mediaKey]);
+  const [selection, setSelection] = useState<GallerySelection>(() => ({ mediaKey, index: 0 }));
+  const index = selection.mediaKey === mediaKey ? selection.index : 0;
+  const count = media.length;
   const safeIndex = count > 0 ? Math.min(index, count - 1) : 0;
   const currentImage = media[safeIndex];
   const imageUrls = media.map((image) => image.url);
+
+  const selectImage = (nextIndex: number) => {
+    setSelection({ mediaKey, index: nextIndex });
+  };
   const go = (nextIndex: number) => {
-    if (count > 0) setIndex((nextIndex + count) % count);
+    if (count > 0) selectImage((nextIndex + count) % count);
   };
 
   return (
@@ -43,23 +46,21 @@ export function ProductGallery({
         <legend className="sr-only">Product media</legend>
         {media.map((image, imageIndex) => (
           <Button
-            key={image.id}
-            type="button"
-            aria-label={`View image ${imageIndex + 1}`}
             aria-current={imageIndex === safeIndex ? "true" : undefined}
+            aria-label={`View image ${imageIndex + 1}`}
             aria-pressed={imageIndex === safeIndex}
-            onClick={() => setIndex(imageIndex)}
             className="relative aspect-[4/5] h-auto w-20 shrink-0 overflow-hidden rounded-sm p-0 sm:w-full"
+            key={image.id}
+            onClick={() => selectImage(imageIndex)}
+            type="button"
             variant={imageIndex === safeIndex ? "default" : "outline"}
           >
-            <Image src={image.url} alt="" fill sizes="84px" className="object-cover" />
+            <Image alt="" className="object-cover" fill sizes="84px" src={image.url} />
           </Button>
         ))}
       </fieldset>
-
       <div className="group order-1 min-w-0 sm:order-2">
         <div className="relative min-h-[620px] overflow-hidden rounded-sm border border-border bg-surface-sunken shadow-storefront-2 sm:min-h-[760px]">
-          {/* Handoff media texture: soft edge-darkening (multiply) + faint dot grain. */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-[2] mix-blend-multiply"
@@ -81,20 +82,20 @@ export function ProductGallery({
             <LazyMotion features={domAnimation}>
               <AnimatePresence initial={false} mode="sync">
                 <m.div
-                  key={currentImage.id}
-                  className="absolute inset-0"
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
                   animate={{ opacity: 1, scale: 1 }}
+                  className="absolute inset-0"
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.01 }}
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.985 }}
+                  key={currentImage.id}
                   transition={{ duration: reduceMotion ? 0 : 0.38, ease: "easeOut" }}
                 >
                   <Image
-                    src={currentImage.url}
                     alt={currentImage.alt || `${product.name}, view ${safeIndex + 1}`}
+                    className="object-cover"
                     fill
                     priority={safeIndex === 0}
                     sizes="(min-width: 1280px) 52vw, (min-width: 640px) 65vw, 100vw"
-                    className="object-cover"
+                    src={currentImage.url}
                   />
                 </m.div>
               </AnimatePresence>
@@ -104,7 +105,6 @@ export function ProductGallery({
               Product imagery will appear here when it becomes available.
             </div>
           )}
-
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-4 bg-linear-to-t from-surface-inverse to-transparent p-5 text-surface-inverse-foreground sm:p-7">
             <div className="border-l border-current pl-3">
               <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.28em] opacity-70">
@@ -114,16 +114,15 @@ export function ProductGallery({
                 Look {String(safeIndex + 1).padStart(2, "0")} · {colourLabel || "Colour pending"}
               </p>
             </div>
-
             <div className="pointer-events-auto flex gap-2">
               {count > 1 ? (
                 <>
                   <Button
-                    type="button"
                     aria-label="Previous product image"
-                    onClick={() => go(safeIndex - 1)}
                     className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                    onClick={() => go(safeIndex - 1)}
                     size="icon-lg"
+                    type="button"
                     variant="outline"
                   >
                     <HugeiconsIcon
@@ -134,11 +133,11 @@ export function ProductGallery({
                     />
                   </Button>
                   <Button
-                    type="button"
                     aria-label="Next product image"
-                    onClick={() => go(safeIndex + 1)}
                     className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                    onClick={() => go(safeIndex + 1)}
                     size="icon-lg"
+                    type="button"
                     variant="outline"
                   >
                     <HugeiconsIcon
@@ -152,11 +151,17 @@ export function ProductGallery({
               ) : null}
               {currentImage ? (
                 <Button
-                  type="button"
                   aria-label="Enlarge product image"
-                  onClick={() => storefront.openImageViewerFor(product.id, safeIndex, imageUrls)}
                   className="rounded-full border-current bg-overlay text-surface-inverse-foreground hover:bg-surface-inverse hover:text-surface-inverse-foreground"
+                  onClick={() =>
+                    openImageViewer({
+                      productId: product.id,
+                      index: safeIndex,
+                      images: imageUrls,
+                    })
+                  }
                   size="icon-lg"
+                  type="button"
                   variant="outline"
                 >
                   <HugeiconsIcon

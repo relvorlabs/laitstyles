@@ -1,7 +1,7 @@
 "use client";
 
+import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
 import { cn } from "@/lib/utils";
-import { useStorefront } from "../../shared/storefront-provider";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
 import {
@@ -14,7 +14,7 @@ import {
 } from "../components/account-primitives";
 
 export function ReturnsSection() {
-  const { products } = useStorefront();
+  const { products } = useStorefrontCatalogData();
   const { navigate, openModal } = useAccountUi();
 
   return (
@@ -44,7 +44,7 @@ export function ReturnsSection() {
             <StatusBadge variant="warning">Awaiting shipment</StatusBadge>
           </div>
           <div className="grid gap-5 p-5 lg:grid-cols-[120px_minmax(0,1fr)_auto] lg:items-center">
-            <ProductThumb product={products[1]} className="aspect-square" />
+            <ProductThumb className="aspect-square" product={products[1]} />
             <div>
               <p className="font-semibold">1 item · Refund requested</p>
               <p className="mt-2 text-[var(--acc-muted)]">

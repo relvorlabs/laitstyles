@@ -1,17 +1,16 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
 
 export function NewsletterSection() {
-  const storefront = useStorefront();
+  const [status, setStatus] = useState("");
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const email =
       new FormData(event.currentTarget).get("email")?.toString().trim().toLowerCase() ?? "";
-    storefront.setNewsletterStatus(
+    setStatus(
       email === "duplicate@example.com"
         ? "This email is already on the drop list."
         : "You are on the list. Watch your inbox for the next drop.",
@@ -27,21 +26,21 @@ export function NewsletterSection() {
             See the best pieces <em>before they go.</em>
           </h2>
         </div>
-        <form id="newsletterForm" className="newsletter-form" onSubmit={onSubmit}>
+        <form className="newsletter-form" id="newsletterForm" onSubmit={onSubmit}>
           <div className="field">
             <label htmlFor="newsletterEmail">Email address</label>
             <input
+              autoComplete="email"
               id="newsletterEmail"
               name="email"
-              type="email"
-              autoComplete="email"
-              required
               placeholder="you@example.com"
+              required
+              type="email"
             />
           </div>
           <Button type="submit">Join the list</Button>
-          <p id="newsletterStatus" className="newsletter-status" aria-live="polite">
-            {storefront.newsletterStatus}
+          <p aria-live="polite" className="newsletter-status" id="newsletterStatus">
+            {status}
           </p>
         </form>
       </div>

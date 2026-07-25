@@ -1,18 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
+import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
 import { getFilterCategories, type Product } from "../catalogue-data";
-import { useStorefront } from "../storefront-provider";
 
-const inventoryRows: [string, string][] = [
+const inventoryRows: [Product["inventory"], string][] = [
   ["one-of-one", "One-of-one"],
   ["variant", "Variants"],
   ["matching-stock", "Multiple units"],
 ];
 
 export function FilterControls() {
-  const storefront = useStorefront();
-  const { products } = storefront;
+  const { products } = useStorefrontCatalogData();
+  const navigation = useCatalogueNavigation();
+  const { search } = navigation;
   const filterCategories = getFilterCategories(products);
   const countByCategory = (value: string) =>
     products.filter((product) => product.category === value || product.type === value).length;
@@ -25,31 +27,25 @@ export function FilterControls() {
           <label className="check">
             <span>
               <input
-                type="radio"
+                checked={!search.category}
                 name="categoryFilter"
+                onChange={() => navigation.setCategory(null)}
+                type="radio"
                 value="All"
-                checked={storefront.category === "All"}
-                onChange={() => {
-                  storefront.setCategory("All");
-                  storefront.setCollection(null);
-                }}
               />{" "}
               All products
             </span>
             <span className="check-count">{products.length}</span>
           </label>
           {filterCategories.map((value) => (
-            <label key={value} className="check">
+            <label className="check" key={value}>
               <span>
                 <input
-                  type="radio"
+                  checked={search.category === value}
                   name="categoryFilter"
+                  onChange={() => navigation.setCategory(value)}
+                  type="radio"
                   value={value}
-                  checked={storefront.category === value}
-                  onChange={() => {
-                    storefront.setCategory(value);
-                    storefront.setCollection(null);
-                  }}
                 />{" "}
                 {value}
               </span>
@@ -62,21 +58,14 @@ export function FilterControls() {
       <section className="filter-section">
         <h3>Condition</h3>
         <div className="filter-options">
-          {["A+", "A", "B+"].map((value) => (
-            <label key={value} className="check">
+          {(["A+", "A", "B+"] as const).map((value) => (
+            <label className="check" key={value}>
               <span>
                 <input
+                  checked={search.conditions.includes(value)}
+                  onChange={(event) => navigation.toggleCondition(value, event.target.checked)}
                   type="checkbox"
                   value={value}
-                  checked={storefront.conditions.has(value)}
-                  onChange={(event) =>
-                    storefront.setConditions((previous) => {
-                      const next = new Set(previous);
-                      if (event.target.checked) next.add(value);
-                      else next.delete(value);
-                      return next;
-                    })
-                  }
                 />{" "}
                 Grade {value}
               </span>
@@ -92,29 +81,18 @@ export function FilterControls() {
         <h3>Inventory</h3>
         <div className="filter-options">
           {inventoryRows.map(([value, label]) => (
-            <label key={value} className="check">
+            <label className="check" key={value}>
               <span>
                 <input
+                  checked={search.inventories.includes(value)}
+                  onChange={(event) => navigation.toggleInventory(value, event.target.checked)}
                   type="checkbox"
                   value={value}
-                  checked={storefront.inventories.has(value)}
-                  onChange={(event) =>
-                    storefront.setInventories((previous) => {
-                      const next = new Set(previous);
-                      if (event.target.checked) next.add(value);
-                      else next.delete(value);
-                      return next;
-                    })
-                  }
                 />{" "}
                 {label}
               </span>
               <span className="check-count">
-                {
-                  products.filter(
-                    (product) => product.inventory === (value as Product["inventory"]),
-                  ).length
-                }
+                {products.filter((product) => product.inventory === value).length}
               </span>
             </label>
           ))}
@@ -124,10 +102,18 @@ export function FilterControls() {
       <section className="filter-section">
         <h3>Price</h3>
         <div className="price-range">
-          <Button type="button" onClick={() => storefront.setMaxPrice(25000)} variant="outline">
+          <Button
+            onClick={() => navigation.replace({ maxPriceNaira: 25_000 })}
+            type="button"
+            variant="outline"
+          >
             Under ₦25k
           </Button>
-          <Button type="button" onClick={() => storefront.setMaxPrice(40000)} variant="outline">
+          <Button
+            onClick={() => navigation.replace({ maxPriceNaira: 40_000 })}
+            type="button"
+            variant="outline"
+          >
             Under ₦40k
           </Button>
         </div>
@@ -137,9 +123,9 @@ export function FilterControls() {
         <label className="check">
           <span>
             <input
+              checked={search.inStock}
+              onChange={(event) => navigation.replace({ inStock: event.target.checked })}
               type="checkbox"
-              checked={storefront.inStock}
-              onChange={(event) => storefront.setInStock(event.target.checked)}
             />{" "}
             In stock only
           </span>
