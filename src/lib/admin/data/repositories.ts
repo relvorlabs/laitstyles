@@ -1,5 +1,4 @@
 import type {
-  ControlRoomCustomer,
   ControlRoomOrder,
   OverviewSnapshot,
   SalesPulsePoint,
@@ -14,11 +13,6 @@ export type OverviewResource = {
   openOrders: ControlRoomOrder[];
 };
 
-export type CustomerRepository = {
-  listCustomers: () => Promise<ControlRoomCustomer[]>;
-  getCustomer: (customerId: string) => Promise<ControlRoomCustomer | null>;
-};
-
 export type SettingsRepository = {
   getSettings: () => Promise<StoreSettings | null>;
 };
@@ -28,7 +22,6 @@ export type OverviewRepository = {
 };
 
 export type AdminRepositories = {
-  customers: CustomerRepository;
   settings: SettingsRepository;
   overview: OverviewRepository;
 };
