@@ -6,4 +6,5 @@ export const orderKeys = {
   list: (input: OrderListInput) => [...orderKeys.lists(), input] as const,
   details: () => [...orderKeys.all, "detail"] as const,
   detail: (orderId: string) => [...orderKeys.details(), orderId.trim()] as const,
+  saleCustomers: () => [...orderKeys.all, "sale-customers"] as const,
 };
