@@ -31,6 +31,28 @@ export type StockMovement = {
   note: string;
 };
 
+export type StockAdjustmentInput = {
+  productId: string;
+  variantId: string | null;
+  quantityDelta: number;
+  note: string;
+};
+
+export type StockAdjustmentOutcome = {
+  balance: InventoryCounts & { committed: number };
+  movement: StockMovement;
+};
+
+export type StockAdjustmentError = {
+  code:
+    | "forbidden"
+    | "invalid-adjustment"
+    | "product-not-found"
+    | "variant-not-found"
+    | "stock-level-not-found";
+  message: string;
+};
+
 export type InventorySavedView =
   | "all"
   | "live"
