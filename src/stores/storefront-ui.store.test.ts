@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { storefrontUiStore } from "@/stores/storefront-ui.store";
 
 describe("storefront UI intent store", () => {
   beforeEach(() => storefrontUiStore.getState().reset());
+  afterEach(() => vi.useRealTimers());
 
   it("hydrates only IDs, timestamps and UI preferences", () => {
     storefrontUiStore.getState().hydrate({
@@ -30,6 +31,7 @@ describe("storefront UI intent store", () => {
   });
 
   it("treats holds as expiring browser intent rather than authoritative inventory", () => {
+    vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-25T12:00:00.000Z"));
     const now = Date.now();
 
@@ -44,6 +46,5 @@ describe("storefront UI intent store", () => {
 
     storefrontUiStore.getState().release("product-1");
     expect(storefrontUiStore.getState().holds).toEqual([]);
-    vi.useRealTimers();
   });
 });
