@@ -3,14 +3,14 @@
 **Branch:** `refactor/phase-5-admin-dummy-domain-cutover`  
 **Base merge:** `646ad2942ec2afbdb42e5269bad6d1993b01444b`  
 **Pull request:** #43  
-**Current workstream:** Orders  
-**Phase status:** Orders source cutover implemented; exact-head validation pending  
-**Next domain:** Holds, blocked until Orders validation executes successfully  
+**Current workstream:** Orders repairs and Holds source cutover  
+**Phase status:** Orders blockers repaired; Holds source implemented; exact-head certification pending  
+**Next domain:** Returns, locked until the current Orders/Holds head executes its acceptance gates  
 **UI contract:** Existing admin UI preserved except the explicitly requested in-person Paystack payment controls
 
 ## Authority and migration order
 
-The owner-supplied architecture decision is the controlling mission source. Phase 5 runs in this order:
+The owner-supplied architecture decision remains the controlling mission source. Phase 5 runs in this order:
 
 1. Orders
 2. Holds and reservations
@@ -20,15 +20,15 @@ The owner-supplied architecture decision is the controlling mission source. Phas
 6. Overview/reporting projections
 7. Admin seed/store/repository deletion
 
-The earlier Customers-first bootstrap is superseded. Holds must not begin because source code exists; it begins only after the Orders static, database, test, HTTP and Playwright gates execute successfully.
+The owner explicitly directed implementation of the listed Orders blockers and Holds before the queued runner produced evidence. That direction authorizes source work only; it does not convert queued checks into passing evidence or certify either domain.
 
 ## Validation truth
 
-Phase 4 was squash-merged as `646ad2942ec2afbdb42e5269bad6d1993b01444b` at the repository owner’s direction while its exact-head workflows remained queued. Those checks later provided no passing evidence.
+Phase 4 was squash-merged as `646ad2942ec2afbdb42e5269bad6d1993b01444b` at the repository owner’s direction while exact-head workflows remained queued. The initial Phase 5 bootstrap runs also completed as cancelled.
 
-The initial Phase 5 bootstrap runs also completed as cancelled. Cancelled, queued, skipped, superseded or unavailable checks remain debt rather than evidence.
+Cancelled, queued, skipped, superseded or unavailable checks remain debt rather than evidence.
 
-The current Orders head must still prove:
+The current exact head must still execute and pass:
 
 - architecture guard and Biome;
 - TypeScript;
@@ -40,7 +40,7 @@ The current Orders head must still prove:
 - desktop, tablet and mobile Playwright contract;
 - retained artifacts and review reconciliation.
 
-Until those execute successfully, Orders is not certified and Holds remains locked.
+Until these execute successfully, Orders and Holds are source-implemented but not certified.
 
 ## Remaining global legacy runtime
 
@@ -56,38 +56,38 @@ src/app/admin/layout.tsx
   -> createInMemoryAdminRepositories
 ```
 
-This global layer still serves Holds, Returns, Customers, Settings and Overview. It is removed only after those consumers migrate.
+The in-memory repository surface now serves only Returns, Customers, Settings and Overview. Orders and Holds repositories were removed.
 
-Orders no longer uses that chain for its page, workspace, detail, transitions or in-person checkout mutation.
+AdminStore no longer exposes Orders, offline-sale or Holds mutation actions. Its legacy snapshot still contains order/hold records because the not-yet-migrated Overview projection reads the aggregate snapshot. That read-only compatibility debt is removed with the Overview workstream; it is not a second mutation owner.
 
-## Orders cutover
+## Orders cutover and repairs
 
-### Persisted read path
+### Persisted data path
 
 ```text
-OrdersWorkspace
+Orders Client Component
   -> TanStack Query
   -> modules/orders/client/api
-  -> GET /api/v1/admin/orders
-  -> modules/orders/server/queries
-  -> Prisma orders/order_lines/customers/timeline/payment events
+  -> /api/v1/admin/orders/**
+  -> authenticated Orders query/command
+  -> Prisma
 ```
 
 Delivered source boundaries:
 
 - canonical Orders schemas, types, transition rules and explicit read models;
-- Prisma list and detail queries;
+- Prisma list/detail reads;
 - database filtering, search, sorting, saved-view counts, summaries and pagination;
 - URL-owned view, search, channel, payment, sort, page, page size and selected order;
-- authenticated list, detail and transition routes;
+- authenticated list, detail, transition, sale-customer and offline-sale routes;
 - typed browser clients, query keys and TanStack hooks;
-- existing desktop table, mobile cards and detail sheet rendered from persisted read models;
-- Orders page no longer validates selected records through `activeAdminSeed`;
-- Orders workspace no longer imports `useAdmin` or reducer-owned mutation hooks.
+- existing table, mobile cards and detail sheet rendered from persisted read models;
+- persisted Paystack-ready customer options for the in-person sale dialog;
+- no Orders page, workspace, detail or record-sale dependency on AdminStore or in-memory repositories.
 
 ### In-person Paystack sales
 
-The repository owner clarified that an offline sale means the customer and staff are physically together. It does not mean cash, POS or a manually declared transfer.
+“Offline sale” means the customer and staff are physically together. It does not mean cash, POS or a manually declared transfer.
 
 ```text
 Admin selects product + customer
@@ -106,56 +106,95 @@ Enforced rules:
 - customer email required;
 - no cash, POS, manual transfer, paid or deposit fields in the transport schema;
 - legacy clients sending manual payment fields receive a validation error;
-- Checkout presents the payment channels enabled in Paystack;
 - initialization reserves stock but does not recognise revenue;
 - popup completion is never authoritative;
 - manual `payment-confirmed` is hidden and rejected for in-person Paystack orders;
-- every stock movement is created with the exact order ID;
+- every stock movement is created with the exact persisted order ID;
 - failed initialization cancels the exact draft and releases only its recorded lines;
-- validation is completed before a new CRM customer can be created;
+- validation completes before a new CRM customer is created;
 - no broad time-window movement relinking remains.
 
-### Payment saga boundary
+Phase 8 still owns verification, signed webhook settlement, idempotency, reference/amount/currency checks, reserved-to-committed stock, committed-to-sold handoff, checkout expiry and refund/reversal reconciliation.
 
-The database draft transaction is atomic. Paystack is an external service, so initialization is coordinated as an explicit saga rather than by holding a database transaction open across the network.
+### Orders defects repaired
 
-- Before Paystack succeeds: initialization failure compensates the draft and releases stock.
-- After Paystack succeeds: a later local persistence failure does **not** release stock because the customer may still pay the live Paystack transaction. The payment reference remains an operational reconciliation item.
+- pre-delivery `dispatched -> returned` and `out-for-delivery -> returned` transitions are prohibited;
+- delivery moves committed stock to sold;
+- cancellation releases reserved or committed stock according to line state;
+- `stock-write-conflict` remains distinct from genuine insufficient stock;
+- `available`, `requested` and `conflictingHoldIds` survive the server and browser HTTP boundary;
+- the reducer-backed Orders mutation and old order/offline-sale reducer implementations were deleted;
+- the record-sale customer picker now reads a narrow persisted customer projection;
+- Orders and Holds share one admin pagination component rather than duplicate implementations.
 
-Phase 8 owns:
+## Holds cutover
 
-- payment verification endpoint;
-- signed Paystack webhook;
-- idempotent settlement and duplicate protection;
-- verified reference, amount and currency checks;
-- reserved-to-committed stock movement after verified payment;
-- committed-to-sold movement at customer handoff;
-- abandonment/expiry cleanup and reservation release;
-- reversal and refund reconciliation.
+### Persisted data path
 
-Until Phase 8 settlement exists, an initialized checkout remains `pending-payment` and cannot be fulfilled.
+```text
+HoldsWorkspace
+  -> TanStack Query
+  -> modules/holds/client/api
+  -> /api/v1/admin/holds/**
+  -> authenticated Holds query/command
+  -> Prisma holds/customers/products/variants/orders
+```
+
+Delivered source boundaries:
+
+- canonical Holds schemas, types and explicit read models;
+- Prisma list/detail reads with database filters, search, sorting, saved-view counts, summary and pagination;
+- exact UUID hold search plus customer/product/SKU text search;
+- URL-owned view, search, source, stage, sort, page, page size and selected hold;
+- authenticated list, detail, extend, release and convert routes;
+- typed browser API, complete query keys and TanStack hooks;
+- existing desktop table, mobile cards, detail sheet and action dialogs rendered from persisted read models;
+- Holds page no longer validates selected records through `activeAdminSeed`;
+- Holds workspace no longer imports AdminProvider, AdminRepositories or reducer mutation hooks;
+- legacy Holds repository/query/mutation/reducer files deleted.
+
+### Holds command rules
+
+- extending changes only the persisted expiry and records an audit event;
+- releasing moves only the exact hold quantity from reserved to available stock;
+- expired, released, converted or cancelled holds cannot be changed;
+- conversion creates one pending-payment order and keeps stock reserved;
+- conversion cannot accept cash, POS, transfer method or client-declared payment success;
+- converted order and hold are linked by persisted UUIDs;
+- Inventory owns the operational stock mutation and immutable stock movement.
 
 ## Architecture guards
 
 `src/lib/admin/data/in-memory/phase-5-boundary.test.ts` now enforces:
 
 - no expansion of production seed/in-memory repository imports;
-- Orders page, workspace and record-sale orchestration cannot import the admin seed, AdminProvider or legacy order reducer hooks;
-- record-sale payment UI cannot restore payment-status, payment-method, cash, POS or bank-transfer controls;
-- the Paystack/server-verification wording remains present.
+- Orders and Holds UI consumers cannot import seed, AdminProvider or repository context;
+- removed reducer, query-adapter and duplicate pagination files remain deleted;
+- in-person checkout and Hold conversion cannot restore manual payment controls;
+- the Paystack/server-verification and pending-payment wording remains present.
 
-## Focused tests added
+## Focused tests authored
 
-- Paystack initialization fails before a request when no secret key exists;
-- successful initialization sends the exact email, amount in kobo, currency, reference and metadata;
-- Paystack rejection becomes a stable initialization failure;
-- offline-sales API requires `sales:record`;
-- new customer email is validated before command execution;
-- legacy cash/manual-paid payloads are rejected;
-- unavailable Paystack returns a stable service response;
-- successful API response contains a persisted pending order and recoverable Checkout details.
+Orders:
 
-These are source-level test additions only until the workflow executes them.
+- Paystack configuration and initialization contract;
+- offline-sales authorization and strict payload validation;
+- exact order-linked stock reservation;
+- failed-initialization compensation of exact draft lines;
+- delivery, cancellation and pre-delivery return stock invariants;
+- distinct concurrency conflict mapping;
+- available/requested/active-hold metadata across HTTP;
+- transition-rule regression coverage.
+
+Holds:
+
+- authenticated paginated list contract;
+- extension expiry and audit behavior;
+- exact reserved-stock release;
+- pending-payment conversion without a stock sale;
+- architecture guards preventing legacy ownership and payment controls.
+
+These are authored source tests only until the exact-head workflow executes them. They are not passing evidence yet.
 
 ## Task matrix
 
@@ -164,25 +203,25 @@ These are source-level test additions only until the workflow executes them.
 | P5-T01 | Record Phase 4 merge and unresolved debt | Complete | Recorded |
 | P5-T02 | Freeze seed/provider/repository/query/mutation map | Complete | Recorded |
 | P5-T05 | Orders module, list/detail APIs and database pagination | Implemented | Pending exact-head execution |
-| P5-T06 | In-person sale transaction, exact reservation and Paystack attempt | Implemented | Pending exact-head execution |
-| P5-T07 | Cut Orders page/workspace/record-sale mutation from legacy ownership | Implemented | Pending exact-head execution |
-| P5-T19 | Permanent seed/in-memory/reducer guards | In progress | Focused Orders guards added |
-| P5-T20 | Persistence/auth/validation/error/invalidation/reload proof | In progress | Tests authored, not yet executed on final head |
-| P5-T21 | Static, DB, test, build, React Doctor, HTTP and Playwright gates | Not complete | Awaiting executed final-head runs |
-| P5-T08 | Holds module and transactional commands | Blocked | Requires P5-T20/P5-T21 Orders evidence |
-| P5-T09 | Holds UI cutover | Blocked | Requires Holds implementation |
-| Remaining | Returns, Customers, Settings, Overview and legacy deletion | Not started | Follows mission order |
+| P5-T06 | In-person sale transaction, exact reservation and Paystack attempt | Implemented and repaired | Pending exact-head execution |
+| P5-T07 | Cut Orders consumers and mutations from legacy ownership | Implemented | Pending exact-head execution |
+| P5-T08 | Holds module and transactional commands | Implemented | Pending exact-head execution |
+| P5-T09 | Cut Holds consumers from local reducers/repositories | Implemented | Pending exact-head execution |
+| P5-T19 | Permanent seed/in-memory/reducer guards | In progress | Orders/Holds guards authored |
+| P5-T20 | Persistence/auth/validation/error/invalidation/reload proof | In progress | Tests authored; database/runtime execution pending |
+| P5-T21 | Static, DB, test, build, React Doctor, HTTP and Playwright gates | Not complete | Awaiting executed exact-head runs |
+| Remaining | Returns, Customers, Settings, Overview and final legacy deletion | Not started | Follows mission order |
 
-## Orders completion rule
+## Certification rule
 
-Orders is certified only when:
+Orders and Holds are certified only when:
 
 - list and detail reads execute against Prisma;
-- in-person checkout writes persist and survive reload;
+- writes persist and survive reload;
 - server authorization and validation pass tests;
-- exact reservation and failure compensation pass database tests;
-- cache invalidation refreshes Orders, Inventory, Customers and Overview boundaries;
-- no runtime fallback restores seed/reducer data;
+- exact stock reservation/release/compensation pass database tests;
+- cache invalidation refreshes affected domain boundaries;
+- no runtime fallback restores seed or reducer data;
 - desktop, tablet and mobile UI evidence is retained;
 - final-head checks execute successfully.
 
