@@ -46,6 +46,54 @@ const cases = [
       }),
   },
   {
+    name: "versioned-admin-returns-api",
+    method: "GET",
+    path: "/api/v1/admin/returns?page=1&pageSize=25",
+    allowed: [200, 401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedPaginatedAdminResponse({
+        response,
+        raw,
+        label: "Admin returns",
+      }),
+  },
+  {
+    name: "versioned-admin-customers-api",
+    method: "GET",
+    path: "/api/v1/admin/customers?page=1&pageSize=25",
+    allowed: [200, 401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedPaginatedAdminResponse({
+        response,
+        raw,
+        label: "Admin customers",
+      }),
+  },
+  {
+    name: "versioned-admin-settings-api",
+    method: "GET",
+    path: "/api/v1/admin/settings",
+    allowed: [200, 401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedAdminResource({
+        response,
+        raw,
+        label: "Admin settings",
+      }),
+  },
+  {
+    name: "versioned-admin-overview-api",
+    method: "GET",
+    path: "/api/v1/admin/overview",
+    allowed: [200, 401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedAdminResource({
+        response,
+        raw,
+        label: "Admin overview",
+      }),
+  },
+  {
     name: "versioned-inventory-adjustment-api",
     method: "POST",
     path: "/api/v1/admin/inventory/adjustments",
@@ -230,6 +278,18 @@ function assertVersionedPaginatedAdminResponse({ response, raw, label }) {
       typeof payload?.meta?.pageCount !== "number"
     ) {
       throw new Error(`${label} success response does not match the paginated envelope.`);
+    }
+    return;
+  }
+  assertErrorEnvelope(payload, `${label} authorization`);
+}
+
+function assertVersionedAdminResource({ response, raw, label }) {
+  assertJsonRequestId(response);
+  const payload = JSON.parse(raw);
+  if (response.status === 200) {
+    if (!payload?.data || typeof payload.data !== "object" || Array.isArray(payload.data)) {
+      throw new Error(`${label} success response does not match the resource envelope.`);
     }
     return;
   }
