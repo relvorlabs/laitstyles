@@ -1,13 +1,13 @@
 "use client";
 
-import { getHomeCategories } from "@/features/storefront/shared/catalogue-data";
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
+import { getHomeCategories } from "@/modules/products/ui/storefront/catalogue-data";
 import { CategoryCard } from "../components/category-card";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import type { OpenHomeShop } from "../home-types";
 
 export function CategorySection({ openShop }: { openShop: OpenHomeShop }) {
-  const { categories } = useStorefrontCatalogData();
+  const { categories } = useStorefrontCatalogueData();
   const homeCategories = getHomeCategories(categories);
   return (
     <section className="category-section section">
@@ -20,7 +20,13 @@ export function CategorySection({ openShop }: { openShop: OpenHomeShop }) {
         />
         <div className="category-grid" id="categoryGrid">
           {homeCategories.map(([name, image, count]) => (
-            <CategoryCard count={count} image={image} key={name} name={name} onClick={() => openShop({ category: name })} />
+            <CategoryCard
+              count={count}
+              image={image}
+              key={name}
+              name={name}
+              onClick={() => openShop({ category: name })}
+            />
           ))}
         </div>
       </div>
