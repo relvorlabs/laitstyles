@@ -1,10 +1,10 @@
 "use client";
 
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import { orderKeys } from "@/modules/orders/client/keys";
+import { overviewKeys } from "@/modules/overview/client/keys";
 import {
   createReturnRequest,
   getAdminReturnRequest,
