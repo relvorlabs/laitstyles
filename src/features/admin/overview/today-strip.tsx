@@ -1,7 +1,7 @@
 import { LedgerLeadFigure } from "@/features/admin/overview/ledger-lead-figure";
 import { formatCompactNaira } from "@/lib/admin/shared/formatters";
-import type { OverviewSnapshot } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
+import type { OverviewSnapshot } from "@/modules/overview/types";
 
 type TodayStripProps = {
   snapshot: OverviewSnapshot;
