@@ -1,1 +1,1 @@
-export * from "@/modules/products/server/storefront/types";
+export * from "@/modules/products/storefront-types";
