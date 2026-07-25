@@ -1,11 +1,12 @@
-import type {
-  ReturnListInput,
+import type { ReturnListInput, ReturnStatus } from "@/modules/returns/types";
+
+export type {
   ReturnSavedView,
+  ReturnSavedViewCounts,
   ReturnSortKey,
   ReturnStatus,
+  ReturnWorkspaceSummary,
 } from "@/modules/returns/types";
-
-export type { ReturnSavedView, ReturnSortKey, ReturnStatus } from "@/modules/returns/types";
 
 export type ReturnQuery = ReturnListInput;
 
@@ -25,9 +26,4 @@ export type ReturnActionFeedback = {
   tone: "success" | "error";
   title: string;
   message: string;
-};
-
-export type ReturnQueryValues = {
-  views: readonly ReturnSavedView[];
-  sorts: readonly ReturnSortKey[];
 };
