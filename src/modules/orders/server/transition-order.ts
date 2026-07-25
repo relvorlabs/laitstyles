@@ -166,7 +166,7 @@ function orderLineStockPlan(
     }
   }
   if (nextStatus === "delivered" && current === "committed") {
-    return { mutation: "sell-committed", nextStockState: "sold" };
+    return { mutation: "sell-committed", nextStockState: "committed" };
   }
   if (nextStatus === "cancelled") {
     if (current === "reserved") return { mutation: "release-reserved", nextStockState: "released" };
@@ -182,7 +182,9 @@ function orderLineStockPlan(
     }
   }
   if (nextStatus === "returned") {
-    if (current === "sold") return { mutation: "return-sold", nextStockState: "returned" };
+    if (current === "committed" && currentStatus === "delivered") {
+      return { mutation: "return-sold", nextStockState: "returned" };
+    }
     if (current === "reserved") return { mutation: "release-reserved", nextStockState: "released" };
   }
   return { mutation: null, nextStockState: current };
