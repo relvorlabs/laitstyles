@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,32 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { conversionPaymentLabels, paymentMethodLabels } from "@/features/admin/holds/hold-labels";
-import type { ConvertHoldInput, PaymentMethod, PaymentStatus } from "@/lib/admin/shared/types";
-
-const paymentStatuses: Array<Extract<PaymentStatus, "pending" | "paid" | "deposit">> = [
-  "pending",
-  "paid",
-  "deposit",
-];
-
-const paymentMethods: PaymentMethod[] = [
-  "bank-transfer",
-  "cash",
-  "card",
-  "pos",
-  "pay-on-delivery",
-  "other",
-];
+import type { ConvertHoldInput } from "@/modules/holds/types";
 
 export function HoldConversionDialog({
   holdId,
@@ -54,11 +31,8 @@ export function HoldConversionDialog({
   initialCity: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (input: ConvertHoldInput) => Promise<string | null>;
+  onSubmit: (input: ConvertHoldInput & { holdId: string }) => Promise<string | null>;
 }) {
-  const [paymentStatus, setPaymentStatus] =
-    useState<Extract<PaymentStatus, "pending" | "paid" | "deposit">>("paid");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank-transfer");
   const [deliveryCity, setDeliveryCity] = useState(initialCity);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -72,8 +46,6 @@ export function HoldConversionDialog({
 
     const actionError = await onSubmit({
       holdId,
-      paymentStatus,
-      paymentMethod,
       deliveryCity: deliveryCity.trim(),
       notes: notes.trim(),
     });
@@ -89,72 +61,18 @@ export function HoldConversionDialog({
           </DialogTitle>
           <DialogDescription>
             Transfer {productName} from {customerLabel}’s reservation into one connected order
-            record. No payment provider is contacted.
+            record.
           </DialogDescription>
         </DialogHeader>
 
         <form className="space-y-5" onSubmit={submit}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hold-payment-status">Payment status</Label>
-              <Select
-                onValueChange={(value) => {
-                  if (value) {
-                    setPaymentStatus(
-                      value as Extract<PaymentStatus, "pending" | "paid" | "deposit">,
-                    );
-                    setError(null);
-                  }
-                }}
-                value={paymentStatus}
-              >
-                <SelectTrigger id="hold-payment-status" className="h-11 w-full">
-                  <span className="flex-1 truncate text-left">
-                    {conversionPaymentLabels[paymentStatus]}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Payment status</SelectLabel>
-                    {paymentStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {conversionPaymentLabels[status]}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hold-payment-method">Payment method</Label>
-              <Select
-                onValueChange={(value) => {
-                  if (value) {
-                    setPaymentMethod(value as PaymentMethod);
-                    setError(null);
-                  }
-                }}
-                value={paymentMethod}
-              >
-                <SelectTrigger id="hold-payment-method" className="h-11 w-full">
-                  <span className="flex-1 truncate text-left">
-                    {paymentMethodLabels[paymentMethod]}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Payment method</SelectLabel>
-                    {paymentMethods.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {paymentMethodLabels[method]}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Alert>
+            <AlertTitle>Payment remains pending</AlertTitle>
+            <AlertDescription>
+              Converting the hold does not record cash or declare a payment successful. The reserved
+              stock remains attached to the new order until a server-verified payment flow settles it.
+            </AlertDescription>
+          </Alert>
 
           <div className="space-y-2">
             <Label htmlFor="hold-delivery-city">Delivery or pickup city</Label>
@@ -178,7 +96,7 @@ export function HoldConversionDialog({
                 setNotes(event.target.value);
                 setError(null);
               }}
-              placeholder="Transfer reference, pickup arrangement, or staff note…"
+              placeholder="Pickup arrangement or staff note…"
               value={notes}
             />
           </div>
@@ -194,7 +112,7 @@ export function HoldConversionDialog({
               Keep as hold
             </Button>
             <Button size="lg" type="submit">
-              Create order
+              Create pending order
             </Button>
           </DialogFooter>
         </form>
