@@ -3,18 +3,10 @@
 import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
-import { StorefrontProvider } from "@/features/storefront/shared/storefront-provider";
 import { type NavShop, SiteFooter, SiteHeader } from "@/features/storefront/shell/site-header";
 
-export function SiteChrome({
-  catalog,
-  children,
-}: {
-  catalog: StorefrontShellCatalogPayload;
-  children: React.ReactNode;
-}) {
+export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { actions } = useStorefrontAuth();
@@ -52,7 +44,7 @@ export function SiteChrome({
   if (isStandaloneSurface) return <>{children}</>;
 
   return (
-    <StorefrontProvider catalog={catalog}>
+    <>
       <SiteHeader
         onGoHome={() => router.push("/")}
         onNavNew={() => navigateShop({ collection: "new" })}
@@ -61,6 +53,6 @@ export function SiteChrome({
       {children}
       <SiteFooter onNavShop={navigateShop} />
       <Analytics />
-    </StorefrontProvider>
+    </>
   );
 }
