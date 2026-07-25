@@ -20,6 +20,7 @@ Phase 3 was merged with validation debt. Its final-head Implementation Quality a
 
 - product, variant, media, lifecycle, publication and taxonomy contracts;
 - product editor and mutation contracts plus their validation schema;
+- consumer-safe public product DTOs at `storefront-types.ts`;
 - admin product list/detail queries;
 - product save, archive, restore, delete and taxonomy commands;
 - validation, authorization rules and Prisma-to-domain mapping;
@@ -96,6 +97,12 @@ Public product reads now have one Prisma implementation owner:
 src/modules/products/server/storefront/**
 ```
 
+Consumer-safe public product read-model contracts live outside the server boundary:
+
+```text
+src/modules/products/storefront-types.ts
+```
+
 The following live consumers import the product module directly:
 
 - shared catalogue loader;
@@ -106,7 +113,9 @@ The legacy `src/server/commerce/catalogue/**` query, mapper, visibility, page-se
 
 The legacy product-editor type, schema and committed-stock guard files are also export-only compatibility shims. Product and Inventory production modules import the canonical module paths directly.
 
-Architecture tests scan production module imports and compatibility files so legacy catalogue/editor paths cannot regain implementation ownership.
+`src/lib/storefront/types.ts` is an export-only compatibility path for unchanged UI consumers. Product production code imports `src/modules/products/storefront-types.ts` directly.
+
+Architecture tests scan production module imports and compatibility files so legacy catalogue, editor, admin Inventory and storefront type paths cannot regain implementation ownership.
 
 The previously duplicated storefront product writer was deleted. The runtime storefront smoke now creates through the canonical `saveProduct` command and reloads through the canonical public product query.
 
@@ -146,7 +155,8 @@ Deleted or removed from production ownership:
 - duplicate storefront product writers and obsolete writer test;
 - duplicate Prisma catalogue/query/page implementations from the legacy catalogue folder;
 - product editor contract/schema implementation from `lib/admin`;
-- committed-stock policy implementation from `lib/admin`.
+- committed-stock policy implementation from `lib/admin`;
+- public product read-model implementation from `lib/storefront`.
 
 ## Behavioral preservation
 
@@ -178,7 +188,8 @@ Source tests cover:
 - database Inventory page metadata, summaries and saved-view counts;
 - public loader detail behavior through the canonical module mock;
 - architecture protection against renewed production legacy catalogue imports;
-- architecture protection against module-to-legacy editor dependencies or renewed compatibility-file logic.
+- architecture protection against module-to-legacy editor/admin dependencies or renewed compatibility-file logic;
+- architecture protection against Product-module imports through the legacy storefront type façade.
 
 HTTP smoke verifies health, the versioned admin product read contract and the protected Inventory adjustment mutation boundary. The runtime storefront smoke uses the canonical product write/read loop.
 
