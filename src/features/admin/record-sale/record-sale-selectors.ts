@@ -1,17 +1,17 @@
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import type { ControlRoomCustomer } from "@/lib/admin/customers/customer-types";
+import type { AdminOrderCustomer } from "@/modules/orders/types";
 import type { AdminProduct } from "@/modules/products/types";
 
 export function createRecordSaleDefaults(
   products: AdminProduct[],
-  customers: ControlRoomCustomer[],
+  customers: AdminOrderCustomer[],
 ): RecordSaleValues {
   const firstProduct = getSellableProducts(products)[0];
   const firstVariant =
     firstProduct?.inventoryMode === "variant"
       ? firstProduct.variants.find((variant) => variant.stock.available > 0)
       : undefined;
-  const firstPaystackCustomer = customers.find((customer) => Boolean(customer.email.trim()));
+  const firstPaystackCustomer = customers[0];
 
   return {
     productId: firstProduct?.id ?? "",
