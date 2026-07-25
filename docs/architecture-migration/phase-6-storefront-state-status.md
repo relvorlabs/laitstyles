@@ -3,16 +3,13 @@
 **Branch:** `refactor/phase-6-storefront-state-zustand`  
 **Base merge:** `cd12b89e9ec2eb9210704e200e30731d864646e1`  
 **Pull request:** #45  
-**Audited source head:** `8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2`  
 **Current workstream:** dependency-lock repair and exact-head certification  
-**Phase status:** Source migration implemented; runtime certification blocked  
-**UI contract:** Preserve the storefront shell, homepage, product cards, catalogue, PDP, cart, checkout, account surfaces, themes, typography, spacing, overlays and responsive behaviour.
+**Phase status:** architecture corrections implemented; runtime certification blocked  
+**UI contract:** preserve the storefront shell, homepage, product cards, catalogue, PDP, cart, checkout, account surfaces, themes, typography, spacing, overlays and responsive behaviour.
 
 ## Authority
 
-The repository-owner architecture decision remains the governing contract.
-
-Phase 6 establishes this ownership:
+Phase 6 follows this ownership contract:
 
 | State | Owner |
 | --- | --- |
@@ -20,34 +17,22 @@ Phase 6 establishes this ownership:
 | Remote browser cache | TanStack Query |
 | Navigable filters, sort, search and pagination | URL search parameters |
 | Shared browser-owned state | Focused Zustand stores |
-| Component-local interaction state | `useState` or a local reducer |
+| Component-local interaction state | `useState` or a narrow local reducer |
 | Authentication and permissions | Server session and policy |
 
 Zustand must not become a second cache for products, inventory, orders, customers, payments or permissions.
 
-## Phase 5 inheritance
-
-Phase 5 was squash-merged as `cd12b89e9ec2eb9210704e200e30731d864646e1` at the repository owner’s explicit direction.
-
-The merge retained unresolved validation debt:
-
-```text
-Implementation Quality: 30164712987 — queued at merge
-Playwright UI Contract: 30164712918 — queued at merge
-```
-
-Phase 6 begins from that exact merge. Queued work is not retroactively treated as passing evidence.
-
-## Exact current runtime composition
+## Current runtime composition
 
 ```text
 app/(storefront)/layout.tsx
   -> StorefrontRouteBoundary
-     -> loadStorefrontShellCatalog()
+     -> loadStorefrontShellCatalogue()
      -> getCurrentSession()
      -> StorefrontClientBoundary
         -> StorefrontQueryProvider
            -> StorefrontStateHydrator
+              -> StorefrontHoldClockBoundary
               -> StorefrontAuthProvider
                  -> SiteChrome
                     -> SiteHeader
@@ -57,7 +42,7 @@ app/(storefront)/layout.tsx
               -> StorefrontAuthDialogHost
 ```
 
-The legacy `StorefrontClientStateProvider` and `StorefrontProvider` are deleted. Architecture tests now reject either path or import from returning.
+The legacy `StorefrontClientStateProvider` and `StorefrontProvider` are deleted. Architecture tests reject either path or import from returning.
 
 ## Implemented ownership
 
@@ -77,7 +62,7 @@ src/stores/storefront-ui.store.ts
 
 ### Persistence and hydration
 
-`StorefrontStateHydrator` now owns the one browser hydration boundary.
+`StorefrontStateHydrator` owns the browser hydration and persistence boundary.
 
 It:
 
@@ -86,62 +71,120 @@ It:
 - hydrates the three focused stores;
 - persists only product IDs, variant IDs, quantities, saved IDs and hold expiry timestamps;
 - keeps recent IDs and utility dismissal as browser preferences;
-- derives countdown display from expiry timestamps rather than storing a global one-second clock in Zustand.
+- keeps Inventory, payment and reservation authority on the server.
 
-The browser hold remains explicitly non-authoritative. Inventory, payment and reservation authority remain server-owned.
+## Corrective architecture work completed
 
-### TanStack storefront catalogue
+### 1. One shared hold clock
 
-The storefront shell catalogue is seeded into a storefront-scoped QueryClient and consumed through the typed Product module client boundary.
+The repeated one-second intervals were removed from `useStorefrontHolds()` and `StorefrontHoldAlertRuntime`.
 
-Zustand does not duplicate the product collection.
+`StorefrontHoldClockBoundary` now owns one timer for the storefront. Countdown consumers derive remaining seconds from the same timestamp, and expiry cleanup happens on that shared tick.
 
-### URL-owned catalogue navigation
+Focused tests assert that multiple countdown consumers create only one interval and that expired intents are removed by the shared clock.
 
-Catalogue category, collection, conditions, inventory modes, stock, price, sort, search and page are now read from URL search parameters.
+### 2. Exclusive overlay coordination
 
-Controls write through Next navigation helpers. The former URL → provider → URL synchronisation loop has been removed.
+`storefront-overlay-events.ts` now coordinates transitions across:
 
-Pagination, sorting and navigational search remain URL-owned and are covered by source tests plus a browser-history Playwright contract.
+- Zustand-owned drawers and information overlays;
+- quick view;
+- image viewer;
+- authentication dialog.
 
-### Local interaction ownership
+Opening any destination closes the current Zustand and transient overlay first. Search and saved items therefore cannot remain mounted under quick view, and quick view cannot remain mounted under the image viewer or another information surface.
 
-- Quick-view product, image, variant and error state live in `QuickViewOverlay`.
-- Image-viewer request, index and zoom live in `ImageViewerOverlay`.
-- Measurement-unit state lives in the shared measurement overlay because both PDP and quick view invoke that surface.
-- Delivery-estimate status lives in the delivery form overlay.
-- Newsletter status lives in `NewsletterSection`.
-- Header scroll state lives in `SiteHeader`.
-- Catalogue density and sidebar visibility live in `ProductCatalogue`.
-- Auth-dialog fields, visibility, reveal, terms and local errors live in `StorefrontAuthDialogHost`; Phase 7 still owns auth transport consolidation.
+Focused tests cover both transient-to-Zustand and Zustand-to-transient transitions.
 
-### Provider retirement
+### 3. One catalogue-navigation implementation
 
-Deleted:
+`useCatalogueNavigation()` is the single URL mutation boundary for:
+
+- quick collections;
+- category, condition and inventory filters;
+- active-filter removal;
+- clearing;
+- sorting;
+- search;
+- pagination.
+
+`ProductCatalogue`, filter controls, sort overlay and search overlay consume this hook. The catalogue component no longer imports `catalogueHref` or calls the Next router directly.
+
+### 4. One TanStack query-default policy
+
+`STOREFRONT_QUERY_DEFAULTS` remains the single cache-policy definition. The storefront catalogue query spreads those defaults instead of repeating stale time, garbage-collection time, retry and refetch options.
+
+### 5. British `catalogue` naming restored
+
+The American-spelled Phase 6 entry points were replaced and deleted:
 
 ```text
-src/features/storefront/shared/storefront-provider.tsx
-src/features/storefront/shared/storefront-client-state-provider.tsx
-src/features/storefront/shared/overlays/legacy-cart-drawer.tsx
-src/features/storefront/home/components/home-shop-view.tsx
+src/app/api/v1/storefront/catalog/route.ts
+src/app/api/v1/storefront/catalog/route.test.ts
+src/modules/products/client/storefront-catalog.ts
+src/features/storefront/shared/catalog-adapter.ts
+src/features/storefront/shared/catalog-adapter.test.ts
+src/features/storefront/shared/catalog-loader.ts
+src/features/storefront/shared/catalog-loader.test.ts
+src/features/storefront/shared/catalog-types.ts
 ```
 
-Consumers now use focused Zustand selectors, TanStack catalogue hooks, URL state, local component state or explicit props.
+The active contract now uses:
+
+```text
+/api/v1/storefront/catalogue
+storefrontCatalogueQueryKey
+StorefrontShellCataloguePayload
+useStorefrontCatalogue()
+useStorefrontCatalogueData()
+loadStorefrontShellCatalogue()
+```
+
+Architecture tests reject the retired paths, imports, endpoint and symbols.
+
+### 6. Product-module dependency direction restored
+
+The Products module now owns:
+
+```text
+src/modules/products/storefront/catalogue-contract.ts
+src/modules/products/server/storefront/catalogue-projection.ts
+src/modules/products/client/storefront-catalogue.ts
+```
+
+`src/modules/products/server/storefront/shell-query.ts` depends only on Product-module contracts, projection code and server queries. It no longer imports mapper or transport types from `features/storefront/shared`.
+
+Projection coverage was consolidated into one Product-module test suite rather than retaining overlapping adapter and loader tests.
+
+### 7. UI copy contract restored
+
+The cart empty-state message was returned to its pre-Phase-6 wording:
+
+> Add something from the drop and it will appear here and in the header bag.
+
+No copy change remains as an incidental consequence of the state migration.
+
+### 8. Mechanical JSX churn cleaned
+
+Quick view, image viewer, search and saved-items overlays were reformatted into reviewable JSX without changing their classes, labels, visual composition or responsive contract.
 
 ## Source evidence authored
 
 - focused cart-store tests;
 - focused saved-items-store tests;
 - focused storefront-UI-store tests;
+- one shared hold-clock test;
+- exclusive overlay-transition tests;
 - storage migration and hydration boundary tests;
-- architecture tests preventing provider resurrection and forbidden store ownership;
+- architecture tests preventing provider resurrection, duplicate navigation ownership, American catalogue naming and reversed module dependencies;
+- consolidated Product-module catalogue-projection tests;
 - catalogue search-parameter and URL-history tests;
-- public shell-catalogue API contract test;
+- public `/api/v1/storefront/catalogue` contract test;
 - Phase 6 Playwright coverage for cart/saved persistence, hydration warnings, URL back/forward, search, sorting, shell overlays, overflow, theme and mobile navigation.
 
 Authored tests are not passing evidence until they execute on the exact head.
 
-## Confirmed blocker — dependency lock mismatch
+## Remaining blocker 1 — dependency lock mismatch
 
 `package.json` declares:
 
@@ -149,7 +192,7 @@ Authored tests are not passing evidence until they execute on the exact head.
 "zustand": "^5.0.14"
 ```
 
-The current `pnpm-lock.yaml` does not contain a Zustand importer entry or package snapshot.
+The current `pnpm-lock.yaml` does not contain the corresponding importer entry or package snapshot.
 
 CI installs with:
 
@@ -157,9 +200,23 @@ CI installs with:
 pnpm install --frozen-lockfile
 ```
 
-Therefore the exact head cannot pass installation until the lockfile is regenerated with pnpm 11.13.0 and committed. This is a source-completion blocker, not merely missing test evidence.
+The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must not be weakened, and the lockfile must not be fabricated by hand.
 
-Do not weaken or remove frozen-lockfile enforcement as a workaround.
+## Remaining blocker 2 — exact-head execution
+
+The latest workflows are still queued or pending. Until they execute, there is no passing evidence for:
+
+- frozen dependency installation;
+- architecture guards;
+- Biome;
+- TypeScript;
+- Vitest;
+- production build;
+- React Doctor;
+- desktop, tablet and mobile Playwright;
+- light/dark and responsive UI parity.
+
+Queued work is not treated as passing evidence.
 
 ## Task matrix
 
@@ -167,52 +224,40 @@ Do not weaken or remove frozen-lockfile enforcement as a workaround.
 | --- | --- | --- | --- |
 | P6-T00 | Record Phase 5 merge and validation debt | Complete | Recorded |
 | P6-T00A | Map original provider, persistence and URL ownership | Complete | Source-audited |
-| P6-T00B | Add storefront-state non-expansion guard | Complete | Execution pending |
+| P6-T00B | Add storefront-state non-expansion guards | Complete | Execution pending |
 | P6-T01 | Add Zustand | Blocked | Package declared; lockfile not reconciled |
 | P6-T02 | Create `cart.store.ts` | Source complete | Unit execution pending |
 | P6-T03 | Create `saved-items.store.ts` | Source complete | Unit execution pending |
 | P6-T04 | Create `storefront-ui.store.ts` | Source complete | Unit execution pending |
 | P6-T05 | Preserve versioned persistence | Source complete | Migration/hydration execution pending |
 | P6-T06 | Add hydration-safe selectors | Source complete | Runtime execution pending |
-| P6-T07 | Prevent complete product persistence | Source complete | Guard and browser execution pending |
+| P6-T07 | Prevent complete product persistence | Source complete | Guard/browser execution pending |
 | P6-T08 | Move catalogue filters to URL ownership | Source complete | Browser execution pending |
-| P6-T09 | Keep pagination in URL ownership | Source complete | Browser execution pending |
-| P6-T10 | Keep sorting in URL ownership | Source complete | Browser execution pending |
-| P6-T11 | Keep navigational search in URL ownership | Source complete | Browser execution pending |
+| P6-T09 | Keep pagination URL-owned | Source complete | Browser execution pending |
+| P6-T10 | Keep sorting URL-owned | Source complete | Browser execution pending |
+| P6-T11 | Keep navigational search URL-owned | Source complete | Browser execution pending |
 | P6-T12 | Remove URL/context synchronisation effects | Source complete | Architecture/browser execution pending |
 | P6-T13 | Move image-viewer state locally | Source complete | Browser execution pending |
 | P6-T14 | Move measurement state to the narrow shared boundary | Source complete | Browser execution pending |
 | P6-T15 | Move newsletter state locally | Source complete | Browser execution pending |
 | P6-T16 | Move delivery-estimate state locally | Source complete | Browser execution pending |
-| P6-T17 | Move header scroll state into header | Source complete | Browser execution pending |
+| P6-T17 | Move header scroll state into the header | Source complete | Browser execution pending |
 | P6-T18 | Separate auth-dialog local state | Source complete | Auth/browser execution pending |
 | P6-T19 | Remove migrated values from `StorefrontProvider` | Complete | Provider deleted |
 | P6-T20 | Remove unused context selectors and consumers | Source complete | TypeScript/guard execution pending |
-| P6-T21 | Delete final legacy provider after last consumer | Complete | Both legacy providers deleted |
-| P6-T22 | Run static, unit, build, React Doctor and browser gates | Not started | Exact-head workflows queued |
+| P6-T21 | Delete final legacy provider after consumer cutover | Complete | Both legacy providers deleted |
+| P6-T22 | Run static, unit, build, React Doctor and browser gates | Pending | Exact-head workflows not complete |
 
-## Exact-head workflow state
+## Remaining order
 
-For source head `8ce12fb73a0e087e1ba2077e0bdfbf55c30ef5d2`:
-
-```text
-Implementation Quality: 30169398436 — queued
-Playwright UI Contract: 30169398438 — queued
-```
-
-Queued jobs are not passing evidence. There are no submitted reviews and no unresolved review threads.
-
-## Remaining work
-
-1. Regenerate `pnpm-lock.yaml` with pnpm 11.13.0 so Zustand is represented without unrelated dependency drift.
-2. Run the frozen install on the exact resulting head.
-3. Run architecture guard and Biome.
-4. Run TypeScript.
-5. Run storage, store, catalogue, API and complete Vitest suites.
-6. Run the production build and React Doctor.
-7. Run desktop, tablet and mobile Playwright with light/dark visual comparison and retained artifacts.
-8. Inspect runtime logs, screenshots, traces and every failure before marking any gate complete.
-9. Reconcile the final task matrix, PR body and review state.
+1. Regenerate `pnpm-lock.yaml` with pnpm 11.13.0.
+2. Prove `pnpm install --frozen-lockfile` on the exact resulting head.
+3. Run architecture guards, Biome and TypeScript.
+4. Run focused and complete Vitest suites.
+5. Run the production build and React Doctor.
+6. Run desktop, tablet and mobile Playwright with light/dark visual comparison and retained artifacts.
+7. Inspect logs, screenshots, traces and every failure before marking a gate complete.
+8. Reconcile the final task matrix, PR body and review state.
 
 ## Acceptance gate
 
@@ -223,28 +268,17 @@ Phase 6 is complete only when:
 - storage migration works without data loss;
 - hydration produces no warning or first-paint state corruption;
 - catalogue back/forward restores exact filters, sort, search and page;
-- no complete Product record is persisted in Zustand;
-- no remote server collection is duplicated into Zustand;
-- unrelated local interactions no longer depend on a whole-storefront provider;
-- the retired provider paths remain absent;
-- storefront desktop, tablet, mobile, light and dark UI contracts remain unchanged;
+- no complete Product record or remote server collection is duplicated into Zustand;
+- one shared hold clock serves all countdown consumers;
+- at most one storefront overlay owns focus and body lock at a time;
+- catalogue URL mutation has one implementation;
+- the Product server module does not depend backwards on storefront feature code;
+- the British `catalogue` naming contract remains enforced;
+- desktop, tablet, mobile, light and dark UI contracts remain unchanged;
 - exact-head architecture, Biome, TypeScript, Vitest, build, React Doctor and Playwright gates execute successfully.
-
-## Rollback triggers
-
-Rollback or narrow the workstream if it causes:
-
-- cart or saved-item loss;
-- storage migration failure;
-- hydration mismatch;
-- filter synchronisation loops;
-- broken browser history;
-- duplicate or stale cart projections;
-- authoritative hold, inventory or payment state in Zustand;
-- product-card, catalogue, PDP, cart, checkout, overlay, theme or responsive screenshot differences.
 
 ## Current verdict
 
-The Phase 6 ownership migration is implemented in source, including retirement of both legacy providers.
+The ten reviewed blockers have been implemented in source except for the lockfile and exact-head execution blockers, which cannot be truthfully marked complete yet.
 
-Phase 6 is not source-complete or certified because the dependency lock is inconsistent and no exact-head verification gate has executed.
+Phase 6 remains **in progress** and must stay draft until the dependency lock is reconciled and every required validation gate passes on the same exact head.
