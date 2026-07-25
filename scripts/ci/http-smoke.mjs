@@ -28,6 +28,19 @@ const cases = [
     allowed: [200, 401, 403],
     validate: assertVersionedAdminProducts,
   },
+  {
+    name: "versioned-inventory-adjustment-api",
+    method: "POST",
+    path: "/api/v1/admin/inventory/adjustments",
+    allowed: [401, 403],
+    body: {
+      productId: "22222222-2222-4222-8222-222222222222",
+      variantId: null,
+      quantityDelta: 1,
+      note: "HTTP smoke authorization check",
+    },
+    validate: assertVersionedProtectedMutation,
+  },
 ];
 
 async function requestWithRedirects(testCase) {
@@ -128,20 +141,17 @@ const summary = [
   "",
   "| Request | Status | Duration | Result |",
   "| --- | ---: | ---: | --- |",
-  ...results.map(
-    (result) => {
-      const status = result.status ?? "error";
-      const duration = result.durationMs ?? 0;
-      const outcome = result.passed ? "✅" : "❌";
-      return `| ${result.method} ${result.path} | ${status} | ${duration}ms | ${outcome} |`;
-    },
-  ),
+  ...results.map((result) => {
+    const status = result.status ?? "error";
+    const duration = result.durationMs ?? 0;
+    const outcome = result.passed ? "✅" : "❌";
+    return `| ${result.method} ${result.path} | ${status} | ${duration}ms | ${outcome} |`;
+  }),
 ];
 if (failures.length) {
   summary.push("", "### Failures");
   for (const failure of failures) {
-    const reason =
-      failure.error ?? failure.contractError ?? `unexpected status ${failure.status}`;
+    const reason = failure.error ?? failure.contractError ?? `unexpected status ${failure.status}`;
     summary.push(`- **${failure.name}:** ${reason}`);
   }
 }
@@ -190,7 +200,17 @@ function assertVersionedAdminProducts({ response, raw }) {
     return;
   }
 
+  assertErrorEnvelope(payload, "Admin products authorization");
+}
+
+function assertVersionedProtectedMutation({ response, raw }) {
+  assertJsonRequestId(response);
+  const payload = JSON.parse(raw);
+  assertErrorEnvelope(payload, "Inventory adjustment authorization");
+}
+
+function assertErrorEnvelope(payload, label) {
   if (typeof payload?.error?.code !== "string" || typeof payload?.error?.message !== "string") {
-    throw new Error("Admin products authorization response does not match the error envelope.");
+    throw new Error(`${label} response does not match the error envelope.`);
   }
 }
