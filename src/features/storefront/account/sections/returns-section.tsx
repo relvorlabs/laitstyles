@@ -1,7 +1,7 @@
 "use client";
 
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
 import { cn } from "@/lib/utils";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
 import {
@@ -14,7 +14,7 @@ import {
 } from "../components/account-primitives";
 
 export function ReturnsSection() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const { navigate, openModal } = useAccountUi();
 
   return (
