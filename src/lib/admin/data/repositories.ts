@@ -1,6 +1,5 @@
 import type {
   ControlRoomCustomer,
-  ControlRoomHold,
   ControlRoomOrder,
   ControlRoomReturn,
   OverviewSnapshot,
@@ -14,16 +13,6 @@ export type OverviewResource = {
   asOf: string;
   salesPulse: SalesPulsePoint[];
   openOrders: ControlRoomOrder[];
-};
-
-export type OrderRepository = {
-  listOrders: () => Promise<ControlRoomOrder[]>;
-  getOrder: (orderId: string) => Promise<ControlRoomOrder | null>;
-};
-
-export type HoldRepository = {
-  listHolds: () => Promise<ControlRoomHold[]>;
-  getHold: (holdId: string) => Promise<ControlRoomHold | null>;
 };
 
 export type ReturnRepository = {
@@ -45,8 +34,6 @@ export type OverviewRepository = {
 };
 
 export type AdminRepositories = {
-  orders: OrderRepository;
-  holds: HoldRepository;
   returns: ReturnRepository;
   customers: CustomerRepository;
   settings: SettingsRepository;
