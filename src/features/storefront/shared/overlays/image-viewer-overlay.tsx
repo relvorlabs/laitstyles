@@ -15,13 +15,13 @@ import {
   subscribeTransientOverlayClose,
   type ImageViewerRequest,
 } from "../storefront-overlay-events";
-import { useStorefrontCatalogData } from "../storefront-runtime";
+import { useStorefrontCatalogueData } from "../storefront-runtime";
 import { useOverlayLifecycle } from "../use-overlay-lifecycle";
 import { productById } from "../catalogue-data";
 import { IconClose } from "../storefront-icons";
 
 export function ImageViewerOverlay() {
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const [request, setRequest] = useState<ImageViewerRequest | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
