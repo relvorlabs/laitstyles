@@ -1,12 +1,14 @@
 import "server-only";
 
-import type { ProductEditorValues } from "@/lib/admin/product-editor/product-editor-types";
 import type { Prisma } from "@/lib/prisma";
 import {
   cleanProductText,
   slugifyProductName,
 } from "@/modules/products/server/rules";
-import type { ProductTaxonomyKind } from "@/modules/products/types";
+import type {
+  ProductEditorValues,
+  ProductTaxonomyKind,
+} from "@/modules/products/types";
 
 const mediaKindToDb = {
   cover: "product_cover",
