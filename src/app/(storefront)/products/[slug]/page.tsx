@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductDetail } from "@/features/storefront/product/product-detail";
 import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
 } from "@/modules/products/server/storefront/catalogue-loader";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
 import ProductDetailLoading from "./loading";
 
