@@ -15,7 +15,39 @@ import type {
   OverviewOpenOrder,
 } from "@/modules/overview/types";
 
-const terminalFulfilmentStatuses = ["delivered", "cancelled", "returned"] as const;
+const todayOrderInclude = {
+  customer: { select: { name: true } },
+  order_lines: { select: { quantity: true } },
+} satisfies Prisma.ordersInclude;
+
+type TodayOrderRow = Prisma.ordersGetPayload<{ include: typeof todayOrderInclude }>;
+
+const expiringHoldInclude = {
+  customers: { select: { name: true } },
+  products: { select: { name: true } },
+} satisfies Prisma.holdsInclude;
+
+type ExpiringHoldRow = Prisma.holdsGetPayload<{ include: typeof expiringHoldInclude }>;
+
+const continueProductInclude = {
+  intake_record: { select: { stage: true, ready_for_listing: true } },
+} satisfies Prisma.productsInclude;
+
+type ContinueProductRow = Prisma.productsGetPayload<{ include: typeof continueProductInclude }>;
+
+const overviewProductInclude = {
+  product_variants: { select: { id: true } },
+  stock_levels: { select: { available: true, reserved: true } },
+  product_media: {
+    where: { variant_id: null },
+    orderBy: { position: "asc" },
+    take: 1,
+    include: { cloudinary_assets: true },
+  },
+} satisfies Prisma.productsInclude;
+
+type OverviewProductRow = Prisma.productsGetPayload<{ include: typeof overviewProductInclude }>;
+type AdminOrderRow = Prisma.ordersGetPayload<{ include: typeof adminOrderInclude }>;
 
 export async function getOverviewData(): Promise<OverviewData> {
   const asOf = new Date();
@@ -27,7 +59,7 @@ export async function getOverviewData(): Promise<OverviewData> {
     todayOrders,
     activeHoldCount,
     expiringHold,
-    fulfilmentGroups,
+    fulfilment,
     lowStock,
     unpublished,
     activities,
@@ -38,7 +70,7 @@ export async function getOverviewData(): Promise<OverviewData> {
     prisma.orders.findMany({
       where: { placed_at: { gte: start, lt: end } },
       orderBy: { placed_at: "desc" },
-      include: { customer: true, order_lines: true },
+      include: todayOrderInclude,
     }),
     prisma.holds.count({ where: { status: "active", expires_at: { gt: asOf } } }),
     prisma.holds.findFirst({
@@ -47,22 +79,15 @@ export async function getOverviewData(): Promise<OverviewData> {
         expires_at: { gt: asOf, lte: new Date(asOf.getTime() + 5 * 60 * 1_000) },
       },
       orderBy: { expires_at: "asc" },
-      include: { customers: true, products: true },
+      include: expiringHoldInclude,
     }),
-    prisma.orders.groupBy({
-      by: ["payment_status", "fulfilment_status", "fulfilment_method"],
-      where: {
-        fulfilment_status: { notIn: [...terminalFulfilmentStatuses] },
-        payment_status: { notIn: ["cancelled", "refunded"] },
-      },
-      _count: { _all: true },
-    }),
+    getFulfilmentLane(),
     getLowStockProducts(),
     getUnpublishedProducts(),
     prisma.activity_events.findMany({ orderBy: { occurred_at: "desc" }, take: 5 }),
     prisma.orders.findMany({
       where: {
-        fulfilment_status: { notIn: [...terminalFulfilmentStatuses] },
+        fulfilment_status: { notIn: ["delivered", "cancelled", "returned"] },
         payment_status: { notIn: ["cancelled", "refunded"] },
       },
       orderBy: { placed_at: "desc" },
@@ -79,7 +104,7 @@ export async function getOverviewData(): Promise<OverviewData> {
         ],
       },
       orderBy: { updated_at: "desc" },
-      include: { intake_record: true },
+      include: continueProductInclude,
     }),
   ]);
 
@@ -101,8 +126,6 @@ export async function getOverviewData(): Promise<OverviewData> {
         total + order.order_lines.reduce((lineTotal, line) => lineTotal + line.quantity, 0),
       0,
     );
-  const fulfilment = mapFulfilment(fulfilmentGroups);
-  const continueTask = mapContinueTask(continueProduct);
   const openOrders = await mapOpenOrders(openOrderRows);
   const attention = buildAttention({
     todayOrders,
@@ -111,6 +134,7 @@ export async function getOverviewData(): Promise<OverviewData> {
     incomplete: unpublished.items[0],
     asOf,
   });
+  const continueTask = mapContinueTask(continueProduct);
 
   return {
     reportingDate,
@@ -134,15 +158,7 @@ export async function getOverviewData(): Promise<OverviewData> {
   };
 }
 
-type TodayOrder = Awaited<ReturnType<typeof prisma.orders.findMany>>[number] & {
-  customer: { name: string };
-  order_lines: Array<{ quantity: number }>;
-};
-
-function isRecognisedRevenue(order: {
-  payment_status: string;
-  fulfilment_status: string;
-}) {
+function isRecognisedRevenue(order: TodayOrderRow) {
   return (
     ["paid", "partially_refunded", "refunded"].includes(order.payment_status) &&
     order.fulfilment_status !== "cancelled"
@@ -153,42 +169,28 @@ function isOnlineOrder(source: string, channel: string | null) {
   return source === "online-order" || channel === "online" || channel === "storefront";
 }
 
-function mapFulfilment(
-  groups: Array<{
-    payment_status: string;
-    fulfilment_status: string;
-    fulfilment_method: string;
-    _count: { _all: number };
-  }>,
-): FulfilmentLaneItem[] {
-  const count = (predicate: (group: (typeof groups)[number]) => boolean) =>
-    groups.filter(predicate).reduce((total, group) => total + group._count._all, 0);
+async function getFulfilmentLane(): Promise<FulfilmentLaneItem[]> {
+  const [paid, preparing, packed, dispatched] = await Promise.all([
+    prisma.orders.count({
+      where: {
+        payment_status: "paid",
+        fulfilment_status: "unfulfilled",
+      },
+    }),
+    prisma.orders.count({ where: { fulfilment_status: "processing" } }),
+    prisma.orders.count({
+      where: {
+        fulfilment_status: "ready_for_dispatch",
+        fulfilment_method: "delivery",
+      },
+    }),
+    prisma.orders.count({ where: { fulfilment_status: "dispatched" } }),
+  ]);
   return [
-    {
-      status: "payment-confirmed",
-      label: "Paid",
-      count: count(
-        (group) => group.payment_status === "paid" && group.fulfilment_status === "unfulfilled",
-      ),
-    },
-    {
-      status: "preparing",
-      label: "Preparing",
-      count: count((group) => group.fulfilment_status === "processing"),
-    },
-    {
-      status: "packed",
-      label: "Packed",
-      count: count(
-        (group) =>
-          group.fulfilment_status === "ready_for_dispatch" && group.fulfilment_method === "delivery",
-      ),
-    },
-    {
-      status: "dispatched",
-      label: "Dispatched",
-      count: count((group) => group.fulfilment_status === "dispatched"),
-    },
+    { status: "payment-confirmed", label: "Paid", count: paid },
+    { status: "preparing", label: "Preparing", count: preparing },
+    { status: "packed", label: "Packed", count: packed },
+    { status: "dispatched", label: "Dispatched", count: dispatched },
   ];
 }
 
@@ -233,9 +235,9 @@ async function getLowStockProducts() {
 }
 
 async function getUnpublishedProducts() {
-  const where = {
-    OR: [{ lifecycle: { not: "active" as const } }, { publication: { not: "published" as const } }],
-  } satisfies Prisma.productsWhereInput;
+  const where: Prisma.productsWhereInput = {
+    OR: [{ lifecycle: { not: "active" } }, { publication: { not: "published" } }],
+  };
   const [rows, total] = await Promise.all([
     prisma.products.findMany({
       where,
@@ -259,19 +261,6 @@ async function getUnpublishedProducts() {
     }),
   };
 }
-
-const overviewProductInclude = {
-  product_variants: { select: { id: true } },
-  stock_levels: { select: { available: true, reserved: true } },
-  product_media: {
-    where: { variant_id: null },
-    orderBy: { position: "asc" },
-    take: 1,
-    include: { cloudinary_assets: true },
-  },
-} satisfies Prisma.productsInclude;
-
-type OverviewProductRow = Prisma.productsGetPayload<{ include: typeof overviewProductInclude }>;
 
 async function getOverviewProducts(ids: string[]) {
   if (!ids.length) return [];
@@ -301,10 +290,10 @@ function mapInventoryItem(
   };
 }
 
-async function mapOpenOrders(
-  rows: Array<Prisma.ordersGetPayload<{ include: typeof adminOrderInclude }>>,
-): Promise<OverviewOpenOrder[]> {
-  const productIds = rows.flatMap((row) => row.order_lines[0]?.product_id ?? []);
+async function mapOpenOrders(rows: AdminOrderRow[]): Promise<OverviewOpenOrder[]> {
+  const productIds = rows.flatMap((row) =>
+    row.order_lines[0] ? [row.order_lines[0].product_id] : [],
+  );
   const products = await getOverviewProducts([...new Set(productIds)]);
   const byId = new Map(products.map((product) => [product.id, product]));
   return rows.map((row) => {
@@ -357,9 +346,10 @@ async function getSalesPulse(todayStart: Date): Promise<SalesPulsePoint[]> {
   `);
   return rows.map((row) => ({
     date: row.date,
-    label: new Intl.DateTimeFormat("en-NG", { weekday: "short", timeZone: "Africa/Lagos" }).format(
-      new Date(`${row.date}T12:00:00+01:00`),
-    ),
+    label: new Intl.DateTimeFormat("en-NG", {
+      weekday: "short",
+      timeZone: "Africa/Lagos",
+    }).format(new Date(`${row.date}T12:00:00+01:00`)),
     online: row.online.toNumber(),
     offline: row.offline.toNumber(),
   }));
@@ -372,9 +362,8 @@ function buildAttention({
   incomplete,
   asOf,
 }: {
-  todayOrders: TodayOrder[];
-  expiringHold: Awaited<ReturnType<typeof prisma.holds.findFirst>> &
-    ({ customers: { name: string }; products: { name: string } } | null);
+  todayOrders: TodayOrderRow[];
+  expiringHold: ExpiringHoldRow | null;
   lowStock?: OverviewInventoryItem;
   incomplete?: OverviewInventoryItem;
   asOf: Date;
@@ -415,7 +404,10 @@ function buildAttention({
     });
   }
   if (expiringHold) {
-    const seconds = Math.max(0, Math.floor((expiringHold.expires_at.getTime() - asOf.getTime()) / 1_000));
+    const seconds = Math.max(
+      0,
+      Math.floor((expiringHold.expires_at.getTime() - asOf.getTime()) / 1_000),
+    );
     items.push({
       id: `attention-hold-${expiringHold.id}`,
       tone: "info",
@@ -448,17 +440,7 @@ function buildAttention({
   return items.slice(0, 5);
 }
 
-function mapContinueTask(
-  product:
-    | ({
-        id: string;
-        name: string;
-        lifecycle: string;
-        publication: string;
-        intake_record: { stage: string; ready_for_listing: boolean } | null;
-      } & Record<string, unknown>)
-    | null,
-): ContinueTask | undefined {
+function mapContinueTask(product: ContinueProductRow | null): ContinueTask | undefined {
   if (!product) return undefined;
   const progress = product.intake_record?.ready_for_listing
     ? 85
