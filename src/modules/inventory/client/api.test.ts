@@ -85,7 +85,12 @@ describe("inventory browser API", () => {
       pageSize: "25",
     });
     expect(init).toMatchObject({ cache: "no-store", signal: controller.signal });
-    expect(result.pagination).toEqual({ page: 3, pageSize: 25, total: 61, pageCount: 3 });
+    expect(result.pagination).toEqual({
+      page: 3,
+      pageSize: 25,
+      total: 61,
+      pageCount: 3,
+    });
     expect(result.products).toEqual([{ id: "product-1" }]);
     expect(result.summary.totalProducts).toBe(90);
     expect(result.viewCounts["needs-attention"]).toBe(21);
