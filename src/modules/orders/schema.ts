@@ -27,41 +27,50 @@ export const adminOrderListSearchSchema = paginationQuerySchema.extend({
 
 export const orderIdentifierSchema = z.string().trim().min(1).max(128);
 
-export const orderTransitionSchema = z.object({
-  nextStatus: orderStatusSchema,
-});
+export const orderTransitionSchema = z
+  .object({
+    nextStatus: orderStatusSchema,
+  })
+  .strict();
 
 const inPersonChannelSchema = z.enum(["physical-store", "pop-up", "staff-assisted"]);
 
-const existingCustomerSchema = z.object({
-  kind: z.literal("existing"),
-  customerId: z.string().uuid(),
-});
+const existingCustomerSchema = z
+  .object({
+    kind: z.literal("existing"),
+    customerId: z.string().uuid(),
+  })
+  .strict();
 
-const newCustomerSchema = z.object({
-  kind: z.literal("new"),
-  name: z.string().trim().min(1, "Enter the customer name.").max(160),
-  email: z.string().trim().email("Enter a valid email for the Paystack checkout."),
-  phone: z.string().trim().max(40).default(""),
-  city: z.string().trim().max(120).default(""),
-});
+const newCustomerSchema = z
+  .object({
+    kind: z.literal("new"),
+    name: z.string().trim().min(1, "Enter the customer name.").max(160),
+    email: z.string().trim().email("Enter a valid email for the Paystack checkout."),
+    phone: z.string().trim().max(40).default(""),
+    city: z.string().trim().max(120).default(""),
+  })
+  .strict();
 
 export const offlineSaleSchema = z
   .object({
     lines: z
       .array(
-        z.object({
-          productId: z.string().uuid(),
-          variantId: z.string().uuid().optional(),
-          quantity: z.number().int().min(1),
-          unitPrice: z.number().finite().min(0),
-        }),
+        z
+          .object({
+            productId: z.string().uuid(),
+            variantId: z.string().uuid().optional(),
+            quantity: z.number().int().min(1),
+            unitPrice: z.number().finite().min(0),
+          })
+          .strict(),
       )
       .min(1, "Add at least one product before generating checkout."),
     channel: inPersonChannelSchema,
     customer: z.discriminatedUnion("kind", [existingCustomerSchema, newCustomerSchema]),
     notes: z.string().trim().max(2_000).default(""),
   })
+  .strict()
   .superRefine((input, context) => {
     const total = input.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
     if (total < 100) {
