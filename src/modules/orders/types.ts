@@ -208,6 +208,7 @@ export type SalesActionErrorCode =
   | "insufficient-available-stock"
   | "insufficient-reserved-stock"
   | "insufficient-committed-stock"
+  | "stock-write-conflict"
   | "order-not-found"
   | "invalid-order-transition"
   | "customer-not-found"
