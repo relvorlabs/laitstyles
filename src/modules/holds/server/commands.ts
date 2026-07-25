@@ -12,7 +12,6 @@ import type {
   ConvertHoldInput,
   HoldActionError,
   HoldActionSuccess,
-  HoldSource,
 } from "@/modules/holds/types";
 import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type { SalesChannel } from "@/modules/orders/types";
@@ -34,15 +33,25 @@ export async function extendHold(
   return prisma.$transaction(async (tx) => {
     const hold = await findActiveHold(tx, holdId);
     if (!hold.ok) return hold;
+
     const nextExpiry = new Date(hold.value.expires_at.getTime() + minutes * 60 * 1_000);
-    const updated = await tx.holds.update({
-      where: { id: holdId },
+    const claimed = await tx.holds.updateMany({
+      where: {
+        id: holdId,
+        status: "active",
+        expires_at: hold.value.expires_at,
+      },
       data: { expires_at: nextExpiry },
-      include: adminHoldInclude,
     });
+    if (claimed.count !== 1) return holdChangedError(holdId);
+
     await recordHoldAudit(tx, actor, holdId, "hold.extended", {
       minutes,
       expiresAt: nextExpiry.toISOString(),
+    });
+    const updated = await tx.holds.findUniqueOrThrow({
+      where: { id: holdId },
+      include: adminHoldInclude,
     });
     return ok({
       hold: mapAdminHoldRow(updated),
@@ -60,6 +69,13 @@ export async function releaseHold(
       const hold = await findActiveHold(tx, holdId);
       if (!hold.ok) return hold;
 
+      const releasedAt = new Date();
+      const claimed = await tx.holds.updateMany({
+        where: { id: holdId, status: "active", expires_at: { gt: releasedAt } },
+        data: { status: "released", released_at: releasedAt },
+      });
+      if (claimed.count !== 1) return holdChangedError(holdId);
+
       await applyOperationalStockMutation(tx, {
         productId: hold.value.product_id,
         ...(hold.value.variant_id ? { variantId: hold.value.variant_id } : {}),
@@ -71,15 +87,13 @@ export async function releaseHold(
         metadata: { operation: "hold-release" },
       });
 
-      const releasedAt = new Date();
-      const updated = await tx.holds.update({
-        where: { id: holdId },
-        data: { status: "released", released_at: releasedAt },
-        include: adminHoldInclude,
-      });
       await recordHoldAudit(tx, actor, holdId, "hold.released", {
         productId: hold.value.product_id,
         quantity: hold.value.quantity,
+      });
+      const updated = await tx.holds.findUniqueOrThrow({
+        where: { id: holdId },
+        include: adminHoldInclude,
       });
       return ok({
         hold: mapAdminHoldRow(updated, releasedAt),
@@ -100,6 +114,17 @@ export async function convertHold(
   return prisma.$transaction(async (tx) => {
     const hold = await findActiveHold(tx, holdId);
     if (!hold.ok) return hold;
+
+    const convertedAt = new Date();
+    const claimed = await tx.holds.updateMany({
+      where: { id: holdId, status: "active", expires_at: { gt: convertedAt } },
+      data: {
+        status: "converted",
+        converted_at: convertedAt,
+        payment_progress: "pending",
+      },
+    });
+    if (claimed.count !== 1) return holdChangedError(holdId);
 
     const variant = hold.value.variant_id
       ? hold.value.products.product_variants.find((entry) => entry.id === hold.value.variant_id)
@@ -154,15 +179,9 @@ export async function convertHold(
       include: adminOrderInclude,
     });
 
-    const convertedAt = new Date();
     const updated = await tx.holds.update({
       where: { id: holdId },
-      data: {
-        status: "converted",
-        converted_at: convertedAt,
-        order_id: order.id,
-        payment_progress: "pending",
-      },
+      data: { order_id: order.id },
       include: adminHoldInclude,
     });
     await tx.activity_events.create({
@@ -204,7 +223,10 @@ async function findActiveHold(
   const now = new Date();
   if (row.status !== "active" || row.expires_at <= now) {
     if (row.status === "active" && row.expires_at <= now) {
-      await tx.holds.update({ where: { id: holdId }, data: { status: "expired" } });
+      await tx.holds.updateMany({
+        where: { id: holdId, status: "active", expires_at: { lte: now } },
+        data: { status: "expired" },
+      });
     }
     return err({
       code: "hold-inactive",
@@ -213,6 +235,14 @@ async function findActiveHold(
     });
   }
   return ok(row);
+}
+
+function holdChangedError(holdId: string): Result<never, HoldActionError> {
+  return err({
+    code: "hold-inactive",
+    message: "This hold changed while the action was being completed. Refresh and try again.",
+    holdId,
+  });
 }
 
 async function recordHoldAudit(
@@ -234,16 +264,17 @@ async function recordHoldAudit(
 }
 
 function orderChannelForHoldSource(source: string): SalesChannel {
-  const normalized = source.replaceAll("_", "-") as HoldSource;
-  switch (normalized) {
+  switch (source.replaceAll("_", "-")) {
     case "storefront":
       return "online";
-    case "admin":
-      return "staff-assisted";
     case "whatsapp":
+      return "whatsapp";
     case "instagram":
+      return "instagram";
     case "physical-store":
-      return normalized;
+      return "physical-store";
+    default:
+      return "staff-assisted";
   }
 }
 
