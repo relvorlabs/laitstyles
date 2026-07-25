@@ -29,8 +29,7 @@ test.describe("Phase 6 storefront state ownership", () => {
     const quickView = page.getByRole("dialog", { name: "Product quick view" });
     if (await quickView.isVisible().catch(() => false)) {
       const availableOption = quickView
-        .locator("button:not([disabled])")
-        .filter({ hasText: /^(?:XS|S|M|L|XL|XXL|\d+)/ })
+        .getByRole("button", { name: /^(?:XS|S|M|L|XL|XXL|\d+)/ })
         .first();
       if (await availableOption.isVisible().catch(() => false)) await availableOption.click();
       await quickView.getByRole("button", { name: /Add to bag/i }).click();
@@ -64,7 +63,7 @@ test.describe("Phase 6 storefront state ownership", () => {
 
     await page.getByRole("button", { name: "Sort" }).click();
     const sortDialog = page.getByRole("dialog", { name: "Sort products" });
-    const sortOption = sortDialog.getByRole("button").filter({ hasText: /price/i }).first();
+    const sortOption = sortDialog.getByRole("button", { name: /price/i }).first();
     if (await sortOption.isVisible().catch(() => false)) await sortOption.click();
     const filteredUrl = page.url();
 
@@ -98,12 +97,15 @@ test.describe("Phase 6 storefront state ownership", () => {
     await expect(page.getByRole("dialog", { name: "Search the rack" })).toBeHidden();
   });
 
-  test("mobile navigation opens and closes", async ({ page }, testInfo) => {
+  test("mobile navigation closes after route navigation", async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.includes("mobile"), "Mobile-only navigation contract");
     await page.goto("/");
     await page.getByRole("button", { name: "Open navigation" }).click();
-    await expect(page.getByRole("dialog", { name: "Navigation" })).toBeVisible();
-    await page.getByRole("button", { name: "Close navigation" }).click();
-    await expect(page.getByRole("dialog", { name: "Navigation" })).toBeHidden();
+    const navigation = page.getByRole("dialog", { name: "Navigation" });
+    await expect(navigation).toBeVisible();
+
+    await navigation.getByRole("button", { name: /^Women/ }).click();
+    await expect(page).toHaveURL(/\/products\?category=Women/);
+    await expect(navigation).toBeHidden();
   });
 });
