@@ -19,6 +19,7 @@ Phase 3 was merged with validation debt. Its final-head Implementation Quality a
 `src/modules/products/**` owns:
 
 - product, variant, media, lifecycle, publication and taxonomy contracts;
+- product editor and mutation contracts plus their validation schema;
 - admin product list/detail queries;
 - product save, archive, restore, delete and taxonomy commands;
 - validation, authorization rules and Prisma-to-domain mapping;
@@ -31,6 +32,7 @@ Phase 3 was merged with validation debt. Its final-head Implementation Quality a
 
 - stock balance and movement contracts;
 - stock and variant write invariants;
+- committed-stock edit policy;
 - stock movement reads;
 - stock-aware database filtering, sorting and pagination;
 - Inventory summaries and saved-view counts;
@@ -102,7 +104,9 @@ The following live consumers import the product module directly:
 
 The legacy `src/server/commerce/catalogue/**` query, mapper, visibility, page-selection and page-repository files are export-only compatibility shims. They contain no second Prisma implementation and remain only for unchanged legacy tests/imports until the approved Phase 9 deletion.
 
-A broad architecture test scans production `src/**` files and fails if any consumer outside the legacy shim folder imports `@/server/commerce/catalogue/**`.
+The legacy product-editor type, schema and committed-stock guard files are also export-only compatibility shims. Product and Inventory production modules import the canonical module paths directly.
+
+Architecture tests scan production module imports and compatibility files so legacy catalogue/editor paths cannot regain implementation ownership.
 
 The previously duplicated storefront product writer was deleted. The runtime storefront smoke now creates through the canonical `saveProduct` command and reloads through the canonical public product query.
 
@@ -140,7 +144,9 @@ Deleted or removed from production ownership:
 - transitional Inventory query-options and mutation files;
 - former `src/server/commerce/inventory/**` implementation;
 - duplicate storefront product writers and obsolete writer test;
-- duplicate Prisma catalogue/query/page implementations from the legacy catalogue folder.
+- duplicate Prisma catalogue/query/page implementations from the legacy catalogue folder;
+- product editor contract/schema implementation from `lib/admin`;
+- committed-stock policy implementation from `lib/admin`.
 
 ## Behavioral preservation
 
@@ -171,7 +177,8 @@ Source tests cover:
 - taxonomy creation, uniqueness and in-use protection;
 - database Inventory page metadata, summaries and saved-view counts;
 - public loader detail behavior through the canonical module mock;
-- architecture protection against any renewed production legacy catalogue import.
+- architecture protection against renewed production legacy catalogue imports;
+- architecture protection against module-to-legacy editor dependencies or renewed compatibility-file logic.
 
 HTTP smoke verifies health, the versioned admin product read contract and the protected Inventory adjustment mutation boundary. The runtime storefront smoke uses the canonical product write/read loop.
 
@@ -180,9 +187,9 @@ HTTP smoke verifies health, the versioned admin product read contract and the pr
 | Task | Status | Evidence |
 | --- | --- | --- |
 | P4-T01 Phase 3 handoff and source map | Complete | Phase 3 debt and merge SHA recorded |
-| P4-T02 Define product/inventory contracts | Complete | Canonical module-owned contracts |
+| P4-T02 Define product/inventory contracts | Complete | Canonical module-owned contracts and validation |
 | P4-T03 Move product definition/lifecycle/taxonomy/public-read ownership | Complete | `modules/products/**`; live storefront consumers use module paths |
-| P4-T04 Move stock/movement/adjustment ownership | Complete | `modules/inventory/**`; old Inventory server implementation removed |
+| P4-T04 Move stock/movement/adjustment ownership | Complete | `modules/inventory/**`; old Inventory implementation removed |
 | P4-T05 Add authenticated versioned reads | Complete | Product, taxonomy, Inventory and movement endpoints |
 | P4-T06 Typed API clients and TanStack reads | Complete | Direct module consumers with cancellation and keyed URL state |
 | P4-T07 Versioned mutation endpoints | Complete | Product save/lifecycle/taxonomy and Inventory adjustment commands |
