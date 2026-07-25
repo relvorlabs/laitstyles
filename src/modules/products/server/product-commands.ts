@@ -1,24 +1,18 @@
 import "server-only";
 
-import {
-  productEditorDraftSchema,
-  validateProductForPublish,
-  validateProductForSchedule,
-} from "@/lib/admin/product-editor/product-editor-schema";
 import { validateCommittedStockEdit } from "@/lib/admin/product-editor/product-editor-stock-guard";
-import type {
-  ProductEditorIntent,
-  ProductEditorIssue,
-  ProductEditorValues,
-} from "@/lib/admin/product-editor/product-editor-types";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
-import type { StaffSession } from "@/server/auth/session";
 import {
   assertProductInventoryModeCanChange,
   InventoryRuleViolation,
   writeProductStockAndVariants,
 } from "@/modules/inventory/server/stock-write";
+import {
+  productEditorDraftSchema,
+  validateProductForPublish,
+  validateProductForSchedule,
+} from "@/modules/products/editor-schema";
 import { adminProductInclude } from "@/modules/products/server/mappers";
 import { getAdminProduct } from "@/modules/products/server/queries";
 import {
@@ -36,9 +30,13 @@ import {
 } from "@/modules/products/server/write-helpers";
 import type {
   AdminProduct,
+  ProductEditorIntent,
+  ProductEditorIssue,
+  ProductEditorValues,
   ProductMutationError,
   ProductSaveOutcome,
 } from "@/modules/products/types";
+import type { StaffSession } from "@/server/auth/session";
 
 function mapZodIssues(
   issues: readonly { path: PropertyKey[]; message: string }[],
