@@ -5,7 +5,7 @@ import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
 import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
-import { useStorefrontCatalogData, useStorefrontOverlay } from "../storefront-runtime";
+import { useStorefrontCatalogueData, useStorefrontOverlay } from "../storefront-runtime";
 import { money } from "../catalogue-data";
 import { IconClose, IconSearch } from "../storefront-icons";
 
@@ -19,7 +19,7 @@ const searchSuggestions: [string, string][] = [
 export function SearchOverlay() {
   const navigation = useCatalogueNavigation();
   const overlay = useStorefrontOverlay();
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const [value, setValue] = useState("");
   const results = useMemo(() => {
     const query = value.trim().toLowerCase();
