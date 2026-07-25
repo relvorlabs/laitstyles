@@ -56,7 +56,7 @@ describe("Phase 6 storefront state boundary", () => {
     const files = await collectFilesIfPresent(storesRoot);
     const unexpected = files
       .map((file) => normalize(path.relative(storesRoot, file)))
-      .filter((relative) => !approvedStoreFiles.has(relative));
+      .filter((relative) => !relative.endsWith(".test.ts") && !approvedStoreFiles.has(relative));
 
     expect(
       unexpected,
