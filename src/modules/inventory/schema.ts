@@ -57,3 +57,12 @@ export const inventoryStockMovementSearchSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(500).default(500),
 });
+
+export const inventoryStockAdjustmentSchema = z.object({
+  productId: z.string().uuid(),
+  variantId: z.string().uuid().nullable().default(null),
+  quantityDelta: z.number().int().min(-1_000_000).max(1_000_000).refine((value) => value !== 0, {
+    message: "Stock change must not be zero.",
+  }),
+  note: z.string().trim().min(3).max(500),
+});
