@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { ParsedCatalogueSearch } from "@/features/storefront/catalogue/catalogue-search-params";
 import {
-  catalogueHref,
-  type ParsedCatalogueSearch,
-} from "@/features/storefront/catalogue/catalogue-search-params";
+  type CatalogueFilterType,
+  useCatalogueNavigation,
+} from "@/features/storefront/catalogue/use-catalogue-navigation";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { inventoryLabel, money } from "@/features/storefront/shared/catalogue-data";
 import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
@@ -32,9 +32,8 @@ const quickLinks: [string, string][] = [
   ["grade-a-plus", "Grade A+"],
   ["vintage", "Vintage"],
 ];
-const genderByKey: Record<string, string> = { women: "Women", men: "Men", unisex: "Unisex" };
 
-type FilterChip = { type: string; label: string; value?: string };
+type FilterChip = { type: CatalogueFilterType; label: string; value?: string };
 
 function CatalogueApp({
   productIds,
@@ -49,7 +48,7 @@ function CatalogueApp({
   pageCount: number;
   search: ParsedCatalogueSearch;
 }) {
-  const router = useRouter();
+  const navigation = useCatalogueNavigation(search);
   const { products } = useStorefrontCatalogData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
@@ -73,7 +72,7 @@ function CatalogueApp({
     const product = productLookup.get(id);
     return product ? [product] : [];
   });
-  const chips = useMemo(() => activeFilterChips(search), [search]);
+  const chips = useMemo(() => activeFilterChips(navigation.search), [navigation.search]);
 
   const changeDensity = (nextDensity: "comfortable" | "compact") => {
     setDensity(nextDensity);
@@ -84,52 +83,9 @@ function CatalogueApp({
     }
   };
 
-  const navigate = (patch: Parameters<typeof catalogueHref>[1], scroll = false) => {
-    router.push(catalogueHref(search, patch), { scroll });
-  };
-
-  const applyQuick = (key: string) => {
-    const reset = {
-      page: 1,
-      search: "",
-      conditions: [],
-      inventories: [],
-      inStock: false,
-      maxPriceNaira: undefined,
-    } as const;
-    if (key === "all") navigate({ ...reset, category: null, collection: null });
-    else if (genderByKey[key]) {
-      navigate({ ...reset, category: genderByKey[key], collection: null });
-    } else if (key === "under-25") navigate({ ...reset, maxPriceNaira: 25_000 });
-    else if (key === "grade-a-plus") navigate({ ...reset, conditions: ["A+"] });
-    else navigate({ ...reset, category: null, collection: key });
-  };
-
-  const quickActive = (key: string) => {
-    if (key === "all") return !search.category && !search.collection;
-    if (genderByKey[key]) return search.category === genderByKey[key];
-    if (key === "under-25") return search.maxPriceNaira === 25_000;
-    if (key === "grade-a-plus") return search.conditions.includes("A+");
-    return search.collection === key;
-  };
-
   const clearFilters = () => {
-    router.replace("/products", { scroll: false });
+    navigation.clear();
     showStorefrontToast("Filters cleared.");
-  };
-
-  const removeFilter = (type: string, value?: string) => {
-    if (type === "category") navigate({ page: 1, category: null });
-    if (type === "collection") navigate({ page: 1, collection: null });
-    if (type === "condition") {
-      navigate({ page: 1, conditions: search.conditions.filter((item) => item !== value) });
-    }
-    if (type === "inventory") {
-      navigate({ page: 1, inventories: search.inventories.filter((item) => item !== value) });
-    }
-    if (type === "stock") navigate({ page: 1, inStock: false });
-    if (type === "price") navigate({ page: 1, maxPriceNaira: undefined });
-    if (type === "search") navigate({ page: 1, search: "" });
   };
 
   const cardHandlers = {
@@ -160,7 +116,7 @@ function CatalogueApp({
     ));
 
   const goToPage = (nextPage: number) => {
-    router.push(catalogueHref(search, { page: nextPage }));
+    navigation.goToPage(nextPage);
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -169,12 +125,12 @@ function CatalogueApp({
       <div className="quick-nav-wrap">
         <nav aria-label="Quick collections" className="shell quick-nav">
           {quickLinks.map(([key, label]) => {
-            const active = quickActive(key);
+            const active = navigation.isQuickActive(key);
             return (
               <Button
                 aria-pressed={active}
                 key={key}
-                onClick={() => applyQuick(key)}
+                onClick={() => navigation.applyQuick(key)}
                 type="button"
                 variant={active ? "secondary" : "ghost"}
               >
@@ -254,7 +210,7 @@ function CatalogueApp({
               {chips.map((chip) => (
                 <Button
                   key={`${chip.type}-${chip.value ?? chip.label}`}
-                  onClick={() => removeFilter(chip.type, chip.value)}
+                  onClick={() => navigation.removeFilter(chip.type, chip.value)}
                   type="button"
                   variant="secondary"
                 >
