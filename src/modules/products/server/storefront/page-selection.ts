@@ -1,4 +1,7 @@
-import type { InventoryMode, ProductSummary } from "@/lib/storefront/types";
+import type {
+  InventoryMode,
+  ProductSummary,
+} from "@/modules/products/server/storefront/types";
 
 export type StorefrontConditionFilter = "A+" | "A" | "B+";
 export type StorefrontInventoryFilter = "one-of-one" | "variant" | "matching-stock";
