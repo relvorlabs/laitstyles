@@ -1,7 +1,6 @@
 import type {
   ControlRoomCustomer,
   ControlRoomOrder,
-  ControlRoomReturn,
   OverviewSnapshot,
   SalesPulsePoint,
   StoreSettings,
@@ -13,11 +12,6 @@ export type OverviewResource = {
   asOf: string;
   salesPulse: SalesPulsePoint[];
   openOrders: ControlRoomOrder[];
-};
-
-export type ReturnRepository = {
-  listReturns: () => Promise<ControlRoomReturn[]>;
-  getReturn: (returnId: string) => Promise<ControlRoomReturn | null>;
 };
 
 export type CustomerRepository = {
@@ -34,7 +28,6 @@ export type OverviewRepository = {
 };
 
 export type AdminRepositories = {
-  returns: ReturnRepository;
   customers: CustomerRepository;
   settings: SettingsRepository;
   overview: OverviewRepository;
