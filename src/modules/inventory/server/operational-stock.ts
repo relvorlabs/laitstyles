@@ -5,9 +5,10 @@ import type { Prisma } from "@/lib/prisma";
 export type OperationalStockMutationKind =
   | "reserve"
   | "release-reserved"
-  | "sell-available"
-  | "sell-reserved"
-  | "restore-sold"
+  | "commit-available"
+  | "commit-reserved"
+  | "release-committed"
+  | "sell-committed"
   | "return-sold"
   | "restock-returned"
   | "damage-returned";
@@ -21,6 +22,7 @@ export type OperationalStockFailureCode =
   | "invalid-quantity"
   | "insufficient-available-stock"
   | "insufficient-reserved-stock"
+  | "insufficient-committed-stock"
   | "insufficient-sold-stock"
   | "insufficient-returned-stock"
   | "stock-write-conflict";
@@ -37,6 +39,7 @@ export class OperationalStockError extends Error {
     },
   ) {
     super(message);
+    this.name = "OperationalStockError";
   }
 }
 
@@ -201,23 +204,29 @@ function buildStockChange(target: StockTarget, input: OperationalStockMutationIn
         expected: { available: target.available, reserved: target.reserved },
         data: { reserved: { decrement: quantity }, available: { increment: quantity } },
       };
-    case "sell-available":
+    case "commit-available":
       assertEnough("available", target.available, input);
       return {
-        expected: { available: target.available, sold: target.sold },
-        data: { available: { decrement: quantity }, sold: { increment: quantity } },
+        expected: { available: target.available, committed: target.committed },
+        data: { available: { decrement: quantity }, committed: { increment: quantity } },
       };
-    case "sell-reserved":
+    case "commit-reserved":
       assertEnough("reserved", target.reserved, input);
       return {
-        expected: { reserved: target.reserved, sold: target.sold },
-        data: { reserved: { decrement: quantity }, sold: { increment: quantity } },
+        expected: { reserved: target.reserved, committed: target.committed },
+        data: { reserved: { decrement: quantity }, committed: { increment: quantity } },
       };
-    case "restore-sold":
-      assertEnough("sold", target.sold, input);
+    case "release-committed":
+      assertEnough("committed", target.committed, input);
       return {
-        expected: { available: target.available, sold: target.sold },
-        data: { sold: { decrement: quantity }, available: { increment: quantity } },
+        expected: { available: target.available, committed: target.committed },
+        data: { committed: { decrement: quantity }, available: { increment: quantity } },
+      };
+    case "sell-committed":
+      assertEnough("committed", target.committed, input);
+      return {
+        expected: { committed: target.committed, sold: target.sold },
+        data: { committed: { decrement: quantity }, sold: { increment: quantity } },
       };
     case "return-sold":
       assertEnough("sold", target.sold, input);
@@ -241,7 +250,7 @@ function buildStockChange(target: StockTarget, input: OperationalStockMutationIn
 }
 
 function assertEnough(
-  bucket: "available" | "reserved" | "sold" | "returned",
+  bucket: "available" | "reserved" | "committed" | "sold" | "returned",
   balance: number,
   input: OperationalStockMutationInput,
 ) {
@@ -265,11 +274,13 @@ function movementKind(kind: OperationalStockMutationKind) {
       return "reserved" as const;
     case "release-reserved":
       return "reservation_released" as const;
-    case "sell-available":
-    case "sell-reserved":
+    case "commit-available":
+    case "commit-reserved":
+      return "committed" as const;
+    case "release-committed":
+      return "commitment_released" as const;
+    case "sell-committed":
       return "sold" as const;
-    case "restore-sold":
-      return "adjusted" as const;
     case "return-sold":
       return "returned" as const;
     case "restock-returned":
