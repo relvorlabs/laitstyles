@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { listInventoryProductPage } from "@/modules/inventory/client/api";
+import {
+  adjustInventoryStockRequest,
+  listInventoryProductPage,
+} from "@/modules/inventory/client/api";
 
 const fetchMock = vi.fn();
+const productId = "22222222-2222-4222-8222-222222222222";
 
 afterEach(() => {
   fetchMock.mockReset();
@@ -85,5 +89,89 @@ describe("inventory browser API", () => {
     expect(result.products).toEqual([{ id: "product-1" }]);
     expect(result.summary.totalProducts).toBe(90);
     expect(result.viewCounts["needs-attention"]).toBe(21);
+  });
+
+  it("posts stock adjustments through the versioned inventory boundary", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    const outcome = {
+      balance: {
+        totalReceived: 12,
+        available: 8,
+        reserved: 1,
+        committed: 1,
+        sold: 2,
+        returned: 0,
+        damaged: 0,
+      },
+      movement: {
+        id: "33333333-3333-4333-8333-333333333333",
+        productId,
+        variantId: null,
+        kind: "adjusted",
+        quantity: 2,
+        occurredAt: "2026-07-25T08:00:00.000Z",
+        actor: "Admin",
+        note: "Cycle count correction",
+      },
+    };
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ data: outcome }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const result = await adjustInventoryStockRequest({
+      productId,
+      variantId: null,
+      quantityDelta: 2,
+      note: "Cycle count correction",
+    });
+
+    const [requestUrl, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new URL(requestUrl, "http://localhost").pathname).toBe(
+      "/api/v1/admin/inventory/adjustments",
+    );
+    expect(init).toMatchObject({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(JSON.parse(String(init.body))).toEqual({
+      productId,
+      variantId: null,
+      quantityDelta: 2,
+      note: "Cycle count correction",
+    });
+    expect(result).toEqual({ ok: true, value: outcome });
+  });
+
+  it("maps adjustment conflict envelopes back to the domain error contract", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "INVENTORY_ADJUSTMENT_CONFLICT",
+            message: "This adjustment would create an invalid stock balance.",
+          },
+        }),
+        { status: 409, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const result = await adjustInventoryStockRequest({
+      productId,
+      variantId: null,
+      quantityDelta: -20,
+      note: "Cycle count correction",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "invalid-adjustment",
+        message: "This adjustment would create an invalid stock balance.",
+      },
+    });
   });
 });
