@@ -173,7 +173,7 @@ Source tests cover:
 - public loader detail behavior through the canonical module mock;
 - architecture protection against any renewed production legacy catalogue import.
 
-HTTP smoke verifies the versioned admin product contract in addition to health. The runtime storefront smoke uses the canonical product write/read loop.
+HTTP smoke verifies health, the versioned admin product read contract and the protected Inventory adjustment mutation boundary. The runtime storefront smoke uses the canonical product write/read loop.
 
 ## Task status
 
