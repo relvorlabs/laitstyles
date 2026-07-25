@@ -1,14 +1,14 @@
 "use client";
 
 import { getHomeCategories } from "@/features/storefront/shared/catalogue-data";
-import { useStorefront } from "@/features/storefront/shared/storefront-provider";
+import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
 import { CategoryCard } from "../components/category-card";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import type { OpenHomeShop } from "../home-types";
 
 export function CategorySection({ openShop }: { openShop: OpenHomeShop }) {
-  const storefront = useStorefront();
-  const homeCategories = getHomeCategories(storefront.categories);
+  const { categories } = useStorefrontCatalogData();
+  const homeCategories = getHomeCategories(categories);
   return (
     <section className="category-section section">
       <div className="shell">
@@ -16,24 +16,11 @@ export function CategorySection({ openShop }: { openShop: OpenHomeShop }) {
           actionLabel="View every product"
           eyebrow="Browse the rack"
           onAction={() => openShop({})}
-          title={
-            <>
-              Shop by{" "}
-              <span className="serif">
-                <em>category</em>
-              </span>
-            </>
-          }
+          title={<>Shop by <span className="serif"><em>category</em></span></>}
         />
-        <div id="categoryGrid" className="category-grid">
+        <div className="category-grid" id="categoryGrid">
           {homeCategories.map(([name, image, count]) => (
-            <CategoryCard
-              key={name}
-              name={name}
-              image={image}
-              count={count}
-              onClick={() => openShop({ category: name })}
-            />
+            <CategoryCard count={count} image={image} key={name} name={name} onClick={() => openShop({ category: name })} />
           ))}
         </div>
       </div>
