@@ -34,7 +34,7 @@ Phase 3 was merged with validation debt. Its final-head Implementation Quality a
 - stock movement reads;
 - stock-aware database filtering, sorting and pagination;
 - Inventory summaries and saved-view counts;
-- typed browser transport and TanStack Query reads;
+- typed browser transport, TanStack Query reads and the stock-adjustment mutation;
 - transactional stock adjustment with balance guards, optimistic concurrency, immutable ledger movement and audit event.
 
 ## Versioned API adapters
@@ -54,6 +54,7 @@ Implemented machine-readable adapters:
 - `DELETE /api/v1/admin/products/taxonomy/[id]`
 - `GET /api/v1/admin/inventory`
 - `GET /api/v1/admin/inventory/stock-movements`
+- `POST /api/v1/admin/inventory/adjustments`
 
 Each adapter uses the Phase 3 request boundary, Zod validation, staff capability checks, request correlation, stable envelopes and direct domain operations. Route Handlers do not call Server Actions.
 
@@ -80,6 +81,8 @@ Migrated consumers include:
 - product editor;
 - record-sale product selection and review;
 - admin command menu.
+
+The Inventory module also exposes a typed stock-adjustment request and TanStack mutation with invalidation for Inventory pages, product list/detail data and the admin overview. No existing UI was redesigned or forced to expose a new control during this architecture phase.
 
 No TanStack mutation imports a Server Action.
 
@@ -159,7 +162,8 @@ Source tests cover:
 
 - product API authorization, pagination, create and validation behavior;
 - Inventory API authorization, complete search parsing and page-size rejection;
-- browser transport cancellation, method selection, URL serialization and metadata;
+- stock-adjustment API authorization, body validation, stable conflict mapping and successful response behavior;
+- browser transport cancellation, method selection, URL serialization, adjustment error mapping and metadata;
 - product transaction orchestration, durable media and uniqueness handling;
 - stock balance preservation and variant-history protection;
 - stock adjustment validation, variant ownership, concurrency protection, movement and audit writes;
@@ -181,7 +185,7 @@ HTTP smoke verifies the versioned admin product contract in addition to health. 
 | P4-T04 Move stock/movement/adjustment ownership | Complete | `modules/inventory/**`; old Inventory server implementation removed |
 | P4-T05 Add authenticated versioned reads | Complete | Product, taxonomy, Inventory and movement endpoints |
 | P4-T06 Typed API clients and TanStack reads | Complete | Direct module consumers with cancellation and keyed URL state |
-| P4-T07 Versioned mutation endpoints | Complete | Save, archive, restore, delete and taxonomy commands |
+| P4-T07 Versioned mutation endpoints | Complete | Product save/lifecycle/taxonomy and Inventory adjustment commands |
 | P4-T08 Remove TanStack-to-Server-Action edge | Complete | Actions and exact exception deleted |
 | P4-T09 Remove unversioned compatibility endpoints | Complete | Unversioned Inventory API routes deleted after consumer cutover |
 | P4-T10 Persistence/auth/validation/error/invalidation parity | Implemented; execution pending | Focused source tests, cache rules and runtime smoke exist |
