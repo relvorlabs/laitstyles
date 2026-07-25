@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { catalogueHref } from "@/features/storefront/catalogue/catalogue-search-params";
+import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
 import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
 import { useStorefrontCatalogData, useStorefrontOverlay } from "../storefront-runtime";
 import { money } from "../catalogue-data";
@@ -18,7 +17,7 @@ const searchSuggestions: [string, string][] = [
 ];
 
 export function SearchOverlay() {
-  const router = useRouter();
+  const navigation = useCatalogueNavigation();
   const overlay = useStorefrontOverlay();
   const { products } = useStorefrontCatalogData();
   const [value, setValue] = useState("");
@@ -46,26 +45,7 @@ export function SearchOverlay() {
     if (event.target === event.currentTarget) overlay.close();
   };
   const navigateSearch = () => {
-    const search = value.trim();
-    if (!search) return;
-    router.push(
-      catalogueHref(
-        {
-          page: 1,
-          search: "",
-          category: null,
-          collection: null,
-          conditions: [],
-          inventories: [],
-          inStock: false,
-          maxPriceNaira: undefined,
-          sort: "curated",
-          colours: [],
-          sizes: [],
-        },
-        { search, page: 1 },
-      ),
-    );
+    if (!navigation.searchFor(value)) return;
     overlay.close();
   };
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -111,7 +91,12 @@ export function SearchOverlay() {
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {searchSuggestions.map(([term, label]) => (
-            <Button key={term} onClick={() => setValue(term)} type="button" variant="outline">
+            <Button
+              key={term}
+              onClick={() => setValue(term)}
+              type="button"
+              variant="outline"
+            >
               {label}
             </Button>
           ))}
