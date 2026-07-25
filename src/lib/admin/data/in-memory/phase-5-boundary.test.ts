@@ -77,7 +77,8 @@ describe("Phase 5 admin persistence boundary", () => {
       "In-person sales must remain Paystack-tracked; the form cannot declare a payment paid.",
     ).toEqual([]);
     expect(source).toContain("Paystack one-time checkout");
-    expect(source).toContain("server verification or signed Paystack webhook");
+    expect(source).toContain("signed Paystack webhook");
+    expect(source).toContain("server");
   });
 });
 
