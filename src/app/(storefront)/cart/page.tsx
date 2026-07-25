@@ -5,11 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { money as naira } from "@/features/storefront/shared/catalogue-data";
+import { money as naira } from "@/modules/products/ui/storefront/catalogue-data";
 import {
   useStorefrontCart,
   useStorefrontHolds,
-} from "@/features/storefront/shared/storefront-runtime";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 
 const USD_RATE = 1600;
 
