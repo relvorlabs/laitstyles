@@ -5,14 +5,8 @@ import { describe, expect, it } from "vitest";
 const repositoryRoot = process.cwd();
 const modulesRoot = path.join(repositoryRoot, "src/modules");
 const legacyFiles = {
-  types: path.join(
-    repositoryRoot,
-    "src/lib/admin/product-editor/product-editor-types.ts",
-  ),
-  schema: path.join(
-    repositoryRoot,
-    "src/lib/admin/product-editor/product-editor-schema.ts",
-  ),
+  types: path.join(repositoryRoot, "src/lib/admin/product-editor/product-editor-types.ts"),
+  schema: path.join(repositoryRoot, "src/lib/admin/product-editor/product-editor-schema.ts"),
   stockGuard: path.join(
     repositoryRoot,
     "src/lib/admin/product-editor/product-editor-stock-guard.ts",
@@ -41,7 +35,7 @@ describe("product editor domain ownership", () => {
 
     expect(
       offenders,
-      "Production modules must import editor contracts and policies from modules/products or modules/inventory.",
+      "Production modules must import editor contracts and policies from domain modules.",
     ).toEqual([]);
   });
 
