@@ -1,37 +1,15 @@
-import type { StorefrontCategory } from "@/features/storefront/shared/catalog-types";
+import type {
+  StorefrontCatalogueCategory,
+  StorefrontCatalogueProduct,
+  StorefrontCondition,
+  StorefrontInventory,
+  StorefrontStatus,
+} from "@/modules/products/storefront/catalogue-contract";
 
-export type Condition = "A+" | "A" | "B+";
-export type Inventory = "one-of-one" | "variant" | "matching-stock";
-export type Status = "available" | "reserved" | "sold";
-
-/** Existing shopper contract. Server repositories map Prisma or JSON rows into this shape. */
-export interface Product {
-  id: string;
-  databaseId: string;
-  slug: string;
-  name: string;
-  brand: string;
-  brandStatus: string;
-  category: string;
-  type: string;
-  style: string;
-  price: number;
-  referencePrice: number | null;
-  condition: Condition;
-  size: string;
-  fit: string;
-  colour: string;
-  inventory: Inventory;
-  stock: number;
-  status: Status;
-  new: boolean;
-  saved: number;
-  flaw: string;
-  material: string;
-  careInstructions: string;
-  images: string[];
-  variants?: string[];
-}
+export type Condition = StorefrontCondition;
+export type Inventory = StorefrontInventory;
+export type Status = StorefrontStatus;
+export type Product = StorefrontCatalogueProduct;
 
 const moneyFormatter = new Intl.NumberFormat("en-NG", {
   style: "currency",
@@ -77,7 +55,7 @@ export const relatedProducts = (products: readonly Product[], product: Product, 
     .slice(0, limit);
 
 export function getHomeCategories(
-  categories: readonly StorefrontCategory[],
+  categories: readonly StorefrontCatalogueCategory[],
 ): [string, string | null, number][] {
   return categories
     .filter((category) =>
