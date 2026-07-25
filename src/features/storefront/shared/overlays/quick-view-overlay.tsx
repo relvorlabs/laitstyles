@@ -11,7 +11,7 @@ import {
 } from "../storefront-overlay-events";
 import {
   useStorefrontCart,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontOverlay,
   useStorefrontRecent,
   useStorefrontSavedItems,
@@ -21,7 +21,7 @@ import { inventoryLabel, money, productById } from "../catalogue-data";
 import { IconClose, IconHeart } from "../storefront-icons";
 
 export function QuickViewOverlay() {
-  const catalogue = useStorefrontCatalogData();
+  const catalogue = useStorefrontCatalogueData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const overlay = useStorefrontOverlay();
