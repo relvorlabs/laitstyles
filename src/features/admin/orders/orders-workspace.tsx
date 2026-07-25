@@ -67,13 +67,11 @@ const paymentValues = new Set<OrderPaymentFilter>([
 const sortValues = new Set<OrderSortKey>(orderSortOptions.map((option) => option.value));
 const pageSizeValues = new Set([10, 25, 50, 100]);
 
-export function OrdersWorkspace({
-  initialQuery,
-  initialOpenOrderId,
-}: {
-  initialQuery: OrderQuery;
-  initialOpenOrderId: string | null;
-}) {
+type SearchParamsReader = {
+  get(name: string): string | null;
+};
+
+export function OrdersWorkspace({ initialQuery }: { initialQuery: OrderQuery }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -88,7 +86,7 @@ export function OrdersWorkspace({
     () => readQueryFromUrl(searchParams, initialQuery),
     [initialQuery, searchParams],
   );
-  const openOrderId = searchParams.get("order")?.trim() || initialOpenOrderId;
+  const openOrderId = searchParams.get("order")?.trim() || null;
   const ordersQuery = useQuery(adminOrdersQueryOptions(query));
   const detailQuery = useQuery(adminOrderQueryOptions(openOrderId ?? ""));
   const orders = ordersQuery.data?.data ?? [];
@@ -221,7 +219,7 @@ export function OrdersWorkspace({
   );
 }
 
-function readQueryFromUrl(searchParams: URLSearchParams, fallback: OrderQuery): OrderQuery {
+function readQueryFromUrl(searchParams: SearchParamsReader, fallback: OrderQuery): OrderQuery {
   return {
     view: pick(searchParams.get("view"), viewValues, fallback.view),
     search: searchParams.get("q") ?? fallback.search,
