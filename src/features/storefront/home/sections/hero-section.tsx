@@ -14,6 +14,10 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
   const heroDenim = products[1] ?? heroBlazer;
   const heroHarrington = products[15] ?? heroBlazer;
   if (!heroBlazer || !heroDenim || !heroHarrington) return null;
+  const sideProducts = [
+    [heroDenim, "One of one"],
+    [heroHarrington, "Archive outerwear"],
+  ] as const;
 
   return (
     <section className="hero">
@@ -31,7 +35,7 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
           </div>
         </article>
         <div className="hero-side">
-          {[ [heroDenim, "One of one"], [heroHarrington, "Archive outerwear"] ] .map(([product, eyebrow]) => (
+          {sideProducts.map(([product, eyebrow]) => (
             <Button className="hero-card h-auto w-full justify-start p-0 text-left" key={product.id} onClick={() => openQuickView(product.id)} type="button" variant="ghost">
               <span className="contents">
                 <Image alt={product.name} height={1125} sizes="(min-width: 861px) 34vw, 100vw" src={product.images[0]} width={900} />
