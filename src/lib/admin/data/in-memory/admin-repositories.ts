@@ -15,9 +15,6 @@ export function createInMemoryAdminRepositories(store: AdminStore): AdminReposit
     Promise.resolve(cloneValue(selector(store.getSnapshot())));
 
   return {
-    settings: {
-      getSettings: () => read((state) => state.settings ?? null),
-    },
     overview: {
       getOverview: () =>
         read((state) => ({
