@@ -3,7 +3,7 @@ import type {
   HoldSavedView,
   HoldWorkspaceItem,
 } from "@/features/admin/holds/hold-types";
-import type { ControlRoomHold } from "@/modules/holds/types";
+import type { ControlRoomHold, HoldRisk } from "@/modules/holds/types";
 
 export const defaultHoldQuery: HoldQuery = {
   view: "all",
@@ -53,7 +53,15 @@ export const holdSortOptions: Array<{
   { value: "quantity-desc", label: "Highest quantity" },
 ];
 
-export function toHoldWorkspaceItem(hold: ControlRoomHold): HoldWorkspaceItem {
+export function toHoldWorkspaceItem(
+  hold: ControlRoomHold,
+  now: number | null = null,
+): HoldWorkspaceItem {
+  const secondsRemaining =
+    now === null
+      ? hold.secondsRemaining
+      : Math.max(0, Math.floor((Date.parse(hold.expiresAt) - now) / 1_000));
+
   return {
     holdId: hold.id,
     productName: hold.product.name,
@@ -62,12 +70,21 @@ export function toHoldWorkspaceItem(hold: ControlRoomHold): HoldWorkspaceItem {
     imageUrl: hold.product.imageUrl,
     imageAlt: hold.product.imageAlt,
     customerName: hold.customerLabel,
-    risk: hold.risk,
+    risk: currentHoldRisk(hold, secondsRemaining),
     status: hold.status,
     source: hold.source,
-    secondsRemaining: hold.secondsRemaining,
+    secondsRemaining,
     expiresAt: hold.expiresAt,
   };
+}
+
+function currentHoldRisk(hold: ControlRoomHold, secondsRemaining: number): HoldRisk {
+  if (hold.status === "released" || hold.status === "cancelled") return "released";
+  if (hold.status === "converted") return "converted";
+  if (hold.status === "expired" || secondsRemaining <= 0) return "expired";
+  if (hold.paymentProgress === "failed") return "payment-risk";
+  if (secondsRemaining <= 5 * 60) return "expiring";
+  return "stable";
 }
 
 export function formatHoldCountdown(seconds: number) {
