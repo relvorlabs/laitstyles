@@ -13,7 +13,7 @@ import { openQuickView } from "@/features/storefront/shared/storefront-overlay-e
 import {
   showStorefrontToast,
   useStorefrontCart,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontHolds,
   useStorefrontOverlay,
   useStorefrontSavedItems,
@@ -49,7 +49,7 @@ function CatalogueApp({
   search: ParsedCatalogueSearch;
 }) {
   const navigation = useCatalogueNavigation(search);
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
