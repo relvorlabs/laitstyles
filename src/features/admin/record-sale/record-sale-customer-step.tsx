@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -13,10 +12,8 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@/components/ui/select";
-import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
-import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
-import type { InPersonSalesChannel } from "@/modules/orders/types";
+import type { AdminOrderCustomer, InPersonSalesChannel } from "@/modules/orders/types";
 
 const channelLabels: Record<InPersonSalesChannel, string> = {
   "physical-store": "Physical store",
@@ -26,15 +23,9 @@ const channelLabels: Record<InPersonSalesChannel, string> = {
 
 const channels = Object.keys(channelLabels) as InPersonSalesChannel[];
 
-export function RecordSaleCustomerStep() {
-  const repositories = useAdminRepositories();
-  const { data: allCustomers = [] } = useQuery(customersListQueryOptions(repositories));
-  const customers = allCustomers.filter((customer) => Boolean(customer.email.trim()));
+export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCustomer[] }) {
   const methods = useFormContext<RecordSaleValues>();
-  const customerMode = useWatch({
-    control: methods.control,
-    name: "customerMode",
-  });
+  const customerMode = useWatch({ control: methods.control, name: "customerMode" });
   const channel = useWatch({ control: methods.control, name: "channel" });
   const customerId = useWatch({ control: methods.control, name: "customerId" });
   const customer = customers.find((item) => item.id === customerId);
@@ -78,7 +69,7 @@ export function RecordSaleCustomerStep() {
               </SelectContent>
             </Select>
             <FieldDescription>
-              Offline sales are now limited to physical, pop-up or staff-assisted in-person sales.
+              Offline sales are limited to physical, pop-up or staff-assisted in-person sales.
             </FieldDescription>
             <FieldError errors={[fieldState.error]} />
           </Field>
