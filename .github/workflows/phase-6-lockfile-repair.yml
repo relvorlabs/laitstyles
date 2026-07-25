@@ -1,4 +1,4 @@
-name: Phase 6 lockfile repair
+name: Phase 6 lockfile and guard repair
 
 on:
   push:
@@ -39,11 +39,63 @@ jobs:
       - name: Regenerate the lockfile
         run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
 
+      - name: Reconcile the architecture guard
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'scripts/checks/architecture-guard.mjs';
+          let source = fs.readFileSync(path, 'utf8');
+
+          source = source
+            .replace('  "src/features/storefront/shared/catalog-adapter.ts",\n', '')
+            .replace('  "src/features/storefront/shared/storefront-client-state-provider.tsx",\n', '')
+            .replace(
+              '  "src/features/storefront/shared/storefront-auth-provider.tsx",\n',
+              '  "src/features/storefront/shared/storefront-auth-provider.tsx",\n' +
+                '  "src/features/storefront/shared/storefront-runtime.ts",\n' +
+                '  "src/features/storefront/shared/storefront-state-hydrator.tsx",\n' +
+                '  "src/stores/cart.store.ts",\n' +
+                '  "src/stores/saved-items.store.ts",\n' +
+                '  "src/stores/storefront-ui.store.ts",\n',
+            )
+            .replaceAll('loadStorefrontShellCatalog', 'loadStorefrontShellCatalogue')
+            .replaceAll('loadStorefrontCatalog', 'loadStorefrontCatalogue')
+            .replace(
+              '  "src/features/storefront/shared/catalog-loader.ts",\n',
+              '  "src/features/storefront/shared/catalogue-loader.ts",\n',
+            )
+            .replace('  "src/features/storefront/shared/storefront-client-state-provider.tsx",\n', '')
+            .replace('  "src/features/storefront/shared/storefront-provider.tsx",\n', '');
+
+          const forbidden = [
+            'src/features/storefront/shared/catalog-adapter.ts',
+            'src/features/storefront/shared/storefront-client-state-provider.tsx',
+            'src/features/storefront/shared/storefront-provider.tsx',
+            'loadStorefrontShellCatalog',
+            'loadStorefrontCatalog',
+          ];
+          for (const marker of forbidden) {
+            if (source.includes(marker)) throw new Error(`Stale Phase 6 guard marker remains: ${marker}`);
+          }
+          const required = [
+            'loadStorefrontShellCatalogue',
+            'src/features/storefront/shared/storefront-state-hydrator.tsx',
+            'src/stores/cart.store.ts',
+            'src/stores/saved-items.store.ts',
+            'src/stores/storefront-ui.store.ts',
+          ];
+          for (const marker of required) {
+            if (!source.includes(marker)) throw new Error(`Phase 6 guard marker is missing: ${marker}`);
+          }
+          fs.writeFileSync(path, source);
+          NODE
+
       - name: Reject unrelated dependency drift
         shell: bash
         run: |
           set -euo pipefail
-          test -z "$(git diff --name-only -- . ':(exclude)pnpm-lock.yaml' ':(exclude).github/workflows/phase-6-lockfile-repair.yml')"
+          unexpected="$(git diff --name-only | grep -Ev '^(pnpm-lock.yaml|scripts/checks/architecture-guard.mjs|.github/workflows/phase-6-lockfile-repair.yml)$' || true)"
+          test -z "$unexpected"
           node <<'NODE'
           const fs = require('node:fs');
           const lock = fs.readFileSync('pnpm-lock.yaml', 'utf8');
@@ -61,13 +113,13 @@ jobs:
           test "${added:-0}" -le 40
           git diff --check
 
-      - name: Commit generated lockfile and remove repair workflow
+      - name: Commit generated repairs and remove workflow
         shell: bash
         run: |
           set -euo pipefail
           git rm .github/workflows/phase-6-lockfile-repair.yml
-          git add pnpm-lock.yaml
+          git add pnpm-lock.yaml scripts/checks/architecture-guard.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'chore(phase-6): regenerate pnpm lockfile'
+          git commit -m 'chore(phase-6): reconcile lockfile and architecture guard'
           git push origin HEAD:refactor/phase-6-storefront-state-zustand
