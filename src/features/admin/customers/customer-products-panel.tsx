@@ -2,22 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatCustomerDate } from "@/features/admin/customers/customer-labels";
-import type { AdminState, CustomerProductRelationship } from "@/lib/admin/shared/types";
+import type { CustomerProductRelationship } from "@/modules/customers/types";
 
 export function CustomerProductsPanel({
-  state,
   relationships,
 }: {
-  state: AdminState;
   relationships: CustomerProductRelationship[];
 }) {
-  const productById = new Map(state.products.map((product) => [product.id, product]));
-  const items = relationships.flatMap((relationship) => {
-    const product = productById.get(relationship.productId);
-    return product ? [{ product, relationship }] : [];
-  });
-
-  if (!items.length) {
+  if (!relationships.length) {
     return (
       <p className="rounded-[16px] border border-dashed border-border p-5 text-sm leading-6 text-muted-foreground">
         No purchased, held, saved or reviewed products are connected yet.
@@ -36,25 +28,25 @@ export function CustomerProductsPanel({
         </h2>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {items.map(({ product, relationship }) => (
+        {relationships.map((relationship) => (
           <Link
             className="group flex min-w-0 gap-4 rounded-[16px] border border-border bg-card p-3 transition-colors hover:bg-secondary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/admin/inventory?product=${encodeURIComponent(product.id)}`}
-            key={product.id}
+            href={`/admin/inventory?product=${encodeURIComponent(relationship.productId)}`}
+            key={relationship.productId}
           >
             <div className="relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-[12px] bg-secondary">
               <Image
-                alt={product.media[0]?.alt ?? `${product.name} product image`}
+                alt={relationship.imageAlt}
                 className="object-cover transition-transform group-hover:scale-[1.03] motion-reduce:transform-none"
                 fill
                 sizes="80px"
-                src={product.image}
+                src={relationship.image}
               />
             </div>
             <div className="min-w-0 flex-1 py-1">
-              <h3 className="truncate text-sm font-semibold">{product.name}</h3>
+              <h3 className="truncate text-sm font-semibold">{relationship.productName}</h3>
               <p className="mt-1 truncate text-[10.5px] text-muted-foreground">
-                {product.category} · {product.inventoryMode.replaceAll("-", " ")}
+                {relationship.category} · {relationship.inventoryMode.replaceAll("-", " ")}
               </p>
               <RelationshipBadges relationship={relationship} />
               <p className="mt-3 text-[10.5px] text-muted-foreground">
