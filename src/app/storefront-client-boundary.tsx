@@ -1,28 +1,28 @@
 "use client";
 
 import { type ReactNode, use } from "react";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
 import { StorefrontAuthDialogHost } from "@/features/storefront/shared/storefront-auth-dialog-host";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
 import { StorefrontStateHydrator } from "@/features/storefront/shared/storefront-state-hydrator";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
+import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 import { StorefrontQueryProvider } from "@/providers/storefront-query-provider";
 
 export function StorefrontClientBoundary({
   authSessionPromise,
-  catalogPromise,
+  cataloguePromise,
   children,
 }: {
   authSessionPromise: Promise<StorefrontAuthSession>;
-  catalogPromise: Promise<StorefrontShellCatalogPayload>;
+  cataloguePromise: Promise<StorefrontShellCataloguePayload>;
   children: ReactNode;
 }) {
   const authSession = use(authSessionPromise);
-  const catalog = use(catalogPromise);
+  const catalogue = use(cataloguePromise);
 
   return (
-    <StorefrontQueryProvider initialCatalog={catalog}>
+    <StorefrontQueryProvider initialCatalogue={catalogue}>
       <StorefrontStateHydrator>
         <StorefrontAuthProvider authSession={authSession}>
           <SiteChrome>{children}</SiteChrome>
