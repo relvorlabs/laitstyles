@@ -5,9 +5,9 @@ import { useCallback, useMemo } from "react";
 import {
   catalogueHref,
   type CatalogueSearchParams,
+  type LegacyCatalogueSort,
   type LegacyCondition,
   type LegacyInventory,
-  type LegacyCatalogueSort,
   parseCatalogueSearchParams,
   type ParsedCatalogueSearch,
 } from "./catalogue-search-params";
@@ -97,7 +97,9 @@ export function useCatalogueNavigation() {
   };
 }
 
-function toCatalogueSearchParams(searchParams: ReadonlyURLSearchParams): CatalogueSearchParams {
+function toCatalogueSearchParams(
+  searchParams: ReturnType<typeof useSearchParams>,
+): CatalogueSearchParams {
   const values: CatalogueSearchParams = {};
   for (const key of new Set(searchParams.keys())) {
     const entries = searchParams.getAll(key);
