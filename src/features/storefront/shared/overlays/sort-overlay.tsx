@@ -2,51 +2,53 @@
 
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
 import { sortOptions } from "../catalogue-data";
 import { IconClose } from "../storefront-icons";
-import { useStorefront } from "../storefront-provider";
+import { useStorefrontOverlay } from "../storefront-runtime";
 
 export function SortOverlay() {
-  const storefront = useStorefront();
+  const overlay = useStorefrontOverlay();
+  const navigation = useCatalogueNavigation();
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) storefront.closeAll();
+    if (event.target === event.currentTarget) overlay.close();
   };
 
   return (
     <div
-      id="sortSheet"
-      className={`overlay modal-wrap${storefront.openId === "sortSheet" ? " open" : ""}`}
-      role="dialog"
-      aria-modal="true"
       aria-label="Sort products"
+      aria-modal="true"
+      className={`overlay modal-wrap${overlay.openId === "sortSheet" ? " open" : ""}`}
+      id="sortSheet"
       onClick={overlayBackdrop}
+      role="dialog"
     >
       <section className="modal modal-small">
         <div className="modal-head">
           <h2>Sort products</h2>
           <Button
-            type="button"
             aria-label="Close sort options"
-            onClick={storefront.closeAll}
+            onClick={overlay.close}
             size="icon-lg"
+            type="button"
             variant="ghost"
           >
             <IconClose />
           </Button>
         </div>
-        <div id="sortOptions" className="mt-[18px] grid gap-2.5">
+        <div className="mt-[18px] grid gap-2.5" id="sortOptions">
           {sortOptions.map(([value, label]) => {
-            const selected = storefront.sort === value;
+            const selected = navigation.search.sort === value;
             return (
               <Button
-                key={value}
-                className="h-auto w-full justify-between whitespace-normal text-left"
-                type="button"
                 aria-pressed={selected}
+                className="h-auto w-full justify-between whitespace-normal text-left"
+                key={value}
                 onClick={() => {
-                  storefront.setSort(value);
-                  storefront.closeAll();
+                  navigation.setSort(value);
+                  overlay.close();
                 }}
+                type="button"
                 variant={selected ? "secondary" : "outline"}
               >
                 <strong>{label}</strong>
