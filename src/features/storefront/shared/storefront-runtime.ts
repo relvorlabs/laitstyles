@@ -1,10 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { toast as sonnerToast } from "sonner";
 import { cartSubtotal, type CartSelection } from "@/features/storefront/shared/cart-lines";
 import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { productById } from "@/features/storefront/shared/catalogue-data";
+import {
+  closeStorefrontOverlays,
+  openStorefrontOverlay as openCoordinatedStorefrontOverlay,
+} from "@/features/storefront/shared/storefront-overlay-events";
+import { useStorefrontHoldNow } from "@/features/storefront/shared/storefront-hold-clock";
 import { useStorefrontCatalog } from "@/modules/products/client/storefront-catalog";
 import {
   selectCartCount,
@@ -181,9 +186,11 @@ export function useStorefrontSavedItems() {
 
 export function useStorefrontOverlay() {
   const openId = useStorefrontUiStore(selectOpenOverlay);
-  const open = useStorefrontUiStore((state) => state.open);
-  const close = useStorefrontUiStore((state) => state.close);
-  return { openId, open, close };
+  return {
+    openId,
+    open: openStorefrontOverlay,
+    close: closeStorefrontOverlays,
+  };
 }
 
 export function useStorefrontRecent() {
@@ -207,13 +214,7 @@ export function useStorefrontHolds() {
   const holds = useStorefrontUiStore(selectHolds);
   const hold = useStorefrontUiStore((state) => state.hold);
   const release = useStorefrontUiStore((state) => state.release);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (holds.length === 0) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [holds.length]);
+  const now = useStorefrontHoldNow();
 
   const secondsByProduct = useMemo(() => {
     const values: Record<string, number> = {};
@@ -235,5 +236,5 @@ export function useStorefrontHolds() {
 }
 
 export function openStorefrontOverlay(id: StorefrontOverlayId) {
-  useStorefrontUiStore.getState().open(id);
+  openCoordinatedStorefrontOverlay(id);
 }
