@@ -33,10 +33,9 @@ import {
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
 import type { HoldActionFeedback } from "@/features/admin/holds/holds-workspace";
-import type { AdminState, ControlRoomHold, ConvertHoldInput } from "@/lib/admin/shared/types";
+import type { ControlRoomHold, ConvertHoldInput } from "@/modules/holds/types";
 
 export function HoldDetailSheet({
-  state,
   hold,
   feedback,
   onOpenChange,
@@ -44,23 +43,20 @@ export function HoldDetailSheet({
   onRelease,
   onConvert,
 }: {
-  state: AdminState;
   hold: ControlRoomHold | null;
   feedback: HoldActionFeedback | null;
   onOpenChange: (open: boolean) => void;
   onExtend: (holdId: string, minutes: number) => Promise<string | null>;
   onRelease: (holdId: string) => Promise<string | null>;
-  onConvert: (input: ConvertHoldInput) => Promise<string | null>;
+  onConvert: (input: ConvertHoldInput & { holdId: string }) => Promise<string | null>;
 }) {
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [conversionOpen, setConversionOpen] = useState(false);
 
   if (!hold) return <Sheet onOpenChange={onOpenChange} open={false} />;
 
-  const item = toHoldWorkspaceItem(state, hold);
-  const customer = hold.customerId
-    ? state.customers.find((entry) => entry.id === hold.customerId)
-    : undefined;
+  const item = toHoldWorkspaceItem(hold);
+  const customer = hold.customer;
   const active = item.status === "active" && item.risk !== "expired";
 
   return (
@@ -193,11 +189,11 @@ export function HoldDetailSheet({
                 <div className="rounded-[16px] border border-border bg-card p-4 text-[11.5px] leading-5">
                   <p className="font-semibold text-foreground">{item.customerName}</p>
                   <p className="mt-2 text-muted-foreground">
-                    {customer?.email || "No email captured"}
+                    {customer.email || "No email captured"}
                     <br />
-                    {customer?.phone || "No phone captured"}
+                    {customer.phone || "No phone captured"}
                     <br />
-                    {customer?.city || "No city captured"}
+                    {customer.city || "No city captured"}
                   </p>
                 </div>
                 <div className="rounded-[16px] border border-border bg-card p-4 text-[11.5px] leading-5 text-muted-foreground">
@@ -205,7 +201,7 @@ export function HoldDetailSheet({
                   <br />
                   Releases {formatHoldDate(hold.expiresAt)}
                   <br />
-                  Payment {hold.paymentProgress?.replaceAll("-", " ") ?? "not started"}
+                  Payment {hold.paymentProgress.replaceAll("-", " ")}
                 </div>
               </div>
               {hold.note ? (
@@ -224,8 +220,7 @@ export function HoldDetailSheet({
             <AlertDialogTitle>Release this hold?</AlertDialogTitle>
             <AlertDialogDescription>
               {hold.quantity} reserved unit{hold.quantity === 1 ? "" : "s"} will return to available
-              inventory. This cannot be undone within the current session except by resetting the
-              prototype.
+              inventory. The persisted hold remains available for audit.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -246,7 +241,7 @@ export function HoldDetailSheet({
       <HoldConversionDialog
         customerLabel={item.customerName}
         holdId={hold.id}
-        initialCity={customer?.city ?? "Lagos"}
+        initialCity={customer.city || "Lagos"}
         key={`${hold.id}-${conversionOpen ? "open" : "closed"}`}
         onOpenChange={setConversionOpen}
         onSubmit={async (input) => {
