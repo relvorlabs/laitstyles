@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { productEditorDraftSchema } from "@/lib/admin/product-editor/product-editor-schema";
+import { productEditorDraftSchema } from "@/modules/products/editor-schema";
 
 export const productIdSchema = z.string().uuid();
 
