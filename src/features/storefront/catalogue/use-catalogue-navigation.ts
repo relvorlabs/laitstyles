@@ -12,7 +12,7 @@ import {
   type ParsedCatalogueSearch,
 } from "./catalogue-search-params";
 
-type CataloguePatch = Partial<ParsedCatalogueSearch> & {
+type CataloguePatch = Partial<Omit<ParsedCatalogueSearch, "conditions" | "inventories">> & {
   conditions?: readonly string[];
   inventories?: readonly string[];
 };
@@ -32,16 +32,16 @@ const quickCategoryByKey: Record<string, string> = {
   unisex: "Unisex",
 };
 
-const quickReset = {
+const quickReset: CataloguePatch = {
   page: 1,
   search: "",
   conditions: [],
   inventories: [],
   inStock: false,
   maxPriceNaira: undefined,
-} as const;
+};
 
-const clearState = {
+const clearState: ParsedCatalogueSearch = {
   page: 1,
   search: "",
   category: null,
@@ -53,7 +53,7 @@ const clearState = {
   sort: "curated",
   colours: [],
   sizes: [],
-} as const;
+};
 
 export function useCatalogueNavigation(initialSearch?: ParsedCatalogueSearch) {
   const router = useRouter();
