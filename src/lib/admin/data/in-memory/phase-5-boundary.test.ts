@@ -13,6 +13,28 @@ const allowedProductionImports = new Map<string, ReadonlySet<string>>([
   ],
 ]);
 
+const ordersFilesWithoutLegacyOwnership = [
+  "src/app/admin/orders/page.tsx",
+  "src/features/admin/orders/orders-workspace.tsx",
+  "src/features/admin/record-sale/record-sale-dialog.tsx",
+] as const;
+const ordersForbiddenImports = [
+  "@/lib/admin/shared/admin-seed",
+  "@/features/admin/state/admin-provider",
+  "@/lib/admin/orders/orders-mutations",
+] as const;
+
+const recordSalePaymentStep = "src/features/admin/record-sale/record-sale-payment-step.tsx";
+const manualPaymentControlTokens = [
+  'name="paymentStatus"',
+  'name="paymentMethod"',
+  'value="cash"',
+  'value="pos"',
+  'value="bank-transfer"',
+  "Paid in full",
+  "Deposit received",
+] as const;
+
 describe("Phase 5 admin persistence boundary", () => {
   it("does not expand production seed or in-memory repository ownership", async () => {
     const sourceFiles = await collectSourceFiles(sourceRoot);
@@ -34,6 +56,28 @@ describe("Phase 5 admin persistence boundary", () => {
       offenders,
       "Phase 5 may remove the recorded legacy edges, but production code must not create new ones.",
     ).toEqual([]);
+  });
+
+  it("keeps Orders page, workspace and record-sale orchestration off legacy state", async () => {
+    const offenders: string[] = [];
+    for (const relative of ordersFilesWithoutLegacyOwnership) {
+      const source = await readFile(path.join(repositoryRoot, relative), "utf8");
+      for (const specifier of ordersForbiddenImports) {
+        if (source.includes(specifier)) offenders.push(`${relative} -> ${specifier}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("does not restore manual payment status or cash controls to in-person Checkout", async () => {
+    const source = await readFile(path.join(repositoryRoot, recordSalePaymentStep), "utf8");
+    const offenders = manualPaymentControlTokens.filter((token) => source.includes(token));
+    expect(
+      offenders,
+      "In-person sales must remain Paystack-tracked; the form cannot declare a payment paid.",
+    ).toEqual([]);
+    expect(source).toContain("Paystack one-time checkout");
+    expect(source).toContain("server verification or signed Paystack webhook");
   });
 });
 
