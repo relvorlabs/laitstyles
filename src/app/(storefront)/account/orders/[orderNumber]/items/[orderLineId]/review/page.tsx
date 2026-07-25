@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { ReviewPage } from "@/features/storefront/account/reviews/review-page";
+import { getOwnedReviewContext } from "@/modules/reviews/server/repository";
 import { getCurrentSession } from "@/server/auth/session";
-import { getOwnedReviewContext } from "@/server/commerce/reviews/review-repository";
 
 export default async function AccountOrderItemReviewPage({
   params,
@@ -12,8 +12,9 @@ export default async function AccountOrderItemReviewPage({
   const reviewPath = `/account/orders/${encodeURIComponent(orderNumber)}/items/${encodeURIComponent(orderLineId)}/review`;
   const session = await getCurrentSession();
   if (session.kind !== "consumer") redirect(`/auth/sign-in?next=${encodeURIComponent(reviewPath)}`);
-  if (!session.customerId)
+  if (!session.customerId) {
     throw new Error("A customer record is required to review this order item.");
+  }
 
   const context = await getOwnedReviewContext({
     customerId: session.customerId,
