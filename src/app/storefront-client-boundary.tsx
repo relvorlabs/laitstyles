@@ -4,8 +4,8 @@ import { type ReactNode, use } from "react";
 import { StorefrontAuthDialogHost } from "@/features/storefront/shared/storefront-auth-dialog-host";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
+import { SiteChrome } from "@/modules/storefront-shell/ui/site-chrome";
 import { StorefrontQueryProvider } from "@/providers/storefront-query-provider";
 import { StorefrontStateHydrator } from "@/providers/storefront-state-hydrator";
 
