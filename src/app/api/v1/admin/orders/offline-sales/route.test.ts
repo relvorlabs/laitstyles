@@ -69,6 +69,20 @@ describe("POST /api/v1/admin/orders/offline-sales", () => {
     expect(mocks.recordOfflineSale).not.toHaveBeenCalled();
   });
 
+  it("rejects cash and client-declared paid status from legacy clients", async () => {
+    const response = await POST(
+      offlineSaleRequest({
+        legacyPayment: { paymentMethod: "cash", paymentStatus: "paid" },
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "INVALID_BODY" },
+    });
+    expect(mocks.recordOfflineSale).not.toHaveBeenCalled();
+  });
+
   it("returns a stable unavailable response without creating an untracked payment", async () => {
     mocks.recordOfflineSale.mockResolvedValueOnce({
       ok: false,
@@ -144,6 +158,10 @@ type OfflineSaleOverrides = {
     phone: string;
     city: string;
   };
+  legacyPayment?: {
+    paymentMethod: "cash";
+    paymentStatus: "paid";
+  };
 };
 
 function offlineSaleRequest(overrides: OfflineSaleOverrides = {}) {
@@ -161,6 +179,7 @@ function offlineSaleRequest(overrides: OfflineSaleOverrides = {}) {
         city: "Lagos",
       },
       notes: "Customer is present at the store.",
+      ...overrides.legacyPayment,
     }),
   });
 }
