@@ -4,10 +4,10 @@ import { type ReactNode, use } from "react";
 import { StorefrontAuthDialogHost } from "@/features/storefront/shared/storefront-auth-dialog-host";
 import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
 import type { StorefrontAuthSession } from "@/features/storefront/shared/storefront-auth-session";
-import { StorefrontStateHydrator } from "@/features/storefront/shared/storefront-state-hydrator";
 import { SiteChrome } from "@/features/storefront/shell/site-chrome";
 import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 import { StorefrontQueryProvider } from "@/providers/storefront-query-provider";
+import { StorefrontStateHydrator } from "@/providers/storefront-state-hydrator";
 
 export function StorefrontClientBoundary({
   authSessionPromise,
