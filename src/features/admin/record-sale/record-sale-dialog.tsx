@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Paystack from "@paystack/inline-js";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { FormProvider, type Resolver, useForm } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAdminRepositories } from "@/features/admin/data/admin-repository-context";
 import { RecordSaleCustomerStep } from "@/features/admin/record-sale/record-sale-customer-step";
 import { RecordSaleItemStep } from "@/features/admin/record-sale/record-sale-item-step";
 import { RecordSalePaymentStep } from "@/features/admin/record-sale/record-sale-payment-step";
@@ -43,8 +46,10 @@ import {
   recordSaleSteps,
   toOfflineSaleInput,
 } from "@/features/admin/record-sale/record-sale-types";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { useRecordOfflineSale } from "@/lib/admin/orders/orders-mutations";
+import { customersListQueryOptions } from "@/lib/admin/customers/customers-query-options";
+import { useRecordOfflineSale } from "@/modules/orders/client/hooks";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
+import type { AdminProduct } from "@/modules/products/types";
 
 export function RecordSaleDialog({
   open,
@@ -55,16 +60,19 @@ export function RecordSaleDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
 }) {
-  const { state } = useAdmin();
+  const repositories = useAdminRepositories();
+  const { data: products = [] } = useQuery(adminProductsQueryOptions());
+  const { data: customers = [] } = useQuery(customersListQueryOptions(repositories));
   if (!open) return null;
 
   return (
     <RecordSaleForm
-      initialValues={createRecordSaleDefaults(state)}
-      key={`record-sale-${state.products.length}-${state.orders.length}`}
+      initialValues={createRecordSaleDefaults(products, customers)}
+      key={`record-sale-${products.length}-${customers.length}`}
       onCompleted={onCompleted}
       onOpenChange={onOpenChange}
       open={open}
+      products={products}
     />
   );
 }
@@ -74,13 +82,14 @@ function RecordSaleForm({
   open,
   onOpenChange,
   onCompleted,
+  products,
 }: {
   initialValues: RecordSaleValues;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCompleted: (result: RecordSaleCompletion) => void;
+  products: AdminProduct[];
 }) {
-  const { state } = useAdmin();
   const recordOfflineSaleMutation = useRecordOfflineSale();
   const [activeStep, setActiveStep] = useState<RecordSaleStep>("item");
   const [highestVisited, setHighestVisited] = useState(0);
@@ -129,7 +138,7 @@ function RecordSaleForm({
     if (activeStep !== "item" && activeStep !== "review") return true;
 
     const values = methods.getValues();
-    const product = getSelectedSaleProduct(state.products, values.productId);
+    const product = getSelectedSaleProduct(products, values.productId);
     if (!product) {
       methods.setError("productId", {
         type: "manual",
@@ -156,7 +165,7 @@ function RecordSaleForm({
     return true;
   }
 
-  async function confirmSale() {
+  async function generateCheckout() {
     setActionError(null);
     const valid = await methods.trigger();
     if (!valid || !validateOperationalItem()) return;
@@ -172,13 +181,25 @@ function RecordSaleForm({
       return;
     }
 
-    methods.reset(initialValues);
-    onCompleted({
+    const completion: RecordSaleCompletion = {
       orderId: result.value.order.id,
       customerId: result.value.customerId,
       message: result.value.message,
-    });
+      authorizationUrl: result.value.checkout.authorizationUrl,
+      accessCode: result.value.checkout.accessCode,
+      reference: result.value.checkout.reference,
+    };
+
+    methods.reset(initialValues);
+    onCompleted(completion);
     onOpenChange(false);
+
+    try {
+      const popup = new Paystack();
+      popup.resumeTransaction(completion.accessCode);
+    } catch {
+      // The persistent authorization URL remains available in the completion alert.
+    }
   }
 
   return (
@@ -190,16 +211,17 @@ function RecordSaleForm({
               Global sales action
             </p>
             <DialogTitle className="font-serif text-[28px] font-medium leading-tight">
-              Record an offline sale
+              Record an in-person sale
             </DialogTitle>
             <DialogDescription>
-              One connected flow for stock, orders, revenue, customer history and activity.
+              Create a pending order, reserve stock and hand the customer a tracked Paystack
+              checkout.
             </DialogDescription>
           </DialogHeader>
 
           {actionError ? (
             <Alert className="mx-4 mt-4 shrink-0 sm:mx-6" variant="destructive">
-              <AlertTitle>Sale could not be recorded</AlertTitle>
+              <AlertTitle>Checkout could not be generated</AlertTitle>
               <AlertDescription>{actionError}</AlertDescription>
             </Alert>
           ) : null}
@@ -222,7 +244,7 @@ function RecordSaleForm({
               <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-background px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
                 <Button
                   size="lg"
-                  disabled={activeIndex === 0}
+                  disabled={activeIndex === 0 || recordOfflineSaleMutation.isPending}
                   onClick={goBack}
                   type="button"
                   variant="outline"
@@ -230,8 +252,15 @@ function RecordSaleForm({
                   Back
                 </Button>
                 {activeStep === "review" ? (
-                  <Button size="lg" onClick={confirmSale} type="button">
-                    Confirm sale
+                  <Button
+                    disabled={recordOfflineSaleMutation.isPending}
+                    size="lg"
+                    onClick={generateCheckout}
+                    type="button"
+                  >
+                    {recordOfflineSaleMutation.isPending
+                      ? "Generating checkout…"
+                      : "Generate Paystack checkout"}
                   </Button>
                 ) : (
                   <Button size="lg" onClick={goNext} type="button">
@@ -249,8 +278,8 @@ function RecordSaleForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard this unrecorded sale?</AlertDialogTitle>
             <AlertDialogDescription>
-              The selected product, customer and payment details will be lost. No stock has changed
-              yet.
+              The selected product and customer details will be lost. No order, Paystack attempt or
+              stock reservation has been created yet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
