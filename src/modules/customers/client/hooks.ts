@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { overviewKeys } from "@/lib/admin/shared/overview-query-keys";
 import {
   addCustomerNoteRequest,
   getAdminCustomerRequest,
@@ -9,6 +8,7 @@ import {
 } from "@/modules/customers/client/api";
 import { customerKeys } from "@/modules/customers/client/keys";
 import type { CustomerListInput } from "@/modules/customers/types";
+import { overviewKeys } from "@/modules/overview/client/keys";
 
 export function adminCustomersQueryOptions(input: CustomerListInput) {
   return queryOptions({
