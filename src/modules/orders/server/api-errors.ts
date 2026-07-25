@@ -8,7 +8,7 @@ export function throwOrderActionError(error: SalesActionError): never {
     code: apiCode(error.code),
     message: error.message,
     status: apiStatus(error.code),
-    ...(error.field ? { fieldErrors: { [error.field]: error.message } } : {}),
+    ...(buildFieldErrors(error) ? { fieldErrors: buildFieldErrors(error) } : {}),
   });
 }
 
@@ -26,6 +26,7 @@ function apiStatus(code: SalesActionError["code"]) {
     case "insufficient-available-stock":
     case "insufficient-reserved-stock":
     case "insufficient-committed-stock":
+    case "stock-write-conflict":
     case "invalid-order-transition":
     case "invalid-payment-state":
       return 409;
@@ -36,4 +37,15 @@ function apiStatus(code: SalesActionError["code"]) {
     default:
       return 422;
   }
+}
+
+function buildFieldErrors(error: SalesActionError) {
+  const fieldErrors: Record<string, string> = {};
+  if (error.field) fieldErrors[error.field] = error.message;
+  if (error.available !== undefined) fieldErrors.available = String(error.available);
+  if (error.requested !== undefined) fieldErrors.requested = String(error.requested);
+  if (error.conflictingHoldIds?.length) {
+    fieldErrors.conflictingHoldIds = error.conflictingHoldIds.join(",");
+  }
+  return Object.keys(fieldErrors).length ? fieldErrors : undefined;
 }
