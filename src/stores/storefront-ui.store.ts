@@ -7,7 +7,6 @@ export type StorefrontOverlayId =
   | "mobileMenu"
   | "searchModal"
   | "savedDrawer"
-  | "legacyCartDrawer"
   | "cartDrawer"
   | "filterDrawer"
   | "sortSheet"
