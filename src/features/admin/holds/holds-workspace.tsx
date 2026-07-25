@@ -26,6 +26,7 @@ import { HoldsMobileList } from "@/features/admin/holds/holds-mobile-list";
 import { HoldsSummaryStrip } from "@/features/admin/holds/holds-summary-strip";
 import { HoldsTable } from "@/features/admin/holds/holds-table";
 import { buildHoldsHref } from "@/features/admin/holds/holds-url";
+import { useHoldClock } from "@/features/admin/holds/use-hold-clock";
 import { AdminPagination } from "@/features/admin/shared/admin-pagination";
 import {
   adminHoldQueryOptions,
@@ -73,6 +74,7 @@ export function HoldsWorkspace({ initialQuery }: { initialQuery: HoldQuery }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const now = useHoldClock();
   const extendHoldMutation = useExtendHold();
   const releaseHoldMutation = useReleaseHold();
   const convertHoldMutation = useConvertHold();
@@ -190,8 +192,8 @@ export function HoldsWorkspace({ initialQuery }: { initialQuery: HoldQuery }) {
 
       {holds.length ? (
         <>
-          <HoldsMobileList holds={holds} onOpen={openHoldRecord} />
-          <HoldsTable holds={holds} onOpen={openHoldRecord} />
+          <HoldsMobileList holds={holds} now={now} onOpen={openHoldRecord} />
+          <HoldsTable holds={holds} now={now} onOpen={openHoldRecord} />
           {meta ? (
             <AdminPagination
               noun="Holds"
@@ -215,6 +217,7 @@ export function HoldsWorkspace({ initialQuery }: { initialQuery: HoldQuery }) {
       <HoldDetailSheet
         feedback={feedback}
         hold={openHold}
+        now={now}
         onConvert={convert}
         onExtend={extend}
         onOpenChange={(open) => {
