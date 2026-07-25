@@ -16,14 +16,12 @@ import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/shared/formatters";
-import type { AdminState, ControlRoomOrder } from "@/lib/admin/shared/types";
+import type { ControlRoomOrder } from "@/modules/orders/types";
 
 export function OrdersTable({
-  state,
   orders,
   onOpen,
 }: {
-  state: AdminState;
   orders: ControlRoomOrder[];
   onOpen: (orderId: string) => void;
 }) {
@@ -45,7 +43,7 @@ export function OrdersTable({
         </TableHeader>
         <TableBody>
           {orders.map((order) => {
-            const item = toOrderWorkspaceItem(state, order);
+            const item = toOrderWorkspaceItem(order);
             return (
               <TableRow key={order.id}>
                 <TableCell className="overflow-hidden">
