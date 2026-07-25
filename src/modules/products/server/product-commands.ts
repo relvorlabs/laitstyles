@@ -1,8 +1,8 @@
 import "server-only";
 
-import { validateCommittedStockEdit } from "@/lib/admin/product-editor/product-editor-stock-guard";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { validateCommittedStockEdit } from "@/modules/inventory/server/committed-stock-guard";
 import {
   assertProductInventoryModeCanChange,
   InventoryRuleViolation,
