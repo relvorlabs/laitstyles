@@ -12,6 +12,11 @@ export type SalesChannel =
   | "staff-assisted"
   | "other";
 
+export type InPersonSalesChannel = Extract<
+  SalesChannel,
+  "physical-store" | "pop-up" | "staff-assisted"
+>;
+
 export type PaymentStatus = "pending" | "paid" | "deposit" | "failed" | "refunded";
 
 export type PaymentMethod =
@@ -180,11 +185,15 @@ export type OfflineSaleLineInput = {
 
 export type OfflineSaleInput = {
   lines: OfflineSaleLineInput[];
-  channel: Exclude<SalesChannel, "online">;
+  channel: InPersonSalesChannel;
   customer: OfflineSaleCustomer;
-  paymentMethod: PaymentMethod;
-  paymentStatus: Extract<PaymentStatus, "pending" | "paid" | "deposit">;
   notes: string;
+};
+
+export type OfflineSaleCheckout = {
+  authorizationUrl: string;
+  accessCode: string;
+  reference: string;
 };
 
 export type SalesActionErrorCode =
@@ -196,10 +205,15 @@ export type SalesActionErrorCode =
   | "variant-not-found"
   | "variant-not-allowed"
   | "insufficient-available-stock"
+  | "insufficient-reserved-stock"
+  | "insufficient-committed-stock"
   | "order-not-found"
   | "invalid-order-transition"
   | "customer-not-found"
-  | "invalid-payment-state";
+  | "customer-email-required"
+  | "invalid-payment-state"
+  | "paystack-not-configured"
+  | "paystack-initialization-failed";
 
 export type SalesActionError = {
   code: SalesActionErrorCode;
@@ -218,5 +232,6 @@ export type OrderTransitionSuccess = { order: ControlRoomOrder; message: string 
 export type OfflineSaleSuccess = {
   order: ControlRoomOrder;
   customerId: string;
+  checkout: OfflineSaleCheckout;
   message: string;
 };
