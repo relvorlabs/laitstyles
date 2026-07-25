@@ -26,7 +26,24 @@ const cases = [
     method: "GET",
     path: "/api/v1/admin/products?page=1&pageSize=25",
     allowed: [200, 401, 403],
-    validate: assertVersionedAdminProducts,
+    validate: ({ response, raw }) =>
+      assertVersionedPaginatedAdminResponse({
+        response,
+        raw,
+        label: "Admin products",
+      }),
+  },
+  {
+    name: "versioned-admin-holds-api",
+    method: "GET",
+    path: "/api/v1/admin/holds?page=1&pageSize=25",
+    allowed: [200, 401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedPaginatedAdminResponse({
+        response,
+        raw,
+        label: "Admin holds",
+      }),
   },
   {
     name: "versioned-inventory-adjustment-api",
@@ -39,7 +56,24 @@ const cases = [
       quantityDelta: 1,
       note: "HTTP smoke authorization check",
     },
-    validate: assertVersionedProtectedMutation,
+    validate: ({ response, raw }) =>
+      assertVersionedProtectedMutation({
+        response,
+        raw,
+        label: "Inventory adjustment authorization",
+      }),
+  },
+  {
+    name: "versioned-hold-release-api",
+    method: "POST",
+    path: "/api/v1/admin/holds/22222222-2222-4222-8222-222222222222/release",
+    allowed: [401, 403],
+    validate: ({ response, raw }) =>
+      assertVersionedProtectedMutation({
+        response,
+        raw,
+        label: "Hold release authorization",
+      }),
   },
 ];
 
@@ -184,7 +218,7 @@ function assertVersionedHealth({ response, raw }) {
   }
 }
 
-function assertVersionedAdminProducts({ response, raw }) {
+function assertVersionedPaginatedAdminResponse({ response, raw, label }) {
   assertJsonRequestId(response);
   const payload = JSON.parse(raw);
   if (response.status === 200) {
@@ -195,18 +229,17 @@ function assertVersionedAdminProducts({ response, raw }) {
       typeof payload?.meta?.total !== "number" ||
       typeof payload?.meta?.pageCount !== "number"
     ) {
-      throw new Error("Admin products success response does not match the paginated envelope.");
+      throw new Error(`${label} success response does not match the paginated envelope.`);
     }
     return;
   }
-
-  assertErrorEnvelope(payload, "Admin products authorization");
+  assertErrorEnvelope(payload, `${label} authorization`);
 }
 
-function assertVersionedProtectedMutation({ response, raw }) {
+function assertVersionedProtectedMutation({ response, raw, label }) {
   assertJsonRequestId(response);
   const payload = JSON.parse(raw);
-  assertErrorEnvelope(payload, "Inventory adjustment authorization");
+  assertErrorEnvelope(payload, label);
 }
 
 function assertErrorEnvelope(payload, label) {
