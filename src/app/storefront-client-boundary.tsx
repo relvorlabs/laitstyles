@@ -25,7 +25,7 @@ export function StorefrontClientBoundary({
     <StorefrontQueryProvider initialCatalog={catalog}>
       <StorefrontStateHydrator>
         <StorefrontAuthProvider authSession={authSession}>
-          <SiteChrome catalog={catalog}>{children}</SiteChrome>
+          <SiteChrome>{children}</SiteChrome>
           <StorefrontAuthDialogHost />
         </StorefrontAuthProvider>
       </StorefrontStateHydrator>
