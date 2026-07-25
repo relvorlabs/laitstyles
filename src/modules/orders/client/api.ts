@@ -25,6 +25,7 @@ const salesActionErrorCodes = new Set<string>([
   "insufficient-available-stock",
   "insufficient-reserved-stock",
   "insufficient-committed-stock",
+  "stock-write-conflict",
   "order-not-found",
   "invalid-order-transition",
   "customer-not-found",
@@ -118,12 +119,31 @@ export async function recordOfflineSaleRequest(
 
 function toSalesActionError(error: ApiClientError): SalesActionError {
   const code = error.code.toLocaleLowerCase("en-GB").replaceAll("_", "-");
-  const field = error.fieldErrors ? Object.keys(error.fieldErrors)[0] : undefined;
+  const fieldErrors = error.fieldErrors ?? {};
+  const field = Object.keys(fieldErrors).find(
+    (key) => !["available", "requested", "conflictingHoldIds"].includes(key),
+  );
+  const available = parseOptionalNumber(fieldErrors.available);
+  const requested = parseOptionalNumber(fieldErrors.requested);
+  const conflictingHoldIds = fieldErrors.conflictingHoldIds
+    ?.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
   return {
     code: isSalesActionErrorCode(code) ? code : "paystack-initialization-failed",
     message: error.message,
     ...(field ? { field } : {}),
+    ...(available === undefined ? {} : { available }),
+    ...(requested === undefined ? {} : { requested }),
+    ...(conflictingHoldIds?.length ? { conflictingHoldIds } : {}),
   };
+}
+
+function parseOptionalNumber(value: string | undefined) {
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function isSalesActionErrorCode(value: string): value is SalesActionErrorCode {
