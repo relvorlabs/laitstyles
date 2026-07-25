@@ -26,22 +26,17 @@ import {
   applyProductEditorAction,
   createInitialIntakeRecords,
 } from "@/lib/admin/product-editor/product-editor-reducer";
-import { applyCreateReturn, applyReturnTransition } from "@/lib/admin/returns/return-reducer";
 import { createDefaultStoreSettings } from "@/lib/admin/settings/settings-defaults";
 import { applySaveStoreSettings } from "@/lib/admin/settings/settings-reducer";
 import type { Result } from "@/lib/admin/shared/result";
 import type {
   AdminState,
-  CreateReturnInput,
   IntakeStage,
   IntakeTransitionSuccess,
   ProductEditorActionError,
   ProductEditorActionSuccess,
   ProductEditorIntent,
   ProductEditorValues,
-  ReturnActionSuccess,
-  ReturnStatus,
-  SalesActionError,
   SaveStoreSettingsInput,
   StoreSettingsActionError,
   StoreSettingsActionSuccess,
@@ -50,7 +45,6 @@ import type {
 type ProductActionResult = Result<ProductEditorActionSuccess, ProductEditorActionError>;
 type ProductLifecycleResult = Result<ProductLifecycleActionSuccess, ProductLifecycleActionError>;
 type IntakeActionResult = Result<IntakeTransitionSuccess, ProductEditorActionError>;
-type ReturnResult = Result<ReturnActionSuccess, SalesActionError>;
 type CustomerNoteResult = Result<CustomerNoteActionSuccess, CustomerActionError>;
 type StoreSettingsResult = Result<StoreSettingsActionSuccess, StoreSettingsActionError>;
 type CatalogueTaxonomyResult = Result<CatalogueTaxonomyActionSuccess, CatalogueTaxonomyActionError>;
@@ -66,8 +60,6 @@ export type AdminStore = {
   renameCatalogueTaxonomy: (taxonomyId: string, name: string) => CatalogueTaxonomyResult;
   deleteCatalogueTaxonomy: (taxonomyId: string) => CatalogueTaxonomyResult;
   transitionIntake: (productId: string, nextStage: IntakeStage) => IntakeActionResult;
-  createReturn: (input: CreateReturnInput) => ReturnResult;
-  transitionReturn: (returnId: string, nextStatus: ReturnStatus) => ReturnResult;
   addCustomerNote: (input: AddCustomerNoteInput) => CustomerNoteResult;
   saveStoreSettings: (input: SaveStoreSettingsInput) => StoreSettingsResult;
   resetPrototypeState: () => void;
@@ -122,12 +114,6 @@ export function createAdminStore(initialState: AdminState, now?: () => string): 
     transitionIntake(productId, nextStage) {
       return commitAction(applyIntakeTransition(state, productId, nextStage, getNow()));
     },
-    createReturn(input) {
-      return commitAction(applyCreateReturn(state, input, getNow()));
-    },
-    transitionReturn(returnId, nextStatus) {
-      return commitAction(applyReturnTransition(state, returnId, nextStatus, getNow()));
-    },
     addCustomerNote(input) {
       return commitAction(applyAddCustomerNote(state, input, getNow()));
     },
@@ -167,6 +153,5 @@ function normalizeState(initialState: AdminState): AdminState {
 function createSessionClock(anchor: string) {
   const anchorTime = Date.parse(anchor);
   const startedAt = Date.now();
-
   return () => new Date(anchorTime + Math.max(0, Date.now() - startedAt)).toISOString();
 }
