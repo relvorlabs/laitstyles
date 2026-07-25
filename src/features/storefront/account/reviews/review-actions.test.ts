@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/server/auth/session", () => ({
   getCurrentSession: mocks.getCurrentSession,
 }));
-vi.mock("@/server/commerce/reviews/review-repository", () => ({
+vi.mock("@/modules/reviews/server/repository", () => ({
   submitReview: mocks.submitReview,
   withdrawReview: mocks.withdrawReview,
 }));
