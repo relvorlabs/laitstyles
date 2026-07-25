@@ -61,9 +61,12 @@ export function validateCommittedStockEdit(
 
       const editorEntry = editorVariantById.get(existingVariant.id);
       if (!editorEntry) {
+        const unitAgreement = committed === 1 ? " is" : "s are";
         issues.push({
           path: "variant.variants",
-          message: `${existingVariant.label} cannot be removed because ${committed} unit${committed === 1 ? " is" : "s are"} already committed.`,
+          message:
+            `${existingVariant.label} cannot be removed because ${committed} unit` +
+            `${unitAgreement} already committed.`,
           step: "stock",
         });
         continue;
