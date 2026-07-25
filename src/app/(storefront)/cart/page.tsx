@@ -299,7 +299,7 @@ export default function CartPage() {
             </div>
             <h1 className="mt-6 font-serif text-[34px] font-medium">Your bag is waiting</h1>
             <p className="mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-              Add something from the drop and it will stay here while you continue browsing.
+              Add something from the drop and it will appear here and in the header bag.
             </p>
             <Link
               className="mt-6 flex h-12 items-center justify-center rounded-full bg-[#1B1A17] px-7 text-[14px] font-semibold text-white"
