@@ -19,8 +19,8 @@ import {
   selectStorefrontCataloguePage,
 } from "@/modules/products/server/storefront/page-selection";
 import { listPublishedProducts } from "@/modules/products/server/storefront/queries";
-import type { ProductSummary } from "@/modules/products/server/storefront/types";
 import { publishedProductWhere } from "@/modules/products/server/storefront/visibility";
+import type { ProductSummary } from "@/modules/products/storefront-types";
 
 const useStyleSmokeCatalogue = process.env.STOREFRONT_STYLE_SMOKE === "1";
 
