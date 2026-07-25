@@ -1,20 +1,20 @@
 import "server-only";
 
 import {
-  buildStorefrontCatalog,
-  buildStorefrontShellCatalog,
-} from "@/features/storefront/shared/catalog-adapter";
-import type { StorefrontShellCatalogPayload } from "@/features/storefront/shared/catalog-types";
+  buildStorefrontCatalogue,
+  buildStorefrontShellCatalogue,
+} from "@/modules/products/server/storefront/catalogue-projection";
+import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 import {
   listPublishedProductDetails,
   listStorefrontCategories,
 } from "@/modules/products/server/storefront/queries";
 
-export async function getStorefrontShellCatalog(): Promise<StorefrontShellCatalogPayload> {
+export async function getStorefrontShellCatalogue(): Promise<StorefrontShellCataloguePayload> {
   const [details, categories] = await Promise.all([
     listPublishedProductDetails(),
     listStorefrontCategories(),
   ]);
 
-  return buildStorefrontShellCatalog(buildStorefrontCatalog(details, categories));
+  return buildStorefrontShellCatalogue(buildStorefrontCatalogue(details, categories));
 }
