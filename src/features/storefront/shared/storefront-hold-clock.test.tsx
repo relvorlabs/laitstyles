@@ -40,16 +40,16 @@ describe("StorefrontHoldClockBoundary", () => {
     );
 
     expect(intervalSpy).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("first")).toHaveTextContent(String(start.getTime()));
-    expect(screen.getByTestId("second")).toHaveTextContent(String(start.getTime()));
+    expect(screen.getByTestId("first").textContent).toBe(String(start.getTime()));
+    expect(screen.getByTestId("second").textContent).toBe(String(start.getTime()));
 
     act(() => {
       vi.advanceTimersByTime(1000);
     });
 
     const next = String(start.getTime() + 1000);
-    expect(screen.getByTestId("first")).toHaveTextContent(next);
-    expect(screen.getByTestId("second")).toHaveTextContent(next);
+    expect(screen.getByTestId("first").textContent).toBe(next);
+    expect(screen.getByTestId("second").textContent).toBe(next);
     expect(intervalSpy).toHaveBeenCalledTimes(1);
   });
 
