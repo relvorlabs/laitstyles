@@ -10,7 +10,8 @@ import type {
   HoldStageFilter,
 } from "@/features/admin/holds/hold-types";
 import { HoldsWorkspace } from "@/features/admin/holds/holds-workspace";
-import { activeAdminSeed } from "@/lib/admin/shared/admin-seed";
+
+const pageSizeValues = new Set([10, 25, 50, 100]);
 
 type HoldsPageProps = {
   searchParams: Promise<{
@@ -19,6 +20,8 @@ type HoldsPageProps = {
     source?: string | string[];
     stage?: string | string[];
     sort?: string | string[];
+    page?: string | string[];
+    pageSize?: string | string[];
     hold?: string | string[];
   }>;
 };
@@ -30,14 +33,8 @@ const sortValues = new Set<HoldSortKey>(holdSortOptions.map((option) => option.v
 
 export default async function HoldsPage({ searchParams }: HoldsPageProps) {
   const params = await searchParams;
-  const requestedHold = first(params.hold);
-  const initialOpenHoldId = activeAdminSeed.holds.some((hold) => hold.id === requestedHold)
-    ? (requestedHold ?? null)
-    : null;
-
   return (
     <HoldsWorkspace
-      initialOpenHoldId={initialOpenHoldId}
       initialQuery={{
         ...defaultHoldQuery,
         view: pick(first(params.view), viewValues, "all"),
@@ -45,6 +42,8 @@ export default async function HoldsPage({ searchParams }: HoldsPageProps) {
         source: pick(first(params.source), sourceValues, "all"),
         stage: pick(first(params.stage), stageValues, "all"),
         sort: pick(first(params.sort), sortValues, "expiry-asc"),
+        page: positiveInteger(first(params.page), 1),
+        pageSize: pickNumber(first(params.pageSize), pageSizeValues, 25),
       }}
     />
   );
@@ -60,4 +59,14 @@ function pick<TValue extends string>(
   fallback: TValue,
 ): TValue {
   return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
+}
+
+function positiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function pickNumber(value: string | undefined, allowed: Set<number>, fallback: number) {
+  const parsed = Number(value);
+  return allowed.has(parsed) ? parsed : fallback;
 }
