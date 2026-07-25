@@ -64,7 +64,7 @@ beforeEach(() => {
 });
 
 describe("Holds commands", () => {
-  it("extends only the persisted expiry and records an audit event", async () => {
+  it("atomically extends the persisted expiry and records an audit event", async () => {
     const tx = createTx();
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -73,12 +73,14 @@ describe("Holds commands", () => {
     const result = await extendHold(actor, holdId, 30);
 
     expect(result.ok).toBe(true);
-    expect(tx.holds.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: holdId },
-        data: { expires_at: new Date("2099-07-25T12:30:00.000Z") },
-      }),
-    );
+    expect(tx.holds.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: holdId,
+        status: "active",
+        expires_at: activeHold.expires_at,
+      },
+      data: { expires_at: new Date("2099-07-25T12:30:00.000Z") },
+    });
     expect(tx.audit_events.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         action: "hold.extended",
@@ -91,7 +93,7 @@ describe("Holds commands", () => {
     });
   });
 
-  it("releases only the exact reserved hold quantity", async () => {
+  it("claims the hold before releasing its exact reserved quantity", async () => {
     const tx = createTx();
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -100,6 +102,17 @@ describe("Holds commands", () => {
     const result = await releaseHold(actor, holdId);
 
     expect(result.ok).toBe(true);
+    expect(tx.holds.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: holdId,
+        status: "active",
+        expires_at: { gt: expect.any(Date) },
+      },
+      data: {
+        status: "released",
+        released_at: expect.any(Date),
+      },
+    });
     expect(mocks.stockMutation).toHaveBeenCalledWith(tx, {
       productId: activeHold.product_id,
       quantity: 2,
@@ -109,15 +122,12 @@ describe("Holds commands", () => {
       relatedHoldId: holdId,
       metadata: { operation: "hold-release" },
     });
-    expect(tx.holds.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: holdId },
-        data: expect.objectContaining({ status: "released" }),
-      }),
+    expect(tx.holds.updateMany.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.stockMutation.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
     );
   });
 
-  it("converts an active hold into a pending-payment order without selling stock", async () => {
+  it("claims the hold before creating one pending-payment order", async () => {
     const tx = createTx();
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -130,9 +140,22 @@ describe("Holds commands", () => {
 
     expect(result.ok).toBe(true);
     expect(mocks.stockMutation).not.toHaveBeenCalled();
+    expect(tx.holds.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: holdId,
+        status: "active",
+        expires_at: { gt: expect.any(Date) },
+      },
+      data: {
+        status: "converted",
+        converted_at: expect.any(Date),
+        payment_progress: "pending",
+      },
+    });
     expect(tx.orders.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         source: "hold-conversion",
+        channel: "physical-store",
         payment_status: "pending",
         payment_method: null,
         fulfilment_status: "unfulfilled",
@@ -147,22 +170,36 @@ describe("Holds commands", () => {
       }),
       include: {},
     });
-    expect(tx.holds.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          status: "converted",
-          payment_progress: "pending",
-          order_id: "55555555-5555-4555-8555-555555555555",
-        }),
-      }),
+    expect(tx.holds.update).toHaveBeenCalledWith({
+      where: { id: holdId },
+      data: { order_id: "55555555-5555-4555-8555-555555555555" },
+      include: {},
+    });
+    expect(tx.holds.updateMany.mock.invocationCallOrder[0]).toBeLessThan(
+      tx.orders.create.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
     );
+  });
+
+  it("performs no stock or order side effect when another action wins the hold claim", async () => {
+    const tx = createTx({ claimCount: 0 });
+    mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
+      callback(tx),
+    );
+
+    const release = await releaseHold(actor, holdId);
+
+    expect(release).toMatchObject({ ok: false, error: { code: "hold-inactive" } });
+    expect(mocks.stockMutation).not.toHaveBeenCalled();
+    expect(tx.orders.create).not.toHaveBeenCalled();
   });
 });
 
-function createTx() {
+function createTx({ claimCount = 1 }: { claimCount?: number } = {}) {
   return {
     holds: {
       findUnique: vi.fn().mockResolvedValue(activeHold),
+      findUniqueOrThrow: vi.fn().mockResolvedValue(activeHold),
+      updateMany: vi.fn().mockResolvedValue({ count: claimCount }),
       update: vi.fn().mockImplementation(({ data }: { data: { status?: string } }) =>
         Promise.resolve({ ...activeHold, ...data }),
       ),
