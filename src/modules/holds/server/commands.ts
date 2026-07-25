@@ -12,8 +12,10 @@ import type {
   ConvertHoldInput,
   HoldActionError,
   HoldActionSuccess,
+  HoldSource,
 } from "@/modules/holds/types";
 import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
+import type { SalesChannel } from "@/modules/orders/types";
 import type { StaffSession } from "@/server/auth/session";
 
 export async function extendHold(
@@ -112,7 +114,7 @@ export async function convertHold(
         order_number: orderNumber,
         customer_id: hold.value.customer_id,
         source: "hold-conversion",
-        channel: hold.value.source,
+        channel: orderChannelForHoldSource(hold.value.source),
         payment_status: "pending",
         payment_method: null,
         fulfilment_method: "delivery",
@@ -229,6 +231,20 @@ async function recordHoldAudit(
       metadata,
     },
   });
+}
+
+function orderChannelForHoldSource(source: string): SalesChannel {
+  const normalized = source.replaceAll("_", "-") as HoldSource;
+  switch (normalized) {
+    case "storefront":
+      return "online";
+    case "admin":
+      return "staff-assisted";
+    case "whatsapp":
+    case "instagram":
+    case "physical-store":
+      return normalized;
+  }
 }
 
 function mapStockError(error: OperationalStockError, holdId: string): HoldActionError {
