@@ -38,7 +38,10 @@ export async function extendHold(
       data: { expires_at: nextExpiry },
       include: adminHoldInclude,
     });
-    await recordHoldAudit(tx, actor, holdId, "hold.extended", { minutes, expiresAt: nextExpiry });
+    await recordHoldAudit(tx, actor, holdId, "hold.extended", {
+      minutes,
+      expiresAt: nextExpiry.toISOString(),
+    });
     return ok({
       hold: mapAdminHoldRow(updated),
       message: `Hold extended by ${minutes} minute${minutes === 1 ? "" : "s"}.`,
@@ -100,6 +103,7 @@ export async function convertHold(
       ? hold.value.products.product_variants.find((entry) => entry.id === hold.value.variant_id)
       : undefined;
     const unitPrice = variant?.price ?? hold.value.products.price;
+    const sku = variant?.sku ?? hold.value.products.sku;
     const total = unitPrice.mul(hold.value.quantity);
     const orderNumber = `LS-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
@@ -130,9 +134,7 @@ export async function convertHold(
             ...(hold.value.variant_id ? { variant_id: hold.value.variant_id } : {}),
             product_name: hold.value.products.name,
             ...(variant?.label ? { variant_label: variant.label } : {}),
-            ...(variant?.sku ?? hold.value.products.sku
-              ? { sku: variant?.sku ?? hold.value.products.sku }
-              : {}),
+            ...(sku ? { sku } : {}),
             quantity: hold.value.quantity,
             unit_price: unitPrice,
             stock_state: "reserved",
