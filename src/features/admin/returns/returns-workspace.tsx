@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { CreateReturnDialog } from "@/features/admin/returns/create-return-dialog";
 import { ReturnControls } from "@/features/admin/returns/return-controls";
@@ -9,62 +11,101 @@ import { ReturnDetailSheet } from "@/features/admin/returns/return-detail-sheet"
 import { ReturnSavedViews } from "@/features/admin/returns/return-saved-views";
 import {
   defaultReturnQuery,
-  getReturnSavedViewCounts,
-  getReturnWorkspaceSummary,
-  queryReturns,
+  returnSavedViews,
+  returnSortOptions,
+  returnStatuses,
 } from "@/features/admin/returns/return-selectors";
-import type { ReturnActionFeedback, ReturnQuery } from "@/features/admin/returns/return-types";
+import type {
+  ReturnActionFeedback,
+  ReturnQuery,
+  ReturnSavedView,
+  ReturnSortKey,
+  ReturnStatus,
+} from "@/features/admin/returns/return-types";
 import { ReturnsEmptyState } from "@/features/admin/returns/returns-empty-state";
 import { ReturnsHeader } from "@/features/admin/returns/returns-header";
 import { ReturnsMobileList } from "@/features/admin/returns/returns-mobile-list";
 import { ReturnsSummaryStrip } from "@/features/admin/returns/returns-summary-strip";
 import { ReturnsTable } from "@/features/admin/returns/returns-table";
 import { buildReturnsHref } from "@/features/admin/returns/returns-url";
-import { useAdmin } from "@/features/admin/state/admin-provider";
-import { useCreateReturn, useTransitionReturn } from "@/lib/admin/returns/returns-mutations";
-import type { CreateReturnInput, ReturnStatus } from "@/lib/admin/shared/types";
+import { AdminPagination } from "@/features/admin/shared/admin-pagination";
+import {
+  adminReturnQueryOptions,
+  adminReturnsQueryOptions,
+  eligibleReturnOrdersQueryOptions,
+  useCreateReturn,
+  useTransitionReturn,
+} from "@/modules/returns/client/hooks";
+import type {
+  CreateReturnInput,
+  ReturnSavedViewCounts,
+  ReturnWorkspaceSummary,
+} from "@/modules/returns/types";
 
-export function ReturnsWorkspace({
-  initialQuery,
-  initialOpenReturnId,
-}: {
-  initialQuery: ReturnQuery;
-  initialOpenReturnId: string | null;
-}) {
+const emptyCounts: ReturnSavedViewCounts = {
+  all: 0,
+  open: 0,
+  "awaiting-item": 0,
+  inspection: 0,
+  refund: 0,
+  resolved: 0,
+};
+const emptySummary: ReturnWorkspaceSummary = {
+  totalReturns: 0,
+  openReturns: 0,
+  awaitingItem: 0,
+  inspecting: 0,
+  refundValue: 0,
+};
+const viewValues = new Set<ReturnSavedView>(returnSavedViews.map((view) => view.value));
+const statusValues = new Set<ReturnStatus>(returnStatuses);
+const sortValues = new Set<ReturnSortKey>(returnSortOptions.map((option) => option.value));
+const pageSizeValues = new Set([10, 25, 50, 100]);
+
+type SearchParamsReader = { get(name: string): string | null };
+
+export function ReturnsWorkspace({ initialQuery }: { initialQuery: ReturnQuery }) {
   const pathname = usePathname();
-  const { state } = useAdmin();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const createReturnMutation = useCreateReturn();
   const transitionReturnMutation = useTransitionReturn();
-  const [query, setQuery] = useState(initialQuery);
-  const [openReturnId, setOpenReturnId] = useState<string | null>(initialOpenReturnId);
   const [createOpen, setCreateOpen] = useState(false);
   const [feedback, setFeedback] = useState<ReturnActionFeedback | null>(null);
 
-  const returns = useMemo(() => queryReturns(state, query), [query, state]);
-  const counts = useMemo(() => getReturnSavedViewCounts(state), [state]);
-  const summary = useMemo(() => getReturnWorkspaceSummary(state), [state]);
-  const openReturn = (state.returns ?? []).find((record) => record.id === openReturnId) ?? null;
+  const query = useMemo(
+    () => readQueryFromUrl(searchParams, initialQuery),
+    [initialQuery, searchParams],
+  );
+  const openReturnId = searchParams.get("return")?.trim() || null;
+  const returnsQuery = useQuery(adminReturnsQueryOptions(query));
+  const detailQuery = useQuery(adminReturnQueryOptions(openReturnId ?? ""));
+  const eligibleOrdersQuery = useQuery(eligibleReturnOrdersQueryOptions(createOpen));
+  const returns = returnsQuery.data?.data ?? [];
+  const meta = returnsQuery.data?.meta;
+  const counts = meta?.counts ?? emptyCounts;
+  const summary = meta?.summary ?? emptySummary;
+  const openReturn = detailQuery.data ?? null;
+  const eligibleOrders = eligibleOrdersQuery.data ?? [];
 
   function replaceUrl(nextQuery = query, nextReturnId = openReturnId) {
-    window.history.replaceState(
-      null,
-      "",
-      buildReturnsHref(pathname, {
-        query: nextQuery,
-        returnId: nextReturnId,
-      }),
-    );
+    router.replace(buildReturnsHref(pathname, { query: nextQuery, returnId: nextReturnId }), {
+      scroll: false,
+    });
   }
 
   function patchQuery(patch: Partial<ReturnQuery>) {
-    const nextQuery = { ...query, ...patch };
-    setQuery(nextQuery);
+    const affectsResultSet = Object.keys(patch).some((key) => key !== "page");
+    const nextQuery = {
+      ...query,
+      ...patch,
+      ...(affectsResultSet ? { page: 1 } : {}),
+    };
     setFeedback(null);
     replaceUrl(nextQuery);
   }
 
   function resetQuery() {
-    setQuery(defaultReturnQuery);
     setFeedback(null);
     replaceUrl(defaultReturnQuery);
   }
@@ -75,13 +116,11 @@ export function ReturnsWorkspace({
   }
 
   function openReturnRecord(returnId: string) {
-    setOpenReturnId(returnId);
     setFeedback(null);
     replaceUrl(query, returnId);
   }
 
   function closeReturnRecord() {
-    setOpenReturnId(null);
     setFeedback(null);
     replaceUrl(query, null);
   }
@@ -96,9 +135,7 @@ export function ReturnsWorkspace({
       });
       return result.error.message;
     }
-
     setCreateOpen(false);
-    setOpenReturnId(result.value.returnRecord.id);
     setFeedback({
       tone: "success",
       title: "Return opened",
@@ -118,7 +155,6 @@ export function ReturnsWorkspace({
       });
       return result.error.message;
     }
-
     setFeedback({
       tone: "success",
       title: "Return updated",
@@ -142,32 +178,65 @@ export function ReturnsWorkspace({
           onQueryChange={patchQuery}
           onReset={resetQuery}
           query={query}
-          resultCount={returns.length}
+          resultCount={meta?.total ?? returns.length}
         />
       </Card>
 
+      {feedback ? (
+        <Alert aria-live="polite" variant={feedback.tone === "error" ? "destructive" : "default"}>
+          <AlertTitle>{feedback.title}</AlertTitle>
+          <AlertDescription>{feedback.message}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {returnsQuery.isError ? (
+        <Alert aria-live="polite" variant="destructive">
+          <AlertTitle>Returns could not be loaded</AlertTitle>
+          <AlertDescription>
+            {returnsQuery.error instanceof Error
+              ? returnsQuery.error.message
+              : "Refresh and try loading the persisted returns again."}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {returns.length ? (
         <>
-          <ReturnsMobileList onOpen={openReturnRecord} returns={returns} state={state} />
-          <ReturnsTable onOpen={openReturnRecord} returns={returns} state={state} />
+          <ReturnsMobileList onOpen={openReturnRecord} returns={returns} />
+          <ReturnsTable onOpen={openReturnRecord} returns={returns} />
+          {meta ? (
+            <AdminPagination
+              noun="Returns"
+              onPageChange={(page) => patchQuery({ page })}
+              onPageSizeChange={(pageSize) => patchQuery({ pageSize })}
+              page={meta.page}
+              pageCount={meta.pageCount}
+              pageSize={meta.pageSize}
+              totalItems={meta.total}
+            />
+          ) : null}
         </>
+      ) : returnsQuery.isPending ? (
+        <p className="rounded-[18px] border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground">
+          Loading returns…
+        </p>
       ) : (
         <ReturnsEmptyState
-          hasReturns={(state.returns ?? []).length > 0}
+          hasReturns={summary.totalReturns > 0}
           onCreate={openCreateDialog}
           onReset={resetQuery}
         />
       )}
 
       <CreateReturnDialog
-        key={createOpen ? `return-open-${state.orders.length}` : "return-closed"}
+        key={createOpen ? `return-open-${eligibleOrders.length}` : "return-closed"}
         onOpenChange={(open) => {
           setCreateOpen(open);
           if (!open) setFeedback(null);
         }}
         onSubmit={create}
         open={createOpen}
-        state={state}
+        orders={eligibleOrders}
       />
 
       <ReturnDetailSheet
@@ -177,8 +246,41 @@ export function ReturnsWorkspace({
         }}
         onTransition={transition}
         returnRecord={openReturn}
-        state={state}
       />
     </div>
   );
+}
+
+function readQueryFromUrl(searchParams: SearchParamsReader, fallback: ReturnQuery): ReturnQuery {
+  return {
+    view: pick(searchParams.get("view"), viewValues, fallback.view),
+    search: searchParams.get("q") ?? fallback.search,
+    status: pickWithAll(searchParams.get("status"), statusValues),
+    sort: pick(searchParams.get("sort"), sortValues, fallback.sort),
+    page: positiveInteger(searchParams.get("page"), fallback.page),
+    pageSize: pickNumber(searchParams.get("pageSize"), pageSizeValues, fallback.pageSize),
+  };
+}
+
+function pick<TValue extends string>(
+  value: string | null,
+  allowed: Set<TValue>,
+  fallback: TValue,
+): TValue {
+  return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
+}
+
+function pickWithAll<TValue extends string>(value: string | null, allowed: Set<TValue>): TValue | "all" {
+  if (!value || value === "all") return "all";
+  return allowed.has(value as TValue) ? (value as TValue) : "all";
+}
+
+function positiveInteger(value: string | null, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function pickNumber(value: string | null, allowed: Set<number>, fallback: number) {
+  const parsed = Number(value);
+  return allowed.has(parsed) ? parsed : fallback;
 }
