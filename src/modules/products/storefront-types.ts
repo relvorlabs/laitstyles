@@ -1,6 +1,7 @@
 import type { Kobo } from "@/lib/money";
 
 export type StorefrontInventoryMode = "unique" | "stocked" | "variant";
+export type InventoryMode = StorefrontInventoryMode;
 export type CatalogueSort = "newest" | "price_asc" | "price_desc";
 
 export type AvailabilityState =
