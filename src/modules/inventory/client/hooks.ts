@@ -42,7 +42,9 @@ export function useAdjustInventoryStock() {
       if (!result.ok) return;
       queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
       queryClient.invalidateQueries({ queryKey: productKeys.list() });
-      queryClient.invalidateQueries({ queryKey: productKeys.detail(result.value.movement.productId) });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(result.value.movement.productId),
+      });
       queryClient.invalidateQueries({ queryKey: overviewKeys.overview() });
     },
   });
