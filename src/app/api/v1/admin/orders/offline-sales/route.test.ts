@@ -59,10 +59,10 @@ describe("POST /api/v1/admin/orders/offline-sales", () => {
       }),
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     await expect(response.json()).resolves.toMatchObject({
       error: {
-        code: "INVALID_BODY",
+        code: "VALIDATION_ERROR",
         fieldErrors: { customer: expect.any(String) },
       },
     });
@@ -76,9 +76,9 @@ describe("POST /api/v1/admin/orders/offline-sales", () => {
       }),
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: "INVALID_BODY" },
+      error: { code: "VALIDATION_ERROR" },
     });
     expect(mocks.recordOfflineSale).not.toHaveBeenCalled();
   });
