@@ -123,11 +123,12 @@ export async function transitionOrder(
         });
       }
 
+      const unitCount = order.order_lines.reduce((total, line) => total + line.quantity, 0);
       await tx.activity_events.create({
         data: {
           kind: "order",
           title: `${order.order_number} moved to ${formatOrderStatus(nextStatus)}`,
-          detail: `${order.order_lines.reduce((total, line) => total + line.quantity, 0)} unit${order.order_lines.reduce((total, line) => total + line.quantity, 0) === 1 ? "" : "s"} · ${order.delivery_city ?? "No delivery city"}`,
+          detail: `${unitCount} unit${unitCount === 1 ? "" : "s"} · ${order.delivery_city ?? "No delivery city"}`,
           actor_profile_id: actor.authUserId,
           order_id: order.id,
           customer_id: order.customer_id,
@@ -165,7 +166,7 @@ function orderLineStockPlan(
     }
   }
   if (nextStatus === "delivered" && current === "committed") {
-    return { mutation: "sell-committed", nextStockState: "committed" };
+    return { mutation: "sell-committed", nextStockState: "sold" };
   }
   if (nextStatus === "cancelled") {
     if (current === "reserved") return { mutation: "release-reserved", nextStockState: "released" };
@@ -181,7 +182,7 @@ function orderLineStockPlan(
     }
   }
   if (nextStatus === "returned") {
-    if (current === "committed") return { mutation: "return-sold", nextStockState: "returned" };
+    if (current === "sold") return { mutation: "return-sold", nextStockState: "returned" };
     if (current === "reserved") return { mutation: "release-reserved", nextStockState: "released" };
   }
   return { mutation: null, nextStockState: current };
@@ -230,14 +231,11 @@ function orderAggregateUpdate(
 }
 
 function mapStockError(error: OperationalStockError, orderId?: string): SalesActionError {
-  const code =
-    error.code === "stock-level-not-found"
-      ? "product-not-found"
-      : error.code === "stock-write-conflict"
-        ? "insufficient-available-stock"
-        : error.code;
   return {
-    code: code as SalesActionError["code"],
+    code:
+      error.code === "stock-level-not-found"
+        ? "product-not-found"
+        : (error.code as SalesActionError["code"]),
     message: error.message,
     productId: error.context.productId,
     ...(error.context.variantId ? { variantId: error.context.variantId } : {}),
