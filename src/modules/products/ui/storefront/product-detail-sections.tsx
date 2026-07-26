@@ -11,8 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
 import Link from "next/link";
-
-import type { Product } from "@/features/storefront/shared/catalogue-data";
+import type { Product } from "./catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import { Reveal } from "./reveal";
 
