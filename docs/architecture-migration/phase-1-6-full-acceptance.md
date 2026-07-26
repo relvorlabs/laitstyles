@@ -40,6 +40,21 @@ Authoritative at `context.json#lockfileSha256`.
 Authoritative at `context.json#databaseIdentityDigest`; `null` means no disposable database
 identity was supplied for that capture and cannot support persistence acceptance.
 
+## Execution overrides and current blocker
+
+- **Phase 4–5 sequencing override:** At the repository owner's explicit direction, Phase 4–5
+  implementation proceeds now while the known Phase 1–3 Cache Components, build, and evidence
+  blockers remain carried debt. Those blockers must be combined with the Phase 4–5 results and
+  resolved or reported after Phase 4–5; this sequencing does not waive them or establish Phase 4
+  or Phase 5 acceptance.
+- **Persistence-tooling boundary:** At the repository owner's explicit direction, Prisma owns the
+  database schema and migrations, while Supabase is limited to authentication and session
+  concerns. This acceptance run does not require the Supabase CLI or Docker.
+- **WS6a data preflight:** The configured remote PostgreSQL identity was sanitized to digest
+  `sha256:9bc727712d149210`, but the required disposable-database marker was absent. Therefore no
+  database connection, validation, deployment, migration-status, seed, or cleanup command ran.
+  WS6a remains blocked, and no live-database, Phase 4, or Phase 5 acceptance is claimed.
+
 ## Evidence index
 
 - `ci-evidence/phase-1-6-full-acceptance/context/context.json` — authoritative generated context used for every evidence value in this ledger.

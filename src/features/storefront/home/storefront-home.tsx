@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import type { CatalogueSearchPatch } from "@/modules/products/client/catalogue-search-params";
+import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { CategorySection } from "./sections/category-section";
 import { HeroSection } from "./sections/hero-section";
@@ -14,7 +15,7 @@ import { TrustSection } from "./sections/trust-section";
 
 export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
   void fontClassName;
-  const router = useRouter();
+  const { push: navigateCatalogue } = useCatalogueNavigation();
   const { products } = useStorefrontCatalogueData();
   const newArrivals = products.filter((product) => product.new).slice(0, 8);
   const oneOfOneEdit = products
@@ -29,17 +30,19 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
 
   const openShop = useCallback(
     (options: { category?: string; collection?: string | null }) => {
-      const params = new URLSearchParams();
-      if (options.category) params.set("category", options.category);
+      const patch: CatalogueSearchPatch = {
+        category: options.category ?? null,
+        collection: null,
+        page: 1,
+      };
       if (options.collection) {
-        if (options.collection === "under-25") params.set("max", "25000");
-        else if (options.collection === "grade-a-plus") params.set("condition", "A+");
-        else params.set("collection", options.collection);
+        if (options.collection === "under-25") patch.maxPriceNaira = 25_000;
+        else if (options.collection === "grade-a-plus") patch.conditions = ["A+"];
+        else patch.collection = options.collection;
       }
-      const query = params.toString();
-      router.push(query ? `/products?${query}` : "/products");
+      navigateCatalogue(patch);
     },
-    [router],
+    [navigateCatalogue],
   );
 
   return (

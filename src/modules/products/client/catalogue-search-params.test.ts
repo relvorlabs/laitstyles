@@ -126,4 +126,15 @@ describe("catalogueHref", () => {
     expect(href).toContain("max=25000");
     expect(href).toContain("sort=price-low");
   });
+
+  it("serializes every selected colour and size as a repeated URL value", () => {
+    const href = catalogueHref(parseCatalogueSearchParams({}), {
+      colours: ["Navy", "Black"],
+      sizes: ["M", "L"],
+    });
+    const params = new URL(href, "https://laitstyles.test").searchParams;
+
+    expect(params.getAll("colour")).toEqual(["Navy", "Black"]);
+    expect(params.getAll("size")).toEqual(["M", "L"]);
+  });
 });

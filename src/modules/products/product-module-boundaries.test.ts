@@ -5,7 +5,11 @@ import {
   legacyArchitectureExceptions,
   legacyProductTypeOnlyEdge,
 } from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
-import { classifyModuleGraph } from "../../../scripts/checks/module-export-guard.mjs";
+import {
+  classifyModuleGraph,
+  parseModuleSyntax,
+  stripComments,
+} from "../../../scripts/checks/module-export-guard.mjs";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
@@ -19,6 +23,18 @@ const retiredProductPaths = [
 ] as const;
 
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
+
+function importedModules(source: string): string[] {
+  const parsed = parseModuleSyntax(source).imports.map((entry) => entry.specifier);
+  const required = [
+    ...stripComments(source).matchAll(/\brequire\s*\(\s*["']([^"']+)["']\s*\)/g),
+  ].map((match) => match[1]);
+  return [...new Set([...parsed, ...required])];
+}
+
+function importsPath(imports: readonly string[], target: string) {
+  return imports.some((importPath) => importPath === target || importPath.startsWith(`${target}/`));
+}
 
 describe("Products module boundaries", () => {
   it("resolves default, named, type and re-exported bindings without checking packages", () => {
@@ -72,24 +88,26 @@ describe("Products module boundaries", () => {
 
   it("keeps production consumers off retired product and catalogue paths", async () => {
     const sourceFiles = await collectSourceFiles(sourceRoot);
-    const offenders: string[] = [];
-
-    for (const filePath of sourceFiles) {
-      const relative = normalize(path.relative(repositoryRoot, filePath));
-      if (isTest(relative)) continue;
-      const source = await readFile(filePath, "utf8");
-      for (const importPath of retiredProductPaths) {
-        const isTypeOnlyShimConsumer =
-          relative === legacyProductTypeOnlyEdge.importer &&
-          importPath === legacyProductTypeOnlyEdge.imported;
-        if (source.includes(importPath) && !isTypeOnlyShimConsumer) {
-          offenders.push(`${relative} -> ${importPath}`);
-        }
-      }
-    }
+    const offenders = (
+      await Promise.all(
+        sourceFiles.map(async (filePath) => {
+          const relative = normalize(path.relative(repositoryRoot, filePath));
+          if (isTest(relative)) return [];
+          const imports = importedModules(await readFile(filePath, "utf8"));
+          return retiredProductPaths
+            .filter((importPath) => {
+              const isTypeOnlyShimConsumer =
+                relative === legacyProductTypeOnlyEdge.importer &&
+                importPath === legacyProductTypeOnlyEdge.imported;
+              return importsPath(imports, importPath) && !isTypeOnlyShimConsumer;
+            })
+            .map((importPath) => `${relative} -> ${importPath}`);
+        }),
+      )
+    ).flat();
 
     expect(offenders).toEqual([]);
-  });
+  }, 15_000);
 
   it("keeps every phase exception exact and type-only", async () => {
     const shimSource = await readFile(
@@ -119,27 +137,31 @@ describe("Products module boundaries", () => {
 
   it("keeps the Products domain independent of app, feature and top-level server layers", async () => {
     const sourceFiles = await collectSourceFiles(productModuleRoot);
-    const offenders: string[] = [];
-
-    for (const filePath of sourceFiles) {
-      const relative = normalize(path.relative(repositoryRoot, filePath));
-      if (isTest(relative)) continue;
-      const source = await readFile(filePath, "utf8");
-      for (const importPath of forbiddenProductModuleImports) {
-        const hasAllowedExactEdge = legacyArchitectureExceptions.some(
-          (entry) =>
-            entry.importer === relative &&
-            entry.imported.startsWith(importPath) &&
-            source.includes(entry.imported),
-        );
-        if (source.includes(importPath) && !hasAllowedExactEdge) {
-          offenders.push(`${relative} -> ${importPath}`);
-        }
-      }
-    }
+    const offenders = (
+      await Promise.all(
+        sourceFiles.map(async (filePath) => {
+          const relative = normalize(path.relative(repositoryRoot, filePath));
+          if (isTest(relative)) return [];
+          const imports = importedModules(await readFile(filePath, "utf8"));
+          return forbiddenProductModuleImports.flatMap((importPath) => {
+            const matchingImports = imports.filter(
+              (candidate) => candidate === importPath || candidate.startsWith(`${importPath}/`),
+            );
+            return matchingImports
+              .filter(
+                (candidate) =>
+                  !legacyArchitectureExceptions.some(
+                    (entry) => entry.importer === relative && entry.imported === candidate,
+                  ),
+              )
+              .map((candidate) => `${relative} -> ${candidate}`);
+          });
+        }),
+      )
+    ).flat();
 
     expect(offenders).toEqual([]);
-  });
+  }, 15_000);
 
   it("keeps browser catalogue transport on the versioned Products API", async () => {
     const clientSource = await readFile(

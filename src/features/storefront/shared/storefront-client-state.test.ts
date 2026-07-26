@@ -146,6 +146,43 @@ describe("storefront client state", () => {
     });
   });
 
+  it("falls back to legacy state when the canonical JSON is malformed", () => {
+    const session = new MemoryStorage();
+    const local = new MemoryStorage();
+    session.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, "{");
+    local.setItem(
+      LEGACY_STOREFRONT_STORAGE_KEYS.saved[1],
+      JSON.stringify([{ productId: "legacy-saved" }]),
+    );
+
+    expect(loadStorefrontClientState(session, local, NOW)).toEqual({
+      migrated: true,
+      snapshot: {
+        version: STOREFRONT_CLIENT_STATE_VERSION,
+        cart: [],
+        saved: ["legacy-saved"],
+        holds: [],
+      },
+    });
+  });
+
+  it("discards an unsupported canonical version without supported legacy state", () => {
+    const session = new MemoryStorage();
+    const local = new MemoryStorage();
+    session.setItem(
+      STOREFRONT_CLIENT_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: STOREFRONT_CLIENT_STATE_VERSION + 1,
+        cart: [{ productId: "future", variantId: null, quantity: 1 }],
+      }),
+    );
+
+    expect(loadStorefrontClientState(session, local, NOW)).toEqual({
+      migrated: true,
+      snapshot: emptyStorefrontClientState(),
+    });
+  });
+
   it("treats unavailable or malformed storage as an empty recoverable state", () => {
     const blocked: StorefrontStateStorage = {
       getItem: () => {
