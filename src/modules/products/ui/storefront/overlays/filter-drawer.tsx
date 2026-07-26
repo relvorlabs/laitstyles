@@ -2,10 +2,10 @@
 
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
-import { IconClose } from "../storefront-icons";
-import { showStorefrontToast, useStorefrontOverlay } from "../storefront-runtime";
-import { FilterControls } from "./filter-controls";
+import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
+import { showStorefrontToast, useStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose } from "@/modules/storefront-shell/ui/storefront-icons";
+import { FilterControls } from "../filter-controls";
 
 export function FilterDrawer() {
   const overlay = useStorefrontOverlay();
