@@ -1,5 +1,5 @@
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import type { ProductDetail, ProductVariantOption, ReviewSummary } from "@/lib/storefront/types";
+import type { Product } from "./catalogue-data";
 
 export interface ProductOptionPresentation {
   label: string;
