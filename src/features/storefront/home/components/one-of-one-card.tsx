@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { money, type Product } from "@/features/storefront/shared/catalogue-data";
-import { useReveal } from "@/features/storefront/shared/reveal";
+import { useReveal } from "@/hooks/use-reveal";
+import { money, type Product } from "@/modules/products/ui/storefront/catalogue-data";
 
 export function OneOfOneCard({
   product,
