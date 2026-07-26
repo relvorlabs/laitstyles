@@ -3,11 +3,14 @@
 import Image from "next/image";
 import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
-import { useStorefrontCatalogueData, useStorefrontOverlay } from "../storefront-runtime";
-import { money } from "../catalogue-data";
-import { IconClose, IconSearch } from "../storefront-icons";
+import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
+import { money } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import {
+  useStorefrontCatalogueData,
+  useStorefrontOverlay,
+} from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose, IconSearch } from "@/modules/storefront-shell/ui/storefront-icons";
 
 const searchSuggestions: [string, string][] = [
   ["Levi's", "Levi’s denim"],
