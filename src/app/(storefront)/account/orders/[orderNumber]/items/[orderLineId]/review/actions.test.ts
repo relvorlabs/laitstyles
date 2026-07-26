@@ -18,7 +18,7 @@ vi.mock("@/modules/reviews/server/repository", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 
-import { submitReviewAction, withdrawReviewAction } from "./review-actions";
+import { submitReviewAction, withdrawReviewAction } from "./actions";
 
 function validFormData() {
   const formData = new FormData();
