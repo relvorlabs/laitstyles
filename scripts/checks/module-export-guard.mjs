@@ -173,13 +173,22 @@ export function parseModuleSyntax(source) {
   for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+(?:type\s+)?\{([^}]+)\}(?!\s*from\b)/g)) {
     for (const { local } of splitBindings(match[1])) directExports.add(local);
   }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*exports\.([A-Za-z_$][\w$]*)\s*=/g)) {
+    if (keywordIsCode(mask, match, "exports")) directExports.add(match[1]);
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*module\.exports\s*=\s*\{\s*\.\.\.\s*require\s*\(\s*(["'])([^"']+)\1\s*\)\s*\}/g)) {
+    if (!keywordIsCode(mask, match, "module")) continue;
+    starReexports.push({ specifier: match[2], exportedName: null });
+    imports.push({ kind: "reexport", specifier: match[2], names: [] });
+  }
   return { imports, directExports, namedReexports, starReexports };
 }
 
 function candidates(fromFile, specifier) {
-  const base = specifier.startsWith("@/")
-    ? `src/${specifier.slice(2)}`
-    : path.posix.normalize(path.posix.join(path.posix.dirname(normalise(fromFile)), specifier));
+  const resourcePath = specifier.replace(/[?#].*$/, "");
+  const base = resourcePath.startsWith("@/")
+    ? `src/${resourcePath.slice(2)}`
+    : path.posix.normalize(path.posix.join(path.posix.dirname(normalise(fromFile)), resourcePath));
   return [base, ...extensions.map((extension) => `${base}${extension}`), ...extensions.map((extension) => `${base}/index${extension}`)];
 }
 
@@ -241,12 +250,16 @@ function listFiles(directory, pattern = sourcePattern) {
 
 export function runModuleExportGuard(root = process.cwd()) {
   const sourceFiles = listFiles(join(root, "src"));
-  const reachableFiles = [
+  const moduleFiles = [
     ...listFiles(join(root, "src"), /\.(?:[cm]?[jt]sx?|css)$/i),
     ...listFiles(join(root, "scripts", "checks")),
     ...listFiles(join(root, "prisma", "generated")),
   ];
-  const files = Object.fromEntries(reachableFiles.map((file) => [normalise(relative(root, file)), readFileSync(file, "utf8")]));
+  const assetFiles = listFiles(join(root, "prisma", "generated"), /\.wasm$/i);
+  const files = Object.fromEntries([
+    ...moduleFiles.map((file) => [normalise(relative(root, file)), readFileSync(file, "utf8")]),
+    ...assetFiles.map((file) => [normalise(relative(root, file)), ""]),
+  ]);
   return { scanned: sourceFiles.length, violations: classifyModuleGraph({ files }) };
 }
 
