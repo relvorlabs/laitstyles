@@ -1,7 +1,7 @@
 "use client";
 
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import { OneOfOneCard } from "../components/one-of-one-card";
 import type { OpenHomeShop } from "../home-types";
@@ -21,7 +21,7 @@ export function OneOfOneSection({
           eyebrow="Exact item photographed"
           onAction={() => openShop({ collection: "one-of-one" })}
           subtitle="Unique garments with no planned restock. What you see is the exact piece you receive."
-          title={<>The one-of-one <span className="serif"><em>edit</em></span></>}
+          title={< >The one-of-one <span className="serif"><em>edit</em></span></>}
         />
         <div className="one-edit" id="oneEdit">
           {products.map((product, index) => (
