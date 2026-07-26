@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { useStorefrontCatalogueData } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { CategorySection } from "./sections/category-section";
 import { HeroSection } from "./sections/hero-section";
 import { NewArrivalsSection } from "./sections/new-arrivals-section";
@@ -32,7 +32,7 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
       const params = new URLSearchParams();
       if (options.category) params.set("category", options.category);
       if (options.collection) {
-        if (options.collection === "under-25") params.set("maxPrice", "25000");
+        if (options.collection === "under-25") params.set("max", "25000");
         else if (options.collection === "grade-a-plus") params.set("condition", "A+");
         else params.set("collection", options.collection);
       }
