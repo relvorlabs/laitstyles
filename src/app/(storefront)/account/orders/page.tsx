@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { OrdersSection } from "@/features/storefront/account/sections/orders-section";
 import { getAccountOrders } from "@/modules/orders/server/account-orders";
+import { OrdersSection } from "@/modules/orders/ui/storefront/orders-section";
 import { getCurrentSession } from "@/server/auth/session";
 
 export default async function AccountOrdersPage() {
