@@ -7,9 +7,66 @@
 **Phase 3 merge:** `d7e3149c96f234d7deb41151ac603d6f652ceb4d`  
 **Phase 4 merge:** `646ad2942ec2afbdb42e5269bad6d1993b01444b`  
 **Phase 5 merge:** `cd12b89e9ec2eb9210704e200e30731d864646e1`  
-**Current branch:** `refactor/phase-6-storefront-state-zustand`  
-**Current phase:** Phase 6 — Storefront state and Zustand migration  
-**Overall status:** Phase 6 architecture corrections implemented; dependency-lock repair and exact-head certification remain
+**Current branch:** `main` (the `codex/phase-1-6-full-acceptance` branch has since merged; the storefront-state Zustand work described below is on `main`, not a separate branch)  
+**Current phase:** Phase 6 source complete; Phase 1–6 cross-phase acceptance in progress per `phase-1-6-full-acceptance-design.md`  
+**Overall status:** See [Reconciliation evidence](#reconciliation-evidence-2026-07-26) below — this section and the Phase 6 task ledger previously described a Zustand lockfile blocker that no longer exists and reported WS1 guard status that predated a guard-script fix. Both are corrected below with dated, executed evidence. No phase is newly accepted by this reconciliation.
+
+## Reconciliation evidence (2026-07-26)
+
+This pass corrected two stale claims and re-verified real status by executing commands, not by
+reading prior status prose. Candidate at time of this pass: `f088430...` on `main`.
+
+- **Zustand lockfile blocker — resolved, not current.** `pnpm install --frozen-lockfile` succeeds
+  with no lockfile diff; `pnpm-lock.yaml` contains both an importer entry and a package snapshot for
+  `zustand@5.0.14`. The blocker recorded below at P6-T01 was already stale before this pass (see
+  the full-acceptance design's own note to that effect); it is now corrected instead of repeated.
+- **WS1 architecture guards fixed and passing.** `pnpm check:architecture` previously failed with
+  `src/test/product-authorization-contract.test.ts: Cannot resolve internal module
+  ../../scripts/auth/product-authorization-contract.mjs` — not a real missing file, but a blind
+  spot in `module-export-guard.mjs`, which never scanned `scripts/auth/**`. Fixed in `f088430`. A
+  second defect, an orphaned test at `src/features/storefront/shared/storefront-fonts.test.ts`
+  reading a file that had moved to `src/modules/storefront-shell/ui/` during the Phase 6 cutover,
+  was relocated in the same commit. All five guards (`module-export-guard`, `architecture-guard`,
+  `error-validation-contract`, `layout-provider-contract`, `http-module-contract`) now report
+  **0 errors**.
+- **`.next/types` typecheck noise was pure build-cache staleness.** Deleting `.next` and
+  re-running `pnpm typecheck` removed 25 phantom `TS2307` errors that referenced pre-Phase-2 flat
+  routes (`src/app/cart`, `src/app/account/**`, etc.) which no longer exist under `(storefront)/`.
+  No source change was needed or made.
+- **`pnpm biome` passes** (0 errors, 65 pre-existing warnings, none in files touched by this pass).
+- **`pnpm typecheck` still fails — real defect, not this pass's scope.** Seven errors remain, all
+  the same shape: `profile_details` and `product_variant_measurements` (added for account-profile
+  persistence and variant measurements) do not type-check as `PrismaClient` properties, across
+  `src/server/auth/profile.ts`, the account profile route/action, `src/modules/products/server/storefront/queries.ts`,
+  and two `scripts/seed/**` files. Regenerating the Prisma client (`pnpm prisma:generate`) did not
+  change this. This is a data-engineer-owned Prisma/schema generation defect, not an import/export
+  or architecture-boundary violation.
+- **`pnpm build` fails on the same defect** (`next build`'s TypeScript pass fails at
+  `scripts/seed/catalog-import-preflight.ts:194` on `product_variant_measurements`). The build was
+  not previously reported as executed against this head; it is now reported as executed and
+  failing.
+- **`pnpm exec vitest run` (full suite): 482 passed, 6 failed, 6 skipped (494 total).** None of the
+  six failures are in Phase 6 storefront-state/store/hydration/overlay files — they are in
+  Products/Inventory/Settings module-boundary and HTTP-contract tests, i.e. Phase 4/5 territory:
+  - `src/modules/products/server/editor-ownership.test.ts` — `src/modules/settings/types.ts`
+    imports a legacy admin contract/policy it shouldn't.
+  - `src/modules/products/server/storefront/type-ownership.test.ts` — `src/modules/products/ui/storefront/product-selection.ts`
+    is flagged as a non-type-only consumer of the compatibility facade.
+  - `src/modules/inventory/client/api.test.ts` — the adjustments POST call is not sending a
+    `Content-Type: application/json` header the test expects.
+  - `src/app/api/v1/admin/inventory/route.test.ts` and `.../adjustments/route.test.ts` — both
+    expect HTTP `400` for a validation failure but the route now returns `422`. This looks like a
+    stale test expectation rather than a regression: the documented Phase 3 contract
+    (`phase-3-http-module-status.md`) maps Zod validation failures to `422`.
+  - One worker crash on `src/features/storefront/home/components/category-card.test.tsx` (timeout
+    starting a fork worker) was observed on one run and did not reproduce on a second run —
+    recorded as flaky/environmental, not a fixed defect.
+- **Not executed in this pass:** Playwright/browser, React Doctor, and any real-database
+  (WS6a/WS6b) evidence. No claim is made about those.
+- **Environment note:** this session's Node is `v26.5.0`; the plan requires `25.x`. The last
+  captured WS0 context (`ci-evidence/phase-1-6-full-acceptance/context/context.json`) was taken on
+  `v25.9.0` against candidate `8959632...`, an ancestor of current `HEAD` — that context is stale
+  and must be recaptured on the correct toolchain before any WS0 claim is made on the current SHA.
 
 Status values: `Not started`, `In progress`, `Source complete`, `Complete`, `Merged with debt`.
 
@@ -147,17 +204,13 @@ StorefrontRouteBoundary
 - Architecture tests reject retired providers, American catalogue paths/symbols, duplicate router ownership and reversed server dependencies.
 - Focused store, clock, overlay, catalogue-projection, API and Playwright contracts are authored.
 
-### Confirmed dependency blocker
+### Dependency blocker — resolved
 
-`package.json` declares `zustand@^5.0.14`, but `pnpm-lock.yaml` does not contain a Zustand importer entry or package snapshot.
-
-The repository installs dependencies with:
-
-```bash
-pnpm install --frozen-lockfile
-```
-
-The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelated dependency drift. Frozen-lockfile enforcement must remain enabled, and the lockfile must not be fabricated manually.
+This section previously reported that `pnpm-lock.yaml` lacked a Zustand importer entry or package
+snapshot. As of the 2026-07-26 reconciliation pass, that is no longer true: `pnpm-lock.yaml`
+contains both the importer entry and the package snapshot for `zustand@5.0.14`, and
+`pnpm install --frozen-lockfile` succeeds without modifying the lockfile. Frozen-lockfile
+enforcement remains enabled. See [Reconciliation evidence](#reconciliation-evidence-2026-07-26).
 
 ### Phase 6 task ledger
 
@@ -166,10 +219,10 @@ The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelat
 | P6-T00 | Record Phase 5 merge and validation debt | Complete | Recorded |
 | P6-T00A | Map original provider, persistence and URL ownership | Complete | Source-audited |
 | P6-T00B | Add storefront-state non-expansion guards | Complete | Execution pending |
-| P6-T01 | Add Zustand | Blocked | Package declared; lockfile not reconciled |
-| P6-T02 | Create cart store | Source complete | Unit execution pending |
-| P6-T03 | Create saved-items store | Source complete | Unit execution pending |
-| P6-T04 | Create storefront UI store | Source complete | Unit execution pending |
+| P6-T01 | Add Zustand | Complete | `pnpm install --frozen-lockfile` verified 2026-07-26; `zustand@5.0.14` present in `package.json` and `pnpm-lock.yaml` (importer + package snapshot) |
+| P6-T02 | Create cart store | Source complete | Unit tests passing (`cart.store.test.ts`, 3/3, 2026-07-26) |
+| P6-T03 | Create saved-items store | Source complete | Unit tests passing (`saved-items.store.test.ts`, 2/2, 2026-07-26) |
+| P6-T04 | Create storefront UI store | Source complete | Unit tests passing (`storefront-ui.store.test.ts`, 3/3, 2026-07-26) |
 | P6-T05 | Preserve versioned storage migration | Source complete | Migration/hydration execution pending |
 | P6-T06 | Add hydration-safe selectors | Source complete | Runtime execution pending |
 | P6-T07 | Prevent complete product persistence | Source complete | Guard/browser execution pending |
@@ -185,21 +238,21 @@ The lockfile must be regenerated with pnpm 11.13.0 and committed without unrelat
 | P6-T17 | Move header scroll state into header | Source complete | Browser execution pending |
 | P6-T18 | Separate auth-dialog local state | Source complete | Auth/browser execution pending |
 | P6-T19 | Remove migrated values from `StorefrontProvider` | Complete | Provider deleted |
-| P6-T20 | Remove unused context selectors and consumers | Source complete | TypeScript/guard execution pending |
+| P6-T20 | Remove unused context selectors and consumers | Source complete | Guard passing (`pnpm check:architecture`, 0 errors, 2026-07-26); TypeScript still fails, but only on the unrelated Prisma model gap in the reconciliation evidence above — no Phase 6 regression identified |
 | P6-T21 | Delete final legacy provider after consumer cutover | Complete | Both providers deleted |
-| P6-T22 | Pass static, unit, build, React Doctor and browser gates | Pending | Exact-head evidence required |
+| P6-T22 | Pass static, unit, build, React Doctor and browser gates | Pending | Static guards and Biome pass; full Vitest passes except six Phase 4/5-area failures (see reconciliation evidence); TypeScript and build still fail on the Prisma model gap; React Doctor and Playwright/browser remain unexecuted |
 
 ### Exact-head evidence state
 
-The PR workflows remain queued or pending. Queued, cancelled, skipped, superseded or unavailable checks remain validation debt and are never reported as passes.
+The PR workflows remain queued or pending. Queued, cancelled, skipped, superseded or unavailable checks remain validation debt and are never reported as passes. Locally executed evidence from 2026-07-26 is recorded above under Reconciliation evidence; it supplements but does not replace CI execution.
 
 ## Phase 6 remaining order
 
-1. Regenerate and commit the pnpm 11.13.0 lockfile with Zustand.
-2. Prove frozen installation on the resulting exact head.
-3. Run architecture guards, Biome and TypeScript.
-4. Run focused and full Vitest suites.
-5. Run production build and React Doctor.
+1. ~~Regenerate and commit the pnpm 11.13.0 lockfile with Zustand.~~ Done — verified 2026-07-26.
+2. ~~Prove frozen installation on the resulting exact head.~~ Done — verified 2026-07-26.
+3. ~~Run architecture guards, Biome and TypeScript.~~ Guards and Biome pass; TypeScript still fails on the Prisma model gap (data-engineer owned, tracked in the reconciliation evidence).
+4. ~~Run focused and full Vitest suites.~~ Done — 482 passed, 6 failed (Phase 4/5-area, not Phase 6), 6 skipped.
+5. Run production build and React Doctor. Build currently fails on the same Prisma model gap; React Doctor not yet run.
 6. Run desktop, tablet and mobile Playwright plus light/dark visual comparison.
 7. Inspect artifacts, logs, traces and screenshots.
 8. Repair only evidenced failures.
