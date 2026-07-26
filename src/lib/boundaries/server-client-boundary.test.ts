@@ -9,36 +9,29 @@ const FORBIDDEN_CLIENT_IMPORTS = [
   "@/lib/middleware",
   "@/lib/supabase/server",
   "@/lib/supabase/proxy",
-  // Prisma is server-only (ADR-05 §4.1 #1): the client + generated code must
-  // never reach the browser bundle.
   "@/lib/prisma",
   "prisma/generated",
 ] as const;
 
-// Layer rules from .agents/doctrine/architecture.md: dependencies flow downward only.
-// `lib` and `server` must never import from `features` or `app`; `components` must
-// never import from `features`, `app`, or `server`. Runtime modules only — test
-// files may reach across layers for fixtures.
+// Dependency direction is a principle, not a list of required legacy files.
 const LAYER_RULES = [
   { layer: "src/lib", forbidden: ["@/features", "@/app"] },
   { layer: "src/server", forbidden: ["@/features", "@/app", "@/components"] },
   { layer: "src/components", forbidden: ["@/features", "@/app", "@/server"] },
+  { layer: "src/modules", forbidden: ["@/features", "@/app", "@/server"] },
 ] as const;
 
-// Known inversions slated for removal by the migration plan. This list only
-// burns down — never add an entry; fix the import direction instead.
-const LEGACY_INVERSION_ALLOWLIST = new Set([
+// These are unrelated pre-existing admin migration exceptions. New entries are
+// prohibited; this repair removes an entry whenever its owner moves.
+const DOCUMENTED_PREEXISTING_EXCEPTIONS = new Set([
   "src/lib/admin/customers/customers-mutations.ts",
   "src/lib/admin/holds/holds-mutations.ts",
   "src/lib/admin/orders/orders-mutations.ts",
   "src/lib/admin/returns/returns-mutations.ts",
   "src/lib/admin/settings/settings-mutations.ts",
   "src/lib/admin/data/in-memory/admin-repositories.ts",
-  "src/server/commerce/orders/account-orders.ts",
 ]);
 
-// The walk over src/** is slow on cold filesystems; do it once for all checks
-// and give the assertions a generous timeout.
 const CHECK_TIMEOUT_MS = 120_000;
 let cachedSourceFiles: string[] | undefined;
 function sourceFiles(): string[] {
@@ -68,14 +61,14 @@ describe("server/client boundaries", () => {
   );
 
   it(
-    "does not import upward across layers (lib/server/components -> features/app)",
+    "keeps infrastructure, components and domain modules from importing upward",
     () => {
       const violations = LAYER_RULES.flatMap(({ layer, forbidden }) =>
         sourceFiles()
           .map((filePath) => relative(WORKSPACE_ROOT, filePath).replaceAll("\\", "/"))
           .filter((repoPath) => repoPath.startsWith(`${layer}/`))
           .filter((repoPath) => !isTestFile(repoPath))
-          .filter((repoPath) => !LEGACY_INVERSION_ALLOWLIST.has(repoPath))
+          .filter((repoPath) => !DOCUMENTED_PREEXISTING_EXCEPTIONS.has(repoPath))
           .flatMap((repoPath) =>
             forbidden
               .filter((importPath) => importsModule(join(WORKSPACE_ROOT, repoPath), importPath))
@@ -89,9 +82,9 @@ describe("server/client boundaries", () => {
   );
 
   it(
-    "keeps the legacy inversion allowlist honest (entries must still exist and offend)",
+    "keeps documented pre-existing exceptions honest",
     () => {
-      const stale = [...LEGACY_INVERSION_ALLOWLIST].filter((repoPath) => {
+      const stale = [...DOCUMENTED_PREEXISTING_EXCEPTIONS].filter((repoPath) => {
         const rule = LAYER_RULES.find(({ layer }) => repoPath.startsWith(`${layer}/`));
         if (!rule) return true;
         try {
@@ -99,7 +92,7 @@ describe("server/client boundaries", () => {
             importsModule(join(WORKSPACE_ROOT, repoPath), importPath),
           );
         } catch {
-          return true; // file deleted — remove it from the allowlist
+          return true;
         }
       });
 
@@ -114,10 +107,7 @@ function collectSourceFiles(directory: string): string[] {
     const fullPath = join(directory, entry);
     const stat = statSync(fullPath);
 
-    if (stat.isDirectory()) {
-      return collectSourceFiles(fullPath);
-    }
-
+    if (stat.isDirectory()) return collectSourceFiles(fullPath);
     return /\.(ts|tsx)$/.test(entry) ? [fullPath] : [];
   });
 }

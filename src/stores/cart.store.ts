@@ -7,7 +7,7 @@ import {
   type CartProduct,
   type CartSelection,
   changeCartLineQuantity,
-} from "@/features/storefront/shared/cart-lines";
+} from "@/modules/cart/cart-lines";
 
 export type AddCartResult =
   | "added"

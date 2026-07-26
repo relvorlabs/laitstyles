@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useReveal } from "@/features/storefront/shared/reveal";
-import { IconArrow } from "@/features/storefront/shared/storefront-icons";
+import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function CategoryCard({
   name,

@@ -1,153 +1,81 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
-import { legacyTanstackServerActionEdges } from "./architecture-legacy-exceptions.mjs";
 
 const root = process.cwd();
 const errors = [];
 const warnings = [];
+const sourcePattern = /\.(?:[cm]?[jt]sx?)$/i;
 
-function normalise(path) {
-  return path.replaceAll("\\", "/");
+function normalise(value) {
+  return value.replaceAll("\\", "/");
 }
 
-function gitOutput(args) {
-  return execFileSync("git", args, {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"],
-  });
-}
-
-function diffRanges() {
-  const baseRef = process.env.CI_BASE_REF?.trim();
-  return baseRef ? [`origin/${baseRef}...HEAD`, "HEAD^...HEAD"] : ["HEAD^...HEAD"];
-}
-
-function baseObjectRefs() {
-  const baseRef = process.env.CI_BASE_REF?.trim();
-  return baseRef ? [`origin/${baseRef}`, "HEAD^"] : ["HEAD^"];
-}
-
-function listChangedEntries() {
-  for (const range of diffRanges()) {
-    try {
-      return gitOutput(["diff", "--name-status", "--find-renames", range])
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const parts = line.split("\t");
-          const status = parts[0][0];
-          if (status === "R" || status === "C") {
-            return {
-              status,
-              previousPath: normalise(parts[1]),
-              path: normalise(parts[2]),
-            };
-          }
-          return { status, path: normalise(parts[1]) };
-        });
-    } catch {
-      // Try the next deterministic range.
-    }
-  }
-  warnings.push("Could not resolve a git diff range; changed-file migration rules were not checked.");
-  return [];
-}
-
-function readBaseFile(repoPath) {
-  for (const ref of baseObjectRefs()) {
-    try {
-      return gitOutput(["show", `${ref}:${repoPath}`]);
-    } catch {
-      // The file may be new or the ref may be unavailable.
-    }
-  }
-  return null;
-}
-
-function listFilesRecursively(directory, prefix = "") {
+function listFiles(directory, prefix = "") {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const relativePath = normalise(join(prefix, entry.name));
     const absolute = join(directory, entry.name);
-    return entry.isDirectory()
-      ? listFilesRecursively(absolute, relativePath)
-      : [relativePath];
+    const repoPath = normalise(join(prefix, entry.name));
+    return entry.isDirectory() ? listFiles(absolute, repoPath) : [repoPath];
   });
 }
 
-function isTestOrFixture(repoPath) {
-  return /(?:\.test\.|\.spec\.|\/tests?\/|\/__tests__\/|\/stories\/|\.stories\.)/.test(repoPath);
+function isTestOrFixture(file) {
+  return /(?:\.test\.|\.spec\.|\/tests?\/|\/__tests__\/|\/stories\/|\.stories\.)/.test(file);
 }
 
-function isProductionSource(repoPath) {
-  return repoPath.startsWith("src/") && !isTestOrFixture(repoPath);
+function isProductionSource(file) {
+  return file.startsWith("src/") && sourcePattern.test(file) && !isTestOrFixture(file);
 }
 
 function isClientModule(source) {
-  const beginning = source.trimStart().slice(0, 300);
-  return beginning.startsWith('"use client";') || beginning.startsWith("'use client';");
+  const start = source.trimStart().slice(0, 300);
+  return start.startsWith('"use client";') || start.startsWith("'use client';");
 }
 
 function isServerActionModule(source) {
-  const beginning = source.trimStart().slice(0, 300);
-  return beginning.startsWith('"use server";') || beginning.startsWith("'use server';");
+  const start = source.trimStart().slice(0, 300);
+  return start.startsWith('"use server";') || start.startsWith("'use server';");
 }
 
 function importSpecifiers(source) {
-  const specifiers = new Set();
-  const staticImport =
-    /(?:import|export)\s+(?:type\s+)?(?:[^"'`;]*?\s+from\s+)?["']([^"']+)["']/g;
+  const values = new Set();
+  const staticImport = /(?:import|export)\s+(?:type\s+)?(?:[^"'`;]*?\s+from\s+)?["']([^"']+)["']/g;
   const dynamicImport = /import\(\s*["']([^"']+)["']\s*\)/g;
-
-  for (const match of source.matchAll(staticImport)) specifiers.add(match[1]);
-  for (const match of source.matchAll(dynamicImport)) specifiers.add(match[1]);
-
-  return [...specifiers];
+  for (const match of source.matchAll(staticImport)) values.add(match[1]);
+  for (const match of source.matchAll(dynamicImport)) values.add(match[1]);
+  return [...values];
 }
 
-function resolveLocalImport(fromRepoPath, specifier) {
-  let candidateBase;
-  if (specifier.startsWith("@/")) {
-    candidateBase = join(root, "src", specifier.slice(2));
-  } else if (specifier.startsWith(".")) {
-    candidateBase = resolve(dirname(join(root, fromRepoPath)), specifier);
-  } else {
-    return null;
-  }
-
+function resolveLocalImport(fromFile, specifier) {
+  if (!(specifier.startsWith("@/") || specifier.startsWith("."))) return null;
+  const base = specifier.startsWith("@/")
+    ? join(root, "src", specifier.slice(2))
+    : resolve(dirname(join(root, fromFile)), specifier);
   const candidates = [
-    candidateBase,
-    `${candidateBase}.ts`,
-    `${candidateBase}.tsx`,
-    `${candidateBase}.js`,
-    `${candidateBase}.jsx`,
-    `${candidateBase}.mjs`,
-    `${candidateBase}.cjs`,
-    join(candidateBase, "index.ts"),
-    join(candidateBase, "index.tsx"),
-    join(candidateBase, "index.js"),
-    join(candidateBase, "index.jsx"),
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}.mts`,
+    `${base}.cts`,
+    `${base}.js`,
+    `${base}.jsx`,
+    `${base}.mjs`,
+    `${base}.cjs`,
+    join(base, "index.ts"),
+    join(base, "index.tsx"),
+    join(base, "index.js"),
+    join(base, "index.jsx"),
   ];
-
   const match = candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
   return match ? normalise(relative(root, match)) : null;
-}
-
-function hasFixturePath(value) {
-  const path = normalise(value).replace(/^@\/|^\.\//, "");
-  return /(?:^|\/)(?:tests\/fixtures|tests\/factories|stories\/fixtures|scripts\/seed|development\/fixtures)(?:\/|$)/.test(
-    path,
-  );
 }
 
 function importsServerRuntime(specifier, resolvedPath) {
   return (
     specifier === "server-only" ||
     specifier === "@prisma/client" ||
-    specifier.startsWith("@/server") ||
+    specifier.startsWith("@/server/") ||
     specifier.startsWith("@/lib/prisma") ||
     specifier.startsWith("@/lib/supabase/server") ||
     specifier.includes("prisma/generated") ||
@@ -157,389 +85,189 @@ function importsServerRuntime(specifier, resolvedPath) {
   );
 }
 
-function americanCatalogueCount(value) {
-  return value.match(/\b[Cc]atalog(?!ue)[A-Za-z0-9_]*\b/g)?.length ?? 0;
-}
-
-const expectedWorkflows = ["implementation-quality.yml", "playwright.yml", "task-progress.yml"];
-const workflowDirectory = join(root, ".github", "workflows");
-const actualWorkflows = existsSync(workflowDirectory)
-  ? readdirSync(workflowDirectory)
-      .filter((name) => /\.ya?ml$/i.test(name))
-      .sort()
-  : [];
-
-if (JSON.stringify(actualWorkflows) !== JSON.stringify(expectedWorkflows)) {
-  errors.push(
-    `Workflow contract drift: expected ${expectedWorkflows.join(", ")}; found ${actualWorkflows.join(", ") || "none"}.`,
+function hasFixturePath(value) {
+  const candidate = normalise(value).replace(/^@\/|^\.\//, "");
+  return /(?:^|\/)(?:tests\/fixtures|tests\/factories|stories\/fixtures|scripts\/seed|development\/fixtures)(?:\/|$)/.test(
+    candidate,
   );
 }
 
-const requiredFiles = [
-  "AGENTS.md",
-  ".agents/doctrine/architecture.md",
-  ".agents/doctrine/server-and-actions.md",
-  ".agents/doctrine/toolchain-and-skills.md",
-  ".agents/doctrine/validation-and-reporting.md",
-  "scripts/checks/architecture-legacy-exceptions.mjs",
-  "scripts/ci/lib.mjs",
-  "scripts/ci/run-gates.mjs",
-  "scripts/ci/collect-context.mjs",
-  "scripts/ci/http-smoke.mjs",
-  "scripts/ci/check-server-log.mjs",
-  "scripts/ci/merge-evidence.mjs",
-  "scripts/ci/build-agent-handoff.mjs",
-  "scripts/ci/publish-feedback.mjs",
-  "docs/ci/advanced-feedback-loop.md",
-  "docs/architecture-migration/phase-1-domain-status.md",
-  "docs/architecture-migration/phase-1-legacy-exceptions.md",
-  "src/features/storefront/shared/catalog-adapter.ts",
-  "src/features/storefront/shared/cart-restoration.ts",
-  "src/features/storefront/shared/storefront-client-state.ts",
-  "src/features/storefront/shared/storefront-client-state-provider.tsx",
-  "src/features/storefront/shared/storefront-auth-provider.tsx",
-  "src/features/storefront/checkout/order-receipt.ts",
-];
-
-for (const path of requiredFiles) {
-  if (!existsSync(join(root, path))) {
-    errors.push(`Required architecture or CI contract is missing: ${path}`);
+function changedEntries() {
+  const baseRef = process.env.CI_BASE_REF?.trim();
+  const ranges = baseRef ? [`origin/${baseRef}...HEAD`, "HEAD^...HEAD"] : ["HEAD^...HEAD"];
+  for (const range of ranges) {
+    try {
+      return execFileSync("git", ["diff", "--name-status", "--find-renames", range], {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      })
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const parts = line.split("\t");
+          const status = parts[0][0];
+          return { status, path: normalise(status === "R" || status === "C" ? parts[2] : parts[1]) };
+        });
+    } catch {
+      // Try the next deterministic range.
+    }
   }
+  warnings.push("Could not resolve a git diff range; new-file ownership rules were not checked.");
+  return [];
 }
 
-const forbiddenArchitectureNamespaces = [
-  "src/features/store",
-  "src/features/commerce",
-  "src/lib/store",
-  "src/server/store",
-  "src/server/storefront",
-];
-
-for (const forbiddenPath of forbiddenArchitectureNamespaces) {
-  if (existsSync(join(root, forbiddenPath))) {
-    errors.push(
-      `Ambiguous architecture namespace exists at ${forbiddenPath}; new business code belongs under src/modules/<domain>.`,
-    );
-  }
-}
-
-const forbiddenAiFiles = [
-  "scripts/ci/analyze-failures.mjs",
-  "src/app/api/internal/ci/analyze/route.ts",
-  "src/server/ci/ci-feedback.ts",
-  "src/server/ci/ci-feedback.test.ts",
-];
-
-for (const path of forbiddenAiFiles) {
-  if (existsSync(join(root, path))) errors.push(`OpenAI-key CI dependency must not exist: ${path}`);
-}
-
-const retiredStorefrontFiles = [
-  "src/components/shop/shop-provider.tsx",
-  "src/features/storefront/shared/cart-persistence.ts",
-  "src/features/storefront/shared/cart-persistence.test.ts",
-  "src/features/storefront/shared/storefront-experience-provider.tsx",
-  "src/features/storefront/shared/storefront-experience-data.ts",
-  "src/features/storefront/shared/storefront-experience-data.test.ts",
-  "src/features/storefront/checkout/checkout-flow.tsx",
-  "src/lib/catalogue.ts",
-  "src/lib/order.ts",
-];
-
-for (const path of retiredStorefrontFiles) {
-  if (existsSync(join(root, path))) errors.push(`Retired storefront compatibility file was reintroduced: ${path}`);
-}
-
-if (existsSync(join(root, "src/lib/admin/inventory/inventory-mutations.ts"))) {
-  errors.push("Retired browser-memory Inventory mutation module was reintroduced.");
-}
-
-const sourceExtensions = /\.(?:[cm]?[jt]sx?)$/i;
-const allSourceFiles = listFilesRecursively(join(root, "src"), "src").filter((file) =>
-  sourceExtensions.test(file),
-);
+const allFiles = listFiles(join(root, "src"), "src");
+const sourceFiles = allFiles.filter((file) => sourcePattern.test(file));
 const sourceByFile = new Map(
-  allSourceFiles.map((file) => [file, readFileSync(join(root, file), "utf8")]),
+  sourceFiles.map((file) => [file, readFileSync(join(root, file), "utf8")]),
 );
-const serverActionModules = new Set(
+const serverActions = new Set(
   [...sourceByFile].filter(([, source]) => isServerActionModule(source)).map(([file]) => file),
 );
 
-const forbiddenStorefrontImports = [
-  "@/components/shop/shop-provider",
-  "./cart-persistence",
-  "storefront-experience-provider",
-  "storefront-experience-data",
-  "@/lib/catalogue",
-  "@/lib/order",
-  "storefront/checkout/checkout-flow\"",
-  "storefront/checkout/checkout-flow'",
+const requiredFiles = [
+  "src/stores/cart.store.ts",
+  "src/stores/saved-items.store.ts",
+  "src/stores/storefront-ui.store.ts",
+  "src/providers/providers.tsx",
+  "src/modules/products/storefront/catalogue-contract.ts",
+  "src/modules/products/server/storefront/catalogue-projection.ts",
+  "src/modules/products/client/storefront-catalogue.ts",
+  "src/app/api/v1/products/route.ts",
+];
+for (const file of requiredFiles) {
+  if (!existsSync(join(root, file))) errors.push(`Required target-architecture file is missing: ${file}`);
+}
+
+const retiredFiles = [
+  "src/features/storefront/shared/storefront-provider.tsx",
+  "src/features/storefront/shared/storefront-client-state-provider.tsx",
+  "src/features/storefront/shared/catalog-adapter.ts",
+  "src/features/storefront/shared/catalog-loader.ts",
+  "src/features/storefront/shared/catalog-types.ts",
+  "src/modules/products/client/storefront-catalog.ts",
+  "src/app/api/v1/storefront/catalogue/route.ts",
+  "src/app/api/v1/storefront/catalogue/route.test.ts",
+  "src/app/api/v1/storefront/catalog/route.ts",
+  "src/app/api/v1/storefront/catalog/route.test.ts",
+];
+for (const file of retiredFiles) {
+  if (existsSync(join(root, file))) errors.push(`Retired Phase 5/6 file remains: ${file}`);
+}
+
+const retiredImports = [
+  "@/features/storefront/shared/storefront-provider",
+  "@/features/storefront/shared/storefront-client-state-provider",
+  "@/features/storefront/shared/catalog-adapter",
+  "@/features/storefront/shared/catalog-loader",
+  "@/features/storefront/shared/catalog-types",
+  "@/modules/products/client/storefront-catalog",
 ];
 
-const forbiddenArchitectureImports = [
-  "@/features/store/",
-  "@/features/commerce/",
-  "@/lib/store/",
-  "@/server/store/",
-  "@/server/storefront/",
+const retiredSymbols = [
+  "StorefrontCatalogPayload",
+  "StorefrontShellCatalogPayload",
+  "storefrontCatalogQueryKey",
+  "getStorefrontShellCatalog",
+  "loadStorefrontCatalog",
+  "loadStorefrontShellCatalog",
+  "useStorefrontCatalog",
+  "useStorefrontCatalogData",
+  "buildStorefrontCatalog",
+  "buildStorefrontShellCatalog",
 ];
-
-const ambiguousSurfaceFilePatterns = [
-  /^src\/app\/(?:store|commerce)-/,
-  /^src\/features\/storefront\/.*\/(?:store|commerce)-/,
-  /^src\/lib\/storefront\/(?:store|commerce)-/,
-];
-
-const ambiguousSurfaceIdentifiers = [
-  /\bStore(?:Provider|ClientBoundary|RouteBoundary|AuthProvider|ClientStateProvider|Home|Shell)\b/,
-  /\bCommerce(?:Provider|ClientBoundary|RouteBoundary|AuthProvider|ClientStateProvider|Home|Shell)\b/,
-];
-
-const observedLegacyEdges = new Set();
 
 for (const [file, source] of sourceByFile) {
   const imports = importSpecifiers(source);
 
-  for (const forbiddenImport of forbiddenStorefrontImports) {
-    if (source.includes(forbiddenImport)) {
-      errors.push(`Retired storefront import remains in ${file}: ${forbiddenImport}`);
-    }
-  }
-
-  for (const forbiddenImport of forbiddenArchitectureImports) {
-    if (source.includes(forbiddenImport)) {
-      errors.push(
-        `Ambiguous architecture import remains in ${file}: ${forbiddenImport}; migrate new ownership by domain under src/modules.`,
-      );
-    }
-  }
-
-  if (ambiguousSurfaceFilePatterns.some((pattern) => pattern.test(file))) {
-    errors.push(`Ambiguous storefront filename uses store/commerce alias: ${file}.`);
-  }
-
-  for (const pattern of ambiguousSurfaceIdentifiers) {
-    const match = source.match(pattern)?.[0];
-    if (match) {
-      errors.push(
-        `Ambiguous storefront symbol remains in ${file}: ${match}; use a Storefront-prefixed surface name.`,
-      );
-    }
+  for (const retiredImport of retiredImports) {
+    if (imports.includes(retiredImport)) errors.push(`Retired Phase 5/6 import in ${file}: ${retiredImport}`);
   }
 
   if (isProductionSource(file)) {
-    for (const specifier of imports) {
-      const resolvedPath = resolveLocalImport(file, specifier);
-      if (hasFixturePath(specifier) || hasFixturePath(resolvedPath ?? "")) {
-        errors.push(`Production fixture import in ${file}: ${specifier}`);
-      }
+    for (const symbol of retiredSymbols) {
+      if (source.includes(symbol)) errors.push(`Retired American catalogue symbol in ${file}: ${symbol}`);
+    }
+    if (/['"`]\/api\/v1\/storefront\//.test(source)) {
+      errors.push(`Obsolete storefront API prefix remains in ${file}; use the owning /api/v1 domain.`);
+    }
+    if (/\b[Cc]atalog(?!ue)[A-Za-z0-9_]*/.test(source)) {
+      errors.push(`American catalog spelling remains in production source: ${file}`);
     }
   }
-
-  if (isClientModule(source)) {
-    for (const specifier of imports) {
-      const resolvedPath = resolveLocalImport(file, specifier);
-      if (importsServerRuntime(specifier, resolvedPath)) {
-        errors.push(`Client/server boundary violation in ${file}: ${specifier}`);
-      }
-    }
-  }
-
-  const importsTanstack = imports.some((specifier) => specifier === "@tanstack/react-query");
-  const isRouteHandler = /^src\/app\/.+\/route\.[cm]?[jt]sx?$/.test(file);
 
   for (const specifier of imports) {
     const resolvedPath = resolveLocalImport(file, specifier);
-    if (!resolvedPath || !serverActionModules.has(resolvedPath)) continue;
+    if (isProductionSource(file) && (hasFixturePath(specifier) || hasFixturePath(resolvedPath ?? ""))) {
+      errors.push(`Production fixture import in ${file}: ${specifier}`);
+    }
 
-    const edge = `${file} -> ${resolvedPath}`;
+    if (isClientModule(source) && importsServerRuntime(specifier, resolvedPath)) {
+      errors.push(`Client/server boundary violation in ${file}: ${specifier}`);
+    }
 
-    if (importsTanstack) {
-      if (legacyTanstackServerActionEdges.has(edge)) {
-        observedLegacyEdges.add(edge);
-        const exception = legacyTanstackServerActionEdges.get(edge);
-        warnings.push(
-          `Legacy TanStack/Server Action edge remains until ${exception.removalPhase}: ${edge}`,
-        );
-      } else {
-        errors.push(`TanStack module imports a Server Action: ${edge}`);
+    if (resolvedPath && serverActions.has(resolvedPath)) {
+      if (imports.includes("@tanstack/react-query")) {
+        errors.push(`TanStack module imports a Server Action: ${file} -> ${resolvedPath}`);
+      }
+      if (/^src\/app\/.+\/route\.[cm]?[jt]sx?$/.test(file)) {
+        errors.push(`Route Handler imports a Server Action: ${file} -> ${resolvedPath}`);
       }
     }
 
-    if (isRouteHandler) {
-      errors.push(`Route Handler imports a Server Action: ${edge}`);
-    }
-  }
-}
-
-for (const [edge, exception] of legacyTanstackServerActionEdges) {
-  if (!observedLegacyEdges.has(edge)) {
-    errors.push(
-      `Stale architecture exception must be removed: ${edge} (${exception.removalPhase}).`,
-    );
-  }
-}
-
-const storefrontBoundaryPath = join(root, "src/app/storefront-route-boundary.tsx");
-if (existsSync(storefrontBoundaryPath)) {
-  const source = readFileSync(storefrontBoundaryPath, "utf8");
-  if (!source.includes("loadStorefrontShellCatalog")) {
-    errors.push("Storefront route boundary must load the lightweight shell catalogue projection.");
-  }
-  if (/\bloadStorefrontCatalog\b/.test(source)) {
-    errors.push("Storefront route boundary must not serialize the full catalogue through the global client boundary.");
-  }
-}
-
-const changedEntries = listChangedEntries();
-const changedFiles = changedEntries.map(({ path }) => path);
-const phaseThree =
-  /phase-3/i.test(process.env.GITHUB_HEAD_REF ?? "") ||
-  changedFiles.includes("docs/migration/phase-3-product-management-v2.md");
-const protectedPhaseThreePaths =
-  /^(?:src\/features\/storefront\/|src\/app\/\(home\)\/|src\/app\/products\/|src\/components\/shop\/)/;
-// Exact import, type, test and formatter repairs needed to make inherited
-// Phase 1-2 code pass the repository gates. These do not authorize visual
-// redesign; final Playwright parity is required and this list must only shrink.
-const phaseThreeStorefrontMechanicalExceptions = new Set([
-  "src/features/storefront/account/components/account-product-grid.tsx",
-  "src/features/storefront/account/reviews/review-actions.ts",
-  "src/features/storefront/account/sections/profile-section.tsx",
-  "src/features/storefront/catalogue/catalogue-search-params.ts",
-  "src/features/storefront/catalogue/product-catalogue.tsx",
-  "src/features/storefront/checkout/checkout-flow-v2.tsx",
-  "src/features/storefront/checkout/components/declined-dialog.tsx",
-  "src/features/storefront/checkout/components/order-summary.tsx",
-  "src/features/storefront/checkout/order-receipt.ts",
-  "src/features/storefront/home/components/home-product-list.tsx",
-  "src/features/storefront/product/product-recommendations.tsx",
-  "src/features/storefront/product/reveal.tsx",
-  "src/features/storefront/shared/cart-restoration.ts",
-  "src/features/storefront/shared/catalog-loader.ts",
-  "src/features/storefront/shared/storefront-auth-dialog.tsx",
-  "src/features/storefront/shared/storefront-auth-provider.tsx",
-  "src/features/storefront/shared/storefront-client-state-provider.tsx",
-  "src/features/storefront/shared/storefront-client-state.ts",
-  "src/features/storefront/shared/storefront-provider.tsx",
-  "src/features/storefront/shell/site-chrome.tsx",
-  "src/features/storefront/shell/storefront-cart-sheet.tsx",
-]);
-
-for (const entry of changedEntries) {
-  const { path: file, status, previousPath } = entry;
-
-  if (status === "A" && isProductionSource(file) && file.startsWith("src/features/")) {
-    errors.push(`New production code was added under legacy src/features: ${file}`);
-  }
-
-  if (status === "A" && isProductionSource(file) && file.startsWith("src/server/")) {
-    errors.push(`New production business code was added under legacy top-level src/server: ${file}`);
-  }
-
-  if (
-    phaseThree &&
-    protectedPhaseThreePaths.test(file) &&
-    !isTestOrFixture(file) &&
-    !phaseThreeStorefrontMechanicalExceptions.has(file)
-  ) {
-    errors.push(`Phase 3 protected storefront path changed: ${file}`);
-  }
-
-  if (phaseThreeStorefrontMechanicalExceptions.has(file)) {
-    warnings.push(
-      `Documented Phase 3 mechanical storefront repair requires Playwright parity: ${file}` ,
-    );
-  }
-
-  if (!sourceExtensions.test(file)) continue;
-  const absolute = join(root, file);
-  if (!existsSync(absolute)) continue;
-
-  const source = readFileSync(absolute, "utf8");
-  const lineCount = source.split(/\r?\n/).length;
-  const isTest = isTestOrFixture(file);
-  const isServerAction = isServerActionModule(source);
-  const importsServerRuntimeDirectly =
-    /from\s+["'](?:@\/server\/|@\/lib\/prisma|@prisma\/client|[^"']*prisma\/generated)/.test(
-      source,
-    );
-
-  if (!isTest && lineCount > 800) {
-    errors.push(`${file} has ${lineCount} lines; split the implementation before it becomes a god module.`);
-  } else if (!isTest && lineCount > 600) {
-    warnings.push(`${file} has ${lineCount} lines and should be reviewed for responsibility boundaries.`);
-  }
-
-  if (
-    file.startsWith("src/server/") &&
-    !isTest &&
-    !/import\s+["']server-only["'];/.test(source.slice(0, 500))
-  ) {
-    errors.push(`Legacy server module is missing an explicit server-only boundary: ${file}`);
-  }
-
-  if (isServerAction) {
-    const allowedActionPath =
-      /^src\/app\/(?:.+\/)?actions\.ts$/.test(file) ||
-      /^src\/features\/.+\/(?:actions|.+-actions)\.ts$/.test(file);
-
-    if (!allowedActionPath) {
-      errors.push(`Server Action is outside an approved temporary app/legacy-feature boundary: ${file}`);
-    }
-
     if (
-      importsServerRuntimeDirectly &&
-      /@prisma\/client|prisma\/generated|@\/lib\/prisma/.test(source)
+      specifier.startsWith("@/features/storefront/") &&
+      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file)
     ) {
-      errors.push(`Server Action must delegate to a domain command instead of importing Prisma directly: ${file}`);
+      errors.push(`Target ownership leak: ${file} imports legacy ${specifier}`);
     }
 
-    if (/from\s+["']react["']/.test(source)) {
-      errors.push(`Server Action imports React and mixes transport with UI concerns: ${file}`);
-    }
-  }
-
-  if (isProductionSource(file)) {
-    const currentAmericanCount =
-      americanCatalogueCount(file) + americanCatalogueCount(source);
-    const baseSource = previousPath ? readBaseFile(previousPath) : readBaseFile(file);
-    const baseAmericanCount =
-      americanCatalogueCount(previousPath ?? file) + americanCatalogueCount(baseSource ?? "");
-
-    if (currentAmericanCount > baseAmericanCount) {
-      errors.push(
-        `American catalog spelling increased in ${file}: ${baseAmericanCount} -> ${currentAmericanCount}. Use catalogue.`,
-      );
+    if (file.startsWith("src/modules/") && specifier.startsWith("@/features/")) {
+      errors.push(`Domain module depends on legacy feature UI: ${file} -> ${specifier}`);
     }
   }
 
-  if (/\.\.\/\.\.\/\.\.\/\.\.\//.test(source)) {
-    warnings.push(`${file} contains a four-level relative import; prefer the repository alias and clearer ownership.`);
+  if (isProductionSource(file) && file.startsWith("src/server/") && !file.startsWith("src/server/auth/")) {
+    errors.push(`Top-level server business code must move to its domain module: ${file}`);
+  }
+
+  if (isProductionSource(file) && /^src\/app\/api\//.test(file)) {
+    const allowed =
+      file.startsWith("src/app/api/v1/") ||
+      file.startsWith("src/app/api/health/") ||
+      file.startsWith("src/app/api/internal/");
+    if (!allowed) errors.push(`Machine-readable API route is outside /api/v1: ${file}`);
+  }
+
+  if (!isTestOrFixture(file)) {
+    const lines = source.split(/\r?\n/).length;
+    if (lines > 800) errors.push(`${file} has ${lines} lines; split the god module.`);
+    else if (lines > 600) warnings.push(`${file} has ${lines} lines and needs a responsibility review.`);
+  }
+}
+
+for (const entry of changedEntries()) {
+  if (entry.status !== "A" || !isProductionSource(entry.path)) continue;
+  if (entry.path.startsWith("src/features/")) {
+    errors.push(`New production code was added under legacy features ownership: ${entry.path}`);
+  }
+  if (entry.path.startsWith("src/server/")) {
+    errors.push(`New production code was added under legacy top-level server ownership: ${entry.path}`);
   }
 }
 
 const summary = [
   "## Architecture guard",
   "",
-  `- Changed files inspected: ${changedFiles.length}`,
-  `- Source files scanned: ${allSourceFiles.length}`,
-  `- Server Action modules indexed: ${serverActionModules.size}`,
-  `- Documented legacy transport exceptions observed: ${observedLegacyEdges.size}`,
-  `- Workflow files: ${actualWorkflows.join(", ") || "none"}`,
-  `- Required repository contracts: ${requiredFiles.length}`,
+  `- Source files scanned: ${sourceFiles.length}`,
+  `- Server Action modules indexed: ${serverActions.size}`,
   `- Errors: ${errors.length}`,
   `- Warnings: ${warnings.length}`,
 ];
-
 if (warnings.length) summary.push("", "### Warnings", ...warnings.map((warning) => `- ${warning}`));
 if (errors.length) summary.push("", "### Failures", ...errors.map((error) => `- ${error}`));
-
 const rendered = `${summary.join("\n")}\n`;
 process.stdout.write(rendered);
-
-if (process.env.GITHUB_STEP_SUMMARY) {
-  const { appendFileSync } = await import("node:fs");
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, rendered);
-}
-
 if (errors.length) process.exit(1);

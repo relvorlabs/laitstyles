@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { CartProduct, CartSelection } from "@/features/storefront/shared/cart-lines";
+import type { CartProduct, CartSelection } from "@/modules/cart/cart-lines";
 import { cartStore } from "@/stores/cart.store";
 
 const product: CartProduct = {
@@ -7,7 +7,7 @@ const product: CartProduct = {
   price: 25_000,
   stock: 3,
   status: "available",
-  inventory: "stocked",
+  inventory: "matching-stock",
 };
 
 const variantProduct: CartProduct = {

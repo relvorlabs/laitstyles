@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { StorefrontHome } from "@/features/storefront/home/storefront-home";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 
 export const metadata: Metadata = {
   title: "Laitstyles — Curated Premium Fashion",

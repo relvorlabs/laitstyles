@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { RevealDiv } from "@/features/storefront/shared/reveal";
-import { IconArrow } from "@/features/storefront/shared/storefront-icons";
+import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function HomeSectionHeading({
   eyebrow,

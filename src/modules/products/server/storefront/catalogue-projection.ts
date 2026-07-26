@@ -1,5 +1,9 @@
 import { koboToNaira } from "@/lib/money";
-import type { CategoryWithImage, ProductDetail, ProductSummary } from "@/lib/storefront/types";
+import type {
+  CategoryWithImage,
+  ProductDetail,
+  ProductSummary,
+} from "@/modules/products/storefront-types";
 import type {
   StorefrontCatalogueCategory,
   StorefrontCataloguePayload,

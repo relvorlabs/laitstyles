@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { useStorefrontCatalogData } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { CategorySection } from "./sections/category-section";
 import { HeroSection } from "./sections/hero-section";
 import { NewArrivalsSection } from "./sections/new-arrivals-section";
@@ -15,7 +15,7 @@ import { TrustSection } from "./sections/trust-section";
 export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
   void fontClassName;
   const router = useRouter();
-  const { products } = useStorefrontCatalogData();
+  const { products } = useStorefrontCatalogueData();
   const newArrivals = products.filter((product) => product.new).slice(0, 8);
   const oneOfOneEdit = products
     .filter((product) => product.inventory === "one-of-one" && product.status === "available")
@@ -32,7 +32,7 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
       const params = new URLSearchParams();
       if (options.category) params.set("category", options.category);
       if (options.collection) {
-        if (options.collection === "under-25") params.set("maxPrice", "25000");
+        if (options.collection === "under-25") params.set("max", "25000");
         else if (options.collection === "grade-a-plus") params.set("condition", "A+");
         else params.set("collection", options.collection);
       }

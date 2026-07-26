@@ -1,16 +1,16 @@
 "use client";
 
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
-import { ProductCard } from "@/features/storefront/shared/product-card";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { ProductCard } from "@/modules/products/ui/storefront/product-card";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
   useStorefrontCart,
-  useStorefrontCatalogData,
+  useStorefrontCatalogueData,
   useStorefrontHolds,
   useStorefrontSavedItems,
-} from "@/features/storefront/shared/storefront-runtime";
-import { cn } from "@/lib/utils";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 
 const layouts = {
   grid: "grid gap-5 sm:grid-cols-2 xl:grid-cols-3",
@@ -26,11 +26,11 @@ export function AccountProductGrid({
   layout?: keyof typeof layouts;
   className?: string;
 }) {
-  const catalog = useStorefrontCatalogData();
+  const catalogue = useStorefrontCatalogueData();
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
-  const lookup = new Map(catalog.products.map((product) => [product.id, product]));
+  const lookup = new Map(catalogue.products.map((product) => [product.id, product]));
 
   return (
     <div className={cn(layouts[layout], className)}>

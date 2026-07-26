@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ProductDetail } from "@/features/storefront/product/product-detail";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
   loadStorefrontProductSlugs,
-} from "@/features/storefront/shared/catalogue-loader";
-import { inventoryLabel, money, productSlug } from "@/features/storefront/shared/catalogue-data";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
-import { getPublicProductReviews } from "@/server/commerce/reviews/public-reviews";
+} from "@/modules/products/server/storefront/catalogue-loader";
+import {
+  inventoryLabel,
+  money,
+  productSlug,
+} from "@/modules/products/ui/storefront/catalogue-data";
+import { ProductDetail } from "@/modules/products/ui/storefront/product-detail";
+import { getPublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import ProductDetailLoading from "./loading";
 
 type Params = { slug: string };
@@ -42,9 +46,6 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-// The product read comes from the cached catalogue repository (cacheTag
-// "catalogue", minutes lifetime); the static shell is the route's own loading
-// skeleton and the content streams in around it.
 export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
   return (
     <Suspense fallback={<ProductDetailLoading />}>
@@ -127,8 +128,6 @@ function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-// Pre-render every published product detail page at build time (needs a
-// reachable database during `next build`).
 export async function generateStaticParams() {
   const slugs = await loadStorefrontProductSlugs();
   return slugs.map((slug) => ({ slug }));

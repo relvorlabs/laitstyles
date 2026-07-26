@@ -1,6 +1,6 @@
 "use client";
 
-import type { Product } from "@/features/storefront/shared/catalogue-data";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 import { HomeProductList } from "../components/home-product-list";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import type { OpenHomeShop } from "../home-types";

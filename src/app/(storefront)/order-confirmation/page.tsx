@@ -11,7 +11,7 @@ import {
   parseOrderReceiptSnapshot,
   subscribeToLatestOrder,
 } from "@/features/storefront/checkout/order-receipt";
-import { money } from "@/features/storefront/shared/catalogue-data";
+import { money } from "@/modules/products/ui/storefront/catalogue-data";
 
 export default function OrderConfirmationPage() {
   const receiptSnapshot = useSyncExternalStore(

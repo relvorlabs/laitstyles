@@ -3,7 +3,7 @@
 import {
   useStorefrontOverlay,
   useStorefrontRecent,
-} from "@/features/storefront/shared/storefront-runtime";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 import { HomeProductList } from "../components/home-product-list";
 import { HomeSectionHeading } from "../components/home-section-heading";
 

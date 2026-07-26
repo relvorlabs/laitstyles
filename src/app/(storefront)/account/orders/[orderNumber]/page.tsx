@@ -1,10 +1,10 @@
 import { notFound, redirect } from "next/navigation";
+import { getAccountOrder } from "@/modules/orders/server/account-orders";
 import {
   OrderDetailSection,
   type OrderReviewNotice,
-} from "@/features/storefront/account/sections/order-detail-section";
+} from "@/modules/orders/ui/storefront/order-detail-section";
 import { getCurrentSession } from "@/server/auth/session";
-import { getAccountOrder } from "@/server/commerce/orders/account-orders";
 
 export default async function AccountOrderDetailPage({
   params,

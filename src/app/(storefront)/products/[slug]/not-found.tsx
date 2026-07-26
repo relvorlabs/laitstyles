@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import "@/features/storefront/shared/storefront.css";
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 
 export default function NotFound() {
   return (

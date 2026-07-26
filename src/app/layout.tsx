@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-// The canonical Manrope/Newsreader typography is loaded once here via next/font
-// and exposed as --font-storefront-* for the whole app.
-import { storefrontFontClassName } from "@/features/storefront/shared/storefront-fonts";
 import { cn } from "@/lib/utils";
+import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import { AppProvider } from "@/providers/providers";
 import "./theme-entry.css";
 

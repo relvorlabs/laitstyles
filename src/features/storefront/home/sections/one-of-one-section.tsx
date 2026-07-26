@@ -1,7 +1,7 @@
 "use client";
 
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openQuickView } from "@/features/storefront/shared/storefront-overlay-events";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import { OneOfOneCard } from "../components/one-of-one-card";
 import type { OpenHomeShop } from "../home-types";
