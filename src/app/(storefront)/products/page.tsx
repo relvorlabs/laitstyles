@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import {
   type CatalogueSearchParams,
   parseCatalogueSearchParams,
-} from "@/features/storefront/catalogue/catalogue-search-params";
-import { ProductCatalogue } from "@/features/storefront/catalogue/product-catalogue";
+} from "@/modules/products/client/catalogue-search-params";
 import { queryStorefrontCataloguePage } from "@/modules/products/server/storefront/page";
+import { ProductCatalogue } from "@/modules/products/ui/storefront/product-catalogue";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 
 export const metadata: Metadata = {
