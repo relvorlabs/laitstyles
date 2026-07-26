@@ -4,21 +4,21 @@ import Image from "next/image";
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { koboToNaira } from "@/lib/money";
+import { inventoryLabel, money, productById } from "@/modules/products/ui/storefront/catalogue-data";
 import {
   openImageViewer,
   subscribeQuickView,
   subscribeTransientOverlayClose,
-} from "../storefront-overlay-events";
+} from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   useStorefrontCart,
   useStorefrontCatalogueData,
   useStorefrontOverlay,
   useStorefrontRecent,
   useStorefrontSavedItems,
-} from "../storefront-runtime";
-import { useOverlayLifecycle } from "../use-overlay-lifecycle";
-import { inventoryLabel, money, productById } from "../catalogue-data";
-import { IconClose, IconHeart } from "../storefront-icons";
+} from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose, IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
+import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
 
 export function QuickViewOverlay() {
   const catalogue = useStorefrontCatalogueData();
