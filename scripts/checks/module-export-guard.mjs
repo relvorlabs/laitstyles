@@ -253,6 +253,7 @@ export function runModuleExportGuard(root = process.cwd()) {
   const moduleFiles = [
     ...listFiles(join(root, "src"), /\.(?:[cm]?[jt]sx?|css)$/i),
     ...listFiles(join(root, "scripts", "checks")),
+    ...listFiles(join(root, "scripts", "auth")),
     ...listFiles(join(root, "prisma", "generated")),
   ];
   const assetFiles = listFiles(join(root, "prisma", "generated"), /\.wasm$/i);
