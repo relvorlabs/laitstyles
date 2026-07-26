@@ -6,9 +6,9 @@ import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
-import { openImageViewer } from "@/features/storefront/shared/storefront-overlay-events";
 import type { ProductImage } from "@/lib/storefront/types";
+import { openImageViewer } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import type { Product } from "./catalogue-data";
 
 type GallerySelection = {
   mediaKey: string;
