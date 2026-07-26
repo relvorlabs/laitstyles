@@ -1,4 +1,4 @@
-import type { ProductDetail, ProductVariantOption } from "@/lib/storefront/types";
+import type { ProductDetail, ProductVariantOption } from "@/modules/products/storefront-types";
 
 export type StorefrontCondition = "A+" | "A" | "B+";
 export type StorefrontInventory = "one-of-one" | "variant" | "matching-stock";
