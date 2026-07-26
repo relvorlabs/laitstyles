@@ -3,16 +3,20 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { OwnedReviewContext } from "@/modules/reviews/server/repository";
+import type { ReviewEligibilityReason, ReviewInput } from "@/modules/reviews/types";
 import {
   Eyebrow,
   panelClass,
   panelElevatedClass,
   StatusBadge,
-} from "@/features/storefront/account/components/account-primitives";
-import { cn } from "@/lib/utils";
-import type { OwnedReviewContext } from "@/modules/reviews/server/repository";
-import type { ReviewEligibilityReason, ReviewInput } from "@/modules/reviews/types";
-import { ReviewForm, type ReviewFormIntent } from "./review-form";
+} from "@/modules/storefront-shell/ui/account-primitives";
+import {
+  ReviewForm,
+  type ReviewFormAction,
+  type ReviewFormIntent,
+} from "./review-form";
 
 type FoundReviewContext = Extract<OwnedReviewContext, { found: true }>;
 
@@ -112,9 +116,13 @@ function purchaseState(context: FoundReviewContext) {
 export function ReviewPage({
   context,
   orderNumber,
+  submitAction,
+  withdrawAction,
 }: {
   context: FoundReviewContext;
   orderNumber: string;
+  submitAction: ReviewFormAction;
+  withdrawAction: ReviewFormAction;
 }) {
   const orderPath = `/account/orders/${encodeURIComponent(orderNumber)}`;
   const treatment = statusTreatment(context);
@@ -209,7 +217,9 @@ export function ReviewPage({
             intent={intentFor(context)}
             orderLineId={context.line.id}
             orderNumber={orderNumber}
+            submitAction={submitAction}
             unavailableMessage={unavailableMessage}
+            withdrawAction={withdrawAction}
           />
         </section>
       )}
