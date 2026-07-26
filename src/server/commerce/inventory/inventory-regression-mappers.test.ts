@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapInventoryProductRow } from "./inventory-mappers";
+import { mapAdminProductRow as mapInventoryProductRow } from "@/modules/products/server/mappers";
 
 const decimal = (value: number) => ({ toNumber: () => value });
 

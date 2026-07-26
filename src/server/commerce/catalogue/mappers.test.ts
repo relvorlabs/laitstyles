@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapProductDetail, mapProductSummary } from "./mappers";
+import { mapProductDetail, mapProductSummary } from "@/modules/products/server/storefront/mappers";
 
 type DetailRow = Parameters<typeof mapProductDetail>[0];
 type SummaryRow = Parameters<typeof mapProductSummary>[0];

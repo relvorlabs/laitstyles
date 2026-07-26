@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { mapInventoryCounts } from "@/modules/inventory/server/mappers";
 import {
-  decodeTaxonomyId,
-  mapInventoryCounts,
-  mapInventoryProductRow,
-  mapTaxonomyRow,
-} from "./inventory-mappers";
+  decodeProductTaxonomyId as decodeTaxonomyId,
+  mapAdminProductRow as mapInventoryProductRow,
+  mapProductTaxonomyRow as mapTaxonomyRow,
+} from "@/modules/products/server/mappers";
 
 const decimal = (value: number) => ({ toNumber: () => value });
 

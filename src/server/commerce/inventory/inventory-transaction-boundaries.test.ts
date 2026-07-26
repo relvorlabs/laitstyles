@@ -62,8 +62,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: harness.prisma,
 }));
 
-import { deleteInventoryProduct } from "./inventory-lifecycle-service";
-import { deleteInventoryTaxonomy } from "./inventory-taxonomy-service";
+import { deleteProduct as deleteInventoryProduct } from "@/modules/products/server/lifecycle-commands";
+import { deleteProductTaxonomy as deleteInventoryTaxonomy } from "@/modules/products/server/taxonomy-commands";
 
 beforeEach(() => {
   vi.clearAllMocks();

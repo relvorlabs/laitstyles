@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupVariantMeasurements } from "./variant-measurements";
+import { groupVariantMeasurements } from "@/modules/products/server/storefront/variant-measurements";
 
 describe("groupVariantMeasurements", () => {
   it("groups ordered measurements by variant", () => {

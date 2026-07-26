@@ -6,7 +6,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: { product_reviews: { findMany: mocks.findMany } },
 }));
 
-import { getPublicProductReviews } from "./public-reviews";
+import { getPublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
 
 function review(overrides: Record<string, unknown> = {}) {
   return {

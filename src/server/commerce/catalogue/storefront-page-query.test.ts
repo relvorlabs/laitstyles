@@ -4,8 +4,8 @@ import {
   storefrontConditionBuckets,
   storefrontInventoryBuckets,
   storefrontStandardOrderBy,
-} from "./storefront-page-query";
-import type { StorefrontCataloguePageQuery } from "./storefront-page-selection";
+} from "@/modules/products/server/storefront/page-query";
+import type { StorefrontCataloguePageQuery } from "@/modules/products/server/storefront/page-selection";
 
 function query(
   overrides: Partial<StorefrontCataloguePageQuery> = {},
