@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { ProductCard } from "@/features/storefront/shared/product-card";
-import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
@@ -12,6 +10,8 @@ import {
   useStorefrontHolds,
   useStorefrontSavedItems,
 } from "@/modules/storefront-shell/client/storefront-runtime";
+import type { Product } from "./catalogue-data";
+import { ProductCard } from "./product-card";
 import { selectProductRecommendations } from "./product-detail-presentation";
 
 export function ProductRecommendations({
