@@ -11,6 +11,39 @@
 **Current phase:** Phase 6 source complete; Phase 1–6 cross-phase acceptance in progress per `phase-1-6-full-acceptance-design.md`  
 **Overall status:** See [Reconciliation evidence](#reconciliation-evidence-2026-07-26) below — this section and the Phase 6 task ledger previously described a Zustand lockfile blocker that no longer exists and reported WS1 guard status that predated a guard-script fix. Both are corrected below with dated, executed evidence. No phase is newly accepted by this reconciliation.
 
+## Active cross-cutting change: provider centralization (2026-07-27)
+
+**Read this before touching any provider, layout, or query-client file.** A user-directed,
+in-progress change is collapsing the three-way provider split (root theme/toaster, admin's own
+`QueryProvider`, storefront's own `StorefrontQueryProvider`/`StorefrontAuthProvider`) into one
+shared root provider tree. Full design: `docs/superpowers/specs/2026-07-27-provider-centralization-design.md`.
+
+This is an explicit, recorded override of the Phase 7 "no auth-provider merge" exclusion — narrow
+in scope (client-side session-data context only; `src/server/auth/**`, sign-in/sign-up forms, and
+Supabase semantics are untouched). See that spec's "Recorded override" section.
+
+**Files this touches, so later Phase 2–6 work doesn't silently conflict with a different file
+shape than the original phase-1-3/phase-4-5 plans describe:**
+
+- Deleted: `src/providers/query-provider.tsx`, `src/providers/storefront-query-provider.tsx`,
+  `src/lib/query/admin-query-client.ts` (+ its test), `src/lib/query/storefront-query-client.ts`.
+- New: `src/lib/query/app-query-client.ts` (replaces both — single `APP_QUERY_DEFAULTS`,
+  `makeAppQueryClient()`, `getAppQueryClient()`), `src/providers/session-provider.tsx`.
+- Modified: `src/providers/providers.tsx`, `src/app/layout.tsx`, `src/app/admin/layout.tsx`,
+  `src/app/storefront-route-boundary.tsx`, `src/app/storefront-client-boundary.tsx`,
+  `src/features/storefront/shared/storefront-auth-provider.tsx` (narrowed to actions-only, reads
+  session via `useSession()` instead of an `authSession` prop), `src/server/auth/session.ts`
+  (`getCurrentSession` wrapped in `React.cache()` — no behavior change), `scripts/checks/layout-provider-contract.mjs`.
+- **Cache-policy change:** admin and storefront queries now share one policy —
+  `staleTime: 5 * 60_000, retry: 1` (the storefront's prior values, kept over admin's prior
+  30 s/no-retry, per explicit user decision recorded in the spec). Any later Phase 4/5 work that
+  assumed the 30 s admin default should check this before relying on staleness timing; existing
+  mutation flows already invalidate explicitly and are expected to be unaffected.
+- WS2a's phase-1-6-full-acceptance.md verdict (written 2026-07-26, before this change) describes
+  the *previous* three-way split as matching the target tree. That description is superseded by
+  this change and will be updated once implementation lands — do not treat it as current during
+  the window this notice is active.
+
 ## Reconciliation evidence (2026-07-26)
 
 This pass corrected two stale claims and re-verified real status by executing commands, not by

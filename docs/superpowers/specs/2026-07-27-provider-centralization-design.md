@@ -108,16 +108,22 @@ catalogue prefetch/seeding and cart/saved/hold state.
 ## Component changes
 
 **One shared QueryClient.** `src/lib/query/app-query-client.ts` (new) exports `APP_QUERY_DEFAULTS`
-(`staleTime: 30_000, gcTime: 5 * 60_000, retry: false, refetchOnWindowFocus: false,
-refetchOnReconnect: true` — the current admin values), `makeAppQueryClient()`, and
-`getAppQueryClient()` using the existing `isServer` singleton pattern from
+(`staleTime: 5 * 60_000, gcTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false,
+refetchOnReconnect: true` — **the storefront's current values, per explicit user decision**,
+superseding this design's original recommendation of the admin values), `makeAppQueryClient()`,
+and `getAppQueryClient()` using the existing `isServer` singleton pattern from
 `admin-query-client.ts`. `create-query-client.ts` is unchanged — it's already the shared factory
 both old clients used. `admin-query-client.ts`, `admin-query-client.test.ts`, and
 `storefront-query-client.ts` are deleted; their three non-provider consumers
 (`storefront-catalogue.ts`, and the two providers being deleted) are updated. This is a real,
-accepted behavior change: storefront queries move from 5 min stale / 1 retry to 30 s stale / no
-retry. Given the storefront catalogue is server-seeded and rarely refetched client-side, the
-impact is expected to be low, but it is a genuine trade-off of "one shared config," not a no-op.
+accepted behavior change in the other direction from the original recommendation: **admin queries
+move from 30 s stale / no retry to 5 min stale / 1 retry.** Admin data (inventory, orders, holds)
+will now be treated as fresh for up to 5 minutes client-side and will retry once on a transient
+failure, instead of refetching every 30 s with no retry. Any admin screen that assumed near-live
+data via the 30 s default should invalidate its query explicitly after a mutation rather than rely
+on the shorter global staleTime — existing mutation flows already do authoritative
+replacement/targeted invalidation per the Phase 3 cache contract, so this is expected to be safe,
+but it is the one place this spec changes admin behavior rather than just wiring.
 
 **One shared session provider.** `src/providers/session-provider.tsx` (new) defines `AppSession`
 (`{ signedIn: boolean; email: string | null; displayName: string | null; role: StaffRole | null }`)
@@ -180,10 +186,12 @@ schema, HTTP contract, or Phase 8 checkout change is part of this spec.
 
 ## Risks and rollback
 
-- **Cache-policy change for storefront queries** (5 min→30 s stale, retry 1→0) is the one
-  behavior change beyond pure wiring. If it causes visible over-fetching or a real regression,
-  rollback is to revert this spec's commit as a unit — do not hand-patch the shared defaults back
-  to two separate configs, which would recreate the split this spec removes.
+- **Cache-policy change for admin queries** (30 s/no-retry → 5 min/1-retry, matching storefront's
+  prior values per explicit user decision) is the one behavior change beyond pure wiring. If any
+  admin screen shows stale data longer than acceptable, the fix is a targeted, explicit
+  invalidation/refetch at that screen's mutation site — not reverting to two separate configs,
+  which would recreate the split this spec removes. If the trade-off proves wrong globally,
+  rollback is to revert this spec's commit as a unit.
 - **Session provider narrows the storefront auth context's public shape.** Any consumer relying on
   `StorefrontAuthProvider` accepting an `authSession` prop directly (rather than reading
   `useSession()`) breaks at that call site; the file list above is the complete set of call sites

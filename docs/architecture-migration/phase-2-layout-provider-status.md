@@ -5,6 +5,16 @@
 **Status:** Implementation complete; acceptance validation blocked  
 **Goal:** Consolidate storefront layouts and place providers at the smallest correct runtime boundary while preserving route and visual parity.
 
+> **2026-07-27 superseding notice:** The provider scope this document describes (root theme/toaster
+> only; admin's own `QueryProvider`; storefront's own `StorefrontQueryProvider`/
+> `StorefrontAuthProvider`) is being deliberately collapsed into one shared root provider tree, per
+> direct user instruction. This is a recorded, narrow override of the Phase 7 auth-provider-merge
+> exclusion — see `docs/superpowers/specs/2026-07-27-provider-centralization-design.md` for the
+> full design, file list, and the accepted cache-policy trade-off. The P2-T06/P2-T07 rows below
+> describe the state *before* that change; they are historical once the new design lands, not
+> current. Do not use this document alone to judge current provider scope during or after that
+> implementation — check the linked spec first.
+
 ## Authority
 
 This checklist is derived from the approved Phase 2 goal in
