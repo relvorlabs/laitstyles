@@ -33,9 +33,15 @@ const authErrorPage = read("src/app/auth/error/page.tsx");
 const authProvider = read("src/features/storefront/shared/storefront-auth-provider.tsx");
 const authRedirects = read("src/lib/auth/server/redirects.ts");
 const authDiagnostics = read("src/lib/auth/server/auth-provider-diagnostics.ts");
-const reviewActions = read("src/features/storefront/account/reviews/review-actions.ts");
-const inventoryActions = read("src/features/admin/inventory/inventory-actions.ts");
-const inventoryActionSchema = read("src/lib/admin/inventory/inventory-action-schema.ts");
+const reviewActions = read(
+  "src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts",
+);
+const productSchema = read("src/modules/products/schema.ts");
+const productsRoute = read("src/app/api/v1/admin/products/route.ts");
+const productRoute = read("src/app/api/v1/admin/products/[id]/route.ts");
+const productArchiveRoute = read("src/app/api/v1/admin/products/[id]/archive/route.ts");
+const productRestoreRoute = read("src/app/api/v1/admin/products/[id]/restore/route.ts");
+const productTaxonomyRoute = read("src/app/api/v1/admin/products/taxonomy/[id]/route.ts");
 const browserContract = read("tests/e2e/error-validation.spec.ts");
 
 if (!canonicalResult.includes("export type Result<")) {
@@ -115,17 +121,29 @@ if (
 ) {
   errors.push("Expected review auth/link failures must return typed action state instead of throwing.");
 }
-if (!inventoryActions.includes("inventoryProductActionSchema.safeParse")) {
-  errors.push("Inventory save actions must validate serialized product payloads and intents.");
+if (
+  !productSchema.includes("productEditorDraftSchema") ||
+  !productSchema.includes("productMutationSchema") ||
+  !productsRoute.includes("parseJsonBody(request, productMutationSchema)") ||
+  !productRoute.includes("parseJsonBody(request, productMutationSchema)")
+) {
+  errors.push("Product create and update routes must validate payloads and intents with the domain schema.");
 }
-if (!inventoryActions.includes("inventoryProductIdSchema.safeParse")) {
-  errors.push("Inventory lifecycle actions must validate product identifiers at the action boundary.");
+if (
+  !productSchema.includes("productIdSchema") ||
+  !productRoute.includes("productIdSchema.safeParse") ||
+  !productArchiveRoute.includes("productIdSchema.safeParse") ||
+  !productRestoreRoute.includes("productIdSchema.safeParse")
+) {
+  errors.push("Product lifecycle routes must validate product identifiers at the transport boundary.");
 }
-if (!inventoryActions.includes("catalogueTaxonomyRenameSchema.safeParse")) {
-  errors.push("Inventory taxonomy actions must validate encoded identifiers and names.");
-}
-if (!inventoryActionSchema.includes("productEditorDraftSchema")) {
-  errors.push("Inventory action validation must reuse the canonical product editor schema.");
+if (
+  !productSchema.includes("productTaxonomyIdSchema") ||
+  !productSchema.includes("productTaxonomyRenameSchema") ||
+  !productTaxonomyRoute.includes("productTaxonomyIdSchema.safeParse") ||
+  !productTaxonomyRoute.includes("parseJsonBody(request, productTaxonomyRenameSchema)")
+) {
+  errors.push("Product taxonomy routes must validate encoded identifiers and names.");
 }
 
 const summary = [
