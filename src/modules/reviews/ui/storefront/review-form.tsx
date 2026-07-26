@@ -31,14 +31,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewInputSchema } from "@/modules/reviews/schema";
 import type { ReviewActionState, ReviewInput } from "@/modules/reviews/types";
-import { submitReviewAction, withdrawReviewAction } from "./review-actions";
 
 export type ReviewFormIntent = "create" | "edit" | "revise" | "resubmit";
+export type ReviewFormAction = (
+  previous: ReviewActionState,
+  formData: FormData,
+) => Promise<ReviewActionState>;
 
 export interface ReviewFormProps {
   orderNumber: string;
   orderLineId: string;
   intent: ReviewFormIntent;
+  submitAction: ReviewFormAction;
+  withdrawAction: ReviewFormAction;
   defaultValues?: Partial<ReviewInput>;
   allowWithdrawal?: boolean;
   canSubmit?: boolean;
@@ -59,6 +64,8 @@ export function ReviewForm({
   orderNumber,
   orderLineId,
   intent,
+  submitAction,
+  withdrawAction,
   defaultValues,
   allowWithdrawal = false,
   canSubmit = true,
@@ -73,9 +80,9 @@ export function ReviewForm({
       fit: defaultValues?.fit ?? "not_applicable",
     },
   });
-  const [state, formAction, pending] = useActionState(submitReviewAction, initialActionState);
-  const [withdrawState, withdrawAction, withdrawPending] = useActionState(
-    withdrawReviewAction,
+  const [state, formAction, pending] = useActionState(submitAction, initialActionState);
+  const [withdrawState, withdrawFormAction, withdrawPending] = useActionState(
+    withdrawAction,
     initialActionState,
   );
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -134,7 +141,7 @@ export function ReviewForm({
     data.set("orderNumber", orderNumber);
     data.set("orderLineId", orderLineId);
     setWithdrawOpen(false);
-    startTransition(() => withdrawAction(data));
+    startTransition(() => withdrawFormAction(data));
   }
 
   return (
