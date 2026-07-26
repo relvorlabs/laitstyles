@@ -1,7 +1,7 @@
 import {
   useStorefrontRecent,
   useStorefrontSavedItems,
-} from "@/features/storefront/shared/storefront-runtime";
+} from "@/modules/storefront-shell/client/storefront-runtime";
 
 /** Saved + recently-viewed product lists from focused storefront state. */
 export function useAccountProducts() {
