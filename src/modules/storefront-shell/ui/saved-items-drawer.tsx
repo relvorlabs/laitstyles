@@ -4,14 +4,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { openQuickView } from "../storefront-overlay-events";
+import { money } from "@/modules/products/ui/storefront/catalogue-data";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   useStorefrontCart,
   useStorefrontOverlay,
   useStorefrontSavedItems,
-} from "../storefront-runtime";
-import { money } from "../catalogue-data";
-import { IconClose, IconHeart } from "../storefront-icons";
+} from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose, IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function SavedItemsDrawer() {
   const router = useRouter();
