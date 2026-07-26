@@ -1,33 +1,33 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ImageViewerOverlay } from "@/features/storefront/shared/overlays/image-viewer-overlay";
-import { QuickViewOverlay } from "@/features/storefront/shared/overlays/quick-view-overlay";
 import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
+import { ImageViewerOverlay } from "@/modules/products/ui/storefront/overlays/image-viewer-overlay";
+import { QuickViewOverlay } from "@/modules/products/ui/storefront/overlays/quick-view-overlay";
 import { useStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
 
 const SearchOverlay = dynamic(() =>
-  import("@/features/storefront/shared/overlays/search-overlay").then(
+  import("@/modules/products/ui/storefront/overlays/search-overlay").then(
     (module) => module.SearchOverlay,
   ),
 );
 const SavedItemsDrawer = dynamic(() =>
-  import("@/features/storefront/shared/overlays/saved-items-drawer").then(
+  import("@/modules/storefront-shell/ui/saved-items-drawer").then(
     (module) => module.SavedItemsDrawer,
   ),
 );
 const FilterDrawer = dynamic(() =>
-  import("@/features/storefront/shared/overlays/filter-drawer").then(
+  import("@/modules/products/ui/storefront/overlays/filter-drawer").then(
     (module) => module.FilterDrawer,
   ),
 );
 const SortOverlay = dynamic(() =>
-  import("@/features/storefront/shared/overlays/sort-overlay").then(
+  import("@/modules/products/ui/storefront/overlays/sort-overlay").then(
     (module) => module.SortOverlay,
   ),
 );
 const InformationOverlays = dynamic(() =>
-  import("@/features/storefront/shared/overlays/information-overlays").then(
+  import("@/modules/storefront-shell/ui/information-overlays").then(
     (module) => module.InformationOverlays,
   ),
 );
