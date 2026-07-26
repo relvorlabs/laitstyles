@@ -1,8 +1,9 @@
 # Phase 7 — Authentication Consolidation Status
 
-**Status:** Refreshed bootstrap; runtime migration not started  
-**Branch:** `refactor/phase-7-auth-consolidation`  
-**Base merge:** `fe6616ecee79c11c856f3165cc46c63d68ad1e37`  
+**Status:** Active implementation; ownership audit is the current task  
+**Branch:** `refactor/phase-7-auth-implementation`  
+**Base merge:** `418f7d44e2a6f903d1a067cd96143b062047fed7`  
+**Current task:** P7-T01 — confirm the complete auth ownership and import map  
 **Scope:** Authentication ownership only
 
 ## Objective
@@ -11,7 +12,7 @@ Create one clear authentication domain under `src/modules/auth/**` while preserv
 
 ## Inherited baseline
 
-Phase 5–6 source architecture was merged through PR #46 and is now the Phase 7 baseline.
+The Phase 7 implementation branch starts from the merged authentication bootstrap and the completed Phase 5–6 source architecture repair.
 
 Inherited source decisions include:
 
@@ -23,7 +24,7 @@ Inherited source decisions include:
 - direct domain reads from Server Components;
 - principle-based architecture and module-export guards.
 
-The merged Phase 5–6 head was not dependency-backed certified in the connected runtime. Biome, TypeScript, architecture checks, Prisma validation, Vitest, build, React Doctor and Playwright must not be represented as passed until they execute on a current exact head.
+The inherited baseline was not dependency-backed certified in the connected runtime. Biome, TypeScript, architecture checks, Prisma validation, Vitest, build, React Doctor and Playwright must not be represented as passed until they execute on a current exact head.
 
 ## Phase 7-owned compatibility edge
 
@@ -38,7 +39,7 @@ The remaining `src/features/storefront/shared/storefront-runtime.ts` checkout ed
 
 ## Current ownership map
 
-Authentication responsibilities remain fragmented across locations including:
+Authentication responsibilities are expected across locations including:
 
 - `src/app/auth/actions.ts` — Next.js Server Action transport;
 - `src/app/auth/callback/route.ts` — OAuth callback browser flow;
@@ -49,7 +50,7 @@ Authentication responsibilities remain fragmented across locations including:
 - `src/lib/auth/**` — roles, capabilities, errors and shared helpers;
 - storefront auth provider/dialog files — customer-facing presentation and local dialog state.
 
-This map must be confirmed against the refreshed exact branch before moving code.
+This list is not accepted as complete until P7-T01 audits every auth file, import edge, runtime consumer, test and route on the exact implementation branch.
 
 ## Target ownership
 
@@ -99,10 +100,10 @@ Phase 7 must not:
 
 ## Task ledger
 
-- [x] P7-T00 refresh the Phase 7 branch onto the merged Phase 5–6 baseline;
-- [x] P7-T00A reconcile inherited architecture and validation truth;
-- [x] P7-T00B define Phase 7 scope and non-scope boundaries;
-- [ ] P7-T01 confirm the complete auth ownership/import map on the refreshed branch;
+- [x] P7-T00 merge the Phase 7 implementation contract into `main`;
+- [x] P7-T00A create the implementation branch from the exact bootstrap merge;
+- [x] P7-T00B activate the implementation ledger with scope and validation truth;
+- [ ] P7-T01 confirm the complete auth ownership/import map on the exact branch;
 - [ ] P7-T02 create `src/modules/auth` runtime contracts;
 - [ ] P7-T03 move session resolution;
 - [ ] P7-T04 move account provisioning;
@@ -136,9 +137,9 @@ Phase 7 is complete only when all of the following are proven:
 - the Phase 7 catalogue-data compatibility edge is deleted;
 - exact-head auth tests, architecture checks and browser contracts pass.
 
-## First implementation order
+## Implementation order
 
-1. Audit every auth import and consumer on the refreshed branch.
+1. Audit every auth import, consumer, route and test on the exact branch.
 2. Establish module-owned types and server contracts without changing behaviour.
 3. Move session and provisioning code with temporary compatibility only where strictly necessary.
 4. Thin app actions and redirect routes.
