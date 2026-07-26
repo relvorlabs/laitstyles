@@ -1,6 +1,10 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  legacyArchitectureExceptions,
+  legacyProductTypeOnlyEdge,
+} from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
@@ -13,13 +17,6 @@ const retiredProductPaths = [
   "@/features/storefront/shared/catalogue-data",
 ] as const;
 
-const documentedPhaseExceptions = new Map<string, ReadonlySet<string>>([
-  [
-    "src/features/storefront/shared/storefront-auth-dialog.tsx",
-    new Set(["@/features/storefront/shared/catalogue-data"]),
-  ],
-]);
-
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
 
 describe("Products module boundaries", () => {
@@ -31,9 +28,11 @@ describe("Products module boundaries", () => {
       const relative = normalize(path.relative(repositoryRoot, filePath));
       if (isTest(relative)) continue;
       const source = await readFile(filePath, "utf8");
-      const allowed = documentedPhaseExceptions.get(relative) ?? new Set<string>();
       for (const importPath of retiredProductPaths) {
-        if (source.includes(importPath) && !allowed.has(importPath)) {
+        const isTypeOnlyShimConsumer =
+          relative === legacyProductTypeOnlyEdge.importer &&
+          importPath === legacyProductTypeOnlyEdge.imported;
+        if (source.includes(importPath) && !isTypeOnlyShimConsumer) {
           offenders.push(`${relative} -> ${importPath}`);
         }
       }
@@ -43,16 +42,29 @@ describe("Products module boundaries", () => {
   });
 
   it("keeps every phase exception exact and type-only", async () => {
-    const source = await readFile(
-      path.join(repositoryRoot, "src/features/storefront/shared/catalogue-data.ts"),
+    const shimSource = await readFile(
+      path.join(repositoryRoot, legacyProductTypeOnlyEdge.shim),
+      "utf8",
+    );
+    const importerSource = await readFile(
+      path.join(repositoryRoot, legacyProductTypeOnlyEdge.importer),
       "utf8",
     );
 
-    expect(source.trim()).toContain(
+    expect(shimSource).toContain(
       'export type { Product } from "@/modules/products/ui/storefront/catalogue-data";',
     );
-    expect(source).not.toMatch(/export\s+\*/);
-    expect(documentedPhaseExceptions.size).toBe(1);
+    expect(shimSource).not.toMatch(/export\s+\*/);
+    expect(shimSource).not.toMatch(/export\s+(?!type\b)/);
+    expect(importerSource).toContain(
+      `import type { Product } from "${legacyProductTypeOnlyEdge.imported}";`,
+    );
+    expect(importerSource).not.toMatch(
+      new RegExp(
+        `import\\s+(?!type\\b)[^;]+from\\s+["']${escapeRegExp(legacyProductTypeOnlyEdge.imported)}["']`,
+      ),
+    );
+    expect(Object.isFrozen(legacyProductTypeOnlyEdge)).toBe(true);
   });
 
   it("keeps the Products domain independent of app, feature and top-level server layers", async () => {
@@ -64,7 +76,15 @@ describe("Products module boundaries", () => {
       if (isTest(relative)) continue;
       const source = await readFile(filePath, "utf8");
       for (const importPath of forbiddenProductModuleImports) {
-        if (source.includes(importPath)) offenders.push(`${relative} -> ${importPath}`);
+        const hasAllowedExactEdge = legacyArchitectureExceptions.some(
+          (entry) =>
+            entry.importer === relative &&
+            entry.imported.startsWith(importPath) &&
+            source.includes(entry.imported),
+        );
+        if (source.includes(importPath) && !hasAllowedExactEdge) {
+          offenders.push(`${relative} -> ${importPath}`);
+        }
       }
     }
 
@@ -102,4 +122,8 @@ function isTest(relative: string) {
 
 function normalize(value: string) {
   return value.split(path.sep).join("/");
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

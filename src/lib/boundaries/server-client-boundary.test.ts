@@ -1,6 +1,10 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  legacyArchitectureExceptions,
+  legacyTopLevelServerFiles,
+} from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
 
 const WORKSPACE_ROOT = process.cwd();
 const FORBIDDEN_CLIENT_IMPORTS = [
@@ -21,16 +25,9 @@ const LAYER_RULES = [
   { layer: "src/modules", forbidden: ["@/features", "@/app", "@/server"] },
 ] as const;
 
-// These are unrelated pre-existing admin migration exceptions. New entries are
-// prohibited; this repair removes an entry whenever its owner moves.
-const DOCUMENTED_PREEXISTING_EXCEPTIONS = new Set([
-  "src/lib/admin/customers/customers-mutations.ts",
-  "src/lib/admin/holds/holds-mutations.ts",
-  "src/lib/admin/orders/orders-mutations.ts",
-  "src/lib/admin/returns/returns-mutations.ts",
-  "src/lib/admin/settings/settings-mutations.ts",
-  "src/lib/admin/data/in-memory/admin-repositories.ts",
-]);
+const compatibilityEdges = new Set(
+  legacyArchitectureExceptions.map((entry) => `${entry.importer}->${entry.imported}`),
+);
 
 const CHECK_TIMEOUT_MS = 120_000;
 let cachedSourceFiles: string[] | undefined;
@@ -68,10 +65,18 @@ describe("server/client boundaries", () => {
           .map((filePath) => relative(WORKSPACE_ROOT, filePath).replaceAll("\\", "/"))
           .filter((repoPath) => repoPath.startsWith(`${layer}/`))
           .filter((repoPath) => !isTestFile(repoPath))
-          .filter((repoPath) => !DOCUMENTED_PREEXISTING_EXCEPTIONS.has(repoPath))
           .flatMap((repoPath) =>
             forbidden
               .filter((importPath) => importsModule(join(WORKSPACE_ROOT, repoPath), importPath))
+              .filter(
+                (importPath) =>
+                  !legacyArchitectureExceptions.some(
+                    (entry) =>
+                      entry.importer === repoPath &&
+                      entry.imported.startsWith(importPath) &&
+                      importsModule(join(WORKSPACE_ROOT, repoPath), entry.imported),
+                  ),
+              )
               .map((importPath) => `${repoPath} imports ${importPath}`),
           ),
       );
@@ -82,21 +87,24 @@ describe("server/client boundaries", () => {
   );
 
   it(
-    "keeps documented pre-existing exceptions honest",
+    "keeps compatibility exceptions exact, immutable, owned and scheduled",
     () => {
-      const stale = [...DOCUMENTED_PREEXISTING_EXCEPTIONS].filter((repoPath) => {
-        const rule = LAYER_RULES.find(({ layer }) => repoPath.startsWith(`${layer}/`));
-        if (!rule) return true;
-        try {
-          return !rule.forbidden.some((importPath) =>
-            importsModule(join(WORKSPACE_ROOT, repoPath), importPath),
-          );
-        } catch {
-          return true;
-        }
-      });
-
-      expect(stale).toEqual([]);
+      expect(Object.isFrozen(legacyArchitectureExceptions)).toBe(true);
+      expect(legacyArchitectureExceptions.every((entry) => Object.isFrozen(entry))).toBe(true);
+      expect(
+        legacyArchitectureExceptions.every(
+          (entry) =>
+            entry.importer.length > 0 &&
+            entry.imported.length > 0 &&
+            (entry.removalPhase === 7 || entry.removalPhase === 8) &&
+            (entry.owner === "domain-engineer" || entry.owner === "ui-engineer"),
+        ),
+      ).toBe(true);
+      expect(compatibilityEdges.size).toBe(legacyArchitectureExceptions.length);
+      expect([...legacyTopLevelServerFiles]).toEqual([
+        "src/server/auth/session.ts",
+        "src/server/auth/profile.ts",
+      ]);
     },
     CHECK_TIMEOUT_MS,
   );

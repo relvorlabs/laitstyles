@@ -1,6 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
+import {
+  legacyArchitectureExceptions,
+  legacyTopLevelServerFiles,
+} from "./architecture-legacy-exceptions.mjs";
 
 const root = process.cwd();
 const errors = [];
@@ -123,9 +127,19 @@ const sourceFiles = allFiles.filter((file) => sourcePattern.test(file));
 const sourceByFile = new Map(
   sourceFiles.map((file) => [file, readFileSync(join(root, file), "utf8")]),
 );
+const exceptionByEdge = new Map(
+  legacyArchitectureExceptions.map((entry) => [`${entry.importer}->${entry.imported}`, entry]),
+);
 const serverActions = new Set(
   [...sourceByFile].filter(([, source]) => isServerActionModule(source)).map(([file]) => file),
 );
+
+for (const entry of legacyArchitectureExceptions) {
+  const source = sourceByFile.get(entry.importer);
+  if (!source || !importSpecifiers(source).includes(entry.imported)) {
+    errors.push(`Stale architecture exception: ${entry.importer} -> ${entry.imported}`);
+  }
+}
 
 const requiredFiles = [
   "src/stores/cart.store.ts",
@@ -200,6 +214,24 @@ for (const [file, source] of sourceByFile) {
 
   for (const specifier of imports) {
     const resolvedPath = resolveLocalImport(file, specifier);
+    const edgeKey = `${file}->${specifier}`;
+    const isDeclaredCompatibilityEdge = exceptionByEdge.has(edgeKey);
+    const isAuthCompatibilityImport =
+      specifier === "@/server/auth/session" ||
+      specifier === "@/server/auth/profile" ||
+      specifier.startsWith("@/features/storefront/shared/storefront-auth-");
+    const isTargetCheckoutCompatibilityImport =
+      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) &&
+      specifier.startsWith("@/features/storefront/checkout/");
+
+    if (
+      isProductionSource(file) &&
+      (isAuthCompatibilityImport || isTargetCheckoutCompatibilityImport) &&
+      !isDeclaredCompatibilityEdge
+    ) {
+      errors.push(`Undocumented compatibility edge: ${file} -> ${specifier}`);
+    }
+
     if (isProductionSource(file) && (hasFixturePath(specifier) || hasFixturePath(resolvedPath ?? ""))) {
       errors.push(`Production fixture import in ${file}: ${specifier}`);
     }
@@ -219,17 +251,26 @@ for (const [file, source] of sourceByFile) {
 
     if (
       specifier.startsWith("@/features/storefront/") &&
-      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file)
+      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) &&
+      !isDeclaredCompatibilityEdge
     ) {
       errors.push(`Target ownership leak: ${file} imports legacy ${specifier}`);
     }
 
-    if (file.startsWith("src/modules/") && specifier.startsWith("@/features/")) {
+    if (
+      file.startsWith("src/modules/") &&
+      specifier.startsWith("@/features/") &&
+      !isDeclaredCompatibilityEdge
+    ) {
       errors.push(`Domain module depends on legacy feature UI: ${file} -> ${specifier}`);
     }
   }
 
-  if (isProductionSource(file) && file.startsWith("src/server/") && !file.startsWith("src/server/auth/")) {
+  if (
+    isProductionSource(file) &&
+    file.startsWith("src/server/") &&
+    !legacyTopLevelServerFiles.has(file)
+  ) {
     errors.push(`Top-level server business code must move to its domain module: ${file}`);
   }
 
