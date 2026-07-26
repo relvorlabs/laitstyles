@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CatalogueResults, parseSort } from "@/features/storefront/catalogue/catalogue-results";
 import type { CatalogueSort } from "@/lib/storefront/types";
 import {
   countPublishedProducts,
   getStorefrontCollectionBySlug,
   listPublishedProducts,
 } from "@/modules/products/server/storefront/queries";
+import {
+  CatalogueResults,
+  parseSort,
+} from "@/modules/products/ui/storefront/catalogue-results";
 
 type Params = { slug: string };
 type SearchParams = { sort?: string | string[] };
