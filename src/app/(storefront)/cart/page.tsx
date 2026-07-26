@@ -27,17 +27,12 @@ export default function CartPage() {
     ({ product }) => (holds.secondsByProduct[product.id] ?? 0) > 0,
   );
   const soonestHoldSeconds = heldLines.length
-    ? Math.min(
-        ...heldLines.map(({ product }) => holds.secondsByProduct[product.id] ?? 0),
-      )
+    ? Math.min(...heldLines.map(({ product }) => holds.secondsByProduct[product.id] ?? 0))
     : 0;
   const itemCount = cart.count;
 
   const totals = useMemo(() => {
-    const subtotal = cart.views.reduce(
-      (sum, line) => sum + line.unitPriceNaira * line.lineQty,
-      0,
-    );
+    const subtotal = cart.views.reduce((sum, line) => sum + line.unitPriceNaira * line.lineQty, 0);
     const discount = discountApplied ? Math.round(subtotal * 0.1) : 0;
     const shipping = itemCount ? 3500 : 0;
     const vat = Math.round((subtotal - discount) * 0.075);
@@ -118,9 +113,7 @@ export default function CartPage() {
                   {soonestHoldSeconds > 0 ? (
                     <>
                       Your next hold releases in{" "}
-                      <strong className="tabular-nums">
-                        {formatHoldTime(soonestHoldSeconds)}
-                      </strong>
+                      <strong className="tabular-nums">{formatHoldTime(soonestHoldSeconds)}</strong>
                     </>
                   ) : (
                     "Availability is confirmed again when you continue to checkout."
@@ -182,9 +175,7 @@ export default function CartPage() {
                               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D6DAC8] bg-[#F2F4EA] px-[11px] py-[5px] text-[11.5px] font-semibold text-[#4A5540]">
                                 <Clock aria-hidden="true" className="size-3" />
                                 Held ·{" "}
-                                <span className="tabular-nums">
-                                  {formatHoldTime(holdSeconds)}
-                                </span>
+                                <span className="tabular-nums">{formatHoldTime(holdSeconds)}</span>
                               </span>
                             ) : product.inventory === "one-of-one" ? (
                               <Button

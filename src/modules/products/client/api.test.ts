@@ -34,10 +34,7 @@ describe("product browser API", () => {
   it("returns null only for a typed product-not-found response", async () => {
     vi.stubGlobal("fetch", fetchMock);
     fetchMock.mockResolvedValueOnce(
-      jsonResponse(
-        { error: { code: "PRODUCT_NOT_FOUND", message: "Missing." } },
-        { status: 404 },
-      ),
+      jsonResponse({ error: { code: "PRODUCT_NOT_FOUND", message: "Missing." } }, { status: 404 }),
     );
 
     await expect(getAdminProduct("product-1")).resolves.toBeNull();

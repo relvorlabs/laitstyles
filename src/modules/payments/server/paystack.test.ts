@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   initializePaystackTransaction,
   PaystackConfigurationError,
-  PaystackInitializationError,
+  type PaystackInitializationError,
 } from "@/modules/payments/server/paystack";
 
 afterEach(() => {
@@ -93,9 +93,9 @@ describe("initializePaystackTransaction", () => {
         },
         fetchImplementation,
       ),
-    ).rejects.toMatchObject<PaystackInitializationError>({
+    ).rejects.toMatchObject({
       name: "PaystackInitializationError",
       message: "Duplicate reference",
-    });
+    } satisfies Partial<PaystackInitializationError>);
   });
 });

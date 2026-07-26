@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { StorefrontHoldIntent } from "@/features/storefront/shared/storefront-client-state";
+import type { StorefrontHoldIntent } from "@/modules/storefront-shell/client/storefront-client-state";
 
 export type StorefrontOverlayId =
   | "mobileMenu"

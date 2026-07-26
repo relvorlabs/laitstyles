@@ -1,6 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyArchitectureGraph } from "../../../scripts/checks/architecture-guard.mjs";
+import { parseModuleSyntax, stripComments } from "../../../scripts/checks/module-export-guard.mjs";
 
 const root = process.cwd();
 
@@ -20,19 +22,37 @@ function path(...segments: string[]) {
   return segments.join("/");
 }
 
+function repositoryPath(filePath: string) {
+  return relative(root, filePath).replaceAll("\\", "/");
+}
+
 function importedModules(source: string): string[] {
-  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map(
-    (match) => match[1],
-  );
+  const parsed = parseModuleSyntax(source).imports.map((entry) => entry.specifier);
+  const required = [
+    ...stripComments(source).matchAll(/\brequire\s*\(\s*["']([^"']+)["']\s*\)/g),
+  ].map((match) => match[1]);
+  return [...new Set([...parsed, ...required])];
 }
 
 const retiredFiles = [
   path("src", "components", "shop", "shop-provider.tsx"),
   path("src", "features", "storefront", "shared", "cart-persistence.ts"),
   path("src", "features", "storefront", "shared", "cart-persistence.test.ts"),
-  path("src", "features", "storefront", "shared", ["storefront-experience", "provider.tsx"].join("-")),
+  path(
+    "src",
+    "features",
+    "storefront",
+    "shared",
+    ["storefront-experience", "provider.tsx"].join("-"),
+  ),
   path("src", "features", "storefront", "shared", ["storefront-experience", "data.ts"].join("-")),
-  path("src", "features", "storefront", "shared", ["storefront-experience", "data.test.ts"].join("-")),
+  path(
+    "src",
+    "features",
+    "storefront",
+    "shared",
+    ["storefront-experience", "data.test.ts"].join("-"),
+  ),
   path("src", "features", "storefront", "shared", "storefront-provider.tsx"),
   path("src", "features", "storefront", "shared", "storefront-client-state-provider.tsx"),
   path("src", "features", "storefront", "shared", "overlays", "legacy-cart-drawer.tsx"),
@@ -85,7 +105,36 @@ const retiredCatalogSymbols = [
   "projectLegacyProductSummary",
 ];
 
+const productionSources = sourceFiles(join(root, "src"))
+  .filter((filePath) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(filePath))
+  .map((filePath) => ({
+    filePath,
+    relativePath: repositoryPath(filePath),
+    source: readFileSync(filePath, "utf8"),
+  }));
+
 describe("storefront state boundaries", () => {
+  it("checks only added American catalogue debt and ignores packages and retained database fields", () => {
+    const files = {
+      "src/data.ts": `
+        import catalogPlugin from "catalog-plugin";
+        export const row = { catalogId: "retained-database-field" };
+        export const catalogLabel = catalogPlugin.label;
+      `,
+    };
+    const previousFiles = {
+      "src/data.ts": 'export const row = { catalogId: "retained-database-field" };',
+    };
+
+    expect(classifyArchitectureGraph({ files, previousFiles })).toEqual([
+      {
+        rule: "american-catalogue-language",
+        importer: "src/data.ts",
+        detail: "New American catalogue identifier: catalogLabel.",
+      },
+    ]);
+  });
+
   it("does not retain retired providers or compatibility modules", () => {
     for (const retiredFile of retiredFiles) {
       expect(existsSync(join(root, retiredFile)), retiredFile).toBe(false);
@@ -93,31 +142,25 @@ describe("storefront state boundaries", () => {
   });
 
   it("does not import a retired storefront state path", () => {
-    const violations = sourceFiles(join(root, "src"))
-      .filter((filePath) => !/\.test\.[cm]?[jt]sx?$/.test(filePath))
-      .flatMap((filePath) => {
-        const imports = importedModules(readFileSync(filePath, "utf8"));
-        return retiredImports
-          .filter((retiredImport) => imports.includes(retiredImport))
-          .map((retiredImport) => `${filePath.replace(`${root}/`, "")}: ${retiredImport}`);
-      });
+    const violations = productionSources.flatMap(({ relativePath, source }) => {
+      const imports = importedModules(source);
+      return retiredImports
+        .filter((retiredImport) => imports.includes(retiredImport))
+        .map((retiredImport) => `${relativePath}: ${retiredImport}`);
+    });
     expect(violations).toEqual([]);
   });
 
   it("keeps the storefront catalogue contract British and module-owned", () => {
-    const violations = sourceFiles(join(root, "src"))
-      .filter((filePath) => !filePath.endsWith("storefront-state-boundary.test.ts"))
-      .flatMap((filePath) => {
-        const source = readFileSync(filePath, "utf8");
-        const relativePath = filePath.replace(`${root}/`, "");
-        const symbolViolations = retiredCatalogSymbols
-          .filter((symbol) => source.includes(symbol))
-          .map((symbol) => `${relativePath}: ${symbol}`);
-        const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
-          ? [`${relativePath}: /api/v1/storefront/catalog`]
-          : [];
-        return [...symbolViolations, ...routeViolation];
-      });
+    const violations = productionSources.flatMap(({ relativePath, source }) => {
+      const symbolViolations = retiredCatalogSymbols
+        .filter((symbol) => new RegExp(`\\b${symbol}\\b`).test(source))
+        .map((symbol) => `${relativePath}: ${symbol}`);
+      const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
+        ? [`${relativePath}: /api/v1/storefront/catalog`]
+        : [];
+      return [...symbolViolations, ...routeViolation];
+    });
 
     expect(violations).toEqual([]);
 
@@ -136,10 +179,7 @@ describe("storefront state boundaries", () => {
       join(root, "src/app/storefront-client-boundary.tsx"),
       "utf8",
     );
-    const routeBoundary = readFileSync(
-      join(root, "src/app/storefront-route-boundary.tsx"),
-      "utf8",
-    );
+    const routeBoundary = readFileSync(join(root, "src/app/storefront-route-boundary.tsx"), "utf8");
 
     expect(appProvider).not.toContain("StorefrontQueryProvider");
     expect(appProvider).not.toContain("StorefrontStateHydrator");
@@ -156,7 +196,7 @@ describe("storefront state boundaries", () => {
 
   it("persists only minimal intent fields", () => {
     const stateContract = readFileSync(
-      join(root, "src/features/storefront/shared/storefront-client-state.ts"),
+      join(root, "src/modules/storefront-shell/client/storefront-client-state.ts"),
       "utf8",
     );
     expect(stateContract).toContain("productId: string");

@@ -28,7 +28,8 @@ runSuite("static");
 runSuite("tests");
 
 if (full) {
-  runSuite("database");
+  runSuite("persistence");
+  runSuite("authorization");
   runSuite("build");
 } else {
   runSuite("react");

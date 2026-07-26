@@ -1,8 +1,8 @@
 import "server-only";
 
+import { createPaginationMeta } from "@/lib/http/pagination";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
-import { createPaginationMeta } from "@/lib/http/pagination";
 import { adminHoldInclude, mapAdminHoldRow } from "@/modules/holds/server/mappers";
 import type {
   AdminHoldListResult,
@@ -160,7 +160,5 @@ async function getHoldWorkspaceSummary(now: Date): Promise<HoldWorkspaceSummary>
 }
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  storefrontUiStore,
-  type StorefrontOverlayId,
-} from "@/stores/storefront-ui.store";
+import { type StorefrontOverlayId, storefrontUiStore } from "@/stores/storefront-ui.store";
 
 export type QuickViewRequest = { productId: string };
 export type ImageViewerRequest = {

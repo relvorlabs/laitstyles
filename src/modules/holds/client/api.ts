@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "@/lib/errors";
-import { apiRequest, ApiClientError } from "@/lib/http/client";
+import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
   AdminHoldListResult,
   ControlRoomHold,
@@ -67,10 +67,7 @@ export function releaseHoldRequest(holdId: string) {
   return holdMutationRequest(`${HOLDS_URL}/${encodeURIComponent(holdId)}/release`, {});
 }
 
-export function convertHoldRequest({
-  holdId,
-  ...input
-}: ConvertHoldInput & { holdId: string }) {
+export function convertHoldRequest({ holdId, ...input }: ConvertHoldInput & { holdId: string }) {
   return holdMutationRequest(`${HOLDS_URL}/${encodeURIComponent(holdId)}/convert`, input);
 }
 

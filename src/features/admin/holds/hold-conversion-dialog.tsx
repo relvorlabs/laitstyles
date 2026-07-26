@@ -70,7 +70,8 @@ export function HoldConversionDialog({
             <AlertTitle>Payment remains pending</AlertTitle>
             <AlertDescription>
               Converting the hold does not record cash or declare a payment successful. The reserved
-              stock remains attached to the new order until a server-verified payment flow settles it.
+              stock remains attached to the new order until a server-verified payment flow settles
+              it.
             </AlertDescription>
           </Alert>
 

@@ -18,7 +18,14 @@ export function RecentlyViewedSection() {
           actionLabel="Open saved items"
           eyebrow="Keep exploring"
           onAction={() => overlay.open("savedDrawer")}
-          title={<>Recently <span className="serif"><em>viewed</em></span></>}
+          title={
+            <>
+              Recently{" "}
+              <span className="serif">
+                <em>viewed</em>
+              </span>
+            </>
+          }
         />
         {recent.items.length ? (
           <HomeProductList className="product-rail" id="recentRail" products={recent.items} />

@@ -1,7 +1,8 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import type { ParsedCatalogueSearch } from "@/modules/products/client/catalogue-search-params";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { sortOptions } from "@/modules/products/ui/storefront/catalogue-data";
 import { useStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
@@ -13,6 +14,9 @@ export function SortOverlay() {
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) overlay.close();
   };
+  const closeOnEscape = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") overlay.close();
+  };
 
   return (
     <div
@@ -21,6 +25,7 @@ export function SortOverlay() {
       className={`overlay modal-wrap${overlay.openId === "sortSheet" ? " open" : ""}`}
       id="sortSheet"
       onClick={overlayBackdrop}
+      onKeyDown={closeOnEscape}
       role="dialog"
     >
       <section className="modal modal-small">
@@ -45,7 +50,7 @@ export function SortOverlay() {
                 className="h-auto w-full justify-between whitespace-normal text-left"
                 key={value}
                 onClick={() => {
-                  navigation.setSort(value);
+                  navigation.setSort(value as ParsedCatalogueSearch["sort"]);
                   overlay.close();
                 }}
                 type="button"

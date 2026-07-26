@@ -138,12 +138,7 @@ export function ProductPurchasePanel({
           ))}
         </span>
         <span className="underline decoration-border-strong underline-offset-4">{reviewLabel}</span>
-        <HugeiconsIcon
-          aria-hidden="true"
-          icon={ArrowDownRight01Icon}
-          size={16}
-          strokeWidth={1.6}
-        />
+        <HugeiconsIcon aria-hidden="true" icon={ArrowDownRight01Icon} size={16} strokeWidth={1.6} />
       </Button>
 
       <div className="mt-5 flex flex-wrap items-end gap-3">
@@ -304,7 +299,11 @@ export function ProductPurchasePanel({
       </div>
 
       <div className="mt-5 rounded-sm border border-border bg-surface-raised p-5 shadow-storefront-1">
-        <Info body="Lagos · 1–2 business days" icon={PackageDeliveredIcon} title="Estimated delivery" />
+        <Info
+          body="Lagos · 1–2 business days"
+          icon={PackageDeliveredIcon}
+          title="Estimated delivery"
+        />
         <div className="mt-4 border-t border-border pt-4">
           <Info
             body={

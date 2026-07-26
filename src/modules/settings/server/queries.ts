@@ -1,7 +1,7 @@
 import "server-only";
 
-import { prisma } from "@/lib/prisma";
 import { defaultStoreSettingsInput } from "@/lib/admin/settings/settings-defaults";
+import { prisma } from "@/lib/prisma";
 import { mapStoreSettings, settingsJsonInput } from "@/modules/settings/server/mappers";
 
 export async function getStoreSettings() {
@@ -41,7 +41,10 @@ export async function getStoreSettings() {
         })),
       });
 
-      for (const [position, pickup] of defaultStoreSettingsInput.delivery.pickupLocations.entries()) {
+      for (const [
+        position,
+        pickup,
+      ] of defaultStoreSettingsInput.delivery.pickupLocations.entries()) {
         await tx.pickup_locations.create({
           data: {
             name: pickup.name,

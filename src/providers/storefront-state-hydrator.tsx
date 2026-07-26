@@ -55,8 +55,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
         window.sessionStorage.getItem(RECENT_STORAGE_KEY) ??
           window.sessionStorage.getItem(LEGACY_RECENT_STORAGE_KEY),
       );
-      const utilityDismissed =
-        window.sessionStorage.getItem(UTILITY_STORAGE_KEY) === "dismissed";
+      const utilityDismissed = window.sessionStorage.getItem(UTILITY_STORAGE_KEY) === "dismissed";
 
       cartStore
         .getState()
@@ -121,9 +120,7 @@ function StorefrontHoldAlertRuntime() {
 
   const seconds = useMemo(
     () =>
-      holds
-        .map((hold) => Math.max(0, Math.ceil((hold.expiresAt - now) / 1000)))
-        .filter(Boolean),
+      holds.map((hold) => Math.max(0, Math.ceil((hold.expiresAt - now) / 1000))).filter(Boolean),
     [holds, now],
   );
 

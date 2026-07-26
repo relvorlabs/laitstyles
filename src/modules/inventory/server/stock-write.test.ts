@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import type { StaffSession } from "@/server/auth/session";
 import { writeProductStockAndVariants } from "@/modules/inventory/server/stock-write";
+import type { StaffSession } from "@/server/auth/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
 const VARIANT_ID = "019f65c1-74fe-7bd3-8400-000000000011";
@@ -52,29 +52,23 @@ describe("writeProductStockAndVariants", () => {
     if (values.inventoryMode !== "stocked") throw new Error("fixture mismatch");
     values.stocked.quantity = 9;
 
-    await writeProductStockAndVariants(
-      tx as never,
-      actor,
-      PRODUCT_ID,
-      values,
-      {
-        inventory_mode: "stocked",
-        product_variants: [],
-        stock_levels: [
-          {
-            id: "stock-existing",
-            variant_id: null,
-            total_received: 8,
-            available: 3,
-            reserved: 1,
-            committed: 2,
-            sold: 1,
-            returned: 0,
-            damaged: 1,
-          },
-        ],
-      } as never,
-    );
+    await writeProductStockAndVariants(tx as never, actor, PRODUCT_ID, values, {
+      inventory_mode: "stocked",
+      product_variants: [],
+      stock_levels: [
+        {
+          id: "stock-existing",
+          variant_id: null,
+          total_received: 8,
+          available: 3,
+          reserved: 1,
+          committed: 2,
+          sold: 1,
+          returned: 0,
+          damaged: 1,
+        },
+      ],
+    } as never);
 
     expect(tx.stock_levels.update).toHaveBeenCalledWith({
       where: { id: "stock-existing" },
@@ -105,34 +99,28 @@ describe("writeProductStockAndVariants", () => {
     values.variant.variants = [];
 
     await expect(
-      writeProductStockAndVariants(
-        tx as never,
-        actor,
-        PRODUCT_ID,
-        values,
-        {
-          inventory_mode: "variant",
-          stock_levels: [],
-          product_variants: [
-            {
-              id: VARIANT_ID,
-              stock_levels: [
-                {
-                  id: "stock-v1",
-                  variant_id: VARIANT_ID,
-                  total_received: 3,
-                  available: 3,
-                  reserved: 0,
-                  committed: 0,
-                  sold: 0,
-                  returned: 0,
-                  damaged: 0,
-                },
-              ],
-            },
-          ],
-        } as never,
-      ),
+      writeProductStockAndVariants(tx as never, actor, PRODUCT_ID, values, {
+        inventory_mode: "variant",
+        stock_levels: [],
+        product_variants: [
+          {
+            id: VARIANT_ID,
+            stock_levels: [
+              {
+                id: "stock-v1",
+                variant_id: VARIANT_ID,
+                total_received: 3,
+                available: 3,
+                reserved: 0,
+                committed: 0,
+                sold: 0,
+                returned: 0,
+                damaged: 0,
+              },
+            ],
+          },
+        ],
+      } as never),
     ).rejects.toThrow("history");
     expect(tx.product_variants.deleteMany).not.toHaveBeenCalled();
   });

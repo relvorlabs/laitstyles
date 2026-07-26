@@ -346,9 +346,7 @@ export function CheckoutFlowV2() {
                           <RadioDot active={active} />
                           <span className="flex-1">
                             <span className="block text-sm font-semibold">{item.name}</span>
-                            <span className="mt-0.5 block text-xs text-[#8A887E]">
-                              {item.sub}
-                            </span>
+                            <span className="mt-0.5 block text-xs text-[#8A887E]">{item.sub}</span>
                           </span>
                           <span className="flex items-center gap-[5px]">
                             {item.badges.map((badge) => (

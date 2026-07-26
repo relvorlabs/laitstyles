@@ -47,6 +47,7 @@ export function SiteHeader({
   }, []);
 
   useEffect(() => {
+    void pathname;
     overlay.close();
   }, [pathname, overlay.close]);
 
@@ -56,9 +57,7 @@ export function SiteHeader({
   };
   const headerClassName =
     "sticky top-0 z-[60] border-b border-b-transparent backdrop-blur-[16px] [background:color-mix(in_srgb,var(--bone)_92%,transparent)] [transition:border-color_220ms_var(--ease),box-shadow_220ms_var(--ease)]" +
-    (headerScrolled
-      ? " border-b-[var(--line)] shadow-[0_8px_28px_rgba(25,26,23,0.06)]"
-      : "");
+    (headerScrolled ? " border-b-[var(--line)] shadow-[0_8px_28px_rgba(25,26,23,0.06)]" : "");
 
   return (
     <>
@@ -93,25 +92,13 @@ export function SiteHeader({
             <Button onClick={onNavNew} type="button" variant="ghost">
               New arrivals
             </Button>
-            <Button
-              onClick={() => onNavShop({ category: "Women" })}
-              type="button"
-              variant="ghost"
-            >
+            <Button onClick={() => onNavShop({ category: "Women" })} type="button" variant="ghost">
               Women
             </Button>
-            <Button
-              onClick={() => onNavShop({ category: "Men" })}
-              type="button"
-              variant="ghost"
-            >
+            <Button onClick={() => onNavShop({ category: "Men" })} type="button" variant="ghost">
               Men
             </Button>
-            <Button
-              onClick={() => onNavShop({ category: "Unisex" })}
-              type="button"
-              variant="ghost"
-            >
+            <Button onClick={() => onNavShop({ category: "Unisex" })} type="button" variant="ghost">
               Unisex
             </Button>
             <Button
@@ -136,12 +123,7 @@ export function SiteHeader({
             </svg>
           </Button>
 
-          <Button
-            aria-label="Laitstyles home"
-            onClick={onGoHome}
-            type="button"
-            variant="ghost"
-          >
+          <Button aria-label="Laitstyles home" onClick={onGoHome} type="button" variant="ghost">
             <span className="brand-symbol">
               <BrandMark />
             </span>
@@ -166,12 +148,7 @@ export function SiteHeader({
               type="button"
               variant="ghost"
             >
-              <HugeiconsIcon
-                aria-hidden="true"
-                icon={FavouriteIcon}
-                size={19}
-                strokeWidth={1.6}
-              />
+              <HugeiconsIcon aria-hidden="true" icon={FavouriteIcon} size={19} strokeWidth={1.6} />
               {saved.ids.length > 0 ? (
                 <span className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-[var(--sage)]" />
               ) : null}
@@ -326,11 +303,7 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
               >
                 Women
               </Button>
-              <Button
-                onClick={() => onNavShop({ category: "Men" })}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => onNavShop({ category: "Men" })} type="button" variant="ghost">
                 Men
               </Button>
               <Button
@@ -345,32 +318,16 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
           <div>
             <h3 className={headingClass}>Customer care</h3>
             <div className="footer-links">
-              <Button
-                onClick={() => overlay.open("deliveryModal")}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => overlay.open("deliveryModal")} type="button" variant="ghost">
                 Delivery and returns
               </Button>
-              <Button
-                onClick={() => overlay.open("conditionModal")}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => overlay.open("conditionModal")} type="button" variant="ghost">
                 Condition guide
               </Button>
-              <Button
-                onClick={() => overlay.open("measureModal")}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => overlay.open("measureModal")} type="button" variant="ghost">
                 Measurements
               </Button>
-              <Button
-                onClick={() => overlay.open("authModal")}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => overlay.open("authModal")} type="button" variant="ghost">
                 Brand labelling
               </Button>
             </div>
@@ -394,11 +351,7 @@ export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
               >
                 TikTok
               </Button>
-              <Button
-                onClick={() => overlay.open("supportModal")}
-                type="button"
-                variant="ghost"
-              >
+              <Button onClick={() => overlay.open("supportModal")} type="button" variant="ghost">
                 Contact
               </Button>
             </div>

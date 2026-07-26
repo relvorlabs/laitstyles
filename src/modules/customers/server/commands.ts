@@ -73,7 +73,8 @@ export async function addCustomerNote(
       id: row.id,
       body: row.body,
       createdAt: row.created_at.toISOString(),
-      author: row.profiles?.display_name ?? row.profiles?.email ?? actor.displayName ?? "Store team",
+      author:
+        row.profiles?.display_name ?? row.profiles?.email ?? actor.displayName ?? "Store team",
     };
     return ok({
       customerId: customer.id,

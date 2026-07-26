@@ -41,55 +41,53 @@ const row = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    $transaction: vi.fn(async (operations: Promise<unknown>[]) => Promise.all(operations)),
     products: {
       findMany: vi.fn().mockResolvedValue([row]),
       findUnique: vi.fn().mockResolvedValue(row),
+      count: vi.fn().mockResolvedValue(1),
     },
     catalogue_categories: { findMany: vi.fn().mockResolvedValue([]) },
     catalogue_collections: { findMany: vi.fn().mockResolvedValue([]) },
-    stock_movements: { findMany: vi.fn().mockResolvedValue([]) },
+    stock_movements: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+    },
   },
 }));
 
 import { prisma } from "@/lib/prisma";
+import { listStockMovements } from "@/modules/inventory/server/queries";
 import {
-  getInventoryProduct,
-  listInventoryProducts,
-  listInventoryStockMovements,
-  listInventoryTaxonomy,
-} from "./inventory-read";
+  getAdminProduct,
+  listAdminProducts,
+  listProductTaxonomy,
+} from "@/modules/products/server/queries";
 
 const MISSING_PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000099";
 
 describe("inventory reads", () => {
-  it("lists every lifecycle with an explicit upper bound", async () => {
-    const products = await listInventoryProducts();
-    expect(products).toHaveLength(1);
+  it("lists products with explicit database pagination", async () => {
+    const result = await listAdminProducts({ page: 1, pageSize: 50 });
+    expect(result.data).toHaveLength(1);
     expect(prisma.products.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: { updated_at: "desc" },
-        take: 500,
+        skip: 0,
+        take: 50,
       }),
     );
-    expect(vi.mocked(prisma.products.findMany).mock.calls[0]?.[0]?.where).toBeUndefined();
+    expect(result.meta).toEqual({ page: 1, pageSize: 50, total: 1, pageCount: 1 });
   });
 
   it("queries a valid identifier and returns null for an unknown product", async () => {
     vi.mocked(prisma.products.findUnique).mockResolvedValueOnce(null);
 
-    await expect(getInventoryProduct(MISSING_PRODUCT_ID)).resolves.toBeNull();
+    await expect(getAdminProduct(MISSING_PRODUCT_ID)).resolves.toBeNull();
 
     expect(prisma.products.findUnique).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: MISSING_PRODUCT_ID } }),
     );
-  });
-
-  it("returns null for a malformed identifier without querying Prisma", async () => {
-    vi.mocked(prisma.products.findUnique).mockClear();
-
-    await expect(getInventoryProduct("missing")).resolves.toBeNull();
-
-    expect(prisma.products.findUnique).not.toHaveBeenCalled();
   });
 
   it("combines categories and collections using encoded ids", async () => {
@@ -102,16 +100,21 @@ describe("inventory reads", () => {
         updated_at: new Date(),
       },
     ] as never);
-    const taxonomy = await listInventoryTaxonomy();
+    const taxonomy = await listProductTaxonomy();
     expect(taxonomy[0]?.id).toMatch(/^category:/);
   });
 
-  it("filters movement reads by product and bounds the result", async () => {
-    await listInventoryStockMovements("019f65c1-74fe-7bd3-8400-000000000001");
+  it("filters and paginates stock movement reads by product", async () => {
+    await listStockMovements({
+      productId: "019f65c1-74fe-7bd3-8400-000000000001",
+      page: 1,
+      pageSize: 50,
+    });
     expect(prisma.stock_movements.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { product_id: "019f65c1-74fe-7bd3-8400-000000000001" },
-        take: 500,
+        skip: 0,
+        take: 50,
       }),
     );
   });

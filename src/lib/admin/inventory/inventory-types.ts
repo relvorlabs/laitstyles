@@ -5,19 +5,15 @@ import type {
   InventorySortKey,
   InventoryStockFilter,
 } from "@/modules/inventory/types";
-import type {
-  AdminProduct,
-  CatalogueChannel,
-  ProductMedia,
-} from "@/modules/products/types";
+import type { AdminProduct, CatalogueChannel, ProductMedia } from "@/modules/products/types";
 
 export type {
   InventoryCounts,
   InventoryModeFilter,
   InventorySavedView,
+  InventorySortKey,
   InventoryStockFilter,
   InventorySummary,
-  InventorySortKey,
   StockMovement,
   StockMovementKind,
 } from "@/modules/inventory/types";

@@ -1,14 +1,8 @@
 import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
-import {
-  cleanProductText,
-  slugifyProductName,
-} from "@/modules/products/server/rules";
-import type {
-  ProductEditorValues,
-  ProductTaxonomyKind,
-} from "@/modules/products/types";
+import { cleanProductText, slugifyProductName } from "@/modules/products/server/rules";
+import type { ProductEditorValues, ProductTaxonomyKind } from "@/modules/products/types";
 
 const mediaKindToDb = {
   cover: "product_cover",

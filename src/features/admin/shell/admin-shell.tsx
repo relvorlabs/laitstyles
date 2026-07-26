@@ -18,13 +18,7 @@ import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
 import { AdminProvider } from "@/features/admin/state/admin-provider";
 import type { StaffRole } from "@/lib/auth/roles";
 
-export function AdminShell({
-  children,
-  role,
-}: {
-  children: ReactNode;
-  role: StaffRole;
-}) {
+export function AdminShell({ children, role }: { children: ReactNode; role: StaffRole }) {
   const pathname = usePathname();
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);

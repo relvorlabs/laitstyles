@@ -20,6 +20,8 @@ describe("Returns URL state", () => {
           search: "botanical jeans",
           status: "received",
           sort: "value-desc",
+          page: 1,
+          pageSize: 25,
         },
         returnId: "return-42",
       }),

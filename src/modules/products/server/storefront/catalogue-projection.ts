@@ -1,15 +1,15 @@
 import { koboToNaira } from "@/lib/money";
 import type {
-  CategoryWithImage,
-  ProductDetail,
-  ProductSummary,
-} from "@/modules/products/storefront-types";
-import type {
   StorefrontCatalogueCategory,
   StorefrontCataloguePayload,
   StorefrontCatalogueProduct,
   StorefrontShellCataloguePayload,
 } from "@/modules/products/storefront/catalogue-contract";
+import type {
+  CategoryWithImage,
+  ProductDetail,
+  ProductSummary,
+} from "@/modules/products/storefront-types";
 
 function detailVariants(detail: ProductDetail) {
   return detail.mode === "variant" ? detail.variants : [];

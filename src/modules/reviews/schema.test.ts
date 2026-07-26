@@ -54,12 +54,14 @@ describe("reviewInputSchema", () => {
     );
   });
 
-  it.each(["runs_small", "true_to_size", "runs_large", "not_applicable"] as const)(
-    "accepts the %s fit value",
-    (fit) => {
-      expect(reviewInputSchema.safeParse({ ...validInput, fit }).success).toBe(true);
-    },
-  );
+  it.each([
+    "runs_small",
+    "true_to_size",
+    "runs_large",
+    "not_applicable",
+  ] as const)("accepts the %s fit value", (fit) => {
+    expect(reviewInputSchema.safeParse({ ...validInput, fit }).success).toBe(true);
+  });
 
   it("rejects fit values outside the review enum", () => {
     expect(reviewInputSchema.safeParse({ ...validInput, fit: "oversized" }).success).toBe(false);

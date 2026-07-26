@@ -32,8 +32,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
   const recommendations = products
     .filter(
       (product) =>
-        product.status === "available" &&
-        !cart.lines.some((line) => line.productId === product.id),
+        product.status === "available" && !cart.lines.some((line) => line.productId === product.id),
     )
     .slice(0, 2);
 
@@ -52,12 +51,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
           />
         }
       >
-        <HugeiconsIcon
-          aria-hidden="true"
-          icon={ShoppingBag03Icon}
-          size={20}
-          strokeWidth={1.6}
-        />
+        <HugeiconsIcon aria-hidden="true" icon={ShoppingBag03Icon} size={20} strokeWidth={1.6} />
         {cart.count > 0 ? (
           <span className="absolute -right-0.5 -top-0.5 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-[var(--ink)] px-1 font-mono text-[10px] text-[var(--bone)]">
             {cart.count}
@@ -74,9 +68,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
             <SheetTitle className="font-serif text-3xl font-normal italic text-[var(--ink)]">
               Your bag
             </SheetTitle>
-            <span className="font-mono text-xs text-[var(--muted)] tabular-nums">
-              {cart.count}
-            </span>
+            <span className="font-mono text-xs text-[var(--muted)] tabular-nums">{cart.count}</span>
           </div>
           <SheetDescription className="text-xs text-[var(--muted)]">
             Guest selections stay with this browsing session. Sign in when you are ready to keep
@@ -135,9 +127,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                       Grade {product.condition} · {variantLabel ?? product.size}
                     </p>
                     <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
-                    <p className="mt-1 text-sm font-semibold">
-                      {money(unitPriceNaira * lineQty)}
-                    </p>
+                    <p className="mt-1 text-sm font-semibold">{money(unitPriceNaira * lineQty)}</p>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                       {product.inventory === "one-of-one" ? (
                         <span className="text-xs text-[var(--muted)]">One-of-one</span>
@@ -236,11 +226,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 <span className="text-sm text-[var(--muted)]">Subtotal</span>
                 <span className="font-serif text-2xl">{money(cart.subtotal)}</span>
               </div>
-              <Button
-                className="w-full"
-                nativeButton={false}
-                render={<Link href="/checkout" />}
-              >
+              <Button className="w-full" nativeButton={false} render={<Link href="/checkout" />}>
                 Continue to checkout
               </Button>
               <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">

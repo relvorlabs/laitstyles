@@ -88,7 +88,8 @@ describe("POST /api/v1/admin/orders/offline-sales", () => {
       ok: false,
       error: {
         code: "paystack-not-configured",
-        message: "Paystack checkout is not configured yet. No order or stock reservation was created.",
+        message:
+          "Paystack checkout is not configured yet. No order or stock reservation was created.",
       },
     });
 

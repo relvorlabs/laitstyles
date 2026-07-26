@@ -18,7 +18,8 @@ export function buildCustomersHref(
   if (query.type !== defaultCustomerQuery.type) params.set("type", query.type);
   if (query.sort !== defaultCustomerQuery.sort) params.set("sort", query.sort);
   if (query.page !== defaultCustomerQuery.page) params.set("page", String(query.page));
-  if (query.pageSize !== defaultCustomerQuery.pageSize) params.set("pageSize", String(query.pageSize));
+  if (query.pageSize !== defaultCustomerQuery.pageSize)
+    params.set("pageSize", String(query.pageSize));
   if (customerId) params.set("customer", customerId);
 
   const search = params.toString();

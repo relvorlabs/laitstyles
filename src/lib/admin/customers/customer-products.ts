@@ -16,8 +16,18 @@ export function getCustomerProductRelationships(
   function touch(productId: string, occurredAt: string) {
     const existing = relationships.get(productId);
     if (!existing) {
+      const product = state.products.find((entry) => entry.id === productId);
+      if (!product) {
+        throw new Error(`Product ${productId} could not be resolved for customer ${customer.id}.`);
+      }
+      const coverImage = product.media.find((media) => media.kind === "cover") ?? product.media[0];
       const relationship: CustomerProductRelationship = {
         productId,
+        productName: product.name,
+        category: product.category,
+        inventoryMode: product.inventoryMode,
+        image: coverImage?.url ?? product.image,
+        imageAlt: coverImage?.alt ?? `${product.name} product image`,
         purchasedQuantity: 0,
         heldQuantity: 0,
         saved: false,

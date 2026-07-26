@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "@/lib/errors";
+import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type { ApiPaginationMeta } from "@/lib/http/contracts";
-import { apiRequest, ApiClientError } from "@/lib/http/client";
 import type {
   InventoryProductListInput,
   InventoryProductPage,

@@ -35,9 +35,7 @@ export function RecordSaleControllerProvider({ children }: { children: ReactNode
           <AdminIcon className="text-primary" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Order {result.orderId} is pending payment. Stock is reserved under Paystack reference{
-            " "
-          }
+            Order {result.orderId} is pending payment. Stock is reserved under Paystack reference{" "}
             <span className="font-medium text-foreground">{result.reference}</span>; revenue has not
             been recognised.
           </AlertDescription>

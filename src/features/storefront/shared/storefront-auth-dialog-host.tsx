@@ -129,11 +129,7 @@ export function StorefrontAuthDialogHost() {
   );
 }
 
-function validateAuth(
-  mode: StorefrontAuthMode,
-  form: StorefrontAuthForm,
-  termsAccepted: boolean,
-) {
+function validateAuth(mode: StorefrontAuthMode, form: StorefrontAuthForm, termsAccepted: boolean) {
   const errors: Record<string, string> = {};
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
     errors.email = "Enter a valid email address";

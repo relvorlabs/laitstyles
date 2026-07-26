@@ -1,12 +1,12 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
+import { mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import {
   cancelFailedOfflineSaleDraft,
   finalizeInitializedCheckout,
 } from "@/modules/orders/server/offline-sale-checkout";
 import { createOfflineSaleDraft } from "@/modules/orders/server/offline-sale-draft";
-import { mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type {
   OfflineSaleInput,
   OfflineSaleSuccess,
@@ -15,9 +15,9 @@ import type {
 import {
   initializePaystackTransaction,
   isPaystackConfigured,
+  type PaystackCheckout,
   PaystackConfigurationError,
   PaystackInitializationError,
-  type PaystackCheckout,
 } from "@/modules/payments/server/paystack";
 import type { StaffSession } from "@/server/auth/session";
 

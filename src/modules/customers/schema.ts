@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 export const customerTypes = ["individual", "stylist", "reseller", "walk-in"] as const;
-export const customerSavedViews = ["all", "needs-attention", "returning", "high-value", "new"] as const;
+export const customerSavedViews = [
+  "all",
+  "needs-attention",
+  "returning",
+  "high-value",
+  "new",
+] as const;
 export const customerSortKeys = ["spend-desc", "recent-desc", "orders-desc", "name-asc"] as const;
 
 export const customerIdentifierSchema = z.string().uuid();

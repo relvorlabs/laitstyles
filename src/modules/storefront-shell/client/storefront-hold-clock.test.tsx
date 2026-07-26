@@ -3,10 +3,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { storefrontUiStore } from "@/stores/storefront-ui.store";
-import {
-  StorefrontHoldClockBoundary,
-  useStorefrontHoldNow,
-} from "./storefront-hold-clock";
+import { StorefrontHoldClockBoundary, useStorefrontHoldNow } from "./storefront-hold-clock";
 
 const start = new Date("2026-07-25T12:00:00.000Z");
 

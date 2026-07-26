@@ -2,16 +2,10 @@ import { ApiError } from "@/lib/errors/api-error";
 import { requireApiStaff } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
-import {
-  productTaxonomyIdSchema,
-  productTaxonomyRenameSchema,
-} from "@/modules/products/schema";
+import { productTaxonomyIdSchema, productTaxonomyRenameSchema } from "@/modules/products/schema";
 import { throwProductTaxonomyError } from "@/modules/products/server/api-errors";
 import { invalidateProductCatalogue } from "@/modules/products/server/cache";
-import {
-  deleteProductTaxonomy,
-  renameProductTaxonomy,
-} from "@/modules/products/server/commands";
+import { deleteProductTaxonomy, renameProductTaxonomy } from "@/modules/products/server/commands";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type TaxonomyRouteContext = { params: Promise<{ id: string }> };

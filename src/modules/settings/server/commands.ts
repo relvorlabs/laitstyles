@@ -31,7 +31,7 @@ export async function saveStoreSettings(
   return prisma.$transaction(async (tx) => {
     const existingZones = await tx.delivery_zones.findMany();
     const existingZoneIds = new Set(existingZones.map((zone) => zone.id));
-    const persistedZones = [];
+    const persistedZones: (typeof existingZones)[number][] = [];
     for (const [position, zone] of parsed.value.delivery.zones.entries()) {
       if (isUuid(zone.id) && existingZoneIds.has(zone.id)) {
         persistedZones.push(
@@ -70,7 +70,7 @@ export async function saveStoreSettings(
 
     const existingPickups = await tx.pickup_locations.findMany();
     const existingPickupIds = new Set(existingPickups.map((pickup) => pickup.id));
-    const persistedPickups = [];
+    const persistedPickups: (typeof existingPickups)[number][] = [];
     for (const [position, pickup] of parsed.value.delivery.pickupLocations.entries()) {
       if (isUuid(pickup.id) && existingPickupIds.has(pickup.id)) {
         persistedPickups.push(
@@ -106,14 +106,18 @@ export async function saveStoreSettings(
     const normalized = {
       ...parsed.value,
       delivery: {
-        zones: parsed.value.delivery.zones.map((zone, index) => ({
-          ...zone,
-          id: persistedZones[index]!.id,
-        })),
-        pickupLocations: parsed.value.delivery.pickupLocations.map((pickup, index) => ({
-          ...pickup,
-          id: persistedPickups[index]!.id,
-        })),
+        zones: parsed.value.delivery.zones.map((zone, index) => {
+          const persisted = persistedZones[index];
+          if (!persisted) throw new Error("Persisted delivery zone count did not match the input.");
+          return { ...zone, id: persisted.id };
+        }),
+        pickupLocations: parsed.value.delivery.pickupLocations.map((pickup, index) => {
+          const persisted = persistedPickups[index];
+          if (!persisted) {
+            throw new Error("Persisted pickup location count did not match the input.");
+          }
+          return { ...pickup, id: persisted.id };
+        }),
       },
     };
     const json = settingsJsonInput(normalized);
@@ -154,7 +158,5 @@ export async function saveStoreSettings(
 }
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

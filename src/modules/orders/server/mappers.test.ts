@@ -9,10 +9,7 @@ describe("mapDatabaseOrderStatus", () => {
       payment_status: "paid",
       fulfilment_status: "dispatched",
       fulfilment_method: "delivery",
-      order_timeline_events: [
-        { status: "dispatched" },
-        { status: "out-for-delivery" },
-      ],
+      order_timeline_events: [{ status: "dispatched" }, { status: "out-for-delivery" }],
     } as unknown as StatusRow;
 
     expect(mapDatabaseOrderStatus(row)).toBe("out-for-delivery");

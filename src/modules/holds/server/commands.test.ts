@@ -60,7 +60,9 @@ const activeHold = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => callback(createTx()));
+  mocks.transaction.mockImplementation(async (callback: (tx: unknown) => unknown) =>
+    callback(createTx()),
+  );
 });
 
 describe("Holds commands", () => {
@@ -200,9 +202,11 @@ function createTx({ claimCount = 1 }: { claimCount?: number } = {}) {
       findUnique: vi.fn().mockResolvedValue(activeHold),
       findUniqueOrThrow: vi.fn().mockResolvedValue(activeHold),
       updateMany: vi.fn().mockResolvedValue({ count: claimCount }),
-      update: vi.fn().mockImplementation(({ data }: { data: { status?: string } }) =>
-        Promise.resolve({ ...activeHold, ...data }),
-      ),
+      update: vi
+        .fn()
+        .mockImplementation(({ data }: { data: { status?: string } }) =>
+          Promise.resolve({ ...activeHold, ...data }),
+        ),
     },
     orders: {
       create: vi.fn().mockResolvedValue({

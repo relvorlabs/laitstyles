@@ -44,9 +44,7 @@ describe("storefront product read-model ownership", () => {
       const source = await readFile(filePath, "utf8");
       if (!source.includes(compatibilitySpecifier)) continue;
 
-      const imports = source
-        .split("\n")
-        .filter((line) => line.includes(compatibilitySpecifier));
+      const imports = source.split("\n").filter((line) => line.includes(compatibilitySpecifier));
       if (imports.some((line) => !line.trimStart().startsWith("import type"))) {
         offenders.push(relative);
       }

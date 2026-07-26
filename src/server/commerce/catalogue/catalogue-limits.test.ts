@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_STOREFRONT_CATALOGUE_DETAILS,
   normalizePublishedProductDetailLimit,
-} from "./catalogue-limits";
+} from "@/modules/products/server/storefront/catalogue-limits";
 
 describe("normalizePublishedProductDetailLimit", () => {
   it("defaults invalid limits to the bounded full-catalogue ceiling", () => {

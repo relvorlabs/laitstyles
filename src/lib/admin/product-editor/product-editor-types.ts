@@ -1,5 +1,4 @@
 export {
-  productEditorSteps,
   type IntakeRecord,
   type IntakeStage,
   type IntakeTransitionSuccess,
@@ -14,6 +13,7 @@ export {
   type ProductEditorStep,
   type ProductEditorValues,
   type ProductEditorVariant,
+  productEditorSteps,
   type StockedProductEditorValues,
   type UniqueProductEditorValues,
   type VariantProductEditorValues,

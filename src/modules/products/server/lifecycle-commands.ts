@@ -2,12 +2,9 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
-import type { StaffSession } from "@/server/auth/session";
 import { canManageProduct, isProductId } from "@/modules/products/server/rules";
-import type {
-  ProductLifecycleError,
-  ProductLifecycleOutcome,
-} from "@/modules/products/types";
+import type { ProductLifecycleError, ProductLifecycleOutcome } from "@/modules/products/types";
+import type { StaffSession } from "@/server/auth/session";
 
 type ProductTarget = { id: string; name: string; slug: string };
 

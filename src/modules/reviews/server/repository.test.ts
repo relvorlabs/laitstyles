@@ -180,23 +180,20 @@ describe("owned review repository", () => {
       }),
       "fully_refunded",
     ],
-  ])(
-    "derives %s resubmission eligibility without losing duplicate-review truth",
-    async (_case, ownedLine, reason) => {
-      mocks.findFirst.mockResolvedValueOnce(ownedLine);
-      const result = await getOwnedReviewContext({
-        customerId: "customer-a",
-        orderNumber: "LS-1001",
-        orderLineId: "line-a",
-        now,
-      });
-      expect(result).toMatchObject({
-        found: true,
-        eligibility: { eligible: false, reason: "already_reviewed" },
-        resubmissionEligibility: { eligible: false, reason },
-      });
-    },
-  );
+  ])("derives %s resubmission eligibility without losing duplicate-review truth", async (_case, ownedLine, reason) => {
+    mocks.findFirst.mockResolvedValueOnce(ownedLine);
+    const result = await getOwnedReviewContext({
+      customerId: "customer-a",
+      orderNumber: "LS-1001",
+      orderLineId: "line-a",
+      now,
+    });
+    expect(result).toMatchObject({
+      found: true,
+      eligibility: { eligible: false, reason: "already_reviewed" },
+      resubmissionEligibility: { eligible: false, reason },
+    });
+  });
 
   it.each([
     [
@@ -277,49 +274,50 @@ describe("owned review repository", () => {
     ).resolves.toEqual({ ok: false, reason: "already_reviewed" });
   });
 
-  it.each(["published", "rejected", "withdrawn"] as const)(
-    "resubmits a %s review to moderation",
-    async (status) => {
-      mocks.findFirst.mockResolvedValueOnce(
-        line({
-          product_review: {
-            id: "review-a",
-            rating: 3,
-            title: null,
-            body: "An older review body that is long enough.",
-            fit: "runs_small",
-            size_ordered: "UK 12 / Emerald",
-            status,
-            submitted_at: new Date("2026-07-05T12:00:00Z"),
-            rejection_reason: status === "rejected" ? "Needs more detail" : null,
-          },
-        }),
-      );
+  it.each([
+    "published",
+    "rejected",
+    "withdrawn",
+  ] as const)("resubmits a %s review to moderation", async (status) => {
+    mocks.findFirst.mockResolvedValueOnce(
+      line({
+        product_review: {
+          id: "review-a",
+          rating: 3,
+          title: null,
+          body: "An older review body that is long enough.",
+          fit: "runs_small",
+          size_ordered: "UK 12 / Emerald",
+          status,
+          submitted_at: new Date("2026-07-05T12:00:00Z"),
+          rejection_reason: status === "rejected" ? "Needs more detail" : null,
+        },
+      }),
+    );
 
-      await expect(
-        submitReview({
-          customerId: "customer-a",
-          orderNumber: "LS-1001",
-          orderLineId: "line-a",
-          input,
-          now,
-        }),
-      ).resolves.toEqual({ ok: true, reviewId: "review-a", productSlug: "archive-silk-dress" });
+    await expect(
+      submitReview({
+        customerId: "customer-a",
+        orderNumber: "LS-1001",
+        orderLineId: "line-a",
+        input,
+        now,
+      }),
+    ).resolves.toEqual({ ok: true, reviewId: "review-a", productSlug: "archive-silk-dress" });
 
-      expect(mocks.updateMany).toHaveBeenCalledWith({
-        where: { id: "review-a", status },
-        data: expect.objectContaining({
-          rating: 5,
-          status: "pending",
-          submitted_at: now,
-          published_at: null,
-          reviewed_at: null,
-          reviewed_by_profile_id: null,
-          rejection_reason: null,
-        }),
-      });
-    },
-  );
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { id: "review-a", status },
+      data: expect.objectContaining({
+        rating: 5,
+        status: "pending",
+        submitted_at: now,
+        published_at: null,
+        reviewed_at: null,
+        reviewed_by_profile_id: null,
+        rejection_reason: null,
+      }),
+    });
+  });
 
   it("withdraws an owned review after repeating the ownership query in a transaction", async () => {
     mocks.findFirst.mockResolvedValueOnce(

@@ -1,8 +1,8 @@
 import { koboToNaira } from "@/lib/money";
 import type { ProductVariantOption } from "@/lib/storefront/types";
 import { addCartLine, type CartLine, type CartSelection } from "@/modules/cart/cart-lines";
-import type { StorefrontCartIntent } from "@/modules/storefront-shell/client/storefront-client-state";
 import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import type { StorefrontCartIntent } from "@/modules/storefront-shell/client/storefront-client-state";
 
 type VariantOptionsByProductId = Readonly<Record<string, readonly ProductVariantOption[]>>;
 

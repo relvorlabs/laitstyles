@@ -29,9 +29,7 @@ export function ProductRecommendations({
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
-  const productLookup = new Map(
-    catalogue.products.map((candidate) => [candidate.id, candidate]),
-  );
+  const productLookup = new Map(catalogue.products.map((candidate) => [candidate.id, candidate]));
   const groups = selectProductRecommendations(catalogue.products, product);
   const products = columns === "styled" ? groups.styledWith : groups.related;
 

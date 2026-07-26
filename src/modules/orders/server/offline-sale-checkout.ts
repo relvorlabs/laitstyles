@@ -3,8 +3,8 @@ import "server-only";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import { applyOperationalStockMutation } from "@/modules/inventory/server/operational-stock";
-import type { OfflineSaleDraft } from "@/modules/orders/server/offline-sale-draft";
 import { adminOrderInclude } from "@/modules/orders/server/mappers";
+import type { OfflineSaleDraft } from "@/modules/orders/server/offline-sale-draft";
 import type { OfflineSaleInput } from "@/modules/orders/types";
 import type { PaystackCheckout } from "@/modules/payments/server/paystack";
 import type { StaffSession } from "@/server/auth/session";
@@ -125,8 +125,7 @@ export async function cancelFailedOfflineSaleDraft(
         order_id: draft.orderId,
         status: "cancelled",
         actor_profile_id: actor.authUserId,
-        note:
-          "Order cancelled and reserved stock released because Paystack checkout was not initialized.",
+        note: "Order cancelled and reserved stock released because Paystack checkout was not initialized.",
         metadata: { paymentReference: draft.reference },
       },
     });

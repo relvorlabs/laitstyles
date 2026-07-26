@@ -94,12 +94,7 @@ export function SearchOverlay() {
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {searchSuggestions.map(([term, label]) => (
-            <Button
-              key={term}
-              onClick={() => setValue(term)}
-              type="button"
-              variant="outline"
-            >
+            <Button key={term} onClick={() => setValue(term)} type="button" variant="outline">
               {label}
             </Button>
           ))}

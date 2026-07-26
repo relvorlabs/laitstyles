@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
-  loadStorefrontProductSlugs,
 } from "@/modules/products/server/storefront/catalogue-loader";
 import {
   inventoryLabel,
@@ -126,9 +125,4 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
 
 function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
-}
-
-export async function generateStaticParams() {
-  const slugs = await loadStorefrontProductSlugs();
-  return slugs.map((slug) => ({ slug }));
 }

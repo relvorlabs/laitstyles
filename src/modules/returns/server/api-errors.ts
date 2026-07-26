@@ -16,7 +16,11 @@ export function throwReturnActionError(error: ReturnActionError): never {
 }
 
 function statusFor(code: ReturnActionError["code"]) {
-  if (code === "order-not-found" || code === "return-not-found" || code === "return-line-not-found") {
+  if (
+    code === "order-not-found" ||
+    code === "return-not-found" ||
+    code === "return-line-not-found"
+  ) {
     return 404;
   }
   if (
