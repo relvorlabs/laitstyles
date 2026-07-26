@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { ProductCard } from "@/features/storefront/catalogue/product-card";
 import type { CatalogueSort, ProductSummary } from "@/lib/storefront/types";
+import { ProductSummaryCard } from "./product-summary-card";
 
 const SORTS: { value: CatalogueSort; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -10,8 +10,6 @@ const SORTS: { value: CatalogueSort; label: string }[] = [
   { value: "price_desc", label: "Price: high to low" },
 ];
 
-// Shared listing body (sort chips + grid + designed empty state) used by
-// category and collection landings — one contract, no per-surface duplicates.
 export function CatalogueResults({
   products,
   total,
@@ -57,7 +55,7 @@ export function CatalogueResults({
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-5 gap-y-9 max-sm:grid-cols-2 max-sm:gap-x-3.5">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductSummaryCard key={product.id} product={product} />
         ))}
       </div>
     </>
@@ -66,8 +64,7 @@ export function CatalogueResults({
 
 type SortParam = string | string[] | undefined;
 
-/** Parse a `?sort=` value into a valid CatalogueSort (default: newest). */
 export function parseSort(value: SortParam): CatalogueSort {
-  const v = Array.isArray(value) ? value[0] : value;
-  return v === "price_asc" || v === "price_desc" ? v : "newest";
+  const next = Array.isArray(value) ? value[0] : value;
+  return next === "price_asc" || next === "price_desc" ? next : "newest";
 }
