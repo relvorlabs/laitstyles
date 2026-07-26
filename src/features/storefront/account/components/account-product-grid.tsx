@@ -1,8 +1,8 @@
 "use client";
 
-import { ProductCard } from "@/features/storefront/shared/product-card";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { ProductCard } from "@/modules/products/ui/storefront/product-card";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
