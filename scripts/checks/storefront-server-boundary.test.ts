@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyArchitectureGraph } from "./architecture-guard.mjs";
 
 const root = join(__dirname, "../..");
 const sourceRoot = join(root, "src");
@@ -26,6 +27,25 @@ function importsOf(source: string): string[] {
 }
 
 describe("storefront server boundary", () => {
+  it("rejects executable internal API fetches from Server Components", () => {
+    const files = {
+      "src/app/page.tsx": `
+        export default async function Page() {
+          // fetch("/api/v1/comment-only");
+          return fetch(new URL("/api/v1/health", origin));
+        }
+      `,
+    };
+
+    expect(classifyArchitectureGraph({ files })).toEqual([
+      {
+        rule: "server-component-internal-api",
+        importer: "src/app/page.tsx",
+        detail: "Server Component calls internal API /api/v1/health instead of its domain query.",
+      },
+    ]);
+  });
+
   it("prevents client modules from importing server-only catalogue code", () => {
     const offenders = sourceFiles(sourceRoot).flatMap((path) => {
       const source = readFileSync(path, "utf8");

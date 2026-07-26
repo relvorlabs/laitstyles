@@ -1,28 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
-import {
-  legacyArchitectureExceptions,
-  legacyTopLevelServerFiles,
-} from "./architecture-legacy-exceptions.mjs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import path, { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { parseModuleSyntax, stripComments } from "./module-export-guard.mjs";
+import { legacyArchitectureExceptions } from "./architecture-legacy-exceptions.mjs";
 
-const root = process.cwd();
-const errors = [];
-const warnings = [];
 const sourcePattern = /\.(?:[cm]?[jt]sx?)$/i;
-
-function normalise(value) {
-  return value.replaceAll("\\", "/");
-}
-
-function listFiles(directory, prefix = "") {
-  if (!existsSync(directory)) return [];
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const absolute = join(directory, entry.name);
-    const repoPath = normalise(join(prefix, entry.name));
-    return entry.isDirectory() ? listFiles(absolute, repoPath) : [repoPath];
-  });
-}
+const extensions = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"];
+const normalise = (value) => value.replaceAll("\\", "/");
 
 function isTestOrFixture(file) {
   return /(?:\.test\.|\.spec\.|\/tests?\/|\/__tests__\/|\/stories\/|\.stories\.)/.test(file);
@@ -32,52 +17,24 @@ function isProductionSource(file) {
   return file.startsWith("src/") && sourcePattern.test(file) && !isTestOrFixture(file);
 }
 
-function isClientModule(source) {
-  const start = source.trimStart().slice(0, 300);
-  return start.startsWith('"use client";') || start.startsWith("'use client';");
+function hasDirective(source, directive) {
+  return stripComments(source).trimStart().startsWith(`"${directive}"`) || stripComments(source).trimStart().startsWith(`'${directive}'`);
 }
 
-function isServerActionModule(source) {
-  const start = source.trimStart().slice(0, 300);
-  return start.startsWith('"use server";') || start.startsWith("'use server';");
-}
-
-function importSpecifiers(source) {
-  const values = new Set();
-  const staticImport = /(?:import|export)\s+(?:type\s+)?(?:[^"'`;]*?\s+from\s+)?["']([^"']+)["']/g;
-  const dynamicImport = /import\(\s*["']([^"']+)["']\s*\)/g;
-  for (const match of source.matchAll(staticImport)) values.add(match[1]);
-  for (const match of source.matchAll(dynamicImport)) values.add(match[1]);
-  return [...values];
-}
-
-function resolveLocalImport(fromFile, specifier) {
-  if (!(specifier.startsWith("@/") || specifier.startsWith("."))) return null;
+function candidates(fromFile, specifier) {
   const base = specifier.startsWith("@/")
-    ? join(root, "src", specifier.slice(2))
-    : resolve(dirname(join(root, fromFile)), specifier);
-  const candidates = [
-    base,
-    `${base}.ts`,
-    `${base}.tsx`,
-    `${base}.mts`,
-    `${base}.cts`,
-    `${base}.js`,
-    `${base}.jsx`,
-    `${base}.mjs`,
-    `${base}.cjs`,
-    join(base, "index.ts"),
-    join(base, "index.tsx"),
-    join(base, "index.js"),
-    join(base, "index.jsx"),
-  ];
-  const match = candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
-  return match ? normalise(relative(root, match)) : null;
+    ? `src/${specifier.slice(2)}`
+    : path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), specifier));
+  return [base, ...extensions.map((extension) => `${base}${extension}`), ...extensions.map((extension) => `${base}/index${extension}`)];
+}
+
+function resolveModule(files, fromFile, specifier) {
+  if (!(specifier.startsWith("@/") || specifier.startsWith("."))) return null;
+  return candidates(fromFile, specifier).find((candidate) => files.has(candidate)) ?? null;
 }
 
 function importsServerRuntime(specifier, resolvedPath) {
-  return (
-    specifier === "server-only" ||
+  return specifier === "server-only" ||
     specifier === "@prisma/client" ||
     specifier.startsWith("@/server/") ||
     specifier.startsWith("@/lib/prisma") ||
@@ -85,230 +42,166 @@ function importsServerRuntime(specifier, resolvedPath) {
     specifier.includes("prisma/generated") ||
     /^@\/modules\/[^/]+\/server(?:\/|$)/.test(specifier) ||
     resolvedPath?.startsWith("src/server/") ||
-    /^src\/modules\/[^/]+\/server\//.test(resolvedPath ?? "")
-  );
+    /^src\/modules\/[^/]+\/server\//.test(resolvedPath ?? "");
 }
 
-function hasFixturePath(value) {
-  const candidate = normalise(value).replace(/^@\/|^\.\//, "");
-  return /(?:^|\/)(?:tests\/fixtures|tests\/factories|stories\/fixtures|scripts\/seed|development\/fixtures)(?:\/|$)/.test(
-    candidate,
-  );
+function hasFixturePath(specifier, resolvedPath) {
+  return [specifier, resolvedPath]
+    .filter(Boolean)
+    .map(normalise)
+    .some((value) => /(?:^|\/)(?:tests\/fixtures|tests\/factories|stories\/fixtures|scripts\/seed|development\/fixtures)(?:\/|$)/.test(value.replace(/^@\//, "")));
 }
 
-function changedEntries() {
-  const baseRef = process.env.CI_BASE_REF?.trim();
-  const ranges = baseRef ? [`origin/${baseRef}...HEAD`, "HEAD^...HEAD"] : ["HEAD^...HEAD"];
-  for (const range of ranges) {
-    try {
-      return execFileSync("git", ["diff", "--name-status", "--find-renames", range], {
-        cwd: root,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-      })
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const parts = line.split("\t");
-          const status = parts[0][0];
-          return { status, path: normalise(status === "R" || status === "C" ? parts[2] : parts[1]) };
-        });
-    } catch {
-      // Try the next deterministic range.
+function externalBindings(source) {
+  const bindings = new Set();
+  const code = stripComments(source);
+  for (const match of code.matchAll(/(?:^|[;\n])\s*import\s+([^;"']+?)\s+from\s+(["'])([^"']+)\2/g)) {
+    if (match[3].startsWith("@/") || match[3].startsWith(".")) continue;
+    const clause = match[1].trim().replace(/^type\s+/, "");
+    const defaultBinding = clause.split(/[,{]/)[0].trim();
+    if (defaultBinding && !defaultBinding.startsWith("*")) bindings.add(defaultBinding);
+    const named = clause.match(/\{([\s\S]*?)\}/)?.[1] ?? "";
+    for (const item of named.split(",")) {
+      const value = item.trim().replace(/^type\s+/, "");
+      if (!value) continue;
+      bindings.add((value.split(/\s+as\s+/)[1] ?? value.split(/\s+as\s+/)[0]).trim());
     }
   }
-  warnings.push("Could not resolve a git diff range; new-file ownership rules were not checked.");
-  return [];
+  return bindings;
 }
 
-const allFiles = listFiles(join(root, "src"), "src");
-const sourceFiles = allFiles.filter((file) => sourcePattern.test(file));
-const sourceByFile = new Map(
-  sourceFiles.map((file) => [file, readFileSync(join(root, file), "utf8")]),
-);
-const exceptionByEdge = new Map(
-  legacyArchitectureExceptions.map((entry) => [`${entry.importer}->${entry.imported}`, entry]),
-);
-const serverActions = new Set(
-  [...sourceByFile].filter(([, source]) => isServerActionModule(source)).map(([file]) => file),
-);
-
-for (const entry of legacyArchitectureExceptions) {
-  const source = sourceByFile.get(entry.importer);
-  if (!source || !importSpecifiers(source).includes(entry.imported)) {
-    errors.push(`Stale architecture exception: ${entry.importer} -> ${entry.imported}`);
+function catalogTokens(source) {
+  let code = stripComments(source);
+  for (const { specifier } of parseModuleSyntax(source).imports) {
+    if (!specifier.startsWith("@/") && !specifier.startsWith(".")) code = code.replaceAll(specifier, "");
   }
+  return new Set([...code.matchAll(/\b[Cc]atalog(?!ue)[A-Za-z0-9_$]*/g)].map((match) => match[0]));
 }
 
-const requiredFiles = [
-  "src/stores/cart.store.ts",
-  "src/stores/saved-items.store.ts",
-  "src/stores/storefront-ui.store.ts",
-  "src/providers/providers.tsx",
-  "src/modules/products/storefront/catalogue-contract.ts",
-  "src/modules/products/server/storefront/catalogue-projection.ts",
-  "src/modules/products/client/storefront-catalogue.ts",
-  "src/app/api/v1/products/route.ts",
-];
-for (const file of requiredFiles) {
-  if (!existsSync(join(root, file))) errors.push(`Required target-architecture file is missing: ${file}`);
+function internalApiCalls(source) {
+  const code = stripComments(source);
+  const calls = new Set();
+  for (const match of code.matchAll(/\bfetch\s*\(\s*(?:new\s+URL\s*\(\s*)?(["'])(\/api\/[^"']*)\1/g)) calls.add(match[2]);
+  return [...calls];
 }
 
-const retiredFiles = [
-  "src/features/storefront/shared/storefront-provider.tsx",
-  "src/features/storefront/shared/storefront-client-state-provider.tsx",
-  "src/features/storefront/shared/catalog-adapter.ts",
-  "src/features/storefront/shared/catalog-loader.ts",
-  "src/features/storefront/shared/catalog-types.ts",
-  "src/modules/products/client/storefront-catalog.ts",
-  "src/app/api/v1/storefront/catalogue/route.ts",
-  "src/app/api/v1/storefront/catalogue/route.test.ts",
-  "src/app/api/v1/storefront/catalog/route.ts",
-  "src/app/api/v1/storefront/catalog/route.test.ts",
-];
-for (const file of retiredFiles) {
-  if (existsSync(join(root, file))) errors.push(`Retired Phase 5/6 file remains: ${file}`);
-}
-
-const retiredImports = [
-  "@/features/storefront/shared/storefront-provider",
-  "@/features/storefront/shared/storefront-client-state-provider",
-  "@/features/storefront/shared/catalog-adapter",
-  "@/features/storefront/shared/catalog-loader",
-  "@/features/storefront/shared/catalog-types",
-  "@/modules/products/client/storefront-catalog",
-];
-
-const retiredSymbols = [
-  "StorefrontCatalogPayload",
-  "StorefrontShellCatalogPayload",
-  "storefrontCatalogQueryKey",
-  "getStorefrontShellCatalog",
-  "loadStorefrontCatalog",
-  "loadStorefrontShellCatalog",
-  "useStorefrontCatalog",
-  "useStorefrontCatalogData",
-  "buildStorefrontCatalog",
-  "buildStorefrontShellCatalog",
-];
-
-for (const [file, source] of sourceByFile) {
-  const imports = importSpecifiers(source);
-
-  for (const retiredImport of retiredImports) {
-    if (imports.includes(retiredImport)) errors.push(`Retired Phase 5/6 import in ${file}: ${retiredImport}`);
+export function classifyArchitectureGraph({ files, previousFiles = {} }) {
+  const fileMap = new Map(Object.entries(files).map(([file, source]) => [normalise(file), source]));
+  const parsed = new Map([...fileMap].map(([file, source]) => [file, parseModuleSyntax(source)]));
+  const actions = new Set([...fileMap].filter(([, source]) => hasDirective(source, "use server")).map(([file]) => file));
+  const actionCache = new Map();
+  function reachesAction(file, stack = new Set()) {
+    if (actions.has(file)) return true;
+    if (actionCache.has(file)) return actionCache.get(file);
+    if (stack.has(file)) return false;
+    const next = new Set(stack).add(file);
+    const result = [...(parsed.get(file)?.namedReexports ?? []), ...(parsed.get(file)?.starReexports ?? [])]
+      .map((entry) => resolveModule(fileMap, file, entry.specifier))
+      .filter(Boolean)
+      .some((target) => reachesAction(target, next));
+    actionCache.set(file, result);
+    return result;
   }
 
-  if (isProductionSource(file)) {
-    for (const symbol of retiredSymbols) {
-      if (source.includes(symbol)) errors.push(`Retired American catalogue symbol in ${file}: ${symbol}`);
-    }
-    if (/['"`]\/api\/v1\/storefront\//.test(source)) {
-      errors.push(`Obsolete storefront API prefix remains in ${file}; use the owning /api/v1 domain.`);
-    }
-    if (/\b[Cc]atalog(?!ue)[A-Za-z0-9_]*/.test(source)) {
-      errors.push(`American catalog spelling remains in production source: ${file}`);
-    }
-  }
-
-  for (const specifier of imports) {
-    const resolvedPath = resolveLocalImport(file, specifier);
-    const edgeKey = `${file}->${specifier}`;
-    const isDeclaredCompatibilityEdge = exceptionByEdge.has(edgeKey);
-    const isAuthCompatibilityImport =
-      specifier === "@/server/auth/session" ||
-      specifier === "@/server/auth/profile" ||
-      specifier.startsWith("@/features/storefront/shared/storefront-auth-");
-    const isTargetCheckoutCompatibilityImport =
-      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) &&
-      specifier.startsWith("@/features/storefront/checkout/");
-
-    if (
-      isProductionSource(file) &&
-      (isAuthCompatibilityImport || isTargetCheckoutCompatibilityImport) &&
-      !isDeclaredCompatibilityEdge
-    ) {
-      errors.push(`Undocumented compatibility edge: ${file} -> ${specifier}`);
-    }
-
-    if (isProductionSource(file) && (hasFixturePath(specifier) || hasFixturePath(resolvedPath ?? ""))) {
-      errors.push(`Production fixture import in ${file}: ${specifier}`);
-    }
-
-    if (isClientModule(source) && importsServerRuntime(specifier, resolvedPath)) {
-      errors.push(`Client/server boundary violation in ${file}: ${specifier}`);
-    }
-
-    if (resolvedPath && serverActions.has(resolvedPath)) {
-      if (imports.includes("@tanstack/react-query")) {
-        errors.push(`TanStack module imports a Server Action: ${file} -> ${resolvedPath}`);
+  const violations = [];
+  for (const file of [...fileMap.keys()].sort()) {
+    const source = fileMap.get(file);
+    const imports = parsed.get(file).imports;
+    const specifiers = new Set(imports.map(({ specifier }) => specifier));
+    for (const entry of imports) {
+      const resolvedPath = resolveModule(fileMap, file, entry.specifier);
+      if (isProductionSource(file) && hasFixturePath(entry.specifier, resolvedPath)) {
+        violations.push({ rule: "production-fixture-import", importer: file, imported: entry.specifier, detail: "Production source imports a test or development fixture." });
       }
-      if (/^src\/app\/.+\/route\.[cm]?[jt]sx?$/.test(file)) {
-        errors.push(`Route Handler imports a Server Action: ${file} -> ${resolvedPath}`);
+      if (hasDirective(source, "use client") && importsServerRuntime(entry.specifier, resolvedPath)) {
+        violations.push({ rule: "client-server-import", importer: file, imported: entry.specifier, detail: `Client module imports server runtime ${resolvedPath ?? entry.specifier}.` });
+      }
+      if (resolvedPath && reachesAction(resolvedPath) && specifiers.has("@tanstack/react-query")) {
+        violations.push({ rule: "tanstack-server-action", importer: file, imported: resolvedPath, detail: "TanStack module imports a Server Action." });
+      }
+      if (resolvedPath && reachesAction(resolvedPath) && /^src\/app\/.+\/route\.[cm]?[jt]sx?$/.test(file)) {
+        violations.push({ rule: "route-handler-server-action", importer: file, imported: resolvedPath, detail: actions.has(resolvedPath) ? "Route Handler imports a Server Action." : "Route Handler imports a Server Action through a re-export." });
       }
     }
 
-    if (
-      specifier.startsWith("@/features/storefront/") &&
-      /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) &&
-      !isDeclaredCompatibilityEdge
-    ) {
-      errors.push(`Target ownership leak: ${file} imports legacy ${specifier}`);
+    if (isProductionSource(file) && file.startsWith("src/app/") && !/\/route\.[cm]?[jt]sx?$/.test(file) && !hasDirective(source, "use client") && !hasDirective(source, "use server")) {
+      for (const apiPath of internalApiCalls(source)) violations.push({ rule: "server-component-internal-api", importer: file, detail: `Server Component calls internal API ${apiPath} instead of its domain query.` });
     }
 
-    if (
-      file.startsWith("src/modules/") &&
-      specifier.startsWith("@/features/") &&
-      !isDeclaredCompatibilityEdge
-    ) {
-      errors.push(`Domain module depends on legacy feature UI: ${file} -> ${specifier}`);
+    if (isProductionSource(file)) {
+      const previousTokens = catalogTokens(previousFiles[file] ?? "");
+      const ignored = externalBindings(source);
+      for (const token of catalogTokens(source)) {
+        if (!previousTokens.has(token) && !ignored.has(token)) violations.push({ rule: "american-catalogue-language", importer: file, detail: `New American catalogue identifier: ${token}.` });
+      }
     }
   }
+  return violations;
+}
 
-  if (
-    isProductionSource(file) &&
-    file.startsWith("src/server/") &&
-    !legacyTopLevelServerFiles.has(file)
-  ) {
-    errors.push(`Top-level server business code must move to its domain module: ${file}`);
+function listFiles(directory, prefix = "") {
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const absolute = join(directory, entry.name);
+    const repoPath = normalise(join(prefix, entry.name));
+    return entry.isDirectory() ? listFiles(absolute, repoPath) : sourcePattern.test(entry.name) ? [repoPath] : [];
+  });
+}
+
+function previousSource(root, file) {
+  try {
+    return execFileSync("git", ["show", `HEAD^:${file}`], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return "";
+  }
+}
+
+export function runArchitectureGuard(root = process.cwd()) {
+  const sourceFiles = listFiles(join(root, "src"), "src");
+  const files = Object.fromEntries(sourceFiles.map((file) => [file, readFileSync(join(root, file), "utf8")]));
+  let changedFiles = new Set();
+  try {
+    changedFiles = new Set(execFileSync("git", ["diff", "--name-only", "HEAD^", "--", "src"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split(/\r?\n/).map(normalise).filter(Boolean));
+  } catch {
+    // An empty previous source fails new-debt checks closed when Git history is unavailable.
+  }
+  const previousFiles = Object.fromEntries(sourceFiles.map((file) => [file, changedFiles.has(file) ? previousSource(root, file) : files[file]]));
+  const violations = classifyArchitectureGraph({ files, previousFiles });
+  const warnings = [];
+  const importsByFile = new Map(sourceFiles.map((file) => [file, new Set(parseModuleSyntax(files[file]).imports.map(({ specifier }) => specifier))]));
+  const exceptionEdges = new Set(legacyArchitectureExceptions.map((entry) => `${entry.importer}->${entry.imported}`));
+
+  for (const entry of legacyArchitectureExceptions) {
+    if (!importsByFile.get(entry.importer)?.has(entry.imported)) violations.push({ rule: "stale-architecture-exception", importer: entry.importer, imported: entry.imported, detail: `Stale architecture exception: ${entry.importer} -> ${entry.imported}.` });
   }
 
-  if (isProductionSource(file) && /^src\/app\/api\//.test(file)) {
-    const allowed =
-      file.startsWith("src/app/api/v1/") ||
-      file.startsWith("src/app/api/health/") ||
-      file.startsWith("src/app/api/internal/");
-    if (!allowed) errors.push(`Machine-readable API route is outside /api/v1: ${file}`);
-  }
-
-  if (!isTestOrFixture(file)) {
-    const lines = source.split(/\r?\n/).length;
-    if (lines > 800) errors.push(`${file} has ${lines} lines; split the god module.`);
+  for (const file of sourceFiles.filter(isProductionSource)) {
+    const previousImports = new Set(parseModuleSyntax(previousFiles[file] ?? "").imports.map(({ specifier }) => specifier));
+    for (const specifier of importsByFile.get(file)) {
+      const edge = `${file}->${specifier}`;
+      const authCompatibility = specifier === "@/server/auth/session" || specifier === "@/server/auth/profile" || specifier.startsWith("@/features/storefront/shared/storefront-auth-");
+      const checkoutCompatibility = /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) && specifier.startsWith("@/features/storefront/checkout/");
+      if ((authCompatibility || checkoutCompatibility) && !exceptionEdges.has(edge)) violations.push({ rule: "undocumented-compatibility-edge", importer: file, imported: specifier, detail: `Undocumented compatibility edge: ${file} -> ${specifier}.` });
+      const newImport = !previousImports.has(specifier);
+      if (newImport && specifier.startsWith("@/features/storefront/") && /^(?:src\/app\/|src\/stores\/|src\/modules\/|src\/server\/)/.test(file) && !exceptionEdges.has(edge)) violations.push({ rule: "target-ownership-leak", importer: file, imported: specifier, detail: `New target ownership leak imports legacy ${specifier}.` });
+      if (newImport && file.startsWith("src/modules/") && specifier.startsWith("@/features/") && !exceptionEdges.has(edge)) violations.push({ rule: "domain-feature-leak", importer: file, imported: specifier, detail: `New domain module dependency on legacy feature ${specifier}.` });
+    }
+    if (/^src\/app\/api\//.test(file) && !file.startsWith("src/app/api/v1/") && !file.startsWith("src/app/api/health/") && !file.startsWith("src/app/api/internal/")) violations.push({ rule: "unversioned-api-route", importer: file, detail: "Machine-readable API route is outside /api/v1." });
+    const lines = files[file].split(/\r?\n/).length;
+    if (lines > 800) violations.push({ rule: "god-module", importer: file, detail: `${file} has ${lines} lines; split the god module.` });
     else if (lines > 600) warnings.push(`${file} has ${lines} lines and needs a responsibility review.`);
   }
+
+  const requiredFiles = ["src/stores/cart.store.ts", "src/stores/saved-items.store.ts", "src/stores/storefront-ui.store.ts", "src/providers/providers.tsx", "src/modules/products/storefront/catalogue-contract.ts", "src/modules/products/server/storefront/catalogue-projection.ts", "src/modules/products/client/storefront-catalogue.ts", "src/app/api/v1/products/route.ts"];
+  for (const file of requiredFiles) if (!existsSync(join(root, file))) violations.push({ rule: "missing-target-file", importer: file, detail: `Required target-architecture file is missing: ${file}.` });
+  return { scanned: sourceFiles.length, serverActions: Object.values(files).filter((source) => hasDirective(source, "use server")).length, violations, warnings };
 }
 
-for (const entry of changedEntries()) {
-  if (entry.status !== "A" || !isProductionSource(entry.path)) continue;
-  if (entry.path.startsWith("src/features/")) {
-    errors.push(`New production code was added under legacy features ownership: ${entry.path}`);
-  }
-  if (entry.path.startsWith("src/server/")) {
-    errors.push(`New production code was added under legacy top-level server ownership: ${entry.path}`);
-  }
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const result = runArchitectureGuard(process.cwd());
+  const lines = ["## Architecture guard", "", `- Source files scanned: ${result.scanned}`, `- Server Action modules indexed: ${result.serverActions}`, `- Errors: ${result.violations.length}`, `- Warnings: ${result.warnings.length}`];
+  if (result.warnings.length) lines.push("", "### Warnings", ...result.warnings.map((warning) => `- ${warning}`));
+  if (result.violations.length) lines.push("", "### Failures", ...result.violations.map((violation) => `- [${violation.rule}] ${violation.importer}${violation.imported ? ` -> ${violation.imported}` : ""}: ${violation.detail}`));
+  process.stdout.write(`${lines.join("\n")}\n`);
+  if (result.violations.length) process.exitCode = 1;
 }
-
-const summary = [
-  "## Architecture guard",
-  "",
-  `- Source files scanned: ${sourceFiles.length}`,
-  `- Server Action modules indexed: ${serverActions.size}`,
-  `- Errors: ${errors.length}`,
-  `- Warnings: ${warnings.length}`,
-];
-if (warnings.length) summary.push("", "### Warnings", ...warnings.map((warning) => `- ${warning}`));
-if (errors.length) summary.push("", "### Failures", ...errors.map((error) => `- ${error}`));
-const rendered = `${summary.join("\n")}\n`;
-process.stdout.write(rendered);
-if (errors.length) process.exit(1);

@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyModuleGraph } from "../../../scripts/checks/module-export-guard.mjs";
 import {
   legacyArchitectureExceptions,
   legacyProductTypeOnlyEdge,
@@ -20,6 +21,55 @@ const retiredProductPaths = [
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
 
 describe("Products module boundaries", () => {
+  it("resolves default, named, type and re-exported bindings without checking packages", () => {
+    const files = {
+      "src/consumer.ts": `
+        import React from "react";
+        import defaultValue, {
+          named,
+          type Shape,
+        } from "@/barrel";
+        export { lazyValue } from "./lazy";
+        void import("./dynamic");
+      `,
+      "src/barrel.ts": 'export { default, named, type Shape } from "./target";',
+      "src/target.ts": `
+        export default 1;
+        export const named = 2;
+        export interface Shape { value: string }
+      `,
+      "src/lazy.ts": "export const lazyValue = 3;",
+      "src/dynamic.ts": "export const dynamicValue = 4;",
+    };
+
+    expect(classifyModuleGraph({ files })).toEqual([]);
+  });
+
+  it("reports exact missing internal modules and exports", () => {
+    const files = {
+      "src/consumer.ts": `
+        import { missing } from "@/target";
+        void import("./absent");
+      `,
+      "src/target.ts": "export const present = 1;",
+    };
+
+    expect(classifyModuleGraph({ files })).toEqual([
+      {
+        rule: "missing-export",
+        importer: "src/consumer.ts",
+        imported: "@/target",
+        detail: "@/target does not export missing (resolved to src/target.ts).",
+      },
+      {
+        rule: "unresolved-internal-module",
+        importer: "src/consumer.ts",
+        imported: "./absent",
+        detail: "Cannot resolve internal module ./absent.",
+      },
+    ]);
+  });
+
   it("keeps production consumers off retired product and catalogue paths", async () => {
     const sourceFiles = await collectSourceFiles(sourceRoot);
     const offenders: string[] = [];

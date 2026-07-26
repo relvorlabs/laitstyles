@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyArchitectureGraph } from "../../../scripts/checks/architecture-guard.mjs";
 
 const root = process.cwd();
 
@@ -86,6 +87,27 @@ const retiredCatalogSymbols = [
 ];
 
 describe("storefront state boundaries", () => {
+  it("checks only added American catalogue debt and ignores packages and retained database fields", () => {
+    const files = {
+      "src/data.ts": `
+        import catalogPlugin from "catalog-plugin";
+        export const row = { catalogId: "retained-database-field" };
+        export const catalogLabel = catalogPlugin.label;
+      `,
+    };
+    const previousFiles = {
+      "src/data.ts": 'export const row = { catalogId: "retained-database-field" };',
+    };
+
+    expect(classifyArchitectureGraph({ files, previousFiles })).toEqual([
+      {
+        rule: "american-catalogue-language",
+        importer: "src/data.ts",
+        detail: "New American catalogue identifier: catalogLabel.",
+      },
+    ]);
+  });
+
   it("does not retain retired providers or compatibility modules", () => {
     for (const retiredFile of retiredFiles) {
       expect(existsSync(join(root, retiredFile)), retiredFile).toBe(false);
@@ -111,7 +133,7 @@ describe("storefront state boundaries", () => {
         const source = readFileSync(filePath, "utf8");
         const relativePath = filePath.replace(`${root}/`, "");
         const symbolViolations = retiredCatalogSymbols
-          .filter((symbol) => source.includes(symbol))
+          .filter((symbol) => new RegExp(`\\b${symbol}\\b`).test(source))
           .map((symbol) => `${relativePath}: ${symbol}`);
         const routeViolation = /["'`]\/api\/v1\/storefront\/catalog["'`]/.test(source)
           ? [`${relativePath}: /api/v1/storefront/catalog`]

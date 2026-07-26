@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyArchitectureGraph } from "../../../scripts/checks/architecture-guard.mjs";
 import {
   legacyArchitectureExceptions,
   legacyTopLevelServerFiles,
@@ -41,6 +42,56 @@ function isTestFile(repoPath: string) {
 }
 
 describe("server/client boundaries", () => {
+  it("classifies executable imports without treating comments as dependencies", () => {
+    const files = {
+      "src/client.tsx": `
+        "use client";
+        // import { secret } from "@/modules/orders/server/queries";
+        import {
+          listOrders,
+        } from "@/modules/orders/server/queries";
+      `,
+      "src/modules/orders/server/queries.ts": 'import "server-only"; export const listOrders = 1;',
+    };
+
+    expect(classifyArchitectureGraph({ files })).toEqual([
+      {
+        rule: "client-server-import",
+        importer: "src/client.tsx",
+        imported: "@/modules/orders/server/queries",
+        detail: "Client module imports server runtime src/modules/orders/server/queries.ts.",
+      },
+    ]);
+  });
+
+  it("follows relative and re-exported Server Action imports", () => {
+    const files = {
+      "src/features/query.ts": `
+        import { useQuery } from "@tanstack/react-query";
+        import { save } from "../app/actions";
+        export const query = useQuery({ queryKey: ["save"], queryFn: save });
+      `,
+      "src/app/actions.ts": '"use server"; export async function save() {}',
+      "src/app/api/v1/items/route.ts": 'import { save } from "../../../actions-index";',
+      "src/app/actions-index.ts": 'export { save } from "./actions";',
+    };
+
+    expect(classifyArchitectureGraph({ files })).toEqual([
+      {
+        rule: "route-handler-server-action",
+        importer: "src/app/api/v1/items/route.ts",
+        imported: "src/app/actions-index.ts",
+        detail: "Route Handler imports a Server Action through a re-export.",
+      },
+      {
+        rule: "tanstack-server-action",
+        importer: "src/features/query.ts",
+        imported: "src/app/actions.ts",
+        detail: "TanStack module imports a Server Action.",
+      },
+    ]);
+  });
+
   it(
     "does not import server-only modules from client components",
     () => {

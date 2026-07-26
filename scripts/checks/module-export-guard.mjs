@@ -1,191 +1,259 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, extname, join, relative, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import path, { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-const root = process.cwd();
-const sourceRoot = join(root, "src");
 const sourcePattern = /\.(?:[cm]?[jt]sx?)$/i;
-const errors = [];
+const extensions = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".css"];
 
-function normalise(value) {
-  return value.replaceAll("\\", "/");
+const normalise = (value) => value.replaceAll("\\", "/");
+const isInternal = (specifier) => specifier.startsWith("@/") || specifier.startsWith(".");
+
+export function stripComments(source) {
+  let result = "";
+  let quote = null;
+  let escaped = false;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (quote) {
+      result += character;
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") {
+      quote = character;
+      result += character;
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      result += "  ";
+      index += 1;
+      while (index + 1 < source.length && source[index + 1] !== "\n") {
+        result += " ";
+        index += 1;
+      }
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      result += "  ";
+      index += 1;
+      while (index + 1 < source.length) {
+        if (source[index + 1] === "*" && source[index + 2] === "/") {
+          result += "  ";
+          index += 2;
+          break;
+        }
+        index += 1;
+        result += source[index] === "\n" ? "\n" : " ";
+      }
+      continue;
+    }
+    result += character;
+  }
+  return result;
 }
 
-function listSourceFiles(directory) {
-  if (!existsSync(directory)) return [];
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const absolute = join(directory, entry.name);
-    if (entry.isDirectory()) return listSourceFiles(absolute);
-    return sourcePattern.test(entry.name) ? [absolute] : [];
-  });
+function maskNonCode(source) {
+  let result = "";
+  let quote = null;
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (lineComment) {
+      if (character === "\n") {
+        lineComment = false;
+        result += "\n";
+      } else result += " ";
+      continue;
+    }
+    if (blockComment) {
+      if (character === "*" && next === "/") {
+        result += "  ";
+        blockComment = false;
+        index += 1;
+      } else result += character === "\n" ? "\n" : " ";
+      continue;
+    }
+    if (quote) {
+      result += character === "\n" ? "\n" : " ";
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      result += "  ";
+      lineComment = true;
+      index += 1;
+    } else if (character === "/" && next === "*") {
+      result += "  ";
+      blockComment = true;
+      index += 1;
+    } else if (character === '"' || character === "'" || character === "`") {
+      quote = character;
+      result += " ";
+    } else result += character;
+  }
+  return result;
 }
 
-function resolveInternalModule(fromFile, specifier) {
-  if (!(specifier.startsWith("@/") || specifier.startsWith("."))) return null;
-
-  const base = specifier.startsWith("@/")
-    ? join(sourceRoot, specifier.slice(2))
-    : resolve(dirname(fromFile), specifier);
-  const candidates = [
-    base,
-    `${base}.ts`,
-    `${base}.tsx`,
-    `${base}.mts`,
-    `${base}.cts`,
-    `${base}.js`,
-    `${base}.jsx`,
-    `${base}.mjs`,
-    `${base}.cjs`,
-    join(base, "index.ts"),
-    join(base, "index.tsx"),
-    join(base, "index.mts"),
-    join(base, "index.cts"),
-    join(base, "index.js"),
-    join(base, "index.jsx"),
-  ];
-
-  return candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile()) ?? null;
+function keywordIsCode(mask, match, keyword) {
+  const offset = match[0].indexOf(keyword);
+  return offset >= 0 && mask.slice(match.index + offset, match.index + offset + keyword.length) === keyword;
 }
 
 function splitBindings(value) {
   return value
     .split(",")
-    .map((binding) => binding.trim())
+    .map((binding) => binding.trim().replace(/^type\s+/, ""))
     .filter(Boolean)
-    .map((binding) => binding.replace(/^type\s+/, "").split(/\s+as\s+/)[0]?.trim())
-    .filter(Boolean);
+    .map((binding) => {
+      const [imported, local] = binding.split(/\s+as\s+/).map((part) => part.trim());
+      return { imported, local: local ?? imported };
+    });
 }
 
-function readModule(file) {
-  const source = readFileSync(file, "utf8");
-  const direct = new Set();
+function importedNames(clause) {
+  const value = clause.trim().replace(/^type\s+/, "");
+  const names = [];
+  const named = value.match(/\{([\s\S]*?)\}/);
+  if (named) names.push(...splitBindings(named[1]).map(({ imported }) => imported));
+  const leading = value.split("{")[0].trim().replace(/,$/, "").trim();
+  if (leading && !leading.startsWith("*")) names.unshift("default");
+  return [...new Set(names)];
+}
+
+export function parseModuleSyntax(source) {
+  const code = stripComments(source);
+  const mask = maskNonCode(source);
+  const imports = [];
+  const directExports = new Set();
   const namedReexports = [];
   const starReexports = [];
-
-  if (/\bexport\s+default\b/.test(source)) direct.add("default");
-
-  const declarations = [
-    /\bexport\s+(?:declare\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g,
-    /\bexport\s+(?:declare\s+)?class\s+([A-Za-z_$][\w$]*)/g,
-    /\bexport\s+(?:declare\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g,
-    /\bexport\s+(?:declare\s+)?(?:type|interface|enum|namespace)\s+([A-Za-z_$][\w$]*)/g,
-  ];
-
-  for (const pattern of declarations) {
-    for (const match of source.matchAll(pattern)) direct.add(match[1]);
+  for (const match of code.matchAll(/(?:^|[;\n])\s*import\s+((?:type\s+)?[^;"']+?)\s+from\s+(["'])([^"']+)\2/g)) {
+    if (!keywordIsCode(mask, match, "import")) continue;
+    imports.push({ kind: "import", specifier: match[3], names: importedNames(match[1]) });
   }
-
-  const localExportPattern = /\bexport\s+(?:type\s+)?\{([^}]+)\}(?!\s+from\s+["'])/g;
-  for (const match of source.matchAll(localExportPattern)) {
-    for (const binding of match[1].split(",")) {
-      const cleaned = binding.trim().replace(/^type\s+/, "");
-      if (!cleaned) continue;
-      const parts = cleaned.split(/\s+as\s+/);
-      direct.add((parts[1] ?? parts[0]).trim());
+  for (const match of code.matchAll(/(?:^|[;\n])\s*import\s*(["'])([^"']+)\1/g)) {
+    if (!keywordIsCode(mask, match, "import")) continue;
+    imports.push({ kind: "import", specifier: match[2], names: [] });
+  }
+  for (const match of code.matchAll(/\bimport\s*\(\s*(["'])([^"']+)\1\s*\)/g)) {
+    if (!keywordIsCode(mask, match, "import")) continue;
+    imports.push({ kind: "dynamic-import", specifier: match[2], names: [] });
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+(?:type\s+)?\{([\s\S]*?)\}\s+from\s+(["'])([^"']+)\2/g)) {
+    if (!keywordIsCode(mask, match, "export")) continue;
+    const bindings = splitBindings(match[1]);
+    namedReexports.push({ specifier: match[3], bindings });
+    imports.push({ kind: "reexport", specifier: match[3], names: bindings.map(({ imported }) => imported) });
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+\*\s*(?:as\s+([A-Za-z_$][\w$]*)\s+)?from\s+(["'])([^"']+)\2/g)) {
+    if (!keywordIsCode(mask, match, "export")) continue;
+    starReexports.push({ specifier: match[3], exportedName: match[1] ?? null });
+    imports.push({ kind: "reexport", specifier: match[3], names: [] });
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+default\b/g)) {
+    directExports.add("default");
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+(?:declare\s+)?(?:async\s+)?(?:function|class|type|interface|enum|namespace)\s+([A-Za-z_$][\w$]*)/g)) {
+    directExports.add(match[1]);
+  }
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+(?:declare\s+)?(?:const|let|var)\s+([^;\n]+)/g)) {
+    for (const item of match[1].split(",")) {
+      const name = item.trim().match(/^([A-Za-z_$][\w$]*)/)?.[1];
+      if (name) directExports.add(name);
     }
   }
-
-  const namedReexportPattern = /\bexport\s+(?:type\s+)?\{([^}]+)\}\s+from\s+["']([^"']+)["']/g;
-  for (const match of source.matchAll(namedReexportPattern)) {
-    namedReexports.push({ specifier: match[2], bindings: match[1] });
+  for (const match of code.matchAll(/(?:^|[;\n])\s*export\s+(?:type\s+)?\{([^}]+)\}(?!\s*from\b)/g)) {
+    for (const { local } of splitBindings(match[1])) directExports.add(local);
   }
-
-  const starReexportPattern = /\bexport\s+\*\s+from\s+["']([^"']+)["']/g;
-  for (const match of source.matchAll(starReexportPattern)) starReexports.push(match[1]);
-
-  return { source, direct, namedReexports, starReexports };
+  return { imports, directExports, namedReexports, starReexports };
 }
 
-const moduleCache = new Map();
-
-function exportedNames(file, stack = new Set()) {
-  if (moduleCache.has(file)) return moduleCache.get(file);
-  if (stack.has(file)) return new Set();
-
-  const nextStack = new Set(stack).add(file);
-  const module = readModule(file);
-  const exports = new Set(module.direct);
-  moduleCache.set(file, exports);
-
-  for (const entry of module.namedReexports) {
-    const target = resolveInternalModule(file, entry.specifier);
-    if (!target) continue;
-    const targetExports = exportedNames(target, nextStack);
-    for (const binding of entry.bindings.split(",")) {
-      const cleaned = binding.trim().replace(/^type\s+/, "");
-      if (!cleaned) continue;
-      const [sourceName, exportedName] = cleaned.split(/\s+as\s+/).map((part) => part.trim());
-      if (targetExports.has(sourceName)) exports.add(exportedName ?? sourceName);
-    }
-  }
-
-  for (const specifier of module.starReexports) {
-    const target = resolveInternalModule(file, specifier);
-    if (!target) continue;
-    for (const name of exportedNames(target, nextStack)) {
-      if (name !== "default") exports.add(name);
-    }
-  }
-
-  return exports;
+function candidates(fromFile, specifier) {
+  const base = specifier.startsWith("@/")
+    ? `src/${specifier.slice(2)}`
+    : path.posix.normalize(path.posix.join(path.posix.dirname(normalise(fromFile)), specifier));
+  return [base, ...extensions.map((extension) => `${base}${extension}`), ...extensions.map((extension) => `${base}/index${extension}`)];
 }
 
-function importedBindings(source) {
-  const imports = [];
-  const importPattern = /\bimport\s+(?:type\s+)?([\s\S]*?)\s+from\s+["']([^"']+)["']/g;
-  for (const match of source.matchAll(importPattern)) {
-    const clause = match[1].trim();
-    const specifier = match[2];
-    const names = [];
-
-    const named = clause.match(/\{([\s\S]*?)\}/);
-    if (named) names.push(...splitBindings(named[1]));
-
-    const beforeNamed = clause.split("{")[0].trim().replace(/,$/, "").trim();
-    if (beforeNamed && !beforeNamed.startsWith("*")) {
-      const defaultBinding = beforeNamed.split(",")[0]?.trim();
-      if (defaultBinding) names.push("default");
-    }
-
-    imports.push({ specifier, names });
-  }
-
-  const reexportPattern = /\bexport\s+(?:type\s+)?\{([^}]+)\}\s+from\s+["']([^"']+)["']/g;
-  for (const match of source.matchAll(reexportPattern)) {
-    imports.push({ specifier: match[2], names: splitBindings(match[1]) });
-  }
-
-  return imports;
+function resolveModule(files, fromFile, specifier) {
+  if (!isInternal(specifier)) return null;
+  return candidates(fromFile, specifier).find((candidate) => files.has(candidate)) ?? null;
 }
 
-for (const file of listSourceFiles(sourceRoot)) {
-  const source = readFileSync(file, "utf8");
-  for (const entry of importedBindings(source)) {
-    const target = resolveInternalModule(file, entry.specifier);
-    const owner = normalise(relative(root, file));
-
-    if (!target) {
-      errors.push(`${owner}: unresolved internal module ${entry.specifier}`);
-      continue;
+export function classifyModuleGraph({ files }) {
+  const fileMap = new Map(Object.entries(files).map(([file, source]) => [normalise(file), source]));
+  const parsed = new Map([...fileMap].map(([file, source]) => [file, parseModuleSyntax(source)]));
+  const cache = new Map();
+  function exportsOf(file, stack = new Set()) {
+    if (cache.has(file)) return cache.get(file);
+    if (stack.has(file) || !parsed.has(file)) return new Set();
+    const syntax = parsed.get(file);
+    const names = new Set(syntax.directExports);
+    cache.set(file, names);
+    const next = new Set(stack).add(file);
+    for (const entry of syntax.namedReexports) {
+      const target = resolveModule(fileMap, file, entry.specifier);
+      if (!target) continue;
+      const targetNames = exportsOf(target, next);
+      for (const binding of entry.bindings) if (targetNames.has(binding.imported)) names.add(binding.local);
     }
-
-    const available = exportedNames(target);
-    for (const name of entry.names) {
-      if (!available.has(name)) {
-        errors.push(
-          `${owner}: ${entry.specifier} does not export ${name} (resolved to ${normalise(relative(root, target))})`,
-        );
+    for (const entry of syntax.starReexports) {
+      const target = resolveModule(fileMap, file, entry.specifier);
+      if (!target) continue;
+      if (entry.exportedName) names.add(entry.exportedName);
+      else for (const name of exportsOf(target, next)) if (name !== "default") names.add(name);
+    }
+    return names;
+  }
+  const violations = [];
+  for (const file of [...fileMap.keys()].sort()) {
+    for (const entry of parsed.get(file).imports) {
+      if (!isInternal(entry.specifier)) continue;
+      const target = resolveModule(fileMap, file, entry.specifier);
+      if (!target) {
+        violations.push({ rule: "unresolved-internal-module", importer: file, imported: entry.specifier, detail: `Cannot resolve internal module ${entry.specifier}.` });
+        continue;
+      }
+      const available = exportsOf(target);
+      for (const name of entry.names) {
+        if (!available.has(name)) violations.push({ rule: "missing-export", importer: file, imported: entry.specifier, detail: `${entry.specifier} does not export ${name} (resolved to ${target}).` });
       }
     }
   }
+  return violations;
 }
 
-const summary = [
-  "## Module export guard",
-  "",
-  `- Source files scanned: ${listSourceFiles(sourceRoot).length}`,
-  `- Errors: ${errors.length}`,
-];
-if (errors.length) summary.push("", "### Failures", ...errors.map((error) => `- ${error}`));
-const rendered = `${summary.join("\n")}\n`;
-process.stdout.write(rendered);
-if (errors.length) process.exit(1);
+function listFiles(directory, pattern = sourcePattern) {
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const absolute = join(directory, entry.name);
+    return entry.isDirectory() ? listFiles(absolute, pattern) : pattern.test(entry.name) ? [absolute] : [];
+  });
+}
+
+export function runModuleExportGuard(root = process.cwd()) {
+  const sourceFiles = listFiles(join(root, "src"));
+  const reachableFiles = [
+    ...listFiles(join(root, "src"), /\.(?:[cm]?[jt]sx?|css)$/i),
+    ...listFiles(join(root, "scripts", "checks")),
+    ...listFiles(join(root, "prisma", "generated")),
+  ];
+  const files = Object.fromEntries(reachableFiles.map((file) => [normalise(relative(root, file)), readFileSync(file, "utf8")]));
+  return { scanned: sourceFiles.length, violations: classifyModuleGraph({ files }) };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const result = runModuleExportGuard(process.cwd());
+  const lines = ["## Module export guard", "", `- Source files scanned: ${result.scanned}`, `- Errors: ${result.violations.length}`];
+  if (result.violations.length) lines.push("", "### Failures", ...result.violations.map((violation) => `- ${violation.importer}: ${violation.detail}`));
+  process.stdout.write(`${lines.join("\n")}\n`);
+  if (result.violations.length) process.exitCode = 1;
+}

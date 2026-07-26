@@ -1,6 +1,7 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { classifyArchitectureGraph } from "../../scripts/checks/architecture-guard.mjs";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
@@ -118,6 +119,29 @@ const manualPaymentControlTokens = [
 ] as const;
 
 describe("Phase 5 admin persistence boundary", () => {
+  it("detects alias and relative production fixture imports", () => {
+    const files = {
+      "src/alias.ts": 'import { order } from "@/tests/fixtures/order";',
+      "src/nested/relative.ts": 'import { order } from "../../tests/fixtures/order";',
+      "src/tests/fixtures/order.ts": "export const order = {};",
+    };
+
+    expect(classifyArchitectureGraph({ files })).toEqual([
+      {
+        rule: "production-fixture-import",
+        importer: "src/alias.ts",
+        imported: "@/tests/fixtures/order",
+        detail: "Production source imports a test or development fixture.",
+      },
+      {
+        rule: "production-fixture-import",
+        importer: "src/nested/relative.ts",
+        imported: "../../tests/fixtures/order",
+        detail: "Production source imports a test or development fixture.",
+      },
+    ]);
+  });
+
   it("keeps production code free of seed, AdminStore, repository and fixture ownership", async () => {
     const sourceFiles = await collectSourceFiles(sourceRoot);
     const offenders: string[] = [];
