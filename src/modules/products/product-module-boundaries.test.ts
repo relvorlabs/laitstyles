@@ -13,6 +13,13 @@ const retiredProductPaths = [
   "@/features/storefront/shared/catalogue-data",
 ] as const;
 
+const documentedPhaseExceptions = new Map<string, ReadonlySet<string>>([
+  [
+    "src/features/storefront/shared/storefront-auth-dialog.tsx",
+    new Set(["@/features/storefront/shared/catalogue-data"]),
+  ],
+]);
+
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
 
 describe("Products module boundaries", () => {
@@ -24,12 +31,28 @@ describe("Products module boundaries", () => {
       const relative = normalize(path.relative(repositoryRoot, filePath));
       if (isTest(relative)) continue;
       const source = await readFile(filePath, "utf8");
+      const allowed = documentedPhaseExceptions.get(relative) ?? new Set<string>();
       for (const importPath of retiredProductPaths) {
-        if (source.includes(importPath)) offenders.push(`${relative} -> ${importPath}`);
+        if (source.includes(importPath) && !allowed.has(importPath)) {
+          offenders.push(`${relative} -> ${importPath}`);
+        }
       }
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  it("keeps every phase exception exact and type-only", async () => {
+    const source = await readFile(
+      path.join(repositoryRoot, "src/features/storefront/shared/catalogue-data.ts"),
+      "utf8",
+    );
+
+    expect(source.trim()).toContain(
+      'export type { Product } from "@/modules/products/ui/storefront/catalogue-data";',
+    );
+    expect(source).not.toMatch(/export\s+\*/);
+    expect(documentedPhaseExceptions.size).toBe(1);
   });
 
   it("keeps the Products domain independent of app, feature and top-level server layers", async () => {
