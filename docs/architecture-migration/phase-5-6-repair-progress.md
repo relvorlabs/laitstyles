@@ -2,155 +2,153 @@
 
 **Branch:** `chore/phase-5-certification-reconciliation`  
 **Pull request:** #46  
-**Status:** active repair; not merge-ready  
-**Phase 7:** paused
+**Status:** source migration complete for the approved Phase 5–6 repair scope; validation pending  
+**Phase 7:** paused  
+**Phase 8:** paused
 
-This ledger is subordinate to `update(3).md`, especially the locked architecture decisions, Target Source Architecture, Phase 5, Phase 6 and the UI preservation contract.
+This ledger is subordinate to `update(3).md`, especially the locked architecture decisions, Target Source Architecture, Phase 5, Phase 6 and the UI-preservation contract.
 
 ## Execution constraints
 
 - GitHub Actions and workflow runs are intentionally not used for this repair.
-- The current agent runtime does not contain a usable repository checkout, cannot resolve GitHub for a clone, and has no usable pnpm installation.
-- Therefore Biome, TypeScript, Vitest, build, Prisma validation, React Doctor and Playwright are not represented as passed.
-- Source checks and guard scripts are authored in the branch, but executed evidence remains required from a dependency-capable local checkout.
+- The current agent runtime has no usable repository checkout, cannot resolve GitHub for a clone, and has no usable pnpm installation.
+- Biome, TypeScript, architecture checks, Prisma validation, Vitest, build, React Doctor and Playwright are therefore **not represented as passed**.
+- Source completion and executable certification remain separate gates.
 
 ## Ordered repair ledger
 
-### R0 — Rebase the repair branch onto the merged Phase 6 baseline
+### R0 — Repair branch baseline
 
 **Status:** complete
 
-- PR #46 was reset to the current `main` baseline after the previous branch contents became stale.
-- Phase 7 remains separate and paused.
+- PR #46 was repurposed as the Phase 5–6 repair branch against the merged baseline.
+- PR remains draft and unmerged.
+- Phase 7 authentication and Phase 8 checkout/payment settlement remain separate.
 
-### R1 — Repair broken exports and imports
-
-**Status:** source repair substantially complete; execution pending
-
-Implemented:
-
-- added `scripts/checks/module-export-guard.mjs`;
-- wired the module-export guard into `pnpm check:architecture`;
-- removed the retired American `useStorefrontCatalogData` runtime name from production consumers;
-- standardized production consumers on `useStorefrontCatalogueData`;
-- repaired the cart-restoration import after the cart-line model moved;
-- removed obsolete Products catalogue route and symbol paths;
-- kept temporary re-export bridges only where the remaining UI migration is explicit.
-
-Acceptance still required:
-
-- execute the export guard against the complete checkout;
-- resolve any remaining missing named/default export reported by execution;
-- delete all temporary compatibility bridges after their final UI consumers move.
-
-### R2 — Replace the stale architecture guard
+### R1 — Broken exports and imports
 
 **Status:** source complete; execution pending
 
 Implemented:
 
-- removed workflow-filename assertions;
-- removed requirements for already deleted Phase 6 files;
-- added target-architecture requirements for stores, providers and domain modules;
-- added retired path and American catalogue checks;
-- added production fixture checks;
-- added Client/Server, TanStack/Server Action and Route Handler/Server Action boundary checks;
-- added root `app`, `stores`, `modules` and `server` to legacy `features/storefront` leak checks;
-- added top-level `server/**` business ownership checks;
-- added `/api/v1/**` machine-readable route checks.
+- added `scripts/checks/module-export-guard.mjs` and wired it into `check:architecture`;
+- removed the retired `useStorefrontCatalogData` name and standardized production consumers on `useStorefrontCatalogueData`;
+- removed the temporary American compatibility alias after consumer cutover;
+- repaired cart-restoration ownership and moved its tests beside `modules/cart`;
+- fixed the moved review action test’s stale `./review-actions` import;
+- moved ReviewForm tests to the injected action contract rather than mocking a feature-local Server Action.
 
-The guard is expected to report remaining migration debt until R3–R6 are complete.
+Acceptance still required:
 
-### R3 — Repair storefront non-UI ownership
+- execute the export guard on the complete checkout;
+- fix any unresolved module or missing named/default export reported by execution.
 
-**Status:** largely complete; compatibility cleanup pending
+### R2 — Architecture guard
 
-Moved to target ownership:
+**Status:** source complete; execution pending
 
-- cart model → `src/modules/cart/cart-lines.ts`;
-- cart restoration → `src/modules/cart/cart-restoration.ts`;
-- cart, saved-items and storefront UI stores remain in `src/stores/**`;
-- catalogue URL contract → `src/modules/products/client/catalogue-search-params.ts`;
-- catalogue navigation → `src/modules/products/client/use-catalogue-navigation.ts`;
-- Products catalogue loader → `src/modules/products/server/storefront/catalogue-loader.ts`;
-- Products presentation helpers → `src/modules/products/ui/storefront/catalogue-data.ts`;
-- shared storefront runtime → `src/modules/storefront-shell/client/storefront-runtime.ts`;
-- hold clock → `src/modules/storefront-shell/client/storefront-hold-clock.tsx`;
-- overlay coordinator → `src/modules/storefront-shell/client/storefront-overlay-events.ts`;
-- persisted storefront state → `src/modules/storefront-shell/client/storefront-client-state.ts`;
-- state hydration → `src/providers/storefront-state-hydrator.tsx`;
-- overlay lifecycle → `src/hooks/use-overlay-lifecycle.ts`;
-- storefront fonts and feedback UI → `src/modules/storefront-shell/ui/**`.
+The guard now checks principles rather than workflow filenames or required legacy files:
 
-Remaining:
+- unresolved internal modules and missing exports;
+- production fixture imports;
+- Client/Server boundaries;
+- TanStack-to-Server-Action and Route-Handler-to-Server-Action edges;
+- app/store/module/server imports from legacy storefront features;
+- top-level `server/**` business ownership;
+- `/api/v1/**` machine API placement;
+- retired paths and American `catalog` naming.
 
-- delete temporary feature-path re-exports after all UI consumers use module paths;
-- move remaining visual feature components under domain UI folders.
+Architecture tests were reconciled to enforce:
 
-### R4 — Move storefront UI to domain modules without visual changes
+- focused Zustand ownership;
+- URL-owned catalogue navigation;
+- domain modules not importing `features`, `app` or top-level `server`;
+- Products browser transport using `/api/v1/products`;
+- Product core types owned by `modules/products/storefront-types`;
+- exact, bounded future-phase compatibility exceptions.
 
-**Status:** in progress
+### R3 — Storefront non-UI ownership
 
-Completed shell ownership:
+**Status:** complete for Phase 5–6 scope
 
-- `SiteChrome`, header/footer, account menu, cart sheet, brand mark, shell icons and overlay host now have module-owned implementations under `src/modules/storefront-shell/ui/**`;
-- the root storefront client boundary imports module-owned `SiteChrome`;
-- the missing `StorefrontOverlays` runtime mount was restored in `SiteChrome`;
-- old shell files are compatibility bridges only.
+Target ownership now includes:
 
-Remaining domain UI migration:
+- cart model and restoration → `src/modules/cart/**`;
+- cart, saved-items and storefront UI state → `src/stores/**`;
+- catalogue URL contract and navigation → `src/modules/products/client/**`;
+- catalogue loaders, queries, projections and pagination → `src/modules/products/server/storefront/**`;
+- storefront Product contracts and presentation helpers → `src/modules/products/**`;
+- storefront runtime, persisted client state, hold clock and overlay events → `src/modules/storefront-shell/client/**`;
+- hydration → `src/providers/storefront-state-hydrator.tsx`;
+- overlay/reveal lifecycle hooks → `src/hooks/**`;
+- shell UI, fonts and feedback → `src/modules/storefront-shell/ui/**`.
 
-- Products catalogue UI and product-detail UI → `src/modules/products/ui/storefront/**`;
-- account order UI → `src/modules/orders/ui/storefront/**`;
-- review UI/actions → `src/modules/reviews/ui/storefront/**` with thin app adapters where required;
-- cart UI → `src/modules/cart/ui/storefront/**` where it is not route-owned;
-- shell overlays must move from generic `features/storefront/shared/overlays` into Products, Auth or storefront-shell ownership;
-- home presentation must be placed under a clear storefront-shell or Products composition boundary;
-- delete feature compatibility files only after every consumer moves.
+Deleted completed compatibility bridges for cart restoration, client state, feedback, hold clock, icons, overlay events, state hydration and the legacy shell.
 
-The UI preservation contract remains mandatory: move code and change imports without redesigning JSX, classes, labels or responsive behavior.
+### R4 — Storefront UI domain ownership
 
-### R5 — Retire top-level server business ownership
+**Status:** complete for the requested scope
 
-**Status:** in progress
+Moved without intentional visual redesign:
 
-Completed:
+- catalogue pages, collection results, product cards and PDP → `src/modules/products/ui/storefront/**`;
+- account order list/detail UI → `src/modules/orders/ui/storefront/**`;
+- review form/page UI → `src/modules/reviews/ui/storefront/**`;
+- review Server Actions → thin route-local `actions.ts` adapters;
+- search, filter, sort, quick-view and image-viewer overlays → Products UI;
+- saved-items and information overlays → storefront-shell UI;
+- account presentation primitives → storefront-shell UI.
 
-- account-order queries and mapping → `src/modules/orders/server/account-orders.ts`;
-- account-order contract → `src/modules/orders/storefront/account-order-contract.ts`;
-- review contracts, validation, policy, Prisma commands/queries and public review projection → `src/modules/reviews/**`;
-- removed the migrated `src/server/commerce/orders/account-orders.ts` implementation;
-- removed migrated `src/server/commerce/reviews/**` and `src/lib/commerce/reviews/**` implementations and moved focused tests beside the module.
+The root storefront composition imports module-owned shell UI and mounts `StorefrontOverlays`.
 
-Remaining:
+### R5 — Top-level server business ownership
 
-- enumerate and migrate every other production `src/server/commerce/**` operation into Products, Inventory, Holds, Returns, Orders or another explicit domain;
-- leave `src/server/auth/**` for the paused Phase 7 auth consolidation only;
-- remove obsolete server directories after final consumer cutover.
+**Status:** source complete for discovered Phase 5–6 paths; guard execution pending
 
-### R6 — Reconcile API paths and transport ownership
+Moved or removed:
 
-**Status:** partially complete
+- account-order queries/mapping → `modules/orders/server`;
+- review validation, policy, commands, queries and public projection → `modules/reviews`;
+- Products catalogue queries, loaders, selection, projections and repositories → `modules/products/server/storefront`;
+- deleted `src/server/commerce/orders/account-orders.ts`;
+- deleted migrated `src/server/commerce/reviews/**` and `src/lib/commerce/reviews/**`;
+- deleted discovered `src/server/commerce/catalogue/**` forwarders and moved their tests beside Products.
 
-Completed:
+`src/server/auth/**` remains intentionally owned by paused Phase 7 and is not counted as a Phase 5–6 server-business exception.
 
-- public interactive Products catalogue API is `/api/v1/products`;
-- Products client query uses the domain endpoint;
-- deleted `/api/v1/storefront/catalogue` and American `/api/v1/storefront/catalog` routes;
-- Server Components continue to call domain server queries directly rather than internal APIs.
+### R6 — API and transport ownership
 
-Remaining:
+**Status:** complete for actual Phase 5–6 browser requirements
 
-- audit every actual browser remote read/mutation and move it to its owning `/api/v1/<domain>` route;
-- do not create unused theoretical endpoints;
-- account Server Components may continue direct domain reads as allowed by ADR-03;
-- payment and checkout settlement remain outside this repair and must not be falsely implemented before their approved phase.
+- interactive storefront Products data uses typed client code and `GET /api/v1/products`;
+- old `/api/v1/storefront/catalogue` and American `/api/v1/storefront/catalog` routes are removed;
+- Server Component catalogue, collection, PDP and account-order reads call domain server queries directly;
+- review create/update/withdraw remains a form-specific thin Server Action transport;
+- no speculative account-order API was added for Server Component-only reads;
+- checkout/payment APIs remain deliberately outside this repair because Phase 8 owns server-authoritative settlement.
 
-### R7 — Static local validation
+### R7 — Compatibility edges
+
+**Status:** bounded and documented
+
+Only two future-phase edges remain:
+
+1. `src/features/storefront/shared/catalogue-data.ts`
+   - Phase 7 auth-dialog type compatibility only;
+   - exports only the `Product` type;
+   - no runtime values or wildcard export.
+2. `src/features/storefront/shared/storefront-runtime.ts`
+   - Phase 8 checkout compatibility only;
+   - exports only `useStorefrontCart` and `useStorefrontHolds`;
+   - no wildcard export.
+
+Adding any other export or consumer is prohibited. These files must be deleted by their owning future phases after those consumers move.
+
+### R8 — Static local validation
 
 **Status:** not executed
 
-Required from a dependency-capable local checkout:
+Required on the exact PR head:
 
 ```bash
 pnpm biome
@@ -159,13 +157,13 @@ pnpm check:architecture
 pnpm prisma:validate
 ```
 
-Every command requires its complete log and exit code. Fixes must be committed sequentially and the commands rerun after each repair batch.
+Every command requires its complete log and exit code.
 
-### R8 — Runtime and UI validation
+### R9 — Runtime and UI validation
 
 **Status:** not executed
 
-Required:
+Required on the same exact head:
 
 ```bash
 pnpm test
@@ -174,14 +172,28 @@ pnpm react-doctor
 pnpm test:e2e
 ```
 
-Playwright must verify desktop, tablet and mobile behavior, light/dark theme, cart persistence, saved items, URL history, overlays, header/footer, product cards, catalogue, PDP and account routes. No screenshot difference is accepted without an explicit approved reason.
+Playwright must verify desktop, tablet and mobile behavior; light/dark theme; cart persistence; saved items; URL history; overlays; header/footer; product cards; catalogue; collections; PDP; account orders; and review flows.
+
+## Objective implementation score
+
+### Source architecture: **8.7/10**
+
+The requested domain ownership, API placement, server retirement, overlay ownership and legacy deletion are substantially implemented. The score is not higher because two named future-phase compatibility edges remain and Product UI still consumes the export-only storefront type facade in some type-only imports.
+
+### Validation confidence: **1.0/10**
+
+No dependency-backed static, unit, build, React Doctor or Playwright command has executed in this runtime.
+
+### Overall PR readiness: **7.4/10**
+
+The source direction is strong, but the PR is not merge-ready until exact-head static and runtime validation passes and visual parity is inspected.
 
 ## Merge rule
 
 PR #46 must remain draft and unmerged until:
 
-1. R3–R6 have no undocumented ownership bridge;
-2. all required static and runtime commands execute successfully on the same exact head;
-3. logs and artifacts are inspected rather than inferred;
-4. UI preservation is proven;
-5. the final architecture guard passes without broad legacy exceptions.
+1. the exact-head static commands pass with logs and exit codes;
+2. unit/build/React Doctor/Playwright pass on the same head;
+3. desktop/tablet/mobile and light/dark parity is inspected;
+4. the final architecture guard and module-export guard pass;
+5. no new compatibility consumer or broad export has been introduced.
