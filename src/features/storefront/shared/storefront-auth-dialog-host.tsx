@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useStorefrontCatalogueData } from "@/features/storefront/shared/storefront-runtime";
 import {
   type AuthDialogRequest,
   subscribeAuthDialog,
   subscribeTransientOverlayClose,
-} from "@/features/storefront/shared/storefront-overlay-events";
+} from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
