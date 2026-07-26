@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import type { ProductDetail } from "@/lib/storefront/types";
-
+import type { Product } from "./catalogue-data";
 import {
   buildProductDetailPresentation,
   productReviewAccessCopy,
