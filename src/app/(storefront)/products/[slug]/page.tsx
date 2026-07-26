@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ProductDetail } from "@/features/storefront/product/product-detail";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
@@ -12,6 +11,7 @@ import {
   money,
   productSlug,
 } from "@/modules/products/ui/storefront/catalogue-data";
+import { ProductDetail } from "@/modules/products/ui/storefront/product-detail";
 import { getPublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import ProductDetailLoading from "./loading";
