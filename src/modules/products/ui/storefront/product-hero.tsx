@@ -1,12 +1,12 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
+import type { ProductDetail as CanonicalProductDetail } from "@/lib/storefront/types";
 import {
   useStorefrontCart,
   useStorefrontOverlay,
-} from "@/features/storefront/shared/storefront-runtime";
-import type { ProductDetail as CanonicalProductDetail } from "@/lib/storefront/types";
+} from "@/modules/storefront-shell/client/storefront-runtime";
+import type { Product } from "./catalogue-data";
 import { MobileBuyBar } from "./mobile-buy-bar";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import { ProductGallery } from "./product-gallery";
