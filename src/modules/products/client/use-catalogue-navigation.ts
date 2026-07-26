@@ -4,8 +4,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import {
   catalogueHref,
-  parseCatalogueSearchParams,
   type ParsedCatalogueSearch,
+  parseCatalogueSearchParams,
 } from "@/modules/products/client/catalogue-search-params";
 
 type CataloguePatch = Partial<Omit<ParsedCatalogueSearch, "conditions" | "inventories">> & {
@@ -13,12 +13,23 @@ type CataloguePatch = Partial<Omit<ParsedCatalogueSearch, "conditions" | "invent
   inventories?: readonly string[];
 };
 
+export type CatalogueFilterType =
+  | "category"
+  | "collection"
+  | "condition"
+  | "inventory"
+  | "stock"
+  | "price"
+  | "search";
+
 function nextSearch(current: ParsedCatalogueSearch, patch: CataloguePatch): ParsedCatalogueSearch {
   return { ...current, ...patch };
 }
 
 function toggleValue(values: readonly string[], value: string, checked: boolean) {
-  return checked ? [...new Set([...values, value])] : values.filter((candidate) => candidate !== value);
+  return checked
+    ? [...new Set([...values, value])]
+    : values.filter((candidate) => candidate !== value);
 }
 
 export function useCatalogueNavigation() {
@@ -46,10 +57,7 @@ export function useCatalogueNavigation() {
     [navigate, search],
   );
 
-  const setCategory = useCallback(
-    (category: string | null) => replace({ category }),
-    [replace],
-  );
+  const setCategory = useCallback((category: string | null) => replace({ category }), [replace]);
   const toggleCondition = useCallback(
     (condition: string, checked: boolean) =>
       replace({ conditions: toggleValue(search.conditions, condition, checked) }),
@@ -60,7 +68,10 @@ export function useCatalogueNavigation() {
       replace({ inventories: toggleValue(search.inventories, inventory, checked) }),
     [replace, search.inventories],
   );
-  const setSort = useCallback((sort: ParsedCatalogueSearch["sort"]) => replace({ sort }), [replace]);
+  const setSort = useCallback(
+    (sort: ParsedCatalogueSearch["sort"]) => replace({ sort }),
+    [replace],
+  );
   const searchFor = useCallback((query: string) => push({ query: query.trim(), page: 1 }), [push]);
   const setPage = useCallback((page: number) => push({ page: Math.max(1, page) }), [push]);
 
@@ -94,7 +105,16 @@ export function useCatalogueNavigation() {
   }, [search]);
 
   const removeChip = useCallback(
-    (kind: "category" | "collection" | "condition" | "inventory" | "inStock" | "maxPrice" | "query") => {
+    (
+      kind:
+        | "category"
+        | "collection"
+        | "condition"
+        | "inventory"
+        | "inStock"
+        | "maxPrice"
+        | "query",
+    ) => {
       if (kind === "condition") replace({ conditions: [] });
       else if (kind === "inventory") replace({ inventories: [] });
       else if (kind === "maxPrice") replace({ maxPriceNaira: null });

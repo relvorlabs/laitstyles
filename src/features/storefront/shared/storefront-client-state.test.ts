@@ -9,7 +9,7 @@ import {
   STOREFRONT_CLIENT_STATE_STORAGE_KEY,
   STOREFRONT_CLIENT_STATE_VERSION,
   type StorefrontStateStorage,
-} from "./storefront-client-state";
+} from "@/modules/storefront-shell/client/storefront-client-state";
 
 class MemoryStorage implements StorefrontStateStorage {
   readonly values = new Map<string, string>();

@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { storefrontUiStore } from "@/stores/storefront-ui.store";
 import {
   openImageViewer,
   openQuickView,
@@ -9,7 +8,8 @@ import {
   subscribeImageViewer,
   subscribeQuickView,
   subscribeTransientOverlayClose,
-} from "./storefront-overlay-events";
+} from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { storefrontUiStore } from "@/stores/storefront-ui.store";
 
 beforeEach(() => {
   storefrontUiStore.getState().reset();
