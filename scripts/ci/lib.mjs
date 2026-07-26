@@ -60,7 +60,12 @@ export function redact(input, secrets = secretValues()) {
   return value
     .replace(/Bearer\s+[A-Za-z0-9._~+\/=\-]+/gi, "Bearer [REDACTED]")
     .replace(/(postgres(?:ql)?:\/\/[^:\s]+:)[^@\s]+@/gi, "$1[REDACTED]@")
-    .replace(/([?&](?:token|key|secret|signature)=)[^&\s]+/gi, "$1[REDACTED]");
+    .replace(/postgres(?:ql)?:\/\//gi, "[REDACTED_DATABASE_SCHEME]://")
+    .replace(/([?&](?:token|key|secret|signature)=)[^&\s]+/gi, "$1[REDACTED]")
+    .replace(
+      /\b(DATABASE_URL|DIRECT_URL|password|token|cookie)=[^\s]+/gi,
+      "$1[REDACTED_EQUALS][REDACTED]",
+    );
 }
 
 export function tailLines(input, count = 120) {

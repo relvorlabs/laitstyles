@@ -42,6 +42,26 @@ const commitLog = git(["log", "--oneline", "--decorate", activeRange], "No commi
 const patch = truncate(redact(git(["diff", "--no-ext-diff", "--unified=40", activeRange])), 300_000);
 
 const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+const candidateSha = git(["rev-parse", "HEAD"]);
+const parentSha = git(["rev-parse", "HEAD^"]);
+const workingTreeEntries = git(["status", "--short"])
+  .split(/\r?\n/)
+  .map((entry) => entry.trimEnd())
+  .filter(Boolean);
+const lockfile = await readFile("pnpm-lock.yaml", "utf8");
+const databaseIdentity = [process.env.DATABASE_URL, process.env.DIRECT_URL]
+  .filter(Boolean)
+  .map((value) => {
+    const url = new URL(value);
+    return `${url.protocol}//${url.hostname}:${url.port || "default"}/${url.pathname.replace(/^\//, "")}`;
+  })
+  .join("|");
+const pnpmVersion = process.env.npm_execpath
+  ? execFileSync(process.execPath, [process.env.npm_execpath, "--version"], { encoding: "utf8" }).trim()
+  : execFileSync(process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["--version"], {
+      encoding: "utf8",
+    }).trim();
+const capturedAt = new Date().toISOString();
 const doctrinePaths = [
   "AGENTS.md",
   ".agents/doctrine/architecture.md",
@@ -86,13 +106,23 @@ for (const path of changedFiles) {
 const context = {
   schemaVersion: 1,
   kind: "implementation-context",
+  candidateSha,
+  parentSha,
   repository: process.env.GITHUB_REPOSITORY ?? null,
   pullRequest: process.env.PR_NUMBER ? Number(process.env.PR_NUMBER) : null,
   sha: process.env.GITHUB_SHA ?? git(["rev-parse", "HEAD"]),
   branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || git(["branch", "--show-current"]),
+  workingTreeEntries,
+  nodeVersion: process.version,
+  pnpmVersion,
+  prismaVersion: packageJson.dependencies["@prisma/client"],
+  playwrightVersion: packageJson.devDependencies["@playwright/test"],
+  lockfileDigest: sha256(lockfile),
+  databaseIdentityDigest: databaseIdentity ? sha256(databaseIdentity) : null,
+  capturedAt,
   baseRef,
   range: activeRange,
-  generatedAt: new Date().toISOString(),
+  generatedAt: capturedAt,
   packageManager: packageJson.packageManager,
   packageScripts: packageJson.scripts,
   changedFiles,
