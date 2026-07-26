@@ -1,6 +1,7 @@
 "use client";
 
 import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { ProductCard } from "@/modules/products/ui/storefront/product-card";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
@@ -9,7 +10,6 @@ import {
   useStorefrontHolds,
   useStorefrontSavedItems,
 } from "@/modules/storefront-shell/client/storefront-runtime";
-import { ProductCard } from "@/features/storefront/shared/product-card";
 
 export function HomeProductList({
   products,
