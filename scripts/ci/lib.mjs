@@ -59,8 +59,7 @@ export function redact(input, secrets = secretValues()) {
   for (const secret of secrets) value = value.split(secret).join("[REDACTED]");
   return value
     .replace(/Bearer\s+[A-Za-z0-9._~+\/=\-]+/gi, "Bearer [REDACTED]")
-    .replace(/(postgres(?:ql)?:\/\/[^:\s]+:)[^@\s]+@/gi, "$1[REDACTED]@")
-    .replace(/postgres(?:ql)?:\/\//gi, "[REDACTED_DATABASE_SCHEME]://")
+    .replace(/\bpostgres(?:ql)?:\/\/[^\s"'`<>\\]+/gi, "[REDACTED_DATABASE_URL]")
     .replace(/([?&](?:token|key|secret|signature)=)[^&\s]+/gi, "$1[REDACTED]")
     .replace(
       /\b(DATABASE_URL|DIRECT_URL|password|token|cookie)=[^\s]+/gi,

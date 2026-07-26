@@ -2,13 +2,16 @@
 
 ## Candidate
 
-`9f48bf2cf5fc4abb27b094c6e153f59288164ae9`
+The authoritative candidate is `ci-evidence/phase-1-6-full-acceptance/context/context.json#candidateSha`.
+The context gate must assert that value equals `git rev-parse HEAD` before evidence is accepted.
 
-Captured at `2026-07-26T11:54:47.677Z`.
+This tracked ledger intentionally does not embed a literal candidate SHA: changing a tracked SHA
+changes the commit that the SHA would identify. Capture time is authoritative at
+`context.json#capturedAt`.
 
 ## Parent
 
-`9da5a60bed3f7fd091fb51b21c2cde5e9971b551`
+The authoritative parent is `context.json#parentSha`.
 
 ## Branch
 
@@ -16,31 +19,26 @@ Captured at `2026-07-26T11:54:47.677Z`.
 
 ## Working tree inventory
 
-```text
-M .superpowers/sdd/progress.md
- M scripts/ci/collect-context.mjs
- M scripts/ci/lib.mjs
-?? ci-evidence/
-```
-
-This is a recorded dirty candidate, not a claim that the working tree is clean.
+The authoritative inventory is `context.json#workingTreeEntries`. A dirty candidate may be
+recorded, but the evidence must describe it exactly and must not be presented as a clean checkout.
 
 ## Tool versions
 
 | Tool | Captured version |
 | --- | --- |
-| Node.js | `v25.9.0` |
-| pnpm | `11.13.0` |
+| Node.js | `context.json#nodeVersion` (required: Node 25.x) |
+| pnpm | `context.json#pnpmVersion` (required: `11.13.0`) |
 | Prisma (`@prisma/client`) | `^7.8.0` |
 | Playwright | `^1.61.1` |
 
 ## Lockfile digest
 
-SHA-256: `cd983738687701c53f6371aad4fbb22a9adb17eed4c39d3c2999cda92f2f506f`
+Authoritative at `context.json#lockfileSha256`.
 
 ## Database identity digest
 
-`null` — no disposable database identity was supplied for this capture.
+Authoritative at `context.json#databaseIdentityDigest`; `null` means no disposable database
+identity was supplied for that capture and cannot support persistence acceptance.
 
 ## Evidence index
 
@@ -52,7 +50,7 @@ SHA-256: `cd983738687701c53f6371aad4fbb22a9adb17eed4c39d3c2999cda92f2f506f`
 
 | Workstream or phase | Verdict | Basis and boundary |
 | --- | --- | --- |
-| WS0 | Accepted for pre-commit Steps 1–4 only | The frozen toolchain/install, lockfile integrity, required context, exact-head assertion, and secret scan passed for the candidate above. Final WS0 acceptance remains subject to the reviewer commit and a post-commit exact-HEAD recapture. |
+| WS0 | In progress | Acceptance requires a post-commit context recapture, exact-HEAD assertion, frozen toolchain/install, lockfile integrity, and secret scan on the same candidate. |
 | WS1 | Pending execution | No Phase 1 guard/import/export acceptance is claimed. |
 | WS2a | Pending execution | No Phase 2 layout/provider acceptance is claimed. |
 | WS2b | Pending execution | No Phase 3 HTTP-foundation acceptance is claimed. |
@@ -62,9 +60,9 @@ SHA-256: `cd983738687701c53f6371aad4fbb22a9adb17eed4c39d3c2999cda92f2f506f`
 
 ## Known limitations
 
-- The evidence identifies the pre-commit candidate above. The reviewer-owned commit will change HEAD and requires a fresh context capture before WS0 can receive a final verdict.
-- `databaseIdentityDigest` is `null`; real-database identity and persistence evidence are not part of this capture.
-- The captured working-tree inventory predates this planner-owned ledger and therefore does not list the ledger itself. It records the shared progress change, two CI-script changes, and generated evidence; this ledger neither owns nor resolves those entries.
+- Generated evidence is authoritative only when its `candidateSha` equals the current HEAD and all
+  required suite manifests assert that same SHA.
+- A `null` `databaseIdentityDigest` cannot support real-database persistence acceptance.
 - No WS1, WS2a, WS2b, later Phase 1–6, browser, database, or final same-SHA certification gate is represented as complete.
 
 ## Explicit exclusions

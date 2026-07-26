@@ -49,18 +49,53 @@ const workingTreeEntries = git(["status", "--short"])
   .map((entry) => entry.trimEnd())
   .filter(Boolean);
 const lockfile = await readFile("pnpm-lock.yaml", "utf8");
-const databaseIdentity = [process.env.DATABASE_URL, process.env.DIRECT_URL]
-  .filter(Boolean)
-  .map((value) => {
-    const url = new URL(value);
-    return `${url.protocol}//${url.hostname}:${url.port || "default"}/${url.pathname.replace(/^\//, "")}`;
+const databaseIdentity = [
+  ["DATABASE_URL", process.env.DATABASE_URL],
+  ["DIRECT_URL", process.env.DIRECT_URL],
+]
+  .filter(([, value]) => Boolean(value))
+  .map(([name, value]) => {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") throw new Error();
+      return `${url.protocol}//${url.hostname}:${url.port || "default"}/${url.pathname.replace(/^\//, "")}`;
+    } catch {
+      throw new Error(`Invalid ${name}; database connection value redacted.`);
+    }
   })
   .join("|");
-const pnpmVersion = process.env.npm_execpath
-  ? execFileSync(process.execPath, [process.env.npm_execpath, "--version"], { encoding: "utf8" }).trim()
-  : execFileSync(process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["--version"], {
-      encoding: "utf8",
-    }).trim();
+const expectedPnpmVersion = packageJson.packageManager?.match(/^pnpm@(.+)$/)?.[1];
+const pnpmHome =
+  process.env.PNPM_HOME || (process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, "pnpm") : "");
+const pinnedPnpmCli = pnpmHome
+  ? join(
+      pnpmHome,
+      ".tools",
+      "pnpm",
+      expectedPnpmVersion ?? "",
+      "node_modules",
+      "pnpm",
+      "bin",
+      "pnpm.cjs",
+    )
+  : "";
+let pnpmVersion;
+if (process.env.npm_execpath) {
+  pnpmVersion = execFileSync(process.execPath, [process.env.npm_execpath, "--version"], {
+    encoding: "utf8",
+  }).trim();
+} else if (process.platform === "win32" && existsSync(pinnedPnpmCli)) {
+  pnpmVersion = execFileSync(process.execPath, [pinnedPnpmCli, "--version"], { encoding: "utf8" }).trim();
+} else if (process.platform === "win32") {
+  pnpmVersion = execFileSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", "pnpm.cmd --version"], {
+    encoding: "utf8",
+  }).trim();
+} else {
+  pnpmVersion = execFileSync("pnpm", ["--version"], { encoding: "utf8" }).trim();
+}
+if (!expectedPnpmVersion || pnpmVersion !== expectedPnpmVersion) {
+  throw new Error(`pnpm version mismatch: expected ${expectedPnpmVersion ?? "package.json pin"}.`);
+}
 const capturedAt = new Date().toISOString();
 const doctrinePaths = [
   "AGENTS.md",
