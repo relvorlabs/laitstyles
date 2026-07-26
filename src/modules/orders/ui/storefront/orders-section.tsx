@@ -11,8 +11,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import type { AccountOrderSummary } from "@/features/storefront/account/orders/order-types";
 import { cn } from "@/lib/utils";
+import type { AccountOrderSummary } from "@/modules/orders/storefront/account-order-contract";
 import {
   Eyebrow,
   monoClass,
@@ -20,7 +20,7 @@ import {
   panelElevatedClass,
   StatusBadge,
   type StatusVariant,
-} from "../components/account-primitives";
+} from "@/modules/storefront-shell/ui/account-primitives";
 
 function formatMoney(kobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
