@@ -185,7 +185,7 @@ describe("storefront state boundaries", () => {
 
   it("persists only minimal intent fields", () => {
     const stateContract = readFileSync(
-      join(root, "src/features/storefront/shared/storefront-client-state.ts"),
+      join(root, "src/modules/storefront-shell/client/storefront-client-state.ts"),
       "utf8",
     );
     expect(stateContract).toContain("productId: string");
