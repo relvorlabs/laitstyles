@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
-import { IconArrow } from "@/features/storefront/shared/storefront-icons";
+import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
 import type { OpenHomeShop } from "../home-types";
 
 export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
