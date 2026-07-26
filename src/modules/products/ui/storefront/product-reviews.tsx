@@ -3,11 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Progress, ProgressLabel } from "@/components/ui/progress";
+import { reviewLifecycleMarkerCopy } from "@/modules/orders/storefront/order-state-copy";
 import type {
   PublicProductReview,
   PublicProductReviews,
 } from "@/modules/reviews/server/public-product-reviews";
-import { reviewLifecycleMarkerCopy } from "../account/orders/order-state-copy";
 import { productReviewAccessCopy, reviewDistributionRows } from "./product-detail-presentation";
 
 const STAR_RATINGS = [1, 2, 3, 4, 5] as const;
