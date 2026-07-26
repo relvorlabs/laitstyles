@@ -4,15 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  reviewLifecycleMarkerCopy,
-  reviewStateCopy,
-} from "@/features/storefront/account/orders/order-state-copy";
+import { cn } from "@/lib/utils";
 import type {
   AccountOrderDetail,
   AccountOrderLine,
-} from "@/features/storefront/account/orders/order-types";
-import { cn } from "@/lib/utils";
+} from "@/modules/orders/storefront/account-order-contract";
+import {
+  reviewLifecycleMarkerCopy,
+  reviewStateCopy,
+} from "@/modules/orders/storefront/order-state-copy";
 import {
   Eyebrow,
   monoClass,
@@ -22,7 +22,7 @@ import {
   StatusBadge,
   type StatusVariant,
   TimelineDot,
-} from "../components/account-primitives";
+} from "@/modules/storefront-shell/ui/account-primitives";
 
 function formatMoney(kobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
@@ -334,7 +334,7 @@ export function OrderDetailSection({
             </address>
           ) : (
             <p className="mt-4 text-[var(--acc-muted)]">
-              No delivery address snapshot is available for this order.
+              Delivery details are not available for this order.
             </p>
           )}
         </section>
