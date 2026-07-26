@@ -27,11 +27,8 @@ import { SettingsSectionContent } from "@/features/admin/settings/settings-secti
 import { SettingsStatusStrip } from "@/features/admin/settings/settings-status-strip";
 import { buildSettingsHref } from "@/features/admin/settings/settings-url";
 import { useAdminAccess } from "@/features/admin/shell/admin-access-provider";
+import { storeSettingsQueryOptions, useSaveStoreSettings } from "@/modules/settings/client/hooks";
 import { storeSettingsInputSchema } from "@/modules/settings/schema";
-import {
-  storeSettingsQueryOptions,
-  useSaveStoreSettings,
-} from "@/modules/settings/client/hooks";
 import type {
   SaveStoreSettingsInput,
   SettingsSection,

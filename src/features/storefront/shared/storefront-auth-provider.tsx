@@ -8,11 +8,8 @@ import {
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
-import {
-  type StorefrontAuthForm,
-  type StorefrontAuthMode,
-} from "./storefront-auth-dialog";
-import { openAuthDialog } from "./storefront-overlay-events";
+import { openAuthDialog } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import type { StorefrontAuthForm, StorefrontAuthMode } from "./storefront-auth-dialog";
 import type { StorefrontAuthSession } from "./storefront-auth-session";
 
 type AuthSubmissionResult =

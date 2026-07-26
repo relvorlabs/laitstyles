@@ -1,12 +1,9 @@
 import "server-only";
 
+import { createPaginationMeta } from "@/lib/http/pagination";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
-import { createPaginationMeta } from "@/lib/http/pagination";
-import {
-  adminOrderInclude,
-  mapAdminOrderRow,
-} from "@/modules/orders/server/mappers";
+import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type {
   AdminOrderListResult,
   ControlRoomOrder,
@@ -217,7 +214,5 @@ async function getOrderWorkspaceSummary(): Promise<OrderWorkspaceSummary> {
 }
 
 function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

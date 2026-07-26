@@ -326,9 +326,7 @@ function savedViewCondition(view: InventoryProductListInput["view"]): Prisma.Sql
   }
 }
 
-function stockFilterCondition(
-  filter: InventoryProductListInput["stock"],
-): Prisma.Sql | null {
+function stockFilterCondition(filter: InventoryProductListInput["stock"]): Prisma.Sql | null {
   switch (filter) {
     case "all":
       return null;

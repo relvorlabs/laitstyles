@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { InventoryProduct } from "@/lib/admin/inventory/inventory-types";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import type { AdminProduct as InventoryProduct } from "@/modules/products/types";
 import type { StaffSession } from "@/server/auth/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
@@ -50,11 +50,11 @@ vi.mock("@/lib/prisma", () => ({
   prisma: harness.prisma,
 }));
 
-vi.mock("./inventory-read", () => ({
-  getInventoryProduct: getInventoryProductMock,
+vi.mock("@/modules/products/server/queries", () => ({
+  getAdminProduct: getInventoryProductMock,
 }));
 
-import { saveInventoryProduct } from "./inventory-service";
+import { saveProduct as saveInventoryProduct } from "@/modules/products/server/product-commands";
 
 function stockedProduct(): InventoryProduct {
   return {

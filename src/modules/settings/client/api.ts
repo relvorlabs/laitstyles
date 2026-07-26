@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "@/lib/errors";
-import { apiRequest, ApiClientError } from "@/lib/http/client";
+import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
   SaveStoreSettingsInput,
   SettingsSection,
@@ -32,7 +32,8 @@ export async function saveStoreSettingsRequest(
   } catch (error) {
     if (error instanceof ApiClientError) {
       return err({
-        code: error.code === "SETTINGS_NOT_AVAILABLE" ? "settings-not-available" : "invalid-settings",
+        code:
+          error.code === "SETTINGS_NOT_AVAILABLE" ? "settings-not-available" : "invalid-settings",
         message: error.message,
         issues: toSettingsIssues(error.fieldErrors),
       });
@@ -41,7 +42,9 @@ export async function saveStoreSettingsRequest(
   }
 }
 
-function toSettingsIssues(fieldErrors: Record<string, string> | undefined): SettingsValidationIssue[] {
+function toSettingsIssues(
+  fieldErrors: Record<string, string> | undefined,
+): SettingsValidationIssue[] {
   return Object.entries(fieldErrors ?? {}).map(([path, message]) => ({
     path,
     message,

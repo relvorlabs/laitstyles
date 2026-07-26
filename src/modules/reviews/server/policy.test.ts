@@ -1,5 +1,9 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { canTransitionReview, getReviewEligibility, REVIEW_WINDOW_DAYS } from "@/modules/reviews/server/policy";
+import {
+  canTransitionReview,
+  getReviewEligibility,
+  REVIEW_WINDOW_DAYS,
+} from "@/modules/reviews/server/policy";
 import type {
   ReviewAccessFailure,
   ReviewAccessFailureReason,
@@ -45,12 +49,11 @@ describe("getReviewEligibility", () => {
     ],
     [{ ...delivered, refundStatus: "refunded" as const }, "fully_refunded"],
     [{ ...delivered, hasReview: true }, "already_reviewed"],
-  ] satisfies ReadonlyArray<readonly [ReviewEligibilityInput, ReviewEligibilityReason]>) (
-    "returns $1 for an ineligible order line",
-    (input, reason) => {
-      expect(getReviewEligibility(input, evaluationTime)).toEqual({ eligible: false, reason });
-    },
-  );
+  ] satisfies ReadonlyArray<
+    readonly [ReviewEligibilityInput, ReviewEligibilityReason]
+  >)("returns $1 for an ineligible order line", (input, reason) => {
+    expect(getReviewEligibility(input, evaluationTime)).toEqual({ eligible: false, reason });
+  });
 
   it.each([
     "unfulfilled",
@@ -65,15 +68,16 @@ describe("getReviewEligibility", () => {
     });
   });
 
-  it.each(["partially_delivered", "delivered", "partially_returned"] as const)(
-    "accepts delivery evidence for the %s fulfilment state",
-    (fulfilmentStatus) => {
-      expect(getReviewEligibility({ ...delivered, fulfilmentStatus }, evaluationTime)).toEqual({
-        eligible: true,
-        expiresAt: new Date("2026-09-29T12:00:00.000Z"),
-      });
-    },
-  );
+  it.each([
+    "partially_delivered",
+    "delivered",
+    "partially_returned",
+  ] as const)("accepts delivery evidence for the %s fulfilment state", (fulfilmentStatus) => {
+    expect(getReviewEligibility({ ...delivered, fulfilmentStatus }, evaluationTime)).toEqual({
+      eligible: true,
+      expiresAt: new Date("2026-09-29T12:00:00.000Z"),
+    });
+  });
 
   it.each([
     { deliveredQuantity: 0, deliveredAt: delivered.deliveredAt },
@@ -191,12 +195,11 @@ describe("canTransitionReview", () => {
     "withdrawn:pending",
   ]);
 
-  it.each(statuses.flatMap((from) => statuses.map((to) => [from, to] as const)))(
-    "reports whether %s can transition to %s",
-    (from, to) => {
-      expect(canTransitionReview(from, to)).toBe(allowed.has(`${from}:${to}`));
-    },
-  );
+  it.each(
+    statuses.flatMap((from) => statuses.map((to) => [from, to] as const)),
+  )("reports whether %s can transition to %s", (from, to) => {
+    expect(canTransitionReview(from, to)).toBe(allowed.has(`${from}:${to}`));
+  });
 });
 
 describe("review access types", () => {

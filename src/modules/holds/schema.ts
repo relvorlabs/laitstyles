@@ -15,7 +15,11 @@ export const adminHoldListSearchSchema = paginationQuerySchema.extend({
 
 export const extendHoldSchema = z
   .object({
-    minutes: z.number().int().min(1).max(24 * 60),
+    minutes: z
+      .number()
+      .int()
+      .min(1)
+      .max(24 * 60),
   })
   .strict();
 

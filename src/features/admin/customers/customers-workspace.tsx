@@ -32,10 +32,7 @@ import {
   adminCustomersQueryOptions,
   useAddCustomerNote,
 } from "@/modules/customers/client/hooks";
-import type {
-  CustomerSavedViewCounts,
-  CustomerWorkspaceSummary,
-} from "@/modules/customers/types";
+import type { CustomerSavedViewCounts, CustomerWorkspaceSummary } from "@/modules/customers/types";
 
 const emptyCounts: CustomerSavedViewCounts = {
   all: 0,
@@ -208,7 +205,10 @@ export function CustomersWorkspace({ initialQuery }: { initialQuery: CustomerQue
   );
 }
 
-function readQueryFromUrl(searchParams: SearchParamsReader, fallback: CustomerQuery): CustomerQuery {
+function readQueryFromUrl(
+  searchParams: SearchParamsReader,
+  fallback: CustomerQuery,
+): CustomerQuery {
   return {
     view: pick(searchParams.get("view"), viewValues, fallback.view),
     search: searchParams.get("q") ?? fallback.search,

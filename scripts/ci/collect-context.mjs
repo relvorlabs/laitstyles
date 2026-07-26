@@ -42,6 +42,61 @@ const commitLog = git(["log", "--oneline", "--decorate", activeRange], "No commi
 const patch = truncate(redact(git(["diff", "--no-ext-diff", "--unified=40", activeRange])), 300_000);
 
 const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+const candidateSha = git(["rev-parse", "HEAD"]);
+const parentSha = git(["rev-parse", "HEAD^"]);
+const workingTreeEntries = git(["status", "--short"])
+  .split(/\r?\n/)
+  .map((entry) => entry.trimEnd())
+  .filter(Boolean);
+const lockfile = await readFile("pnpm-lock.yaml", "utf8");
+const databaseIdentity = [
+  ["DATABASE_URL", process.env.DATABASE_URL],
+  ["DIRECT_URL", process.env.DIRECT_URL],
+]
+  .filter(([, value]) => Boolean(value))
+  .map(([name, value]) => {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") throw new Error();
+      return `${url.protocol}//${url.hostname}:${url.port || "default"}/${url.pathname.replace(/^\//, "")}`;
+    } catch {
+      throw new Error(`Invalid ${name}; database connection value redacted.`);
+    }
+  })
+  .join("|");
+const expectedPnpmVersion = packageJson.packageManager?.match(/^pnpm@(.+)$/)?.[1];
+const pnpmHome =
+  process.env.PNPM_HOME || (process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, "pnpm") : "");
+const pinnedPnpmCli = pnpmHome
+  ? join(
+      pnpmHome,
+      ".tools",
+      "pnpm",
+      expectedPnpmVersion ?? "",
+      "node_modules",
+      "pnpm",
+      "bin",
+      "pnpm.cjs",
+    )
+  : "";
+let pnpmVersion;
+if (process.env.npm_execpath) {
+  pnpmVersion = execFileSync(process.execPath, [process.env.npm_execpath, "--version"], {
+    encoding: "utf8",
+  }).trim();
+} else if (process.platform === "win32" && existsSync(pinnedPnpmCli)) {
+  pnpmVersion = execFileSync(process.execPath, [pinnedPnpmCli, "--version"], { encoding: "utf8" }).trim();
+} else if (process.platform === "win32") {
+  pnpmVersion = execFileSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", "pnpm.cmd --version"], {
+    encoding: "utf8",
+  }).trim();
+} else {
+  pnpmVersion = execFileSync("pnpm", ["--version"], { encoding: "utf8" }).trim();
+}
+if (!expectedPnpmVersion || pnpmVersion !== expectedPnpmVersion) {
+  throw new Error(`pnpm version mismatch: expected ${expectedPnpmVersion ?? "package.json pin"}.`);
+}
+const capturedAt = new Date().toISOString();
 const doctrinePaths = [
   "AGENTS.md",
   ".agents/doctrine/architecture.md",
@@ -86,13 +141,23 @@ for (const path of changedFiles) {
 const context = {
   schemaVersion: 1,
   kind: "implementation-context",
+  candidateSha,
+  parentSha,
   repository: process.env.GITHUB_REPOSITORY ?? null,
   pullRequest: process.env.PR_NUMBER ? Number(process.env.PR_NUMBER) : null,
   sha: process.env.GITHUB_SHA ?? git(["rev-parse", "HEAD"]),
   branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || git(["branch", "--show-current"]),
+  workingTreeEntries,
+  nodeVersion: process.version,
+  pnpmVersion,
+  prismaVersion: packageJson.dependencies["@prisma/client"],
+  playwrightVersion: packageJson.devDependencies["@playwright/test"],
+  lockfileDigest: sha256(lockfile),
+  databaseIdentityDigest: databaseIdentity ? sha256(databaseIdentity) : null,
+  capturedAt,
   baseRef,
   range: activeRange,
-  generatedAt: new Date().toISOString(),
+  generatedAt: capturedAt,
   packageManager: packageJson.packageManager,
   packageScripts: packageJson.scripts,
   changedFiles,

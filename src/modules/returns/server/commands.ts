@@ -8,11 +8,12 @@ import {
   OperationalStockError,
   type OperationalStockMutationKind,
 } from "@/modules/inventory/server/operational-stock";
+import { orderIdentifierWhere } from "@/modules/orders/server/queries";
 import {
+  type AdminReturnRow,
   adminReturnInclude,
   mapAdminReturnRow,
   mapDatabaseReturnStatus,
-  type AdminReturnRow,
 } from "@/modules/returns/server/mappers";
 import type {
   CreateReturnInput,
@@ -20,7 +21,6 @@ import type {
   ReturnActionSuccess,
   ReturnStatus,
 } from "@/modules/returns/types";
-import { orderIdentifierWhere } from "@/modules/orders/server/queries";
 import type { StaffSession } from "@/server/auth/session";
 
 const transitionMap = {
@@ -72,7 +72,9 @@ export async function createReturn(
           orderId: input.orderId,
         });
       }
-      if (!(["delivered", "partially_returned"] as const).includes(order.fulfilment_status as never)) {
+      if (
+        !(["delivered", "partially_returned"] as const).includes(order.fulfilment_status as never)
+      ) {
         return err({
           code: "invalid-return-transition",
           message:
@@ -106,7 +108,9 @@ export async function createReturn(
           });
         }
         const alreadyReturned = orderLine.return_lines
-          .filter((entry) => entry.return.status !== "rejected" && entry.return.status !== "cancelled")
+          .filter(
+            (entry) => entry.return.status !== "rejected" && entry.return.status !== "cancelled",
+          )
           .reduce((total, entry) => total + entry.quantity, 0);
         const eligible = Math.max(0, orderLine.quantity - alreadyReturned);
         if (requestedLine.quantity > eligible) {
@@ -209,7 +213,11 @@ export async function transitionReturn(
             note: `Return ${returnId} moved to ${formatReturnStatus(nextStatus)}.`,
             relatedOrderId: current.order_id,
             relatedReturnId: returnId,
-            metadata: { operation: "return-transition", nextStatus, orderLineId: line.order_line_id },
+            metadata: {
+              operation: "return-transition",
+              nextStatus,
+              orderLineId: line.order_line_id,
+            },
           });
         }
       }
@@ -263,7 +271,9 @@ async function applyReturnPersistence(
   }
   if (nextStatus === "refunded") {
     const nextRefund = current.order.refunded_amount.plus(current.refund_amount);
-    const cappedRefund = nextRefund.greaterThan(current.order.total) ? current.order.total : nextRefund;
+    const cappedRefund = nextRefund.greaterThan(current.order.total)
+      ? current.order.total
+      : nextRefund;
     const fullyRefunded = cappedRefund.greaterThanOrEqualTo(current.order.total);
     await tx.returns.update({
       where: { id: current.id },

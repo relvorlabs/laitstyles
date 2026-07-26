@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "@/lib/errors";
-import { apiRequest, ApiClientError } from "@/lib/http/client";
+import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
   AdminProduct,
   ProductLifecycleError,
@@ -30,10 +30,13 @@ export async function getAdminProduct(
   signal?: AbortSignal,
 ): Promise<AdminProduct | null> {
   try {
-    const response = await apiRequest<AdminProduct>(`${PRODUCTS_URL}/${encodeURIComponent(productId)}`, {
-      cache: "no-store",
-      signal,
-    });
+    const response = await apiRequest<AdminProduct>(
+      `${PRODUCTS_URL}/${encodeURIComponent(productId)}`,
+      {
+        cache: "no-store",
+        signal,
+      },
+    );
     return response.data;
   } catch (error) {
     if (error instanceof ApiClientError && error.status === 404) return null;
@@ -208,10 +211,7 @@ function productEditorStepFor(path: string): ProductMutationIssue["step"] {
   return "review";
 }
 
-function toProductLifecycleError(
-  error: ApiClientError,
-  productId: string,
-): ProductLifecycleError {
+function toProductLifecycleError(error: ApiClientError, productId: string): ProductLifecycleError {
   return {
     code: error.code === "PRODUCT_IN_USE" ? "product-in-use" : "product-not-found",
     productId,
@@ -219,10 +219,7 @@ function toProductLifecycleError(
   };
 }
 
-function toProductTaxonomyError(
-  error: ApiClientError,
-  taxonomyId?: string,
-): ProductTaxonomyError {
+function toProductTaxonomyError(error: ApiClientError, taxonomyId?: string): ProductTaxonomyError {
   const code =
     error.code === "TAXONOMY_NAME_REQUIRED"
       ? "empty-name"

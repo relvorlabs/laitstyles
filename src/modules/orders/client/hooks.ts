@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  keepPreviousData,
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {

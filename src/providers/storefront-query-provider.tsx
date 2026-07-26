@@ -4,9 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { makeStorefrontQueryClient } from "@/lib/query/storefront-query-client";
-import {
-  storefrontCatalogueQueryKey,
-} from "@/modules/products/client/storefront-catalogue";
+import { storefrontCatalogueQueryKey } from "@/modules/products/client/storefront-catalogue";
 import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 
 export function StorefrontQueryProvider({

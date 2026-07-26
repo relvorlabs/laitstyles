@@ -7,7 +7,7 @@ import {
   cartLineKey,
   cartSubtotal,
   changeCartLineQuantity,
-} from "./cart-lines";
+} from "@/modules/cart/cart-lines";
 
 const variantProduct = {
   id: "shirt-1",

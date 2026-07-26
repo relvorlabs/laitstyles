@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type QueryClient,
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { type QueryClient, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import { overviewKeys } from "@/modules/overview/client/keys";
 import {

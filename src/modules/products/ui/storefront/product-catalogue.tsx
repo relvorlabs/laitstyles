@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import type { ParsedCatalogueSearch } from "@/modules/products/client/catalogue-search-params";
 import {
   type CatalogueFilterType,
+  type CatalogueQuickLink,
   useCatalogueNavigation,
 } from "@/modules/products/client/use-catalogue-navigation";
-import {
-  openQuickView,
-} from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
   useStorefrontCart,
@@ -22,7 +21,7 @@ import { inventoryLabel, money, type Product } from "./catalogue-data";
 import { FilterControls } from "./filter-controls";
 import { ProductCard } from "./product-card";
 
-const quickLinks: [string, string][] = [
+const quickLinks: readonly [CatalogueQuickLink, string][] = [
   ["all", "All"],
   ["new", "New arrivals"],
   ["women", "Women"],
@@ -98,7 +97,7 @@ function CatalogueApp({
     },
     onHold: (id: string) => {
       const product = productLookup.get(id);
-      if (!product || product.status !== "available") return;
+      if (product?.status !== "available") return;
       holds.holdProduct(id);
       showStorefrontToast(`${product.name} is held for 15 minutes.`);
     },
@@ -146,11 +145,7 @@ function CatalogueApp({
         <div className="shell">
           <div className="toolbar-main">
             <div className="toolbar-group">
-              <Button
-                onClick={() => overlay.open("filterDrawer")}
-                type="button"
-                variant="outline"
-              >
+              <Button onClick={() => overlay.open("filterDrawer")} type="button" variant="outline">
                 <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6h16M7 12h10M10 18h4" />
                 </svg>
@@ -167,11 +162,7 @@ function CatalogueApp({
                 </svg>
                 {sidebarVisible ? "Hide filters" : "Show filters"}
               </Button>
-              <Button
-                onClick={() => overlay.open("sortSheet")}
-                type="button"
-                variant="outline"
-              >
+              <Button onClick={() => overlay.open("sortSheet")} type="button" variant="outline">
                 <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M8 7h10M8 12h7M8 17h4M4 5v14" />
                 </svg>
@@ -182,7 +173,8 @@ function CatalogueApp({
               <span aria-live="polite" className="result-count mono" id="resultCount">
                 {total} products
               </span>
-              <div aria-label="Product grid density" className="density-control" role="group">
+              <fieldset className="density-control">
+                <legend className="sr-only">Product grid density</legend>
                 <Button
                   aria-label="Comfortable grid"
                   aria-pressed={density === "comfortable"}
@@ -203,7 +195,7 @@ function CatalogueApp({
                 >
                   ▥
                 </Button>
-              </div>
+              </fieldset>
             </div>
           </div>
           {chips.length > 0 ? (

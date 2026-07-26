@@ -72,10 +72,7 @@ describe("/api/v1/admin/inventory", () => {
       },
     };
     mocks.findInventoryProductPage.mockResolvedValueOnce(page);
-    mocks.getAdminProductsByIds.mockResolvedValueOnce([
-      { id: "product-2" },
-      { id: "product-1" },
-    ]);
+    mocks.getAdminProductsByIds.mockResolvedValueOnce([{ id: "product-2" }, { id: "product-1" }]);
 
     const response = await GET(
       new Request(
@@ -110,9 +107,7 @@ describe("/api/v1/admin/inventory", () => {
   });
 
   it("rejects an unsupported page size before any domain query", async () => {
-    const response = await GET(
-      new Request("http://localhost/api/v1/admin/inventory?pageSize=500"),
-    );
+    const response = await GET(new Request("http://localhost/api/v1/admin/inventory?pageSize=500"));
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({

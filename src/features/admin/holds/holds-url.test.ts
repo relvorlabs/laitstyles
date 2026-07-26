@@ -21,6 +21,8 @@ describe("Holds URL state", () => {
           source: "assisted",
           stage: "payment",
           sort: "expiry-desc",
+          page: 1,
+          pageSize: 25,
         },
         holdId: "hold-sage",
       }),

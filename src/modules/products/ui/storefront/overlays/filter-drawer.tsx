@@ -3,7 +3,10 @@
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
-import { showStorefrontToast, useStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
+import {
+  showStorefrontToast,
+  useStorefrontOverlay,
+} from "@/modules/storefront-shell/client/storefront-runtime";
 import { IconClose } from "@/modules/storefront-shell/ui/storefront-icons";
 import { FilterControls } from "../filter-controls";
 

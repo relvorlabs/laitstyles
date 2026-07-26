@@ -149,7 +149,7 @@ export function InventoryWorkspace({
   const safePage = Math.min(Math.max(page, 1), totalPages);
   const openItem = openedProduct
     ? toInventoryListItem(openedProduct)
-    : items.find((item) => item.product.id === openProductId) ?? null;
+    : (items.find((item) => item.product.id === openProductId) ?? null);
   const mediaItem = items.find((item) => item.product.id === openMedia?.productId) ?? null;
   const isIntake = query.view === "intake";
 

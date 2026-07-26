@@ -86,6 +86,7 @@ for (const removedPath of removedLegacyPaths) {
 
 const queryProviderConsumers = walk(resolve(root, "src"))
   .filter((path) => /\.[cm]?[jt]sx?$/.test(path))
+  .filter((path) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path))
   .filter((path) => readFileSync(path, "utf8").includes(queryProviderImport))
   .map((path) => normalize(relative(root, path)));
 

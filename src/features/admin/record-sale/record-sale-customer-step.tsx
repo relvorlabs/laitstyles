@@ -182,7 +182,9 @@ export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCus
               type="email"
               {...methods.register("customerEmail")}
             />
-            <FieldDescription>Paystack uses this email for the one-time transaction.</FieldDescription>
+            <FieldDescription>
+              Paystack uses this email for the one-time transaction.
+            </FieldDescription>
             <FieldError errors={[methods.formState.errors.customerEmail]} />
           </Field>
         </div>

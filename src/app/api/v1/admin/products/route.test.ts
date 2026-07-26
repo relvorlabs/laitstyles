@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/errors/api-error";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import { ApiError } from "@/lib/errors/api-error";
 
 const mocks = vi.hoisted(() => ({
   requireApiStaff: vi.fn(),

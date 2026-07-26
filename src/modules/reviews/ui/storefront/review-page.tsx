@@ -12,11 +12,7 @@ import {
   panelElevatedClass,
   StatusBadge,
 } from "@/modules/storefront-shell/ui/account-primitives";
-import {
-  ReviewForm,
-  type ReviewFormAction,
-  type ReviewFormIntent,
-} from "./review-form";
+import { ReviewForm, type ReviewFormAction, type ReviewFormIntent } from "./review-form";
 
 type FoundReviewContext = Extract<OwnedReviewContext, { found: true }>;
 

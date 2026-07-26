@@ -242,9 +242,7 @@ export function mapProductDetail(row: ProductDetailRow): ProductDetail {
       ...common,
       mode: "variant",
       availability,
-      variants: row.product_variants.map((variant) =>
-        mapVariant(variant, row.low_stock_threshold),
-      ),
+      variants: row.product_variants.map((variant) => mapVariant(variant, row.low_stock_threshold)),
     };
   }
   return {

@@ -2,50 +2,88 @@
 
 **Status:** Active temporary exceptions  
 **Owner:** Architecture migration  
-**Rule:** This list may only shrink. New exceptions require an explicit architecture decision.
+**Rule:** This list may only shrink. Removing an edge and its machine entry happens in one commit.
 
-Phase 1 establishes the target rules without pretending the current tree has already completed
-later migration phases. Every exception below is exact, has a reason, and has a scheduled removal
-phase.
+Phase 1 establishes the target rules without pretending Phase 7 authentication or Phase 8
+checkout settlement has already migrated. The machine-readable authority is
+`scripts/checks/architecture-legacy-exceptions.mjs`; every entry names one exact importer and
+one exact imported specifier, an owner, a reason, and a removal phase. The architecture guard
+checks both observed-to-declared and declared-to-observed directions.
 
-## Machine-enforced exception
+## Phase 7 authentication compatibility
 
-| Edge | Reason | Removal phase |
-| --- | --- | --- |
-| `src/features/admin/inventory/inventory-mutations.ts` → `src/features/admin/inventory/inventory-actions.ts` | Existing TanStack mutations call a `"use server"` module directly. Replacing the transport belongs to the product/inventory cutover, not the rule-establishment phase. | Phase 4 |
+These edges are owned by the domain engineer and are removed in Phase 7.
 
-The matching machine-readable entry lives in
-`scripts/checks/architecture-legacy-exceptions.mjs`. The architecture guard fails when the edge
-disappears but the exception remains, preventing stale allowlists.
+| Importer | Imported specifier |
+| --- | --- |
+| `src/app/storefront-route-boundary.tsx` | `@/server/auth/session` |
+| `src/app/auth/sign-in/page.tsx` | `@/server/auth/session` |
+| `src/app/admin/layout.tsx` | `@/server/auth/session` |
+| `src/app/admin/inventory/page.tsx` | `@/server/auth/session` |
+| `src/app/(storefront)/account/profile/page.tsx` | `@/server/auth/session` |
+| `src/app/(storefront)/account/profile/actions.ts` | `@/server/auth/session` |
+| `src/app/(storefront)/account/orders/page.tsx` | `@/server/auth/session` |
+| `src/app/(storefront)/account/orders/[orderNumber]/page.tsx` | `@/server/auth/session` |
+| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts` | `@/server/auth/session` |
+| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/page.tsx` | `@/server/auth/session` |
+| `src/lib/http/auth.ts` | `@/server/auth/session` |
+| `src/modules/customers/server/commands.ts` | `@/server/auth/session` |
+| `src/modules/holds/server/commands.ts` | `@/server/auth/session` |
+| `src/modules/inventory/server/adjust-stock.ts` | `@/server/auth/session` |
+| `src/modules/inventory/server/stock-write.ts` | `@/server/auth/session` |
+| `src/modules/orders/server/offline-sale-checkout.ts` | `@/server/auth/session` |
+| `src/modules/orders/server/offline-sale-draft.ts` | `@/server/auth/session` |
+| `src/modules/orders/server/offline-sale.ts` | `@/server/auth/session` |
+| `src/modules/orders/server/transition-order.ts` | `@/server/auth/session` |
+| `src/modules/products/server/lifecycle-commands.ts` | `@/server/auth/session` |
+| `src/modules/products/server/product-commands.ts` | `@/server/auth/session` |
+| `src/modules/products/server/rules.ts` | `@/server/auth/session` |
+| `src/modules/products/server/taxonomy-commands.ts` | `@/server/auth/session` |
+| `src/modules/returns/server/commands.ts` | `@/server/auth/session` |
+| `src/modules/settings/server/commands.ts` | `@/server/auth/session` |
+| `src/app/auth/callback/route.ts` | `@/server/auth/profile` |
+| `src/server/auth/session.ts` | `@/server/auth/profile` |
+| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
+| `src/modules/storefront-shell/ui/site-chrome.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
+| `src/modules/storefront-shell/ui/storefront-account-menu.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
+| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-dialog-host` |
+| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-session` |
+| `src/app/storefront-route-boundary.tsx` | `@/features/storefront/shared/storefront-auth-session` |
 
-## Legacy folder debt
+Only `src/server/auth/session.ts` and `src/server/auth/profile.ts` are declared legacy top-level
+auth files. A third production file under `src/server/auth/**` is not allowed by folder or glob.
 
-These are migration boundaries, not allowlisted new-code locations:
+## Phase 8 checkout compatibility
 
-- `src/features/**` — existing composition remains until domain consumers move; new production
-  modules are blocked.
-- top-level `src/server/**` and `src/server/commerce/**` — existing business code remains until
-  its owning domain migrates; new production business modules are blocked.
-- existing `catalog*` filenames and identifiers — the guard compares changed files with the base
-  revision and rejects any increase in American-spelled catalogue debt.
+These route-level presentation edges are owned by the UI engineer and are removed in Phase 8.
+
+| Importer | Imported specifier |
+| --- | --- |
+| `src/app/(storefront)/checkout/page.tsx` | `@/features/storefront/checkout/checkout-flow-v2` |
+| `src/app/(storefront)/order-confirmation/page.tsx` | `@/features/storefront/checkout/order-receipt` |
+
+No checkout directory, nested checkout-to-checkout import, settlement operation, wildcard, or
+second route consumer is covered by these entries.
+
+## Type-only Product shim
+
+`src/features/storefront/shared/storefront-auth-dialog.tsx` has one exact type-only import from
+`@/features/storefront/shared/catalogue-data`. That shim may export only the `Product` type from
+`@/modules/products/ui/storefront/catalogue-data`; `export *` and runtime exports are rejected.
+It does not authorize a runtime Product dependency or another consumer.
 
 ## Explicitly not excepted
 
-There is no exception for:
-
-- Client Components importing Prisma, top-level server modules, or
-  `modules/*/server/**`;
-- production source importing test, story, development, or seed fixtures;
-- Route Handlers importing Server Actions;
-- new business modules under `src/features/**`;
-- new business modules under top-level `src/server/**`.
+The obsolete Phase 4 TanStack-to-Server-Action exception is absent because its edge no longer
+exists. There is no exception for Client Components importing Prisma or server modules,
+production fixture/seed imports, Route Handlers importing Server Actions, or new business
+modules under `src/features/**` or top-level `src/server/**`.
 
 ## Removal discipline
 
 When a later phase removes an exception:
 
-1. remove the legacy edge or path;
-2. remove the machine-readable exception in the same change;
-3. update the domain migration status;
-4. run `pnpm check:architecture`;
-5. keep UI and runtime behaviour within the Phase 0 preservation baseline.
+1. remove the legacy edge and its exact machine-readable entry in the same commit;
+2. update the owning domain migration status;
+3. run the focused boundary tests and `pnpm check:architecture`;
+4. preserve Phase 0 UI and runtime behaviour.

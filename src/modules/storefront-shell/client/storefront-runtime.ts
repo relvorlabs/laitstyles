@@ -2,12 +2,9 @@
 
 import { useCallback, useMemo } from "react";
 import { toast as sonnerToast } from "sonner";
-import { cartSubtotal, type CartSelection } from "@/modules/cart/cart-lines";
+import { type CartSelection, cartSubtotal } from "@/modules/cart/cart-lines";
 import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
-import {
-  type Product,
-  productById,
-} from "@/modules/products/ui/storefront/catalogue-data";
+import { type Product, productById } from "@/modules/products/ui/storefront/catalogue-data";
 import { useStorefrontHoldNow } from "@/modules/storefront-shell/client/storefront-hold-clock";
 import {
   closeStorefrontOverlays,
@@ -25,10 +22,10 @@ import {
   useSavedItemsStore,
 } from "@/stores/saved-items.store";
 import {
+  type StorefrontOverlayId,
   selectHolds,
   selectOpenOverlay,
   selectRecentIds,
-  type StorefrontOverlayId,
   useStorefrontUiStore,
 } from "@/stores/storefront-ui.store";
 
@@ -43,11 +40,7 @@ export type StorefrontCartLineView = {
   unitPriceNaira: number;
 };
 
-export function showStorefrontToast(
-  text: string,
-  actionLabel = "",
-  action?: () => void,
-) {
+export function showStorefrontToast(text: string, actionLabel = "", action?: () => void) {
   sonnerToast(text, {
     duration: 3400,
     action: actionLabel ? { label: actionLabel, onClick: () => action?.() } : undefined,
@@ -201,9 +194,7 @@ export function useStorefrontRecent() {
   const add = useStorefrontUiStore((state) => state.addRecent);
   const items = useMemo(
     () =>
-      ids
-        .map((id) => productById(products, id))
-        .filter((item): item is Product => Boolean(item)),
+      ids.map((id) => productById(products, id)).filter((item): item is Product => Boolean(item)),
     [ids, products],
   );
   return { ids, items, add };

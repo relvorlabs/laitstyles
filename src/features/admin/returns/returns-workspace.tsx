@@ -270,7 +270,10 @@ function pick<TValue extends string>(
   return value && allowed.has(value as TValue) ? (value as TValue) : fallback;
 }
 
-function pickWithAll<TValue extends string>(value: string | null, allowed: Set<TValue>): TValue | "all" {
+function pickWithAll<TValue extends string>(
+  value: string | null,
+  allowed: Set<TValue>,
+): TValue | "all" {
   if (!value || value === "all") return "all";
   return allowed.has(value as TValue) ? (value as TValue) : "all";
 }

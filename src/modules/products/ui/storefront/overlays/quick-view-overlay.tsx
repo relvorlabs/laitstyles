@@ -3,8 +3,13 @@
 import Image from "next/image";
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
 import { koboToNaira } from "@/lib/money";
-import { inventoryLabel, money, productById } from "@/modules/products/ui/storefront/catalogue-data";
+import {
+  inventoryLabel,
+  money,
+  productById,
+} from "@/modules/products/ui/storefront/catalogue-data";
 import {
   openImageViewer,
   subscribeQuickView,
@@ -18,7 +23,6 @@ import {
   useStorefrontSavedItems,
 } from "@/modules/storefront-shell/client/storefront-runtime";
 import { IconClose, IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
-import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
 
 export function QuickViewOverlay() {
   const catalogue = useStorefrontCatalogueData();
@@ -123,9 +127,7 @@ export function QuickViewOverlay() {
                 <Button
                   aria-label="Open image viewer"
                   className="absolute inset-0"
-                  onClick={() =>
-                    openImageViewer({ productId: active.id, index: imageIndex })
-                  }
+                  onClick={() => openImageViewer({ productId: active.id, index: imageIndex })}
                   size="lg"
                   type="button"
                   variant="ghost"
@@ -149,9 +151,7 @@ export function QuickViewOverlay() {
             </div>
             <div className="py-1.5">
               <div className="flex flex-wrap gap-[7px]">
-                <span
-                  className={`badge${active.inventory === "one-of-one" ? " badge-solid" : ""}`}
-                >
+                <span className={`badge${active.inventory === "one-of-one" ? " badge-solid" : ""}`}>
                   {inventoryLabel(active.inventory)}
                 </span>
                 <Button
@@ -189,12 +189,14 @@ export function QuickViewOverlay() {
                     : "Several matching units of this product are currently available."}
               </p>
               <div className="mt-[22px] grid grid-cols-2 gap-2">
-                {([
-                  ["Tagged size", active.size],
-                  ["Recommended fit", active.fit],
-                  ["Condition", `Grade ${active.condition}`],
-                  ["Material", active.material],
-                ] as [string, string][]).map(([label, value]) => (
+                {(
+                  [
+                    ["Tagged size", active.size],
+                    ["Recommended fit", active.fit],
+                    ["Condition", `Grade ${active.condition}`],
+                    ["Material", active.material],
+                  ] as [string, string][]
+                ).map(([label, value]) => (
                   <div className="rounded-[4px] border border-[var(--line)] p-[13px]" key={label}>
                     <span className="block text-[0.68rem] text-[var(--muted)]">{label}</span>
                     <strong className="mt-[3px] block text-[0.87rem]">{value}</strong>

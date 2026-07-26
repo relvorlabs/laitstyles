@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addToBagLabel } from "./catalogue-data";
+import { addToBagLabel } from "@/modules/products/ui/storefront/catalogue-data";
 
 describe("addToBagLabel", () => {
   const cases: [Parameters<typeof addToBagLabel>[0], string][] = [

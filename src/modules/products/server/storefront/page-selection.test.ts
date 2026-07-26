@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProductSummary } from "@/modules/products/storefront-types";
-import {
-  type StorefrontCataloguePageQuery,
-  selectStorefrontCataloguePage,
-} from "./page-selection";
+import { type StorefrontCataloguePageQuery, selectStorefrontCataloguePage } from "./page-selection";
 
 function product(id: string, overrides: Partial<ProductSummary> = {}): ProductSummary {
   return {

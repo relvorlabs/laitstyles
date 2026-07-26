@@ -1,6 +1,15 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  legacyArchitectureExceptions,
+  legacyProductTypeOnlyEdge,
+} from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
+import {
+  classifyModuleGraph,
+  parseModuleSyntax,
+  stripComments,
+} from "../../../scripts/checks/module-export-guard.mjs";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");
@@ -13,63 +22,146 @@ const retiredProductPaths = [
   "@/features/storefront/shared/catalogue-data",
 ] as const;
 
-const documentedPhaseExceptions = new Map<string, ReadonlySet<string>>([
-  [
-    "src/features/storefront/shared/storefront-auth-dialog.tsx",
-    new Set(["@/features/storefront/shared/catalogue-data"]),
-  ],
-]);
-
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
 
+function importedModules(source: string): string[] {
+  const parsed = parseModuleSyntax(source).imports.map((entry) => entry.specifier);
+  const required = [
+    ...stripComments(source).matchAll(/\brequire\s*\(\s*["']([^"']+)["']\s*\)/g),
+  ].map((match) => match[1]);
+  return [...new Set([...parsed, ...required])];
+}
+
+function importsPath(imports: readonly string[], target: string) {
+  return imports.some((importPath) => importPath === target || importPath.startsWith(`${target}/`));
+}
+
 describe("Products module boundaries", () => {
-  it("keeps production consumers off retired product and catalogue paths", async () => {
-    const sourceFiles = await collectSourceFiles(sourceRoot);
-    const offenders: string[] = [];
+  it("resolves default, named, type and re-exported bindings without checking packages", () => {
+    const files = {
+      "src/consumer.ts": `
+        import React from "react";
+        import defaultValue, {
+          named,
+          type Shape,
+        } from "@/barrel";
+        export { lazyValue } from "./lazy";
+        void import("./dynamic");
+      `,
+      "src/barrel.ts": 'export { default, named, type Shape } from "./target";',
+      "src/target.ts": `
+        export default 1;
+        export const named = 2;
+        export interface Shape { value: string }
+      `,
+      "src/lazy.ts": "export const lazyValue = 3;",
+      "src/dynamic.ts": "export const dynamicValue = 4;",
+    };
 
-    for (const filePath of sourceFiles) {
-      const relative = normalize(path.relative(repositoryRoot, filePath));
-      if (isTest(relative)) continue;
-      const source = await readFile(filePath, "utf8");
-      const allowed = documentedPhaseExceptions.get(relative) ?? new Set<string>();
-      for (const importPath of retiredProductPaths) {
-        if (source.includes(importPath) && !allowed.has(importPath)) {
-          offenders.push(`${relative} -> ${importPath}`);
-        }
-      }
-    }
-
-    expect(offenders).toEqual([]);
+    expect(classifyModuleGraph({ files })).toEqual([]);
   });
 
+  it("reports exact missing internal modules and exports", () => {
+    const files = {
+      "src/consumer.ts": `
+        import { missing } from "@/target";
+        void import("./absent");
+      `,
+      "src/target.ts": "export const present = 1;",
+    };
+
+    expect(classifyModuleGraph({ files })).toEqual([
+      {
+        rule: "missing-export",
+        importer: "src/consumer.ts",
+        imported: "@/target",
+        detail: "@/target does not export missing (resolved to src/target.ts).",
+      },
+      {
+        rule: "unresolved-internal-module",
+        importer: "src/consumer.ts",
+        imported: "./absent",
+        detail: "Cannot resolve internal module ./absent.",
+      },
+    ]);
+  });
+
+  it("keeps production consumers off retired product and catalogue paths", async () => {
+    const sourceFiles = await collectSourceFiles(sourceRoot);
+    const offenders = (
+      await Promise.all(
+        sourceFiles.map(async (filePath) => {
+          const relative = normalize(path.relative(repositoryRoot, filePath));
+          if (isTest(relative)) return [];
+          const imports = importedModules(await readFile(filePath, "utf8"));
+          return retiredProductPaths
+            .filter((importPath) => {
+              const isTypeOnlyShimConsumer =
+                relative === legacyProductTypeOnlyEdge.importer &&
+                importPath === legacyProductTypeOnlyEdge.imported;
+              return importsPath(imports, importPath) && !isTypeOnlyShimConsumer;
+            })
+            .map((importPath) => `${relative} -> ${importPath}`);
+        }),
+      )
+    ).flat();
+
+    expect(offenders).toEqual([]);
+  }, 15_000);
+
   it("keeps every phase exception exact and type-only", async () => {
-    const source = await readFile(
-      path.join(repositoryRoot, "src/features/storefront/shared/catalogue-data.ts"),
+    const shimSource = await readFile(
+      path.join(repositoryRoot, legacyProductTypeOnlyEdge.shim),
+      "utf8",
+    );
+    const importerSource = await readFile(
+      path.join(repositoryRoot, legacyProductTypeOnlyEdge.importer),
       "utf8",
     );
 
-    expect(source.trim()).toContain(
+    expect(shimSource).toContain(
       'export type { Product } from "@/modules/products/ui/storefront/catalogue-data";',
     );
-    expect(source).not.toMatch(/export\s+\*/);
-    expect(documentedPhaseExceptions.size).toBe(1);
+    expect(shimSource).not.toMatch(/export\s+\*/);
+    expect(shimSource).not.toMatch(/export\s+(?!type\b)/);
+    expect(importerSource).toContain(
+      `import type { Product } from "${legacyProductTypeOnlyEdge.imported}";`,
+    );
+    expect(importerSource).not.toMatch(
+      new RegExp(
+        `import\\s+(?!type\\b)[^;]+from\\s+["']${escapeRegExp(legacyProductTypeOnlyEdge.imported)}["']`,
+      ),
+    );
+    expect(Object.isFrozen(legacyProductTypeOnlyEdge)).toBe(true);
   });
 
   it("keeps the Products domain independent of app, feature and top-level server layers", async () => {
     const sourceFiles = await collectSourceFiles(productModuleRoot);
-    const offenders: string[] = [];
-
-    for (const filePath of sourceFiles) {
-      const relative = normalize(path.relative(repositoryRoot, filePath));
-      if (isTest(relative)) continue;
-      const source = await readFile(filePath, "utf8");
-      for (const importPath of forbiddenProductModuleImports) {
-        if (source.includes(importPath)) offenders.push(`${relative} -> ${importPath}`);
-      }
-    }
+    const offenders = (
+      await Promise.all(
+        sourceFiles.map(async (filePath) => {
+          const relative = normalize(path.relative(repositoryRoot, filePath));
+          if (isTest(relative)) return [];
+          const imports = importedModules(await readFile(filePath, "utf8"));
+          return forbiddenProductModuleImports.flatMap((importPath) => {
+            const matchingImports = imports.filter(
+              (candidate) => candidate === importPath || candidate.startsWith(`${importPath}/`),
+            );
+            return matchingImports
+              .filter(
+                (candidate) =>
+                  !legacyArchitectureExceptions.some(
+                    (entry) => entry.importer === relative && entry.imported === candidate,
+                  ),
+              )
+              .map((candidate) => `${relative} -> ${candidate}`);
+          });
+        }),
+      )
+    ).flat();
 
     expect(offenders).toEqual([]);
-  });
+  }, 15_000);
 
   it("keeps browser catalogue transport on the versioned Products API", async () => {
     const clientSource = await readFile(
@@ -102,4 +194,8 @@ function isTest(relative: string) {
 
 function normalize(value: string) {
   return value.split(path.sep).join("/");
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

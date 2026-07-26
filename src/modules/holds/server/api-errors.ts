@@ -11,7 +11,8 @@ export function throwHoldActionError(error: HoldActionError): never {
   throw new ApiError({
     code: error.code.replaceAll("-", "_").toUpperCase(),
     message: error.message,
-    status: error.code === "hold-not-found" ? 404 : error.code === "invalid-hold-extension" ? 422 : 409,
+    status:
+      error.code === "hold-not-found" ? 404 : error.code === "invalid-hold-extension" ? 422 : 409,
     ...(Object.keys(fieldErrors).length ? { fieldErrors } : {}),
   });
 }

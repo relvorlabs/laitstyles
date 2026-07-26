@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { reviewLifecycleMarkerCopy, reviewStateCopy } from "./order-state-copy";
-import type { AccountLineReviewState } from "./order-types";
+import type { AccountLineReviewState } from "@/modules/orders/storefront/account-order-contract";
+import {
+  reviewLifecycleMarkerCopy,
+  reviewStateCopy,
+} from "@/modules/orders/storefront/order-state-copy";
 
 describe("reviewStateCopy", () => {
   it.each([

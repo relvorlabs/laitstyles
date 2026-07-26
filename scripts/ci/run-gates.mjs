@@ -46,6 +46,17 @@ const suites = {
     gate("prisma-migrate-deploy", "pnpm", ["prisma:migrate:deploy"], 12),
     gate("prisma-migrate-status", "pnpm", ["prisma:migrate:status"], 8),
   ],
+  persistence: [
+    gate("persistence-preflight", "pnpm", ["test:persistence", "--", "--preflight"], 3),
+    gate("prisma-validate", "pnpm", ["prisma:validate"], 8),
+    gate("prisma-migrate-deploy", "pnpm", ["prisma:migrate:deploy"], 12),
+    gate("prisma-migrate-status", "pnpm", ["prisma:migrate:status"], 8),
+    gate("persistence", "pnpm", ["test:persistence"], 25),
+  ],
+  authorization: [
+    gate("auth-preflight", "pnpm", ["auth:local:setup"], 3),
+    gate("authorization", "pnpm", ["test:authorization"], 25),
+  ],
   tests: [
     gate("vitest", "pnpm", ["exec", "vitest", "run", "--passWithNoTests", "--coverage", "--reporter=verbose"], 25),
   ],
@@ -160,7 +171,17 @@ async function runGate(definition) {
   return result;
 }
 
-for (const definition of suites[suiteName]) results.push(await runGate(definition));
+for (const definition of suites[suiteName]) {
+  const result = await runGate(definition);
+  results.push(result);
+  if (
+    definition.required &&
+    result.status === "failed" &&
+    (suiteName === "persistence" || suiteName === "authorization")
+  ) {
+    break;
+  }
+}
 
 const failedRequired = results.filter((item) => item.required && item.status === "failed");
 const warnings = results.filter((item) => item.status === "warning");

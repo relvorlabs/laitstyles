@@ -84,7 +84,10 @@ export function mapAdminHoldRow(row: AdminHoldRow, now = new Date()): ControlRoo
       name: row.products.name,
       variantLabel: variant?.label ?? null,
       reference:
-        variant?.sku ?? row.products.sku ?? row.products.archive_number ?? row.products.id.slice(0, 8),
+        variant?.sku ??
+        row.products.sku ??
+        row.products.archive_number ??
+        row.products.id.slice(0, 8),
       imageUrl: asset ? (asset.delivery_url ?? asset.secure_url) : "/product-placeholder.svg",
       imageAlt: asset?.alt || row.products.name,
     },

@@ -2,9 +2,9 @@ import "server-only";
 
 import { Prisma, prisma } from "@/lib/prisma";
 import {
+  type CustomerMetricProjection,
   customerProfileInclude,
   mapCustomerProfile,
-  type CustomerMetricProjection,
 } from "@/modules/customers/server/mappers";
 import type {
   AdminCustomerListResult,
@@ -215,7 +215,9 @@ export async function listAdminCustomers(
   };
 }
 
-export async function getAdminCustomer(customerId: string): Promise<CustomerRelationshipProfile | null> {
+export async function getAdminCustomer(
+  customerId: string,
+): Promise<CustomerRelationshipProfile | null> {
   const row = await prisma.customers.findUnique({
     where: { id: customerId },
     include: customerProfileInclude,

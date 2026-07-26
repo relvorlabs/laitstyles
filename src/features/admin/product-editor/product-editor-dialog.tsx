@@ -45,10 +45,7 @@ import type {
   ProductEditorStep,
   ProductEditorValues,
 } from "@/lib/admin/shared/types";
-import {
-  adminProductsQueryOptions,
-  useSaveProduct,
-} from "@/modules/products/client/hooks";
+import { adminProductsQueryOptions, useSaveProduct } from "@/modules/products/client/hooks";
 
 export function ProductEditorDialog({
   open,

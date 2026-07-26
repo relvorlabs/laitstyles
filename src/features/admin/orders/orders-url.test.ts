@@ -21,6 +21,8 @@ describe("Orders URL state", () => {
           channel: "online",
           payment: "paid",
           sort: "total-desc",
+          page: 1,
+          pageSize: 25,
         },
         orderId: "LS-20481",
       }),

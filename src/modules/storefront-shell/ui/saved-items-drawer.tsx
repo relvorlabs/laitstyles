@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
@@ -14,7 +14,7 @@ import {
 import { IconClose, IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function SavedItemsDrawer() {
-  const router = useRouter();
+  const { push: navigateCatalogue } = useCatalogueNavigation();
   const overlay = useStorefrontOverlay();
   const saved = useStorefrontSavedItems();
   const cart = useStorefrontCart();
@@ -105,7 +105,7 @@ export function SavedItemsDrawer() {
                       <Button
                         onClick={() => {
                           overlay.close();
-                          router.push("/products?collection=one-of-one");
+                          navigateCatalogue({ collection: "one-of-one", page: 1 });
                         }}
                         size="lg"
                         type="button"

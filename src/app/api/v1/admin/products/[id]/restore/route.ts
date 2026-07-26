@@ -6,10 +6,7 @@ import { throwProductLifecycleError } from "@/modules/products/server/api-errors
 import { invalidateProductCatalogue } from "@/modules/products/server/cache";
 import { restoreProduct } from "@/modules/products/server/commands";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("inventory:update");
     const { id } = await params;

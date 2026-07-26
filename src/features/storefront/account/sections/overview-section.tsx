@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { useAccountUi } from "../account-context";
 import { ProductThumb } from "../components/account-garments";
-import { AccountProductGrid } from "../components/account-product-grid";
 import {
   AcctButton,
   Eyebrow,
@@ -14,6 +13,7 @@ import {
   panelElevatedClass,
   StatusBadge,
 } from "../components/account-primitives";
+import { AccountProductGrid } from "../components/account-product-grid";
 import { useAccountProducts } from "../hooks/use-account-products";
 
 export function OverviewSection() {
@@ -37,10 +37,7 @@ export function OverviewSection() {
       </header>
 
       <section
-        className={cn(
-          "mt-7 border-l-[5px] border-[var(--acc-oxblood)] p-5 sm:p-6",
-          panelClass,
-        )}
+        className={cn("mt-7 border-l-[5px] border-[var(--acc-oxblood)] p-5 sm:p-6", panelClass)}
       >
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
@@ -75,9 +72,7 @@ export function OverviewSection() {
             <p className="text-xl font-semibold">
               2 pieces · <span className={monoClass}>₦63,000</span>
             </p>
-            <p className="mt-2 text-[var(--acc-muted)]">
-              Estimated arrival Friday, 17 July
-            </p>
+            <p className="mt-2 text-[var(--acc-muted)]">Estimated arrival Friday, 17 July</p>
             <div className="mt-6 grid grid-cols-4 gap-2">
               <div>
                 <span className="block h-1.5 rounded-full bg-[var(--acc-ink)]" />
@@ -140,12 +135,7 @@ export function OverviewSection() {
               <Eyebrow className="text-[var(--acc-muted)]">Purchase history</Eyebrow>
               <h2 className="mt-3 font-serif text-4xl font-normal">Recent orders</h2>
             </div>
-            <Button
-              onClick={() => navigate("orders")}
-              size="lg"
-              type="button"
-              variant="link"
-            >
+            <Button onClick={() => navigate("orders")} size="lg" type="button" variant="link">
               View all
             </Button>
           </div>
@@ -154,24 +144,17 @@ export function OverviewSection() {
               <ProductThumb className="aspect-square" product={products[0]} />
               <div>
                 <p className={cn("font-semibold", monoClass)}>#LS-1048</p>
-                <p className="mt-1 text-sm text-[var(--acc-muted)]">
-                  2 items · 12 Jul · ₦63,000
-                </p>
+                <p className="mt-1 text-sm text-[var(--acc-muted)]">2 items · 12 Jul · ₦63,000</p>
               </div>
               <AcctButton onClick={() => navigate("order-detail")} variant="secondary">
                 View
               </AcctButton>
             </article>
             <article className="grid gap-4 p-5 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
-              <ProductThumb
-                className="aspect-square"
-                product={products[6] ?? products[2]}
-              />
+              <ProductThumb className="aspect-square" product={products[6] ?? products[2]} />
               <div>
                 <p className={cn("font-semibold", monoClass)}>#LS-0977</p>
-                <p className="mt-1 text-sm text-[var(--acc-muted)]">
-                  1 item · 18 May · ₦28,500
-                </p>
+                <p className="mt-1 text-sm text-[var(--acc-muted)]">1 item · 18 May · ₦28,500</p>
               </div>
               <StatusBadge variant="neutral">Delivered</StatusBadge>
             </article>
@@ -187,12 +170,7 @@ export function OverviewSection() {
               Still thinking about these.
             </h2>
           </div>
-          <Button
-            onClick={() => navigate("saved")}
-            size="lg"
-            type="button"
-            variant="link"
-          >
+          <Button onClick={() => navigate("saved")} size="lg" type="button" variant="link">
             Open saved items
           </Button>
         </div>

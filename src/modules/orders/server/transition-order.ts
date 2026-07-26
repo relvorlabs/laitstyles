@@ -10,17 +10,13 @@ import {
 } from "@/modules/inventory/server/operational-stock";
 import { canTransitionOrder, formatOrderStatus } from "@/modules/orders/rules";
 import {
-  adminOrderInclude,
   type AdminOrderRow,
+  adminOrderInclude,
   mapAdminOrderRow,
   mapDatabaseOrderStatus,
 } from "@/modules/orders/server/mappers";
 import { orderIdentifierWhere } from "@/modules/orders/server/queries";
-import type {
-  OrderStatus,
-  OrderTransitionSuccess,
-  SalesActionError,
-} from "@/modules/orders/types";
+import type { OrderStatus, OrderTransitionSuccess, SalesActionError } from "@/modules/orders/types";
 import type { StaffSession } from "@/server/auth/session";
 
 type DatabaseOrderLineStockState = AdminOrderRow["order_lines"][number]["stock_state"];

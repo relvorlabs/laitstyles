@@ -14,7 +14,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-import { getAccountOrder, getAccountOrders } from "./account-orders";
+import { getAccountOrder, getAccountOrders } from "@/modules/orders/server/account-orders";
 
 class DecimalStub {
   constructor(private readonly value: number) {}

@@ -68,9 +68,7 @@ export function mapStoreSettings(
   return { ...parsed.data, updatedAt: row.updated_at.toISOString() };
 }
 
-export function settingsJsonInput(
-  settings: StoreSettings | Omit<StoreSettings, "updatedAt">,
-): {
+export function settingsJsonInput(settings: StoreSettings | Omit<StoreSettings, "updatedAt">): {
   identity: Prisma.InputJsonValue;
   selling: Prisma.InputJsonValue;
   payments: Prisma.InputJsonValue;

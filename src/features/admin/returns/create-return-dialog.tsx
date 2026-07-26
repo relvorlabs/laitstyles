@@ -112,7 +112,10 @@ export function CreateReturnDialog({
             <FieldGroup>
               <Field data-invalid={error?.field === "selection"}>
                 <FieldLabel htmlFor="return-order">Delivered order</FieldLabel>
-                <Select onValueChange={(value) => value && changeOrder(value)} value={order?.id ?? ""}>
+                <Select
+                  onValueChange={(value) => value && changeOrder(value)}
+                  value={order?.id ?? ""}
+                >
                   <SelectTrigger
                     aria-invalid={error?.field === "selection"}
                     className="h-12 w-full"

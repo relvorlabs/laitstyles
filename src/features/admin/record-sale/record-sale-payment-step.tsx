@@ -3,13 +3,7 @@
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import type { RecordSaleValues } from "@/features/admin/record-sale/record-sale-types";
 
@@ -54,8 +48,8 @@ export function RecordSalePaymentStep() {
         <AlertTitle>Payment is not confirmed by the popup</AlertTitle>
         <AlertDescription>
           Generating or completing Checkout does not mark this order paid. A later server
-          verification or signed Paystack webhook must confirm the reference and amount before
-          stock is committed and the order can be fulfilled.
+          verification or signed Paystack webhook must confirm the reference and amount before stock
+          is committed and the order can be fulfilled.
         </AlertDescription>
       </Alert>
     </FieldGroup>
