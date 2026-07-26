@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
+import type { Product } from "./catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 
 function scrollToSizeGuide() {
