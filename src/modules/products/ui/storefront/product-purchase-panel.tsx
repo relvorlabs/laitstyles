@@ -14,10 +14,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { RefObject } from "react";
-
 import { Button } from "@/components/ui/button";
-import { money, type Product } from "@/features/storefront/shared/catalogue-data";
-import { useStorefrontSavedItems } from "@/features/storefront/shared/storefront-runtime";
+import { useStorefrontSavedItems } from "@/modules/storefront-shell/client/storefront-runtime";
+import { money, type Product } from "./catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import type { UseProductSelection } from "./use-product-selection";
 
