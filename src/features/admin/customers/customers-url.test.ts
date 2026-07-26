@@ -20,6 +20,8 @@ describe("Customers workspace URL state", () => {
           view: "returning",
           type: "individual",
           sort: "recent-desc",
+          page: 1,
+          pageSize: 25,
         },
         customerId: "customer-amara",
       }),
