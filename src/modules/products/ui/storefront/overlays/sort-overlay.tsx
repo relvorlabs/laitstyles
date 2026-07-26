@@ -2,10 +2,10 @@
 
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { useCatalogueNavigation } from "@/features/storefront/catalogue/use-catalogue-navigation";
-import { sortOptions } from "../catalogue-data";
-import { IconClose } from "../storefront-icons";
-import { useStorefrontOverlay } from "../storefront-runtime";
+import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
+import { sortOptions } from "@/modules/products/ui/storefront/catalogue-data";
+import { useStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function SortOverlay() {
   const overlay = useStorefrontOverlay();
