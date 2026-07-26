@@ -1,9 +1,8 @@
 "use client";
 
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
-
 import { Button } from "@/components/ui/button";
-import { money, type Product } from "@/features/storefront/shared/catalogue-data";
+import { money, type Product } from "./catalogue-data";
 
 export function MobileBuyBar({
   product,
