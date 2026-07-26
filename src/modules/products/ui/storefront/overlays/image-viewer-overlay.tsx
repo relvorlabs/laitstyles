@@ -10,15 +10,15 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
+import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
+import { productById } from "@/modules/products/ui/storefront/catalogue-data";
 import {
+  type ImageViewerRequest,
   subscribeImageViewer,
   subscribeTransientOverlayClose,
-  type ImageViewerRequest,
-} from "../storefront-overlay-events";
-import { useStorefrontCatalogueData } from "../storefront-runtime";
-import { useOverlayLifecycle } from "../use-overlay-lifecycle";
-import { productById } from "../catalogue-data";
-import { IconClose } from "../storefront-icons";
+} from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
+import { IconClose } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function ImageViewerOverlay() {
   const { products } = useStorefrontCatalogueData();
