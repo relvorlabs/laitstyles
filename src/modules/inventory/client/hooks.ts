@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  keepPreviousData,
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   adjustInventoryStockRequest,
   listInventoryProductPage,

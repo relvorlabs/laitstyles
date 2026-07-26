@@ -144,10 +144,7 @@ export function StorefrontAccountMenu() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            className="gap-3 px-3 py-2.5"
-            onClick={() => void actions.signOut()}
-          >
+          <DropdownMenuItem className="gap-3 px-3 py-2.5" onClick={() => void actions.signOut()}>
             <HugeiconsIcon icon={Logout03Icon} size={17} strokeWidth={1.6} />
             Sign out
           </DropdownMenuItem>

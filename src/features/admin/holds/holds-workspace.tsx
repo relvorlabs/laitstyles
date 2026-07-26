@@ -163,7 +163,11 @@ export function HoldsWorkspace({ initialQuery }: { initialQuery: HoldQuery }) {
       <HoldsSummaryStrip summary={summary} />
 
       <Card className="gap-0 overflow-hidden py-0">
-        <HoldSavedViews counts={counts} onChange={(view) => patchQuery({ view })} value={query.view} />
+        <HoldSavedViews
+          counts={counts}
+          onChange={(view) => patchQuery({ view })}
+          value={query.view}
+        />
         <HoldControls
           onQueryChange={patchQuery}
           onReset={resetQuery}

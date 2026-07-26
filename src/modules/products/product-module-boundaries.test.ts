@@ -1,11 +1,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { classifyModuleGraph } from "../../../scripts/checks/module-export-guard.mjs";
 import {
   legacyArchitectureExceptions,
   legacyProductTypeOnlyEdge,
 } from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
+import { classifyModuleGraph } from "../../../scripts/checks/module-export-guard.mjs";
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.join(repositoryRoot, "src");

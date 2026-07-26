@@ -87,7 +87,9 @@ export async function listEligibleReturnOrders(): Promise<EligibleReturnOrder[]>
   return rows.flatMap((order) => {
     const lines = order.order_lines.flatMap((line) => {
       const alreadyReturned = line.return_lines
-        .filter((entry) => entry.return.status !== "rejected" && entry.return.status !== "cancelled")
+        .filter(
+          (entry) => entry.return.status !== "rejected" && entry.return.status !== "cancelled",
+        )
         .reduce((total, entry) => total + entry.quantity, 0);
       const eligibleQuantity = Math.max(0, line.quantity - alreadyReturned);
       if (!eligibleQuantity) return [];
@@ -129,7 +131,9 @@ async function getReturnSavedViewCounts() {
     "refund",
     "resolved",
   ];
-  const values = await Promise.all(views.map((view) => prisma.returns.count({ where: viewWhere(view) })));
+  const values = await Promise.all(
+    views.map((view) => prisma.returns.count({ where: viewWhere(view) })),
+  );
   return Object.fromEntries(views.map((view, index) => [view, values[index] ?? 0])) as Record<
     ReturnSavedView,
     number
@@ -156,11 +160,7 @@ function searchWhere(search: string): Prisma.returnsWhereInput {
       return_lines: {
         some: {
           order_line: {
-            OR: [
-              { product_name: contains },
-              { variant_label: contains },
-              { sku: contains },
-            ],
+            OR: [{ product_name: contains }, { variant_label: contains }, { sku: contains }],
           },
         },
       },
@@ -235,7 +235,5 @@ function returnOrderBy(sort: ReturnListInput["sort"]): Prisma.returnsOrderByWith
 }
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

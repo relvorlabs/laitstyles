@@ -7,10 +7,7 @@ import {
   getStorefrontCollectionBySlug,
   listPublishedProducts,
 } from "@/modules/products/server/storefront/queries";
-import {
-  CatalogueResults,
-  parseSort,
-} from "@/modules/products/ui/storefront/catalogue-results";
+import { CatalogueResults, parseSort } from "@/modules/products/ui/storefront/catalogue-results";
 
 type Params = { slug: string };
 type SearchParams = { sort?: string | string[] };

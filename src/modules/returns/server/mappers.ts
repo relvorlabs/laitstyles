@@ -1,11 +1,7 @@
 import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
-import type {
-  ControlRoomReturn,
-  ReturnDisposition,
-  ReturnStatus,
-} from "@/modules/returns/types";
+import type { ControlRoomReturn, ReturnDisposition, ReturnStatus } from "@/modules/returns/types";
 
 export const adminReturnInclude = {
   return_lines: {
@@ -42,7 +38,9 @@ export function mapDatabaseReturnStatus(row: AdminReturnRow): ReturnStatus {
   return row.status;
 }
 
-function mapDisposition(value: AdminReturnRow["return_lines"][number]["disposition"]): ReturnDisposition {
+function mapDisposition(
+  value: AdminReturnRow["return_lines"][number]["disposition"],
+): ReturnDisposition {
   if (value === "restock") return "restock";
   if (value === "damaged") return "damaged";
   return "pending";

@@ -38,7 +38,10 @@ export const createReturnSchema = z.object({
   orderId: z.string().trim().min(1).max(120),
   reason: z.string().trim().min(1).max(500),
   note: z.string().trim().max(2_000).default(""),
-  lines: z.array(z.object({ orderLineId: z.string().uuid(), quantity: z.number().int().min(1) })).min(1).max(100),
+  lines: z
+    .array(z.object({ orderLineId: z.string().uuid(), quantity: z.number().int().min(1) }))
+    .min(1)
+    .max(100),
 });
 
 export const returnTransitionSchema = z.object({ nextStatus: z.enum(returnStatuses) });

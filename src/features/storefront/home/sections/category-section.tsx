@@ -1,7 +1,7 @@
 "use client";
 
-import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { getHomeCategories } from "@/modules/products/ui/storefront/catalogue-data";
+import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { CategoryCard } from "../components/category-card";
 import { HomeSectionHeading } from "../components/home-section-heading";
 import type { OpenHomeShop } from "../home-types";
@@ -16,7 +16,14 @@ export function CategorySection({ openShop }: { openShop: OpenHomeShop }) {
           actionLabel="View every product"
           eyebrow="Browse the rack"
           onAction={() => openShop({})}
-          title={<>Shop by <span className="serif"><em>category</em></span></>}
+          title={
+            <>
+              Shop by{" "}
+              <span className="serif">
+                <em>category</em>
+              </span>
+            </>
+          }
         />
         <div className="category-grid" id="categoryGrid">
           {homeCategories.map(([name, image, count]) => (

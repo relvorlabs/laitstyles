@@ -133,10 +133,14 @@ async function resolveStockTarget(
   });
 
   if (!product) {
-    throw new OperationalStockError("product-not-found", "The selected product could not be found.", {
-      productId,
-      ...(variantId ? { variantId } : {}),
-    });
+    throw new OperationalStockError(
+      "product-not-found",
+      "The selected product could not be found.",
+      {
+        productId,
+        ...(variantId ? { variantId } : {}),
+      },
+    );
   }
 
   if (product.inventory_mode === "variant") {

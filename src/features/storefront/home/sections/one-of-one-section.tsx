@@ -21,7 +21,14 @@ export function OneOfOneSection({
           eyebrow="Exact item photographed"
           onAction={() => openShop({ collection: "one-of-one" })}
           subtitle="Unique garments with no planned restock. What you see is the exact piece you receive."
-          title={<>The one-of-one <span className="serif"><em>edit</em></span></>}
+          title={
+            <>
+              The one-of-one{" "}
+              <span className="serif">
+                <em>edit</em>
+              </span>
+            </>
+          }
         />
         <div className="one-edit" id="oneEdit">
           {products.map((product, index) => (

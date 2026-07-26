@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  keepPreviousData,
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { customerKeys } from "@/modules/customers/client/keys";
 import {
   convertHoldRequest,
@@ -29,9 +24,7 @@ export function adminHoldsQueryOptions(input: HoldListInput) {
     placeholderData: keepPreviousData,
     staleTime: 15_000,
     refetchInterval: (query) =>
-      query.state.data?.meta.summary.activeHolds
-        ? activeHoldReconciliationIntervalMs
-        : false,
+      query.state.data?.meta.summary.activeHolds ? activeHoldReconciliationIntervalMs : false,
     refetchIntervalInBackground: false,
   });
 }

@@ -1,5 +1,5 @@
-import { defaultShouldDehydrateQuery } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
+import { defaultShouldDehydrateQuery } from "@tanstack/react-query";
 import { createQueryClient } from "@/lib/query/create-query-client";
 
 export const STOREFRONT_QUERY_DEFAULTS = {

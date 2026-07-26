@@ -57,7 +57,10 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
           products={underTwentyFive}
           title={
             <>
-              Under <span className="serif"><em>₦25,000</em></span>
+              Under{" "}
+              <span className="serif">
+                <em>₦25,000</em>
+              </span>
             </>
           }
         />
@@ -69,7 +72,10 @@ export function StorefrontHome({ fontClassName }: { fontClassName: string }) {
           products={gradeAPlusEssentials}
           title={
             <>
-              Grade A+ <span className="serif"><em>essentials</em></span>
+              Grade A+{" "}
+              <span className="serif">
+                <em>essentials</em>
+              </span>
             </>
           }
         />

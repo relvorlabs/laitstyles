@@ -33,7 +33,9 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
           />
           <div className="hero-copy">
             <span className="eyebrow">Drop 07 · Tailored pieces</span>
-            <h1 className="hero-title">Wear it now. <em>Keep it longer.</em></h1>
+            <h1 className="hero-title">
+              Wear it now. <em>Keep it longer.</em>
+            </h1>
             <p>Premium pre-owned fashion selected for condition, fit and lasting wardrobe value.</p>
             <div className="hero-actions">
               <Button onClick={() => openShop({ collection: "new" })} type="button">
@@ -70,7 +72,9 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
                       Size {product.size} · Grade {product.condition} · {money(product.price)}
                     </span>
                   </span>
-                  <span className="hero-card-arrow"><IconArrow /></span>
+                  <span className="hero-card-arrow">
+                    <IconArrow />
+                  </span>
                 </span>
               </span>
             </Button>

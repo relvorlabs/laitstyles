@@ -45,9 +45,7 @@ describe("product and inventory domain ownership", () => {
       readFile(legacyFiles.stockGuard, "utf8"),
     ]);
 
-    expect(types.trim()).toMatch(
-      /^export \{[\s\S]*\} from "@\/modules\/products\/types";$/,
-    );
+    expect(types.trim()).toMatch(/^export \{[\s\S]*\} from "@\/modules\/products\/types";$/);
     expect(schema.trim()).toBe('export * from "@/modules/products/editor-schema";');
     expect(stockGuard.trim()).toBe(
       'export { validateCommittedStockEdit } from "@/modules/inventory/server/committed-stock-guard";',

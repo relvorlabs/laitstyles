@@ -1,10 +1,10 @@
 import { err, ok, type Result } from "@/lib/errors";
-import { apiRequest, ApiClientError } from "@/lib/http/client";
+import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
   AdminCustomerListResult,
   CustomerActionError,
-  CustomerNoteActionSuccess,
   CustomerListInput,
+  CustomerNoteActionSuccess,
   CustomerRelationshipProfile,
 } from "@/modules/customers/types";
 

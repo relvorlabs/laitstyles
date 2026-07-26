@@ -45,10 +45,7 @@ import {
   recordSaleSteps,
   toOfflineSaleInput,
 } from "@/features/admin/record-sale/record-sale-types";
-import {
-  saleCustomersQueryOptions,
-  useRecordOfflineSale,
-} from "@/modules/orders/client/hooks";
+import { saleCustomersQueryOptions, useRecordOfflineSale } from "@/modules/orders/client/hooks";
 import type { AdminOrderCustomer } from "@/modules/orders/types";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 import type { AdminProduct } from "@/modules/products/types";

@@ -9,7 +9,6 @@ import {
 import type {
   CatalogueChannel,
   InventoryModeFilter,
-  InventoryPresentation,
   InventorySavedView,
   InventorySortKey,
   InventoryStockFilter,

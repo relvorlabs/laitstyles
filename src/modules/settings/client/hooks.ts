@@ -2,10 +2,7 @@
 
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { overviewKeys } from "@/modules/overview/client/keys";
-import {
-  getStoreSettingsRequest,
-  saveStoreSettingsRequest,
-} from "@/modules/settings/client/api";
+import { getStoreSettingsRequest, saveStoreSettingsRequest } from "@/modules/settings/client/api";
 import { settingsKeys } from "@/modules/settings/client/keys";
 
 export function storeSettingsQueryOptions() {

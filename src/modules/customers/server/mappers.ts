@@ -167,10 +167,7 @@ function mapSegments(
 
 function mapProductRelationships(row: CustomerProfileRow): CustomerProductRelationship[] {
   const relationships = new Map<string, CustomerProductRelationship>();
-  const touch = (
-    product: ProductProjection,
-    occurredAt: Date,
-  ): CustomerProductRelationship => {
+  const touch = (product: ProductProjection, occurredAt: Date): CustomerProductRelationship => {
     const existing = relationships.get(product.id);
     if (existing) {
       if (occurredAt.getTime() > Date.parse(existing.lastInteractionAt)) {
@@ -231,7 +228,10 @@ function mapTimeline(row: CustomerProfileRow): CustomerTimelineEvent[] {
       id: `customer-order-${order.id}`,
       kind: "order",
       occurredAt: order.placed_at.toISOString(),
-      title: order.source === "offline-sale" ? `Offline sale ${order.order_number}` : `Order ${order.order_number} placed`,
+      title:
+        order.source === "offline-sale"
+          ? `Offline sale ${order.order_number}`
+          : `Order ${order.order_number} placed`,
       detail: `${unitCount} unit${unitCount === 1 ? "" : "s"} · ${(order.channel ?? "other").replaceAll("_", "-")} · ${order.payment_status.replaceAll("_", "-")}`,
       orderId: order.order_number,
     });
@@ -249,7 +249,9 @@ function mapTimeline(row: CustomerProfileRow): CustomerTimelineEvent[] {
       const status = event.status.replaceAll("_", "-");
       events.push({
         id: `customer-order-event-${event.id}`,
-        kind: ["dispatched", "out-for-delivery", "delivered"].includes(status) ? "delivery" : "order",
+        kind: ["dispatched", "out-for-delivery", "delivered"].includes(status)
+          ? "delivery"
+          : "order",
         occurredAt: event.occurred_at.toISOString(),
         title: `Order ${status}`,
         detail: event.note ?? "Order status updated.",
@@ -352,11 +354,14 @@ function mapOrderStatus(order: CustomerProfileRow["orders"][number]): OrderStatu
   const latest = order.order_timeline_events.at(-1)?.status.replaceAll("_", "-");
   if (latest === "out-for-delivery") return "out-for-delivery";
   if (order.fulfilment_status === "cancelled") return "cancelled";
-  if (order.fulfilment_status === "returned" || order.fulfilment_status === "partially_returned") return "returned";
-  if (order.payment_status === "refunded" || order.payment_status === "partially_refunded") return "refunded";
+  if (order.fulfilment_status === "returned" || order.fulfilment_status === "partially_returned")
+    return "returned";
+  if (order.payment_status === "refunded" || order.payment_status === "partially_refunded")
+    return "refunded";
   if (order.fulfilment_status === "delivered") return "delivered";
   if (order.fulfilment_status === "dispatched") return "dispatched";
-  if (order.fulfilment_status === "ready_for_dispatch") return order.fulfilment_method === "pickup" ? "ready-for-pickup" : "packed";
+  if (order.fulfilment_status === "ready_for_dispatch")
+    return order.fulfilment_method === "pickup" ? "ready-for-pickup" : "packed";
   if (order.fulfilment_status === "processing") return "preparing";
   return order.payment_status === "paid" ? "payment-confirmed" : "pending-payment";
 }

@@ -22,18 +22,28 @@ function path(...segments: string[]) {
 }
 
 function importedModules(source: string): string[] {
-  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map(
-    (match) => match[1],
-  );
+  return [...source.matchAll(/(?:from\s+|import\s*)["']([^"']+)["']/g)].map((match) => match[1]);
 }
 
 const retiredFiles = [
   path("src", "components", "shop", "shop-provider.tsx"),
   path("src", "features", "storefront", "shared", "cart-persistence.ts"),
   path("src", "features", "storefront", "shared", "cart-persistence.test.ts"),
-  path("src", "features", "storefront", "shared", ["storefront-experience", "provider.tsx"].join("-")),
+  path(
+    "src",
+    "features",
+    "storefront",
+    "shared",
+    ["storefront-experience", "provider.tsx"].join("-"),
+  ),
   path("src", "features", "storefront", "shared", ["storefront-experience", "data.ts"].join("-")),
-  path("src", "features", "storefront", "shared", ["storefront-experience", "data.test.ts"].join("-")),
+  path(
+    "src",
+    "features",
+    "storefront",
+    "shared",
+    ["storefront-experience", "data.test.ts"].join("-"),
+  ),
   path("src", "features", "storefront", "shared", "storefront-provider.tsx"),
   path("src", "features", "storefront", "shared", "storefront-client-state-provider.tsx"),
   path("src", "features", "storefront", "shared", "overlays", "legacy-cart-drawer.tsx"),
@@ -158,10 +168,7 @@ describe("storefront state boundaries", () => {
       join(root, "src/app/storefront-client-boundary.tsx"),
       "utf8",
     );
-    const routeBoundary = readFileSync(
-      join(root, "src/app/storefront-route-boundary.tsx"),
-      "utf8",
-    );
+    const routeBoundary = readFileSync(join(root, "src/app/storefront-route-boundary.tsx"), "utf8");
 
     expect(appProvider).not.toContain("StorefrontQueryProvider");
     expect(appProvider).not.toContain("StorefrontStateHydrator");

@@ -77,7 +77,8 @@ export const offlineSaleSchema = z
       context.addIssue({
         code: "custom",
         path: ["lines"],
-        message: "The checkout total must be at least ₦100 so Paystack bank transfer remains available.",
+        message:
+          "The checkout total must be at least ₦100 so Paystack bank transfer remains available.",
       });
     }
   });

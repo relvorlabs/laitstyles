@@ -1,6 +1,5 @@
 import "server-only";
 
-import { Prisma, prisma } from "@/lib/prisma";
 import type {
   AdminActivity,
   AttentionItem,
@@ -8,6 +7,7 @@ import type {
   FulfilmentLaneItem,
   SalesPulsePoint,
 } from "@/lib/admin/shared/types";
+import { Prisma, prisma } from "@/lib/prisma";
 import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type {
   OverviewData,

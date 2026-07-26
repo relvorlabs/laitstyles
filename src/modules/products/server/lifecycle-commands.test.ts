@@ -72,10 +72,7 @@ beforeEach(() => {
 
 describe("product lifecycle commands", () => {
   it("archives inside a serializable transaction and removes selling channels", async () => {
-    const result = await archiveProduct(
-      admin,
-      "019f65c1-74fe-7bd3-8400-000000000001",
-    );
+    const result = await archiveProduct(admin, "019f65c1-74fe-7bd3-8400-000000000001");
 
     expect(result).toMatchObject({ ok: true, value: { deleted: false, slug: "denim" } });
     expect(harness.tx.products.update).toHaveBeenCalledWith({
@@ -90,10 +87,7 @@ describe("product lifecycle commands", () => {
   });
 
   it("restores a product as active but unpublished", async () => {
-    const result = await restoreProduct(
-      admin,
-      "019f65c1-74fe-7bd3-8400-000000000001",
-    );
+    const result = await restoreProduct(admin, "019f65c1-74fe-7bd3-8400-000000000001");
 
     expect(result.ok).toBe(true);
     expect(harness.tx.products.update).toHaveBeenCalledWith({
@@ -105,10 +99,7 @@ describe("product lifecycle commands", () => {
   it("blocks permanent deletion when operational history exists", async () => {
     harness.tx.order_lines.count.mockResolvedValueOnce(1);
 
-    const result = await deleteProduct(
-      admin,
-      "019f65c1-74fe-7bd3-8400-000000000001",
-    );
+    const result = await deleteProduct(admin, "019f65c1-74fe-7bd3-8400-000000000001");
 
     expect(result).toMatchObject({ ok: false, error: { code: "product-in-use" } });
     expect(harness.tx.products.delete).not.toHaveBeenCalled();

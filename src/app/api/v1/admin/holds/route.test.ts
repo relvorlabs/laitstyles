@@ -43,7 +43,11 @@ beforeEach(() => {
 describe("GET /api/v1/admin/holds", () => {
   it("requires holds:read before querying persisted records", async () => {
     mocks.requireApiStaff.mockRejectedValueOnce(
-      new ApiError({ code: "AUTHENTICATION_REQUIRED", message: "Authentication required.", status: 401 }),
+      new ApiError({
+        code: "AUTHENTICATION_REQUIRED",
+        message: "Authentication required.",
+        status: 401,
+      }),
     );
 
     const response = await GET(new Request("http://localhost/api/v1/admin/holds"));

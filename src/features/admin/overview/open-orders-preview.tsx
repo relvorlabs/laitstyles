@@ -9,13 +9,7 @@ import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
 import type { OverviewOpenOrder } from "@/modules/overview/types";
 
-export function OpenOrdersPreview({
-  orders,
-  asOf,
-}: {
-  orders: OverviewOpenOrder[];
-  asOf: string;
-}) {
+export function OpenOrdersPreview({ orders, asOf }: { orders: OverviewOpenOrder[]; asOf: string }) {
   return (
     <section aria-labelledby="open-orders-heading" className="scroll-mt-24" id="open-orders">
       <header className="flex flex-wrap items-end justify-between gap-3">

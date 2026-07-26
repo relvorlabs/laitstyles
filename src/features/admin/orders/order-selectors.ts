@@ -4,11 +4,7 @@ import type {
   OrderWorkspaceItem,
   OrderWorkspaceSummary,
 } from "@/features/admin/orders/order-types";
-import type {
-  ControlRoomOrder,
-  OrderSavedViewCounts,
-  OrderStatus,
-} from "@/modules/orders/types";
+import type { ControlRoomOrder, OrderSavedViewCounts, OrderStatus } from "@/modules/orders/types";
 
 export const defaultOrderQuery: OrderQuery = {
   view: "all",

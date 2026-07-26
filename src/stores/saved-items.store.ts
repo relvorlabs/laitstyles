@@ -22,11 +22,8 @@ export const useSavedItemsStore = create<SavedItemsStore>()((set, get) => ({
   ...initialState,
   hydrate: (ids) => set({ ids: [...new Set(ids)], hydrated: true }),
   save: (productId) =>
-    set((state) =>
-      state.ids.includes(productId) ? state : { ids: [...state.ids, productId] },
-    ),
-  remove: (productId) =>
-    set((state) => ({ ids: state.ids.filter((id) => id !== productId) })),
+    set((state) => (state.ids.includes(productId) ? state : { ids: [...state.ids, productId] })),
+  remove: (productId) => set((state) => ({ ids: state.ids.filter((id) => id !== productId) })),
   toggle: (productId) => {
     const saved = get().ids.includes(productId);
     set((state) => ({

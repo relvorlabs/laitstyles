@@ -4,11 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
-import {
-  type NavShop,
-  SiteFooter,
-  SiteHeader,
-} from "@/modules/storefront-shell/ui/site-header";
+import { type NavShop, SiteFooter, SiteHeader } from "@/modules/storefront-shell/ui/site-header";
 import { StorefrontOverlays } from "@/modules/storefront-shell/ui/storefront-overlays";
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {

@@ -94,7 +94,8 @@ export async function initializePaystackTransaction(
 
   const parsed = paystackInitializeResponseSchema.safeParse(payload);
   if (!response.ok || !parsed.success) {
-    const message = extractPaystackMessage(payload) ?? `Paystack initialization failed (${response.status}).`;
+    const message =
+      extractPaystackMessage(payload) ?? `Paystack initialization failed (${response.status}).`;
     throw new PaystackInitializationError(message, payload);
   }
 

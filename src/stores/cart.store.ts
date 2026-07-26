@@ -9,21 +9,13 @@ import {
   changeCartLineQuantity,
 } from "@/modules/cart/cart-lines";
 
-export type AddCartResult =
-  | "added"
-  | "unavailable"
-  | "selection-required"
-  | "quantity-limit";
+export type AddCartResult = "added" | "unavailable" | "selection-required" | "quantity-limit";
 
 type CartStore = {
   lines: readonly CartLine[];
   hydrated: boolean;
   hydrate: (lines: readonly CartLine[]) => void;
-  add: (
-    product: CartProduct,
-    selection?: CartSelection | null,
-    quantity?: number,
-  ) => AddCartResult;
+  add: (product: CartProduct, selection?: CartSelection | null, quantity?: number) => AddCartResult;
   remove: (lineKey: string) => CartLine | null;
   restore: (line: CartLine) => void;
   changeQuantity: (lineKey: string, delta: number) => void;
