@@ -9,8 +9,8 @@ import {
   submitPasswordSignUp,
 } from "@/app/auth/actions";
 import { openAuthDialog } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { useSession } from "@/providers/session-provider";
 import type { StorefrontAuthForm, StorefrontAuthMode } from "./storefront-auth-dialog";
-import type { StorefrontAuthSession } from "./storefront-auth-session";
 
 type AuthSubmissionResult =
   | Awaited<ReturnType<typeof submitPasswordSignIn>>
@@ -37,13 +37,8 @@ type StorefrontAuthContextValue = {
 
 const StorefrontAuthContext = createContext<StorefrontAuthContextValue | null>(null);
 
-export function StorefrontAuthProvider({
-  authSession,
-  children,
-}: {
-  authSession: StorefrontAuthSession;
-  children: ReactNode;
-}) {
+export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
+  const authSession = useSession();
   const router = useRouter();
   const openSignin = useCallback(
     (onSuccess?: () => void) => openAuthDialog({ mode: "signin", onSuccess }),
