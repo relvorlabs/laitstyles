@@ -2,10 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  requestPasswordReset,
-  resendSignupConfirmation,
-} from "@/app/auth/actions";
 import { getAuthFlowErrorMessage } from "@/modules/auth/errors";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
@@ -14,6 +10,8 @@ import {
   type StorefrontAuthMode,
   type StorefrontAuthNotice,
   type StorefrontAuthState,
+  type StorefrontAuthSupportMode,
+  type StorefrontAuthSupportState,
 } from "./auth-dialog";
 import { useStorefrontAuth } from "./storefront-auth-provider";
 
@@ -22,20 +20,33 @@ const blankAuthForm: StorefrontAuthForm = {
   last: "",
   email: "",
   password: "",
+  confirmPassword: "",
 };
+
+type AuthEmailTransportResult =
+  | { ok: true; value: { status: "accepted"; email: string } }
+  | {
+      ok: false;
+      error: {
+        code: string;
+        message: string;
+        fieldErrors?: Record<string, string>;
+      };
+    };
 
 export function StorefrontAuthDialogHost() {
   const router = useRouter();
   const { products } = useStorefrontCatalogueData();
   const { actions, state: authContextState } = useStorefrontAuth();
-  const { open, mode, onSuccess, initialError } = authContextState.dialog;
+  const { open, mode, onSuccess, initialError, initialSupport } = authContextState.dialog;
   const [state, setState] = useState<StorefrontAuthState>("default");
   const [form, setForm] = useState<StorefrontAuthForm>(blankAuthForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showErrors, setShowErrors] = useState(false);
   const [revealPassword, setRevealPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [supportPending, setSupportPending] = useState<"confirmation" | "recovery" | null>(null);
+  const [supportMode, setSupportMode] = useState<StorefrontAuthSupportMode | null>(null);
+  const [supportState, setSupportState] = useState<StorefrontAuthSupportState>("idle");
   const [notice, setNotice] = useState<StorefrontAuthNotice | null>(null);
   const successRef = useRef<(() => void) | null>(null);
 
@@ -45,12 +56,13 @@ export function StorefrontAuthDialogHost() {
     setState("default");
     setErrors(initialError ? { form: getAuthFlowErrorMessage(initialError) } : {});
     setShowErrors(Boolean(initialError));
+    setSupportMode(initialSupport ?? null);
+    setSupportState("idle");
     setNotice(null);
-    setSupportPending(null);
-  }, [initialError, onSuccess, open]);
+  }, [initialError, initialSupport, onSuccess, open]);
 
   const submit = useCallback(async () => {
-    if (state === "signing-in" || supportPending) return;
+    if (state === "signing-in" || supportState === "submitting") return;
     const nextErrors = validateAuth(mode, form, termsAccepted);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -71,49 +83,58 @@ export function StorefrontAuthDialogHost() {
       return;
     }
     setState(result.value.status);
-  }, [actions, form, mode, state, supportPending, termsAccepted]);
+  }, [actions, form, mode, state, supportState, termsAccepted]);
 
-  const submitSupportEmail = useCallback(
-    async (kind: "confirmation" | "recovery") => {
-      if (supportPending || state === "signing-in") return;
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
-        setErrors({ email: "Enter a valid email address" });
-        setShowErrors(true);
-        setNotice(null);
-        return;
-      }
-
-      setSupportPending(kind);
-      setErrors({});
-      setShowErrors(false);
+  const submitSupportEmail = useCallback(async () => {
+    if (!supportMode || supportState === "submitting" || state === "signing-in") return;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
+      setErrors({ email: "Enter a valid email address" });
+      setShowErrors(true);
       setNotice(null);
+      return;
+    }
 
-      const formData = new FormData();
-      formData.set("email", form.email.trim());
-      const result =
-        kind === "recovery"
-          ? await requestPasswordReset(formData)
-          : await resendSignupConfirmation(formData);
+    setSupportState("submitting");
+    setErrors({});
+    setShowErrors(false);
+    setNotice(null);
+
+    const current = new URL(window.location.href);
+    current.searchParams.set("auth", "signin");
+    current.searchParams.set("support", supportMode);
+    current.searchParams.delete("error");
+    const returnTo = `${current.pathname}${current.search}`;
+
+    try {
+      const response = await fetch("/auth/email", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: supportMode,
+          email: form.email.trim(),
+          returnTo,
+        }),
+      });
+      const result = (await response.json()) as AuthEmailTransportResult;
 
       if (!result.ok) {
         setErrors(result.error.fieldErrors ?? {});
         setShowErrors(Boolean(result.error.fieldErrors));
         setNotice({ tone: "error", message: result.error.message });
-        setSupportPending(null);
+        setSupportState("idle");
         return;
       }
 
+      setSupportState("success");
+    } catch {
       setNotice({
-        tone: "success",
-        message:
-          kind === "recovery"
-            ? "If this address can receive a reset email, a secure link is on its way."
-            : "If this address is eligible for confirmation, a fresh link is on its way.",
+        tone: "error",
+        message: "We could not send that email. Check your connection and try again.",
       });
-      setSupportPending(null);
-    },
-    [form.email, state, supportPending],
-  );
+      setSupportState("idle");
+    }
+  }, [form.email, state, supportMode, supportState]);
 
   const resetLocalState = useCallback(() => {
     setState("default");
@@ -122,7 +143,8 @@ export function StorefrontAuthDialogHost() {
     setForm(blankAuthForm);
     setRevealPassword(false);
     setTermsAccepted(false);
-    setSupportPending(null);
+    setSupportMode(null);
+    setSupportState("idle");
     setNotice(null);
   }, []);
 
@@ -145,11 +167,26 @@ export function StorefrontAuthDialogHost() {
       setForm((current) => ({ ...blankAuthForm, email: current.email }));
       setTermsAccepted(false);
       setRevealPassword(false);
-      setSupportPending(null);
+      setSupportMode(null);
+      setSupportState("idle");
       setNotice(null);
     },
     [actions],
   );
+
+  const onSupportModeChange = useCallback((nextMode: StorefrontAuthSupportMode | null) => {
+    setSupportMode(nextMode);
+    setSupportState("idle");
+    setState("default");
+    setErrors({});
+    setShowErrors(false);
+    setNotice(null);
+    setForm((current) => ({
+      ...current,
+      password: "",
+      confirmPassword: "",
+    }));
+  }, []);
 
   const finish = useCallback(() => {
     const completed = state === "success";
@@ -174,13 +211,15 @@ export function StorefrontAuthDialogHost() {
       revealPassword={revealPassword}
       showErrors={showErrors}
       state={state}
-      supportPending={supportPending}
+      supportMode={supportMode}
+      supportState={supportState}
       termsAccepted={termsAccepted}
       onContinueWithGoogle={() => {
         const current = new URL(window.location.href);
         const next = `${current.pathname}${current.search}`;
         current.searchParams.set("auth", mode);
         current.searchParams.delete("error");
+        current.searchParams.delete("support");
         const returnTo = `${current.pathname}${current.search}`;
         window.location.assign(
           `/auth/google?next=${encodeURIComponent(next)}&returnTo=${encodeURIComponent(returnTo)}`,
@@ -189,10 +228,10 @@ export function StorefrontAuthDialogHost() {
       onFinish={finish}
       onModeChange={onModeChange}
       onOpenChange={onOpenChange}
-      onRequestPasswordReset={() => submitSupportEmail("recovery")}
-      onResendConfirmation={() => submitSupportEmail("confirmation")}
       onRevealPasswordChange={setRevealPassword}
       onSubmit={submit}
+      onSubmitSupportEmail={submitSupportEmail}
+      onSupportModeChange={onSupportModeChange}
       onTermsAcceptedChange={setTermsAccepted}
       setForm={setForm}
     />
@@ -212,6 +251,10 @@ function validateAuth(mode: StorefrontAuthMode, form: StorefrontAuthForm, termsA
   if (mode === "signup") {
     if (!form.first.trim()) errors.first = "Required";
     if (!form.last.trim()) errors.last = "Required";
+    if (!form.confirmPassword) errors.confirmPassword = "Confirm your password";
+    else if (form.password !== form.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
     if (!termsAccepted) errors.terms = "Please accept the Terms to continue";
   }
   return errors;
