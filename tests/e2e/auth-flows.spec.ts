@@ -1,12 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { Pool } from "pg";
-import { expect, test } from "playwright/test";
+import { expect, test, type Page } from "playwright/test";
 
 const authEnabled = process.env.AUTH_E2E === "1";
 const inboxUrl = process.env.AUTH_EMAIL_INBOX_URL ?? "http://127.0.0.1:54324";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const databaseUrl = process.env.DATABASE_URL;
+const storefrontStateKey = "laitstyles-storefront:v3:client-state";
 
 const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const confirmedEmail = `auth-${runId}@example.com`;
@@ -40,7 +41,8 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
     await page.getByLabel("Email address").fill(confirmedEmail);
-    await page.getByLabel("Password").fill(initialPassword);
+    await page.getByLabel("Password", { exact: true }).fill(initialPassword);
+    await page.getByLabel("Confirm password").fill(initialPassword);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Create my account" }).click();
 
@@ -91,7 +93,8 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
     await page.getByLabel("Email address").fill(confirmedEmail);
-    await page.getByLabel("Password").fill(initialPassword);
+    await page.getByLabel("Password", { exact: true }).fill(initialPassword);
+    await page.getByLabel("Confirm password").fill(initialPassword);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Create my account" }).click();
 
@@ -99,9 +102,12 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await expect(page.getByText(/account already exists/i)).toHaveCount(0);
   });
 
-  test("storefront dialog keeps successful sign-in mounted until the explicit account action", async ({
+  test("storefront dialog keeps successful sign-in mounted and preserves the guest bag", async ({
     page,
   }) => {
+    await addFirstAvailableItemToBag(page);
+    const cartBeforeAuth = await storedStorefrontState(page);
+
     await page.addInitScript(() => {
       const key = "auth-success-document-load-count";
       const count = Number(window.sessionStorage.getItem(key) ?? "0") + 1;
@@ -110,7 +116,7 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.goto("/?auth=signin", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
     await page.getByLabel("Email").fill(confirmedEmail);
-    await page.getByLabel("Password").fill(initialPassword);
+    await page.getByLabel("Password", { exact: true }).fill(initialPassword);
 
     await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
 
@@ -121,28 +127,38 @@ test.describe.serial("live Supabase Auth journeys", () => {
         page.evaluate(() => window.sessionStorage.getItem("auth-success-document-load-count")),
       )
       .toBe("1");
+    expect(await storedStorefrontState(page)).toEqual(cartBeforeAuth);
 
     await page.getByRole("button", { name: "Go to my account" }).click();
     await expect(page).toHaveURL(/\/account(?:$|[/?#])/);
+    expect(await storedStorefrontState(page)).toEqual(cartBeforeAuth);
   });
 
-  test("storefront dialog requests password recovery without leaving the storefront", async ({
-    page,
-  }) => {
+  test("storefront recovery uses its own dialog screen without rebuilding", async ({ page }) => {
     await purgeMailbox(confirmedEmail);
+    await page.addInitScript(() => {
+      const key = "auth-recovery-document-load-count";
+      const count = Number(window.sessionStorage.getItem(key) ?? "0") + 1;
+      window.sessionStorage.setItem(key, String(count));
+    });
     await page.goto("/?auth=signin", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
     await page.getByLabel("Email").fill(confirmedEmail);
 
     const stableUrl = new URL(page.url());
     await page.getByRole("button", { name: "Forgot password?" }).click();
+    await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();
+    await expect(page.getByLabel("Email")).toHaveValue(confirmedEmail);
 
-    await expect(
-      page.getByText("If this address can receive a reset email, a secure link is on its way."),
-    ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await page.getByRole("button", { name: "Send reset link" }).click();
+    await expect(page.getByRole("heading", { name: "Check your inbox." })).toBeVisible();
     expect(new URL(page.url()).pathname).toBe(stableUrl.pathname);
     expect(new URL(page.url()).search).toBe("");
+    await expect
+      .poll(() =>
+        page.evaluate(() => window.sessionStorage.getItem("auth-recovery-document-load-count")),
+      )
+      .toBe("1");
     await waitForAuthLink(confirmedEmail);
   });
 
@@ -152,7 +168,8 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.getByLabel("First name").fill("Pending");
     await page.getByLabel("Last name").fill("Customer");
     await page.getByLabel("Email address").fill(unconfirmedEmail);
-    await page.getByLabel("Password").fill(initialPassword);
+    await page.getByLabel("Password", { exact: true }).fill(initialPassword);
+    await page.getByLabel("Confirm password").fill(initialPassword);
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Create my account" }).click();
 
@@ -167,6 +184,20 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await expect(page.getByRole("link", { name: "Resend confirmation" })).toBeVisible();
     await expect(page.getByText(/email_not_confirmed|provider detail/i)).toHaveCount(0);
     await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fadmin/);
+  });
+
+  test("storefront resend confirmation uses the dedicated dialog screen", async ({ page }) => {
+    await purgeMailbox(unconfirmedEmail);
+    await page.goto("/?auth=signin", { waitUntil: "domcontentloaded" });
+    await page.getByLabel("Email").fill(unconfirmedEmail);
+    await page.getByRole("button", { name: "Send another link" }).click();
+
+    await expect(page.getByRole("heading", { name: "Send another confirmation" })).toBeVisible();
+    await expect(page.getByLabel("Email")).toHaveValue(unconfirmedEmail);
+    await page.getByRole("button", { name: "Send confirmation link" }).click();
+    await expect(page.getByRole("heading", { name: "Check your inbox." })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await waitForAuthLink(unconfirmedEmail);
   });
 
   test("forgot-password email establishes recovery and accepts a new password", async ({ page }) => {
@@ -231,6 +262,28 @@ test.describe.serial("live Supabase Auth journeys", () => {
   });
 });
 
+async function addFirstAvailableItemToBag(page: Page) {
+  await page.goto("/products", { waitUntil: "domcontentloaded" });
+  await expect.poll(() => page.locator("[data-card]").count()).toBeGreaterThan(0);
+  const card = page.locator("[data-card]").filter({ has: page.locator("button") }).first();
+  const buttons = card.locator("button");
+  await buttons.last().click();
+  await expect.poll(async () => (await storedStorefrontState(page)).cart.length).toBeGreaterThan(0);
+}
+
+async function storedStorefrontState(page: Page) {
+  return page.evaluate((key) => {
+    const value = window.sessionStorage.getItem(key);
+    if (!value) throw new Error(`Missing ${key}`);
+    return JSON.parse(value) as {
+      version: number;
+      cart: Array<{ productId: string; variantId: string | null; quantity: number }>;
+      saved: string[];
+      holds: Array<{ productId: string; expiresAt: number }>;
+    };
+  }, storefrontStateKey);
+}
+
 async function purgeMailbox(email: string) {
   const response = await fetch(`${inboxUrl}/api/v1/mailbox/${encodeURIComponent(mailbox(email))}`, {
     method: "DELETE",
@@ -272,10 +325,7 @@ async function waitForAuthLink(email: string) {
 }
 
 function decodeEmailSource(source: string) {
-  return source
-    .replace(/=\r?\n/g, "")
-    .replace(/=3D/gi, "=")
-    .replace(/&amp;/g, "&");
+  return source.replace(/=\r?\n/g, "").replace(/=3D/gi, "=").replace(/&amp;/g, "&");
 }
 
 function mailbox(email: string) {
