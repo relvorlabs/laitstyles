@@ -7,58 +7,68 @@
 
 ## Why this closure exists
 
-Merged PR #52 established the canonical auth module but left six real gaps:
+Merged PR #52 established the canonical auth module but left real ownership, runtime and presentation gaps:
 
 1. browser, Playwright and live Supabase acceptance had not executed;
 2. the URL-driven sign-in Playwright assertion expected signup password copy while exercising sign-in mode;
 3. `/auth/google`, `/auth/callback` and `/auth/sign-out` still duplicated Supabase provider orchestration;
-4. standalone auth pages and the staff sign-in surface remained visually basic, with thin inputs and implementation-facing copy;
+4. standalone auth pages and the staff sign-in surface remained visually basic;
 5. page actions redirected validation and provider errors to new routes, losing local form state;
-6. the storefront dialog refreshed or navigated while its own state was changing, rebuilding the route and interrupting feedback.
+6. the storefront dialog refreshed or navigated while its own state was changing;
+7. dialog password recovery and confirmation resend invoked server actions directly and never displayed dedicated support screens;
+8. signup UI and backend validation did not require one identical confirmation-password contract;
+9. cart continuity across login and signup had not been explicitly proven.
 
 ## Source closure delivered
 
-- [x] Google OAuth initiation is owned by `modules/auth/server/authenticate.ts`.
-- [x] OAuth callback exchange, user resolution and account provisioning are module-owned.
-- [x] `/auth/google` and `/auth/callback` are thin request/redirect adapters.
-- [x] `/auth/sign-out` calls the canonical `endSession()` operation and remains POST-only.
+- [x] Password auth, signup, email requests, OAuth, callback completion, recovery verification and sign-out are module-owned.
+- [x] `/auth/google`, `/auth/callback`, `/auth/email` and `/auth/sign-out` are thin transport adapters.
+- [x] No `src/app/auth/**` route creates a Supabase client or calls `supabase.auth` directly.
 - [x] Reset-page recovery-session verification is module-owned.
 - [x] Signup confirmation, confirmation resend and password recovery use one deterministic callback-origin policy.
 - [x] `AUTH_SITE_URL` is documented as the preferred deployed origin.
-- [x] The stale empty-password Playwright expectation now matches sign-in validation.
-- [x] Auth ownership tests prohibit direct Supabase provider access under `src/app/auth/**`.
-- [x] Client auth UI is prevented from importing server-only auth modules.
-- [x] Dedicated sign-in, signup, email-workflow and password-replacement client forms exist.
+- [x] Client auth UI cannot import server-only auth modules.
 - [x] Staff sign-in, signup, recovery, confirmation, reset and direct-error fallback pages share one responsive visual system.
 - [x] Storefront auth dialog inputs, labels, hierarchy, spacing and responsive presentation are redesigned.
-- [x] Technical provider/cookie explanations were removed from user-facing authentication copy.
+- [x] Technical provider/cookie explanations and the non-functional remember-session control were removed.
 
-## Interaction closure delivered
+## Dialog interaction closure delivered
 
-- [x] Validation and provider failures return structured action state instead of redirecting.
-- [x] Safe email/name values remain in their existing controls after a failed submission; passwords are never returned.
-- [x] Confirmation-required signup success is shown on the mounted signup form.
-- [x] Password-reset and confirmation-resend requests show success or failure on the mounted page.
-- [x] Password replacement errors and success remain on `/auth/reset-password`.
-- [x] Missing or expired recovery sessions render on the reset page rather than `/auth/error`.
-- [x] OAuth start/callback failures return to the originating staff page, signup page or storefront dialog.
-- [x] Storefront password recovery and confirmation resend run inside the open dialog.
-- [x] Storefront transport parameters are removed with `history.replaceState`, not Next.js route navigation.
-- [x] Password sign-in and sign-out update the shared client session without `router.refresh()`.
-- [x] The storefront auth provider exposes a stable action object so dialog state changes do not retrigger route effects.
-- [x] The success state remains mounted until the user chooses **Go to my account** or a protected return path executes.
-- [x] Successful sign-out replaces the route with `/` so protected account content is not left visible.
-- [x] Immediate navigation is reserved for completed OAuth, completed standalone sign-in, successful sign-out or an explicit success action.
+- [x] **Forgot password** switches to a dedicated email-only recovery screen before any request is sent.
+- [x] **Send another link** switches to a dedicated confirmation-resend screen before any request is sent.
+- [x] Dialog email workflows use `POST /auth/email` with JSON instead of invoking a Next server action from client state.
+- [x] Recovery and confirmation requests show dedicated pending, error and check-email states inside the same dialog.
+- [x] The JSON adapter carries a safe originating `returnTo` surface.
+- [x] Malformed or expired email callbacks can reopen the matching recovery or confirmation screen with an allow-listed error.
+- [x] Storefront transport parameters are removed with `history.replaceState`, not Next.js navigation.
+- [x] Password sign-in updates the shared client session without `router.refresh()`.
+- [x] The auth provider exposes a stable action object so dialog state changes do not retrigger route effects.
+- [x] Sign-in success remains mounted until **Go to my account** or another explicit protected return action executes.
+- [x] Successful sign-out clears the session and replaces the route with `/` so protected content is not left visible.
+
+## Create-account contract
+
+The standalone signup page and storefront dialog now use the same server-validated payload:
+
+- [x] first name;
+- [x] last name;
+- [x] email;
+- [x] password;
+- [x] confirmation password;
+- [x] accepted terms;
+- [x] safe `next` and `returnTo` paths.
+
+Supabase receives `email`, `password` and metadata keys `first_name`, `last_name` and `full_name`. `confirmPassword` is validated by the shared schema and is never sent to Supabase. If Supabase returns an immediate session, `ensureConsumerAccount()` provisions the Prisma profile, profile details and customer before signup success is returned. Confirmation-required accounts are provisioned by the callback, while the session reader retains its repair path for partial accounts.
 
 ## Supabase email contract
 
-The application triggers only the email workflows it currently exposes:
+The application triggers the exposed email workflows through:
 
-- signup confirmation through `supabase.auth.signUp`;
-- confirmation resend through `supabase.auth.resend({ type: "signup" })`;
-- password recovery through `supabase.auth.resetPasswordForEmail`.
+- signup confirmation — `supabase.auth.signUp`;
+- confirmation resend — `supabase.auth.resend({ type: "signup" })`;
+- password recovery — `supabase.auth.resetPasswordForEmail`.
 
-All three callback URLs resolve from the first valid origin below:
+All callback URLs resolve from the first valid origin below:
 
 1. `AUTH_SITE_URL`;
 2. `NEXT_PUBLIC_APP_URL`;
@@ -66,37 +76,41 @@ All three callback URLs resolve from the first valid origin below:
 4. current forwarded/request host;
 5. local fallback.
 
-Each callback also carries a safe internal `returnTo` surface. Provider failures add only an allow-listed error code to that surface; raw provider messages are neither logged nor exposed to the browser.
+Each callback carries a safe internal `returnTo` surface. Provider failures add only an allow-listed error code; raw provider messages are not exposed to the browser. The selected public origin must include `/auth/callback` in the Supabase Auth redirect allow-list.
 
-The selected origin must include `/auth/callback` in the Supabase Auth redirect allow-list. Supabase dashboard SMTP/template configuration remains external infrastructure; this PR makes application invocation, callback configuration and browser handling deterministic and testable but does not claim dashboard delivery without executing the live-auth suite.
+## Guest cart and saved-state continuity
+
+- [x] Auth session updates do not reset the cart, saved-items or holds stores.
+- [x] The canonical guest snapshot remains in `sessionStorage` under `laitstyles-storefront:v3:client-state`.
+- [x] Login success preserves the same cart snapshot before and after account navigation.
+- [x] Confirmation-required signup preserves the same cart snapshot while waiting for email and after the confirmation callback reaches `/account`.
+- [x] Dialog recovery and confirmation views do not alter storefront state.
 
 ## Acceptance coverage added
 
-- Unit tests prove page-action failures return state without invoking `redirect()`.
-- Unit tests prove only completed standalone password sign-in redirects immediately.
-- Session-provider tests prove local sign-in/sign-out state changes without remounting and still synchronizes later server session props.
-- Provider tests prove OAuth cancellation/start failure returns to the originating surface.
-- Redirect tests prove external `returnTo` values are rejected.
-- Browser tests count document loads and verify invalid page/dialog submissions remain mounted.
-- Browser tests verify storefront auth transport parameters are cleaned without a route rebuild.
-- Live-auth tests prove storefront password sign-in displays success on the same document before explicit account navigation.
-- Live-auth tests cover signup confirmation, profile/customer provisioning, inline staff sign-in failure, storefront-dialog recovery email, standalone recovery, password replacement and invalid recovery state.
+- Unit tests prove signup confirmation-password validation and metadata mapping.
+- Provider tests prove immediate-session signup provisions Prisma records before success.
+- Route tests prove the JSON email adapter invokes recovery/resend module operations with the originating dialog surface.
+- Boundary tests cover the new `/auth/email` adapter.
+- Non-live Playwright tests prove recovery/resend screens appear, submit without navigation, and do not cause another document load.
+- Callback tests prove email errors reopen the correct support screen.
+- Live-auth tests cover signup confirmation, profile/customer provisioning, confirmation resend, password recovery and password replacement.
+- Live-auth tests compare the canonical cart snapshot through login and confirmation-required signup.
 
 ## Acceptance still required on the exact final SHA
 
 - [ ] `pnpm check:architecture`.
 - [ ] `pnpm biome` or the repository's static suite.
 - [ ] `pnpm typecheck`.
-- [ ] focused auth Vitest suites, including `auth-boundaries.test.ts`, `redirects.test.ts`, `authenticate-provider.test.ts`, `actions.test.ts` and `session-provider.test.tsx`.
+- [ ] focused auth Vitest suites, including the email-route, boundary, provider, action and session-provider tests.
 - [ ] production build and React Doctor.
 - [ ] desktop, tablet and mobile Playwright contracts.
-- [ ] URL-driven storefront auth-dialog and standalone inline-state tests.
 - [ ] `pnpm test:auth:e2e` against local/test Supabase Auth, PostgreSQL and the mail inbox.
 - [ ] signup confirmation email received and callback provisions profile/customer data.
-- [ ] storefront password sign-in success shown without a document rebuild.
-- [ ] storefront-dialog password reset email received without route navigation.
-- [ ] password reset email received and replacement password works.
-- [ ] confirmation resend email received without leaking account existence.
+- [ ] storefront password sign-in shown without a document rebuild and without cart loss.
+- [ ] storefront signup confirmation completed without cart loss.
+- [ ] storefront-dialog password reset and confirmation-resend emails received without route navigation.
+- [ ] password replacement works and other sessions are closed.
 - [ ] Google OAuth initiation/callback or the configured dedicated test-provider journey.
 
 Do not change the original Phase 7 status to fully accepted until these checks execute against the same final commit and their evidence is recorded.
