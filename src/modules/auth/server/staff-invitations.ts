@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { User } from "@supabase/supabase-js";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +24,11 @@ export type ManagerMember = {
 
 export type ManagerInvitationResult =
   | { ok: true; member: ManagerMember; message: string }
-  | { ok: false; message: string; fieldErrors?: Partial<Record<"email" | "firstName" | "lastName", string>> };
+  | {
+      ok: false;
+      message: string;
+      fieldErrors?: Partial<Record<"email" | "firstName" | "lastName", string>>;
+    };
 
 export async function listStoreManagers(): Promise<ManagerMember[]> {
   await requireOwner();
@@ -95,7 +100,8 @@ export async function inviteStoreManager(
     return {
       ok: false,
       message:
-        error?.code === "email_exists" || /already.+registered|already.+exists/i.test(error?.message ?? "")
+        error?.code === "email_exists" ||
+        /already.+registered|already.+exists/i.test(error?.message ?? "")
           ? "An account already exists for this email."
           : "The manager invitation could not be sent. Check the address and try again.",
       fieldErrors: error ? { email: "Supabase did not accept this invitation." } : undefined,
@@ -149,7 +155,8 @@ export async function inviteStoreManager(
 
   return {
     ok: true,
-    message: "Invitation sent. The manager can set a password and finish their profile from the email link.",
+    message:
+      "Invitation sent. The manager can set a password and finish their profile from the email link.",
     member: {
       id: profile.id,
       email: profile.email ?? email,
@@ -207,7 +214,12 @@ export async function completeManagerSetup(input: {
   await prisma.$transaction(async (transaction) => {
     await transaction.profiles.update({
       where: { id: user.id },
-      data: { display_name: fullName, email: user.email ?? null, role: "manager", status: "active" },
+      data: {
+        display_name: fullName,
+        email: user.email ?? null,
+        role: "manager",
+        status: "active",
+      },
     });
     await transaction.profile_details.upsert({
       where: { profile_id: user.id },
@@ -241,9 +253,9 @@ async function requireOwner() {
   return session;
 }
 
-async function listAuthUsers() {
+async function listAuthUsers(): Promise<User[]> {
   const supabase = createSupabaseAdminClient();
-  const users = [];
+  const users: User[] = [];
   for (let page = 1; page <= 10; page += 1) {
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 100 });
     if (error) throw new Error("Could not read invited staff accounts.");
@@ -258,7 +270,9 @@ function validateInvitation(input: ManagerInvitationInput) {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
   const fieldErrors: Partial<Record<"email" | "firstName" | "lastName", string>> = {};
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fieldErrors.email = "Enter a valid email address.";
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    fieldErrors.email = "Enter a valid email address.";
+  }
   if (!firstName) fieldErrors.firstName = "Enter the manager's first name.";
   if (!lastName) fieldErrors.lastName = "Enter the manager's last name.";
   if (Object.keys(fieldErrors).length > 0) {
