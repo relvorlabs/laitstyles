@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Prisma } from "../../prisma/generated/prisma/client";
+import type { Prisma } from "../../prisma/generated/prisma/index";
 import { assertNoCatalogTargetConflicts } from "./catalog-import-preflight";
 import type { CatalogSnapshot } from "./catalog-snapshot";
 

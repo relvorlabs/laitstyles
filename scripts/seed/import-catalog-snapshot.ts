@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { config as loadEnv } from "dotenv";
-import { PrismaClient } from "../../prisma/generated/prisma/client";
+import { PrismaClient } from "../../prisma/generated/prisma/index";
 import { assertNoCatalogTargetConflicts } from "./catalog-import-preflight";
 import { prepareMeasurementRows } from "./catalog-measurements";
 import { prepareCatalogSnapshot } from "./catalog-snapshot";

@@ -1,4 +1,4 @@
-import type { Prisma } from "../../prisma/generated/prisma/client";
+import type { Prisma } from "../../prisma/generated/prisma/index";
 import type { ProductMeasurementRow, VariantMeasurementRow } from "./catalog-measurements";
 import type { CatalogSnapshot } from "./catalog-snapshot";
 

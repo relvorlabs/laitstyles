@@ -4,7 +4,14 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // Single coupling point to the generated client. Nothing else in the app
 // imports from prisma/generated/** — repositories import `prisma`/`Prisma`
 // from here (or from "@/lib/prisma"). Server-only: never reaches the browser.
-import { Prisma, PrismaClient } from "../../../prisma/generated/prisma/client";
+//
+// Import through the "/index" subpath, not "/client" or the bare package
+// specifier: the generated package.json only declares a "types" condition
+// for "./index", so under moduleResolution "bundler" the other two subpaths
+// can resolve without the models added via Prisma's multi-file schema
+// (profile_details, product_variant_measurements) even though they exist at
+// runtime and in index.d.ts itself.
+import { Prisma, PrismaClient } from "../../../prisma/generated/prisma/index";
 
 export type { PrismaClient };
 export { Prisma };
