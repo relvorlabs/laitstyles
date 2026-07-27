@@ -16,6 +16,7 @@ import {
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
+import type { AuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 import {
   closeStorefrontOverlays,
   subscribeTransientOverlayClose,
@@ -31,6 +32,7 @@ export type AuthDialogState = {
   open: boolean;
   mode: StorefrontAuthMode;
   onSuccess?: () => void;
+  initialError?: AuthFlowErrorCode;
 };
 
 type StorefrontAuthContextValue = {
@@ -42,8 +44,8 @@ type StorefrontAuthContextValue = {
     dialog: AuthDialogState;
   };
   actions: {
-    openSignin: (onSuccess?: () => void) => void;
-    openSignup: (onSuccess?: () => void) => void;
+    openSignin: (onSuccess?: () => void, initialError?: AuthFlowErrorCode) => void;
+    openSignup: (onSuccess?: () => void, initialError?: AuthFlowErrorCode) => void;
     closeAuthDialog: () => void;
     setAuthDialogMode: (mode: StorefrontAuthMode) => void;
     authenticate: (
@@ -51,6 +53,7 @@ type StorefrontAuthContextValue = {
       form: StorefrontAuthForm,
       termsAccepted: boolean,
     ) => Promise<AuthSubmissionResult>;
+    refreshSession: () => void;
     signOut: () => Promise<void>;
   };
 };
@@ -64,19 +67,25 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [dialog, setDialog] = useState<AuthDialogState>(closedDialog);
 
-  const openSignin = useCallback((onSuccess?: () => void) => {
-    closeStorefrontOverlays();
-    setDialog({ open: true, mode: "signin", onSuccess });
-  }, []);
-  const openSignup = useCallback((onSuccess?: () => void) => {
-    closeStorefrontOverlays();
-    setDialog({ open: true, mode: "signup", onSuccess });
-  }, []);
+  const openSignin = useCallback(
+    (onSuccess?: () => void, initialError?: AuthFlowErrorCode) => {
+      closeStorefrontOverlays();
+      setDialog({ open: true, mode: "signin", onSuccess, initialError });
+    },
+    [],
+  );
+  const openSignup = useCallback(
+    (onSuccess?: () => void, initialError?: AuthFlowErrorCode) => {
+      closeStorefrontOverlays();
+      setDialog({ open: true, mode: "signup", onSuccess, initialError });
+    },
+    [],
+  );
   const closeAuthDialog = useCallback(() => {
-    setDialog((current) => ({ ...current, open: false }));
+    setDialog((current) => ({ ...current, open: false, initialError: undefined }));
   }, []);
   const setAuthDialogMode = useCallback((mode: StorefrontAuthMode) => {
-    setDialog((current) => ({ ...current, mode }));
+    setDialog((current) => ({ ...current, mode, initialError: undefined }));
   }, []);
 
   useEffect(() => subscribeTransientOverlayClose(closeAuthDialog), [closeAuthDialog]);
@@ -87,6 +96,10 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       form: StorefrontAuthForm,
       termsAccepted: boolean,
     ): Promise<AuthSubmissionResult> => {
+      const current = new URL(window.location.href);
+      current.searchParams.set("auth", mode);
+      current.searchParams.delete("error");
+
       const formData = new FormData();
       formData.set("email", form.email.trim());
       formData.set("password", form.password);
@@ -94,17 +107,18 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       formData.set("last", form.last.trim());
       formData.set("terms", String(termsAccepted));
       formData.set("next", `${window.location.pathname}${window.location.search}`);
+      formData.set("returnTo", `${current.pathname}${current.search}`);
 
-      const result =
-        mode === "signup"
-          ? await submitPasswordSignUp(formData)
-          : await submitPasswordSignIn(formData);
-
-      if (result.ok && result.value.status === "success") router.refresh();
-      return result;
+      return mode === "signup"
+        ? submitPasswordSignUp(formData)
+        : submitPasswordSignIn(formData);
     },
-    [router],
+    [],
   );
+
+  const refreshSession = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const signOut = useCallback(async () => {
     const result = await signOutStorefrontSession();
@@ -116,6 +130,27 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
   }, [router]);
 
+  const actions = useMemo<StorefrontAuthContextValue["actions"]>(
+    () => ({
+      openSignin,
+      openSignup,
+      closeAuthDialog,
+      setAuthDialogMode,
+      authenticate,
+      refreshSession,
+      signOut,
+    }),
+    [
+      authenticate,
+      closeAuthDialog,
+      openSignin,
+      openSignup,
+      refreshSession,
+      setAuthDialogMode,
+      signOut,
+    ],
+  );
+
   const displayName = authSession.displayName ?? authSession.email?.split("@")[0] ?? null;
   const value = useMemo<StorefrontAuthContextValue>(
     () => ({
@@ -126,27 +161,9 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
         userName: displayName,
         dialog,
       },
-      actions: {
-        openSignin,
-        openSignup,
-        closeAuthDialog,
-        setAuthDialogMode,
-        authenticate,
-        signOut,
-      },
+      actions,
     }),
-    [
-      authSession.email,
-      authSession.signedIn,
-      authenticate,
-      closeAuthDialog,
-      dialog,
-      displayName,
-      openSignin,
-      openSignup,
-      setAuthDialogMode,
-      signOut,
-    ],
+    [actions, authSession.email, authSession.signedIn, dialog, displayName],
   );
 
   return <StorefrontAuthContext.Provider value={value}>{children}</StorefrontAuthContext.Provider>;
