@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Pool } from "pg";
-import { expect, test, type Page } from "playwright/test";
+import { expect, test, type Locator, type Page } from "playwright/test";
 
 const authEnabled = process.env.AUTH_E2E === "1";
 const inboxUrl = process.env.AUTH_EMAIL_INBOX_URL ?? "http://127.0.0.1:54324";
@@ -33,10 +33,13 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await pool?.end();
   });
 
-  test("email signup confirms through the captured Auth email and provisions profile data", async ({
+  test("email signup confirms, provisions profile data, and preserves the guest bag", async ({
     page,
   }) => {
     await purgeMailbox(confirmedEmail);
+    await addFirstAvailableItemToBag(page);
+    const cartBeforeSignup = await storedStorefrontState(page);
+
     await page.goto("/auth/sign-up");
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
@@ -47,10 +50,12 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.getByRole("button", { name: "Create my account" }).click();
 
     await expect(page.getByText(/If this address can receive a confirmation email/i)).toBeVisible();
+    expect(await storedStorefrontState(page)).toEqual(cartBeforeSignup);
 
     const confirmationLink = await waitForAuthLink(confirmedEmail);
     await page.goto(confirmationLink);
     await expect(page).toHaveURL(/\/account(?:$|[/?#])/);
+    expect(await storedStorefrontState(page)).toEqual(cartBeforeSignup);
 
     const result = await pool?.query<{
       role: string;
@@ -262,12 +267,27 @@ test.describe.serial("live Supabase Auth journeys", () => {
   });
 });
 
-async function addFirstAvailableItemToBag(page: Page) {
+async function firstAddableCard(page: Page): Promise<Locator> {
   await page.goto("/products", { waitUntil: "domcontentloaded" });
   await expect.poll(() => page.locator("[data-card]").count()).toBeGreaterThan(0);
-  const card = page.locator("[data-card]").filter({ has: page.locator("button") }).first();
-  const buttons = card.locator("button");
-  await buttons.last().click();
+
+  const cardId = await page.locator("[data-card]").evaluateAll((cards) => {
+    const card = cards.find((candidate) => {
+      const buttons = [...candidate.querySelectorAll("button")];
+      const action = buttons.at(-1);
+      const label = action?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      return Boolean(action && !action.disabled && !/Select size|Sold|Reserved/i.test(label));
+    });
+    return card?.getAttribute("data-card") ?? null;
+  });
+
+  expect(cardId, "the seeded catalogue must expose an addable non-variant product").toBeTruthy();
+  return page.locator(`[data-card="${cardId}"]`);
+}
+
+async function addFirstAvailableItemToBag(page: Page) {
+  const card = await firstAddableCard(page);
+  await card.locator("button").last().click();
   await expect.poll(async () => (await storedStorefrontState(page)).cart.length).toBeGreaterThan(0);
 }
 
