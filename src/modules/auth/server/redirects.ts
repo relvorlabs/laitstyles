@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import type { AuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 
 export const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
+const AUTH_ORIGIN_ENV_KEYS = ["AUTH_SITE_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SITE_URL"] as const;
 
 export function getSafeNextPath(
   value: FormDataEntryValue | string | null | undefined,
@@ -34,7 +35,26 @@ export function withAuthErrorPath(code: AuthFlowErrorCode, next: string) {
   return `/auth/error?${params.toString()}`;
 }
 
+export function getConfiguredAuthOrigin() {
+  for (const key of AUTH_ORIGIN_ENV_KEYS) {
+    const value = process.env[key]?.trim();
+    if (!value) continue;
+
+    try {
+      const url = new URL(value);
+      if (url.protocol === "http:" || url.protocol === "https:") return url.origin;
+    } catch {
+      // Ignore malformed optional values and fall back to request headers.
+    }
+  }
+
+  return null;
+}
+
 export async function getRequestOrigin() {
+  const configuredOrigin = getConfiguredAuthOrigin();
+  if (configuredOrigin) return configuredOrigin;
+
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
   const protocol =
@@ -42,4 +62,9 @@ export async function getRequestOrigin() {
     (host?.startsWith("localhost") || host?.startsWith("127.") ? "http" : "https");
 
   return host ? `${protocol}://${host}` : LOCAL_AUTH_ORIGIN;
+}
+
+export async function getAuthRedirectUrl(path: string) {
+  const safePath = getSafeNextPath(path, "/");
+  return new URL(safePath, `${await getRequestOrigin()}/`).toString();
 }
