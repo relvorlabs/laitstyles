@@ -10,5 +10,11 @@ export async function GET(request: NextRequest) {
     returnTo: request.nextUrl.searchParams.get("returnTo"),
   });
 
+  if (request.nextUrl.searchParams.get("popup") === "1") {
+    const popupTarget = new URL("/auth/oauth-complete", request.url);
+    popupTarget.searchParams.set("target", target);
+    return NextResponse.redirect(popupTarget);
+  }
+
   return NextResponse.redirect(new URL(target, request.url));
 }
