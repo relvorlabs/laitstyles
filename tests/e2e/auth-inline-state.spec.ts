@@ -1,9 +1,5 @@
 import { expect, test } from "playwright/test";
 
-async function installDocumentCounter(page: Parameters<typeof test>[0] extends never ? never : never) {
-  void page;
-}
-
 test("signup validation stays on the mounted auth page", async ({ page }) => {
   await page.addInitScript(() => {
     const key = "signup-document-load-count";
