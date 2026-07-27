@@ -7,14 +7,17 @@ import {
   adminNavigationGroups,
 } from "@/features/admin/shell/navigation";
 import { cn } from "@/lib/utils";
+import { hasCapability } from "@/modules/auth/permissions";
+import type { StaffRole } from "@/modules/auth/types";
 
 type AdminSidebarProps = {
   pathname: string;
+  role: StaffRole;
   onNavigate?: () => void;
   compact?: boolean;
 };
 
-export function AdminSidebar({ pathname, onNavigate, compact = false }: AdminSidebarProps) {
+export function AdminSidebar({ pathname, role, onNavigate, compact = false }: AdminSidebarProps) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div
@@ -43,24 +46,30 @@ export function AdminSidebar({ pathname, onNavigate, compact = false }: AdminSid
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className={cn("flex flex-col gap-7", compact ? "p-4" : "p-5")}>
           <nav aria-label="Admin" className="flex flex-col gap-5">
-            {adminNavigationGroups.map((group) => (
-              <div key={group.label}>
-                <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/56">
-                  {group.label}
+            {adminNavigationGroups.map((group) => {
+              const items = group.items.filter(
+                (item) => !item.requiredCapability || hasCapability(role, item.requiredCapability),
+              );
+              if (items.length === 0) return null;
+              return (
+                <div key={group.label}>
+                  <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/56">
+                    {group.label}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {items.map((item) => (
+                      <SidebarLink
+                        active={isActive(pathname, item.href)}
+                        icon={item.icon}
+                        item={item}
+                        key={item.href}
+                        onNavigate={onNavigate}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  {group.items.map((item) => (
-                    <SidebarLink
-                      active={isActive(pathname, item.href)}
-                      icon={item.icon}
-                      item={item}
-                      key={item.href}
-                      onNavigate={onNavigate}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </nav>
 
           <section aria-labelledby="storefront-links-heading">
