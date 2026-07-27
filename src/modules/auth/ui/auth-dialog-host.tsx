@@ -1,12 +1,17 @@
 "use client";
 
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import {
+  requestPasswordReset,
+  resendSignupConfirmation,
+} from "@/app/auth/actions";
 import { getAuthFlowErrorMessage } from "@/modules/auth/errors";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
   type StorefrontAuthMode,
+  type StorefrontAuthNotice,
   type StorefrontAuthState,
 } from "./auth-dialog";
 import { useStorefrontAuth } from "./storefront-auth-provider";
@@ -28,6 +33,8 @@ export function StorefrontAuthDialogHost() {
   const [showErrors, setShowErrors] = useState(false);
   const [revealPassword, setRevealPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [supportPending, setSupportPending] = useState<"confirmation" | "recovery" | null>(null);
+  const [notice, setNotice] = useState<StorefrontAuthNotice | null>(null);
   const successRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -36,19 +43,23 @@ export function StorefrontAuthDialogHost() {
     setState("default");
     setErrors(initialError ? { form: getAuthFlowErrorMessage(initialError) } : {});
     setShowErrors(Boolean(initialError));
+    setNotice(null);
+    setSupportPending(null);
   }, [initialError, onSuccess, open]);
 
   const submit = useCallback(async () => {
-    if (state === "signing-in") return;
+    if (state === "signing-in" || supportPending) return;
     const nextErrors = validateAuth(mode, form, termsAccepted);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       setShowErrors(true);
+      setNotice(null);
       return;
     }
 
     setErrors({});
     setShowErrors(false);
+    setNotice(null);
     setState("signing-in");
     const result = await actions.authenticate(mode, form, termsAccepted);
     if (!result.ok) {
@@ -58,7 +69,49 @@ export function StorefrontAuthDialogHost() {
       return;
     }
     setState(result.value.status);
-  }, [actions, form, mode, state, termsAccepted]);
+  }, [actions, form, mode, state, supportPending, termsAccepted]);
+
+  const submitSupportEmail = useCallback(
+    async (kind: "confirmation" | "recovery") => {
+      if (supportPending || state === "signing-in") return;
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
+        setErrors({ email: "Enter a valid email address" });
+        setShowErrors(true);
+        setNotice(null);
+        return;
+      }
+
+      setSupportPending(kind);
+      setErrors({});
+      setShowErrors(false);
+      setNotice(null);
+
+      const formData = new FormData();
+      formData.set("email", form.email.trim());
+      const result =
+        kind === "recovery"
+          ? await requestPasswordReset(formData)
+          : await resendSignupConfirmation(formData);
+
+      if (!result.ok) {
+        setErrors(result.error.fieldErrors ?? {});
+        setShowErrors(Boolean(result.error.fieldErrors));
+        setNotice({ tone: "error", message: result.error.message });
+        setSupportPending(null);
+        return;
+      }
+
+      setNotice({
+        tone: "success",
+        message:
+          kind === "recovery"
+            ? "If this address can receive a reset email, a secure link is on its way."
+            : "If this address is eligible for confirmation, a fresh link is on its way.",
+      });
+      setSupportPending(null);
+    },
+    [form.email, state, supportPending],
+  );
 
   const resetLocalState = useCallback(() => {
     setState("default");
@@ -67,6 +120,8 @@ export function StorefrontAuthDialogHost() {
     setForm(blankAuthForm);
     setRevealPassword(false);
     setTermsAccepted(false);
+    setSupportPending(null);
+    setNotice(null);
   }, []);
 
   const onOpenChange = useCallback(
@@ -88,6 +143,8 @@ export function StorefrontAuthDialogHost() {
       setForm((current) => ({ ...blankAuthForm, email: current.email }));
       setTermsAccepted(false);
       setRevealPassword(false);
+      setSupportPending(null);
+      setNotice(null);
     },
     [actions],
   );
@@ -109,11 +166,13 @@ export function StorefrontAuthDialogHost() {
       errors={errors}
       form={form}
       mode={mode}
+      notice={notice}
       open={open}
       product={products[13] ?? products[0]}
       revealPassword={revealPassword}
       showErrors={showErrors}
       state={state}
+      supportPending={supportPending}
       termsAccepted={termsAccepted}
       onContinueWithGoogle={() => {
         const current = new URL(window.location.href);
@@ -128,6 +187,8 @@ export function StorefrontAuthDialogHost() {
       onFinish={finish}
       onModeChange={onModeChange}
       onOpenChange={onOpenChange}
+      onRequestPasswordReset={() => submitSupportEmail("recovery")}
+      onResendConfirmation={() => submitSupportEmail("confirmation")}
       onRevealPasswordChange={setRevealPassword}
       onSubmit={submit}
       onTermsAcceptedChange={setTermsAccepted}
