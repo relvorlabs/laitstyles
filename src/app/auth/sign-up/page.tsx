@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { signUpWithPassword } from "@/app/auth/actions";
-import { AuthPageShell, AuthStatusNotice } from "@/modules/auth/ui/auth-page-shell";
+import {
+  getAuthFlowErrorMessage,
+  isAuthFlowErrorCode,
+} from "@/modules/auth/server/diagnostics";
+import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
 import { SignUpForm } from "@/modules/auth/ui/sign-up-form";
 
 export const metadata: Metadata = {
@@ -9,11 +13,12 @@ export const metadata: Metadata = {
 };
 
 type SignUpPageProps = {
-  searchParams: Promise<{ sent?: string }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
-  const { sent } = await searchParams;
+  const params = await searchParams;
+  const errorCode = isAuthFlowErrorCode(params.error) ? params.error : null;
 
   return (
     <AuthPageShell
@@ -28,14 +33,12 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
       sideTitle="Every one-of-one find, remembered."
       title="Create your Laitstyle account"
     >
-      <div className="grid gap-6">
-        {sent === "1" ? (
-          <AuthStatusNotice tone="success">
-            If this address can receive a confirmation email, a secure link is on its way. Check your inbox and spam folder before requesting another one.
-          </AuthStatusNotice>
-        ) : null}
-        <SignUpForm action={signUpWithPassword} />
-      </div>
+      <SignUpForm
+        action={signUpWithPassword}
+        initialError={
+          errorCode ? { code: errorCode, message: getAuthFlowErrorMessage(errorCode) } : undefined
+        }
+      />
     </AuthPageShell>
   );
 }
