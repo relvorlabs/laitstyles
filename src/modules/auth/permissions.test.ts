@@ -10,6 +10,8 @@ import {
 describe("role capabilities", () => {
   it("gives the single admin/store owner every staff capability", () => {
     expect(getCapabilitiesForRole("admin")).toEqual(STAFF_CAPABILITIES);
+    expect(hasCapability("admin", "team:read")).toBe(true);
+    expect(hasCapability("admin", "team:invite")).toBe(true);
   });
 
   it("keeps consumers on shopper-owned capabilities", () => {
@@ -17,10 +19,12 @@ describe("role capabilities", () => {
     expect(hasCapability("consumer", "storefront:purchase")).toBe(true);
   });
 
-  it("lets managers operate the store without owner-only settings powers", () => {
+  it("lets managers operate the store without owner-only settings or team powers", () => {
     expect(hasCapability("manager", "inventory:create")).toBe(true);
     expect(hasCapability("manager", "orders:update")).toBe(true);
     expect(canUpdateSettings("manager")).toBe(false);
     expect(canUpdateSettings("admin")).toBe(true);
+    expect(hasCapability("manager", "team:read")).toBe(false);
+    expect(hasCapability("manager", "team:invite")).toBe(false);
   });
 });
