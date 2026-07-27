@@ -108,64 +108,73 @@ export async function inviteStoreManager(
     };
   }
 
-  const profile = await prisma.$transaction(async (transaction) => {
-    const result = await transaction.profiles.upsert({
-      where: { id: data.user.id },
-      update: {
-        email,
-        role: "manager",
-        status: "active",
-        display_name: fullName,
-      },
-      create: {
-        id: data.user.id,
-        email,
-        role: "manager",
-        status: "active",
-        display_name: fullName,
-      },
-      select: { id: true, email: true, display_name: true, created_at: true },
+  try {
+    const profile = await prisma.$transaction(async (transaction) => {
+      const result = await transaction.profiles.upsert({
+        where: { id: data.user.id },
+        update: {
+          email,
+          role: "manager",
+          status: "active",
+          display_name: fullName,
+        },
+        create: {
+          id: data.user.id,
+          email,
+          role: "manager",
+          status: "active",
+          display_name: fullName,
+        },
+        select: { id: true, email: true, display_name: true, created_at: true },
+      });
+
+      await transaction.profile_details.upsert({
+        where: { profile_id: data.user.id },
+        update: {
+          first_name: parsed.value.firstName,
+          last_name: parsed.value.lastName,
+        },
+        create: {
+          profile_id: data.user.id,
+          first_name: parsed.value.firstName,
+          last_name: parsed.value.lastName,
+        },
+      });
+
+      await transaction.customers.deleteMany({ where: { profile_id: data.user.id } });
+      await transaction.audit_events.create({
+        data: {
+          actor_profile_id: owner.authUserId,
+          action: "staff.manager.invited",
+          target_table: "profiles",
+          target_id: data.user.id,
+          metadata: { email },
+        },
+      });
+      return result;
     });
 
-    await transaction.profile_details.upsert({
-      where: { profile_id: data.user.id },
-      update: {
-        first_name: parsed.value.firstName,
-        last_name: parsed.value.lastName,
+    return {
+      ok: true,
+      message:
+        "Invitation sent. The manager can set a password and finish their profile from the email link.",
+      member: {
+        id: profile.id,
+        email: profile.email ?? email,
+        displayName: profile.display_name ?? fullName,
+        state: "invited",
+        invitedAt: data.user.invited_at ?? profile.created_at.toISOString(),
+        lastSeenAt: null,
       },
-      create: {
-        profile_id: data.user.id,
-        first_name: parsed.value.firstName,
-        last_name: parsed.value.lastName,
-      },
-    });
-
-    await transaction.customers.deleteMany({ where: { profile_id: data.user.id } });
-    await transaction.audit_events.create({
-      data: {
-        actor_profile_id: owner.authUserId,
-        action: "staff.manager.invited",
-        target_table: "profiles",
-        target_id: data.user.id,
-        metadata: { email },
-      },
-    });
-    return result;
-  });
-
-  return {
-    ok: true,
-    message:
-      "Invitation sent. The manager can set a password and finish their profile from the email link.",
-    member: {
-      id: profile.id,
-      email: profile.email ?? email,
-      displayName: profile.display_name ?? fullName,
-      state: "invited",
-      invitedAt: data.user.invited_at ?? profile.created_at.toISOString(),
-      lastSeenAt: null,
-    },
-  };
+    };
+  } catch {
+    await supabase.auth.admin.deleteUser(data.user.id).catch(() => undefined);
+    return {
+      ok: false,
+      message:
+        "The invitation email could not be prepared safely. No manager access was granted; please try again.",
+    };
+  }
 }
 
 export async function completeManagerSetup(input: {
@@ -211,36 +220,44 @@ export async function completeManagerSetup(input: {
     };
   }
 
-  await prisma.$transaction(async (transaction) => {
-    await transaction.profiles.update({
-      where: { id: user.id },
-      data: {
-        display_name: fullName,
-        email: user.email ?? null,
-        role: "manager",
-        status: "active",
-      },
+  try {
+    await prisma.$transaction(async (transaction) => {
+      await transaction.profiles.update({
+        where: { id: user.id },
+        data: {
+          display_name: fullName,
+          email: user.email ?? null,
+          role: "manager",
+          status: "active",
+        },
+      });
+      await transaction.profile_details.upsert({
+        where: { profile_id: user.id },
+        update: { first_name: validation.value.firstName, last_name: validation.value.lastName },
+        create: {
+          profile_id: user.id,
+          first_name: validation.value.firstName,
+          last_name: validation.value.lastName,
+        },
+      });
+      await transaction.customers.deleteMany({ where: { profile_id: user.id } });
+      await transaction.audit_events.create({
+        data: {
+          actor_profile_id: user.id,
+          action: "staff.manager.joined",
+          target_table: "profiles",
+          target_id: user.id,
+          metadata: { email: user.email ?? null },
+        },
+      });
     });
-    await transaction.profile_details.upsert({
-      where: { profile_id: user.id },
-      update: { first_name: validation.value.firstName, last_name: validation.value.lastName },
-      create: {
-        profile_id: user.id,
-        first_name: validation.value.firstName,
-        last_name: validation.value.lastName,
-      },
-    });
-    await transaction.customers.deleteMany({ where: { profile_id: user.id } });
-    await transaction.audit_events.create({
-      data: {
-        actor_profile_id: user.id,
-        action: "staff.manager.joined",
-        target_table: "profiles",
-        target_id: user.id,
-        metadata: { email: user.email ?? null },
-      },
-    });
-  });
+  } catch {
+    return {
+      ok: false as const,
+      message:
+        "Your password was saved, but the store profile could not be finalized. Contact the store owner before trying again.",
+    };
+  }
 
   return { ok: true as const, message: "Your store-manager account is ready." };
 }
