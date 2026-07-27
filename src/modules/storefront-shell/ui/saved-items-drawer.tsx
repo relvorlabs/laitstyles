@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
@@ -52,7 +52,7 @@ export function SavedItemsDrawer() {
                 className="grid grid-cols-[94px_1fr] gap-[13px] border-b border-[var(--line)] pb-[14px]"
                 key={product.id}
               >
-                <Image
+                <CloudImage
                   alt={product.name}
                   className="h-[118px] w-[94px] rounded-[4px] object-cover"
                   height={236}

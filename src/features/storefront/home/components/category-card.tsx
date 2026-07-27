@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useReveal } from "@/features/storefront/shared/reveal";
 import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
 
@@ -30,7 +30,7 @@ export function CategoryCard({
     >
       <span className="contents">
         {image ? (
-          <Image
+          <CloudImage
             src={image}
             alt={`${name} collection`}
             width={1200}

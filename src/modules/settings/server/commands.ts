@@ -139,6 +139,28 @@ export async function saveStoreSettings(
         updated_by_profile_id: actor.authUserId,
       },
     });
+    await tx.store_brand_assets.deleteMany({ where: { kind: "store_logo" } });
+    const logo = normalized.identity.logo;
+    if (logo) {
+      const assetData = {
+        kind: "store_logo" as const,
+        secure_url: logo.url,
+        alt: `${normalized.identity.storeName || "Store"} logo`,
+        width: logo.width,
+        height: logo.height,
+        format: logo.format,
+        bytes: logo.bytes,
+      };
+      const asset = await tx.cloudinary_assets.upsert({
+        where: { public_id: logo.publicId },
+        update: assetData,
+        create: { ...assetData, public_id: logo.publicId },
+      });
+      await tx.store_brand_assets.create({
+        data: { asset_id: asset.id, kind: "store_logo", position: 0 },
+      });
+    }
+
     await tx.audit_events.create({
       data: {
         actor_profile_id: actor.authUserId,
@@ -151,7 +173,7 @@ export async function saveStoreSettings(
       },
     });
     return ok({
-      settings: mapStoreSettings(row, persistedZones, persistedPickups),
+      settings: mapStoreSettings(row, persistedZones, persistedPickups, logo),
       message: "Store settings saved.",
     });
   });

@@ -1,10 +1,10 @@
 "use client";
 
 import { Expand } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
 
@@ -26,7 +26,7 @@ export function ProductMediaPanel({ item }: { item: InventoryListItem }) {
               type="button"
               variant="ghost"
             >
-              <Image
+              <CloudImage
                 alt={media.alt}
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.025] motion-reduce:transition-none"
                 fill

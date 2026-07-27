@@ -18,11 +18,25 @@ const publishMeasurementSchema = measurementSchema.extend({
 
 const mediaSchema = z.object({
   id: z.string().min(1),
-  url: z.string().trim().min(1, "Enter an image URL or choose a file."),
+  publicId: z.string().trim().min(1, "Upload an image."),
+  url: z.string().trim().min(1),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  format: z.string().nullable(),
+  bytes: z.number().nullable(),
   alt: z.string(),
   kind: z.enum(["cover", "detail", "defect"]),
   position: z.number().int().nonnegative(),
-  source: z.enum(["existing", "local-preview", "url"]),
+  source: z.enum(["existing", "upload"]),
+});
+
+const variantImageSchema = z.object({
+  publicId: z.string().trim().min(1),
+  url: z.string().trim().min(1),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  format: z.string().nullable(),
+  bytes: z.number().nullable(),
 });
 
 const variantSchema = z.object({
@@ -31,7 +45,7 @@ const variantSchema = z.object({
   sku: z.string(),
   size: z.string(),
   colour: z.string(),
-  imageUrl: z.string(),
+  image: variantImageSchema.nullable(),
   price: z.number().nonnegative().nullable(),
   cost: z.number().nonnegative().nullable(),
   quantity: z.number().int().nonnegative(),
@@ -123,25 +137,25 @@ const imagesSchema = z
       });
     }
 
-    const urls = new Set<string>();
+    const publicIds = new Set<string>();
     for (const [index, item] of media.entries()) {
-      const url = item.url.trim();
-      if (!isValidMediaUrl(url, item.source)) {
+      const publicId = item.publicId.trim();
+      if (!publicId) {
         context.addIssue({
           code: "custom",
-          path: ["media", index, "url"],
-          message: "Use a valid image URL or choose the local file again.",
+          path: ["media", index, "publicId"],
+          message: "Upload an image before continuing.",
         });
       }
-      const duplicateKey = url.toLocaleLowerCase("en-NG");
-      if (urls.has(duplicateKey)) {
+      const duplicateKey = publicId.toLocaleLowerCase("en-NG");
+      if (duplicateKey && publicIds.has(duplicateKey)) {
         context.addIssue({
           code: "custom",
-          path: ["media", index, "url"],
+          path: ["media", index, "publicId"],
           message: "This image is already included.",
         });
       }
-      urls.add(duplicateKey);
+      publicIds.add(duplicateKey);
 
       if (!item.alt.trim()) {
         context.addIssue({
@@ -292,15 +306,4 @@ export function validateProductForSchedule(values: ProductEditorValues): Product
   }
 
   return issues;
-}
-
-function isValidMediaUrl(value: string, source: ProductEditorValues["media"][number]["source"]) {
-  if (source === "local-preview") return value.startsWith("blob:");
-  if (value.startsWith("/")) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
@@ -113,7 +113,7 @@ export function SearchOverlay() {
                 type="button"
                 variant="ghost"
               >
-                <Image
+                <CloudImage
                   alt=""
                   className="h-[92px] w-[74px] rounded-[4px] object-cover max-[600px]:h-20 max-[600px]:w-16"
                   height={184}

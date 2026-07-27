@@ -1,6 +1,14 @@
 import type { InventoryMode } from "@/lib/admin/inventory/inventory-types";
 
 export type SettingsSection = "identity" | "selling" | "delivery" | "payments" | "notifications";
+export type StoreBrandLogo = {
+  publicId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
+  format: string | null;
+  bytes: number | null;
+};
 export type StoreIdentitySettings = {
   storeName: string;
   description: string;
@@ -9,7 +17,7 @@ export type StoreIdentitySettings = {
   whatsappNumber: string;
   instagramHandle: string;
   websiteUrl: string;
-  logoPreviewUrl: string;
+  logo: StoreBrandLogo | null;
 };
 export type SellingPreferencesSettings = {
   currency: "NGN";

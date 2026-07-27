@@ -3,9 +3,9 @@
 import { ArrowExpand01Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { ProductImage } from "@/lib/storefront/types";
 import { openImageViewer } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import type { Product } from "./catalogue-data";
@@ -55,7 +55,7 @@ export function ProductGallery({
             type="button"
             variant={imageIndex === safeIndex ? "default" : "outline"}
           >
-            <Image alt="" className="object-cover" fill sizes="84px" src={image.url} />
+            <CloudImage alt="" className="object-cover" fill sizes="84px" src={image.url} />
           </Button>
         ))}
       </fieldset>
@@ -89,7 +89,7 @@ export function ProductGallery({
                   key={currentImage.id}
                   transition={{ duration: reduceMotion ? 0 : 0.38, ease: "easeOut" }}
                 >
-                  <Image
+                  <CloudImage
                     alt={currentImage.alt || `${product.name}, view ${safeIndex + 1}`}
                     className="object-cover"
                     fill

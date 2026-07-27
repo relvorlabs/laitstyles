@@ -3,9 +3,12 @@
 import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
+import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
+import { CldUploadButton } from "next-cloudinary";
 import { useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import {
@@ -83,6 +86,27 @@ export function VariantProductFields() {
     });
   }
 
+  function setVariantImage(index: number, result: CloudinaryUploadWidgetResults) {
+    const info = result.info;
+    if (!info || typeof info === "string") return;
+    setValue(
+      `variant.variants.${index}.image`,
+      {
+        publicId: info.public_id,
+        url: info.secure_url,
+        width: info.width ?? null,
+        height: info.height ?? null,
+        format: info.format ?? null,
+        bytes: info.bytes ?? null,
+      },
+      { shouldDirty: true },
+    );
+  }
+
+  function removeVariantImage(index: number) {
+    setValue(`variant.variants.${index}.image`, null, { shouldDirty: true });
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-3 rounded-[16px] border border-border bg-surface-sunken p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -148,7 +172,7 @@ export function VariantProductFields() {
                   sku: "",
                   size: "",
                   colour: "",
-                  imageUrl: "",
+                  image: null,
                   price: null,
                   cost: null,
                   quantity: 1,
@@ -227,12 +251,48 @@ export function VariantProductFields() {
                   />
                   <EditorTextField label="Size" name={name("size")} placeholder="M" />
                   <EditorTextField label="Colour" name={name("colour")} placeholder="Cream" />
-                  <EditorTextField
-                    description="Optional. Use a product image URL specific to this option."
-                    label="Variant image URL"
-                    name={name("imageUrl")}
-                    placeholder="https://…"
-                  />
+                  <div className="space-y-2">
+                    <FieldLabel>Variant image</FieldLabel>
+                    <FieldDescription>
+                      Optional. Upload an image specific to this option.
+                    </FieldDescription>
+                    {current.image ? (
+                      <div className="relative aspect-square w-20 overflow-hidden rounded-lg border border-border bg-surface-sunken">
+                        <CloudImage
+                          alt=""
+                          className="object-cover"
+                          fill
+                          sizes="80px"
+                          src={current.image.url}
+                        />
+                        <Button
+                          aria-label={`Remove variant ${index + 1} image`}
+                          className="absolute right-1 top-1"
+                          onClick={() => removeVariantImage(index)}
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <AdminIcon icon={Delete02Icon} size={14} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <CldUploadButton
+                        className={buttonVariants({ size: "sm", variant: "outline" })}
+                        data-slot="button"
+                        onSuccess={(result) => setVariantImage(index, result)}
+                        options={{
+                          multiple: false,
+                          sources: ["local", "camera"],
+                          clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "avif"],
+                          folder: "laitstyles/products/variants",
+                        }}
+                        signatureEndpoint="/api/v1/admin/assets/sign"
+                      >
+                        Upload image
+                      </CldUploadButton>
+                    )}
+                  </div>
                   <EditorNumberField
                     description="Leave blank to use the product selling price."
                     label="Variant selling price"

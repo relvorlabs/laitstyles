@@ -1,11 +1,11 @@
 "use client";
 
 import { Edit02Icon } from "@hugeicons/core-free-icons";
-import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
@@ -55,7 +55,7 @@ export function InventoryIntakeQueue({
           <Card key={item.product.id}>
             <CardContent className="grid gap-5 py-5 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
               <div className="relative aspect-[4/5] w-24 overflow-hidden rounded-[12px] bg-secondary">
-                <Image
+                <CloudImage
                   alt={item.coverImage.alt || item.product.name}
                   className="object-cover"
                   fill

@@ -1,9 +1,9 @@
 import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { cn } from "@/lib/utils";
 import type {
   AccountOrderDetail,
@@ -75,7 +75,7 @@ function fulfilmentVariant(code: AccountOrderDetail["fulfilmentStatus"]["code"])
 
 function LineImage({ line }: { line: AccountOrderLine }) {
   const content = line.image ? (
-    <Image
+    <CloudImage
       src={line.image.src}
       alt={line.image.alt}
       fill

@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { OverviewInventoryItem } from "@/modules/overview/types";
 
 export function InventoryWatch({
@@ -68,7 +68,7 @@ function LowStockRow({ product }: { product: OverviewInventoryItem }) {
   return (
     <article className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 py-3">
       <div className="relative aspect-[4/5] w-10 overflow-hidden rounded-sm bg-secondary">
-        <Image
+        <CloudImage
           alt={product.imageAlt}
           className="object-cover"
           fill
@@ -99,7 +99,7 @@ function UnpublishedRow({ product }: { product: OverviewInventoryItem }) {
   return (
     <article className="grid grid-cols-[40px_minmax(0,1fr)] items-center gap-3 py-3">
       <div className="relative aspect-[4/5] w-10 overflow-hidden rounded-sm bg-secondary">
-        <Image
+        <CloudImage
           alt={product.imageAlt}
           className="object-cover opacity-80"
           fill

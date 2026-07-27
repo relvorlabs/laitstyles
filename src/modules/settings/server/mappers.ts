@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
 import { storeSettingsInputSchema } from "@/modules/settings/schema";
-import type { StoreSettings } from "@/modules/settings/types";
+import type { StoreBrandLogo, StoreSettings } from "@/modules/settings/types";
 
 type SettingsRow = {
   identity: Prisma.JsonValue;
@@ -31,6 +31,7 @@ export function mapStoreSettings(
   row: SettingsRow,
   zones: DeliveryZoneRow[],
   pickups: PickupRow[],
+  logo: StoreBrandLogo | null,
 ): StoreSettings {
   const sellingRecord = asRecord(row.selling);
   const pickupContext = parsePickupContext(sellingRecord?._pickupContext);
@@ -55,8 +56,9 @@ export function mapStoreSettings(
       enabled: pickup.enabled,
     })),
   };
+  const identityRecord = asRecord(row.identity) ?? {};
   const parsed = storeSettingsInputSchema.safeParse({
-    identity: row.identity,
+    identity: { ...identityRecord, logo },
     selling: row.selling,
     payments: row.payments,
     notifications: row.notifications,
@@ -74,8 +76,9 @@ export function settingsJsonInput(settings: StoreSettings | Omit<StoreSettings, 
   payments: Prisma.InputJsonValue;
   notifications: Prisma.InputJsonValue;
 } {
+  const { logo: _logo, ...identityWithoutLogo } = structuredClone(settings.identity);
   return {
-    identity: structuredClone(settings.identity) as Prisma.InputJsonValue,
+    identity: identityWithoutLogo as Prisma.InputJsonValue,
     selling: {
       ...structuredClone(settings.selling),
       _pickupContext: Object.fromEntries(
@@ -87,6 +90,33 @@ export function settingsJsonInput(settings: StoreSettings | Omit<StoreSettings, 
     } as Prisma.InputJsonValue,
     payments: structuredClone(settings.payments) as Prisma.InputJsonValue,
     notifications: structuredClone(settings.notifications) as Prisma.InputJsonValue,
+  };
+}
+
+type StoreBrandAssetRow = {
+  cloudinary_assets: {
+    public_id: string;
+    secure_url: string;
+    delivery_url: string | null;
+    width: number | null;
+    height: number | null;
+    format: string | null;
+    bytes: number | null;
+  };
+};
+
+export function mapStoreBrandLogo(
+  row: StoreBrandAssetRow | null | undefined,
+): StoreBrandLogo | null {
+  if (!row) return null;
+  const asset = row.cloudinary_assets;
+  return {
+    publicId: asset.public_id,
+    url: asset.delivery_url ?? asset.secure_url,
+    width: asset.width,
+    height: asset.height,
+    format: asset.format,
+    bytes: asset.bytes,
   };
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
 import { koboToNaira } from "@/lib/money";
 import {
@@ -117,7 +117,7 @@ export function QuickViewOverlay() {
           <div className="mt-[22px] grid grid-cols-[1.05fr_0.95fr] gap-[34px] max-[860px]:grid-cols-1 max-[600px]:gap-[18px]">
             <div>
               <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] bg-[var(--linen)]">
-                <Image
+                <CloudImage
                   alt={`${active.name}, front view`}
                   className="object-cover [filter:saturate(0.74)]"
                   fill
@@ -144,7 +144,7 @@ export function QuickViewOverlay() {
                     type="button"
                     variant={index === imageIndex ? "secondary" : "outline"}
                   >
-                    <Image alt="" className="object-cover" fill sizes="96px" src={src} />
+                    <CloudImage alt="" className="object-cover" fill sizes="96px" src={src} />
                   </Button>
                 ))}
               </div>

@@ -8,14 +8,9 @@ export type ImageViewerRequest = {
   index?: number;
   images?: readonly string[];
 };
-export type AuthDialogRequest = {
-  mode: "signin" | "signup";
-  onSuccess?: () => void;
-};
 
 const QUICK_VIEW_EVENT = "laitstyles:quick-view";
 const IMAGE_VIEWER_EVENT = "laitstyles:image-viewer";
-const AUTH_DIALOG_EVENT = "laitstyles:auth-dialog";
 const TRANSIENT_OVERLAY_CLOSE_EVENT = "laitstyles:close-transient-overlays";
 
 export function openQuickView(productId: string) {
@@ -26,11 +21,6 @@ export function openQuickView(productId: string) {
 export function openImageViewer(request: ImageViewerRequest) {
   prepareTransientOverlay();
   dispatch<ImageViewerRequest>(IMAGE_VIEWER_EVENT, request);
-}
-
-export function openAuthDialog(request: AuthDialogRequest) {
-  prepareTransientOverlay();
-  dispatch<AuthDialogRequest>(AUTH_DIALOG_EVENT, request);
 }
 
 export function openStorefrontOverlay(id: StorefrontOverlayId) {
@@ -53,10 +43,6 @@ export function subscribeQuickView(listener: (request: QuickViewRequest) => void
 
 export function subscribeImageViewer(listener: (request: ImageViewerRequest) => void) {
   return subscribe<ImageViewerRequest>(IMAGE_VIEWER_EVENT, listener);
-}
-
-export function subscribeAuthDialog(listener: (request: AuthDialogRequest) => void) {
-  return subscribe<AuthDialogRequest>(AUTH_DIALOG_EVENT, listener);
 }
 
 export function subscribeTransientOverlayClose(listener: () => void) {

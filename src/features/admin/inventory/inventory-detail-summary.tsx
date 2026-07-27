@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
 import {
   channelLabels,
   getProductDescriptor,
@@ -28,7 +28,7 @@ export function ProductSummaryPanel({ item }: { item: InventoryListItem }) {
   return (
     <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
       <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-secondary">
-        <Image
+        <CloudImage
           alt={item.coverImage.alt}
           className="object-cover"
           fill

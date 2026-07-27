@@ -11,14 +11,18 @@
 **Current phase:** Phase 6 source complete; Phase 1–6 cross-phase acceptance in progress per `phase-1-6-full-acceptance-design.md`  
 **Overall status:** See [Reconciliation evidence](#reconciliation-evidence-2026-07-26) below — this section and the Phase 6 task ledger previously described a Zustand lockfile blocker that no longer exists and reported WS1 guard status that predated a guard-script fix. Both are corrected below with dated, executed evidence. No phase is newly accepted by this reconciliation.
 
-## Active cross-cutting change: provider centralization (2026-07-27)
+## Completed cross-cutting change: provider centralization (2026-07-27)
 
-**Read this before touching any provider, layout, or query-client file.** A user-directed,
-in-progress change is collapsing the three-way provider split (root theme/toaster, admin's own
-`QueryProvider`, storefront's own `StorefrontQueryProvider`/`StorefrontAuthProvider`) into one
-shared root provider tree. Full design: `docs/superpowers/specs/2026-07-27-provider-centralization-design.md`.
+**Read this before touching any provider, layout, or query-client file.** The three-way provider
+split (root theme/toaster, admin's own `QueryProvider`, storefront's own
+`StorefrontQueryProvider`/`StorefrontAuthProvider`) was collapsed into one shared root provider
+tree on 2026-07-27. Full design: `docs/superpowers/specs/2026-07-27-provider-centralization-design.md`;
+implementation plan and task-by-task execution ledger:
+`docs/superpowers/plans/2026-07-27-provider-centralization.md` and
+`.superpowers/sdd/progress-provider-centralization.md`. See this session's Vitest/build results
+below for verification evidence.
 
-This is an explicit, recorded override of the Phase 7 "no auth-provider merge" exclusion — narrow
+This was an explicit, recorded override of the Phase 7 "no auth-provider merge" exclusion — narrow
 in scope (client-side session-data context only; `src/server/auth/**`, sign-in/sign-up forms, and
 Supabase semantics are untouched). See that spec's "Recorded override" section.
 
@@ -39,10 +43,65 @@ shape than the original phase-1-3/phase-4-5 plans describe:**
   30 s/no-retry, per explicit user decision recorded in the spec). Any later Phase 4/5 work that
   assumed the 30 s admin default should check this before relying on staleness timing; existing
   mutation flows already invalidate explicitly and are expected to be unaffected.
-- WS2a's phase-1-6-full-acceptance.md verdict (written 2026-07-26, before this change) describes
-  the *previous* three-way split as matching the target tree. That description is superseded by
-  this change and will be updated once implementation lands — do not treat it as current during
-  the window this notice is active.
+- WS2a's `phase-1-6-full-acceptance.md` verdict has been rewritten against this current shape —
+  see that document's WS2a row, which is no longer marked superseded.
+
+**Three implementation deviations from the original plan text**, discovered and fixed during
+execution (Tasks 7–8; full detail in `.superpowers/sdd/progress-provider-centralization.md` and
+the plan file's own "Implementation deviation recorded during execution (Task 7)" section):
+
+1. **Cache Components / Suspense fix.** The plan originally had `AppProvider({ session, children })`
+   mount `SessionProvider` directly, with `RootLayout` `await`-ing the session before returning
+   JSX. This broke `pnpm build`: this repo has `cacheComponents: true` (Next.js 16 Cache
+   Components), which requires any uncached per-request read to sit behind a `<Suspense>` boundary
+   covering every route rendering under it. Fixed by moving session resolution into a new async
+   `SessionSlot` component, wrapped in `<Suspense fallback={<AppShellFallback />}>`, inside
+   `src/app/layout.tsx`. `AppProvider`'s signature changed from `{ session, children }` to
+   `{ children }` — it no longer takes or mounts session at all; `SessionSlot` mounts
+   `SessionProvider` one level below `AppProvider`, inside the new Suspense boundary.
+2. **`http-module-contract.mjs` gap.** This Phase 3 HTTP guard (distinct from
+   `layout-provider-contract.mjs`) hardcoded checks for the retired
+   `src/lib/query/admin-query-client.ts` (+ test) and `src/providers/query-provider.tsx` — neither
+   of which the original plan anticipated needing updates, since the guard-chain's `&&` meant this
+   guard was never reached until the guards ahead of it were fixed. Updated to check
+   `app-query-client.ts`/`providers.tsx` with `APP_QUERY_DEFAULTS`/`getAppQueryClient` instead.
+3. **`SessionProvider`-string check fragility.** Both `layout-provider-contract.mjs` and
+   `src/lib/boundaries/app-provider-boundary.test.ts` asserted that the string `"SessionProvider"`
+   appears in `src/providers/providers.tsx` — which only "passed" because of an explanatory code
+   comment there, not real behavior (the actual mount is in `src/app/layout.tsx`'s `SessionSlot`).
+   Fixed to check the file that actually mounts it.
+
+A small, deliberate addition (not a deviation): `ReactQueryDevtools` was added back to the shared
+`AppProvider`, dev-only (`process.env.NODE_ENV === "development"`), matching what the old
+admin-only `QueryProvider` used to render.
+
+**Verification (this session, 2026-07-27):**
+
+- `pnpm check:architecture` — 0 errors across all five guards (`module-export-guard`,
+  `architecture-guard`, `error-validation-contract`, `layout-provider-contract`,
+  `http-module-contract`).
+- `pnpm biome` — 0 errors, 65 pre-existing warnings. This session found and fixed 9 new format
+  errors in this plan's own new/modified files (line-ending drift plus two genuine import-order/
+  line-wrap issues in `src/app/layout.tsx` and `src/lib/boundaries/app-provider-boundary.test.ts`)
+  as a dedicated, scoped commit (`572b77f`) before the docs commit — see that commit message for
+  the full file list and rationale. No repo-wide reformat was run; the 65 pre-existing warnings are
+  untouched.
+- `pnpm typecheck` — 0 errors. The 7-error Prisma model-typing gap recorded elsewhere in this
+  tracker (`profile_details`/`product_variant_measurements`) is resolved as of this candidate,
+  attributable to the unrelated `f3be101` Prisma import-path fix noted in the execution ledger, not
+  to anything in this plan.
+- `pnpm exec vitest run` — 484 passed, 6 failed, 6 skipped (496 total). Five failures exactly match
+  the 2026-07-26 baseline below (Products/Inventory/Settings module-boundary and HTTP-status
+  mismatches). The sixth was a worker-timeout flake on `admin-persistence-boundary.test.ts` in this
+  run (confirmed passing in isolation in under 1 second across a targeted rerun) — the same class
+  of full-suite worker-contention flake the 2026-07-26 baseline already documents for a different
+  file (`category-card.test.tsx`), not a new defect. Re-running the full suite twice more reproduced
+  the identical five named failures plus the same flake pattern each time.
+- `pnpm build` — succeeds. Cache Components prerenders every route, including `/admin/**` and
+  `/auth/error`, with no "Uncached data was accessed outside of `<Suspense>`" errors, confirming the
+  Suspense fix (deviation 1 above) holds under a full production build.
+- Browser verification (theme sync, signed-in state, cart/hold hydration, hydration warnings) is
+  explicitly out of scope for this pass and is handled separately.
 
 ## Reconciliation evidence (2026-07-26)
 

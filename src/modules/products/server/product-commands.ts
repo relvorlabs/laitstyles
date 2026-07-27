@@ -62,15 +62,6 @@ function mapZodIssues(
   });
 }
 
-function isDurableMediaUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 function validateSaveInput(
   values: ProductEditorValues,
   intent: ProductEditorIntent,
@@ -80,20 +71,6 @@ function validateSaveInput(
   const issues = parsed.success ? [] : mapZodIssues(parsed.error.issues);
   if (intent === "publish") issues.push(...validateProductForPublish(values));
   if (intent === "schedule") issues.push(...validateProductForSchedule(values));
-
-  for (const [index, media] of values.media.entries()) {
-    if (
-      media.source === "local-preview" ||
-      media.url.startsWith("blob:") ||
-      !isDurableMediaUrl(media.url)
-    ) {
-      issues.push({
-        path: `media.${index}.url`,
-        message: "Choose a durable HTTP or HTTPS image URL before saving.",
-        step: "images",
-      });
-    }
-  }
 
   if (values.productId && !isProductId(values.productId)) {
     issues.push({
@@ -106,13 +83,6 @@ function validateSaveInput(
   if (values.inventoryMode === "variant") {
     const existingIds = new Set<string>();
     for (const [index, variant] of values.variant.variants.entries()) {
-      if (variant.imageUrl.trim() && !isDurableMediaUrl(variant.imageUrl.trim())) {
-        issues.push({
-          path: `variant.variants.${index}.imageUrl`,
-          message: "Choose a durable HTTP or HTTPS variant image URL before saving.",
-          step: "images",
-        });
-      }
       if (!variant.id || !isProductId(variant.id)) continue;
       if (existingIds.has(variant.id)) {
         issues.push({

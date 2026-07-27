@@ -8,19 +8,29 @@ describe("Product editor catalogue edge cases", () => {
     values.media = [
       {
         id: "media-1",
-        url: "/product-placeholder.svg",
+        publicId: "products/front-view",
+        url: "https://res.cloudinary.com/demo/image/upload/v1/products/front-view.jpg",
+        width: null,
+        height: null,
+        format: null,
+        bytes: null,
         alt: "Front view",
         kind: "cover",
         position: 0,
-        source: "url",
+        source: "upload",
       },
       {
         id: "media-2",
-        url: "/product-placeholder.svg",
+        publicId: "products/front-view",
+        url: "https://res.cloudinary.com/demo/image/upload/v1/products/front-view.jpg",
+        width: null,
+        height: null,
+        format: null,
+        bytes: null,
         alt: "Repeated front view",
         kind: "cover",
         position: 1,
-        source: "url",
+        source: "upload",
       },
     ];
 
@@ -29,7 +39,7 @@ describe("Product editor catalogue edge cases", () => {
     expect(issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: "media" }),
-        expect.objectContaining({ path: "media.1.url" }),
+        expect.objectContaining({ path: "media.1.publicId" }),
       ]),
     );
   });
@@ -60,7 +70,7 @@ describe("Product editor catalogue edge cases", () => {
         sku: "LS-VAR-DENIM-M",
         size: "M",
         colour: "Indigo",
-        imageUrl: "",
+        image: null,
         price: null,
         cost: null,
         quantity: 0,
@@ -71,7 +81,7 @@ describe("Product editor catalogue edge cases", () => {
         sku: "LS-VAR-DENIM-M",
         size: "L",
         colour: "Indigo",
-        imageUrl: "",
+        image: null,
         price: null,
         cost: null,
         quantity: 0,

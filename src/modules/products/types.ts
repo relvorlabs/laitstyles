@@ -1,4 +1,3 @@
-import type { AssetProvider } from "@/lib/assets/types";
 import type { InventoryCounts } from "@/modules/inventory/types";
 
 export type InventoryMode = "unique" | "stocked" | "variant";
@@ -9,9 +8,12 @@ export type ProductMediaKind = "cover" | "detail" | "defect";
 
 export type ProductMedia = {
   id: string;
+  publicId: string;
   url: string;
-  provider?: AssetProvider;
-  storageKey?: string;
+  width: number | null;
+  height: number | null;
+  format: string | null;
+  bytes: number | null;
   alt: string;
   kind: ProductMediaKind;
   position: number;
@@ -75,13 +77,22 @@ export type StockedProduct = ProductBase & {
   stock: InventoryCounts;
 };
 
+export type ProductVariantImage = {
+  publicId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
+  format: string | null;
+  bytes: number | null;
+};
+
 export type ProductVariant = {
   id: string;
   label: string;
   sku: string;
   size: string | null;
   colour: string | null;
-  imageUrl: string | null;
+  image: ProductVariantImage | null;
   price: number | null;
   cost: number | null;
   stock: InventoryCounts;
@@ -115,11 +126,16 @@ export type ProductEditorMeasurement = {
 
 export type ProductEditorMedia = {
   id: string;
+  publicId: string;
   url: string;
+  width: number | null;
+  height: number | null;
+  format: string | null;
+  bytes: number | null;
   alt: string;
   kind: ProductMediaKind;
   position: number;
-  source: "existing" | "local-preview" | "url";
+  source: "existing" | "upload";
 };
 
 export type ProductEditorVariant = {
@@ -128,7 +144,7 @@ export type ProductEditorVariant = {
   sku: string;
   size: string;
   colour: string;
-  imageUrl: string;
+  image: ProductVariantImage | null;
   price: number | null;
   cost: number | null;
   quantity: number;

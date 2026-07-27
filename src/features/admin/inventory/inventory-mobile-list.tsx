@@ -2,11 +2,11 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Expand } from "lucide-react";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { getProductDescriptor } from "@/features/admin/inventory/inventory-labels";
 import { InventoryStatusBadge } from "@/features/admin/inventory/inventory-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
@@ -43,7 +43,7 @@ export function InventoryMobileList({
                 type="button"
                 variant="ghost"
               >
-                <Image
+                <CloudImage
                   alt={item.coverImage.alt}
                   className="object-cover transition-transform group-hover:scale-[1.025] motion-reduce:transition-none"
                   fill

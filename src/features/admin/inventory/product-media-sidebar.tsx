@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, Copy, ExternalLink, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
-import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { ProductMedia } from "@/lib/admin/shared/types";
 
 type CopyFeedback = "copied" | "error" | null;
@@ -75,7 +75,7 @@ export function ProductMediaSidebar({
             type="button"
             variant={index === activeIndex ? "secondary" : "outline"}
           >
-            <Image
+            <CloudImage
               alt=""
               className="object-cover transition-transform group-hover:scale-[1.03] motion-reduce:transition-none"
               fill

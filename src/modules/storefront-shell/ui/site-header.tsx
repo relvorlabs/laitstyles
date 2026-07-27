@@ -2,11 +2,11 @@
 
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
   showStorefrontToast,
@@ -246,7 +246,7 @@ export function SiteHeader({
             type="button"
             variant="ghost"
           >
-            <Image
+            <CloudImage
               alt={mobileFeature?.name ?? "Laitstyles featured product"}
               height={1125}
               sizes="320px"

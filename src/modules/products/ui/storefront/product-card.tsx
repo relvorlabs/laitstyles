@@ -1,9 +1,9 @@
 // Shared product card. Its JSX, classes, labels and responsive behaviour are preserved
 // from the legacy storefront component; only ownership and import paths changed.
 
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useReveal } from "@/hooks/use-reveal";
 import { IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
 import { addToBagLabel, money, type Product, productSlug } from "./catalogue-data";
@@ -95,7 +95,7 @@ export function ProductCard({
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] bg-[var(--linen)] shadow-[0_1px_0_rgba(25,26,23,0.06)]">
         {primaryImage ? (
-          <Image
+          <CloudImage
             alt={`${product.name}, primary view`}
             className={`${imgBase} ${secondaryImage ? "[@media(hover:hover)]:group-hover:opacity-0" : ""} ${imgHover}`}
             fill
@@ -107,7 +107,7 @@ export function ProductCard({
           />
         ) : null}
         {secondaryImage ? (
-          <Image
+          <CloudImage
             alt=""
             className={`${imgBase} opacity-0 [@media(hover:hover)]:group-hover:opacity-100 ${imgHover}`}
             fill

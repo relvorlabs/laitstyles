@@ -9,8 +9,8 @@ import {
   ScanIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 import Link from "next/link";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { Product } from "./catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import { Reveal } from "./reveal";
@@ -127,7 +127,7 @@ function ProductWhySection({ product }: { product: Product }) {
     >
       <div className="relative min-h-[360px] overflow-hidden bg-surface-sunken">
         {image ? (
-          <Image
+          <CloudImage
             src={image}
             alt={`${product.name}, material and construction view`}
             fill
@@ -257,7 +257,7 @@ export function ProductSizeGuide({
 
           <div className="relative min-h-[360px] overflow-hidden border-t border-border bg-surface-sunken lg:border-l lg:border-t-0">
             {image ? (
-              <Image
+              <CloudImage
                 src={image}
                 alt={`${product.name}, fit reference`}
                 fill

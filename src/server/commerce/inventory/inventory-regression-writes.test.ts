@@ -144,24 +144,29 @@ describe("inventory write regressions", () => {
     expect(harness.tx.products.update).not.toHaveBeenCalled();
   });
 
-  it("rejects relative media paths before starting a database transaction", async () => {
+  it("rejects media that was never uploaded before starting a database transaction", async () => {
     getInventoryProductMock.mockResolvedValue(null);
     const values = createEmptyProductEditorValues("stocked");
     if (values.inventoryMode !== "stocked") throw new Error("fixture mismatch");
     values.name = "Relative media product";
     values.category = "Tops";
     values.brand = "Laitstyles";
-    values.description = "A product with a non-durable image reference.";
+    values.description = "A product with no uploaded image reference.";
     values.internalReference = "SKU-RELATIVE";
     values.sellingPrice = 10_000;
     values.media = [
       {
         id: "relative-media",
-        url: "/product-placeholder.svg",
+        publicId: "",
+        url: "https://example.invalid/relative-placeholder",
+        width: null,
+        height: null,
+        format: null,
+        bytes: null,
         alt: "Relative placeholder",
         kind: "cover",
         position: 0,
-        source: "url",
+        source: "upload",
       },
     ];
 
@@ -170,7 +175,7 @@ describe("inventory write regressions", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.issues).toContainEqual(
-        expect.objectContaining({ path: "media.0.url", step: "images" }),
+        expect.objectContaining({ path: "media.0.publicId", step: "images" }),
       );
     }
     expect(harness.prisma.$transaction).not.toHaveBeenCalled();

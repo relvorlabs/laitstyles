@@ -43,14 +43,6 @@ export async function resolveProductTaxonomyId(
   ).id;
 }
 
-function assetProviderFor(url: string): string {
-  try {
-    return new URL(url).hostname === "res.cloudinary.com" ? "cloudinary" : "external";
-  } catch {
-    return "external";
-  }
-}
-
 export async function writeProductMedia(
   tx: Prisma.TransactionClient,
   productId: string,
@@ -59,17 +51,19 @@ export async function writeProductMedia(
   await tx.product_media.deleteMany({ where: { product_id: productId } });
   for (const [position, item] of media.entries()) {
     const kind = mediaKindToDb[item.kind];
-    const provider = assetProviderFor(item.url);
+    const assetData = {
+      kind,
+      secure_url: item.url,
+      alt: cleanProductText(item.alt),
+      width: item.width,
+      height: item.height,
+      format: item.format,
+      bytes: item.bytes,
+    };
     const asset = await tx.cloudinary_assets.upsert({
-      where: { public_id: `admin/products/${productId}/${position}` },
-      update: { provider, kind, secure_url: item.url, alt: cleanProductText(item.alt) },
-      create: {
-        provider,
-        kind,
-        public_id: `admin/products/${productId}/${position}`,
-        secure_url: item.url,
-        alt: cleanProductText(item.alt),
-      },
+      where: { public_id: item.publicId },
+      update: assetData,
+      create: { ...assetData, public_id: item.publicId },
     });
     await tx.product_media.create({
       data: { product_id: productId, asset_id: asset.id, kind, position },
@@ -107,8 +101,4 @@ export async function writeProductMeasurements(
       position,
     })),
   });
-}
-
-export function productAssetProviderFor(url: string): string {
-  return assetProviderFor(url);
 }

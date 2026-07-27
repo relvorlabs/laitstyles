@@ -1,9 +1,14 @@
 "use client";
 
+import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
+import { CldUploadButton } from "next-cloudinary";
 import { useFormContext, useWatch } from "react-hook-form";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
+import { FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   SettingsTextareaField,
   SettingsTextField,
@@ -11,14 +16,33 @@ import {
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
 
-const approvedLogoPath = "/brand/laitstyle-symbol.svg";
-
 export function StoreIdentitySection() {
-  const { control } = useFormContext<SaveStoreSettingsInput>();
+  const { control, setValue } = useFormContext<SaveStoreSettingsInput>();
   const identity = useWatch({
     control,
     name: "identity",
   }) as SaveStoreSettingsInput["identity"];
+
+  function handleLogoUpload(result: CloudinaryUploadWidgetResults) {
+    const info = result.info;
+    if (!info || typeof info === "string") return;
+    setValue(
+      "identity.logo",
+      {
+        publicId: info.public_id,
+        url: info.secure_url,
+        width: info.width ?? null,
+        height: info.height ?? null,
+        format: info.format ?? null,
+        bytes: info.bytes ?? null,
+      },
+      { shouldDirty: true },
+    );
+  }
+
+  function removeLogo() {
+    setValue("identity.logo", null, { shouldDirty: true });
+  }
 
   return (
     <SettingsSectionFrame
@@ -78,12 +102,44 @@ export function StoreIdentitySection() {
           placeholder="https://example.com"
           type="url"
         />
-        <SettingsTextField
-          description="The approved woven mark is used by default. Direct logo upload is not available yet."
-          label="Logo image"
-          name="identity.logoPreviewUrl"
-          placeholder={approvedLogoPath}
-        />
+        <div className="space-y-2 sm:col-span-2">
+          <FieldLabel>Logo image</FieldLabel>
+          <FieldDescription>
+            The approved woven mark is used by default. Upload a custom logo to use it in
+            transactional emails and other branded surfaces instead.
+          </FieldDescription>
+          {identity?.logo ? (
+            <div className="flex items-center gap-3">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border border-border bg-background">
+                <CloudImage
+                  alt="Store logo"
+                  className="object-contain p-1"
+                  fill
+                  sizes="56px"
+                  src={identity.logo.url}
+                />
+              </div>
+              <Button onClick={removeLogo} size="sm" type="button" variant="outline">
+                Remove logo
+              </Button>
+            </div>
+          ) : (
+            <CldUploadButton
+              className={buttonVariants({ variant: "outline" })}
+              data-slot="button"
+              onSuccess={handleLogoUpload}
+              options={{
+                multiple: false,
+                sources: ["local", "camera"],
+                clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "svg"],
+                folder: "laitstyles/brand",
+              }}
+              signatureEndpoint="/api/v1/admin/assets/sign"
+            >
+              Upload logo
+            </CldUploadButton>
+          )}
+        </div>
       </div>
     </SettingsSectionFrame>
   );
@@ -93,8 +149,7 @@ function StorefrontIdentityPreview({ identity }: { identity: SaveStoreSettingsIn
   const name = identity?.storeName?.trim() || "Your store";
   const description =
     identity?.description?.trim() || "Your store description will appear here as customers browse.";
-  const initial = name.slice(0, 1).toUpperCase();
-  const usesApprovedMark = identity?.logoPreviewUrl === approvedLogoPath;
+  const logo = identity?.logo;
   const contact =
     identity?.contactEmail?.trim() ||
     identity?.contactPhone?.trim() ||
@@ -112,11 +167,11 @@ function StorefrontIdentityPreview({ identity }: { identity: SaveStoreSettingsIn
       </div>
       <div className="p-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground">
-            {usesApprovedMark ? (
-              <LaitstyleSymbol aria-hidden="true" className="h-10 w-7" focusable="false" />
+          <div className="relative flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground">
+            {logo ? (
+              <CloudImage alt="" className="object-contain p-1" fill sizes="56px" src={logo.url} />
             ) : (
-              <span className="font-serif text-xl">{initial}</span>
+              <LaitstyleSymbol aria-hidden="true" className="h-10 w-7" focusable="false" />
             )}
           </div>
           <div className="min-w-0">
@@ -138,7 +193,7 @@ function StorefrontIdentityPreview({ identity }: { identity: SaveStoreSettingsIn
           <p className="mt-1 break-words text-xs leading-5">{contact}</p>
         </div>
         <p className="mt-4 break-all text-[10px] leading-4 text-muted-foreground">
-          Logo image: {identity?.logoPreviewUrl || "Not set"}
+          Logo: {logo ? logo.publicId : "Using the approved woven mark"}
         </p>
       </div>
     </Card>

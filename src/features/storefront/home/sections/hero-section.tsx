@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
@@ -23,7 +23,7 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
     <section className="hero">
       <div className="shell hero-grid">
         <article className="hero-main">
-          <Image
+          <CloudImage
             alt={heroBlazer.name}
             height={2250}
             priority
@@ -57,7 +57,7 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
               variant="ghost"
             >
               <span className="contents">
-                <Image
+                <CloudImage
                   alt={product.name}
                   height={1125}
                   sizes="(min-width: 861px) 34vw, 100vw"

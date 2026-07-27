@@ -1,10 +1,10 @@
 "use client";
 
 import { Clock, Home, LockKeyhole, ShoppingBag, Trash2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { money as naira } from "@/modules/products/ui/storefront/catalogue-data";
 import {
   useStorefrontCart,
@@ -136,7 +136,7 @@ export default function CartPage() {
                           href={`/products/${product.slug}`}
                         >
                           {product.images[0] ? (
-                            <Image
+                            <CloudImage
                               alt={product.name}
                               className="object-cover"
                               fill

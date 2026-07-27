@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -178,7 +178,7 @@ export function RecordSaleItemStep() {
       <aside className="self-start overflow-hidden rounded-[16px] border border-border bg-card">
         <div className="relative aspect-[4/3] bg-secondary">
           {cover ? (
-            <Image
+            <CloudImage
               alt={cover.alt || product?.name || "Selected product"}
               className="object-cover"
               fill

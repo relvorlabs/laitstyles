@@ -18,11 +18,14 @@ const optionalUrlSchema = z.union([
   z.string().trim().url("Enter a complete website address."),
 ]);
 
-const logoReferenceSchema = z.union([
-  z.literal(""),
-  z.string().trim().startsWith("/", "Use a preview path or complete image address."),
-  z.string().trim().url("Use a preview path or complete image address."),
-]);
+export const storeBrandLogoSchema = z.object({
+  publicId: z.string().trim().min(1),
+  url: z.string().trim().min(1),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  format: z.string().nullable(),
+  bytes: z.number().nullable(),
+});
 
 export const storeIdentitySettingsSchema = z.object({
   storeName: z
@@ -46,7 +49,7 @@ export const storeIdentitySettingsSchema = z.object({
       .regex(/^@[A-Za-z0-9._]{1,30}$/, "Use an Instagram handle beginning with @."),
   ]),
   websiteUrl: optionalUrlSchema,
-  logoPreviewUrl: logoReferenceSchema,
+  logo: storeBrandLogoSchema.nullable(),
 });
 
 export const sellingPreferencesSettingsSchema = z.object({
