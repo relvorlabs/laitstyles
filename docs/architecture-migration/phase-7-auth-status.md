@@ -132,7 +132,7 @@ Phase 7 must not:
 - [ ] P7-T01 confirm the complete auth ownership/import map on this exact branch (superseded by
       the design spec's current-state inventory — re-verify at implementation start in case of
       drift);
-- [ ] P7-T02 create `src/modules/auth` runtime contracts (`schema.ts`, `types.ts`);
+- [x] P7-T02 create `src/modules/auth` runtime contracts (`schema.ts`, `types.ts`);
 - [ ] P7-T03 move session resolution;
 - [ ] P7-T04 move account provisioning;
 - [ ] P7-T05 move permission orchestration;
@@ -148,6 +148,28 @@ Phase 7 must not:
 - [ ] P7-T14 run focused auth unit, integration, and Playwright/e2e (`tests/e2e/auth-flows.spec.ts`)
       validation;
 - [ ] P7-T15 reconcile documentation and merge evidence on the exact final head.
+
+## P7-T02 evidence (2026-07-27)
+
+`src/modules/auth/schema.ts` and `src/modules/auth/types.ts` created as temporary re-exports
+(`schema.ts` from `@/lib/auth/auth-schemas`; `types.ts` from `@/lib/auth/roles` only — the
+`roles`-based portion of the target `types.ts`). Session types (`CurrentSession`,
+`ConsumerSession`, `StaffSession`, `StaffAccess`, `VerifiedIdentity`) are deliberately deferred to
+P7-T03: re-exporting them now from the still-legacy `@/server/auth/session` was tried and
+correctly rejected by the architecture guard as an undocumented compatibility edge; re-exporting
+them once `session.ts` itself relocates to `@/modules/auth/server/session` avoids ever registering
+a short-lived exception for it.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 0 errors, 0 warnings across all five guards.
+- `pnpm exec biome check` (scoped to the two new files) — 0 errors after applying Biome's own safe
+  auto-fixes (export ordering, line endings).
+
+Not yet run: `pnpm test`, `pnpm build`, `pnpm react-doctor`, browser/Playwright — deferred until a
+task actually changes runtime behaviour or a consumer import (T02 adds unconsumed contract files
+only; nothing yet imports `modules/auth/schema.ts` or `modules/auth/types.ts`).
 
 ## Acceptance gate
 
