@@ -3,13 +3,18 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { PasswordSignInInput, PasswordSignUpInput } from "@/modules/auth/schema";
+import { ensureConsumerAccount } from "@/modules/auth/server/account-provisioning";
 import {
   type AuthFlowFailure,
   authFlowFailure,
   logAuthProviderFailure,
   mapAuthProviderError,
 } from "@/modules/auth/server/diagnostics";
-import { getRequestOrigin, getSafeNextPath } from "@/modules/auth/server/redirects";
+import {
+  getAuthRedirectUrl,
+  getSafeNextPath,
+  withAuthErrorPath,
+} from "@/modules/auth/server/redirects";
 
 export type PasswordAuthSuccess = {
   status: "success" | "check-email";
@@ -20,6 +25,12 @@ export type PasswordAuthResult = Result<PasswordAuthSuccess, AuthFlowFailure>;
 export type AuthEmailResult = Result<{ status: "accepted"; email: string }, AuthFlowFailure>;
 export type RecoveredPasswordResult = Result<{ status: "password-updated" }, AuthFlowFailure>;
 export type SignOutResult = Result<void, AuthFlowFailure>;
+
+type OAuthCallbackInput = {
+  code: string | null;
+  providerErrorCode: string | null;
+  next: string | null;
+};
 
 export async function authenticateWithPassword(
   input: PasswordSignInInput,
@@ -38,6 +49,9 @@ export async function registerWithPassword(
 ): Promise<PasswordAuthResult> {
   const next = getSafeNextPath(input.next, "/account");
   const supabase = await createClient();
+  const emailRedirectTo = await getAuthRedirectUrl(
+    `/auth/callback?next=${encodeURIComponent(next)}`,
+  );
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -47,7 +61,7 @@ export async function registerWithPassword(
         last_name: input.last,
         full_name: `${input.first} ${input.last}`.trim(),
       },
-      emailRedirectTo: `${await getRequestOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
+      emailRedirectTo,
     },
   });
 
@@ -56,8 +70,8 @@ export async function registerWithPassword(
     return err(mapAuthProviderError(error));
   }
 
-  // Supabase may intentionally return an obfuscated user for an existing email.
-  // Keep the response enumeration-safe and never promise that an email was sent.
+  // Supabase sends the configured confirmation template when email confirmation
+  // is enabled. Keep the response enumeration-safe for existing addresses.
   return ok({
     status: data.session ? "success" : "check-email",
     email: input.email,
@@ -65,11 +79,11 @@ export async function registerWithPassword(
 }
 
 export async function sendPasswordResetEmail(email: string): Promise<AuthEmailResult> {
-  const origin = await getRequestOrigin();
   const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`,
-  });
+  const redirectTo = await getAuthRedirectUrl(
+    `/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`,
+  );
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
     logAuthProviderFailure("password-recovery-request", error);
     return err(mapAuthProviderError(error, "recovery-failed"));
@@ -79,14 +93,14 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthEmailRe
 }
 
 export async function sendSignupConfirmationEmail(email: string): Promise<AuthEmailResult> {
-  const origin = await getRequestOrigin();
   const supabase = await createClient();
+  const emailRedirectTo = await getAuthRedirectUrl(
+    `/auth/callback?next=${encodeURIComponent("/account")}`,
+  );
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/account")}`,
-    },
+    options: { emailRedirectTo },
   });
   if (error) {
     logAuthProviderFailure("signup-confirmation-resend", error);
@@ -94,6 +108,82 @@ export async function sendSignupConfirmationEmail(email: string): Promise<AuthEm
   }
 
   return ok({ status: "accepted", email });
+}
+
+export async function startGoogleOAuth(nextValue: FormDataEntryValue | string | null) {
+  const next = getSafeNextPath(nextValue, "/account");
+  const supabase = await createClient();
+  const redirectTo = await getAuthRedirectUrl(
+    `/auth/callback?next=${encodeURIComponent(next)}`,
+  );
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo },
+  });
+
+  if (error || !data.url) {
+    logAuthProviderFailure("oauth-start", error ?? { name: "MissingOAuthRedirectUrl" });
+    const failure = error
+      ? mapAuthProviderError(error, "oauth-start-failed")
+      : authFlowFailure("oauth-start-failed");
+    return withAuthErrorPath(failure.code, next);
+  }
+
+  return data.url;
+}
+
+export async function completeOAuthCallback({
+  code,
+  providerErrorCode,
+  next: nextValue,
+}: OAuthCallbackInput) {
+  const next = getSafeNextPath(nextValue, "/account");
+
+  if (providerErrorCode) {
+    logAuthProviderFailure("oauth-callback", {
+      name: "OAuthCallbackProviderError",
+      code: providerErrorCode,
+    });
+    const failure = mapAuthProviderError({ code: providerErrorCode }, "oauth-callback-invalid");
+    return withAuthErrorPath(failure.code, next);
+  }
+
+  if (!code) {
+    logAuthProviderFailure("oauth-callback", { name: "MissingOAuthCallbackCode" });
+    return withAuthErrorPath("oauth-callback-invalid", next);
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    logAuthProviderFailure("oauth-callback", error);
+    const failure = mapAuthProviderError(error, "oauth-callback-invalid");
+    return withAuthErrorPath(failure.code, next);
+  }
+
+  const { data, error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    logAuthProviderFailure("oauth-callback-user", userError);
+    const failure = mapAuthProviderError(userError, "oauth-callback-invalid");
+    return withAuthErrorPath(failure.code, next);
+  }
+
+  if (data.user) {
+    await ensureConsumerAccount({
+      id: data.user.id,
+      email: data.user.email ?? null,
+      userMetadata: data.user.user_metadata,
+    });
+  }
+
+  return next;
+}
+
+export async function hasRecoverySession() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error) logAuthProviderFailure("password-recovery-session", error);
+  return Boolean(data.user && !error);
 }
 
 export async function updateRecoveredPassword(password: string): Promise<RecoveredPasswordResult> {
