@@ -15,11 +15,13 @@ Roles live in `profiles.role`. There are no tenant models, membership tables, st
 Requirements: Node 25, pnpm 11 and PostgreSQL.
 
 1. Install dependencies with `pnpm install`.
-2. Create `.env.local` with `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SERVICE_ROLE_KEY`.
+2. Create `.env.local` with `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `AUTH_SITE_URL`.
 3. Run `pnpm exec prisma validate` and `pnpm prisma:generate`.
 4. For a fresh database, apply committed migrations with `pnpm exec prisma migrate deploy`. Use `pnpm exec prisma migrate dev --name <change>` only for an intentional development schema change.
 5. Seed storefront data when required with `pnpm db:seed:storefront`.
 6. Start the app with `pnpm dev`.
+
+`AUTH_SITE_URL` must be the public origin only, for example `https://shop.example.com` in production or `http://localhost:3000` locally. Add the matching `/auth/callback` URL to the Supabase Auth redirect allow-list. Signup confirmation, confirmation resend, Google OAuth and password recovery all derive their callback URLs from this one origin. `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` remain supported fallbacks, followed by the current request host.
 
 Do not use the Supabase CLI for database creation, migrations, resets, schema inspection or database type generation. Database changes begin in `prisma/schema.prisma`, are captured in `prisma/migrations`, and regenerate `prisma/generated/prisma`.
 
