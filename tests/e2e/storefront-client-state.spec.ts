@@ -129,5 +129,5 @@ test("URL-driven sign-in opens the canonical dialog and removes transport params
 
   await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
   await expect(page.getByText("Enter a valid email address")).toBeVisible();
-  await expect(page.getByText("Password must be at least 8 characters")).toBeVisible();
+  await expect(page.getByText("Enter your password")).toBeVisible();
 });
