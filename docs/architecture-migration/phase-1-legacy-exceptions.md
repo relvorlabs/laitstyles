@@ -17,7 +17,6 @@ These edges are owned by the domain engineer and are removed in Phase 7.
 | Importer | Imported specifier |
 | --- | --- |
 | `src/app/layout.tsx` | `@/server/auth/session` |
-| `src/app/storefront-route-boundary.tsx` | `@/server/auth/session` |
 | `src/app/auth/sign-in/page.tsx` | `@/server/auth/session` |
 | `src/app/admin/layout.tsx` | `@/server/auth/session` |
 | `src/app/admin/inventory/page.tsx` | `@/server/auth/session` |
@@ -48,8 +47,6 @@ These edges are owned by the domain engineer and are removed in Phase 7.
 | `src/modules/storefront-shell/ui/site-chrome.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/modules/storefront-shell/ui/storefront-account-menu.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-dialog-host` |
-| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-session` |
-| `src/app/storefront-route-boundary.tsx` | `@/features/storefront/shared/storefront-auth-session` |
 
 Only `src/server/auth/session.ts` and `src/server/auth/profile.ts` are declared legacy top-level
 auth files. A third production file under `src/server/auth/**` is not allowed by folder or glob.
@@ -88,3 +85,11 @@ When a later phase removes an exception:
 2. update the owning domain migration status;
 3. run the focused boundary tests and `pnpm check:architecture`;
 4. preserve Phase 0 UI and runtime behaviour.
+
+On 2026-07-27, as part of the provider-centralization change, three edges were removed in one
+commit: `src/app/storefront-route-boundary.tsx` → `@/server/auth/session` (session resolution
+moved to root layout), `src/app/storefront-client-boundary.tsx` →
+`@/features/storefront/shared/storefront-auth-session`, and
+`src/app/storefront-route-boundary.tsx` → `@/features/storefront/shared/storefront-auth-session`
+(storefront auth narrowed to actions-only). See
+`docs/superpowers/specs/2026-07-27-provider-centralization-design.md`.

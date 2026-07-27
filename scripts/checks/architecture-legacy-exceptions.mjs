@@ -1,6 +1,5 @@
 const phase7SessionImporters = [
   "src/app/layout.tsx",
-  "src/app/storefront-route-boundary.tsx",
   "src/app/auth/sign-in/page.tsx",
   "src/app/admin/layout.tsx",
   "src/app/admin/inventory/page.tsx",
@@ -42,14 +41,6 @@ const phase7StorefrontAuthCompositionEdges = [
   {
     importer: "src/app/storefront-client-boundary.tsx",
     imported: "@/features/storefront/shared/storefront-auth-dialog-host",
-  },
-  {
-    importer: "src/app/storefront-client-boundary.tsx",
-    imported: "@/features/storefront/shared/storefront-auth-session",
-  },
-  {
-    importer: "src/app/storefront-route-boundary.tsx",
-    imported: "@/features/storefront/shared/storefront-auth-session",
   },
 ];
 
