@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   requestPasswordReset,
   resendSignupConfirmation,
@@ -156,9 +156,7 @@ export function StorefrontAuthDialogHost() {
     resetLocalState();
     successRef.current = null;
 
-    if (!completed) return;
-    if (onCompleted) onCompleted();
-    else startTransition(actions.refreshSession);
+    if (completed) onCompleted?.();
   }, [actions, resetLocalState, state]);
 
   return (
