@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -21,7 +20,7 @@ import {
   closeStorefrontOverlays,
   subscribeTransientOverlayClose,
 } from "@/modules/storefront-shell/client/storefront-overlay-events";
-import { useSession } from "@/providers/session-provider";
+import { useSession, useSessionActions } from "@/providers/session-provider";
 import type { StorefrontAuthForm, StorefrontAuthMode } from "./auth-dialog";
 
 type AuthSubmissionResult =
@@ -53,7 +52,6 @@ type StorefrontAuthContextValue = {
       form: StorefrontAuthForm,
       termsAccepted: boolean,
     ) => Promise<AuthSubmissionResult>;
-    refreshSession: () => void;
     signOut: () => Promise<void>;
   };
 };
@@ -64,7 +62,7 @@ const closedDialog: AuthDialogState = { open: false, mode: "signin" };
 
 export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
   const authSession = useSession();
-  const router = useRouter();
+  const { resetSession, setSession } = useSessionActions();
   const [dialog, setDialog] = useState<AuthDialogState>(closedDialog);
 
   const openSignin = useCallback(
@@ -109,16 +107,25 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       formData.set("next", `${window.location.pathname}${window.location.search}`);
       formData.set("returnTo", `${current.pathname}${current.search}`);
 
-      return mode === "signup"
-        ? submitPasswordSignUp(formData)
-        : submitPasswordSignIn(formData);
-    },
-    [],
-  );
+      const result =
+        mode === "signup"
+          ? await submitPasswordSignUp(formData)
+          : await submitPasswordSignIn(formData);
 
-  const refreshSession = useCallback(() => {
-    router.refresh();
-  }, [router]);
+      if (result.ok && result.value.status === "success") {
+        const signupName = [form.first.trim(), form.last.trim()].filter(Boolean).join(" ");
+        setSession({
+          signedIn: true,
+          email: result.value.email,
+          displayName: signupName || result.value.email.split("@")[0] || null,
+          role: null,
+        });
+      }
+
+      return result;
+    },
+    [setSession],
+  );
 
   const signOut = useCallback(async () => {
     const result = await signOutStorefrontSession();
@@ -126,9 +133,9 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       toast.error(result.error.message);
       return;
     }
-    router.refresh();
+    resetSession();
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
-  }, [router]);
+  }, [resetSession]);
 
   const actions = useMemo<StorefrontAuthContextValue["actions"]>(
     () => ({
@@ -137,18 +144,9 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       closeAuthDialog,
       setAuthDialogMode,
       authenticate,
-      refreshSession,
       signOut,
     }),
-    [
-      authenticate,
-      closeAuthDialog,
-      openSignin,
-      openSignup,
-      refreshSession,
-      setAuthDialogMode,
-      signOut,
-    ],
+    [authenticate, closeAuthDialog, openSignin, openSignup, setAuthDialogMode, signOut],
   );
 
   const displayName = authSession.displayName ?? authSession.email?.split("@")[0] ?? null;
