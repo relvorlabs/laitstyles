@@ -169,6 +169,25 @@ export function SignUpForm({
           />
         </AuthField>
 
+        <AuthField
+          error={errors?.confirmPassword}
+          htmlFor="signup-confirm-password"
+          label="Confirm password"
+        >
+          <Input
+            aria-invalid={Boolean(errors?.confirmPassword)}
+            autoComplete="new-password"
+            className={AUTH_INPUT_CLASS_NAME}
+            disabled={pending}
+            id="signup-confirm-password"
+            minLength={8}
+            name="confirmPassword"
+            placeholder="Enter the password again"
+            required
+            type="password"
+          />
+        </AuthField>
+
         <div>
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/75 bg-muted/35 p-4 text-[13px] leading-5 text-muted-foreground">
             <input
