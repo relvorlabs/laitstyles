@@ -45,7 +45,7 @@ Supabase also receives `full_name`. When signup returns an immediate session, `e
 
 ## Guest state continuity
 
-Cart, saved-item and hold state are owned by `StorefrontStateHydrator` and the storefront Zustand stores, not the auth session. The canonical snapshot remains in `sessionStorage` under `laitstyles-storefront:v3:client-state`. Login, signup, confirmation callbacks and account navigation must not clear or replace that snapshot.
+Cart, saved-item and hold state are owned by `StorefrontStateHydrator` and the storefront Zustand stores, not the auth session. The minimal canonical snapshot uses `laitstyles-storefront:v3:client-state`: `sessionStorage` is preferred for the current tab, and `localStorage` carries the same snapshot as a fallback when an email confirmation or recovery link opens a new tab. Login, signup, confirmation callbacks and account navigation must not clear or replace that snapshot.
 
 Authentication email and OAuth callback URLs prefer `AUTH_SITE_URL`, then `NEXT_PUBLIC_APP_URL`, then `NEXT_PUBLIC_SITE_URL`, and finally the current request origin. The selected public origin must have `/auth/callback` in the Supabase redirect allow-list.
 
