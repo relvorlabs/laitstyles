@@ -34,7 +34,6 @@ type StorefrontAuthDialogProps = {
   mode: StorefrontAuthMode;
   open: boolean;
   product: Product | undefined;
-  remember: boolean;
   revealPassword: boolean;
   showErrors: boolean;
   state: StorefrontAuthState;
@@ -43,7 +42,6 @@ type StorefrontAuthDialogProps = {
   onFinish: () => void;
   onModeChange: (mode: StorefrontAuthMode) => void;
   onOpenChange: (open: boolean) => void;
-  onRememberChange: (value: boolean) => void;
   onRevealPasswordChange: (value: boolean) => void;
   onSubmit: () => void;
   onTermsAcceptedChange: (value: boolean) => void;
@@ -56,7 +54,6 @@ export function StorefrontAuthDialog({
   mode,
   open,
   product: authProduct,
-  remember,
   revealPassword,
   showErrors,
   state,
@@ -65,7 +62,6 @@ export function StorefrontAuthDialog({
   onFinish,
   onModeChange,
   onOpenChange,
-  onRememberChange,
   onRevealPasswordChange,
   onSubmit,
   onTermsAcceptedChange,
@@ -121,17 +117,21 @@ export function StorefrontAuthDialog({
                 <em className="font-normal">within reach.</em>
               </div>
               <p className="mt-5 max-w-[350px] text-[13px] leading-6 text-white/72">
-                Save one-of-one pieces, keep live holds together and return to your order history without rebuilding your bag.
+                Save one-of-one pieces, keep live holds together and return to your order history
+                without rebuilding your bag.
               </p>
               <div className="mt-7 grid gap-3 text-[13px] text-white/88">
                 <span className="flex items-center gap-2.5">
-                  <Check className="size-4 text-[#C8DCA1]" /> Track active holds and reservation timers
+                  <Check className="size-4 text-[#C8DCA1]" /> Track active holds and reservation
+                  timers
                 </span>
                 <span className="flex items-center gap-2.5">
-                  <Check className="size-4 text-[#C8DCA1]" /> Save pieces and return when they free up
+                  <Check className="size-4 text-[#C8DCA1]" /> Save pieces and return when they free
+                  up
                 </span>
                 <span className="flex items-center gap-2.5">
-                  <Check className="size-4 text-[#C8DCA1]" /> Move through checkout with trusted details
+                  <Check className="size-4 text-[#C8DCA1]" /> Move through checkout with trusted
+                  details
                 </span>
               </div>
             </div>
@@ -293,14 +293,7 @@ export function StorefrontAuthDialog({
               ) : null}
 
               {!signup ? (
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <Label className="cursor-pointer text-[13px] text-muted-foreground">
-                    <Checkbox
-                      checked={remember}
-                      onCheckedChange={(checked) => onRememberChange(checked === true)}
-                    />
-                    Keep me signed in
-                  </Label>
+                <div className="mt-5 flex justify-end">
                   <Link
                     className="text-[12px] font-semibold text-foreground underline-offset-4 hover:underline"
                     href="/auth/forgot-password"
