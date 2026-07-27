@@ -3,12 +3,12 @@ import "server-only";
 import { hasCapability } from "@/lib/auth/permissions";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import type {
   StockAdjustmentError,
   StockAdjustmentInput,
   StockAdjustmentOutcome,
 } from "@/modules/inventory/types";
-import type { StaffSession } from "@/server/auth/session";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

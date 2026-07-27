@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { StaffSession } from "@/server/auth/session";
+import type { StaffSession } from "@/modules/auth/server/session";
 
 const PRODUCT_ID = "019f65c1-74fe-7bd3-8400-000000000001";
 const CATEGORY_ID = "019f65c1-74fe-7bd3-8100-000000000001";

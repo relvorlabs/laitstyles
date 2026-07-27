@@ -1,34 +1,13 @@
-const phase7SessionImporters = [
-  "src/app/layout.tsx",
-  "src/app/auth/sign-in/page.tsx",
-  "src/app/admin/layout.tsx",
-  "src/app/admin/inventory/page.tsx",
-  "src/app/(storefront)/account/profile/page.tsx",
-  "src/app/(storefront)/account/profile/actions.ts",
-  "src/app/(storefront)/account/orders/page.tsx",
-  "src/app/(storefront)/account/orders/[orderNumber]/page.tsx",
-  "src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts",
-  "src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/page.tsx",
-  "src/lib/http/auth.ts",
-  "src/modules/customers/server/commands.ts",
-  "src/modules/holds/server/commands.ts",
-  "src/modules/inventory/server/adjust-stock.ts",
-  "src/modules/inventory/server/stock-write.ts",
-  "src/modules/orders/server/offline-sale-checkout.ts",
-  "src/modules/orders/server/offline-sale-draft.ts",
-  "src/modules/orders/server/offline-sale.ts",
-  "src/modules/orders/server/transition-order.ts",
-  "src/modules/products/server/lifecycle-commands.ts",
-  "src/modules/products/server/product-commands.ts",
-  "src/modules/products/server/rules.ts",
-  "src/modules/products/server/taxonomy-commands.ts",
-  "src/modules/returns/server/commands.ts",
-  "src/modules/settings/server/commands.ts",
-];
+// P7-T03 retired every phase7SessionImporters entry: src/server/auth/session.ts
+// no longer exists (moved to src/modules/auth/server/session.ts), so every
+// former importer now points at the in-module path and needs no exception.
 
 const phase7ProfileImporters = [
   "src/app/auth/callback/route.ts",
-  "src/server/auth/session.ts",
+  // Temporary: src/modules/auth/server/session.ts (moved in P7-T03) still
+  // imports the legacy src/server/auth/profile.ts. Retired in P7-T04 when
+  // profile.ts itself moves into the module (same-module import then).
+  "src/modules/auth/server/session.ts",
 ];
 
 const phase7StorefrontAuthProviderImporters = [
@@ -55,26 +34,15 @@ const phase8Edges = [
   },
 ];
 
-const phase7Reason =
-  "Phase 1-6 reuses the inherited session boundary; auth ownership moves in Phase 7.";
 const phase7ProfileReason =
-  "Phase 1-6 reuses the inherited profile boundary; auth ownership moves in Phase 7.";
+  "src/modules/auth/server/session.ts (moved in P7-T03) still imports the legacy " +
+  "src/server/auth/profile.ts; auth ownership of profile.ts moves in Phase 7 (P7-T04).";
 const phase7StorefrontProviderReason =
   "Phase 1-6 reuses the inherited storefront auth provider; auth ownership moves in Phase 7.";
 const phase8Reason =
   "Phase 2 preserves the existing checkout presentation; settlement authority moves in Phase 8.";
 
 export const legacyArchitectureExceptions = Object.freeze([
-  ...phase7SessionImporters.map((importer) =>
-    Object.freeze({
-      importer,
-      imported: "@/server/auth/session",
-      kind: "phase-7-auth",
-      reason: phase7Reason,
-      owner: "domain-engineer",
-      removalPhase: 7,
-    }),
-  ),
   ...phase7ProfileImporters.map((importer) =>
     Object.freeze({
       importer,
@@ -115,10 +83,7 @@ export const legacyArchitectureExceptions = Object.freeze([
   ),
 ]);
 
-export const legacyTopLevelServerFiles = new Set([
-  "src/server/auth/session.ts",
-  "src/server/auth/profile.ts",
-]);
+export const legacyTopLevelServerFiles = new Set(["src/server/auth/profile.ts"]);
 
 export const legacyProductTypeOnlyEdge = Object.freeze({
   importer: "src/features/storefront/shared/storefront-auth-dialog.tsx",

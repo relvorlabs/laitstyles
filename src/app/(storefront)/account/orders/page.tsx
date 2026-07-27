@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { getCurrentSession } from "@/modules/auth/server/session";
 import { getAccountOrders } from "@/modules/orders/server/account-orders";
 import { OrdersSection } from "@/modules/orders/ui/storefront/orders-section";
-import { getCurrentSession } from "@/server/auth/session";
 
 export default async function AccountOrdersPage() {
   const session = await getCurrentSession();

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getCurrentSession } from "@/server/auth/session";
+import { getCurrentSession } from "@/modules/auth/server/session";
 
 const profileFormSchema = z.object({
   firstName: z.string().trim().min(1, "Enter your first name.").max(100),

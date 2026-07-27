@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { validateCommittedStockEdit } from "@/modules/inventory/server/committed-stock-guard";
 import {
   assertProductInventoryModeCanChange,
@@ -36,7 +37,6 @@ import type {
   ProductMutationError,
   ProductSaveOutcome,
 } from "@/modules/products/types";
-import type { StaffSession } from "@/server/auth/session";
 
 function mapZodIssues(
   issues: readonly { path: PropertyKey[]; message: string }[],

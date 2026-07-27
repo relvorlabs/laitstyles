@@ -2,12 +2,12 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import type {
   AddCustomerNoteInput,
   CustomerActionError,
   CustomerNoteActionSuccess,
 } from "@/modules/customers/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export async function addCustomerNote(
   actor: StaffSession,

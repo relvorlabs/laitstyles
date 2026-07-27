@@ -1,6 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import {
   cancelFailedOfflineSaleDraft,
@@ -19,7 +20,6 @@ import {
   PaystackConfigurationError,
   PaystackInitializationError,
 } from "@/modules/payments/server/paystack";
-import type { StaffSession } from "@/server/auth/session";
 
 export async function recordOfflineSale(
   actor: StaffSession,

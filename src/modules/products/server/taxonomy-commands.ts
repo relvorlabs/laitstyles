@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { decodeProductTaxonomyId, mapProductTaxonomyRow } from "@/modules/products/server/mappers";
 import {
   canManageProduct,
@@ -14,7 +15,6 @@ import type {
   ProductTaxonomyInput,
   ProductTaxonomyOutcome,
 } from "@/modules/products/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export async function createProductTaxonomy(
   actor: StaffSession,

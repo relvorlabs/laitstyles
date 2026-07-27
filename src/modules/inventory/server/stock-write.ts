@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import type { ProductEditorActionError, ProductEditorValues } from "@/modules/products/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export type StockBalance = {
   id: string;

@@ -2,12 +2,12 @@ import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { applyOperationalStockMutation } from "@/modules/inventory/server/operational-stock";
 import { adminOrderInclude } from "@/modules/orders/server/mappers";
 import type { OfflineSaleDraft } from "@/modules/orders/server/offline-sale-draft";
 import type { OfflineSaleInput } from "@/modules/orders/types";
 import type { PaystackCheckout } from "@/modules/payments/server/paystack";
-import type { StaffSession } from "@/server/auth/session";
 
 export async function finalizeInitializedCheckout(
   actor: StaffSession,

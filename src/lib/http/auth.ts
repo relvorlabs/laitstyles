@@ -8,7 +8,7 @@ import {
   type CurrentSession,
   getCurrentSession,
   type StaffSession,
-} from "@/server/auth/session";
+} from "@/modules/auth/server/session";
 
 export async function requireApiSession(): Promise<ConsumerSession | StaffSession> {
   const session = await getCurrentSession();

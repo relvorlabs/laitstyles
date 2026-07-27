@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   redirect: vi.fn(),
 }));
 
-vi.mock("@/server/auth/session", () => ({
+vi.mock("@/modules/auth/server/session", () => ({
   getCurrentSession: mocks.getCurrentSession,
 }));
 vi.mock("@/modules/reviews/server/repository", () => ({

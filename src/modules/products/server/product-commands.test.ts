@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import type { StaffSession } from "@/server/auth/session";
+import type { StaffSession } from "@/modules/auth/server/session";
 
 const harness = vi.hoisted(() => {
   const tx = {

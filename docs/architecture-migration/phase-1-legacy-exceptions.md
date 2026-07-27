@@ -14,42 +14,25 @@ checks both observed-to-declared and declared-to-observed directions.
 
 These edges are owned by the domain engineer and are removed in Phase 7.
 
+**2026-07-27 (P7-T03):** all 25 `@/server/auth/session` edges were removed in one commit —
+`src/server/auth/session.ts` relocated to `src/modules/auth/server/session.ts` and every importer
+now points at the in-module path directly, needing no exception. See
+`docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`. The moved file still
+imports the legacy `src/server/auth/profile.ts` (profile.ts itself moves in P7-T04), so its own
+entry changed from `src/server/auth/session.ts` to `src/modules/auth/server/session.ts` in the
+profile row below rather than disappearing.
+
 | Importer | Imported specifier |
 | --- | --- |
-| `src/app/layout.tsx` | `@/server/auth/session` |
-| `src/app/auth/sign-in/page.tsx` | `@/server/auth/session` |
-| `src/app/admin/layout.tsx` | `@/server/auth/session` |
-| `src/app/admin/inventory/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/profile/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/profile/actions.ts` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/page.tsx` | `@/server/auth/session` |
-| `src/lib/http/auth.ts` | `@/server/auth/session` |
-| `src/modules/customers/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/holds/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/inventory/server/adjust-stock.ts` | `@/server/auth/session` |
-| `src/modules/inventory/server/stock-write.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale-checkout.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale-draft.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/transition-order.ts` | `@/server/auth/session` |
-| `src/modules/products/server/lifecycle-commands.ts` | `@/server/auth/session` |
-| `src/modules/products/server/product-commands.ts` | `@/server/auth/session` |
-| `src/modules/products/server/rules.ts` | `@/server/auth/session` |
-| `src/modules/products/server/taxonomy-commands.ts` | `@/server/auth/session` |
-| `src/modules/returns/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/settings/server/commands.ts` | `@/server/auth/session` |
 | `src/app/auth/callback/route.ts` | `@/server/auth/profile` |
-| `src/server/auth/session.ts` | `@/server/auth/profile` |
+| `src/modules/auth/server/session.ts` | `@/server/auth/profile` |
 | `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/modules/storefront-shell/ui/site-chrome.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/modules/storefront-shell/ui/storefront-account-menu.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-dialog-host` |
 
-Only `src/server/auth/session.ts` and `src/server/auth/profile.ts` are declared legacy top-level
-auth files. A third production file under `src/server/auth/**` is not allowed by folder or glob.
+Only `src/server/auth/profile.ts` is declared a legacy top-level auth file (until P7-T04). A
+second production file under `src/server/auth/**` is not allowed by folder or glob.
 
 ## Phase 8 checkout compatibility
 
@@ -93,3 +76,11 @@ moved to root layout), `src/app/storefront-client-boundary.tsx` →
 `src/app/storefront-route-boundary.tsx` → `@/features/storefront/shared/storefront-auth-session`
 (storefront auth narrowed to actions-only). See
 `docs/superpowers/specs/2026-07-27-provider-centralization-design.md`.
+
+On 2026-07-27, as part of Phase 7 task P7-T03, all 25 `@/server/auth/session` edges were removed
+in one commit: `src/server/auth/session.ts` relocated to `src/modules/auth/server/session.ts`
+(content unchanged) and every one of its 25 production importers repointed to the in-module path
+directly. The relocated file's own `@/server/auth/profile` import is registered as a new, narrower
+temporary edge (`src/modules/auth/server/session.ts` → `@/server/auth/profile`, replacing the
+prior `src/server/auth/session.ts` entry), retired in P7-T04 when `profile.ts` itself moves into
+the module. See `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.

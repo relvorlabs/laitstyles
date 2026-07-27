@@ -3,6 +3,7 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import {
   applyOperationalStockMutation,
   OperationalStockError,
@@ -21,7 +22,6 @@ import type {
   ReturnActionSuccess,
   ReturnStatus,
 } from "@/modules/returns/types";
-import type { StaffSession } from "@/server/auth/session";
 
 const transitionMap = {
   requested: ["approved", "rejected"],

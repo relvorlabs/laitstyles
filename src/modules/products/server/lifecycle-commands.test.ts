@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { StaffSession } from "@/server/auth/session";
+import type { StaffSession } from "@/modules/auth/server/session";
 
 const harness = vi.hoisted(() => {
   const tx = {
