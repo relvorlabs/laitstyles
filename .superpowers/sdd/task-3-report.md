@@ -1,78 +1,91 @@
-# Task 3: Create the shared SessionProvider — Implementation Report
+# Foundation Task 3 bounded guard report
 
-## Summary
+## Scope and override
 
-Successfully implemented the `SessionProvider` and `useSession()` hook as specified in the task brief. The provider exposes read-only session data (signedIn, email, displayName, role) to any client component within its tree.
+This commit contains the bounded module-export and architecture parser/classifier slice of
+Foundation Task 3. The explicit owner override authorizes reviewer-owned guard and boundary-test
+edits despite the reviewer role normally being verification-only. The user also authorized work
+to continue while WS0 remains pending. Existing edits in `scripts/ci/collect-context.mjs`,
+`scripts/ci/lib.mjs`, `.superpowers/sdd/progress.md`, `ci-evidence/**`, and concurrent UI source
+were not edited or staged by this task.
 
-## Files Implemented
+The orchestrator directed this slice to be committed once the module and architecture
+characterization was green rather than allowing the three specialized fail-closed contract
+refactors to stall the major blocker. Therefore this report does not claim full Task 3 or WS1
+acceptance.
 
-- **`src/providers/session-provider.tsx`** (77 lines)
-  - Created new provider file with "use client" directive
-  - Exports: `AppSession` type, `ANONYMOUS_APP_SESSION` constant, `SessionProvider` component, `useSession()` hook
-  - Consumes `StaffRole` type from `@/lib/auth/roles`
-  - Uses React's `createContext` and `use()` hook for context management
-  - Throws descriptive error when hook is used outside provider
+## Implemented
 
-- **`src/providers/session-provider.test.tsx`** (50 lines)
-  - Added `@vitest-environment jsdom` pragma (project convention)
-  - Test 1: Verifies context value is properly exposed to descendants (happy path)
-  - Test 2: Verifies error is thrown when hook is used outside provider (error path)
-  - Uses `.textContent` assertion (not jest-dom matchers) per project convention
-  - Manual `cleanup()` in `afterEach` hook per project convention
+- Replaced regex-only module scanning with exported, dependency-free parsing and a pure
+  `classifyModuleGraph` contract.
+- Filtered external package specifiers before internal resolution.
+- Added alias/relative resolution for TypeScript, JavaScript, ESM, CommonJS and CSS modules.
+- Classified multiline default, named, type, named re-export, star re-export and dynamic import
+  syntax without treating comments or fixture strings as executable imports.
+- Replaced architecture text matching with exported `classifyArchitectureGraph` analysis.
+- Classified alias/relative fixture imports, client/server edges, direct and re-exported Server
+  Actions, TanStack-to-Action coupling, Route Handler-to-Action coupling, and executable Server
+  Component internal API calls.
+- Compared American `catalog` identifiers only against the deterministic changed-file range,
+  excluding external package specifiers and unchanged database identifiers.
+- Limited legacy target-ownership checks to newly introduced imports so supported, unchanged
+  migration edges are not mislabeled as new violations.
+- Kept CLI execution behind exact `pathToFileURL(process.argv[1])` entry-point guards.
 
-## TDD Evidence
+## TDD evidence
 
-### RED (Test Fails)
-```
-pnpm exec vitest run src/providers/session-provider.test.tsx --reporter=verbose
+RED, Node 25.9.0 / Vitest 4.1.10:
 
-Failed Suites 1
-FAIL src/providers/session-provider.test.tsx
-Error: Failed to resolve import "@/providers/session-provider" from "src/providers/session-provider.test.tsx". Does the file exist?
-```
+`node node_modules/vitest/vitest.mjs run src/lib/boundaries/app-provider-boundary.test.ts src/lib/boundaries/server-client-boundary.test.ts src/lib/boundaries/storefront-state-boundary.test.ts src/modules/admin-persistence-boundary.test.ts src/modules/products/product-module-boundaries.test.ts scripts/checks/storefront-server-boundary.test.ts --reporter=verbose`
 
-### GREEN (Test Passes)
-```
-pnpm exec vitest run src/providers/session-provider.test.tsx --reporter=verbose
+- Exit 1 as expected.
+- Guard modules executed their CLIs during import and called `process.exit(1)`.
+- The pure classifier exports did not exist.
 
-✓ src/providers/session-provider.test.tsx > SessionProvider > exposes the provided session to descendants 113ms
-✓ src/providers/session-provider.test.tsx > SessionProvider > throws when useSession is called outside the provider 25ms
+GREEN focused characterization:
 
-Test Files  1 passed (1)
-Tests  2 passed (2)
-```
+- Products module/export boundary: 6/6 tests passed, including both new module classifier cases.
+- Architecture characterization: 4/4 targeted cases passed; 13 unrelated cases were skipped by
+  the test-name filter.
+- Architecture CLI: exit 0, 735 source files, 3 Server Action modules, 0 errors, 0 warnings.
 
-## Commit
+## Exact counts
 
-- SHA: `1a6ae66`
-- Message: `feat(providers): add shared SessionProvider for session data`
-- Files: 2 created (77 lines added)
+| Guard | Before | After | Result |
+| --- | ---: | ---: | --- |
+| Module export | 746 | 37 | Required gate still blocked |
+| External package false positives | 655 | 0 | Removed |
+| Architecture | 59 | 0 | Pass |
 
-## Self-Review Findings
+The earlier handoff inventory was 749/655/94. The shared tree had changed by the time this task
+captured its exact Node 25 baseline, which was 746/655/91. Both figures are recorded rather than
+silently conflated.
 
-### Happy Path Test ✓
-- Test "exposes the provided session to descendants" properly verifies that:
-  - SessionProvider accepts a session prop with signedIn, email, displayName, and role
-  - useSession() hook retrieves the context value
-  - Consumer component receives correct session data (signed-in:Ada:admin)
+## Blockers and handoffs
 
-### Error Path Test ✓
-- Test "throws when useSession is called outside the provider" properly verifies that:
-  - useSession() throws with message "useSession must be used within SessionProvider"
-  - Console.error is mocked to prevent noise
-  - Error is thrown during render (before component tree is built)
+The 37 remaining module-export diagnostics are not repaired in this reviewer-owned slice:
 
-### Code Quality ✓
-- "use client" directive present at top of provider file (required for context provider)
-- Test output is clean: 2 passed, 0 warnings (git CRLF warnings are environmental, not implementation-related)
-- Follows project conventions:
-  - `@vitest-environment jsdom` pragma included (project defaults to "node")
-  - Manual `cleanup()` in afterEach (not auto-registered)
-  - `.textContent` assertions (project does not register jest-dom matchers)
-- AppSession type is comprehensive: signedIn boolean, email/displayName/role all nullable
-- ANONYMOUS_APP_SESSION constant provided for convenience
-- Error handling is clear and throws at the point of use
+- Phase 6 UI compatibility: missing storefront overlay modules, missing
+  `storefront-client-state`, and missing `useStorefrontOverlay` export.
+- Domain source: `src/lib/admin/orders/orders-query-options.ts` still imports the deleted admin
+  repository boundary; `product-catalogue.tsx` imports missing `CatalogueFilterType`.
+- Legacy tests: multiple tests import deleted catalogue, inventory, order, seed, selector and
+  storefront-state modules.
+- Guard follow-up: Prisma's generated `client.js` uses CommonJS
+  `module.exports = { ...require('.') }`; exact CommonJS re-export traversal remains to be added.
 
-## Concerns
+The complete focused suite also exposes pre-existing source-owned failures in the admin
+persistence and storefront-state boundary cases, including the missing Phase 6 state contract.
 
-None. Implementation exactly matches specification and all tests pass.
+Deferred Task 3 work:
+
+- `error-validation-contract.mjs`, `layout-provider-contract.mjs`, and
+  `http-module-contract.mjs` still need exported pure checks, entry-point guards, and explicit
+  fail-closed characterization.
+- `pnpm check:architecture` cannot pass until the 37 module diagnostics and specialized contract
+  blockers are resolved.
+- `pnpm typecheck` and full validation were not rerun for this bounded slice. The orchestrator
+  reports the current compile blocker as the missing Phase 6 storefront overlay-events runtime
+  module.
+
+No WS0 or WS1 acceptance is claimed.
