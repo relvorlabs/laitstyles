@@ -1,16 +1,21 @@
 # Auth module
 
-Phase 7 consolidates authentication ownership here without changing existing browser URLs,
-redirects, cookies, role checks, or visual behaviour.
+`src/modules/auth/**` is the canonical owner of Laitstyle authentication.
 
-This directory is currently a placeholder — none of the target files exist yet. Do not treat this
-README as the authoritative plan; it previously duplicated (and had started to drift from) the
-real spec. The authoritative documents are:
+## Ownership
 
-- **Design spec (target architecture, file-by-file move plan, retirement plan for the 30
-  registered legacy-exception edges):**
-  `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`
-- **Living status and task ledger:** `docs/architecture-migration/phase-7-auth-status.md`
+- `schema.ts` — shared form and transport validation.
+- `types.ts` — account and staff role contracts.
+- `permissions.ts` — client-safe capability checks.
+- `server/session.ts` — current session resolution and staff access.
+- `server/account-provisioning.ts` — Prisma profile, profile-detail and customer provisioning.
+- `server/authenticate.ts` — password auth, email delivery requests, Google OAuth, callback completion, recovery-session verification and sign-out.
+- `server/redirects.ts` — safe return paths and deterministic callback-origin resolution.
+- `server/diagnostics.ts` — allow-listed user errors and structured provider diagnostics.
+- `ui/**` — storefront dialog plus the shared standalone auth-page system.
 
-This file will be deleted once implementation begins and the target structure exists in place of
-this description.
+Browser routes under `src/app/auth/**` remain because they are Next.js transport adapters. They may parse requests, call this module and return redirects, but they must not create Supabase clients or duplicate provider orchestration.
+
+Authentication email and OAuth callback URLs prefer `AUTH_SITE_URL`, then `NEXT_PUBLIC_APP_URL`, then `NEXT_PUBLIC_SITE_URL`, and finally the current request origin. The selected public origin must have `/auth/callback` in the Supabase redirect allow-list.
+
+The authoritative implementation ledger remains `docs/architecture-migration/phase-7-auth-status.md`.
