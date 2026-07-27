@@ -4,7 +4,7 @@ import { requestPasswordResetWithRedirect } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/lib/auth/auth-errors";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 
 export const metadata: Metadata = {
   title: "Reset password | Laitstyle",

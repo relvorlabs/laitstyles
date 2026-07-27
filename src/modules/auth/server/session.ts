@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cache } from "react";
-import type { AuthDeniedReason } from "@/lib/auth/auth-errors";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
@@ -10,6 +9,7 @@ import {
   type AuthUserMetadata,
   ensureConsumerAccount,
 } from "@/modules/auth/server/account-provisioning";
+import type { AuthDeniedReason } from "@/modules/auth/server/diagnostics";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 

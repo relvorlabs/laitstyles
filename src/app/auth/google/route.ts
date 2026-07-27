@@ -1,8 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { authFlowFailure, mapAuthProviderError } from "@/lib/auth/auth-errors";
-import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
-import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
+import {
+  authFlowFailure,
+  logAuthProviderFailure,
+  mapAuthProviderError,
+} from "@/modules/auth/server/diagnostics";
+import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
 
 async function startGoogleOAuth(request: NextRequest, value: FormDataEntryValue | string | null) {
   const next = getSafeNextPath(value, "/account");

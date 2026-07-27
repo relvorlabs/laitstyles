@@ -24,15 +24,15 @@ function listFiles(directory, prefix = "") {
 
 const canonicalResult = read("src/lib/errors/index.ts");
 const compatibilityResult = read("src/lib/admin/shared/result.ts");
-const authErrors = read("src/lib/auth/auth-errors.ts");
+const authErrors = read("src/modules/auth/server/diagnostics.ts");
 const authSchemas = read("src/lib/auth/auth-schemas.ts");
 const authActions = read("src/app/auth/actions.ts");
 const authCallback = read("src/app/auth/callback/route.ts");
 const googleAuth = read("src/app/auth/google/route.ts");
 const authErrorPage = read("src/app/auth/error/page.tsx");
 const authProvider = read("src/features/storefront/shared/storefront-auth-provider.tsx");
-const authRedirects = read("src/lib/auth/server/redirects.ts");
-const authDiagnostics = read("src/lib/auth/server/auth-provider-diagnostics.ts");
+const authRedirects = read("src/modules/auth/server/redirects.ts");
+const authDiagnostics = read("src/modules/auth/server/diagnostics.ts");
 const reviewActions = read(
   "src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts",
 );

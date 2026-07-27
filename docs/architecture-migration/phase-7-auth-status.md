@@ -143,8 +143,8 @@ Phase 7 must not:
 - [x] P7-T03 move session resolution;
 - [x] P7-T04 move account provisioning;
 - [x] P7-T05 move permission orchestration;
-- [ ] P7-T06 move redirect helpers;
-- [ ] P7-T07 move diagnostics;
+- [x] P7-T06 move redirect helpers;
+- [x] P7-T07 move diagnostics;
 - [ ] P7-T08 reduce `src/app/auth/actions.ts` to thin adapters;
 - [ ] P7-T09 preserve OAuth browser routes under `/auth/**`;
 - [ ] P7-T10 move storefront auth presentation into `src/modules/auth/ui/**` without visual change;
@@ -318,6 +318,73 @@ Executed on this commit:
 - `pnpm exec vitest run` — one run: 6 failed (the same 5 documented pre-existing failures plus
   `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
   Targeted `permissions.test.ts` + `session.test.ts` + `lib/http/auth.test.ts` — 19/19 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— not claimed as run.
+
+## P7-T06 & P7-T07 evidence (2026-07-27)
+
+The design spec's task breakdown consolidated "move redirect helpers" and "move diagnostics" into
+one task (its own P7-T06); this ledger inherited them as two separate items from the pre-restart
+template. Both are complete in the same commit — noted here once rather than duplicated.
+
+**Redirects:** `src/lib/auth/server/redirects.ts` + `src/lib/auth/server/request-origin.ts`
+merged into `src/modules/auth/server/redirects.ts`. The two duplicate `LOCAL_AUTH_ORIGIN`
+string-literal constants (one private to each old file) are deduped to one exported constant —
+same value (`https://laitstyle.localhost`) in both, confirmed identical before merging, so this is
+a same-behaviour cleanup, not a logic change. `getSafeNextPath`/`withAuthErrorPath` (from
+`redirects.ts`) and `getRequestOrigin` (from `request-origin.ts`) are otherwise byte-identical to
+their originals.
+
+**Diagnostics:** `src/lib/auth/auth-errors.ts` + `src/lib/auth/server/auth-provider-diagnostics.ts`
+merged into `src/modules/auth/server/diagnostics.ts`, byte-identical content, concatenated.
+
+**Placement check done before merging, not assumed:** unlike P7-T05's `permissions.ts`, both
+`auth-errors.ts` and `redirects.ts` had no `"server-only"` marker and no server-specific imports —
+the same shape that made `permissions.ts` unsafe under `server/`. Before merging, every consumer of
+both files was checked for a `"use client"` directive (`error/page.tsx`, `forgot-password/page.tsx`,
+`resend-confirmation/page.tsx`, `reset-password/page.tsx`, `sign-in/page.tsx`, `sign-up/page.tsx`,
+`admin-access-denied.tsx`, and its own importers `admin/layout.tsx` +
+`admin/inventory/page.tsx`) — none are Client Components; all are Server Components, Route
+Handlers, or Server Actions. Placing them under `server/` is safe here specifically because no
+current consumer needs them client-side, not because the files themselves are inherently
+server-only the way `request-origin.ts` (uses `next/headers`) and
+`auth-provider-diagnostics.ts` (uses the server logger) already were.
+
+All 12 unique production consumer files repointed in this commit, several requiring a genuine
+import-statement *merge* rather than a path substitution, since multiple old modules now land in
+the same new file: `callback/route.ts`, `google/route.ts`, and `actions.ts` each previously imported
+from 3-4 of the old paths and now import from 2 (`.../diagnostics`, `.../redirects`).
+`reset-password/page.tsx` and `error/page.tsx` each merge 2 old imports into 2 new ones (still
+separate files, since redirects and diagnostics are different target modules).
+`scripts/checks/error-validation-contract.mjs`'s file-path assertions updated to the new locations
+in the same commit, per the design spec's explicit instruction for this task.
+
+**Test-mock rewrite, not just a path change:** `src/app/auth/actions.test.ts` previously used full
+module replacement (`vi.mock(path, () => ({ oneExport: vi.fn() }))`) for
+`@/lib/auth/server/request-origin` and `@/lib/auth/server/auth-provider-diagnostics` — safe because
+each old module exported *only* the one function being mocked. After the merge, the same full-
+replacement pattern would have silently zeroed out `getSafeNextPath`/`withAuthErrorPath` (now
+sharing a file with the mocked `getRequestOrigin`) and `mapAuthProviderError`/`authFlowFailure`
+(now sharing a file with the mocked `logAuthProviderFailure`) — both real implementations, whose
+exact output several existing assertions depend on (e.g. the enumeration-safety and mapped-error-
+code tests). Rewrote both mocks to `vi.mock(path, async (importOriginal) => ({ ...(await
+importOriginal()), mockedExport: vi.fn(...) }))` — a partial mock that keeps every real export
+except the one being replaced. Verified by running the full `actions.test.ts` suite, not just
+checking it typechecks.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 0 errors/warnings across all five guards, including
+  `error-validation-contract.mjs` (the guard whose file-path assertions this task explicitly
+  updates).
+- `pnpm biome` — 1 error, 65 warnings; the 1 error is the same pre-existing `site-chrome.tsx` drift
+  (reverted again after `biome:fix` re-swept it), confirmed unrelated. 65 warnings matches baseline.
+- `pnpm exec vitest run` — one run: 6 failed (the same 5 documented pre-existing failures plus
+  `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
+  Targeted `diagnostics.test.ts` + `redirects.test.ts` + `actions.test.ts` (the file with the
+  rewritten mocks) — 21/21 passed.
 
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — not claimed as run.

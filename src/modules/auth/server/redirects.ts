@@ -1,6 +1,9 @@
-import type { AuthFlowErrorCode } from "@/lib/auth/auth-errors";
+import "server-only";
 
-const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
+import { headers } from "next/headers";
+import type { AuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+
+export const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
 
 export function getSafeNextPath(
   value: FormDataEntryValue | string | null | undefined,
@@ -29,4 +32,14 @@ export function withAuthErrorPath(code: AuthFlowErrorCode, next: string) {
   });
 
   return `/auth/error?${params.toString()}`;
+}
+
+export async function getRequestOrigin() {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const protocol =
+    headerStore.get("x-forwarded-proto") ??
+    (host?.startsWith("localhost") || host?.startsWith("127.") ? "http" : "https");
+
+  return host ? `${protocol}://${host}` : LOCAL_AUTH_ORIGIN;
 }

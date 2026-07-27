@@ -2,11 +2,6 @@
 
 import { redirect } from "next/navigation";
 import {
-  type AuthFlowFailure,
-  authFlowFailure,
-  mapAuthProviderError,
-} from "@/lib/auth/auth-errors";
-import {
   authEmailFormDataInput,
   authEmailSchema,
   authFieldErrors,
@@ -16,11 +11,19 @@ import {
   recoveredPasswordFormDataInput,
   recoveredPasswordSchema,
 } from "@/lib/auth/auth-schemas";
-import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
-import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
-import { getRequestOrigin } from "@/lib/auth/server/request-origin";
 import { err, ok, type Result } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
+import {
+  type AuthFlowFailure,
+  authFlowFailure,
+  logAuthProviderFailure,
+  mapAuthProviderError,
+} from "@/modules/auth/server/diagnostics";
+import {
+  getRequestOrigin,
+  getSafeNextPath,
+  withAuthErrorPath,
+} from "@/modules/auth/server/redirects";
 
 type PasswordAuthFieldErrors = Partial<
   Record<"email" | "password" | "confirmPassword" | "first" | "last" | "terms", string>

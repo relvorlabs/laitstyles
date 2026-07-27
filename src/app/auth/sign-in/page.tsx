@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { getSafeNextPath } from "@/lib/auth/server/redirects";
+import { getSafeNextPath } from "@/modules/auth/server/redirects";
 import { getCurrentSession, isAuthenticated } from "@/modules/auth/server/session";
 
 export const metadata: Metadata = {

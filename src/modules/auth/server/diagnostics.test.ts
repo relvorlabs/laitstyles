@@ -1,9 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({ warn: vi.fn() }));
+
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/logger", () => ({ logger: { warn: mocks.warn } }));
+
 import {
   getAuthFlowErrorMessage,
   isAuthFlowErrorCode,
+  logAuthProviderFailure,
   mapAuthProviderError,
-} from "@/lib/auth/auth-errors";
+} from "@/modules/auth/server/diagnostics";
 
 describe("auth provider error mapping", () => {
   it("maps known provider codes to fixed customer copy", () => {
@@ -52,5 +59,31 @@ describe("auth provider error mapping", () => {
     expect(isAuthFlowErrorCode("recovery-invalid")).toBe(true);
     expect(isAuthFlowErrorCode("postgres://secret")).toBe(false);
     expect(getAuthFlowErrorMessage("oauth-callback-invalid")).toContain("sign-in link");
+  });
+});
+
+describe("auth provider diagnostics", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("logs structured provider metadata without raw messages", () => {
+    const providerError = {
+      code: "invalid_credentials",
+      status: 400,
+      name: "AuthApiError",
+      message: "postgres://secret@internal-host",
+    };
+
+    logAuthProviderFailure("password-sign-in", providerError);
+
+    expect(mocks.warn).toHaveBeenCalledWith(
+      {
+        operation: "password-sign-in",
+        providerCode: "invalid_credentials",
+        providerStatus: 400,
+        providerErrorName: "AuthApiError",
+      },
+      "Auth provider request failed",
+    );
+    expect(JSON.stringify(mocks.warn.mock.calls)).not.toContain("postgres://secret");
   });
 });

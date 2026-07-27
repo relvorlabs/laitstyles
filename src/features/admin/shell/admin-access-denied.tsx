@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AUTH_DENIED_MESSAGES, type AuthDeniedReason } from "@/lib/auth/auth-errors";
+import { AUTH_DENIED_MESSAGES, type AuthDeniedReason } from "@/modules/auth/server/diagnostics";
 
 export function AdminAccessDenied({ reason }: { reason: AuthDeniedReason }) {
   return (
