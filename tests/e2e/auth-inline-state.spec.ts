@@ -16,6 +16,7 @@ test("signup validation stays on the mounted auth page", async ({ page }) => {
   await expect(page.getByText("Enter your last name.")).toBeVisible();
   await expect(page.getByText("Enter your email address.")).toBeVisible();
   await expect(page.getByText("Enter your password.")).toBeVisible();
+  await expect(page.getByText("Confirm your password.")).toBeVisible();
   expect(page.url()).toBe(stableUrl);
   await expect
     .poll(() => page.evaluate(() => window.sessionStorage.getItem("signup-document-load-count")))
