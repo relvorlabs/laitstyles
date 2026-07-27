@@ -1,73 +1,25 @@
-import { ArrowRight, KeyRound } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { submitRecoveredPasswordWithRedirect } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/modules/auth/server/diagnostics";
 import { hasRecoverySession } from "@/modules/auth/server/authenticate";
-import { withAuthErrorPath } from "@/modules/auth/server/redirects";
+import { getAuthFlowErrorMessage } from "@/modules/auth/server/diagnostics";
 import {
-  AUTH_INPUT_CLASS_NAME,
   AUTH_PRIMARY_BUTTON_CLASS_NAME,
-  AuthField,
+  AUTH_SECONDARY_BUTTON_CLASS_NAME,
   AuthPageShell,
   AuthStatusNotice,
 } from "@/modules/auth/ui/auth-page-shell";
+import { ResetPasswordForm } from "@/modules/auth/ui/reset-password-form";
 
 export const metadata: Metadata = {
   title: "Choose a new password | Laitstyle",
   description: "Complete a secure Laitstyle password recovery.",
 };
 
-type ResetPasswordPageProps = {
-  searchParams: Promise<{ updated?: string; error?: string }>;
-};
-
-export default async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
-  const params = await searchParams;
-
-  if (params.updated === "1") {
-    return (
-      <AuthPageShell
-        description="Your password has been changed and other sessions have been closed. Sign in again with the password you just chose."
-        eyebrow="Password updated"
-        highlights={[
-          "New password saved to your Supabase identity",
-          "Existing sessions closed after recovery",
-          "Storefront data remains attached to your account",
-        ]}
-        sideDescription="Your account is ready again. Sign in with the new password and continue with the same saved pieces, orders and delivery details."
-        sideTitle="You are securely back in control."
-        title="Your new password is ready"
-      >
-        <div className="grid gap-5">
-          <AuthStatusNotice tone="success">
-            Password replacement completed successfully. Use your new password for the next sign-in.
-          </AuthStatusNotice>
-          <Button
-            className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
-            nativeButton={false}
-            render={<Link href="/?auth=signin" />}
-            size="lg"
-          >
-            Sign in with new password
-            <ArrowRight className="size-4" />
-          </Button>
-        </div>
-      </AuthPageShell>
-    );
-  }
-
-  if (!(await hasRecoverySession())) {
-    redirect(withAuthErrorPath("recovery-invalid", "/auth/forgot-password"));
-  }
-
-  const error = isAuthFlowErrorCode(params.error) ? getAuthFlowErrorMessage(params.error) : null;
+export default async function ResetPasswordPage() {
+  const recoverySessionAvailable = await hasRecoverySession();
 
   return (
     <AuthPageShell
@@ -90,43 +42,35 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
       sideTitle="Replace the key, keep the account."
       title="Choose a new password"
     >
-      <div className="grid gap-6">
-        {error ? <AuthStatusNotice tone="error">{error}</AuthStatusNotice> : null}
-
-        <form action={submitRecoveredPasswordWithRedirect} className="grid gap-[18px]">
-          <AuthField htmlFor="new-password" hint="At least 8 characters" label="New password">
-            <div className="relative">
-              <KeyRound className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
-              <Input
-                autoComplete="new-password"
-                className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
-                id="new-password"
-                minLength={8}
-                name="password"
-                placeholder="Create a strong password"
-                required
-                type="password"
-              />
-            </div>
-          </AuthField>
-          <AuthField htmlFor="confirm-password" label="Confirm new password">
-            <Input
-              autoComplete="new-password"
-              className={AUTH_INPUT_CLASS_NAME}
-              id="confirm-password"
-              minLength={8}
-              name="confirmPassword"
-              placeholder="Enter it again"
-              required
-              type="password"
-            />
-          </AuthField>
-          <Button className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`} size="lg" type="submit">
-            Update password
-            <ArrowRight className="size-4" />
-          </Button>
-        </form>
-      </div>
+      {recoverySessionAvailable ? (
+        <ResetPasswordForm action={submitRecoveredPasswordWithRedirect} />
+      ) : (
+        <div className="grid gap-5">
+          <AuthStatusNotice tone="error">
+            {getAuthFlowErrorMessage("recovery-invalid")}
+          </AuthStatusNotice>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button
+              className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+              nativeButton={false}
+              render={<Link href="/auth/forgot-password" />}
+              size="lg"
+            >
+              Request a new link
+              <ArrowRight className="size-4" />
+            </Button>
+            <Button
+              className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
+              nativeButton={false}
+              render={<Link href="/" />}
+              size="lg"
+              variant="outline"
+            >
+              Return to storefront
+            </Button>
+          </div>
+        </div>
+      )}
     </AuthPageShell>
   );
 }
