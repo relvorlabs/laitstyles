@@ -5,7 +5,7 @@ import {
   passwordSignInSchema,
   passwordSignUpSchema,
   recoveredPasswordSchema,
-} from "@/lib/auth/auth-schemas";
+} from "@/modules/auth/schema";
 
 describe("password auth schemas", () => {
   it("trims normalized identity fields", () => {

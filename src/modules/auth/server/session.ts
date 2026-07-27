@@ -1,7 +1,6 @@
 import "server-only";
 
 import { cache } from "react";
-import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { hasCapability, type StaffCapability } from "@/modules/auth/permissions";
@@ -10,6 +9,7 @@ import {
   ensureConsumerAccount,
 } from "@/modules/auth/server/account-provisioning";
 import type { AuthDeniedReason } from "@/modules/auth/server/diagnostics";
+import { isStaffRole, type StaffRole } from "@/modules/auth/types";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 

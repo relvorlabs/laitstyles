@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { err, ok, type Result } from "@/lib/errors";
+import { createClient } from "@/lib/supabase/server";
 import {
   authEmailFormDataInput,
   authEmailSchema,
@@ -10,9 +12,7 @@ import {
   passwordSignUpSchema,
   recoveredPasswordFormDataInput,
   recoveredPasswordSchema,
-} from "@/lib/auth/auth-schemas";
-import { err, ok, type Result } from "@/lib/errors";
-import { createClient } from "@/lib/supabase/server";
+} from "@/modules/auth/schema";
 import {
   type AuthFlowFailure,
   authFlowFailure,

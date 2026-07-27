@@ -389,6 +389,54 @@ Executed on this commit:
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — not claimed as run.
 
+## P7-T07 evidence (2026-07-27) — retire `src/lib/auth/**`
+
+This ledger has no dedicated checkbox for this step (the inherited pre-restart template's T02–T09
+line items don't include it as its own line; it completes what P7-T02's checkbox already marked
+done, since T02 only created *temporary re-exports*). The design spec's own task numbering names
+it explicitly as P7-T07 — recorded here under that name for traceability against the spec, not as
+a new ledger line.
+
+`src/modules/auth/schema.ts` and `src/modules/auth/types.ts` now own their content directly —
+the temporary `export {...} from "@/lib/auth/..."` re-exports from P7-T02 are gone, replaced with
+the real Zod schemas (schema.ts) and role constants/guards (types.ts), byte-identical to their
+former `lib/auth` originals. `src/lib/auth/**` is deleted in full: `auth-schemas.ts` (+test),
+`roles.ts` (+test), and `index.ts` (the barrel — already down to just re-exporting `roles.ts`
+after P7-T05/T06 removed its other two re-exports, so retiring it here needed no intermediate
+step). **`src/lib/auth/` no longer exists on disk.**
+
+Tests moved and renamed to match their new owning file: `roles.test.ts` → `types.test.ts`
+(types.ts now owns what roles.ts used to), `auth-schemas.test.ts` → `schema.test.ts`.
+
+6 real consumers repointed: `src/app/auth/actions.ts` (schema import), and 5 consumers of the role
+constants/types — `session.ts`, `permissions.ts`, `admin-access-provider.tsx`,
+`admin-shell.tsx`, `session-provider.tsx` (the client-side session context that originally justified
+routing `roles.ts` to `types.ts` instead of `server/` all the way back in the design spec's initial
+inventory — confirmed still correct: `session-provider.tsx` is `"use client"` and now imports
+`StaffRole` from `@/modules/auth/types`, a module-root/client-safe file, not `server/`).
+
+A second guard reference caught and fixed in this same commit: `error-validation-contract.mjs`'s
+`authSchemas` variable still pointed at the now-deleted `src/lib/auth/auth-schemas.ts` (missed in
+P7-T06, which only updated the auth-errors/redirects/diagnostics paths — auth-schemas.ts wasn't in
+T06's scope). Caught by actually running `pnpm check:architecture` rather than assuming the guard
+was already current; updated to `src/modules/auth/schema.ts` in the same commit. Grepped
+`scripts/**` for any other stale `lib/auth` reference — none found.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 3 errors on the first run (`error-validation-contract.mjs`'s stale
+  `authSchemas` path, the finding that drove the fix above), 0 errors/warnings after.
+- `pnpm biome` — 1 error, 65 warnings; the 1 error is the same pre-existing `site-chrome.tsx` drift
+  (reverted again after `biome:fix` re-swept it). 65 warnings matches baseline.
+- `pnpm exec vitest run` — one run: 6 failed (the same 5 documented pre-existing failures plus
+  `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
+  Targeted `schema.test.ts` + `types.test.ts` + `session.test.ts` + `permissions.test.ts` +
+  `actions.test.ts` — 35/35 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— not claimed as run.
+
 ## Acceptance gate
 
 Phase 7 is complete only when all of the following are proven, with executed evidence recorded

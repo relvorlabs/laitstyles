@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode, use } from "react";
-import type { StaffRole } from "@/lib/auth/roles";
+import type { StaffRole } from "@/modules/auth/types";
 
 export type AppSession = {
   signedIn: boolean;

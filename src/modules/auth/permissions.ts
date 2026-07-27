@@ -1,4 +1,4 @@
-import type { AccountRole, StaffRole } from "@/lib/auth/roles";
+import type { AccountRole, StaffRole } from "@/modules/auth/types";
 
 export const STAFF_CAPABILITIES = [
   "admin:access",

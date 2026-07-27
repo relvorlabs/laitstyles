@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAccountRole, isStaffRole } from "@/lib/auth/roles";
+import { isAccountRole, isStaffRole } from "@/modules/auth/types";
 
 describe("account roles", () => {
   it("supports only consumer, admin and manager", () => {
