@@ -13,8 +13,8 @@ import type {
   InventorySortKey,
   InventoryStockFilter,
 } from "@/lib/admin/shared/types";
+import { getStaffAccess } from "@/modules/auth/server/session";
 import { productIdSchema } from "@/modules/products/schema";
-import { getStaffAccess } from "@/server/auth/session";
 
 type InventoryPageProps = {
   searchParams: Promise<{

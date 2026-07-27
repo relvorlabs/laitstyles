@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
+import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
 
 describe("auth redirect safety", () => {
   it("allows internal relative paths", () => {

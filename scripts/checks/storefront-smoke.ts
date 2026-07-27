@@ -58,11 +58,16 @@ async function main() {
     values.media = [
       {
         id: "smoke-cover",
-        url: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+        publicId: "sample",
+        url: "https://res.cloudinary.com/demo/image/upload/v1/sample.jpg",
+        width: null,
+        height: null,
+        format: null,
+        bytes: null,
         alt: "Smoke admin write",
         kind: "cover",
         position: 0,
-        source: "url",
+        source: "upload",
       },
     ];
     values.sellingPrice = 15_000;

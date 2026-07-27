@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
+import { getCurrentSession } from "@/modules/auth/server/session";
 import { getOwnedReviewContext } from "@/modules/reviews/server/repository";
 import { ReviewPage } from "@/modules/reviews/ui/storefront/review-page";
-import { getCurrentSession } from "@/server/auth/session";
 import { submitReviewAction, withdrawReviewAction } from "./actions";
 
 export default async function AccountOrderItemReviewPage({

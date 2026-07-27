@@ -1,10 +1,10 @@
 "use client";
 
 import { Check, Home, MapPin, PackageCheck, Truck } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import {
   getLatestOrderSnapshot,
   getServerOrderSnapshot,
@@ -96,7 +96,7 @@ export default function OrderConfirmationPage() {
               >
                 <div className="relative h-[70px] w-[58px] shrink-0 overflow-hidden rounded-[9px] bg-[#E4E5DE]">
                   {item.imageUrl ? (
-                    <Image
+                    <CloudImage
                       alt={item.name}
                       className="object-cover"
                       fill

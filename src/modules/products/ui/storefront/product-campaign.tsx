@@ -3,10 +3,10 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
 import { wrapCampaignIndex } from "./product-detail-presentation";
 
@@ -35,7 +35,7 @@ function CinematicFrameImage({
   }, [reduceMotion]);
 
   return (
-    <Image
+    <CloudImage
       src={src}
       alt={alt}
       fill

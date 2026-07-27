@@ -16,7 +16,7 @@ import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";
 import { AdminSidebar } from "@/features/admin/shell/admin-sidebar";
 import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
 import { AdminProvider } from "@/features/admin/state/admin-provider";
-import type { StaffRole } from "@/lib/auth/roles";
+import type { StaffRole } from "@/modules/auth/types";
 
 export function AdminShell({ children, role }: { children: ReactNode; role: StaffRole }) {
   const pathname = usePathname();

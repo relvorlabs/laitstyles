@@ -17,7 +17,7 @@ vi.mock("@/lib/prisma", () => ({
     profiles: { findUnique: mocks.profileFindUnique },
   },
 }));
-vi.mock("@/server/auth/profile", () => ({
+vi.mock("@/modules/auth/server/account-provisioning", () => ({
   ensureConsumerAccount: mocks.ensureConsumerAccount,
 }));
 

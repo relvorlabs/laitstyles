@@ -3,12 +3,12 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import {
   applyOperationalStockMutation,
   OperationalStockError,
 } from "@/modules/inventory/server/operational-stock";
 import type { OfflineSaleInput, SalesActionError } from "@/modules/orders/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export type OfflineSaleDraft = {
   orderId: string;

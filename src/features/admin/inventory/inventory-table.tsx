@@ -2,10 +2,10 @@
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Expand } from "lucide-react";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CloudImage } from "@/components/ui/cloud-image";
 import {
   Table,
   TableBody,
@@ -95,7 +95,7 @@ export function InventoryTable({
                       type="button"
                       variant="ghost"
                     >
-                      <Image
+                      <CloudImage
                         alt={item.coverImage.alt}
                         className="object-cover transition-transform group-hover/media:scale-105 motion-reduce:transition-none"
                         fill

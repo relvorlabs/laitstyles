@@ -26,7 +26,10 @@ export const adminProductInclude = {
           delivery_url: true,
           public_id: true,
           alt: true,
-          provider: true,
+          width: true,
+          height: true,
+          format: true,
+          bytes: true,
         },
       },
     },
@@ -40,7 +43,15 @@ export const adminProductInclude = {
         orderBy: { position: "asc" },
         include: {
           cloudinary_assets: {
-            select: { secure_url: true, delivery_url: true },
+            select: {
+              secure_url: true,
+              delivery_url: true,
+              public_id: true,
+              width: true,
+              height: true,
+              format: true,
+              bytes: true,
+            },
           },
         },
       },
@@ -67,9 +78,12 @@ function mapMedia(row: AdminProductRow["product_media"][number]): ProductMedia {
   const asset = row.cloudinary_assets;
   return {
     id: row.id,
+    publicId: asset.public_id,
     url: asset.delivery_url ?? asset.secure_url,
-    provider: asset.provider === "cloudinary" ? "cloudinary" : undefined,
-    storageKey: asset.public_id,
+    width: asset.width,
+    height: asset.height,
+    format: asset.format,
+    bytes: asset.bytes,
     alt: asset.alt,
     kind: mapMediaKind(row.kind),
     position: row.position,
@@ -77,14 +91,23 @@ function mapMedia(row: AdminProductRow["product_media"][number]): ProductMedia {
 }
 
 function mapVariant(row: AdminProductRow["product_variants"][number]): ProductVariant {
-  const image = row.product_media[0]?.cloudinary_assets;
+  const asset = row.product_media[0]?.cloudinary_assets;
   return {
     id: row.id,
     label: row.label,
     sku: row.sku ?? "",
     size: row.size,
     colour: row.colour,
-    imageUrl: image ? (image.delivery_url ?? image.secure_url) : null,
+    image: asset
+      ? {
+          publicId: asset.public_id,
+          url: asset.delivery_url ?? asset.secure_url,
+          width: asset.width,
+          height: asset.height,
+          format: asset.format,
+          bytes: asset.bytes,
+        }
+      : null,
     price: row.price?.toNumber() ?? null,
     cost: row.cost?.toNumber() ?? null,
     stock: mapInventoryCounts(row.stock_levels[0]),

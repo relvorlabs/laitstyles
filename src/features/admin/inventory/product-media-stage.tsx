@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type { ProductMedia } from "@/lib/admin/shared/types";
 
 export function ProductMediaStage({
@@ -32,7 +32,7 @@ export function ProductMediaStage({
             width: `${zoom * 100}%`,
           }}
         >
-          <Image
+          <CloudImage
             alt={media.alt}
             className="object-contain"
             fill

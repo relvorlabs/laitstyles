@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -102,7 +102,7 @@ export function HoldDetailSheet({
               aria-labelledby="hold-summary-title"
             >
               <div className="relative aspect-[4/5] overflow-hidden rounded-[16px] bg-secondary">
-                <Image
+                <CloudImage
                   alt={item.imageAlt}
                   className="object-cover"
                   fill

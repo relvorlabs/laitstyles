@@ -1,14 +1,14 @@
 import "server-only";
 
-import { AUTH_DENIED_MESSAGES } from "@/lib/auth/auth-errors";
-import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { ApiError } from "@/lib/errors/api-error";
+import { hasCapability, type StaffCapability } from "@/modules/auth/permissions";
+import { AUTH_DENIED_MESSAGES } from "@/modules/auth/server/diagnostics";
 import {
   type ConsumerSession,
   type CurrentSession,
   getCurrentSession,
   type StaffSession,
-} from "@/server/auth/session";
+} from "@/modules/auth/server/session";
 
 export async function requireApiSession(): Promise<ConsumerSession | StaffSession> {
   const session = await getCurrentSession();

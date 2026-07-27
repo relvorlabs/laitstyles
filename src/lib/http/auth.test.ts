@@ -3,7 +3,7 @@ import { requireApiConsumer, requireApiSession, requireApiStaff } from "@/lib/ht
 
 const getCurrentSession = vi.hoisted(() => vi.fn());
 
-vi.mock("@/server/auth/session", () => ({
+vi.mock("@/modules/auth/server/session", () => ({
   getCurrentSession,
 }));
 

@@ -5,9 +5,9 @@ import { submitRecoveredPasswordWithRedirect } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/lib/auth/auth-errors";
-import { withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+import { withAuthErrorPath } from "@/modules/auth/server/redirects";
 
 export const metadata: Metadata = {
   title: "Choose a new password | Laitstyle",

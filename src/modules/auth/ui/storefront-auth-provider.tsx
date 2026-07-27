@@ -1,20 +1,37 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, type ReactNode, use, useCallback, useMemo } from "react";
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import {
   signOutStorefrontSession,
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
-import { openAuthDialog } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import {
+  closeStorefrontOverlays,
+  subscribeTransientOverlayClose,
+} from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useSession } from "@/providers/session-provider";
-import type { StorefrontAuthForm, StorefrontAuthMode } from "./storefront-auth-dialog";
+import type { StorefrontAuthForm, StorefrontAuthMode } from "./auth-dialog";
 
 type AuthSubmissionResult =
   | Awaited<ReturnType<typeof submitPasswordSignIn>>
   | Awaited<ReturnType<typeof submitPasswordSignUp>>;
+
+export type AuthDialogState = {
+  open: boolean;
+  mode: StorefrontAuthMode;
+  onSuccess?: () => void;
+};
 
 type StorefrontAuthContextValue = {
   state: {
@@ -22,10 +39,13 @@ type StorefrontAuthContextValue = {
     signedIn: boolean;
     userEmail: string | null;
     userName: string | null;
+    dialog: AuthDialogState;
   };
   actions: {
     openSignin: (onSuccess?: () => void) => void;
     openSignup: (onSuccess?: () => void) => void;
+    closeAuthDialog: () => void;
+    setAuthDialogMode: (mode: StorefrontAuthMode) => void;
     authenticate: (
       mode: StorefrontAuthMode,
       form: StorefrontAuthForm,
@@ -37,17 +57,29 @@ type StorefrontAuthContextValue = {
 
 const StorefrontAuthContext = createContext<StorefrontAuthContextValue | null>(null);
 
+const closedDialog: AuthDialogState = { open: false, mode: "signin" };
+
 export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
   const authSession = useSession();
   const router = useRouter();
-  const openSignin = useCallback(
-    (onSuccess?: () => void) => openAuthDialog({ mode: "signin", onSuccess }),
-    [],
-  );
-  const openSignup = useCallback(
-    (onSuccess?: () => void) => openAuthDialog({ mode: "signup", onSuccess }),
-    [],
-  );
+  const [dialog, setDialog] = useState<AuthDialogState>(closedDialog);
+
+  const openSignin = useCallback((onSuccess?: () => void) => {
+    closeStorefrontOverlays();
+    setDialog({ open: true, mode: "signin", onSuccess });
+  }, []);
+  const openSignup = useCallback((onSuccess?: () => void) => {
+    closeStorefrontOverlays();
+    setDialog({ open: true, mode: "signup", onSuccess });
+  }, []);
+  const closeAuthDialog = useCallback(() => {
+    setDialog((current) => ({ ...current, open: false }));
+  }, []);
+  const setAuthDialogMode = useCallback((mode: StorefrontAuthMode) => {
+    setDialog((current) => ({ ...current, mode }));
+  }, []);
+
+  useEffect(() => subscribeTransientOverlayClose(closeAuthDialog), [closeAuthDialog]);
 
   const authenticate = useCallback(
     async (
@@ -92,16 +124,27 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
         signedIn: authSession.signedIn,
         userEmail: authSession.email,
         userName: displayName,
+        dialog,
       },
-      actions: { openSignin, openSignup, authenticate, signOut },
+      actions: {
+        openSignin,
+        openSignup,
+        closeAuthDialog,
+        setAuthDialogMode,
+        authenticate,
+        signOut,
+      },
     }),
     [
       authSession.email,
       authSession.signedIn,
       authenticate,
+      closeAuthDialog,
+      dialog,
       displayName,
       openSignin,
       openSignup,
+      setAuthDialogMode,
       signOut,
     ],
   );

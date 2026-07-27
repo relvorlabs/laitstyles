@@ -10,46 +10,31 @@ checkout settlement has already migrated. The machine-readable authority is
 one exact imported specifier, an owner, a reason, and a removal phase. The architecture guard
 checks both observed-to-declared and declared-to-observed directions.
 
-## Phase 7 authentication compatibility
+## Phase 7 authentication compatibility — complete, zero edges remain
 
-These edges are owned by the domain engineer and are removed in Phase 7.
+Phase 7 authentication consolidation is done. All 30 original edges owned by this section are
+retired; the table that used to live here is now empty by construction, not by omission.
 
-| Importer | Imported specifier |
-| --- | --- |
-| `src/app/layout.tsx` | `@/server/auth/session` |
-| `src/app/auth/sign-in/page.tsx` | `@/server/auth/session` |
-| `src/app/admin/layout.tsx` | `@/server/auth/session` |
-| `src/app/admin/inventory/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/profile/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/profile/actions.ts` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/page.tsx` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts` | `@/server/auth/session` |
-| `src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/page.tsx` | `@/server/auth/session` |
-| `src/lib/http/auth.ts` | `@/server/auth/session` |
-| `src/modules/customers/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/holds/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/inventory/server/adjust-stock.ts` | `@/server/auth/session` |
-| `src/modules/inventory/server/stock-write.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale-checkout.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale-draft.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/offline-sale.ts` | `@/server/auth/session` |
-| `src/modules/orders/server/transition-order.ts` | `@/server/auth/session` |
-| `src/modules/products/server/lifecycle-commands.ts` | `@/server/auth/session` |
-| `src/modules/products/server/product-commands.ts` | `@/server/auth/session` |
-| `src/modules/products/server/rules.ts` | `@/server/auth/session` |
-| `src/modules/products/server/taxonomy-commands.ts` | `@/server/auth/session` |
-| `src/modules/returns/server/commands.ts` | `@/server/auth/session` |
-| `src/modules/settings/server/commands.ts` | `@/server/auth/session` |
-| `src/app/auth/callback/route.ts` | `@/server/auth/profile` |
-| `src/server/auth/session.ts` | `@/server/auth/profile` |
-| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
-| `src/modules/storefront-shell/ui/site-chrome.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
-| `src/modules/storefront-shell/ui/storefront-account-menu.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
-| `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-dialog-host` |
+**2026-07-27 (P7-T03):** all 25 `@/server/auth/session` edges were removed in one commit —
+`src/server/auth/session.ts` relocated to `src/modules/auth/server/session.ts` and every importer
+now points at the in-module path directly, needing no exception.
 
-Only `src/server/auth/session.ts` and `src/server/auth/profile.ts` are declared legacy top-level
-auth files. A third production file under `src/server/auth/**` is not allowed by folder or glob.
+**2026-07-27 (P7-T04):** the remaining 2 `@/server/auth/profile` edges were removed in one commit —
+`src/server/auth/profile.ts` relocated to `src/modules/auth/server/account-provisioning.ts` and
+both former importers (`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) now
+point at the in-module path directly. `src/server/auth/**` no longer exists.
+
+**2026-07-27 (P7-T10/T11):** the final 5 edges were removed in one commit —
+`src/features/storefront/shared/{storefront-auth-dialog,storefront-auth-dialog-host,
+storefront-auth-provider}.tsx` relocated to `src/modules/auth/ui/{auth-dialog,auth-dialog-host,
+storefront-auth-provider}.tsx` (3 `storefront-auth-provider` importer edges + 1 composition edge
+retired), and `src/features/storefront/shared/catalogue-data.ts` (the type-only `Product` shim)
+deleted outright — the moved `auth-dialog.tsx` now imports `Product` directly from
+`@/modules/products/ui/storefront/catalogue-data`, the canonical source the shim only ever
+re-exported. See `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.
+
+No legacy top-level auth file remains declared. `src/server/auth/**` no longer exists.
+`src/features/storefront/shared/storefront-runtime.ts` remains a Phase 8 checkout edge, untouched.
 
 ## Phase 8 checkout compatibility
 
@@ -62,13 +47,6 @@ These route-level presentation edges are owned by the UI engineer and are remove
 
 No checkout directory, nested checkout-to-checkout import, settlement operation, wildcard, or
 second route consumer is covered by these entries.
-
-## Type-only Product shim
-
-`src/features/storefront/shared/storefront-auth-dialog.tsx` has one exact type-only import from
-`@/features/storefront/shared/catalogue-data`. That shim may export only the `Product` type from
-`@/modules/products/ui/storefront/catalogue-data`; `export *` and runtime exports are rejected.
-It does not authorize a runtime Product dependency or another consumer.
 
 ## Explicitly not excepted
 
@@ -93,3 +71,30 @@ moved to root layout), `src/app/storefront-client-boundary.tsx` →
 `src/app/storefront-route-boundary.tsx` → `@/features/storefront/shared/storefront-auth-session`
 (storefront auth narrowed to actions-only). See
 `docs/superpowers/specs/2026-07-27-provider-centralization-design.md`.
+
+On 2026-07-27, as part of Phase 7 task P7-T03, all 25 `@/server/auth/session` edges were removed
+in one commit: `src/server/auth/session.ts` relocated to `src/modules/auth/server/session.ts`
+(content unchanged) and every one of its 25 production importers repointed to the in-module path
+directly. The relocated file's own `@/server/auth/profile` import is registered as a new, narrower
+temporary edge (`src/modules/auth/server/session.ts` → `@/server/auth/profile`, replacing the
+prior `src/server/auth/session.ts` entry), retired in P7-T04 when `profile.ts` itself moves into
+the module. See `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.
+
+On 2026-07-27, as part of Phase 7 task P7-T04, the last 2 auth compatibility edges tied to
+`src/server/auth/**` were removed in one commit: `src/server/auth/profile.ts` relocated to
+`src/modules/auth/server/account-provisioning.ts` (content unchanged) and both its importers
+(`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) repointed to the in-module
+path directly. `src/server/auth/**` no longer exists on disk.
+
+On 2026-07-27, as part of Phase 7 tasks P7-T10/T11, the final 5 auth compatibility edges were
+removed in one commit: `src/features/storefront/shared/{storefront-auth-dialog,
+storefront-auth-dialog-host,storefront-auth-provider}.tsx` relocated to
+`src/modules/auth/ui/{auth-dialog,auth-dialog-host,storefront-auth-provider}.tsx` (content
+unchanged; no JSX, className, or interaction-state edit) with their 3 importers + 1 composition
+edge repointed to the in-module path directly, and `src/features/storefront/shared/catalogue-data.ts`
+(the type-only `Product` shim) deleted after `auth-dialog.tsx` was repointed to import `Product`
+directly from `@/modules/products/ui/storefront/catalogue-data`. `legacyProductTypeOnlyEdge` is
+removed from `architecture-legacy-exceptions.mjs`, and the test that asserted its exact shape
+(`src/modules/products/product-module-boundaries.test.ts`, "keeps every phase exception exact and
+type-only") is removed with it — there is no longer an exception to verify. Phase 7's section of
+this document is now empty of active edges.

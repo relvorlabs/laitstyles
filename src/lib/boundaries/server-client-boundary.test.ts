@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { classifyArchitectureGraph } from "../../../scripts/checks/architecture-guard.mjs";
@@ -121,6 +121,12 @@ describe("server/client boundaries", () => {
               .filter((importPath) => importsModule(join(WORKSPACE_ROOT, repoPath), importPath))
               .filter(
                 (importPath) =>
+                  !(
+                    layer === "src/modules" && onlyImportsServerActionsFromApp(repoPath, importPath)
+                  ),
+              )
+              .filter(
+                (importPath) =>
                   !legacyArchitectureExceptions.some(
                     (entry) =>
                       entry.importer === repoPath &&
@@ -147,15 +153,12 @@ describe("server/client boundaries", () => {
           (entry) =>
             entry.importer.length > 0 &&
             entry.imported.length > 0 &&
-            (entry.removalPhase === 7 || entry.removalPhase === 8) &&
-            (entry.owner === "domain-engineer" || entry.owner === "ui-engineer"),
+            ([7, 8] as const).includes(entry.removalPhase) &&
+            (["domain-engineer", "ui-engineer"] as const).includes(entry.owner),
         ),
       ).toBe(true);
       expect(compatibilityEdges.size).toBe(legacyArchitectureExceptions.length);
-      expect([...legacyTopLevelServerFiles]).toEqual([
-        "src/server/auth/session.ts",
-        "src/server/auth/profile.ts",
-      ]);
+      expect([...legacyTopLevelServerFiles]).toEqual([]);
     },
     CHECK_TIMEOUT_MS,
   );
@@ -174,6 +177,41 @@ function collectSourceFiles(directory: string): string[] {
 function isClientComponent(filePath: string) {
   const source = readFileSync(filePath, "utf8").trimStart();
   return source.startsWith('"use client";') || source.startsWith("'use client';");
+}
+
+// A Client Component (including a domain module's ui/** layer) calling a thin
+// Server Action imperatively is a sanctioned flow ("Form or Client Component
+// -> thin Server Action -> domain command"), distinct from the prohibited
+// patterns (TanStack Query wrapping a Server Action, Route Handlers importing
+// one) that classifyArchitectureGraph already catches above. src/modules may
+// therefore import @/app specifically when every such import resolves to a
+// "use server" module - never for other app-layer code.
+function resolveAliasSpecifier(specifier: string): string | null {
+  if (!specifier.startsWith("@/")) return null;
+  const base = join(WORKSPACE_ROOT, "src", specifier.slice(2));
+  for (const candidate of [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")]) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function isServerActionModule(specifier: string): boolean {
+  const resolved = resolveAliasSpecifier(specifier);
+  if (!resolved) return false;
+  return readFileSync(resolved, "utf8").trimStart().startsWith('"use server"');
+}
+
+function exactImportSpecifiers(source: string): string[] {
+  return [...source.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)].map((match) => match[1]);
+}
+
+function onlyImportsServerActionsFromApp(repoPath: string, importPath: string): boolean {
+  if (importPath !== "@/app") return false;
+  const source = readFileSync(join(WORKSPACE_ROOT, repoPath), "utf8");
+  const appSpecifiers = exactImportSpecifiers(source).filter((specifier) =>
+    specifier.startsWith("@/app"),
+  );
+  return appSpecifiers.length > 0 && appSpecifiers.every(isServerActionModule);
 }
 
 function importsModule(filePath: string, importPath: string) {

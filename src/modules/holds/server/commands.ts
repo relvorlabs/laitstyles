@@ -3,6 +3,7 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { adminHoldInclude, mapAdminHoldRow } from "@/modules/holds/server/mappers";
 import type { ConvertHoldInput, HoldActionError, HoldActionSuccess } from "@/modules/holds/types";
 import {
@@ -11,7 +12,6 @@ import {
 } from "@/modules/inventory/server/operational-stock";
 import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type { SalesChannel } from "@/modules/orders/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export async function extendHold(
   actor: StaffSession,

@@ -3,6 +3,7 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import {
   applyOperationalStockMutation,
   OperationalStockError,
@@ -17,7 +18,6 @@ import {
 } from "@/modules/orders/server/mappers";
 import { orderIdentifierWhere } from "@/modules/orders/server/queries";
 import type { OrderStatus, OrderTransitionSuccess, SalesActionError } from "@/modules/orders/types";
-import type { StaffSession } from "@/server/auth/session";
 
 type DatabaseOrderLineStockState = AdminOrderRow["order_lines"][number]["stock_state"];
 

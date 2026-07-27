@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
-import type { StaffSession } from "@/server/auth/session";
+import type { StaffSession } from "@/modules/auth/server/session";
 
 const harness = vi.hoisted(() => {
   const tx = {
@@ -119,16 +119,21 @@ describe("saveProduct", () => {
     });
   });
 
-  it("rejects non-durable preview media before opening a transaction", async () => {
+  it("rejects media that was never uploaded before opening a transaction", async () => {
     const values = validStockedValues();
     values.media = [
       {
         id: "preview",
-        url: "blob:http://localhost/preview",
+        publicId: "",
+        url: "https://example.invalid/preview",
+        width: null,
+        height: null,
+        format: null,
+        bytes: null,
         alt: "Preview",
         kind: "cover",
         position: 0,
-        source: "local-preview",
+        source: "upload",
       },
     ];
 

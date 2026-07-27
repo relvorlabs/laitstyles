@@ -6,11 +6,13 @@ import {
   Delete02Icon,
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
-import Image from "next/image";
+import type { CloudinaryUploadWidgetInfo, CloudinaryUploadWidgetResults } from "next-cloudinary";
+import { CldUploadButton } from "next-cloudinary";
 import { useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
@@ -20,12 +22,10 @@ import type { ProductEditorValues } from "@/lib/admin/shared/types";
 const MAX_IMAGES = 12;
 
 export function ProductImagesStep() {
-  const [imageUrl, setImageUrl] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const {
     control,
     getValues,
-    register,
     setValue,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
@@ -36,76 +36,39 @@ export function ProductImagesStep() {
     keyName: "fieldKey",
   });
   const mediaError = getProductEditorFieldError(errors, "media");
+  const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
 
-  function appendPreview(url: string, source: "local-preview" | "url") {
+  function handleUploadSuccess(result: CloudinaryUploadWidgetResults) {
+    const info = result.info;
+    if (!info || typeof info === "string") return;
+    addUploadedImage(info);
+  }
+
+  function addUploadedImage(info: CloudinaryUploadWidgetInfo) {
     const existing = getValues("media");
     if (existing.length >= MAX_IMAGES) {
       setFeedback(`A product can have up to ${MAX_IMAGES} images.`);
-      return false;
+      return;
     }
-    const duplicateKey = normaliseUrl(url);
-    if (existing.some((item) => normaliseUrl(item.url) === duplicateKey)) {
+    if (existing.some((item) => item.publicId === info.public_id)) {
       setFeedback("That image is already in this product record.");
-      return false;
+      return;
     }
+
     append({
       id: `media-${crypto.randomUUID()}`,
-      url,
+      publicId: info.public_id,
+      url: info.secure_url,
+      width: info.width ?? null,
+      height: info.height ?? null,
+      format: info.format ?? null,
+      bytes: info.bytes ?? null,
       alt: "",
       kind: existing.some((item) => item.kind === "cover") ? "detail" : "cover",
       position: existing.length,
-      source,
+      source: "upload",
     });
     setFeedback("Image added. Add a description and choose the featured cover.");
-    return true;
-  }
-
-  function addFiles(files: FileList | null) {
-    if (!files?.length) return;
-    let added = 0;
-    let rejected = 0;
-
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith("image/")) {
-        rejected += 1;
-        continue;
-      }
-      if (getValues("media").length >= MAX_IMAGES) {
-        rejected += 1;
-        continue;
-      }
-
-      const objectUrl = URL.createObjectURL(file);
-      if (appendPreview(objectUrl, "local-preview")) {
-        added += 1;
-      } else {
-        URL.revokeObjectURL(objectUrl);
-        rejected += 1;
-      }
-    }
-
-    if (rejected > 0) {
-      setFeedback(
-        `${added} image${added === 1 ? "" : "s"} added. ${rejected} file${rejected === 1 ? " was" : "s were"} skipped because they were invalid, duplicated or above the ${MAX_IMAGES}-image limit.`,
-      );
-    } else if (added > 1) {
-      setFeedback(`${added} images added. Add descriptions and choose the featured cover.`);
-    }
-  }
-
-  function addUrlPreview() {
-    const value = imageUrl.trim();
-    if (!value) return;
-    try {
-      const parsed = new URL(value);
-      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error();
-    } catch {
-      setFeedback("Enter a complete http or https image URL.");
-      return;
-    }
-    if (appendPreview(value, "url")) {
-      setImageUrl("");
-    }
   }
 
   function setCover(index: number) {
@@ -124,11 +87,6 @@ export function ProductImagesStep() {
 
   function removePreview(index: number) {
     const current = getValues("media");
-    const removed = current[index];
-    if (removed?.source === "local-preview" && removed.url.startsWith("blob:")) {
-      URL.revokeObjectURL(removed.url);
-    }
-
     const next = current.filter((_, itemIndex) => itemIndex !== index);
     if (next.length && !next.some((item) => item.kind === "cover")) {
       next[0] = { ...next[0], kind: "cover" };
@@ -159,61 +117,53 @@ export function ProductImagesStep() {
           Build the product’s visual record.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
-          Add up to {MAX_IMAGES} images, edit remote URLs, reorder them, mark defects and choose one
-          featured cover. Local files remain session-only previews until real storage is connected.
+          Upload up to {MAX_IMAGES} images, reorder them, mark defects and choose one featured
+          cover. Every image uploads directly to Cloudinary.
         </p>
       </div>
 
-      <div className="grid gap-4 rounded-[18px] border border-dashed border-border bg-surface-sunken p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <Field>
-          <FieldLabel htmlFor="product-image-files">Choose image files</FieldLabel>
-          <FieldDescription>
-            Select several images at once. They preview immediately in this browser session.
-          </FieldDescription>
-          <Input
-            accept="image/*"
-            className="h-11 file:mr-3"
-            id="product-image-files"
-            multiple
-            onChange={(event) => {
-              addFiles(event.target.files);
-              event.currentTarget.value = "";
-            }}
-            type="file"
-          />
-        </Field>
-        <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground md:block">
-          {fields.length}/{MAX_IMAGES} images
-        </span>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <Field>
-          <FieldLabel htmlFor="product-image-url">Or add an image URL</FieldLabel>
-          <Input
-            className="h-11"
-            id="product-image-url"
-            onChange={(event) => setImageUrl(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                addUrlPreview();
-              }
-            }}
-            placeholder="https://…"
-            value={imageUrl}
-          />
-        </Field>
-        <Button
-          size="lg"
-          disabled={!imageUrl.trim() || fields.length >= MAX_IMAGES}
-          onClick={addUrlPreview}
-          type="button"
-          variant="outline"
-        >
-          <AdminIcon icon={ImageAdd01Icon} size={17} />
-          Add image
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-dashed border-border bg-surface-sunken p-4">
+        <div>
+          <p className="text-[12.5px] font-semibold">Upload product images</p>
+          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
+            Select one or more images. They upload straight to Cloudinary and preview here.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground md:block">
+            {fields.length}/{MAX_IMAGES} images
+          </span>
+          {remainingSlots > 0 ? (
+            <CldUploadButton
+              className={buttonVariants({ size: "lg", variant: "outline" })}
+              data-slot="button"
+              onError={() => setFeedback("That upload failed. Try again.")}
+              onSuccess={handleUploadSuccess}
+              options={{
+                multiple: true,
+                maxFiles: remainingSlots,
+                sources: ["local", "camera"],
+                clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "avif"],
+                folder: "laitstyles/products",
+              }}
+              signatureEndpoint="/api/v1/admin/assets/sign"
+            >
+              <AdminIcon icon={ImageAdd01Icon} size={17} />
+              Upload images
+            </CldUploadButton>
+          ) : (
+            <span
+              className={buttonVariants({
+                size: "lg",
+                variant: "outline",
+                className: "pointer-events-none opacity-50",
+              })}
+            >
+              <AdminIcon icon={ImageAdd01Icon} size={17} />
+              Upload images
+            </span>
+          )}
+        </div>
       </div>
 
       {feedback ? (
@@ -240,7 +190,6 @@ export function ProductImagesStep() {
             const media = watchedMedia[index] ?? field;
             const kind = media.kind;
             const altError = getProductEditorFieldError(errors, `media.${index}.alt`);
-            const urlError = getProductEditorFieldError(errors, `media.${index}.url`);
 
             return (
               <article
@@ -248,13 +197,12 @@ export function ProductImagesStep() {
                 key={field.fieldKey}
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-surface-sunken">
-                  <Image
+                  <CloudImage
                     alt={media.alt || "Product preview"}
                     className="object-cover"
                     fill
                     sizes="(min-width: 768px) 50vw, 100vw"
                     src={media.url}
-                    unoptimized
                   />
                   <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
                     <Badge variant={kind === "cover" ? "default" : "secondary"}>
@@ -273,31 +221,17 @@ export function ProductImagesStep() {
                 </div>
 
                 <div className="space-y-4 p-4">
-                  <Field data-invalid={Boolean(urlError)}>
-                    <FieldLabel htmlFor={`media.${index}.url`}>Image URL</FieldLabel>
-                    <FieldDescription>
-                      {media.source === "local-preview"
-                        ? "Local preview URLs cannot be edited. Remove and choose the file again to replace it."
-                        : "Edit this URL to replace the image while keeping its order and description."}
-                    </FieldDescription>
-                    <Input
-                      {...register(`media.${index}.url`)}
-                      aria-invalid={Boolean(urlError)}
-                      className="h-11"
-                      id={`media.${index}.url`}
-                      readOnly={media.source === "local-preview"}
-                    />
-                    <FieldError>{urlError}</FieldError>
-                  </Field>
-
                   <Field data-invalid={Boolean(altError)}>
                     <FieldLabel htmlFor={`media.${index}.alt`}>Image description</FieldLabel>
                     <Input
-                      {...register(`media.${index}.alt`)}
                       aria-invalid={Boolean(altError)}
                       className="h-11"
                       id={`media.${index}.alt`}
+                      onChange={(event) =>
+                        setValue(`media.${index}.alt`, event.target.value, { shouldDirty: true })
+                      }
                       placeholder="Front view showing the denim wash and relaxed fit"
+                      value={media.alt}
                     />
                     <FieldError>{altError}</FieldError>
                   </Field>
@@ -369,8 +303,4 @@ export function ProductImagesStep() {
       )}
     </section>
   );
-}
-
-function normaliseUrl(value: string) {
-  return value.trim().toLocaleLowerCase("en-NG");
 }

@@ -17,3 +17,14 @@ export function isAccountRole(value: unknown): value is AccountRole {
 export function isStaffRole(value: unknown): value is StaffRole {
   return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
 }
+
+// P7-T03: session.ts now lives in this module, so this is a same-module
+// re-export (no legacy-exception edge needed, unlike the T02 attempt at
+// re-exporting these from the still-legacy src/server/auth/session).
+export type {
+  ConsumerSession,
+  CurrentSession,
+  StaffAccess,
+  StaffSession,
+  VerifiedIdentity,
+} from "@/modules/auth/server/session";

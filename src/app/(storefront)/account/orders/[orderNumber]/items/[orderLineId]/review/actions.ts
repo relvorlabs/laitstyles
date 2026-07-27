@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getCurrentSession } from "@/modules/auth/server/session";
 import { reviewInputSchema } from "@/modules/reviews/schema";
 import {
   type SubmitReviewResult,
@@ -10,7 +11,6 @@ import {
   withdrawReview,
 } from "@/modules/reviews/server/repository";
 import type { ReviewActionState } from "@/modules/reviews/types";
-import { getCurrentSession } from "@/server/auth/session";
 
 type ReviewErrorState = Extract<ReviewActionState, { status: "error" }>;
 

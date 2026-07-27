@@ -5,6 +5,8 @@ export type AssetServerConfig = {
   primaryProvider: AssetProvider;
   cloudinary: {
     cloudName: string;
+    apiKey?: string;
+    apiSecret?: string;
     uploadPreset?: string;
   };
   cloudflareR2: {
@@ -21,6 +23,8 @@ export function getAssetServerConfig(): AssetServerConfig {
     primaryProvider: getPrimaryAssetProvider(),
     cloudinary: {
       cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "",
+      apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+      apiSecret: process.env.CLOUDINARY_API_SECRET,
       uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
     },
     cloudflareR2: {

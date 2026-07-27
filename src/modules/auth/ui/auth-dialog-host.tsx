@@ -1,18 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  type AuthDialogRequest,
-  subscribeAuthDialog,
-  subscribeTransientOverlayClose,
-} from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
   type StorefrontAuthForm,
   type StorefrontAuthMode,
   type StorefrontAuthState,
-} from "./storefront-auth-dialog";
+} from "./auth-dialog";
 import { useStorefrontAuth } from "./storefront-auth-provider";
 
 const blankAuthForm: StorefrontAuthForm = {
@@ -24,9 +19,8 @@ const blankAuthForm: StorefrontAuthForm = {
 
 export function StorefrontAuthDialogHost() {
   const { products } = useStorefrontCatalogueData();
-  const { actions } = useStorefrontAuth();
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<StorefrontAuthMode>("signin");
+  const { actions, state: authContextState } = useStorefrontAuth();
+  const { open, mode, onSuccess } = authContextState.dialog;
   const [state, setState] = useState<StorefrontAuthState>("default");
   const [form, setForm] = useState<StorefrontAuthForm>(blankAuthForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -36,29 +30,13 @@ export function StorefrontAuthDialogHost() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const successRef = useRef<(() => void) | null>(null);
 
-  const closeDialog = useCallback(() => {
-    setOpen(false);
-    setState("default");
-    successRef.current = null;
-  }, []);
-
-  const openDialog = useCallback((request: AuthDialogRequest) => {
-    successRef.current = request.onSuccess ?? null;
-    setMode(request.mode);
+  useEffect(() => {
+    if (!open) return;
+    successRef.current = onSuccess ?? null;
     setState("default");
     setErrors({});
     setShowErrors(false);
-    setOpen(true);
-  }, []);
-
-  useEffect(() => {
-    const unsubscribeOpen = subscribeAuthDialog(openDialog);
-    const unsubscribeClose = subscribeTransientOverlayClose(closeDialog);
-    return () => {
-      unsubscribeOpen();
-      unsubscribeClose();
-    };
-  }, [closeDialog, openDialog]);
+  }, [open, onSuccess]);
 
   const submit = useCallback(async () => {
     if (state === "signing-in") return;
@@ -84,22 +62,21 @@ export function StorefrontAuthDialogHost() {
 
   const onOpenChange = useCallback(
     (nextOpen: boolean) => {
-      if (nextOpen) {
-        setOpen(true);
-        return;
-      }
-      closeDialog();
+      if (nextOpen) return;
+      actions.closeAuthDialog();
+      setState("default");
+      successRef.current = null;
     },
-    [closeDialog],
+    [actions],
   );
 
   const finish = useCallback(() => {
     const completed = state === "success";
-    setOpen(false);
+    actions.closeAuthDialog();
     setState("default");
     if (completed) successRef.current?.();
     successRef.current = null;
-  }, [state]);
+  }, [actions, state]);
 
   return (
     <StorefrontAuthDialog
@@ -118,7 +95,7 @@ export function StorefrontAuthDialogHost() {
         window.location.assign(`/auth/google?next=${encodeURIComponent(next)}`);
       }}
       onFinish={finish}
-      onModeChange={setMode}
+      onModeChange={actions.setAuthDialogMode}
       onOpenChange={onOpenChange}
       onRememberChange={setRemember}
       onRevealPasswordChange={setRevealPassword}

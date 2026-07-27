@@ -1,18 +1,18 @@
 "use client";
 
 import { Check, Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { cn } from "@/lib/utils";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 
 export type StorefrontAuthMode = "signin" | "signup";
 export type StorefrontAuthState = "default" | "signing-in" | "success" | "check-email";
@@ -66,7 +66,6 @@ export function StorefrontAuthDialog({
   onTermsAcceptedChange,
   setForm,
 }: StorefrontAuthDialogProps) {
-  if (!authProduct) return null;
   const signup = mode === "signup";
   const busy = state === "signing-in";
   const errorFor = (key: string) => (showErrors ? errors[key] : undefined);
@@ -79,38 +78,45 @@ export function StorefrontAuthDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="max-h-[calc(100vh-64px)] max-w-[940px] grid-cols-1 gap-0 overflow-y-auto rounded-lg p-0 shadow-[0_30px_80px_rgba(0,0,0,.24)] sm:max-w-[940px] md:grid-cols-[minmax(300px,1fr)_minmax(320px,1.2fr)]"
+        className={cn(
+          "lst-storefront max-h-[calc(100vh-64px)] gap-0 overflow-y-auto rounded-lg p-0 shadow-[0_30px_80px_rgba(0,0,0,.24)]",
+          authProduct
+            ? "max-w-[940px] grid-cols-1 sm:max-w-[940px] md:grid-cols-[minmax(300px,1fr)_minmax(320px,1.2fr)]"
+            : "max-w-[480px] grid-cols-1 sm:max-w-[480px]",
+        )}
       >
         <DialogTitle className="sr-only">Sign in</DialogTitle>
         <DialogDescription className="sr-only">Access your Laitstyle account.</DialogDescription>
-        <div className="relative hidden min-h-[540px] flex-col justify-end overflow-hidden bg-[linear-gradient(160deg,#5A6152,#3E463A)] p-9 text-white md:flex">
-          <Image
-            alt={authProduct.name}
-            className="object-cover opacity-90"
-            fill
-            sizes="420px"
-            src={authProduct.images[0]}
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(30,36,27,.35)_0%,rgba(30,36,27,.82)_100%)]" />
-          <div className="relative">
-            <div className="mb-4 inline-flex items-center gap-2">
-              <span className="size-[7px] rounded-full bg-[#B8CE8E] animate-[leemPulse_1.8s_ease-in-out_infinite]" />
-              <span className="text-[11px] font-semibold uppercase tracking-[.2em] text-white/85">
-                Second-hand, first choice
-              </span>
-            </div>
-            <div className="mb-3.5 font-serif text-[30px] leading-[1.1]">
-              Your account keeps
-              <br />
-              <em className="font-normal">every find within reach.</em>
-            </div>
-            <div className="mt-5 flex flex-col gap-3 text-[13px] text-white/90">
-              <span>Track live holds &amp; reservation timers</span>
-              <span>Save pieces &amp; get freed-up alerts</span>
-              <span>Faster checkout on future drops</span>
+        {authProduct ? (
+          <div className="relative hidden min-h-[540px] flex-col justify-end overflow-hidden bg-[linear-gradient(160deg,#5A6152,#3E463A)] p-9 text-white md:flex">
+            <CloudImage
+              alt={authProduct.name}
+              className="object-cover opacity-90"
+              fill
+              sizes="420px"
+              src={authProduct.images[0]}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(30,36,27,.35)_0%,rgba(30,36,27,.82)_100%)]" />
+            <div className="relative">
+              <div className="mb-4 inline-flex items-center gap-2">
+                <span className="size-[7px] rounded-full bg-[#B8CE8E] animate-[leemPulse_1.8s_ease-in-out_infinite]" />
+                <span className="text-[11px] font-semibold uppercase tracking-[.2em] text-white/85">
+                  Second-hand, first choice
+                </span>
+              </div>
+              <div className="mb-3.5 font-serif text-[30px] leading-[1.1]">
+                Your account keeps
+                <br />
+                <em className="font-normal">every find within reach.</em>
+              </div>
+              <div className="mt-5 flex flex-col gap-3 text-[13px] text-white/90">
+                <span>Track live holds &amp; reservation timers</span>
+                <span>Save pieces &amp; get freed-up alerts</span>
+                <span>Faster checkout on future drops</span>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
         <div className="flex min-w-[300px] flex-col p-10 max-sm:p-6">
           {state === "success" || state === "check-email" ? (
             <div className="flex flex-1 flex-col items-center justify-center py-5 text-center">

@@ -5,8 +5,8 @@ import {
   getCapabilitiesForRole,
   hasCapability,
   type StaffCapability,
-} from "@/lib/auth/permissions";
-import type { StaffRole } from "@/lib/auth/roles";
+} from "@/modules/auth/permissions";
+import type { StaffRole } from "@/modules/auth/types";
 
 type AdminAccessContextValue = {
   role: StaffRole;

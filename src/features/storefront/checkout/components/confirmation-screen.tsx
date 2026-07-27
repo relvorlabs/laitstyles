@@ -1,9 +1,9 @@
 import { Check, Home, MapPin, Truck } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
 import type {
   CheckoutSnapshot,
   initialForm,
@@ -78,7 +78,13 @@ export function ConfirmationScreen({
               key={item.name}
             >
               <div className="relative h-[70px] w-[58px] shrink-0 overflow-hidden rounded-[9px] bg-[#E4E5DE]">
-                <Image alt={item.name} className="object-cover" fill sizes="58px" src={item.img} />
+                <CloudImage
+                  alt={item.name}
+                  className="object-cover"
+                  fill
+                  sizes="58px"
+                  src={item.img}
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{item.name}</div>

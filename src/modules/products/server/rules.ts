@@ -1,9 +1,9 @@
 import "server-only";
 
-import type { StaffCapability } from "@/lib/auth/permissions";
-import { hasCapability } from "@/lib/auth/permissions";
+import type { StaffCapability } from "@/modules/auth/permissions";
+import { hasCapability } from "@/modules/auth/permissions";
+import type { StaffSession } from "@/modules/auth/server/session";
 import type { ProductMutationError } from "@/modules/products/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export function canManageProduct(actor: StaffSession, capability: StaffCapability): boolean {
   return hasCapability(actor.role, capability);

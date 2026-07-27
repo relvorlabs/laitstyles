@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-import type { StaffSession } from "@/server/auth/session";
+import type { StaffSession } from "@/modules/auth/server/session";
 
 export const ACCEPTANCE_PREFIX = "acceptance-p45-";
 

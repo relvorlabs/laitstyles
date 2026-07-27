@@ -1,8 +1,8 @@
 import { ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import {
   Empty,
   EmptyContent,
@@ -73,7 +73,7 @@ function OrderImages({ order }: { order: AccountOrderSummary }) {
           key={image.src}
           className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-[var(--acc-bone-2)]"
         >
-          <Image
+          <CloudImage
             src={image.src}
             alt={image.alt}
             fill

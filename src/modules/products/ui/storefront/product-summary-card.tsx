@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { formatNaira } from "@/lib/money";
 import type { Availability, ProductSummary } from "@/lib/storefront/types";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
             href={productHref}
           >
             {product.cover ? (
-              <Image
+              <CloudImage
                 alt={product.cover.alt || product.name}
                 className={cn(
                   "object-cover transition-[transform,opacity] duration-300 group-hover/card:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100",

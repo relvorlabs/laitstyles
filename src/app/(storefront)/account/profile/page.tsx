@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ProfileSection } from "@/features/storefront/account/sections/profile-section";
 import { prisma } from "@/lib/prisma";
-import { getCurrentSession } from "@/server/auth/session";
+import { getCurrentSession } from "@/modules/auth/server/session";
 
 export default async function AccountProfilePage() {
   const session = await getCurrentSession();

@@ -1,6 +1,6 @@
 import { HelpCircle, ShieldCheck, Truck } from "lucide-react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Input } from "@/components/ui/input";
 import type { CheckoutSnapshot, Currency } from "@/features/storefront/checkout/checkout-helpers";
 import { cn } from "@/lib/utils";
@@ -54,7 +54,13 @@ export function OrderSummary({
               {item.quantity}
             </span>
             {item.img ? (
-              <Image alt={item.name} className="object-cover" fill sizes="60px" src={item.img} />
+              <CloudImage
+                alt={item.name}
+                className="object-cover"
+                fill
+                sizes="60px"
+                src={item.img}
+              />
             ) : null}
           </div>
           <div className="min-w-0 flex-1">

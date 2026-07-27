@@ -14,12 +14,14 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({ auth: mocks })),
 }));
-vi.mock("@/lib/auth/server/request-origin", () => ({
-  getRequestOrigin: vi.fn(async () => "https://laitstyle.example"),
-}));
-vi.mock("@/lib/auth/server/auth-provider-diagnostics", () => ({
-  logAuthProviderFailure: mocks.logAuthProviderFailure,
-}));
+vi.mock("@/modules/auth/server/redirects", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/modules/auth/server/redirects")>();
+  return { ...actual, getRequestOrigin: vi.fn(async () => "https://laitstyle.example") };
+});
+vi.mock("@/modules/auth/server/diagnostics", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/modules/auth/server/diagnostics")>();
+  return { ...actual, logAuthProviderFailure: mocks.logAuthProviderFailure };
+});
 
 import {
   requestPasswordReset,

@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
+import type { StaffSession } from "@/modules/auth/server/session";
 import type { ProductEditorActionError, ProductEditorValues } from "@/modules/products/types";
-import type { StaffSession } from "@/server/auth/session";
 
 export type StockBalance = {
   id: string;
@@ -39,14 +39,6 @@ function cleanText(value: string): string {
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
-function assetProviderFor(url: string): string {
-  try {
-    return new URL(url).hostname === "res.cloudinary.com" ? "cloudinary" : "external";
-  } catch {
-    return "external";
-  }
 }
 
 function protectedQuantity(stock: StockBalance | undefined): number {
@@ -278,24 +270,22 @@ export async function writeProductStockAndVariants(
       input.quantity,
     );
 
-    if (cleanText(input.imageUrl)) {
-      const imageUrl = cleanText(input.imageUrl);
-      const provider = assetProviderFor(imageUrl);
+    await tx.product_media.deleteMany({ where: { product_id: productId, variant_id: variant.id } });
+    if (input.image) {
+      const image = input.image;
+      const assetData = {
+        kind: "product_detail" as const,
+        secure_url: image.url,
+        alt: `${cleanText(values.name) || "Product"} — ${cleanText(input.label)}`,
+        width: image.width,
+        height: image.height,
+        format: image.format,
+        bytes: image.bytes,
+      };
       const asset = await tx.cloudinary_assets.upsert({
-        where: { public_id: `admin/products/${productId}/variants/${variant.id}` },
-        update: {
-          provider,
-          kind: "product_detail",
-          secure_url: imageUrl,
-          alt: `${cleanText(values.name) || "Product"} — ${cleanText(input.label)}`,
-        },
-        create: {
-          provider,
-          kind: "product_detail",
-          public_id: `admin/products/${productId}/variants/${variant.id}`,
-          secure_url: imageUrl,
-          alt: `${cleanText(values.name) || "Product"} — ${cleanText(input.label)}`,
-        },
+        where: { public_id: image.publicId },
+        update: assetData,
+        create: { ...assetData, public_id: image.publicId },
       });
       await tx.product_media.create({
         data: {

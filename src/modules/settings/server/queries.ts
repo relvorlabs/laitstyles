@@ -2,7 +2,21 @@ import "server-only";
 
 import { defaultStoreSettingsInput } from "@/lib/admin/settings/settings-defaults";
 import { prisma } from "@/lib/prisma";
-import { mapStoreSettings, settingsJsonInput } from "@/modules/settings/server/mappers";
+import {
+  mapStoreBrandLogo,
+  mapStoreSettings,
+  settingsJsonInput,
+} from "@/modules/settings/server/mappers";
+
+const storeLogoAssetSelect = {
+  public_id: true,
+  secure_url: true,
+  delivery_url: true,
+  width: true,
+  height: true,
+  format: true,
+  bytes: true,
+} as const;
 
 export async function getStoreSettings() {
   return prisma.$transaction(async (tx) => {
@@ -75,7 +89,7 @@ export async function getStoreSettings() {
       });
     }
 
-    const [zones, pickups] = await Promise.all([
+    const [zones, pickups, logoAsset] = await Promise.all([
       tx.delivery_zones.findMany({
         where: { position: { gte: 0 } },
         orderBy: { position: "asc" },
@@ -84,8 +98,13 @@ export async function getStoreSettings() {
         where: { position: { gte: 0 } },
         orderBy: { position: "asc" },
       }),
+      tx.store_brand_assets.findFirst({
+        where: { kind: "store_logo" },
+        orderBy: { position: "asc" },
+        include: { cloudinary_assets: { select: storeLogoAssetSelect } },
+      }),
     ]);
 
-    return mapStoreSettings(row, zones, pickups);
+    return mapStoreSettings(row, zones, pickups, mapStoreBrandLogo(logoAsset));
   });
 }

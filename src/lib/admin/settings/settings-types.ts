@@ -10,6 +10,7 @@ export type {
   SellingPreferencesSettings,
   SettingsSection,
   SettingsValidationIssue,
+  StoreBrandLogo,
   StoreIdentitySettings,
   StoreSettings,
   StoreSettingsActionError,

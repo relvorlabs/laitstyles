@@ -2,10 +2,10 @@
 
 import { FavouriteIcon, ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import {
   Sheet,
   SheetContent,
@@ -113,7 +113,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 >
                   <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[var(--linen)]">
                     {product.images[0] ? (
-                      <Image
+                      <CloudImage
                         alt={product.name}
                         className="object-cover"
                         fill
@@ -199,7 +199,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         <span className="min-w-0">
                           <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
                             {product.images[0] ? (
-                              <Image
+                              <CloudImage
                                 alt=""
                                 className="object-cover transition-transform group-hover:scale-[1.03]"
                                 fill

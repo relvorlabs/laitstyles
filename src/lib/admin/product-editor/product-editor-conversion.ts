@@ -103,7 +103,7 @@ export function convertEditorValuesToProduct(
       sku: variant.sku.trim() || `${values.internalReference.trim() || "PENDING"}-${index + 1}`,
       size: variant.size.trim() || null,
       colour: variant.colour.trim() || null,
-      imageUrl: variant.imageUrl.trim() || null,
+      image: variant.image,
       price: variant.price,
       cost: variant.cost,
       stock: preserveVariantStock(options.existingProduct, variant.id, variant.quantity),
@@ -114,7 +114,12 @@ export function convertEditorValuesToProduct(
 function normalizeMedia(values: ProductEditorValues["media"]): ProductMedia[] {
   return values.map((item, position) => ({
     id: item.id,
+    publicId: item.publicId,
     url: item.url,
+    width: item.width,
+    height: item.height,
+    format: item.format,
+    bytes: item.bytes,
     alt: item.alt.trim(),
     kind: item.kind,
     position,

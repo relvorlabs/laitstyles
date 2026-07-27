@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppShellFallback } from "@/app/app-shell-fallback";
 import { cn } from "@/lib/utils";
+import { getCurrentSession } from "@/modules/auth/server/session";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import { AppProvider } from "@/providers/providers";
 import {
@@ -9,7 +10,6 @@ import {
   type AppSession,
   SessionProvider,
 } from "@/providers/session-provider";
-import { getCurrentSession } from "@/server/auth/session";
 import "./theme-entry.css";
 
 export const metadata: Metadata = {

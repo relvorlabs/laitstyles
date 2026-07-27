@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   type CSSProperties,
   type MouseEvent,
@@ -10,6 +9,7 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useOverlayLifecycle } from "@/hooks/use-overlay-lifecycle";
 import { productById } from "@/modules/products/ui/storefront/catalogue-data";
 import {
@@ -131,7 +131,7 @@ export function ImageViewerOverlay() {
                 type="button"
                 variant={index === safeIndex ? "secondary" : "outline"}
               >
-                <Image alt="" className="object-cover" fill sizes="92px" src={src} />
+                <CloudImage alt="" className="object-cover" fill sizes="92px" src={src} />
               </Button>
             ))}
           </div>
@@ -140,7 +140,7 @@ export function ImageViewerOverlay() {
             id="viewerMain"
             style={{ "--zoom": zoom } as CSSProperties}
           >
-            <Image
+            <CloudImage
               alt={`${product.name}, ${(labels[safeIndex] ?? `view ${safeIndex + 1}`).toLowerCase()}`}
               className="object-contain [transform:scale(var(--zoom,1))] [transition:transform_220ms_var(--ease)]"
               fill

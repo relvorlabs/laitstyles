@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/lib/auth/auth-errors";
-import { getSafeNextPath } from "@/lib/auth/server/redirects";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+import { getSafeNextPath } from "@/modules/auth/server/redirects";
 
 export const metadata: Metadata = {
   title: "Auth issue | Laitstyle",

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { formatCustomerDate } from "@/features/admin/customers/customer-labels";
 import type { CustomerProductRelationship } from "@/modules/customers/types";
 
@@ -35,7 +35,7 @@ export function CustomerProductsPanel({
             key={relationship.productId}
           >
             <div className="relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-[12px] bg-secondary">
-              <Image
+              <CloudImage
                 alt={relationship.imageAlt}
                 className="object-cover transition-transform group-hover:scale-[1.03] motion-reduce:transform-none"
                 fill

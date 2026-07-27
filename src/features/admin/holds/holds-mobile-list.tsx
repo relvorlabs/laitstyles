@@ -1,10 +1,10 @@
 "use client";
 
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { holdSourceLabels, holdStageLabels } from "@/features/admin/holds/hold-labels";
 import { HoldRiskBadge } from "@/features/admin/holds/hold-risk-badge";
 import { formatHoldCountdown, toHoldWorkspaceItem } from "@/features/admin/holds/hold-selectors";
@@ -28,7 +28,7 @@ export function HoldsMobileList({
           <Card className="gap-0 overflow-hidden py-0" key={hold.id}>
             <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-4 p-4">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[12px] bg-secondary">
-                <Image
+                <CloudImage
                   alt={item.imageAlt}
                   className="object-cover"
                   fill

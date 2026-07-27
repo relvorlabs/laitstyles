@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSafeNextPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeNextPath } from "@/modules/auth/server/redirects";
 
 // Sign-out mutates auth state, so it is POST-only: a GET handler here would let
 // any prefetched link or crawler end the session. 303 makes the browser follow

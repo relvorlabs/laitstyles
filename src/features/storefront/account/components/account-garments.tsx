@@ -1,10 +1,10 @@
 // Order/return line thumbnails for the account. Product imagery comes from the
-// shared storefront catalogue (shared/catalogue-data) so it stays consistent with the
-// shop's ProductCard rather than bespoke placeholders.
+// canonical storefront catalogue so it stays consistent with the shop's ProductCard
+// rather than bespoke placeholders.
 
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
-import type { Product } from "../../shared/catalogue-data";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 
 /** `.order-thumb` frame; pass an aspect class (e.g. `aspect-square`). */
 export function OrderThumb({ className, children, ...props }: ComponentProps<"div">) {

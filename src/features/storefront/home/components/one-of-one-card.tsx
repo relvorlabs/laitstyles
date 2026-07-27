@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { useReveal } from "@/hooks/use-reveal";
 import { money, type Product } from "@/modules/products/ui/storefront/catalogue-data";
 
@@ -27,7 +27,7 @@ export function OneOfOneCard({
       variant="ghost"
     >
       <span className="contents">
-        <Image
+        <CloudImage
           src={product.images[0]}
           alt={product.name}
           width={1200}
