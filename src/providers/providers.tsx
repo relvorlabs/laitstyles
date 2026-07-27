@@ -1,13 +1,26 @@
 "use client";
 
+import { QueryClientProvider } from "@tanstack/react-query";
 import type { CSSProperties, ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { getAppQueryClient } from "@/lib/query/app-query-client";
+import { type AppSession, SessionProvider } from "@/providers/session-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({
+  session,
+  children,
+}: {
+  session: AppSession;
+  children: ReactNode;
+}) {
+  const queryClient = getAppQueryClient();
+
   return (
     <ThemeProvider>
-      {children}
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider session={session}>{children}</SessionProvider>
+      </QueryClientProvider>
       <Toaster
         position="bottom-right"
         style={
