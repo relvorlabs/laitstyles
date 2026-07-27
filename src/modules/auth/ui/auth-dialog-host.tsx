@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getAuthFlowErrorMessage } from "@/modules/auth/errors";
+import {
+  getAuthFlowErrorMessage,
+  isAuthFlowErrorCode,
+} from "@/modules/auth/errors";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
@@ -13,6 +16,7 @@ import {
   type StorefrontAuthSupportMode,
   type StorefrontAuthSupportState,
 } from "./auth-dialog";
+import { openGoogleOAuthPopup } from "./google-oauth-popup";
 import { useStorefrontAuth } from "./storefront-auth-provider";
 
 const blankAuthForm: StorefrontAuthForm = {
@@ -93,6 +97,48 @@ export function StorefrontAuthDialogHost() {
     }
     setState(result.value.status);
   }, [actions, form, mode, state, supportState, termsAccepted]);
+
+  const submitGoogle = useCallback(async () => {
+    if (state === "signing-in" || supportState === "submitting") return;
+    setState("signing-in");
+    setErrors({});
+    setShowErrors(false);
+    setNotice(null);
+
+    const current = new URL(window.location.href);
+    const next = `${current.pathname}${current.search}`;
+    current.searchParams.set("auth", mode);
+    current.searchParams.delete("error");
+    current.searchParams.delete("support");
+    const returnTo = `${current.pathname}${current.search}`;
+    const result = await openGoogleOAuthPopup({ next, returnTo });
+
+    if (!result.ok) {
+      setErrors({ form: result.message });
+      setShowErrors(true);
+      setState("default");
+      return;
+    }
+
+    const target = new URL(result.target, window.location.origin);
+    const errorCode = target.searchParams.get("error");
+    if (isAuthFlowErrorCode(errorCode)) {
+      setErrors({ form: getAuthFlowErrorMessage(errorCode) });
+      setShowErrors(true);
+      setState("default");
+      return;
+    }
+
+    const sessionResult = await actions.syncOAuthSession();
+    if (!sessionResult.ok) {
+      setErrors({ form: sessionResult.message });
+      setShowErrors(true);
+      setState("default");
+      return;
+    }
+
+    setState("success");
+  }, [actions, mode, state, supportState]);
 
   const submitSupportEmail = useCallback(async () => {
     if (!supportMode || supportState === "submitting" || state === "signing-in") return;
@@ -223,17 +269,7 @@ export function StorefrontAuthDialogHost() {
       supportMode={supportMode}
       supportState={supportState}
       termsAccepted={termsAccepted}
-      onContinueWithGoogle={() => {
-        const current = new URL(window.location.href);
-        const next = `${current.pathname}${current.search}`;
-        current.searchParams.set("auth", mode);
-        current.searchParams.delete("error");
-        current.searchParams.delete("support");
-        const returnTo = `${current.pathname}${current.search}`;
-        window.location.assign(
-          `/auth/google?next=${encodeURIComponent(next)}&returnTo=${encodeURIComponent(returnTo)}`,
-        );
-      }}
+      onContinueWithGoogle={submitGoogle}
       onFinish={finish}
       onModeChange={onModeChange}
       onOpenChange={onOpenChange}
