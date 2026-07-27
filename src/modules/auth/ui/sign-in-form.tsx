@@ -36,7 +36,7 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
         <Separator className="flex-1" />
       </div>
 
-      <form action={action} className="grid gap-4.5">
+      <form action={action} className="grid gap-[18px]">
         <input name="next" type="hidden" value={next} />
         <AuthField htmlFor="auth-email" label="Email address">
           <div className="relative">
@@ -66,7 +66,10 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
         </AuthField>
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-[13px]">
-          <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/auth/forgot-password">
+          <Link
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+            href="/auth/forgot-password"
+          >
             Forgot password?
           </Link>
           <Link
@@ -77,7 +80,11 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
           </Link>
         </div>
 
-        <Button className={`mt-1 w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`} size="lg" type="submit">
+        <Button
+          className={`mt-1 w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+          size="lg"
+          type="submit"
+        >
           Sign in to workspace
           <ArrowRight className="size-4" />
         </Button>
