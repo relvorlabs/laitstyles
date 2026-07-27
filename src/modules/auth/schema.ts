@@ -28,6 +28,7 @@ export const passwordSignUpSchema = passwordSignInSchema.extend({
     z.boolean().refine(Boolean, "Please accept the Terms to continue."),
   ),
   next: z.string().optional(),
+  returnTo: z.string().optional(),
 });
 
 export const authEmailSchema = z.object({
@@ -61,6 +62,7 @@ const authFields = new Set<AuthField>([
 
 export function authFormDataInput(formData: FormData) {
   const next = formData.get("next");
+  const returnTo = formData.get("returnTo");
   return {
     email: formData.get("email"),
     password: formData.get("password"),
@@ -68,6 +70,7 @@ export function authFormDataInput(formData: FormData) {
     last: formData.get("last"),
     terms: formData.get("terms"),
     next: typeof next === "string" ? next : undefined,
+    returnTo: typeof returnTo === "string" ? returnTo : undefined,
   };
 }
 
