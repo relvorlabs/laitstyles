@@ -1,6 +1,11 @@
 # Phase 7 — Authentication Consolidation Design
 
-**Status:** Approved design for implementation planning
+**Status:** Implementation complete (P7-T02–T13, tasks below). Acceptance gate not yet met —
+P7-T14 (`pnpm build`, browser/Playwright verification, `tests/e2e/auth-flows.spec.ts`) is
+genuinely blocked by this environment's tooling (no outbound network for `next/font/google`, the
+Browser pane dev server won't accept connections, no live Supabase/Postgres/mail-inbox stack for
+the e2e suite) — not skipped. See `docs/architecture-migration/phase-7-auth-status.md`'s P7-T14
+evidence for exactly what ran, what didn't, and why, before picking this up.
 **Date:** 2026-07-27
 **Supersedes:** the implicit plan in `docs/architecture-migration/phase-7-auth-status.md` prior
 to this restart (see that document's "Why this document was reset" section) and both abandoned
