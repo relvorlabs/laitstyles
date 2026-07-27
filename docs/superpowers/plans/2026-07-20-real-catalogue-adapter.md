@@ -1,5 +1,7 @@
 # Real Catalogue Adapter (Sub-project A) Implementation Plan
 
+> **SUPERSEDED 2026-07-27 — do not execute.** Every file this plan touches (`src/lib/storefront/catalog-data.ts`, `src/server/commerce/catalogue/*`) was deleted or moved to `src/modules/products/**` by the architecture migration. The catalogue is already real/Prisma-backed under the new module (unlike when this plan was written). Kept for history only. See the replacement spec/plan dated 2026-07-27.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** `/products` and `/products/[slug]` read real, live Prisma-backed products instead of the static `storefront-catalog.json` dev fixture, with zero changes to the ~40 components that already consume the `Product`/`StorefrontCatalogPayload` contracts.

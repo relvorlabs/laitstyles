@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-20
 **Branch context:** designed against `feat/admin-overview-broadsheet`; implementation should land on its own branch off `main` since this is unrelated storefront work.
-**Status:** proposed, pending owner review.
+**Status:** SUPERSEDED 2026-07-27 — a separately-approved architecture migration (`docs/architecture-migration/`) reorganized the entire storefront onto `src/modules/*` between this doc's approval and implementation start. Every file path below (`storefront-provider.tsx`, `catalog-data.ts`, flat `/cart`/`/checkout`/`/products/[slug]` routes) was deleted or moved. The underlying product decisions (holds-as-cart, guest cookie ownership, real order creation with no payment gateway) still hold and inform the replacement doc — see `docs/superpowers/specs/2026-07-27-real-cart-hold-checkout-design.md`. Kept for history; do not implement against this version.
 
 ## Problem
 
