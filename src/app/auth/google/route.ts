@@ -6,12 +6,15 @@ function redirectToAuthTarget(request: NextRequest, target: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const target = await startGoogleOAuth(request.nextUrl.searchParams.get("next"));
+  const target = await startGoogleOAuth(
+    request.nextUrl.searchParams.get("next"),
+    request.nextUrl.searchParams.get("returnTo"),
+  );
   return redirectToAuthTarget(request, target);
 }
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const target = await startGoogleOAuth(formData.get("next"));
+  const target = await startGoogleOAuth(formData.get("next"), formData.get("returnTo"));
   return redirectToAuthTarget(request, target);
 }
