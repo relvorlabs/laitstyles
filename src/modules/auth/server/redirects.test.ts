@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
+import {
+  getConfiguredAuthOrigin,
+  getSafeNextPath,
+  withAuthErrorPath,
+} from "@/modules/auth/server/redirects";
 
 describe("auth redirect safety", () => {
   it("allows internal relative paths", () => {
@@ -15,6 +19,18 @@ describe("auth redirect safety", () => {
 
   it("falls back for missing values", () => {
     expect(getSafeNextPath(null, "/account")).toBe("/account");
+  });
+
+  it("prefers the configured public auth origin and strips paths", () => {
+    const previous = process.env.AUTH_SITE_URL;
+    process.env.AUTH_SITE_URL = "https://shop.example.com/deploy-preview";
+
+    try {
+      expect(getConfiguredAuthOrigin()).toBe("https://shop.example.com");
+    } finally {
+      if (previous === undefined) delete process.env.AUTH_SITE_URL;
+      else process.env.AUTH_SITE_URL = previous;
+    }
   });
 
   it("carries only an allow-listed error code and safe return path", () => {
