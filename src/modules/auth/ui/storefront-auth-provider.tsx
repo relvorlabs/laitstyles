@@ -16,7 +16,7 @@ import {
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
-import type { AuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+import type { AuthFlowErrorCode } from "@/modules/auth/errors";
 import {
   closeStorefrontOverlays,
   subscribeTransientOverlayClose,
