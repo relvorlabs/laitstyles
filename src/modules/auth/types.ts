@@ -4,6 +4,15 @@ export const STAFF_ROLES = ["admin", "manager"] as const;
 export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
+export type ManagerMember = {
+  id: string;
+  email: string;
+  displayName: string;
+  state: "invited" | "active";
+  invitedAt: string | null;
+  lastSeenAt: string | null;
+};
+
 export const ACCOUNT_ROLE_LABELS = {
   consumer: "Consumer",
   admin: "Admin / store owner",
