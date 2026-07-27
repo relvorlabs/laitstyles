@@ -16,7 +16,7 @@ const requiredFiles = [
   "src/lib/http/policy.ts",
   "src/lib/http/pagination.ts",
   "src/lib/errors/api-error.ts",
-  "src/lib/query/admin-query-client.ts",
+  "src/lib/query/app-query-client.ts",
   "src/modules/health/schema.ts",
   "src/modules/health/server/queries.ts",
   "src/modules/health/client/api.ts",
@@ -27,7 +27,7 @@ const requiredFiles = [
   "src/lib/http/auth.test.ts",
   "src/lib/http/policy.test.ts",
   "src/lib/http/pagination.test.ts",
-  "src/lib/query/admin-query-client.test.ts",
+  "src/lib/query/app-query-client.test.ts",
   "src/app/api/v1/health/route.test.ts",
   "docs/architecture-migration/phase-3-cache-invalidation-contract.md",
 ];
@@ -44,8 +44,8 @@ const requestValidation = read("src/lib/http/request.ts");
 const auth = read("src/lib/http/auth.ts");
 const policy = read("src/lib/http/policy.ts");
 const pagination = read("src/lib/http/pagination.ts");
-const adminQueryClient = read("src/lib/query/admin-query-client.ts");
-const queryProvider = read("src/providers/query-provider.tsx");
+const appQueryClient = read("src/lib/query/app-query-client.ts");
+const appProvider = read("src/providers/providers.tsx");
 const healthQuery = read("src/modules/health/server/queries.ts");
 const healthClient = read("src/modules/health/client/api.ts");
 const healthRoute = read("src/app/api/v1/health/route.ts");
@@ -121,11 +121,11 @@ if (!client.includes("NETWORK_ERROR") || !client.includes("AbortError")) {
   );
 }
 
-if (!adminQueryClient.includes("ADMIN_QUERY_DEFAULTS")) {
-  errors.push("The admin QueryClient must publish intentional scoped defaults.");
+if (!appQueryClient.includes("APP_QUERY_DEFAULTS")) {
+  errors.push("The shared QueryClient must publish intentional cache defaults.");
 }
-if (!queryProvider.includes("getAdminQueryClient")) {
-  errors.push("The scoped QueryProvider must use the admin QueryClient contract.");
+if (!appProvider.includes("getAppQueryClient")) {
+  errors.push("The shared AppProvider must use the app QueryClient contract.");
 }
 if (existsSync(resolve(root, "src/lib/query/query-client.ts"))) {
   errors.push("The ambiguous app-wide query-client module must be retired in Phase 3.");
