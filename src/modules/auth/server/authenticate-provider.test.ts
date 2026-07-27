@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  signUp: vi.fn(),
   signInWithOAuth: vi.fn(),
   exchangeCodeForSession: vi.fn(),
   getUser: vi.fn(),
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: {
+      signUp: mocks.signUp,
       signInWithOAuth: mocks.signInWithOAuth,
       exchangeCodeForSession: mocks.exchangeCodeForSession,
       getUser: mocks.getUser,
@@ -39,12 +41,14 @@ vi.mock("@/modules/auth/server/diagnostics", async (importOriginal) => {
 
 import {
   completeOAuthCallback,
+  registerWithPassword,
   startGoogleOAuth,
 } from "@/modules/auth/server/authenticate";
 
 describe("auth provider orchestration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.signUp.mockResolvedValue({ data: { session: null, user: null }, error: null });
     mocks.signInWithOAuth.mockResolvedValue({
       data: { url: "https://accounts.google.test/authorize" },
       error: null,
@@ -63,6 +67,74 @@ describe("auth provider orchestration", () => {
     mocks.ensureConsumerAccount.mockResolvedValue({
       profile: { id: "auth-user-a" },
       customerId: "customer-a",
+    });
+  });
+
+  it("maps the shared create-account fields to Supabase metadata", async () => {
+    await expect(
+      registerWithPassword({
+        email: "shopper@example.com",
+        password: "password123",
+        confirmPassword: "password123",
+        first: "Ada",
+        last: "Lovelace",
+        terms: true,
+        next: "/account",
+        returnTo: "/auth/sign-up",
+      }),
+    ).resolves.toEqual({
+      ok: true,
+      value: { status: "check-email", email: "shopper@example.com" },
+    });
+
+    expect(mocks.signUp).toHaveBeenCalledWith({
+      email: "shopper@example.com",
+      password: "password123",
+      options: {
+        data: {
+          first_name: "Ada",
+          last_name: "Lovelace",
+          full_name: "Ada Lovelace",
+        },
+        emailRedirectTo:
+          "https://laitstyle.example/auth/callback?next=%2Faccount&returnTo=%2Fauth%2Fsign-up",
+      },
+    });
+    expect(mocks.ensureConsumerAccount).not.toHaveBeenCalled();
+  });
+
+  it("provisions the Prisma consumer account before reporting immediate signup success", async () => {
+    const user = {
+      id: "auth-user-a",
+      email: "shopper@example.com",
+      user_metadata: {
+        first_name: "Ada",
+        last_name: "Lovelace",
+        full_name: "Ada Lovelace",
+      },
+    };
+    mocks.signUp.mockResolvedValueOnce({ data: { session: { access_token: "token" }, user }, error: null });
+
+    await expect(
+      registerWithPassword({
+        email: "shopper@example.com",
+        password: "password123",
+        confirmPassword: "password123",
+        first: "Ada",
+        last: "Lovelace",
+        terms: true,
+        next: "/account",
+        returnTo: "/?auth=signup",
+      }),
+    ).resolves.toEqual({
+      ok: true,
+      value: { status: "success", email: "shopper@example.com" },
+    });
+
+    expect(mocks.ensureConsumerAccount).toHaveBeenCalledWith({
+      id: "auth-user-a",
+      email: "shopper@example.com",
+      userMetadata: user.user_metadata,
     });
   });
 
