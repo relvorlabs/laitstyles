@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import type { AuthDeniedReason } from "@/lib/auth/auth-errors";
 import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
@@ -72,7 +73,7 @@ export async function getVerifiedIdentity(
 // The one current-user read for every server surface. Auth callback and the
 // database trigger provision eagerly; this path repairs pre-existing or partial
 // accounts only when the profile/customer invariant is missing.
-export async function getCurrentSession(): Promise<CurrentSession> {
+export const getCurrentSession = cache(async (): Promise<CurrentSession> => {
   const identity = await getVerifiedIdentity(await createClient());
   if (!identity) return { kind: "anonymous" };
 
@@ -134,7 +135,7 @@ export async function getCurrentSession(): Promise<CurrentSession> {
       error: error instanceof Error ? error.message : "Unknown authorization error",
     };
   }
-}
+});
 
 export function isAuthenticated(session: CurrentSession): boolean {
   return session.kind === "consumer" || session.kind === "staff";
