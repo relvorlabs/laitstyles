@@ -99,6 +99,26 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await expect(page.getByText(/account already exists/i)).toHaveCount(0);
   });
 
+  test("storefront dialog requests password recovery without leaving the storefront", async ({
+    page,
+  }) => {
+    await purgeMailbox(confirmedEmail);
+    await page.goto("/?auth=signin", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await page.getByLabel("Email").fill(confirmedEmail);
+
+    const stableUrl = new URL(page.url());
+    await page.getByRole("button", { name: "Forgot password?" }).click();
+
+    await expect(
+      page.getByText("If this address can receive a reset email, a secure link is on its way."),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    expect(new URL(page.url()).pathname).toBe(stableUrl.pathname);
+    expect(new URL(page.url()).search).toBe("");
+    await waitForAuthLink(confirmedEmail);
+  });
+
   test("unconfirmed email login exposes a resend path without provider details", async ({ page }) => {
     await purgeMailbox(unconfirmedEmail);
     await page.goto("/auth/sign-up");
