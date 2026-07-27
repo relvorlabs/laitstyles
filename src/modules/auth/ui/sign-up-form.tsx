@@ -1,9 +1,7 @@
 import { ArrowRight, Mail, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   AUTH_INPUT_CLASS_NAME,
@@ -95,12 +93,25 @@ export function SignUpForm({ action }: { action: AuthFormAction }) {
           />
         </AuthField>
 
-        <Label className="cursor-pointer items-start gap-3 rounded-2xl border border-border/75 bg-muted/35 p-4 text-[13px] leading-5 text-muted-foreground">
-          <Checkbox className="mt-0.5" name="terms" required value="true" />
-          <span>I agree to the Terms and Privacy Policy and understand that my account is used for orders, saved pieces and delivery details.</span>
-        </Label>
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/75 bg-muted/35 p-4 text-[13px] leading-5 text-muted-foreground">
+          <input
+            className="mt-0.5 size-4 shrink-0 accent-primary"
+            name="terms"
+            required
+            type="checkbox"
+            value="true"
+          />
+          <span>
+            I agree to the Terms and Privacy Policy and understand that my account is used for
+            orders, saved pieces and delivery details.
+          </span>
+        </label>
 
-        <Button className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`} size="lg" type="submit">
+        <Button
+          className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+          size="lg"
+          type="submit"
+        >
           Create my account
           <ArrowRight className="size-4" />
         </Button>
@@ -108,7 +119,10 @@ export function SignUpForm({ action }: { action: AuthFormAction }) {
 
       <p className="text-center text-[13px] text-muted-foreground">
         Already registered?{" "}
-        <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/?auth=signin">
+        <Link
+          className="font-semibold text-foreground underline-offset-4 hover:underline"
+          href="/?auth=signin"
+        >
           Sign in
         </Link>
       </p>
