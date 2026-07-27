@@ -1,13 +1,23 @@
+import { ArrowRight, KeyRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { submitRecoveredPasswordWithRedirect } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/server";
-import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+import {
+  getAuthFlowErrorMessage,
+  isAuthFlowErrorCode,
+} from "@/modules/auth/server/diagnostics";
+import { hasRecoverySession } from "@/modules/auth/server/authenticate";
 import { withAuthErrorPath } from "@/modules/auth/server/redirects";
+import {
+  AUTH_INPUT_CLASS_NAME,
+  AUTH_PRIMARY_BUTTON_CLASS_NAME,
+  AuthField,
+  AuthPageShell,
+  AuthStatusNotice,
+} from "@/modules/auth/ui/auth-page-shell";
 
 export const metadata: Metadata = {
   title: "Choose a new password | Laitstyle",
@@ -23,89 +33,100 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
 
   if (params.updated === "1") {
     return (
-      <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center bg-background px-4 py-12">
-        <Card className="w-full max-w-[520px] gap-5 rounded-lg p-6 text-center shadow-laitstyle sm:p-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Password updated
-          </p>
-          <h1 className="font-serif text-4xl font-medium">Your new password is ready.</h1>
-          <p className="text-sm leading-6 text-muted-foreground">
-            Other sessions were signed out. Sign in again with the password you just chose.
-          </p>
-          <Button nativeButton={false} render={<Link href="/?auth=signin" />} size="lg">
-            Sign in
+      <AuthPageShell
+        description="Your password has been changed and other sessions have been closed. Sign in again with the password you just chose."
+        eyebrow="Password updated"
+        highlights={[
+          "New password saved to your Supabase identity",
+          "Existing sessions closed after recovery",
+          "Storefront data remains attached to your account",
+        ]}
+        sideDescription="Your account is ready again. Sign in with the new password and continue with the same saved pieces, orders and delivery details."
+        sideTitle="You are securely back in control."
+        title="Your new password is ready"
+      >
+        <div className="grid gap-5">
+          <AuthStatusNotice tone="success">
+            Password replacement completed successfully. Use your new password for the next sign-in.
+          </AuthStatusNotice>
+          <Button
+            className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+            nativeButton={false}
+            render={<Link href="/?auth=signin" />}
+            size="lg"
+          >
+            Sign in with new password
+            <ArrowRight className="size-4" />
           </Button>
-        </Card>
-      </main>
+        </div>
+      </AuthPageShell>
     );
   }
 
-  const supabase = await createClient();
-  const { data, error: sessionError } = await supabase.auth.getUser();
-  if (!data.user || sessionError) {
+  if (!(await hasRecoverySession())) {
     redirect(withAuthErrorPath("recovery-invalid", "/auth/forgot-password"));
   }
 
   const error = isAuthFlowErrorCode(params.error) ? getAuthFlowErrorMessage(params.error) : null;
 
   return (
-    <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center bg-background px-4 py-12">
-      <Card className="w-full max-w-[520px] gap-6 rounded-lg p-6 shadow-laitstyle sm:p-8">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Secure recovery
-          </p>
-          <h1 className="mt-2 font-serif text-4xl font-medium">Choose a new password</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Use at least eight characters. Supabase may require a stronger password according to the
-            project password policy.
-          </p>
-        </div>
-
-        {error ? (
-          <p
-            className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground"
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <form action={submitRecoveredPasswordWithRedirect} className="grid gap-4">
-          <label className="grid gap-1.5 text-sm font-medium" htmlFor="new-password">
-            New password
-            <Input
-              autoComplete="new-password"
-              id="new-password"
-              minLength={8}
-              name="password"
-              required
-              type="password"
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm font-medium" htmlFor="confirm-password">
-            Confirm new password
-            <Input
-              autoComplete="new-password"
-              id="confirm-password"
-              minLength={8}
-              name="confirmPassword"
-              required
-              type="password"
-            />
-          </label>
-          <Button size="lg" type="submit">
-            Update password
-          </Button>
-        </form>
-
+    <AuthPageShell
+      description="Choose a strong replacement password. After the update, other sessions are signed out so the recovered account starts cleanly."
+      eyebrow="Secure recovery"
+      footer={
         <Link
-          className="text-sm font-semibold underline-offset-4 hover:underline"
+          className="text-[13px] font-semibold text-foreground underline-offset-4 hover:underline"
           href="/auth/forgot-password"
         >
           Request a different reset link
         </Link>
-      </Card>
-    </main>
+      }
+      highlights={[
+        "Recovery session verified before the form is shown",
+        "Password policy enforced by the app and Supabase",
+        "Other sessions closed after a successful update",
+      ]}
+      sideDescription="The recovery link establishes a temporary secure session. Once the password changes, that session is closed and your account returns to its normal protected state."
+      sideTitle="Replace the key, keep the account."
+      title="Choose a new password"
+    >
+      <div className="grid gap-6">
+        {error ? <AuthStatusNotice tone="error">{error}</AuthStatusNotice> : null}
+
+        <form action={submitRecoveredPasswordWithRedirect} className="grid gap-[18px]">
+          <AuthField htmlFor="new-password" hint="At least 8 characters" label="New password">
+            <div className="relative">
+              <KeyRound className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
+              <Input
+                autoComplete="new-password"
+                className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
+                id="new-password"
+                minLength={8}
+                name="password"
+                placeholder="Create a strong password"
+                required
+                type="password"
+              />
+            </div>
+          </AuthField>
+          <AuthField htmlFor="confirm-password" label="Confirm new password">
+            <Input
+              autoComplete="new-password"
+              className={AUTH_INPUT_CLASS_NAME}
+              id="confirm-password"
+              minLength={8}
+              name="confirmPassword"
+              placeholder="Enter it again"
+              required
+              type="password"
+            />
+          </AuthField>
+          <Button className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`} size="lg" type="submit">
+            Update password
+            <ArrowRight className="size-4" />
+          </Button>
+        </form>
+      </div>
+    </AuthPageShell>
   );
 }
