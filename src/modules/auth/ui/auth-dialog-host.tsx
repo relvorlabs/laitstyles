@@ -26,7 +26,6 @@ export function StorefrontAuthDialogHost() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showErrors, setShowErrors] = useState(false);
   const [revealPassword, setRevealPassword] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const successRef = useRef<(() => void) | null>(null);
 
@@ -85,7 +84,6 @@ export function StorefrontAuthDialogHost() {
       mode={mode}
       open={open}
       product={products[13] ?? products[0]}
-      remember={remember}
       revealPassword={revealPassword}
       showErrors={showErrors}
       state={state}
@@ -97,7 +95,6 @@ export function StorefrontAuthDialogHost() {
       onFinish={finish}
       onModeChange={actions.setAuthDialogMode}
       onOpenChange={onOpenChange}
-      onRememberChange={setRemember}
       onRevealPasswordChange={setRevealPassword}
       onSubmit={submit}
       onTermsAcceptedChange={setTermsAccepted}
