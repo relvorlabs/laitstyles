@@ -133,21 +133,30 @@ export function AuthField({
   htmlFor,
   label,
   hint,
+  error,
 }: {
   children: ReactNode;
   htmlFor: string;
   label: string;
   hint?: string;
+  error?: string;
 }) {
   return (
-    <label className="grid gap-2 text-[13px] font-semibold text-foreground" htmlFor={htmlFor}>
+    <label
+      className="grid gap-2 text-[13px] font-semibold text-foreground"
+      data-invalid={Boolean(error)}
+      htmlFor={htmlFor}
+    >
       <span className="flex items-center justify-between gap-3">
         <span>{label}</span>
-        {hint ? (
-          <span className="text-[11px] font-medium text-muted-foreground">{hint}</span>
-        ) : null}
+        {hint ? <span className="text-[11px] font-medium text-muted-foreground">{hint}</span> : null}
       </span>
       {children}
+      {error ? (
+        <span className="text-xs font-medium text-destructive" role="alert">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }
@@ -161,11 +170,12 @@ export function AuthStatusNotice({
 }) {
   return (
     <div
+      aria-live="polite"
       className={cn(
         "flex gap-3 rounded-2xl border px-4 py-3.5 text-[13px] leading-5",
         tone === "error" &&
           "border-destructive/25 bg-destructive-surface text-destructive-surface-foreground",
-        tone === "success" && "border-primary/20 bg-primary/10 text-foreground",
+        tone === "success" && "border-primary/20 bg-primary/8 text-foreground",
         tone === "info" && "border-border/80 bg-muted/45 text-muted-foreground",
       )}
       role={tone === "error" ? "alert" : "status"}
