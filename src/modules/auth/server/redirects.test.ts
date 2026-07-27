@@ -3,6 +3,7 @@ import {
   getConfiguredAuthOrigin,
   getSafeNextPath,
   withAuthErrorPath,
+  withAuthErrorState,
 } from "@/modules/auth/server/redirects";
 
 describe("auth redirect safety", () => {
@@ -37,5 +38,24 @@ describe("auth redirect safety", () => {
     const path = withAuthErrorPath("invalid-credentials", "https://example.com/admin");
     expect(path).toBe("/auth/error?code=invalid-credentials&next=%2F");
     expect(path).not.toContain("message=");
+  });
+
+  it("adds a safe error state to the originating auth surface", () => {
+    expect(
+      withAuthErrorState(
+        "/products?auth=signin&next=%2Faccount",
+        "oauth-callback-invalid",
+      ),
+    ).toBe("/products?auth=signin&next=%2Faccount&error=oauth-callback-invalid");
+  });
+
+  it("rejects an external origin surface before adding error state", () => {
+    expect(
+      withAuthErrorState(
+        "https://attacker.example/sign-in",
+        "oauth-start-failed",
+        "/auth/sign-in?next=%2Fadmin",
+      ),
+    ).toBe("/auth/sign-in?next=%2Fadmin&error=oauth-start-failed");
   });
 });
