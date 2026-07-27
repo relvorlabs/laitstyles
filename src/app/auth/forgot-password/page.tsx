@@ -1,10 +1,17 @@
+import { ArrowRight, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requestPasswordResetWithRedirect } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
+import {
+  AUTH_INPUT_CLASS_NAME,
+  AUTH_PRIMARY_BUTTON_CLASS_NAME,
+  AuthField,
+  AuthPageShell,
+  AuthStatusNotice,
+} from "@/modules/auth/ui/auth-page-shell";
 
 export const metadata: Metadata = {
   title: "Reset password | Laitstyle",
@@ -20,64 +27,61 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
   const error = isAuthFlowErrorCode(params.error) ? getAuthFlowErrorMessage(params.error) : null;
 
   return (
-    <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center bg-background px-4 py-12">
-      <Card className="w-full max-w-[520px] gap-6 rounded-lg p-6 shadow-laitstyle sm:p-8">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Account recovery
-          </p>
-          <h1 className="mt-2 font-serif text-4xl font-medium">Forgot your password?</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Enter the email used for your account. For privacy, the response is the same whether or
-            not an account exists.
-          </p>
-        </div>
-
-        {params.sent === "1" ? (
-          <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-6">
-            If this address can receive a reset email, a secure link is on its way. Check your inbox
-            and spam folder.
-          </div>
-        ) : null}
-
-        {error ? (
-          <p
-            className="rounded-lg bg-destructive-surface p-4 text-sm text-destructive-surface-foreground"
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <form action={requestPasswordResetWithRedirect} className="grid gap-4">
-          <label className="grid gap-1.5 text-sm font-medium" htmlFor="recovery-email">
-            Email
-            <Input
-              autoComplete="email"
-              id="recovery-email"
-              name="email"
-              placeholder="you@example.com"
-              required
-              type="email"
-            />
-          </label>
-          <Button size="lg" type="submit">
-            Send reset link
-          </Button>
-        </form>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <Link className="font-semibold underline-offset-4 hover:underline" href="/?auth=signin">
+    <AuthPageShell
+      description="Enter the email attached to your account. We keep the response private, whether or not the address is registered."
+      eyebrow="Account recovery"
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-3 text-[13px]">
+          <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/?auth=signin">
             Back to sign in
           </Link>
           <Link
-            className="text-muted-foreground underline-offset-4 hover:underline"
+            className="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             href="/auth/resend-confirmation"
           >
             Resend confirmation
           </Link>
         </div>
-      </Card>
-    </main>
+      }
+      highlights={[
+        "Private, enumeration-safe recovery response",
+        "Single-use link through your configured Supabase email",
+        "Other sessions are closed after password replacement",
+      ]}
+      sideDescription="Recovery should feel calm, not confusing. We send a secure, single-use path back to your account without revealing whether an address is registered."
+      sideTitle="A clear way back into your account."
+      title="Forgot your password?"
+    >
+      <div className="grid gap-6">
+        {params.sent === "1" ? (
+          <AuthStatusNotice tone="success">
+            If this address can receive a reset email, a secure link is on its way. Check your inbox and spam folder.
+          </AuthStatusNotice>
+        ) : null}
+
+        {error ? <AuthStatusNotice tone="error">{error}</AuthStatusNotice> : null}
+
+        <form action={requestPasswordResetWithRedirect} className="grid gap-[18px]">
+          <AuthField htmlFor="recovery-email" label="Email address">
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
+              <Input
+                autoComplete="email"
+                className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
+                id="recovery-email"
+                name="email"
+                placeholder="you@example.com"
+                required
+                type="email"
+              />
+            </div>
+          </AuthField>
+          <Button className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`} size="lg" type="submit">
+            Send secure reset link
+            <ArrowRight className="size-4" />
+          </Button>
+        </form>
+      </div>
+    </AuthPageShell>
   );
 }
