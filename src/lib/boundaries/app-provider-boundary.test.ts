@@ -16,11 +16,10 @@ describe("application provider ownership", () => {
     expect(rootLayoutSource).toContain("<SessionProvider session={session}>{children}</SessionProvider>");
   });
 
-  it("mounts theme, query, and session ownership in the shared provider", () => {
+  it("mounts theme and query ownership in the shared provider", () => {
     expect(appProviderSource).toContain("<ThemeProvider>");
     expect(appProviderSource).toContain("<Toaster");
     expect(appProviderSource).toContain("QueryClientProvider");
-    expect(appProviderSource).toContain("SessionProvider");
   });
 
   it("does not let admin mount its own query or session provider", () => {

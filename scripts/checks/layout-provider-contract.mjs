@@ -56,12 +56,12 @@ if (!rootProviders.includes("QueryClientProvider")) {
   violations.push(`${rootProvidersPath} must mount the shared QueryClientProvider.`);
 }
 
-if (!rootProviders.includes("SessionProvider")) {
-  violations.push(`${rootProvidersPath} must mount the shared SessionProvider.`);
-}
-
 if (!rootLayout.includes("getCurrentSession")) {
   violations.push(`${rootLayoutPath} must resolve the session once for AppProvider.`);
+}
+
+if (!rootLayout.includes("SessionProvider")) {
+  violations.push(`${rootLayoutPath} must mount the shared SessionProvider.`);
 }
 
 for (const retiredImport of retiredQueryProviderImports) {
