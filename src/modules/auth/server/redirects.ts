@@ -35,6 +35,17 @@ export function withAuthErrorPath(code: AuthFlowErrorCode, next: string) {
   return `/auth/error?${params.toString()}`;
 }
 
+export function withAuthErrorState(
+  returnToValue: FormDataEntryValue | string | null | undefined,
+  code: AuthFlowErrorCode,
+  fallback = "/",
+) {
+  const returnTo = getSafeNextPath(returnToValue, fallback);
+  const url = new URL(returnTo, LOCAL_AUTH_ORIGIN);
+  url.searchParams.set("error", code);
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function getConfiguredAuthOrigin() {
   for (const key of AUTH_ORIGIN_ENV_KEYS) {
     const value = process.env[key]?.trim();
