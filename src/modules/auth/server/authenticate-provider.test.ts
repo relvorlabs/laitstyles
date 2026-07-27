@@ -24,7 +24,12 @@ vi.mock("@/modules/auth/server/account-provisioning", () => ({
 
 vi.mock("@/modules/auth/server/redirects", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/modules/auth/server/redirects")>();
-  return { ...actual, getRequestOrigin: vi.fn(async () => "https://laitstyle.example") };
+  return {
+    ...actual,
+    getAuthRedirectUrl: vi.fn(async (path: string) =>
+      new URL(path, "https://laitstyle.example").toString(),
+    ),
+  };
 });
 
 vi.mock("@/modules/auth/server/diagnostics", async (importOriginal) => {
@@ -61,16 +66,16 @@ describe("auth provider orchestration", () => {
     });
   });
 
-  it("starts Google OAuth with the deterministic callback URL", async () => {
-    await expect(startGoogleOAuth("/account/orders")).resolves.toBe(
-      "https://accounts.google.test/authorize",
-    );
+  it("starts Google OAuth with the deterministic callback and return surface", async () => {
+    await expect(
+      startGoogleOAuth("/account/orders", "/products?auth=signin&next=%2Faccount%2Forders"),
+    ).resolves.toBe("https://accounts.google.test/authorize");
 
     expect(mocks.signInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
       options: {
         redirectTo:
-          "https://laitstyle.example/auth/callback?next=%2Faccount%2Forders",
+          "https://laitstyle.example/auth/callback?next=%2Faccount%2Forders&returnTo=%2Fproducts%3Fauth%3Dsignin%26next%3D%252Faccount%252Forders",
       },
     });
   });
@@ -81,6 +86,7 @@ describe("auth provider orchestration", () => {
         code: "provider-code",
         providerErrorCode: null,
         next: "/account",
+        returnTo: "/?auth=signin&next=%2Faccount",
       }),
     ).resolves.toBe("/account");
 
@@ -92,18 +98,32 @@ describe("auth provider orchestration", () => {
     });
   });
 
-  it("maps provider cancellation to the safe auth error route", async () => {
+  it("maps provider cancellation back to the originating storefront dialog", async () => {
     const target = await completeOAuthCallback({
       code: null,
       providerErrorCode: "access_denied",
       next: "/account",
+      returnTo: "/products?auth=signin&next=%2Faccount",
     });
 
-    expect(target).toBe("/auth/error?code=oauth-callback-invalid&next=%2Faccount");
+    expect(target).toBe(
+      "/products?auth=signin&next=%2Faccount&error=oauth-callback-invalid",
+    );
     expect(mocks.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith("oauth-callback", {
       name: "OAuthCallbackProviderError",
       code: "access_denied",
     });
+  });
+
+  it("maps OAuth start failures back to staff sign-in instead of the generic error page", async () => {
+    mocks.signInWithOAuth.mockResolvedValueOnce({
+      data: { url: null },
+      error: { code: "provider_error", name: "AuthApiError" },
+    });
+
+    await expect(
+      startGoogleOAuth("/admin", "/auth/sign-in?next=%2Fadmin"),
+    ).resolves.toBe("/auth/sign-in?next=%2Fadmin&error=oauth-start-failed");
   });
 });
