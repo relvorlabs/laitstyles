@@ -17,7 +17,7 @@ Merged PR #52 established the canonical auth module but left real ownership, run
 6. the storefront dialog refreshed or navigated while its own state was changing;
 7. dialog password recovery and confirmation resend invoked server actions directly and never displayed dedicated support screens;
 8. signup UI and backend validation did not require one identical confirmation-password contract;
-9. cart continuity across login and signup had not been explicitly proven.
+9. cart continuity across login, signup and email-callback tabs had not been explicitly guaranteed.
 
 ## Source closure delivered
 
@@ -81,7 +81,10 @@ Each callback carries a safe internal `returnTo` surface. Provider failures add 
 ## Guest cart and saved-state continuity
 
 - [x] Auth session updates do not reset the cart, saved-items or holds stores.
-- [x] The canonical guest snapshot remains in `sessionStorage` under `laitstyles-storefront:v3:client-state`.
+- [x] The minimal canonical snapshot uses `laitstyles-storefront:v3:client-state`.
+- [x] `sessionStorage` remains authoritative for the current tab.
+- [x] The same minimal snapshot is written to `localStorage` as a fallback when confirmation or recovery links open a new tab.
+- [x] A new callback tab restores the local fallback only when it has no valid current-tab snapshot.
 - [x] Login success preserves the same cart snapshot before and after account navigation.
 - [x] Confirmation-required signup preserves the same cart snapshot while waiting for email and after the confirmation callback reaches `/account`.
 - [x] Dialog recovery and confirmation views do not alter storefront state.
@@ -92,6 +95,7 @@ Each callback carries a safe internal `returnTo` surface. Provider failures add 
 - Provider tests prove immediate-session signup provisions Prisma records before success.
 - Route tests prove the JSON email adapter invokes recovery/resend module operations with the originating dialog surface.
 - Boundary tests cover the new `/auth/email` adapter.
+- Storefront-state tests prove the canonical snapshot is written to both stores, restored in a new callback tab and still prefers the current tab.
 - Non-live Playwright tests prove recovery/resend screens appear, submit without navigation, and do not cause another document load.
 - Callback tests prove email errors reopen the correct support screen.
 - Live-auth tests cover signup confirmation, profile/customer provisioning, confirmation resend, password recovery and password replacement.
@@ -102,13 +106,13 @@ Each callback carries a safe internal `returnTo` surface. Provider failures add 
 - [ ] `pnpm check:architecture`.
 - [ ] `pnpm biome` or the repository's static suite.
 - [ ] `pnpm typecheck`.
-- [ ] focused auth Vitest suites, including the email-route, boundary, provider, action and session-provider tests.
+- [ ] focused auth and storefront-state Vitest suites.
 - [ ] production build and React Doctor.
 - [ ] desktop, tablet and mobile Playwright contracts.
 - [ ] `pnpm test:auth:e2e` against local/test Supabase Auth, PostgreSQL and the mail inbox.
 - [ ] signup confirmation email received and callback provisions profile/customer data.
 - [ ] storefront password sign-in shown without a document rebuild and without cart loss.
-- [ ] storefront signup confirmation completed without cart loss.
+- [ ] storefront signup confirmation completed without cart loss, including a callback opened in a new browser tab.
 - [ ] storefront-dialog password reset and confirmation-resend emails received without route navigation.
 - [ ] password replacement works and other sessions are closed.
 - [ ] Google OAuth initiation/callback or the configured dedicated test-provider journey.
