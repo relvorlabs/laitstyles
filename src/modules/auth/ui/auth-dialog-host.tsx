@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   requestPasswordReset,
@@ -24,6 +25,7 @@ const blankAuthForm: StorefrontAuthForm = {
 };
 
 export function StorefrontAuthDialogHost() {
+  const router = useRouter();
   const { products } = useStorefrontCatalogueData();
   const { actions, state: authContextState } = useStorefrontAuth();
   const { open, mode, onSuccess, initialError } = authContextState.dialog;
@@ -156,8 +158,10 @@ export function StorefrontAuthDialogHost() {
     resetLocalState();
     successRef.current = null;
 
-    if (completed) onCompleted?.();
-  }, [actions, resetLocalState, state]);
+    if (!completed) return;
+    if (onCompleted) onCompleted();
+    else router.push("/account");
+  }, [actions, resetLocalState, router, state]);
 
   return (
     <StorefrontAuthDialog
