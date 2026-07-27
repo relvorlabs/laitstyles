@@ -145,8 +145,10 @@ Phase 7 must not:
 - [x] P7-T05 move permission orchestration;
 - [x] P7-T06 move redirect helpers;
 - [x] P7-T07 move diagnostics;
-- [ ] P7-T08 reduce `src/app/auth/actions.ts` to thin adapters;
-- [ ] P7-T09 preserve OAuth browser routes under `/auth/**`;
+- [x] P7-T08 reduce `src/app/auth/actions.ts` to thin adapters;
+- [x] P7-T09 preserve OAuth browser routes under `/auth/**` (URLs/methods unchanged throughout
+      P7-T03–T08; `callback/route.ts`, `google/route.ts`, `sign-out/route.ts` already call
+      `modules/auth/server/*` as of P7-T06 — confirmed, not newly done here);
 - [ ] P7-T10 move storefront auth presentation into `src/modules/auth/ui/**` without visual change;
 - [ ] P7-T11 delete the Auth-owned `features/storefront/shared/catalogue-data.ts` compatibility edge;
 - [ ] P7-T12 remove all 30 legacy exception edges from `architecture-legacy-exceptions.mjs` and
@@ -433,6 +435,67 @@ Executed on this commit:
   `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
   Targeted `schema.test.ts` + `types.test.ts` + `session.test.ts` + `permissions.test.ts` +
   `actions.test.ts` — 35/35 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— not claimed as run.
+
+## P7-T08 & P7-T09 evidence (2026-07-27)
+
+**Thinned `src/app/auth/actions.ts`** (230 → 153 lines at the start of this phase's restart, now
+down further): extracted the Supabase-call-and-mapping body of every password-auth operation into
+a new `src/modules/auth/server/authenticate.ts` (`authenticateWithPassword`, `registerWithPassword`,
+`sendPasswordResetEmail`, `sendSignupConfirmationEmail`, `updateRecoveredPassword`, `endSession`).
+`actions.ts` now does exactly what the doctrine's Server Action contract describes and nothing
+more: parse `FormData` → Zod `safeParse` (invalid-input + field errors on failure) → call the
+domain operation → return its `Result` → (`*WithRedirect` wrappers) `redirect()`. It no longer
+imports `@/lib/supabase/server`, `logAuthProviderFailure`, or `mapAuthProviderError` at all — those
+now live only in `authenticate.ts`.
+
+**Public surface unchanged, verified not assumed:** every exported function name, type, and
+signature in `actions.ts` is identical to before this task (confirmed via grep: no consumer
+outside `actions.ts`/`actions.test.ts` imports any of its result/error types, so this was free to
+refactor internally either way — but the names were kept unchanged anyway since nothing required
+changing them, and `signInWithPassword`/`signUpWithPassword` are passed as `<form action={...}>`
+values, where a changed function identity has no observable effect but a changed name would break
+the import). `storefront-auth-provider.tsx`'s imports of `signOutStorefrontSession`,
+`submitPasswordSignIn`, `submitPasswordSignUp` needed no changes.
+
+**`actions.test.ts` needed no changes and still passes (12/12) as a full pipeline test**, not just
+a partial one: its `vi.mock("@/lib/supabase/server", ...)` and the `importOriginal`-based partial
+mocks of `diagnostics`/`redirects` (from P7-T06) intercept by module specifier regardless of which
+file actually imports them, so the existing assertions now exercise `actions.ts` →
+`authenticate.ts` → the mocked Supabase client end-to-end. No separate `authenticate.test.ts` was
+added — it would only duplicate coverage this already provides; revisit if `authenticate.ts` grows
+consumers beyond `actions.ts`.
+
+**A second real gap this task's own diff exposed, not assumed away:** `pnpm check:architecture`
+failed twice on the first attempt — `error-validation-contract.mjs` asserted `mapAuthProviderError`
+and `logAuthProviderFailure` appear in `actions.ts`'s own source text, which was true before this
+task and became false the moment that logic moved to `authenticate.ts`, even though the underlying
+security requirement (safe provider-error mapping, structured diagnostic logging) still holds —
+just enforced by a different file now. Read `authenticate.ts` into the same guard
+(`authAuthenticate`) and repointed those two checks, plus the "must not leak raw provider messages"
+checks, to scan `authActions + authAuthenticate` combined rather than `authActions` alone — the
+latter also closes a real blind spot: before this fix, nothing checked `authenticate.ts` itself for
+raw-message leaks, only `actions.ts`.
+
+**P7-T09 (preserve OAuth routes) needed no new work**: already true throughout P7-T03–P7-T08.
+`callback/route.ts`, `google/route.ts`, and `sign-out/route.ts` have called `modules/auth/server/*`
+since P7-T03/T06 with unchanged URLs, methods, and redirect targets — confirmed by re-reading all
+three in this task, not newly done here.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 2 errors on the first run (the `error-validation-contract.mjs` gap
+  above), 0 errors/warnings after the fix.
+- `pnpm biome` — 1 error, 65 warnings; the 1 error is the same pre-existing `site-chrome.tsx` drift,
+  untouched this time (fixed only the two files this task actually changed). 65 warnings matches
+  baseline.
+- `pnpm exec vitest run` — one run: 6 failed (the same 5 documented pre-existing failures plus
+  `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
+  Targeted `actions.test.ts` — 12/12 passed, confirming the full `actions.ts` → `authenticate.ts`
+  pipeline works end-to-end through the existing, unmodified mocks.
 
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — not claimed as run.

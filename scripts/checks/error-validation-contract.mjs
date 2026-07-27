@@ -27,6 +27,7 @@ const compatibilityResult = read("src/lib/admin/shared/result.ts");
 const authErrors = read("src/modules/auth/server/diagnostics.ts");
 const authSchemas = read("src/modules/auth/schema.ts");
 const authActions = read("src/app/auth/actions.ts");
+const authAuthenticate = read("src/modules/auth/server/authenticate.ts");
 const authCallback = read("src/app/auth/callback/route.ts");
 const googleAuth = read("src/app/auth/google/route.ts");
 const authErrorPage = read("src/app/auth/error/page.tsx");
@@ -73,16 +74,16 @@ if (!authSchemas.includes("passwordSignInSchema") || !authSchemas.includes("pass
 if (!authSchemas.includes("terms:") || !authProvider.includes('formData.set("terms"')) {
   errors.push("Terms acceptance must be enforced at the Server Action boundary, not only in client UI.");
 }
-if (!authActions.includes("safeParse") || !authActions.includes("mapAuthProviderError")) {
+if (!authActions.includes("safeParse") || !authAuthenticate.includes("mapAuthProviderError")) {
   errors.push("Password auth actions must Zod-parse input and map provider failures.");
 }
-if (!authActions.includes("logAuthProviderFailure")) {
+if (!authAuthenticate.includes("logAuthProviderFailure")) {
   errors.push("Auth provider failures must retain structured server-side diagnostics.");
 }
-if (/error\.message|\.message\.toLowerCase|includes\(["']invalid/.test(authActions)) {
+if (/error\.message|\.message\.toLowerCase|includes\(["']invalid/.test(authActions + authAuthenticate)) {
   errors.push("Password auth actions must not branch on or expose provider error messages.");
 }
-if (/withAuthErrorPath\([^,]*\.message/.test(authCallback + googleAuth + authActions)) {
+if (/withAuthErrorPath\([^,]*\.message/.test(authCallback + googleAuth + authActions + authAuthenticate)) {
   errors.push("Auth redirects must never carry raw provider error messages.");
 }
 if (/params\.message|searchParams:[\s\S]*message\?/.test(authErrorPage)) {
