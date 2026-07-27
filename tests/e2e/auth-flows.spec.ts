@@ -250,15 +250,24 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await expect(page.getByRole("link", { name: "Request a new link" })).toBeVisible();
   });
 
-  test("Google OAuth start and cancellation use safe browser boundaries", async ({ page }) => {
+  test("Google OAuth opens a popup and leaves the current auth page mounted", async ({ page }) => {
     test.skip(
       process.env.GOOGLE_AUTH_E2E !== "1",
       "Set GOOGLE_AUTH_E2E=1 and configure the dedicated local/test Google provider credentials.",
     );
 
     await page.goto("/auth/sign-up");
+    const stableUrl = page.url();
+    const popupPromise = page.waitForEvent("popup");
     await page.getByRole("button", { name: "Continue with Google" }).click();
-    await expect(page).toHaveURL(/accounts\.google\.com|\/auth\/sign-up\?error=oauth-start-failed/);
+    const popup = await popupPromise;
+
+    await expect(popup).toHaveURL(/accounts\.google\.com|\/auth\/oauth-complete/);
+    expect(page.url()).toBe(stableUrl);
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+
+    await popup.close();
+    await expect(page.getByText("Google sign-in was closed before it finished.")).toBeVisible();
 
     await page.goto("/auth/callback?error=access_denied&next=%2Faccount");
     await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
