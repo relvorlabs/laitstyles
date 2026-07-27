@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -61,6 +62,7 @@ const StorefrontAuthContext = createContext<StorefrontAuthContextValue | null>(n
 const closedDialog: AuthDialogState = { open: false, mode: "signin" };
 
 export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const authSession = useSession();
   const { resetSession, setSession } = useSessionActions();
   const [dialog, setDialog] = useState<AuthDialogState>(closedDialog);
@@ -135,7 +137,8 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
     }
     resetSession();
     toast.success("Signed out. Your bag and saved pieces remain in this session.");
-  }, [resetSession]);
+    router.replace("/");
+  }, [resetSession, router]);
 
   const actions = useMemo<StorefrontAuthContextValue["actions"]>(
     () => ({
