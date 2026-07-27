@@ -99,6 +99,33 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await expect(page.getByText(/account already exists/i)).toHaveCount(0);
   });
 
+  test("storefront dialog keeps successful sign-in mounted until the explicit account action", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const key = "auth-success-document-load-count";
+      const count = Number(window.sessionStorage.getItem(key) ?? "0") + 1;
+      window.sessionStorage.setItem(key, String(count));
+    });
+    await page.goto("/?auth=signin", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await page.getByLabel("Email").fill(confirmedEmail);
+    await page.getByLabel("Password").fill(initialPassword);
+
+    await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
+
+    await expect(page.getByRole("heading", { name: /You.re back in/ })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await expect
+      .poll(() =>
+        page.evaluate(() => window.sessionStorage.getItem("auth-success-document-load-count")),
+      )
+      .toBe("1");
+
+    await page.getByRole("button", { name: "Go to my account" }).click();
+    await expect(page).toHaveURL(/\/account(?:$|[/?#])/);
+  });
+
   test("storefront dialog requests password recovery without leaving the storefront", async ({
     page,
   }) => {
