@@ -46,17 +46,19 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   if (isStandaloneSurface) return <>{children}</>;
 
-  return (
-    <>
-      <SiteHeader
-        onGoHome={() => router.push("/")}
-        onNavNew={() => navigateShop({ collection: "new" })}
-        onNavShop={navigateShop}
-      />
-      {children}
-      <SiteFooter onNavShop={navigateShop} />
-      <StorefrontOverlays />
-      <Analytics />
-    </>
-  );
+ return (
+  <div className="lst-storefront flex min-h-full flex-1 flex-col">
+    <SiteHeader
+      onGoHome={() => router.push("/")}
+      onNavNew={() => navigateShop({ collection: "new" })}
+      onNavShop={navigateShop}
+    />
+
+    {children}
+
+    <SiteFooter onNavShop={navigateShop} />
+    <StorefrontOverlays />
+    <Analytics />
+  </div>
+);
 }
