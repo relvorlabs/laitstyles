@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { getAuthFlowErrorMessage } from "@/modules/auth/errors";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
@@ -20,7 +21,7 @@ const blankAuthForm: StorefrontAuthForm = {
 export function StorefrontAuthDialogHost() {
   const { products } = useStorefrontCatalogueData();
   const { actions, state: authContextState } = useStorefrontAuth();
-  const { open, mode, onSuccess } = authContextState.dialog;
+  const { open, mode, onSuccess, initialError } = authContextState.dialog;
   const [state, setState] = useState<StorefrontAuthState>("default");
   const [form, setForm] = useState<StorefrontAuthForm>(blankAuthForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -33,9 +34,9 @@ export function StorefrontAuthDialogHost() {
     if (!open) return;
     successRef.current = onSuccess ?? null;
     setState("default");
-    setErrors({});
-    setShowErrors(false);
-  }, [open, onSuccess]);
+    setErrors(initialError ? { form: getAuthFlowErrorMessage(initialError) } : {});
+    setShowErrors(Boolean(initialError));
+  }, [initialError, onSuccess, open]);
 
   const submit = useCallback(async () => {
     if (state === "signing-in") return;
@@ -59,23 +60,49 @@ export function StorefrontAuthDialogHost() {
     setState(result.value.status);
   }, [actions, form, mode, state, termsAccepted]);
 
+  const resetLocalState = useCallback(() => {
+    setState("default");
+    setErrors({});
+    setShowErrors(false);
+    setForm(blankAuthForm);
+    setRevealPassword(false);
+    setTermsAccepted(false);
+  }, []);
+
   const onOpenChange = useCallback(
     (nextOpen: boolean) => {
       if (nextOpen) return;
       actions.closeAuthDialog();
-      setState("default");
+      resetLocalState();
       successRef.current = null;
+    },
+    [actions, resetLocalState],
+  );
+
+  const onModeChange = useCallback(
+    (nextMode: StorefrontAuthMode) => {
+      actions.setAuthDialogMode(nextMode);
+      setState("default");
+      setErrors({});
+      setShowErrors(false);
+      setForm((current) => ({ ...blankAuthForm, email: current.email }));
+      setTermsAccepted(false);
+      setRevealPassword(false);
     },
     [actions],
   );
 
   const finish = useCallback(() => {
     const completed = state === "success";
+    const onCompleted = successRef.current;
     actions.closeAuthDialog();
-    setState("default");
-    if (completed) successRef.current?.();
+    resetLocalState();
     successRef.current = null;
-  }, [actions, state]);
+
+    if (!completed) return;
+    if (onCompleted) onCompleted();
+    else startTransition(actions.refreshSession);
+  }, [actions, resetLocalState, state]);
 
   return (
     <StorefrontAuthDialog
@@ -89,11 +116,17 @@ export function StorefrontAuthDialogHost() {
       state={state}
       termsAccepted={termsAccepted}
       onContinueWithGoogle={() => {
-        const next = `${window.location.pathname}${window.location.search}`;
-        window.location.assign(`/auth/google?next=${encodeURIComponent(next)}`);
+        const current = new URL(window.location.href);
+        const next = `${current.pathname}${current.search}`;
+        current.searchParams.set("auth", mode);
+        current.searchParams.delete("error");
+        const returnTo = `${current.pathname}${current.search}`;
+        window.location.assign(
+          `/auth/google?next=${encodeURIComponent(next)}&returnTo=${encodeURIComponent(returnTo)}`,
+        );
       }}
       onFinish={finish}
-      onModeChange={actions.setAuthDialogMode}
+      onModeChange={onModeChange}
       onOpenChange={onOpenChange}
       onRevealPasswordChange={setRevealPassword}
       onSubmit={submit}
