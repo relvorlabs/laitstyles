@@ -48,6 +48,18 @@ function formData(values: Record<string, string>) {
   return data;
 }
 
+function signupData(overrides: Record<string, string> = {}) {
+  return formData({
+    email: "shopper@example.com",
+    password: "password123",
+    confirmPassword: "password123",
+    first: "Ada",
+    last: "Lovelace",
+    terms: "true",
+    ...overrides,
+  });
+}
+
 const idleState = { status: "idle" } as const;
 
 describe("password auth actions", () => {
@@ -124,15 +136,7 @@ describe("password auth actions", () => {
   });
 
   it("requires terms acceptance before calling the sign-up provider", async () => {
-    const result = await submitPasswordSignUp(
-      formData({
-        email: "shopper@example.com",
-        password: "password123",
-        first: "Ada",
-        last: "Lovelace",
-        terms: "false",
-      }),
-    );
+    const result = await submitPasswordSignUp(signupData({ terms: "false" }));
 
     expect(result).toEqual({
       ok: false,
@@ -145,14 +149,26 @@ describe("password auth actions", () => {
     expect(mocks.signUp).not.toHaveBeenCalled();
   });
 
+  it("rejects mismatched signup passwords before calling Supabase", async () => {
+    await expect(
+      submitPasswordSignUp(signupData({ confirmPassword: "different123" })),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "invalid-input",
+        message: "Check the highlighted fields and try again.",
+        fieldErrors: { confirmPassword: "Passwords do not match." },
+      },
+    });
+    expect(mocks.signUp).not.toHaveBeenCalled();
+  });
+
   it("validates and normalizes sign-up input before the provider call", async () => {
     const result = await submitPasswordSignUp(
-      formData({
+      signupData({
         email: "  shopper@example.com ",
-        password: "password123",
         first: " Ada ",
         last: " Lovelace ",
-        terms: "true",
         next: "https://attacker.example",
       }),
     );
@@ -182,17 +198,7 @@ describe("password auth actions", () => {
       error: null,
     });
 
-    await expect(
-      submitPasswordSignUp(
-        formData({
-          email: "shopper@example.com",
-          password: "password123",
-          first: "Ada",
-          last: "Lovelace",
-          terms: "true",
-        }),
-      ),
-    ).resolves.toEqual({
+    await expect(submitPasswordSignUp(signupData())).resolves.toEqual({
       ok: true,
       value: { status: "check-email", email: "shopper@example.com" },
     });
@@ -344,15 +350,7 @@ describe("password auth actions", () => {
     await expect(
       signUpWithPassword(
         idleState,
-        formData({
-          email: "shopper@example.com",
-          password: "password123",
-          first: "Ada",
-          last: "Lovelace",
-          terms: "true",
-          next: "/account",
-          returnTo: "/auth/sign-up",
-        }),
+        signupData({ next: "/account", returnTo: "/auth/sign-up" }),
       ),
     ).resolves.toEqual({
       status: "success",
