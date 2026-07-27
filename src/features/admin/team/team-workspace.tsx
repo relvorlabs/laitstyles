@@ -1,16 +1,19 @@
 "use client";
 
 import { MailPlus, ShieldCheck, UserRoundCheck } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ManagerMember } from "@/modules/auth/server/staff-invitations";
+import type { ManagerMember } from "@/modules/auth/types";
 
 export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMember[] }) {
   const [members, setMembers] = useState(initialMembers);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    tone: "error" | "success";
+    text: string;
+  } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function submitInvitation() {
@@ -36,11 +39,17 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
         return;
       }
 
-      setMembers((current) => [result.member, ...current.filter((member) => member.id !== result.member.id)]);
+      setMembers((current) => [
+        result.member,
+        ...current.filter((member) => member.id !== result.member.id),
+      ]);
       setForm({ firstName: "", lastName: "", email: "" });
       setMessage({ tone: "success", text: result.message });
     } catch {
-      setMessage({ tone: "error", text: "The invitation could not be sent. Check your connection and try again." });
+      setMessage({
+        tone: "error",
+        text: "The invitation could not be sent. Check your connection and try again.",
+      });
     } finally {
       setPending(false);
     }
@@ -55,12 +64,15 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
           </div>
           <h1 className="font-serif text-4xl font-medium tracking-tight">Store team</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Invite store managers through Supabase Auth. Managers complete their own password and profile from the email link and receive manager permissions—not owner access.
+            Invite store managers through Supabase Auth. Managers complete their own password and
+            profile from the email link and receive manager permissions—not owner access.
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
           <strong className="block text-2xl font-semibold">{members.length}</strong>
-          <span className="text-muted-foreground">manager{members.length === 1 ? "" : "s"}</span>
+          <span className="text-muted-foreground">
+            manager{members.length === 1 ? "" : "s"}
+          </span>
         </div>
       </header>
 
@@ -73,37 +85,44 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
             <div>
               <h2 className="font-serif text-2xl font-medium">Invite a manager</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Supabase sends the invitation. The recipient chooses their password after opening it.
+                Supabase sends the invitation. The recipient chooses their password after opening
+                it.
               </p>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name" error={fieldErrors.firstName}>
+            <Field error={fieldErrors.firstName} label="First name">
               <Input
                 autoComplete="given-name"
                 disabled={pending}
-                onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, firstName: event.target.value }))
+                }
                 placeholder="First name"
                 value={form.firstName}
               />
             </Field>
-            <Field label="Last name" error={fieldErrors.lastName}>
+            <Field error={fieldErrors.lastName} label="Last name">
               <Input
                 autoComplete="family-name"
                 disabled={pending}
-                onChange={(event) => setForm((current) => ({ ...current, lastName: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, lastName: event.target.value }))
+                }
                 placeholder="Last name"
                 value={form.lastName}
               />
             </Field>
           </div>
           <div className="mt-4">
-            <Field label="Work email" error={fieldErrors.email}>
+            <Field error={fieldErrors.email} label="Work email">
               <Input
                 autoComplete="email"
                 disabled={pending}
-                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, email: event.target.value }))
+                }
                 placeholder="manager@example.com"
                 type="email"
                 value={form.email}
@@ -124,7 +143,13 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
             </div>
           ) : null}
 
-          <Button className="mt-6 w-full" disabled={pending} onClick={submitInvitation} size="lg" type="button">
+          <Button
+            className="mt-6 w-full"
+            disabled={pending}
+            onClick={submitInvitation}
+            size="lg"
+            type="button"
+          >
             {pending ? "Sending invitation…" : "Send manager invitation"}
           </Button>
         </section>
@@ -137,7 +162,8 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
             <div>
               <h2 className="font-serif text-2xl font-medium">Managers</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Invited accounts remain managers throughout setup. They are never elevated to store owner.
+                Invited accounts remain managers throughout setup. They are never elevated to store
+                owner.
               </p>
             </div>
           </div>
@@ -149,13 +175,24 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
               </div>
             ) : (
               members.map((member) => (
-                <article className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/25 p-4 sm:flex-row sm:items-center sm:justify-between" key={member.id}>
+                <article
+                  className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/25 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  key={member.id}
+                >
                   <div className="min-w-0">
                     <div className="font-semibold">{member.displayName}</div>
-                    <div className="mt-1 truncate text-sm text-muted-foreground">{member.email}</div>
+                    <div className="mt-1 truncate text-sm text-muted-foreground">
+                      {member.email}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 sm:text-right">
-                    <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${member.state === "active" ? "bg-primary/10 text-primary" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                    <span
+                      className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+                        member.state === "active"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                      }`}
+                    >
                       {member.state === "active" ? "Active" : "Invite sent"}
                     </span>
                   </div>
@@ -169,7 +206,15 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
   return (
     <label className="grid gap-2 text-sm font-semibold">
       {label}
