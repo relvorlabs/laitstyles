@@ -1,10 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  legacyArchitectureExceptions,
-  legacyProductTypeOnlyEdge,
-} from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
+import { legacyArchitectureExceptions } from "../../../scripts/checks/architecture-legacy-exceptions.mjs";
 import {
   classifyModuleGraph,
   parseModuleSyntax,
@@ -95,12 +92,7 @@ describe("Products module boundaries", () => {
           if (isTest(relative)) return [];
           const imports = importedModules(await readFile(filePath, "utf8"));
           return retiredProductPaths
-            .filter((importPath) => {
-              const isTypeOnlyShimConsumer =
-                relative === legacyProductTypeOnlyEdge.importer &&
-                importPath === legacyProductTypeOnlyEdge.imported;
-              return importsPath(imports, importPath) && !isTypeOnlyShimConsumer;
-            })
+            .filter((importPath) => importsPath(imports, importPath))
             .map((importPath) => `${relative} -> ${importPath}`);
         }),
       )
@@ -108,32 +100,6 @@ describe("Products module boundaries", () => {
 
     expect(offenders).toEqual([]);
   }, 15_000);
-
-  it("keeps every phase exception exact and type-only", async () => {
-    const shimSource = await readFile(
-      path.join(repositoryRoot, legacyProductTypeOnlyEdge.shim),
-      "utf8",
-    );
-    const importerSource = await readFile(
-      path.join(repositoryRoot, legacyProductTypeOnlyEdge.importer),
-      "utf8",
-    );
-
-    expect(shimSource).toContain(
-      'export type { Product } from "@/modules/products/ui/storefront/catalogue-data";',
-    );
-    expect(shimSource).not.toMatch(/export\s+\*/);
-    expect(shimSource).not.toMatch(/export\s+(?!type\b)/);
-    expect(importerSource).toContain(
-      `import type { Product } from "${legacyProductTypeOnlyEdge.imported}";`,
-    );
-    expect(importerSource).not.toMatch(
-      new RegExp(
-        `import\\s+(?!type\\b)[^;]+from\\s+["']${escapeRegExp(legacyProductTypeOnlyEdge.imported)}["']`,
-      ),
-    );
-    expect(Object.isFrozen(legacyProductTypeOnlyEdge)).toBe(true);
-  });
 
   it("keeps the Products domain independent of app, feature and top-level server layers", async () => {
     const sourceFiles = await collectSourceFiles(productModuleRoot);
@@ -194,8 +160,4 @@ function isTest(relative: string) {
 
 function normalize(value: string) {
   return value.split(path.sep).join("/");
-}
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

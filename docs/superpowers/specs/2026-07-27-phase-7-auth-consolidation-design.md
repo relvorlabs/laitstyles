@@ -331,6 +331,17 @@ this phase unless doing so is free — flag it in the PR body as a known duplica
 per `.agents/doctrine/conventions.md`'s "no drive-by refactors" rule; consolidating client-side and
 server-side validation into one schema source is legitimate future work, not this phase's mandate.
 
+**Deferred at P7-T10 implementation time:** this decomposition was not performed. `auth-dialog.tsx`
+and `auth-dialog-host.tsx` moved as straight 1:1 renames of `storefront-auth-dialog.tsx` and
+`storefront-auth-dialog-host.tsx`, byte-identical apart from import paths. Rationale: browser
+verification for this move was attempted and blocked by an environment/tooling issue (dev server
+wouldn't accept connections despite reporting started — see `phase-7-auth-status.md`'s P7-T10
+evidence), so there was no way to *prove* zero visual regression for this task's actual scope
+(relocation). Adding a genuine structural decomposition on top, unverifiable in the same pass,
+would have compounded that risk for a change this design explicitly frames as optional composition
+guidance, not a T10 requirement. Splitting into `sign-in-form.tsx`/`sign-up-form.tsx` remains
+legitimate future work once browser verification is available to confirm it.
+
 ## Server Action / API boundary check (`server-auth-actions`)
 
 `vercel-react-best-practices`' `server-auth-actions` rule ("authenticate server actions like API
@@ -401,6 +412,18 @@ No URL, method, or redirect-target change.
 `storefront-account-menu.tsx`, `site-chrome.tsx`, `storefront-client-boundary.tsx` all still import
 `useStorefrontAuth`/the dialog component with the same name and shape — zero call-site changes
 beyond the import path.
+
+**Discovered at implementation time:** relocating `storefront-auth-provider.tsx` moves it from
+unrestricted `src/features/**` into `src/modules/**`, where `server-client-boundary.test.ts`'s
+`LAYER_RULES` check forbids importing `@/app`. The file imports `submitPasswordSignIn`,
+`submitPasswordSignUp`, `signOutStorefrontSession` from `@/app/auth/actions` — the
+doctrine-sanctioned "Form or Client Component → thin Server Action → domain command" flow, not
+technical debt, and predates this phase entirely. Registering it as a Phase 7 legacy exception
+would misrepresent permanent architecture as scheduled-for-removal debt and contradict P7-T12's
+"zero remaining entries" goal. Fixed at the check level instead: `LAYER_RULES` now permits
+`src/modules/**` → `@/app` specifically when every such import resolves to a file starting with
+`"use server"`, verified per-specifier rather than loosened blanket-wide. See
+`phase-7-auth-status.md`'s P7-T10/T11/T12 evidence for the full resolution.
 
 **P7-T11 — delete the `catalogue-data.ts` shim.** Once `auth-dialog.tsx` lives in
 `modules/auth/ui/**`, its `Product` type import can go directly to

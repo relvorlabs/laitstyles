@@ -12,7 +12,7 @@ import {
   type StorefrontAuthForm,
   type StorefrontAuthMode,
   type StorefrontAuthState,
-} from "./storefront-auth-dialog";
+} from "./auth-dialog";
 import { useStorefrontAuth } from "./storefront-auth-provider";
 
 const blankAuthForm: StorefrontAuthForm = {

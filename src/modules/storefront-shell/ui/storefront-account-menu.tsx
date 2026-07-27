@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStorefrontAuth } from "@/features/storefront/shared/storefront-auth-provider";
+import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
 import {
   useStorefrontCart,
   useStorefrontHolds,

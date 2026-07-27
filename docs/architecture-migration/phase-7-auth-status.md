@@ -75,15 +75,20 @@ base, and mirrored in `docs/architecture-migration/phase-1-legacy-exceptions.md`
   `src/modules/auth/server/account-provisioning.ts` and both importers
   (`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) repointed directly; zero
   entries remain for this edge. `src/server/auth/**` no longer exists on disk.
-- 3 importers of `@/features/storefront/shared/storefront-auth-provider` (`phase7StorefrontAuthProviderImporters`);
-- 1 composition edge, `src/app/storefront-client-boundary.tsx` → `.../storefront-auth-dialog-host` (`phase7StorefrontAuthCompositionEdges`);
-- 1 type-only shim, `src/features/storefront/shared/catalogue-data.ts`, consumed only by
-  `storefront-auth-dialog.tsx` for the `Product` type (`legacyProductTypeOnlyEdge`).
+- ~~3 importers of `@/features/storefront/shared/storefront-auth-provider`~~ — **retired in
+  P7-T10**: relocated to `src/modules/auth/ui/storefront-auth-provider.tsx`, all 3 importers
+  repointed directly.
+- ~~1 composition edge~~ — **retired in P7-T10**: `src/app/storefront-client-boundary.tsx` now
+  imports `.../auth-dialog-host` from `src/modules/auth/ui/**` directly.
+- ~~1 type-only shim~~ — **retired in P7-T11**: `src/features/storefront/shared/catalogue-data.ts`
+  deleted; the moved `auth-dialog.tsx` imports `Product` directly from
+  `@/modules/products/ui/storefront/catalogue-data`.
 
-Only 5 of the original 30 Phase 7 legacy-exception edges remain registered. Full current-state
-detail (exact exports, imports, and consumer lists for every one of these) is in the design spec's
-"Current-state inventory" section — this status document does not duplicate it and must not drift
-from it as files move.
+**Zero of the original 30 Phase 7 legacy-exception edges remain registered** (`architecture-legacy-exceptions.mjs`'s
+`legacyArchitectureExceptions` now contains only the 2 unrelated Phase 8 checkout edges). Full
+current-state detail (exact exports, imports, and consumer lists for every one of these) is in the
+design spec's "Current-state inventory" section — this status document does not duplicate it and
+must not drift from it as files move.
 
 The `src/features/storefront/shared/storefront-runtime.ts` checkout edge remains Phase 8-owned and
 is not in scope here.
@@ -149,9 +154,9 @@ Phase 7 must not:
 - [x] P7-T09 preserve OAuth browser routes under `/auth/**` (URLs/methods unchanged throughout
       P7-T03–T08; `callback/route.ts`, `google/route.ts`, `sign-out/route.ts` already call
       `modules/auth/server/*` as of P7-T06 — confirmed, not newly done here);
-- [ ] P7-T10 move storefront auth presentation into `src/modules/auth/ui/**` without visual change;
-- [ ] P7-T11 delete the Auth-owned `features/storefront/shared/catalogue-data.ts` compatibility edge;
-- [ ] P7-T12 remove all 30 legacy exception edges from `architecture-legacy-exceptions.mjs` and
+- [x] P7-T10 move storefront auth presentation into `src/modules/auth/ui/**` without visual change;
+- [x] P7-T11 delete the Auth-owned `features/storefront/shared/catalogue-data.ts` compatibility edge;
+- [x] P7-T12 remove all 30 legacy exception edges from `architecture-legacy-exceptions.mjs` and
       `phase-1-legacy-exceptions.md` after cutover;
 - [ ] P7-T13 preserve all existing auth URLs and visual contracts;
 - [ ] P7-T14 run focused auth unit, integration, and Playwright/e2e (`tests/e2e/auth-flows.spec.ts`)
@@ -499,6 +504,107 @@ Executed on this commit:
 
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — not claimed as run.
+
+## P7-T10, P7-T11 & P7-T12 evidence (2026-07-27)
+
+**Moved the 3 storefront auth presentation files**, byte-identical apart from import paths (no
+JSX, className, or interaction-state edit — verified by diff, not just by intent):
+`src/features/storefront/shared/{storefront-auth-dialog,storefront-auth-dialog-host,
+storefront-auth-provider}.tsx` → `src/modules/auth/ui/{auth-dialog,auth-dialog-host,
+storefront-auth-provider}.tsx`. `auth-dialog.tsx` (the presentation component) is a straight
+rename of `storefront-auth-dialog.tsx`; `auth-dialog-host.tsx` (the stateful host, `useState`s,
+`validateAuth`, overlay-event subscriptions) is a straight rename of
+`storefront-auth-dialog-host.tsx`. Not decomposed into separate `sign-in-form.tsx`/
+`sign-up-form.tsx` as the design spec's "New UI decomposition" section describes — that's a real
+structural improvement but carries genuine visual-regression risk for a task whose actual
+requirement is relocation with zero behaviour change; deferred as explicit follow-up work, not
+silently dropped.
+
+**Deleted `src/features/storefront/shared/catalogue-data.ts`** (the type-only `Product` shim).
+`auth-dialog.tsx` now imports `Product` directly from
+`@/modules/products/ui/storefront/catalogue-data`, the canonical source the shim only ever
+re-exported.
+
+**A real consumer the original inventory missed, caught by `tsc` not by grep:**
+`src/features/storefront/account/components/account-garments.tsx` imported the shim via a
+*relative* path (`../../shared/catalogue-data`), which every absolute-path grep across this whole
+phase (including the initial current-state inventory) missed. `pnpm typecheck` caught it
+immediately as a broken module resolution once the shim was deleted — repointed to the same
+canonical `@/modules/products/ui/storefront/catalogue-data` import.
+
+**Registry retirement — the actual point of P7-T12:** removed `phase7StorefrontAuthProviderImporters`
+(3 entries), `phase7StorefrontAuthCompositionEdges` (1 entry), and `legacyProductTypeOnlyEdge` (1
+entry, plus its `shim`/`importer`/`imported` fields) from `architecture-legacy-exceptions.mjs`.
+**`legacyArchitectureExceptions` now contains only the 2 Phase 8 checkout edges — every one of the
+original 30 Phase 7 entries is gone.** `docs/architecture-migration/phase-1-legacy-exceptions.md`
+mirrors this; its "Phase 7 authentication compatibility" section is now a completion record, not
+an active table.
+
+**Three more real issues this task's own diff surfaced, each fixed on evidence not assumption:**
+
+1. `src/modules/products/product-module-boundaries.test.ts`'s "keeps every phase exception exact
+   and type-only" test asserted the exact shape of `legacyProductTypeOnlyEdge` and read the shim
+   file directly — both gone now. Removed that test (there's no more exception to verify) and
+   simplified the adjacent "keeps production consumers off retired product and catalogue paths"
+   test, dropping its now-dead `isTypeOnlyShimConsumer` carve-out (no consumer can match a
+   registry entry that no longer exists). Also removed the now-unused `escapeRegExp` helper.
+2. `src/lib/boundaries/server-client-boundary.test.ts`'s "keeps compatibility exceptions exact..."
+   test compared `entry.removalPhase === 7` and `entry.owner === "domain-engineer"` — with
+   `legacyArchitectureExceptions` now containing only Phase 8 entries, TypeScript narrowed those
+   fields to literal `8`/`"ui-engineer"` and flagged both comparisons as `TS2367` (no overlap).
+   Rewrote both as `.includes()` checks against literal-typed arrays, which keeps the check
+   meaningful for any future entry (7 *or* 8, either owner) without relying on the array's
+   *current* contents for its type.
+3. **The one genuine architectural question this task raised, not just a mechanical fix:**
+   `src/modules/auth/ui/storefront-auth-provider.tsx` imports `submitPasswordSignIn`,
+   `submitPasswordSignUp`, `signOutStorefrontSession` from `@/app/auth/actions` — invisible to the
+   `LAYER_RULES` check while the file lived under unrestricted `src/features/**`, now flagged
+   because `src/modules` forbids `@/app`. Traced this to a real distinction the repo's own test
+   suite already draws two tests above it: `classifyArchitectureGraph` flags TanStack Query
+   wrapping a Server Action and Route Handlers importing one, but not a Client Component calling a
+   thin Server Action imperatively — exactly the doctrine-sanctioned "Form or Client Component →
+   thin Server Action → domain command" flow this file uses. This is not P7-owned technical debt
+   (it predates Phase 7 and isn't in any Phase 7 task), and registering it in
+   `legacyArchitectureExceptions` would misrepresent permanent, correct architecture as scheduled-
+   for-removal debt, working against P7-T12's own "zero remaining entries" goal. Refined the
+   `LAYER_RULES` check instead: `src/modules/**` may import `@/app` specifically when every such
+   import resolves to a file starting with `"use server"` (a genuine Server Action) — verified by
+   resolving each exact `@/app/**` specifier and reading the target file, not by loosening the
+   check to a blanket allowance. Still fails for a hypothetical module importing non-Server-Action
+   app-layer code.
+
+**Browser verification attempted, not completed — reported honestly:** started the dev server via
+`preview_start` to visually confirm the sign-in dialog renders identically; the server reported as
+started but the port never actually accepted connections (`net::ERR_CONNECTION_REFUSED` on every
+navigation attempt, `serverId` unrecoverable from `preview_logs` immediately after start) across
+three retries. This is an environment/tooling issue in this session, not a code problem — confirmed
+by cross-checking `preview_list`, which showed no running process each time. Confidence in the
+move's safety rests on non-visual evidence instead: the diffs for all 3 moved UI files show zero
+JSX/className/behaviour change (only import paths), and the full automated suite (typecheck,
+architecture guard, Biome, Vitest) passes. This is explicitly **not** a substitute for the browser
+verification `.agents/doctrine/validation-and-reporting.md` and this design's own "Validation and
+verification" section call for — it is deferred to whoever runs the final P7-T14 acceptance pass
+with working preview tooling.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 2 errors on the first run (the missed relative-import consumer, the
+  type-narrowing comparison), 0 after both fixes.
+- `pnpm check:architecture` — 2 errors on the first run (`error-validation-contract.mjs`'s stale
+  `authProvider` path pointing at the pre-move location — a third stale-guard-reference instance
+  in this phase, same class as P7-T06/T07's), 0 after the fix.
+- `pnpm biome` — 1 error, 65 warnings; the 1 error is the same pre-existing `site-chrome.tsx` drift
+  (this time correctly left untouched — scoped `biome:fix` to only the files this task actually
+  changed instead of running it repo-wide). 65 warnings matches baseline.
+- `pnpm exec vitest run` — one run: 6 failed (5 documented pre-existing plus a flake — this time
+  `review-form.test.tsx`, a *different* file than the `admin-persistence-boundary.test.ts` flake
+  seen in P7-T03–T08, confirming this is genuine full-suite worker contention rotating across
+  files, not one specific broken test; confirmed 7/7 passing in isolation). Targeted
+  `server-client-boundary.test.ts` + `product-module-boundaries.test.ts` — 10/10 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— browser verification specifically attempted and blocked by environment tooling, not skipped;
+see above. Not claimed as run.
 
 ## Acceptance gate
 

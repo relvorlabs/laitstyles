@@ -4,7 +4,7 @@
 
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
-import type { Product } from "../../shared/catalogue-data";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 
 /** `.order-thumb` frame; pass an aspect class (e.g. `aspect-square`). */
 export function OrderThumb({ className, children, ...props }: ComponentProps<"div">) {

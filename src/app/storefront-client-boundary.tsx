@@ -1,8 +1,8 @@
 "use client";
 
 import { type ReactNode, use } from "react";
-import { StorefrontAuthDialogHost } from "@/features/storefront/shared/storefront-auth-dialog-host";
-import { StorefrontAuthProvider } from "@/features/storefront/shared/storefront-auth-provider";
+import { StorefrontAuthDialogHost } from "@/modules/auth/ui/auth-dialog-host";
+import { StorefrontAuthProvider } from "@/modules/auth/ui/storefront-auth-provider";
 import { useSeedStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import type { StorefrontShellCataloguePayload } from "@/modules/products/storefront/catalogue-contract";
 import { SiteChrome } from "@/modules/storefront-shell/ui/site-chrome";

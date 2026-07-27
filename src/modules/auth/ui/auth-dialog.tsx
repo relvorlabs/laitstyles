@@ -11,8 +11,8 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { Product } from "@/features/storefront/shared/catalogue-data";
 import { cn } from "@/lib/utils";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 
 export type StorefrontAuthMode = "signin" | "signup";
 export type StorefrontAuthState = "default" | "signing-in" | "success" | "check-email";

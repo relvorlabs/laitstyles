@@ -10,7 +10,7 @@ import {
 } from "@/app/auth/actions";
 import { openAuthDialog } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useSession } from "@/providers/session-provider";
-import type { StorefrontAuthForm, StorefrontAuthMode } from "./storefront-auth-dialog";
+import type { StorefrontAuthForm, StorefrontAuthMode } from "./auth-dialog";
 
 type AuthSubmissionResult =
   | Awaited<ReturnType<typeof submitPasswordSignIn>>
