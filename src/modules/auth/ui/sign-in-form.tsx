@@ -1,5 +1,9 @@
+"use client";
+
 import { ArrowRight, Mail } from "lucide-react";
 import Link from "next/link";
+import { useActionState } from "react";
+import type { AuthPageActionState } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -8,17 +12,48 @@ import {
   AUTH_PRIMARY_BUTTON_CLASS_NAME,
   AUTH_SECONDARY_BUTTON_CLASS_NAME,
   AuthField,
+  AuthStatusNotice,
 } from "@/modules/auth/ui/auth-page-shell";
 
-type AuthFormAction = (formData: FormData) => Promise<void> | void;
+type AuthPageAction = (
+  previousState: AuthPageActionState,
+  formData: FormData,
+) => Promise<AuthPageActionState>;
 
-export function SignInForm({ action, next }: { action: AuthFormAction; next: string }) {
+type InitialAuthError = {
+  code: Extract<AuthPageActionState, { status: "error" }>["code"];
+  message: string;
+};
+
+export function SignInForm({
+  action,
+  next,
+  initialError,
+}: {
+  action: AuthPageAction;
+  next: string;
+  initialError?: InitialAuthError;
+}) {
+  const initialState: AuthPageActionState = initialError
+    ? { status: "error", ...initialError }
+    : { status: "idle" };
+  const [state, formAction, pending] = useActionState(action, initialState);
+  const emailError = state.status === "error" ? state.fieldErrors?.email : undefined;
+  const passwordError = state.status === "error" ? state.fieldErrors?.password : undefined;
+  const returnTo = `/auth/sign-in?next=${encodeURIComponent(next)}`;
+
   return (
     <div className="grid gap-6">
+      {state.status === "error" ? (
+        <AuthStatusNotice tone="error">{state.message}</AuthStatusNotice>
+      ) : null}
+
       <form action="/auth/google" method="post">
         <input name="next" type="hidden" value={next} />
+        <input name="returnTo" type="hidden" value={returnTo} />
         <Button
           className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
+          disabled={pending}
           size="lg"
           type="submit"
           variant="outline"
@@ -36,14 +71,17 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
         <Separator className="flex-1" />
       </div>
 
-      <form action={action} className="grid gap-[18px]">
+      <form action={formAction} aria-busy={pending} className="grid gap-[18px]" noValidate>
         <input name="next" type="hidden" value={next} />
-        <AuthField htmlFor="auth-email" label="Email address">
+        <AuthField error={emailError} htmlFor="auth-email" label="Email address">
           <div className="relative">
             <Mail className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-invalid={Boolean(emailError)}
               autoComplete="email"
               className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
+              defaultValue={state.values?.email}
+              disabled={pending}
               id="auth-email"
               name="email"
               placeholder="you@example.com"
@@ -53,10 +91,12 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
           </div>
         </AuthField>
 
-        <AuthField htmlFor="auth-password" label="Password">
+        <AuthField error={passwordError} htmlFor="auth-password" label="Password">
           <Input
+            aria-invalid={Boolean(passwordError)}
             autoComplete="current-password"
             className={AUTH_INPUT_CLASS_NAME}
+            disabled={pending}
             id="auth-password"
             name="password"
             placeholder="Enter your password"
@@ -82,11 +122,12 @@ export function SignInForm({ action, next }: { action: AuthFormAction; next: str
 
         <Button
           className={`mt-1 w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+          disabled={pending}
           size="lg"
           type="submit"
         >
-          Sign in to workspace
-          <ArrowRight className="size-4" />
+          {pending ? "Signing in…" : "Sign in to workspace"}
+          {!pending ? <ArrowRight className="size-4" /> : null}
         </Button>
       </form>
     </div>
