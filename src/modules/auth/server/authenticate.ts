@@ -11,9 +11,9 @@ import {
   mapAuthProviderError,
 } from "@/modules/auth/server/diagnostics";
 import {
-  getRequestOrigin,
+  getAuthRedirectUrl,
   getSafeNextPath,
-  withAuthErrorPath,
+  withAuthErrorState,
 } from "@/modules/auth/server/redirects";
 
 export type PasswordAuthSuccess = {
@@ -30,12 +30,8 @@ type OAuthCallbackInput = {
   code: string | null;
   providerErrorCode: string | null;
   next: string | null;
+  returnTo: string | null;
 };
-
-async function authRedirectUrl(path: string) {
-  const safePath = getSafeNextPath(path, "/");
-  return new URL(safePath, `${await getRequestOrigin()}/`).toString();
-}
 
 export async function authenticateWithPassword(
   input: PasswordSignInInput,
@@ -53,10 +49,9 @@ export async function registerWithPassword(
   input: PasswordSignUpInput,
 ): Promise<PasswordAuthResult> {
   const next = getSafeNextPath(input.next, "/account");
+  const returnTo = getSafeNextPath(input.returnTo, "/auth/sign-up");
   const supabase = await createClient();
-  const emailRedirectTo = await authRedirectUrl(
-    `/auth/callback?next=${encodeURIComponent(next)}`,
-  );
+  const emailRedirectTo = await callbackUrl(next, returnTo);
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -85,9 +80,7 @@ export async function registerWithPassword(
 
 export async function sendPasswordResetEmail(email: string): Promise<AuthEmailResult> {
   const supabase = await createClient();
-  const redirectTo = await authRedirectUrl(
-    `/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`,
-  );
+  const redirectTo = await callbackUrl("/auth/reset-password", "/auth/forgot-password");
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
     logAuthProviderFailure("password-recovery-request", error);
@@ -99,9 +92,7 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthEmailRe
 
 export async function sendSignupConfirmationEmail(email: string): Promise<AuthEmailResult> {
   const supabase = await createClient();
-  const emailRedirectTo = await authRedirectUrl(
-    `/auth/callback?next=${encodeURIComponent("/account")}`,
-  );
+  const emailRedirectTo = await callbackUrl("/account", "/auth/resend-confirmation");
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
@@ -115,12 +106,15 @@ export async function sendSignupConfirmationEmail(email: string): Promise<AuthEm
   return ok({ status: "accepted", email });
 }
 
-export async function startGoogleOAuth(nextValue: FormDataEntryValue | string | null) {
+export async function startGoogleOAuth(
+  nextValue: FormDataEntryValue | string | null,
+  returnToValue?: FormDataEntryValue | string | null,
+) {
   const next = getSafeNextPath(nextValue, "/account");
+  const fallbackReturnTo = defaultOAuthReturnTo(next);
+  const returnTo = getSafeNextPath(returnToValue, fallbackReturnTo);
   const supabase = await createClient();
-  const redirectTo = await authRedirectUrl(
-    `/auth/callback?next=${encodeURIComponent(next)}`,
-  );
+  const redirectTo = await callbackUrl(next, returnTo);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo },
@@ -131,7 +125,7 @@ export async function startGoogleOAuth(nextValue: FormDataEntryValue | string | 
     const failure = error
       ? mapAuthProviderError(error, "oauth-start-failed")
       : authFlowFailure("oauth-start-failed");
-    return withAuthErrorPath(failure.code, next);
+    return withAuthErrorState(returnTo, failure.code, fallbackReturnTo);
   }
 
   return data.url;
@@ -141,8 +135,11 @@ export async function completeOAuthCallback({
   code,
   providerErrorCode,
   next: nextValue,
+  returnTo: returnToValue,
 }: OAuthCallbackInput) {
   const next = getSafeNextPath(nextValue, "/account");
+  const fallbackReturnTo = defaultOAuthReturnTo(next);
+  const returnTo = getSafeNextPath(returnToValue, fallbackReturnTo);
 
   if (providerErrorCode) {
     logAuthProviderFailure("oauth-callback", {
@@ -150,12 +147,12 @@ export async function completeOAuthCallback({
       code: providerErrorCode,
     });
     const failure = mapAuthProviderError({ code: providerErrorCode }, "oauth-callback-invalid");
-    return withAuthErrorPath(failure.code, next);
+    return withAuthErrorState(returnTo, failure.code, fallbackReturnTo);
   }
 
   if (!code) {
     logAuthProviderFailure("oauth-callback", { name: "MissingOAuthCallbackCode" });
-    return withAuthErrorPath("oauth-callback-invalid", next);
+    return withAuthErrorState(returnTo, "oauth-callback-invalid", fallbackReturnTo);
   }
 
   const supabase = await createClient();
@@ -163,22 +160,30 @@ export async function completeOAuthCallback({
   if (error) {
     logAuthProviderFailure("oauth-callback", error);
     const failure = mapAuthProviderError(error, "oauth-callback-invalid");
-    return withAuthErrorPath(failure.code, next);
+    return withAuthErrorState(returnTo, failure.code, fallbackReturnTo);
   }
 
   const { data, error: userError } = await supabase.auth.getUser();
-  if (userError) {
-    logAuthProviderFailure("oauth-callback-user", userError);
-    const failure = mapAuthProviderError(userError, "oauth-callback-invalid");
-    return withAuthErrorPath(failure.code, next);
+  if (userError || !data.user) {
+    logAuthProviderFailure(
+      "oauth-callback-user",
+      userError ?? { name: "MissingOAuthCallbackUser" },
+    );
+    const failure = userError
+      ? mapAuthProviderError(userError, "oauth-callback-invalid")
+      : authFlowFailure("oauth-callback-invalid");
+    return withAuthErrorState(returnTo, failure.code, fallbackReturnTo);
   }
 
-  if (data.user) {
+  try {
     await ensureConsumerAccount({
       id: data.user.id,
       email: data.user.email ?? null,
       userMetadata: data.user.user_metadata,
     });
+  } catch {
+    logAuthProviderFailure("oauth-callback-user", { name: "AccountProvisioningError" });
+    return withAuthErrorState(returnTo, "provider-unavailable", fallbackReturnTo);
   }
 
   return next;
@@ -221,4 +226,21 @@ export async function endSession(): Promise<SignOutResult> {
     return err(authFlowFailure("sign-out-failed"));
   }
   return ok(undefined);
+}
+
+async function callbackUrl(next: string, returnTo: string) {
+  const params = new URLSearchParams({
+    next: getSafeNextPath(next, "/account"),
+    returnTo: getSafeNextPath(returnTo, "/"),
+  });
+  return getAuthRedirectUrl(`/auth/callback?${params.toString()}`);
+}
+
+function defaultOAuthReturnTo(next: string) {
+  if (next.startsWith("/admin")) {
+    return `/auth/sign-in?next=${encodeURIComponent(next)}`;
+  }
+
+  const params = new URLSearchParams({ auth: "signin", next });
+  return `/?${params.toString()}`;
 }
