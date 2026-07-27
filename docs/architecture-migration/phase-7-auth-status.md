@@ -1,6 +1,8 @@
 # Phase 7 — Authentication Consolidation Status
 
-**Status:** Restarted from `main`; design spec authored, implementation not started
+**Status:** Implementation complete (P7-T02–T13); acceptance gate not yet met — browser/Playwright
+and the live-Supabase e2e suite (P7-T14) are genuinely blocked by this environment's tooling, not
+skipped. See P7-T14 evidence below before picking this up.
 **Branch:** `refactor/phase-7-auth-consolidation-v2`
 **Base:** `main` at `dfa547602214f5a11e4a17d67bdb6d75b5f277ed`
 **Scope:** Authentication ownership only
@@ -158,9 +160,10 @@ Phase 7 must not:
 - [x] P7-T11 delete the Auth-owned `features/storefront/shared/catalogue-data.ts` compatibility edge;
 - [x] P7-T12 remove all 30 legacy exception edges from `architecture-legacy-exceptions.mjs` and
       `phase-1-legacy-exceptions.md` after cutover;
-- [ ] P7-T13 preserve all existing auth URLs and visual contracts;
+- [x] P7-T13 preserve all existing auth URLs and visual contracts;
 - [ ] P7-T14 run focused auth unit, integration, and Playwright/e2e (`tests/e2e/auth-flows.spec.ts`)
-      validation;
+      validation — **partially done**; see evidence below for exactly what ran and what remains
+      blocked;
 - [ ] P7-T15 reconcile documentation and merge evidence on the exact final head.
 
 ## P7-T02 evidence (2026-07-27)
@@ -605,6 +608,76 @@ Executed on this commit:
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — browser verification specifically attempted and blocked by environment tooling, not skipped;
 see above. Not claimed as run.
+
+## P7-T13 evidence (2026-07-27) — preserve URLs and visual contracts
+
+Verified with mechanical evidence, not assertion, against the branch's base commit
+(`dfa547602214f5a11e4a17d67bdb6d75b5f277ed`):
+
+- **`git ls-tree` on `src/app/auth/**` at base vs. `HEAD` is byte-identical** — the diff between
+  the two sorted file lists is empty. No auth route was added, removed, or renamed anywhere across
+  P7-T02–T12; every `/auth/**` URL (and every HTTP method exported from its route handlers) is
+  exactly where it was before this phase started.
+- **Every touched route/page file's diff against base is import-paths-only**, checked individually
+  for all files under `src/app/auth/**`: `callback/route.ts`, `google/route.ts`,
+  `sign-out/route.ts` (route handlers — confirmed zero change to exported `GET`/`POST` names,
+  redirect targets, or response logic), and `sign-in/`, `error/`, `forgot-password/`,
+  `resend-confirmation/`, `reset-password/page.tsx` (confirmed zero JSX/markup change).
+  `sign-up/page.tsx` has **zero diff at all** against base — never touched.
+- `storefront-client-boundary.tsx`, `site-chrome.tsx`, `storefront-account-menu.tsx`,
+  `account-garments.tsx`, and the 3 moved `modules/auth/ui/**` files all show single-line (or
+  near-single-line) import-path diffs.
+
+This proves the *structural* half of "preserve visual contracts." It does not prove pixel-level
+visual parity, which needs the browser verification blocked in P7-T10–T12's evidence — that gap
+carries into P7-T14 below.
+
+## P7-T14 evidence (2026-07-27) — build, react-doctor, browser/Playwright, e2e
+
+Reported per-check, exactly as each actually went, per `.agents/doctrine/validation-and-reporting.md`'s
+"never report a check as passing when it was skipped, unavailable, or failed" rule. This task is
+**not** fully closed — the browser/Playwright/e2e portions remain genuinely blocked.
+
+**`pnpm build` — failed, for a reason unrelated to Phase 7.** Turbopack build failed with 2 errors:
+`next/font/google` (`Manrope`, `Newsreader`) could not reach `fonts.googleapis.com`
+(`ERR_CONNECTION` style network failure) to fetch font files at build time. Both errors trace to
+`src/modules/storefront-shell/ui/storefront-fonts.ts`, imported by the PDP page — a file with
+**zero diff against the branch base** (confirmed via `git diff dfa5476 HEAD --
+src/modules/storefront-shell/ui/storefront-fonts.ts`, empty output). This is this sandboxed
+session's lack of outbound network access, not a defect in any Phase 7 change. Not claimed as
+passing; not attributable to this work either.
+
+**`pnpm react-doctor` — ran, 148 advisory findings repo-wide; every one touching a Phase 7-changed
+file traced and confirmed pre-existing, not introduced.** react-doctor scans the whole repository
+(including unrelated concurrent work-in-progress elsewhere in this checkout, and a stale
+`.worktrees/phase-7-auth-consolidation` copy), so the 148 total is not a Phase 7 number. Cross-
+referencing every finding's file path against this phase's actual changed-file set
+(`git diff dfa5476 HEAD --stat`) narrows it to 6 distinct locations in 6 files:
+
+| File:line | Finding | Verified pre-existing because |
+| --- | --- | --- |
+| `app/auth/{actions,callback/route,google/route,sign-in/page,sign-out/route}` (multiple) | Security: redirect/frame boundary risk | These files have zero logic diff against base — import paths only |
+| `modules/auth/server/authenticate.ts:69,83` | Bugs: sequential independent awaits | The `createClient()`/`getRequestOrigin()` sequencing is copied verbatim from the original `submitPasswordSignUp`/`requestPasswordReset` bodies in `actions.ts`, not new code |
+| `providers/session-provider.tsx:13` | Maintainability: file exports both components and non-components | Pre-existing export shape (`SessionProvider` + `useSession` + `AppSession` + `ANONYMOUS_APP_SESSION`); P7-T07 only changed the `StaffRole` import source |
+| `features/storefront/account/components/account-garments.tsx:28` | Bugs: plain `<img>` ships unoptimized images | Pre-existing `<img>` usage untouched by this phase's import-path-only edit (already noted in P7-T10–T12 evidence) |
+| `modules/auth/ui/auth-dialog-host.tsx:25` | Bugs: many related `useState` calls, prefer `useReducer` | Component-level state design, byte-identical move from `storefront-auth-dialog-host.tsx` |
+| `modules/storefront-shell/ui/site-chrome.tsx:44` | Bugs: client-side redirect in `useEffect` | Untouched code; this phase changed only one import line (line 6) |
+
+Zero findings introduced by Phase 7 work. The remaining ~140 findings are pre-existing legacy debt
+across files this phase never touched (admin inventory, products, orders, and unrelated
+in-progress work elsewhere in this checkout) — advisory per doctrine, out of this phase's scope.
+
+**Browser/Playwright — blocked, same environment issue as P7-T10–T12.** Re-attempted via
+`preview_start`; same result (server reports started, port never accepts connections).
+
+**`tests/e2e/auth-flows.spec.ts` — not run.** Requires `AUTH_E2E=1` plus a live Supabase +
+Postgres + mail-inbox stack this environment does not provision. Not attempted, not claimed.
+
+**Net effect on the acceptance gate:** implementation (P7-T02–T13) is complete and verified by
+typecheck/architecture-guard/Biome/Vitest/manual-diff evidence throughout. The acceptance gate's
+"browser contracts pass" and live-auth-flow requirements are **not yet met** — genuinely blocked
+by this environment's tooling, not skipped. Whoever picks this up next with working browser/e2e
+tooling should start there, not re-verify what's already proven above.
 
 ## Acceptance gate
 
