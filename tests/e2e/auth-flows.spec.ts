@@ -39,10 +39,10 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.goto("/auth/sign-up");
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
-    await page.getByLabel("Email").fill(confirmedEmail);
+    await page.getByLabel("Email address").fill(confirmedEmail);
     await page.getByLabel("Password").fill(initialPassword);
     await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Create my account" }).click();
 
     await expect(page.getByText(/If this address can receive a confirmation email/i)).toBeVisible();
 
@@ -90,10 +90,10 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.goto("/auth/sign-up");
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
-    await page.getByLabel("Email").fill(confirmedEmail);
+    await page.getByLabel("Email address").fill(confirmedEmail);
     await page.getByLabel("Password").fill(initialPassword);
     await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Create my account" }).click();
 
     await expect(page.getByText(/If this address can receive a confirmation email/i)).toBeVisible();
     await expect(page.getByText(/account already exists/i)).toHaveCount(0);
@@ -104,28 +104,29 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.goto("/auth/sign-up");
     await page.getByLabel("First name").fill("Pending");
     await page.getByLabel("Last name").fill("Customer");
-    await page.getByLabel("Email").fill(unconfirmedEmail);
+    await page.getByLabel("Email address").fill(unconfirmedEmail);
     await page.getByLabel("Password").fill(initialPassword);
     await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Create my account" }).click();
 
     await page.goto("/auth/sign-in?next=%2Fadmin");
-    await page.getByLabel("Email").fill(unconfirmedEmail);
+    await page.getByLabel("Email address").fill(unconfirmedEmail);
     await page.getByLabel("Password").fill(initialPassword);
-    await page.getByRole("button", { name: "Sign in with email" }).click();
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
 
     await expect(
       page.getByText("Confirm your email before signing in. You can request a new confirmation link."),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Resend confirmation" })).toBeVisible();
     await expect(page.getByText(/email_not_confirmed|provider detail/i)).toHaveCount(0);
+    await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fadmin/);
   });
 
   test("forgot-password email establishes recovery and accepts a new password", async ({ page }) => {
     await purgeMailbox(confirmedEmail);
     await page.goto("/auth/forgot-password");
-    await page.getByLabel("Email").fill(confirmedEmail);
-    await page.getByRole("button", { name: "Send reset link" }).click();
+    await page.getByLabel("Email address").fill(confirmedEmail);
+    await page.getByRole("button", { name: "Send secure reset link" }).click();
 
     await expect(page.getByText(/If this address can receive a reset email/i)).toBeVisible();
 
@@ -137,7 +138,10 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await page.getByLabel("Confirm new password").fill(recoveredPassword);
     await page.getByRole("button", { name: "Update password" }).click();
 
-    await expect(page.getByText("Your new password is ready.")).toBeVisible();
+    await expect(
+      page.getByText("Your password has been updated and other sessions have been closed."),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/auth\/reset-password(?:$|[/?#])/);
 
     const oldPasswordResult = await supabase?.auth.signInWithPassword({
       email: confirmedEmail,
@@ -154,13 +158,13 @@ test.describe.serial("live Supabase Auth journeys", () => {
     await supabase?.auth.signOut();
   });
 
-  test("reset page rejects a missing or expired recovery session", async ({ page }) => {
+  test("reset page rejects a missing or expired recovery session in place", async ({ page }) => {
     await page.goto("/auth/reset-password");
-    await expect(page).toHaveURL(/\/auth\/error\?code=recovery-invalid/);
+    await expect(page).toHaveURL(/\/auth\/reset-password(?:$|[/?#])/);
     await expect(
       page.getByText("This password-reset link is invalid or has expired. Request a new one."),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Request new reset link" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Request a new link" })).toBeVisible();
   });
 
   test("Google OAuth start and cancellation use safe browser boundaries", async ({ page }) => {
@@ -171,11 +175,12 @@ test.describe.serial("live Supabase Auth journeys", () => {
 
     await page.goto("/auth/sign-up");
     await page.getByRole("button", { name: "Continue with Google" }).click();
-    await expect(page).toHaveURL(/accounts\.google\.com|\/auth\/error/);
+    await expect(page).toHaveURL(/accounts\.google\.com|\/auth\/sign-up\?error=oauth-start-failed/);
 
     await page.goto("/auth/callback?error=access_denied&next=%2Faccount");
-    await expect(page).toHaveURL(/\/auth\/error\?code=oauth-callback-invalid/);
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
     await expect(page.getByText(/sign-in link is incomplete or has expired/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
   });
 });
 
