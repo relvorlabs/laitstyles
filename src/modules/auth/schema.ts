@@ -19,20 +19,40 @@ export const passwordSignInSchema = z.object({
   password: passwordSchema,
 });
 
-export const passwordSignUpSchema = passwordSignInSchema.extend({
-  first: z.string().trim().min(1, "Enter your first name.").max(100, "First name is too long."),
-  last: z.string().trim().min(1, "Enter your last name.").max(100, "Last name is too long."),
-  password: strongPasswordSchema,
-  terms: z.preprocess(
-    (value) => value === true || value === "true",
-    z.boolean().refine(Boolean, "Please accept the Terms to continue."),
-  ),
-  next: z.string().optional(),
-  returnTo: z.string().optional(),
-});
+export const passwordSignUpSchema = z
+  .object({
+    email: emailSchema,
+    password: strongPasswordSchema,
+    confirmPassword: z.string().min(1, "Confirm your password."),
+    first: z
+      .string()
+      .trim()
+      .min(1, "Enter your first name.")
+      .max(100, "First name is too long."),
+    last: z
+      .string()
+      .trim()
+      .min(1, "Enter your last name.")
+      .max(100, "Last name is too long."),
+    terms: z.preprocess(
+      (value) => value === true || value === "true",
+      z.boolean().refine(Boolean, "Please accept the Terms to continue."),
+    ),
+    next: z.string().optional(),
+    returnTo: z.string().optional(),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
 
 export const authEmailSchema = z.object({
   email: emailSchema,
+});
+
+export const authEmailRequestSchema = authEmailSchema.extend({
+  kind: z.enum(["recovery", "confirmation"]),
+  returnTo: z.string().optional(),
 });
 
 export const recoveredPasswordSchema = z
@@ -48,6 +68,7 @@ export const recoveredPasswordSchema = z
 export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
 export type PasswordSignUpInput = z.infer<typeof passwordSignUpSchema>;
 export type AuthEmailInput = z.infer<typeof authEmailSchema>;
+export type AuthEmailRequestInput = z.infer<typeof authEmailRequestSchema>;
 export type RecoveredPasswordInput = z.infer<typeof recoveredPasswordSchema>;
 
 type AuthField = "email" | "password" | "confirmPassword" | "first" | "last" | "terms";
@@ -66,6 +87,7 @@ export function authFormDataInput(formData: FormData) {
   return {
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     first: formData.get("first"),
     last: formData.get("last"),
     terms: formData.get("terms"),
