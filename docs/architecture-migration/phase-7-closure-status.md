@@ -17,18 +17,21 @@ Merged PR #52 established the canonical auth module but left real ownership, run
 6. the storefront dialog refreshed or navigated while its own state was changing;
 7. dialog password recovery and confirmation resend invoked server actions directly and never displayed dedicated support screens;
 8. signup UI and backend validation did not require one identical confirmation-password contract;
-9. cart continuity across login, signup and email-callback tabs had not been explicitly guaranteed.
+9. cart continuity across login, signup and email-callback tabs had not been explicitly guaranteed;
+10. Google OAuth was initiated on the server, so the callback browser could not reliably recover the PKCE verifier;
+11. the application had no owner-controlled Supabase invitation lifecycle for store managers.
 
 ## Source closure delivered
 
-- [x] Password auth, signup, email requests, OAuth, callback completion, recovery verification and sign-out are module-owned.
-- [x] `/auth/google`, `/auth/callback`, `/auth/email` and `/auth/sign-out` are thin transport adapters.
-- [x] No `src/app/auth/**` route creates a Supabase client or calls `supabase.auth` directly.
+- [x] Password auth, signup, email requests, OAuth callback completion, recovery verification and sign-out are module-owned.
+- [x] `/auth/callback`, `/auth/email`, `/auth/invite/finalize` and `/auth/sign-out` are thin transport adapters.
+- [x] `/auth/google` is retired as an OAuth initiator and returns a safe inline start error for stale callers.
+- [x] No server app-route adapter creates a Supabase client or calls `supabase.auth` directly.
 - [x] Reset-page recovery-session verification is module-owned.
 - [x] Signup confirmation, confirmation resend and password recovery use one deterministic callback-origin policy.
 - [x] `AUTH_SITE_URL` is documented as the preferred deployed origin.
-- [x] Client auth UI cannot import server-only auth modules.
-- [x] Staff sign-in, signup, recovery, confirmation, reset and direct-error fallback pages share one responsive visual system.
+- [x] Client auth UI cannot import server-only auth modules or the trusted Supabase admin client.
+- [x] Staff sign-in, signup, recovery, confirmation, reset, manager setup and direct-error fallback pages share the auth visual system.
 - [x] Storefront auth dialog inputs, labels, hierarchy, spacing and responsive presentation are redesigned.
 - [x] Technical provider/cookie explanations and the non-functional remember-session control were removed.
 
@@ -45,6 +48,27 @@ Merged PR #52 established the canonical auth module but left real ownership, run
 - [x] The auth provider exposes a stable action object so dialog state changes do not retrigger route effects.
 - [x] Sign-in success remains mounted until **Go to my account** or another explicit protected return action executes.
 - [x] Successful sign-out clears the session and replaces the route with `/` so protected content is not left visible.
+
+## Google OAuth PKCE closure
+
+- [x] Google OAuth starts with the browser `@supabase/ssr` client so the PKCE verifier is written in the callback browser's cookie store.
+- [x] A blank popup opens synchronously from the user gesture before the Supabase request, avoiding popup-blocker races.
+- [x] The popup receives the Google/provider navigation while the original storefront or staff page remains mounted.
+- [x] `/auth/callback` exchanges the code on the server and sends a safe target to `/auth/oauth-complete` for same-origin `postMessage` delivery.
+- [x] Storefront Google success synchronizes the shared session in memory and shows the existing success panel without rebuilding the route.
+- [x] Popup closure, timeout, provider cancellation and callback errors render inline on the originating auth surface.
+
+## Store-manager invitation closure
+
+- [x] `team:read` and `team:invite` are owner-only capabilities; managers have neither.
+- [x] `/admin/team` is visible and accessible only to an active `admin` profile.
+- [x] The owner submits the recipient's first name, last name and work email from the Admin UI.
+- [x] The server calls `supabase.auth.admin.inviteUserByEmail` using a secret/service-role client.
+- [x] Before success is returned, Prisma fixes the invited profile role as `manager`, removes any trigger-created consumer customer record and writes an audit event.
+- [x] A failed Prisma authorization transaction deletes the invited Supabase Auth identity so the invitation cannot survive without manager access.
+- [x] The invite email returns to `/auth/invite/setup`, where the recipient consumes the invitation session, chooses a password and confirms their profile.
+- [x] Finalization verifies the server-side profile is still an active `manager`; the setup form cannot promote the user to `admin`.
+- [x] After setup, the recipient can enter Admin but is redirected away from owner-only `/admin/team`.
 
 ## Create-account contract
 
@@ -66,7 +90,8 @@ The application triggers the exposed email workflows through:
 
 - signup confirmation — `supabase.auth.signUp`;
 - confirmation resend — `supabase.auth.resend({ type: "signup" })`;
-- password recovery — `supabase.auth.resetPasswordForEmail`.
+- password recovery — `supabase.auth.resetPasswordForEmail`;
+- store-manager invitation — `supabase.auth.admin.inviteUserByEmail`.
 
 All callback URLs resolve from the first valid origin below:
 
@@ -76,7 +101,7 @@ All callback URLs resolve from the first valid origin below:
 4. current forwarded/request host;
 5. local fallback.
 
-Each callback carries a safe internal `returnTo` surface. Provider failures add only an allow-listed error code; raw provider messages are not exposed to the browser. The selected public origin must include `/auth/callback` in the Supabase Auth redirect allow-list.
+Each callback carries a safe internal surface. Provider failures add only an allow-listed error code; raw provider messages are not exposed to the browser. Every public/local origin must include `/auth/callback` in the Supabase Auth redirect allow-list, and manager invitations additionally require `/auth/invite/setup`.
 
 ## Guest cart and saved-state continuity
 
@@ -93,28 +118,31 @@ Each callback carries a safe internal `returnTo` surface. Provider failures add 
 
 - Unit tests prove signup confirmation-password validation and metadata mapping.
 - Provider tests prove immediate-session signup provisions Prisma records before success.
-- Route tests prove the JSON email adapter invokes recovery/resend module operations with the originating dialog surface.
-- Boundary tests cover the new `/auth/email` adapter.
+- Route tests cover email delivery and owner-only manager invitation adapters.
+- Boundary tests cover invite setup/finalization, browser PKCE files and trusted-admin-client isolation.
+- Manager-invitation tests prove owner authorization, manager metadata/profile assignment and rollback after Prisma failure.
+- Browser-PKCE tests prove the popup opens synchronously, uses the browser client and returns through a same-origin message.
 - Storefront-state tests prove the canonical snapshot is written to both stores, restored in a new callback tab and still prefers the current tab.
 - Non-live Playwright tests prove recovery/resend screens appear, submit without navigation, and do not cause another document load.
-- Callback tests prove email errors reopen the correct support screen.
-- Live-auth tests cover signup confirmation, profile/customer provisioning, confirmation resend, password recovery and password replacement.
-- Live-auth tests compare the canonical cart snapshot through login and confirmation-required signup.
+- Live Google coverage expects the provider to open in a popup while the original page stays mounted.
+- `pnpm test:auth:e2e` now includes the manager invitation email, recipient setup and database-role journey.
+- Live invitation coverage asserts the recipient finishes as `manager`, has no customer record and cannot open `/admin/team`.
 
 ## Acceptance still required on the exact final SHA
 
 - [ ] `pnpm check:architecture`.
 - [ ] `pnpm biome` or the repository's static suite.
 - [ ] `pnpm typecheck`.
-- [ ] focused auth and storefront-state Vitest suites.
+- [ ] focused auth, manager-invitation and storefront-state Vitest suites.
 - [ ] production build and React Doctor.
 - [ ] desktop, tablet and mobile Playwright contracts.
 - [ ] `pnpm test:auth:e2e` against local/test Supabase Auth, PostgreSQL and the mail inbox.
 - [ ] signup confirmation email received and callback provisions profile/customer data.
+- [ ] store-manager invitation email received, setup completed and manager-only role proven.
 - [ ] storefront password sign-in shown without a document rebuild and without cart loss.
 - [ ] storefront signup confirmation completed without cart loss, including a callback opened in a new browser tab.
 - [ ] storefront-dialog password reset and confirmation-resend emails received without route navigation.
 - [ ] password replacement works and other sessions are closed.
-- [ ] Google OAuth initiation/callback or the configured dedicated test-provider journey.
+- [ ] Google OAuth popup initiation/callback against the configured dedicated provider journey.
 
 Do not change the original Phase 7 status to fully accepted until these checks execute against the same final commit and their evidence is recorded.
