@@ -40,6 +40,7 @@ export function SignInForm({
   const [state, formAction, pending] = useActionState(action, initialState);
   const emailError = state.status === "error" ? state.fieldErrors?.email : undefined;
   const passwordError = state.status === "error" ? state.fieldErrors?.password : undefined;
+  const retainedValues = state.status === "success" ? undefined : state.values;
   const returnTo = `/auth/sign-in?next=${encodeURIComponent(next)}`;
 
   return (
@@ -80,7 +81,7 @@ export function SignInForm({
               aria-invalid={Boolean(emailError)}
               autoComplete="email"
               className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
-              defaultValue={state.values?.email}
+              defaultValue={retainedValues?.email}
               disabled={pending}
               id="auth-email"
               name="email"
