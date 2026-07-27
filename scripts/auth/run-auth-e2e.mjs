@@ -61,7 +61,12 @@ try {
     }
 
     exitCode = runPlaywright(
-      ["test", "tests/e2e/auth-flows.spec.ts", "--project=desktop-chromium"],
+      [
+        "test",
+        "tests/e2e/auth-flows.spec.ts",
+        "tests/e2e/manager-invitation.spec.ts",
+        "--project=desktop-chromium",
+      ],
       "playwright-auth",
       {
         ...env,
@@ -123,7 +128,9 @@ async function runProductAuthorizationJourney(env, actors) {
       if (actor === "anonymous" || actor === "consumer") {
         if (after !== before) throw new Error(`Denied ${actor} Product request created a row`);
       } else {
-        if (after !== before + 1) throw new Error(`Authorized ${actor} Product request was not persisted`);
+        if (after !== before + 1) {
+          throw new Error(`Authorized ${actor} Product request was not persisted`);
+        }
         const productId = payload.data.product.id;
         const direct = await prisma.products.findUnique({ where: { id: productId } });
         if (!direct || direct.name !== `${prefix}${actor}`) {
