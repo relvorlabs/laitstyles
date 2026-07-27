@@ -1,6 +1,6 @@
 // Order/return line thumbnails for the account. Product imagery comes from the
-// shared storefront catalogue (shared/catalogue-data) so it stays consistent with the
-// shop's ProductCard rather than bespoke placeholders.
+// canonical storefront catalogue so it stays consistent with the shop's ProductCard
+// rather than bespoke placeholders.
 
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
