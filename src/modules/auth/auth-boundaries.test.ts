@@ -34,6 +34,7 @@ describe("auth ownership boundaries", () => {
 
   it("keeps the auth module structure concrete rather than aspirational", () => {
     const required = [
+      "src/app/auth/email/route.ts",
       "src/modules/auth/errors.ts",
       "src/modules/auth/server/authenticate.ts",
       "src/modules/auth/server/session.ts",
@@ -52,6 +53,7 @@ describe("auth ownership boundaries", () => {
     const routes = [
       "src/app/auth/google/route.ts",
       "src/app/auth/callback/route.ts",
+      "src/app/auth/email/route.ts",
       "src/app/auth/sign-out/route.ts",
     ];
 
