@@ -18,6 +18,28 @@
 - Small commits, one per task. Do not combine two tasks' file changes into one commit.
 - Use `pnpm`. Run `pnpm check:architecture`, `pnpm typecheck` after each task that touches guarded paths.
 
+## Implementation deviation recorded during execution (Task 7)
+
+Task 4/5 as originally written had `AppProvider({ session, children })` mount `SessionProvider`
+directly, with root layout `await`-ing `resolveAppSession()` in `RootLayout` itself before
+returning JSX. Task 7's implementer found this fails `pnpm build`: this repo has
+`cacheComponents: true` (Next.js 16 Cache Components), which requires any uncached per-request
+read to sit behind a `<Suspense>` boundary that covers every route rendering under it — routes
+with no Suspense boundary of their own (`/auth/error`, and by the same mechanism potentially
+`/admin/**`) failed to prerender with "Uncached data was accessed outside of `<Suspense>`".
+Neither Task 4 nor Task 5's original text anticipated this, since `cacheComponents` wasn't
+exercised by a full `pnpm build` until Task 7.
+
+Fixed in a dedicated commit (`33c8a5d`, after Task 6 and interleaved with Task 7's own commit) by
+moving session resolution into a new async `SessionSlot` component wrapped in
+`<Suspense fallback={<AppShellFallback />}>` inside root layout — `AppShellFallback` is the
+existing, already-in-use neutral fallback the storefront boundary already relies on for the same
+kind of async-read-behind-Suspense pattern, not a new UI element. `AppProvider`'s signature
+changed from `{ session, children }` to `{ children }` — it no longer takes or mounts session at
+all; `SessionProvider` is mounted by `SessionSlot`, one level below `AppProvider`, inside the new
+Suspense boundary. Any later task or reviewer referencing `AppProvider`'s old signature (as
+written in Tasks 4/5's original text below) should treat this note as authoritative over that
+text.
 ---
 
 ## Task 1: Unify the QueryClient
