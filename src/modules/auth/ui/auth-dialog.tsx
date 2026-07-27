@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowRight, Check, Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
-import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +15,7 @@ import {
   AUTH_INPUT_CLASS_NAME,
   AUTH_PRIMARY_BUTTON_CLASS_NAME,
   AUTH_SECONDARY_BUTTON_CLASS_NAME,
+  AuthStatusNotice,
 } from "@/modules/auth/ui/auth-page-shell";
 import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 
@@ -28,20 +28,29 @@ export type StorefrontAuthForm = {
   password: string;
 };
 
+export type StorefrontAuthNotice = {
+  tone: "error" | "success";
+  message: string;
+};
+
 type StorefrontAuthDialogProps = {
   errors: Record<string, string>;
   form: StorefrontAuthForm;
   mode: StorefrontAuthMode;
+  notice: StorefrontAuthNotice | null;
   open: boolean;
   product: Product | undefined;
   revealPassword: boolean;
   showErrors: boolean;
   state: StorefrontAuthState;
+  supportPending: "confirmation" | "recovery" | null;
   termsAccepted: boolean;
   onContinueWithGoogle: () => void;
   onFinish: () => void;
   onModeChange: (mode: StorefrontAuthMode) => void;
   onOpenChange: (open: boolean) => void;
+  onRequestPasswordReset: () => void;
+  onResendConfirmation: () => void;
   onRevealPasswordChange: (value: boolean) => void;
   onSubmit: () => void;
   onTermsAcceptedChange: (value: boolean) => void;
@@ -52,23 +61,28 @@ export function StorefrontAuthDialog({
   errors,
   form,
   mode,
+  notice,
   open,
   product: authProduct,
   revealPassword,
   showErrors,
   state,
+  supportPending,
   termsAccepted,
   onContinueWithGoogle,
   onFinish,
   onModeChange,
   onOpenChange,
+  onRequestPasswordReset,
+  onResendConfirmation,
   onRevealPasswordChange,
   onSubmit,
   onTermsAcceptedChange,
   setForm,
 }: StorefrontAuthDialogProps) {
   const signup = mode === "signup";
-  const busy = state === "signing-in";
+  const authenticating = state === "signing-in";
+  const busy = authenticating || supportPending !== null;
   const errorFor = (key: string) => (showErrors ? errors[key] : undefined);
 
   function setField(key: keyof StorefrontAuthForm, value: string) {
@@ -184,6 +198,7 @@ export function StorefrontAuthDialog({
                 <Button
                   aria-pressed={!signup}
                   className="h-10 rounded-xl"
+                  disabled={busy}
                   onClick={() => onModeChange("signin")}
                   type="button"
                   variant={!signup ? "default" : "ghost"}
@@ -193,6 +208,7 @@ export function StorefrontAuthDialog({
                 <Button
                   aria-pressed={signup}
                   className="h-10 rounded-xl"
+                  disabled={busy}
                   onClick={() => onModeChange("signup")}
                   type="button"
                   variant={signup ? "default" : "ghost"}
@@ -203,6 +219,7 @@ export function StorefrontAuthDialog({
 
               <Button
                 className={`mb-5 w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
+                disabled={busy}
                 onClick={onContinueWithGoogle}
                 size="lg"
                 variant="outline"
@@ -225,6 +242,7 @@ export function StorefrontAuthDialog({
                 {signup ? (
                   <div className="grid grid-cols-2 gap-[18px] max-sm:grid-cols-1">
                     <AuthField
+                      disabled={busy}
                       error={errorFor("first")}
                       label="First name"
                       onChange={(value) => setField("first", value)}
@@ -232,6 +250,7 @@ export function StorefrontAuthDialog({
                       value={form.first}
                     />
                     <AuthField
+                      disabled={busy}
                       error={errorFor("last")}
                       label="Last name"
                       onChange={(value) => setField("last", value)}
@@ -241,6 +260,7 @@ export function StorefrontAuthDialog({
                   </div>
                 ) : null}
                 <AuthField
+                  disabled={busy}
                   error={errorFor("email")}
                   label="Email"
                   onChange={(value) => setField("email", value)}
@@ -259,6 +279,7 @@ export function StorefrontAuthDialog({
                         "pr-12",
                         errorFor("password") && "border-destructive/60",
                       )}
+                      disabled={busy}
                       onChange={(event) => setField("password", event.target.value)}
                       placeholder={signup ? "At least 8 characters" : "Enter your password"}
                       type={revealPassword ? "text" : "password"}
@@ -267,6 +288,7 @@ export function StorefrontAuthDialog({
                     <Button
                       aria-label={revealPassword ? "Hide password" : "Show password"}
                       className="absolute right-2.5 top-2.5 size-9 rounded-lg"
+                      disabled={busy}
                       onClick={() => onRevealPasswordChange(!revealPassword)}
                       size="icon-sm"
                       type="button"
@@ -292,14 +314,23 @@ export function StorefrontAuthDialog({
                 </p>
               ) : null}
 
+              {notice ? (
+                <div className="mt-4">
+                  <AuthStatusNotice tone={notice.tone}>{notice.message}</AuthStatusNotice>
+                </div>
+              ) : null}
+
               {!signup ? (
                 <div className="mt-5 flex justify-end">
-                  <Link
-                    className="text-[12px] font-semibold text-foreground underline-offset-4 hover:underline"
-                    href="/auth/forgot-password"
+                  <Button
+                    className="h-auto p-0 text-[12px] font-semibold"
+                    disabled={busy}
+                    onClick={onRequestPasswordReset}
+                    type="button"
+                    variant="link"
                   >
-                    Forgot password?
-                  </Link>
+                    {supportPending === "recovery" ? "Sending reset link…" : "Forgot password?"}
+                  </Button>
                 </div>
               ) : (
                 <div className="mt-5 rounded-2xl border border-border/75 bg-muted/35 p-4">
@@ -308,6 +339,7 @@ export function StorefrontAuthDialog({
                       aria-invalid={!!errorFor("terms")}
                       checked={termsAccepted}
                       className="mt-px"
+                      disabled={busy}
                       onCheckedChange={(checked) => onTermsAcceptedChange(checked === true)}
                     />
                     I agree to the Terms and Privacy Policy.
@@ -324,23 +356,24 @@ export function StorefrontAuthDialog({
                 onClick={onSubmit}
                 size="lg"
               >
-                {busy ? (
+                {authenticating ? (
                   <span className="size-[18px] rounded-full border-[2.5px] border-current/40 border-t-current animate-spin" />
                 ) : null}
-                {busy
+                {authenticating
                   ? signup
                     ? "Creating account..."
                     : "Signing in..."
                   : signup
                     ? "Create account"
                     : "Sign in"}
-                {!busy ? <ArrowRight className="size-4" /> : null}
+                {!authenticating ? <ArrowRight className="size-4" /> : null}
               </Button>
 
               <div className="mt-5 text-center text-[13px] text-muted-foreground">
                 {signup ? "Already have an account?" : "New to Laitstyle?"}{" "}
                 <Button
                   className="h-auto p-0 font-semibold"
+                  disabled={busy}
                   onClick={() => onModeChange(signup ? "signin" : "signup")}
                   type="button"
                   variant="link"
@@ -352,12 +385,15 @@ export function StorefrontAuthDialog({
               {!signup ? (
                 <div className="mt-2 text-center text-xs text-muted-foreground">
                   Email still unconfirmed?{" "}
-                  <Link
-                    className="font-semibold text-foreground underline-offset-4 hover:underline"
-                    href="/auth/resend-confirmation"
+                  <Button
+                    className="h-auto p-0 font-semibold"
+                    disabled={busy}
+                    onClick={onResendConfirmation}
+                    type="button"
+                    variant="link"
                   >
-                    Send another link
-                  </Link>
+                    {supportPending === "confirmation" ? "Sending…" : "Send another link"}
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -369,6 +405,7 @@ export function StorefrontAuthDialog({
 }
 
 function AuthField({
+  disabled,
   error,
   label,
   onChange,
@@ -376,6 +413,7 @@ function AuthField({
   type = "text",
   value,
 }: {
+  disabled?: boolean;
   error?: string;
   label: string;
   onChange: (value: string) => void;
@@ -390,6 +428,7 @@ function AuthField({
         aria-invalid={!!error}
         aria-label={label}
         className={cn(AUTH_INPUT_CLASS_NAME, error && "border-destructive/60")}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         type={type}
