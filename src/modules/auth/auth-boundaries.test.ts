@@ -32,15 +32,30 @@ describe("auth ownership boundaries", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps the trusted Supabase admin client server-only", () => {
+    const violations = sourceFiles(join(root, "src"))
+      .filter((file) => readFileSync(file, "utf8").includes("@/lib/supabase/admin"))
+      .filter((file) => readFileSync(file, "utf8").trimStart().startsWith('"use client"'))
+      .map((file) => relative(root, file).replaceAll("\\", "/"));
+
+    expect(violations).toEqual([]);
+  });
+
   it("keeps the auth module structure concrete rather than aspirational", () => {
     const required = [
       "src/app/auth/email/route.ts",
+      "src/app/auth/invite/finalize/route.ts",
+      "src/app/auth/invite/setup/page.tsx",
+      "src/app/auth/oauth-complete/page.tsx",
       "src/modules/auth/errors.ts",
       "src/modules/auth/server/authenticate.ts",
       "src/modules/auth/server/session.ts",
       "src/modules/auth/server/account-provisioning.ts",
+      "src/modules/auth/server/staff-invitations.ts",
       "src/modules/auth/ui/auth-email-form.tsx",
       "src/modules/auth/ui/auth-page-shell.tsx",
+      "src/modules/auth/ui/google-oauth-button.tsx",
+      "src/modules/auth/ui/google-oauth-popup.ts",
       "src/modules/auth/ui/reset-password-form.tsx",
       "src/modules/auth/ui/sign-in-form.tsx",
       "src/modules/auth/ui/sign-up-form.tsx",
@@ -54,6 +69,7 @@ describe("auth ownership boundaries", () => {
       "src/app/auth/google/route.ts",
       "src/app/auth/callback/route.ts",
       "src/app/auth/email/route.ts",
+      "src/app/auth/invite/finalize/route.ts",
       "src/app/auth/sign-out/route.ts",
     ];
 
