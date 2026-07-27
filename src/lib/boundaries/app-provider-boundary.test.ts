@@ -10,24 +10,22 @@ const appProviderSource = readFileSync(
 const adminLayoutSource = readFileSync(resolve(process.cwd(), "src/app/admin/layout.tsx"), "utf8");
 
 describe("application provider ownership", () => {
-  it("keeps the root layout thin and delegates global ownership to AppProvider", () => {
-    expect(rootLayoutSource).toContain("<AppProvider>{children}</AppProvider>");
-    expect(rootLayoutSource).not.toContain("QueryProvider");
-    expect(rootLayoutSource).not.toContain("ThemeProvider");
-    expect(rootLayoutSource).not.toContain("Toaster");
+  it("resolves session once at root and delegates provider ownership to AppProvider", () => {
+    expect(rootLayoutSource).toContain("getCurrentSession");
+    expect(rootLayoutSource).toContain("<AppProvider>");
+    expect(rootLayoutSource).toContain("<SessionProvider session={session}>{children}</SessionProvider>");
   });
 
-  it("keeps only theme and toast concerns in the global provider", () => {
+  it("mounts theme, query, and session ownership in the shared provider", () => {
     expect(appProviderSource).toContain("<ThemeProvider>");
     expect(appProviderSource).toContain("<Toaster");
-    expect(appProviderSource).not.toContain("QueryProvider");
+    expect(appProviderSource).toContain("QueryClientProvider");
+    expect(appProviderSource).toContain("SessionProvider");
   });
 
-  it("scopes the remote-data provider to the admin surface", () => {
-    expect(adminLayoutSource).toContain(
-      'import { QueryProvider } from "@/providers/query-provider";',
-    );
-    expect(adminLayoutSource).toContain("<QueryProvider>");
-    expect(adminLayoutSource).toContain("</QueryProvider>");
+  it("does not let admin mount its own query or session provider", () => {
+    expect(adminLayoutSource).not.toContain("QueryProvider");
+    expect(adminLayoutSource).not.toContain("QueryClientProvider");
+    expect(adminLayoutSource).not.toContain("SessionProvider");
   });
 });

@@ -7,10 +7,15 @@ const root = resolve(import.meta.dirname, "../..");
 const violations = [];
 
 const rootProvidersPath = "src/providers/providers.tsx";
+const rootLayoutPath = "src/app/layout.tsx";
 const adminLayoutPath = "src/app/admin/layout.tsx";
 const storefrontLayoutPath = "src/app/(storefront)/layout.tsx";
 const accountLayoutPath = "src/app/(storefront)/account/layout.tsx";
-const queryProviderImport = "@/providers/query-provider";
+const storefrontClientBoundaryPath = "src/app/storefront-client-boundary.tsx";
+const retiredQueryProviderImports = [
+  "@/providers/query-provider",
+  "@/providers/storefront-query-provider",
+];
 
 const requiredStorefrontPaths = [
   "src/app/(storefront)/(home)/page.tsx",
@@ -41,16 +46,43 @@ const removedLegacyPaths = [
 ];
 
 const rootProviders = readRequired(rootProvidersPath);
+const rootLayout = readRequired(rootLayoutPath);
 const adminLayout = readRequired(adminLayoutPath);
 const storefrontLayout = readRequired(storefrontLayoutPath);
+const storefrontClientBoundary = readRequired(storefrontClientBoundaryPath);
 const accountLayout = readRequired(accountLayoutPath);
 
-if (rootProviders.includes("QueryProvider") || rootProviders.includes(queryProviderImport)) {
-  violations.push(`${rootProvidersPath} must not mount or import QueryProvider.`);
+if (!rootProviders.includes("QueryClientProvider")) {
+  violations.push(`${rootProvidersPath} must mount the shared QueryClientProvider.`);
 }
 
-if (!adminLayout.includes(queryProviderImport) || !adminLayout.includes("<QueryProvider>")) {
-  violations.push(`${adminLayoutPath} must import and mount QueryProvider around the admin shell.`);
+if (!rootProviders.includes("SessionProvider")) {
+  violations.push(`${rootProvidersPath} must mount the shared SessionProvider.`);
+}
+
+if (!rootLayout.includes("getCurrentSession")) {
+  violations.push(`${rootLayoutPath} must resolve the session once for AppProvider.`);
+}
+
+for (const retiredImport of retiredQueryProviderImports) {
+  if (adminLayout.includes(retiredImport)) {
+    violations.push(`${adminLayoutPath} must not import the retired ${retiredImport}.`);
+  }
+  if (storefrontClientBoundary.includes(retiredImport)) {
+    violations.push(`${storefrontClientBoundaryPath} must not import the retired ${retiredImport}.`);
+  }
+}
+
+if (adminLayout.includes("QueryClientProvider")) {
+  violations.push(
+    `${adminLayoutPath} must not mount its own QueryClientProvider; theme/query/session now come from root.`,
+  );
+}
+
+if (storefrontClientBoundary.includes("QueryClientProvider")) {
+  violations.push(
+    `${storefrontClientBoundaryPath} must not mount its own QueryClientProvider; it seeds the shared client instead.`,
+  );
 }
 
 if (
@@ -84,17 +116,16 @@ for (const removedPath of removedLegacyPaths) {
   }
 }
 
-const queryProviderConsumers = walk(resolve(root, "src"))
-  .filter((path) => /\.[cm]?[jt]sx?$/.test(path))
-  .filter((path) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path))
-  .filter((path) => readFileSync(path, "utf8").includes(queryProviderImport))
-  .map((path) => normalize(relative(root, path)));
+for (const retiredImport of retiredQueryProviderImports) {
+  const consumers = walk(resolve(root, "src"))
+    .filter((path) => /\.[cm]?[jt]sx?$/.test(path))
+    .filter((path) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path))
+    .filter((path) => readFileSync(path, "utf8").includes(retiredImport))
+    .map((path) => normalize(relative(root, path)));
 
-const unexpectedConsumers = queryProviderConsumers.filter((path) => path !== adminLayoutPath);
-if (unexpectedConsumers.length > 0) {
-  violations.push(
-    `QueryProvider may currently be mounted only by ${adminLayoutPath}; found: ${unexpectedConsumers.join(", ")}`,
-  );
+  if (consumers.length > 0) {
+    violations.push(`Retired import ${retiredImport} must not be used; found in: ${consumers.join(", ")}`);
+  }
 }
 
 if (violations.length > 0) {

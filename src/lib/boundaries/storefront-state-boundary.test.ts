@@ -173,7 +173,7 @@ describe("storefront state boundaries", () => {
     expect(shellQuery).toContain("catalogue-contract");
   });
 
-  it("mounts the storefront query, hydration and auth boundaries only inside the storefront client boundary", () => {
+  it("keeps only storefront-specific state in the storefront client boundary", () => {
     const appProvider = readFileSync(join(root, "src/providers/providers.tsx"), "utf8");
     const clientBoundary = readFileSync(
       join(root, "src/app/storefront-client-boundary.tsx"),
@@ -181,16 +181,15 @@ describe("storefront state boundaries", () => {
     );
     const routeBoundary = readFileSync(join(root, "src/app/storefront-route-boundary.tsx"), "utf8");
 
-    expect(appProvider).not.toContain("StorefrontQueryProvider");
     expect(appProvider).not.toContain("StorefrontStateHydrator");
     expect(appProvider).not.toContain("StorefrontAuthProvider");
-    expect(clientBoundary).toContain("StorefrontQueryProvider");
     expect(clientBoundary).toContain("StorefrontStateHydrator");
     expect(clientBoundary).toContain("StorefrontAuthProvider");
     expect(clientBoundary).not.toContain("StorefrontClientStateProvider");
     expect(clientBoundary).not.toContain("StorefrontProvider");
-    expect(routeBoundary).toContain("getCurrentSession");
+    expect(clientBoundary).not.toContain("QueryClientProvider");
     expect(routeBoundary).toContain("loadStorefrontShellCatalogue");
+    expect(routeBoundary).not.toContain("getCurrentSession");
     expect(routeBoundary).not.toMatch(/\bloadStorefrontCatalogue\b/);
   });
 
