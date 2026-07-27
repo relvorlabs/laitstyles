@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     providerErrorCode:
       request.nextUrl.searchParams.get("error_code") ?? request.nextUrl.searchParams.get("error"),
     next: request.nextUrl.searchParams.get("next"),
+    returnTo: request.nextUrl.searchParams.get("returnTo"),
   });
 
   return NextResponse.redirect(new URL(target, request.url));
