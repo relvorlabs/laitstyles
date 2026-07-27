@@ -38,7 +38,7 @@ export function AdminShell({ children, role }: { children: ReactNode; role: Staf
 
               <div className="grid min-h-dvh lg:grid-cols-[280px_minmax(0,1fr)]">
                 <aside className="sticky top-0 hidden h-dvh min-h-0 overflow-hidden lg:block">
-                  <AdminSidebar pathname={pathname} />
+                  <AdminSidebar pathname={pathname} role={role} />
                 </aside>
 
                 <div className="min-w-0 bg-background">
@@ -66,6 +66,7 @@ export function AdminShell({ children, role }: { children: ReactNode; role: Staf
                     compact
                     onNavigate={() => setNavigationOpen(false)}
                     pathname={pathname}
+                    role={role}
                   />
                 </SheetContent>
               </Sheet>
