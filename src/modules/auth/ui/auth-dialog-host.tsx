@@ -52,12 +52,21 @@ export function StorefrontAuthDialogHost() {
 
   useEffect(() => {
     if (!open) return;
+    const initialMessage = initialError ? getAuthFlowErrorMessage(initialError) : null;
     successRef.current = onSuccess ?? null;
     setState("default");
-    setErrors(initialError ? { form: getAuthFlowErrorMessage(initialError) } : {});
-    setShowErrors(Boolean(initialError));
     setSupportMode(initialSupport ?? null);
     setSupportState("idle");
+
+    if (initialSupport && initialMessage) {
+      setErrors({});
+      setShowErrors(false);
+      setNotice({ tone: "error", message: initialMessage });
+      return;
+    }
+
+    setErrors(initialMessage ? { form: initialMessage } : {});
+    setShowErrors(Boolean(initialMessage));
     setNotice(null);
   }, [initialError, initialSupport, onSuccess, open]);
 
