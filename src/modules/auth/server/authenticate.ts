@@ -11,7 +11,7 @@ import {
   mapAuthProviderError,
 } from "@/modules/auth/server/diagnostics";
 import {
-  getAuthRedirectUrl,
+  getRequestOrigin,
   getSafeNextPath,
   withAuthErrorPath,
 } from "@/modules/auth/server/redirects";
@@ -32,6 +32,11 @@ type OAuthCallbackInput = {
   next: string | null;
 };
 
+async function authRedirectUrl(path: string) {
+  const safePath = getSafeNextPath(path, "/");
+  return new URL(safePath, `${await getRequestOrigin()}/`).toString();
+}
+
 export async function authenticateWithPassword(
   input: PasswordSignInInput,
 ): Promise<PasswordAuthResult> {
@@ -49,7 +54,7 @@ export async function registerWithPassword(
 ): Promise<PasswordAuthResult> {
   const next = getSafeNextPath(input.next, "/account");
   const supabase = await createClient();
-  const emailRedirectTo = await getAuthRedirectUrl(
+  const emailRedirectTo = await authRedirectUrl(
     `/auth/callback?next=${encodeURIComponent(next)}`,
   );
   const { data, error } = await supabase.auth.signUp({
@@ -80,7 +85,7 @@ export async function registerWithPassword(
 
 export async function sendPasswordResetEmail(email: string): Promise<AuthEmailResult> {
   const supabase = await createClient();
-  const redirectTo = await getAuthRedirectUrl(
+  const redirectTo = await authRedirectUrl(
     `/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`,
   );
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
@@ -94,7 +99,7 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthEmailRe
 
 export async function sendSignupConfirmationEmail(email: string): Promise<AuthEmailResult> {
   const supabase = await createClient();
-  const emailRedirectTo = await getAuthRedirectUrl(
+  const emailRedirectTo = await authRedirectUrl(
     `/auth/callback?next=${encodeURIComponent("/account")}`,
   );
   const { error } = await supabase.auth.resend({
@@ -113,7 +118,7 @@ export async function sendSignupConfirmationEmail(email: string): Promise<AuthEm
 export async function startGoogleOAuth(nextValue: FormDataEntryValue | string | null) {
   const next = getSafeNextPath(nextValue, "/account");
   const supabase = await createClient();
-  const redirectTo = await getAuthRedirectUrl(
+  const redirectTo = await authRedirectUrl(
     `/auth/callback?next=${encodeURIComponent(next)}`,
   );
   const { data, error } = await supabase.auth.signInWithOAuth({
