@@ -1,42 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import {
-  authFlowFailure,
-  logAuthProviderFailure,
-  mapAuthProviderError,
-} from "@/modules/auth/server/diagnostics";
-import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
+import { startGoogleOAuth } from "@/modules/auth/server/authenticate";
 
-async function startGoogleOAuth(request: NextRequest, value: FormDataEntryValue | string | null) {
-  const next = getSafeNextPath(value, "/account");
-  const supabase = await createClient();
-  const redirectTo = `${request.nextUrl.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo,
-    },
-  });
-
-  if (error || !data.url) {
-    logAuthProviderFailure("oauth-start", error ?? { name: "MissingOAuthRedirectUrl" });
-    const failure = error
-      ? mapAuthProviderError(error, "oauth-start-failed")
-      : authFlowFailure("oauth-start-failed");
-    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), request.url), {
-      status: 303,
-    });
-  }
-
-  return NextResponse.redirect(data.url, { status: 303 });
+function redirectToAuthTarget(request: NextRequest, target: string) {
+  return NextResponse.redirect(new URL(target, request.url), { status: 303 });
 }
 
 export async function GET(request: NextRequest) {
-  return startGoogleOAuth(request, request.nextUrl.searchParams.get("next"));
+  const target = await startGoogleOAuth(request.nextUrl.searchParams.get("next"));
+  return redirectToAuthTarget(request, target);
 }
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  return startGoogleOAuth(request, formData.get("next"));
+  const target = await startGoogleOAuth(formData.get("next"));
+  return redirectToAuthTarget(request, target);
 }
