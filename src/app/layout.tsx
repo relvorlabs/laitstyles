@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { AppShellFallback } from "@/app/app-shell-fallback";
 import { cn } from "@/lib/utils";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
-import { type AppSession, ANONYMOUS_APP_SESSION } from "@/providers/session-provider";
 import { AppProvider } from "@/providers/providers";
+import { type AppSession, ANONYMOUS_APP_SESSION, SessionProvider } from "@/providers/session-provider";
 import { getCurrentSession } from "@/server/auth/session";
 import "./theme-entry.css";
 
@@ -28,13 +30,20 @@ async function resolveAppSession(): Promise<AppSession> {
   return ANONYMOUS_APP_SESSION;
 }
 
-export default async function RootLayout({
+// Cache Components requires the uncached session read to sit behind a
+// Suspense boundary that covers every route (not just routes that happen to
+// have their own, like the storefront's), so it's isolated in its own async
+// component rather than awaited directly in RootLayout.
+async function SessionSlot({ children }: { children: React.ReactNode }) {
+  const session = await resolveAppSession();
+  return <SessionProvider session={session}>{children}</SessionProvider>;
+}
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await resolveAppSession();
-
   return (
     <html
       className={cn("h-full antialiased font-sans", storefrontFontClassName)}
@@ -42,7 +51,11 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <AppProvider session={session}>{children}</AppProvider>
+        <AppProvider>
+          <Suspense fallback={<AppShellFallback />}>
+            <SessionSlot>{children}</SessionSlot>
+          </Suspense>
+        </AppProvider>
       </body>
     </html>
   );

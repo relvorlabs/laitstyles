@@ -4,23 +4,19 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { CSSProperties, ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { getAppQueryClient } from "@/lib/query/app-query-client";
-import { type AppSession, SessionProvider } from "@/providers/session-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 
-export function AppProvider({
-  session,
-  children,
-}: {
-  session: AppSession;
-  children: ReactNode;
-}) {
+// Session is intentionally NOT mounted here. Cache Components requires any
+// uncached per-request read (getCurrentSession) to sit behind a Suspense
+// boundary that covers every route, not just the ones with their own — so
+// SessionProvider is mounted one level up, in root layout's SessionSlot,
+// inside a <Suspense> this component's caller wraps around its children.
+export function AppProvider({ children }: { children: ReactNode }) {
   const queryClient = getAppQueryClient();
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider session={session}>{children}</SessionProvider>
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       <Toaster
         position="bottom-right"
         style={
