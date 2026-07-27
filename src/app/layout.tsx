@@ -4,7 +4,11 @@ import { AppShellFallback } from "@/app/app-shell-fallback";
 import { cn } from "@/lib/utils";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import { AppProvider } from "@/providers/providers";
-import { type AppSession, ANONYMOUS_APP_SESSION, SessionProvider } from "@/providers/session-provider";
+import {
+  ANONYMOUS_APP_SESSION,
+  type AppSession,
+  SessionProvider,
+} from "@/providers/session-provider";
 import { getCurrentSession } from "@/server/auth/session";
 import "./theme-entry.css";
 

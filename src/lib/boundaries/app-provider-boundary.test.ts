@@ -13,7 +13,9 @@ describe("application provider ownership", () => {
   it("resolves session once at root and delegates provider ownership to AppProvider", () => {
     expect(rootLayoutSource).toContain("getCurrentSession");
     expect(rootLayoutSource).toContain("<AppProvider>");
-    expect(rootLayoutSource).toContain("<SessionProvider session={session}>{children}</SessionProvider>");
+    expect(rootLayoutSource).toContain(
+      "<SessionProvider session={session}>{children}</SessionProvider>",
+    );
   });
 
   it("mounts theme and query ownership in the shared provider", () => {
