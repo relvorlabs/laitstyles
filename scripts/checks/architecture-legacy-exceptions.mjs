@@ -1,4 +1,5 @@
 const phase7SessionImporters = [
+  "src/app/layout.tsx",
   "src/app/storefront-route-boundary.tsx",
   "src/app/auth/sign-in/page.tsx",
   "src/app/admin/layout.tsx",

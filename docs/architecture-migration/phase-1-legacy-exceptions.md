@@ -16,6 +16,7 @@ These edges are owned by the domain engineer and are removed in Phase 7.
 
 | Importer | Imported specifier |
 | --- | --- |
+| `src/app/layout.tsx` | `@/server/auth/session` |
 | `src/app/storefront-route-boundary.tsx` | `@/server/auth/session` |
 | `src/app/auth/sign-in/page.tsx` | `@/server/auth/session` |
 | `src/app/admin/layout.tsx` | `@/server/auth/session` |

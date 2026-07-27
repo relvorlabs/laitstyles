@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import { AdminShell } from "@/features/admin/shell/admin-shell";
-import { QueryProvider } from "@/providers/query-provider";
 import { getStaffAccess } from "@/server/auth/session";
 
 export const metadata: Metadata = {
@@ -22,9 +21,5 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     return <AdminAccessDenied reason={access.reason} />;
   }
 
-  return (
-    <QueryProvider>
-      <AdminShell role={access.role}>{children}</AdminShell>
-    </QueryProvider>
-  );
+  return <AdminShell role={access.role}>{children}</AdminShell>;
 }
