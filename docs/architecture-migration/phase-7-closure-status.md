@@ -44,9 +44,11 @@ Merged PR #52 established the canonical auth module but left six real gaps:
 - [x] OAuth start/callback failures return to the originating staff page, signup page or storefront dialog.
 - [x] Storefront password recovery and confirmation resend run inside the open dialog.
 - [x] Storefront transport parameters are removed with `history.replaceState`, not Next.js route navigation.
-- [x] Storefront authentication no longer calls `router.refresh()` before the success state is displayed and dismissed.
+- [x] Password sign-in and sign-out update the shared client session without `router.refresh()`.
 - [x] The storefront auth provider exposes a stable action object so dialog state changes do not retrigger route effects.
-- [x] Immediate navigation is reserved for completed sign-in/OAuth or an explicit user choice after success.
+- [x] The success state remains mounted until the user chooses **Go to my account** or a protected return path executes.
+- [x] Successful sign-out replaces the route with `/` so protected account content is not left visible.
+- [x] Immediate navigation is reserved for completed OAuth, completed standalone sign-in, successful sign-out or an explicit success action.
 
 ## Supabase email contract
 
@@ -71,11 +73,13 @@ The selected origin must include `/auth/callback` in the Supabase Auth redirect 
 ## Acceptance coverage added
 
 - Unit tests prove page-action failures return state without invoking `redirect()`.
-- Unit tests prove only completed password sign-in redirects immediately.
+- Unit tests prove only completed standalone password sign-in redirects immediately.
+- Session-provider tests prove local sign-in/sign-out state changes without remounting and still synchronizes later server session props.
 - Provider tests prove OAuth cancellation/start failure returns to the originating surface.
 - Redirect tests prove external `returnTo` values are rejected.
 - Browser tests count document loads and verify invalid page/dialog submissions remain mounted.
 - Browser tests verify storefront auth transport parameters are cleaned without a route rebuild.
+- Live-auth tests prove storefront password sign-in displays success on the same document before explicit account navigation.
 - Live-auth tests cover signup confirmation, profile/customer provisioning, inline staff sign-in failure, storefront-dialog recovery email, standalone recovery, password replacement and invalid recovery state.
 
 ## Acceptance still required on the exact final SHA
@@ -83,12 +87,13 @@ The selected origin must include `/auth/callback` in the Supabase Auth redirect 
 - [ ] `pnpm check:architecture`.
 - [ ] `pnpm biome` or the repository's static suite.
 - [ ] `pnpm typecheck`.
-- [ ] focused auth Vitest suites, including `auth-boundaries.test.ts`, `redirects.test.ts`, `authenticate-provider.test.ts` and `actions.test.ts`.
+- [ ] focused auth Vitest suites, including `auth-boundaries.test.ts`, `redirects.test.ts`, `authenticate-provider.test.ts`, `actions.test.ts` and `session-provider.test.tsx`.
 - [ ] production build and React Doctor.
 - [ ] desktop, tablet and mobile Playwright contracts.
 - [ ] URL-driven storefront auth-dialog and standalone inline-state tests.
 - [ ] `pnpm test:auth:e2e` against local/test Supabase Auth, PostgreSQL and the mail inbox.
 - [ ] signup confirmation email received and callback provisions profile/customer data.
+- [ ] storefront password sign-in success shown without a document rebuild.
 - [ ] storefront-dialog password reset email received without route navigation.
 - [ ] password reset email received and replacement password works.
 - [ ] confirmation resend email received without leaking account existence.
