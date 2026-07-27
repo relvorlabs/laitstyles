@@ -54,6 +54,8 @@ const transactionClient = {
   audit_events: { create: mocks.auditCreate },
 };
 
+type TransactionCallback = (client: typeof transactionClient) => unknown | Promise<unknown>;
+
 describe("store manager invitations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -86,7 +88,9 @@ describe("store manager invitations", () => {
     mocks.customersDeleteMany.mockResolvedValue({ count: 1 });
     mocks.auditCreate.mockResolvedValue({});
     mocks.deleteUser.mockResolvedValue({ data: {}, error: null });
-    mocks.transaction.mockImplementation(async (callback) => callback(transactionClient));
+    mocks.transaction.mockImplementation(async (callback: TransactionCallback) =>
+      callback(transactionClient),
+    );
   });
 
   it("invites through Supabase and fixes the application role as manager", async () => {
