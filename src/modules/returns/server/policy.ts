@@ -1,4 +1,4 @@
-import type { StaffCapability } from "@/lib/auth/permissions";
+import type { StaffCapability } from "@/modules/auth/permissions";
 
 export const returnCapabilities = {
   read: "returns:read",

@@ -94,11 +94,12 @@ is not in scope here.
 src/modules/auth/
 ├── schema.ts
 ├── types.ts
+├── permissions.ts        # module root, not server/ — corrected in P7-T05: isomorphic,
+│                          # a "use client" admin consumer needs the runtime functions
 ├── server/
 │   ├── session.ts
 │   ├── authenticate.ts
 │   ├── account-provisioning.ts
-│   ├── permissions.ts
 │   ├── redirects.ts
 │   └── diagnostics.ts
 └── ui/
@@ -141,7 +142,7 @@ Phase 7 must not:
 - [x] P7-T02 create `src/modules/auth` runtime contracts (`schema.ts`, `types.ts`);
 - [x] P7-T03 move session resolution;
 - [x] P7-T04 move account provisioning;
-- [ ] P7-T05 move permission orchestration;
+- [x] P7-T05 move permission orchestration;
 - [ ] P7-T06 move redirect helpers;
 - [ ] P7-T07 move diagnostics;
 - [ ] P7-T08 reduce `src/app/auth/actions.ts` to thin adapters;
@@ -274,6 +275,52 @@ Executed on this commit:
 
 Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
 — same reasons as P7-T03's evidence note; not claimed as run.
+
+## P7-T05 evidence (2026-07-27)
+
+`src/lib/auth/permissions.ts` (+ test) relocated to **`src/modules/auth/permissions.ts`** — the
+module root, not `src/modules/auth/server/permissions.ts` as the design spec originally specified.
+Zero content change to the logic itself (same `STAFF_CAPABILITIES`, `CONSUMER_CAPABILITIES`,
+`ROLE_CAPABILITIES`, `hasCapability`, `getCapabilitiesForRole`, `canAccessAdmin`,
+`canUpdateSettings`).
+
+**Placement correction, discovered mid-task, not a mechanical move:** the original design placed
+`permissions.ts` under `server/`. Moving it there first (as literally specified) and running
+`pnpm check:architecture` produced a real, new `client-server-import` violation:
+`src/features/admin/shell/admin-access-provider.tsx` (a `"use client"` component) imports
+`getCapabilitiesForRole`/`hasCapability` to build a memoized capability context from a `role`
+prop — it needs the actual runtime functions, not just types, and `permissions.ts` has zero
+server-only imports (pure computation over string-literal arrays, same shape as `roles.ts`, which
+the spec already correctly routed to the client-safe `types.ts`). Everything under
+`modules/<domain>/server/**` is treated as server-only by folder convention regardless of content,
+so that placement was genuinely unsafe, not just guard noise. Corrected to `modules/auth/permissions.ts`
+(module root, sibling to `schema.ts`/`types.ts`) per `docs/update.md` §1's explicit allowance for
+repository evidence discovered during implementation to override a locked decision. The design
+spec (`docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`) is updated in the
+same commit — target tree, the `lib/auth/**` inventory table, and the P7-T05 task description all
+corrected, with the discovery documented inline rather than silently fixed.
+
+All 11 real consumers (10 external + the moved test's own import) repointed in the same commit:
+`session.ts`, `lib/http/auth.ts`, `admin-access-provider.tsx`, and 7 domain policy files
+(products/rules.ts, inventory/adjust-stock.ts, settings/policy.ts, returns/policy.ts,
+overview/policy.ts, holds/policy.ts, customers/policy.ts). `lib/auth/index.ts`'s barrel dropped its
+`permissions` re-export (it had zero consumers of the bare barrel to begin with, confirmed in the
+original inventory).
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 1 error on the first attempt (`client-server-import`, the finding
+  that drove the placement correction above), 0 errors/warnings after the fix.
+- `pnpm biome` — 1 error, 65 warnings; the 1 error is the same pre-existing `site-chrome.tsx` drift
+  from P7-T03/T04 (reverted again from this commit after `biome:fix` re-swept it), confirmed
+  unrelated. 65 warnings matches baseline.
+- `pnpm exec vitest run` — one run: 6 failed (the same 5 documented pre-existing failures plus
+  `admin-persistence-boundary.test.ts`, confirmed 6/6 passing in isolation — same flake pattern).
+  Targeted `permissions.test.ts` + `session.test.ts` + `lib/http/auth.test.ts` — 19/19 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— not claimed as run.
 
 ## Acceptance gate
 

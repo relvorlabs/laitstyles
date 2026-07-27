@@ -1,8 +1,8 @@
 import "server-only";
 
 import { AUTH_DENIED_MESSAGES } from "@/lib/auth/auth-errors";
-import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { ApiError } from "@/lib/errors/api-error";
+import { hasCapability, type StaffCapability } from "@/modules/auth/permissions";
 import {
   type ConsumerSession,
   type CurrentSession,

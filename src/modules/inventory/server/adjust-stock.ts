@@ -1,8 +1,8 @@
 import "server-only";
 
-import { hasCapability } from "@/lib/auth/permissions";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type {
   StockAdjustmentError,

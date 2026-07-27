@@ -110,7 +110,7 @@ any list reproduced here; it is machine-checked and this document is not.
 | `auth-errors.ts` (103) | `AuthDeniedReason`, `AUTH_DENIED_MESSAGES`, `authFlowErrorCodes`, `AuthFlowErrorCode`, `AuthFlowFailure`, `AuthProviderErrorLike`, `getAuthFlowErrorMessage`, `isAuthFlowErrorCode`, `authFlowFailure`, `mapAuthProviderError` | `modules/auth/server/diagnostics.ts` or `modules/auth/types.ts` (see below) |
 | `auth-schemas.ts` (94) | `passwordSignInSchema`, `passwordSignUpSchema`, `authEmailSchema`, `recoveredPasswordSchema`, input types, `authFormDataInput`, `authEmailFormDataInput`, `recoveredPasswordFormDataInput`, `authFieldErrors` | `modules/auth/schema.ts` |
 | `index.ts` (3) | barrel: `auth-errors`, `permissions`, `roles` only (not `auth-schemas`, not `server/*`) | retire once consumers import submodules directly (see Retirement plan) |
-| `permissions.ts` (83) | `STAFF_CAPABILITIES`, `CONSUMER_CAPABILITIES`, `StaffCapability`, `ConsumerCapability`, `AccountCapability`, `ROLE_CAPABILITIES`, `hasCapability`, `getCapabilitiesForRole`, `canAccessAdmin`, `canUpdateSettings` | `modules/auth/server/permissions.ts` |
+| `permissions.ts` (83) | `STAFF_CAPABILITIES`, `CONSUMER_CAPABILITIES`, `StaffCapability`, `ConsumerCapability`, `AccountCapability`, `ROLE_CAPABILITIES`, `hasCapability`, `getCapabilitiesForRole`, `canAccessAdmin`, `canUpdateSettings` | `modules/auth/permissions.ts` — **module root, not `server/`** (corrected during P7-T05; see the note after this table) |
 | `roles.ts` (19) | `ACCOUNT_ROLES`, `STAFF_ROLES`, `AccountRole`, `StaffRole`, `ACCOUNT_ROLE_LABELS`, `isAccountRole`, `isStaffRole` | `modules/auth/types.ts` (pure, no imports — client-safe today, must stay client-safe) |
 | `server/auth-provider-diagnostics.ts` (37, `"server-only"`) | `AuthProviderDiagnostic`, `AuthProviderOperation`, `logAuthProviderFailure` | `modules/auth/server/diagnostics.ts` |
 | `server/redirects.ts` (32) | `getSafeNextPath`, `withAuthErrorPath`, local `LOCAL_AUTH_ORIGIN` | `modules/auth/server/redirects.ts` |
@@ -120,6 +120,24 @@ any list reproduced here; it is machine-checked and this document is not.
 imports `StaffRole` as a type) — it must land in `modules/auth/types.ts`, not `server/`, so client
 code can keep importing it without crossing the client/server boundary
 (`.agents/doctrine/conventions.md`: "Client code must not import ... server modules").
+
+**Correction discovered during P7-T05 implementation (not part of the original inventory pass):**
+`permissions.ts` has the same client-safety property as `roles.ts` — zero server-only imports, pure
+computation over string-literal arrays — and `src/features/admin/shell/admin-access-provider.tsx`
+(a `"use client"` component) genuinely needs its *runtime* functions (`getCapabilitiesForRole`,
+`hasCapability`), not just types, to build a memoized capability-check context from a `role` prop.
+This was missed in the original current-state inventory pass, which listed
+`admin-access-provider.tsx` as a permissions consumer but didn't flag it as a client-boundary
+concern the way `roles.ts`'s client consumer was flagged. Placing `permissions.ts` under
+`modules/auth/server/**` — as this spec originally specified — is unsafe: the architecture guard
+correctly rejects it (`client-server-import`, confirmed via `pnpm check:architecture` when this was
+first attempted), because everything under `modules/<domain>/server/**` is treated as server-only
+by folder convention regardless of actual content. Per `docs/update.md` §1 ("unless repository
+evidence discovered during implementation proves that a specific decision is unsafe"),
+`permissions.ts` moves to `modules/auth/permissions.ts` instead — a module-root file, sibling to
+`schema.ts`/`types.ts`, exactly like those two files isomorphic (safe for both server and client
+bundles). The rest of this document's target-tree diagram and task descriptions are corrected
+below to match; nothing else in the design changes.
 
 **No consumer imports the bare `@/lib/auth` barrel** (`index.ts`) today — every consumer already
 imports the specific submodule. This makes `index.ts` safe to delete outright once its three
@@ -245,6 +263,11 @@ src/modules/auth/
 │                                 # ACCOUNT_ROLE_LABELS, isAccountRole, isStaffRole (from lib/auth/roles.ts);
 │                                 # CurrentSession/ConsumerSession/StaffSession/StaffAccess/VerifiedIdentity
 │                                 # type re-exports from server/session.ts for client-safe consumption
+├── permissions.ts               # STAFF_CAPABILITIES, CONSUMER_CAPABILITIES, ROLE_CAPABILITIES,
+│                                 # hasCapability, getCapabilitiesForRole, canAccessAdmin,
+│                                 # canUpdateSettings (from lib/auth/permissions.ts) — module root,
+│                                 # not server/: isomorphic, a "use client" admin consumer needs the
+│                                 # runtime functions, not just types (see correction note above)
 ├── server/
 │   ├── session.ts                # getVerifiedIdentity, getCurrentSession (cache()-wrapped),
 │   │                              # isAuthenticated, getStaffAccess (from server/auth/session.ts)
@@ -254,9 +277,6 @@ src/modules/auth/
 │   │                              # requestPasswordReset/resendSignupConfirmation/
 │   │                              # submitRecoveredPassword/signOutStorefrontSession — the domain
 │   │                              # operations actions.ts's Server Actions call into
-│   ├── permissions.ts             # STAFF_CAPABILITIES, CONSUMER_CAPABILITIES, ROLE_CAPABILITIES,
-│   │                              # hasCapability, getCapabilitiesForRole, canAccessAdmin,
-│   │                              # canUpdateSettings (from lib/auth/permissions.ts)
 │   ├── redirects.ts               # getSafeNextPath, withAuthErrorPath, getRequestOrigin
 │   │                              # (from lib/auth/server/redirects.ts + request-origin.ts, deduped)
 │   └── diagnostics.ts             # AuthDeniedReason, AUTH_DENIED_MESSAGES, authFlowErrorCodes,
@@ -343,7 +363,8 @@ batch's entries from `architecture-legacy-exceptions.mjs` + `phase-1-legacy-exce
 commit.
 
 **P7-T05 — move permission orchestration.** Relocate `lib/auth/permissions.ts` →
-`modules/auth/server/permissions.ts`. Update its 12 consumers (policy files across
+`modules/auth/permissions.ts` (module root — **not** `server/permissions.ts` as originally
+specified; see the correction note above). Update its 12 consumers (policy files across
 products/inventory/settings/returns/overview/holds/customers, `lib/http/auth.ts`,
 `features/admin/shell/admin-access-provider.tsx`). Not a registered legacy exception today (it's
 under `lib/auth`, not the flagged top-level `server/auth`), but still update every import.

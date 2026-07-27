@@ -5,7 +5,7 @@ import {
   getCapabilitiesForRole,
   hasCapability,
   STAFF_CAPABILITIES,
-} from "@/lib/auth/permissions";
+} from "@/modules/auth/permissions";
 
 describe("role capabilities", () => {
   it("gives the single admin/store owner every staff capability", () => {

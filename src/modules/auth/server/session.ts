@@ -2,10 +2,10 @@ import "server-only";
 
 import { cache } from "react";
 import type { AuthDeniedReason } from "@/lib/auth/auth-errors";
-import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { hasCapability, type StaffCapability } from "@/modules/auth/permissions";
 import {
   type AuthUserMetadata,
   ensureConsumerAccount,

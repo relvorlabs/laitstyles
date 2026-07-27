@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, type ReactNode, use, useMemo } from "react";
+import type { StaffRole } from "@/lib/auth/roles";
 import {
   getCapabilitiesForRole,
   hasCapability,
   type StaffCapability,
-} from "@/lib/auth/permissions";
-import type { StaffRole } from "@/lib/auth/roles";
+} from "@/modules/auth/permissions";
 
 type AdminAccessContextValue = {
   role: StaffRole;

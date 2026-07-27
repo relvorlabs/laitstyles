@@ -1,7 +1,7 @@
 import "server-only";
 
-import type { StaffCapability } from "@/lib/auth/permissions";
-import { hasCapability } from "@/lib/auth/permissions";
+import type { StaffCapability } from "@/modules/auth/permissions";
+import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type { ProductMutationError } from "@/modules/products/types";
 
