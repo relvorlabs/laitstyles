@@ -70,6 +70,19 @@ export async function registerWithPassword(
     return err(mapAuthProviderError(error));
   }
 
+  if (data.session && data.user) {
+    try {
+      await ensureConsumerAccount({
+        id: data.user.id,
+        email: data.user.email ?? input.email,
+        userMetadata: data.user.user_metadata,
+      });
+    } catch {
+      logAuthProviderFailure("password-sign-up", { name: "AccountProvisioningError" });
+      return err(authFlowFailure("provider-unavailable"));
+    }
+  }
+
   // Supabase sends the configured confirmation template when email confirmation
   // is enabled. Keep the response enumeration-safe for existing addresses.
   return ok({
@@ -78,9 +91,13 @@ export async function registerWithPassword(
   });
 }
 
-export async function sendPasswordResetEmail(email: string): Promise<AuthEmailResult> {
+export async function sendPasswordResetEmail(
+  email: string,
+  returnToValue?: string | null,
+): Promise<AuthEmailResult> {
+  const returnTo = getSafeNextPath(returnToValue, "/auth/forgot-password");
   const supabase = await createClient();
-  const redirectTo = await callbackUrl("/auth/reset-password", "/auth/forgot-password");
+  const redirectTo = await callbackUrl("/auth/reset-password", returnTo);
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
     logAuthProviderFailure("password-recovery-request", error);
@@ -90,9 +107,13 @@ export async function sendPasswordResetEmail(email: string): Promise<AuthEmailRe
   return ok({ status: "accepted", email });
 }
 
-export async function sendSignupConfirmationEmail(email: string): Promise<AuthEmailResult> {
+export async function sendSignupConfirmationEmail(
+  email: string,
+  returnToValue?: string | null,
+): Promise<AuthEmailResult> {
+  const returnTo = getSafeNextPath(returnToValue, "/auth/resend-confirmation");
   const supabase = await createClient();
-  const emailRedirectTo = await callbackUrl("/account", "/auth/resend-confirmation");
+  const emailRedirectTo = await callbackUrl("/account", returnTo);
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
