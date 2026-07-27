@@ -16,6 +16,7 @@ import {
   submitPasswordSignIn,
   submitPasswordSignUp,
 } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import type { AuthFlowErrorCode } from "@/modules/auth/errors";
 import {
   closeStorefrontOverlays,
@@ -62,6 +63,7 @@ type StorefrontAuthContextValue = {
       form: StorefrontAuthForm,
       termsAccepted: boolean,
     ) => Promise<AuthSubmissionResult>;
+    syncOAuthSession: () => Promise<{ ok: true } | { ok: false; message: string }>;
     signOut: () => Promise<void>;
   };
 };
@@ -160,6 +162,31 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
     [setSession],
   );
 
+  const syncOAuthSession = useCallback(async () => {
+    const result = await createClient().auth.getUser();
+    const user = result.data.user;
+    if (result.error || !user) {
+      return {
+        ok: false as const,
+        message: "Google sign-in finished, but the browser session could not be verified. Please try again.",
+      };
+    }
+
+    const metadata = user.user_metadata ?? {};
+    const displayName =
+      (typeof metadata.full_name === "string" && metadata.full_name.trim()) ||
+      (typeof metadata.name === "string" && metadata.name.trim()) ||
+      user.email?.split("@")[0] ||
+      null;
+    setSession({
+      signedIn: true,
+      email: user.email ?? null,
+      displayName,
+      role: null,
+    });
+    return { ok: true as const };
+  }, [setSession]);
+
   const signOut = useCallback(async () => {
     const result = await signOutStorefrontSession();
     if (!result.ok) {
@@ -178,9 +205,18 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       closeAuthDialog,
       setAuthDialogMode,
       authenticate,
+      syncOAuthSession,
       signOut,
     }),
-    [authenticate, closeAuthDialog, openSignin, openSignup, setAuthDialogMode, signOut],
+    [
+      authenticate,
+      closeAuthDialog,
+      openSignin,
+      openSignup,
+      setAuthDialogMode,
+      signOut,
+      syncOAuthSession,
+    ],
   );
 
   const displayName = authSession.displayName ?? authSession.email?.split("@")[0] ?? null;
