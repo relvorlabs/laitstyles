@@ -38,6 +38,7 @@ export function AuthEmailForm({
     : { status: "idle", values: { email: initialEmail } };
   const [state, formAction, pending] = useActionState(action, initialState);
   const emailError = state.status === "error" ? state.fieldErrors?.email : undefined;
+  const retainedValues = state.status === "success" ? undefined : state.values;
   const Icon = kind === "confirmation" ? MailCheck : Mail;
   const buttonLabel =
     kind === "confirmation" ? "Send confirmation email" : "Send secure reset link";
@@ -59,7 +60,7 @@ export function AuthEmailForm({
               aria-invalid={Boolean(emailError)}
               autoComplete="email"
               className={`${AUTH_INPUT_CLASS_NAME} pl-11`}
-              defaultValue={state.values?.email ?? initialEmail}
+              defaultValue={retainedValues?.email ?? initialEmail}
               disabled={pending}
               id={`${kind}-email`}
               name="email"
