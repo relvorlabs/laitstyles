@@ -15,6 +15,32 @@ export async function openGoogleOAuthPopup({
   next: string;
   returnTo: string;
 }): Promise<GoogleOAuthPopupResult> {
+  const width = 520;
+  const height = 700;
+  const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
+  const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
+  const popup = window.open(
+    "about:blank",
+    "laitstyles-google-auth",
+    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
+  );
+
+  if (!popup) {
+    return {
+      ok: false,
+      message:
+        "Your browser blocked the Google sign-in window. Allow popups for Laitstyles and try again.",
+    };
+  }
+
+  try {
+    popup.document.title = "Connecting to Google";
+    popup.document.body.innerHTML =
+      '<main style="font-family:system-ui;display:grid;min-height:100vh;place-items:center;margin:0"><p>Connecting to Google…</p></main>';
+  } catch {
+    // The blank popup is same-origin here, but the placeholder is non-essential.
+  }
+
   const callback = new URL("/auth/callback", window.location.origin);
   callback.searchParams.set("next", next);
   callback.searchParams.set("returnTo", returnTo);
@@ -30,28 +56,16 @@ export async function openGoogleOAuthPopup({
   });
 
   if (error || !data.url) {
+    popup.close();
     return { ok: false, message: "Google sign-in could not be started. Please try again." };
   }
 
-  const width = 520;
-  const height = 700;
-  const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
-  const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
-  const popup = window.open(
-    data.url,
-    "laitstyles-google-auth",
-    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
-  );
-
-  if (!popup) {
-    return {
-      ok: false,
-      message: "Your browser blocked the Google sign-in window. Allow popups for Laitstyles and try again.",
-    };
-  }
+  popup.location.replace(data.url);
 
   return new Promise<GoogleOAuthPopupResult>((resolve) => {
     let settled = false;
+    let closedPoll = 0;
+    let timeout = 0;
     const finish = (result: GoogleOAuthPopupResult) => {
       if (settled) return;
       settled = true;
@@ -70,11 +84,11 @@ export async function openGoogleOAuthPopup({
     };
 
     window.addEventListener("message", onMessage);
-    const closedPoll = window.setInterval(() => {
+    closedPoll = window.setInterval(() => {
       if (!popup.closed) return;
       finish({ ok: false, message: "Google sign-in was closed before it finished." });
     }, 400);
-    const timeout = window.setTimeout(() => {
+    timeout = window.setTimeout(() => {
       try {
         popup.close();
       } catch {
