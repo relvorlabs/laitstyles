@@ -3,7 +3,7 @@ import { mapAuthProviderError } from "@/lib/auth/auth-errors";
 import { logAuthProviderFailure } from "@/lib/auth/server/auth-provider-diagnostics";
 import { getSafeNextPath, withAuthErrorPath } from "@/lib/auth/server/redirects";
 import { createClient } from "@/lib/supabase/server";
-import { ensureConsumerAccount } from "@/server/auth/profile";
+import { ensureConsumerAccount } from "@/modules/auth/server/account-provisioning";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);

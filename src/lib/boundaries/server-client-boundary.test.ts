@@ -152,7 +152,7 @@ describe("server/client boundaries", () => {
         ),
       ).toBe(true);
       expect(compatibilityEdges.size).toBe(legacyArchitectureExceptions.length);
-      expect([...legacyTopLevelServerFiles]).toEqual(["src/server/auth/profile.ts"]);
+      expect([...legacyTopLevelServerFiles]).toEqual([]);
     },
     CHECK_TIMEOUT_MS,
   );

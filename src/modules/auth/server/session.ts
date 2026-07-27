@@ -6,7 +6,10 @@ import { hasCapability, type StaffCapability } from "@/lib/auth/permissions";
 import { isStaffRole, type StaffRole } from "@/lib/auth/roles";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { type AuthUserMetadata, ensureConsumerAccount } from "@/server/auth/profile";
+import {
+  type AuthUserMetadata,
+  ensureConsumerAccount,
+} from "@/modules/auth/server/account-provisioning";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 

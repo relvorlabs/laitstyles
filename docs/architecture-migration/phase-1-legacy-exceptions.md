@@ -16,23 +16,22 @@ These edges are owned by the domain engineer and are removed in Phase 7.
 
 **2026-07-27 (P7-T03):** all 25 `@/server/auth/session` edges were removed in one commit —
 `src/server/auth/session.ts` relocated to `src/modules/auth/server/session.ts` and every importer
-now points at the in-module path directly, needing no exception. See
-`docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`. The moved file still
-imports the legacy `src/server/auth/profile.ts` (profile.ts itself moves in P7-T04), so its own
-entry changed from `src/server/auth/session.ts` to `src/modules/auth/server/session.ts` in the
-profile row below rather than disappearing.
+now points at the in-module path directly, needing no exception.
+
+**2026-07-27 (P7-T04):** the remaining 2 `@/server/auth/profile` edges were removed in one commit —
+`src/server/auth/profile.ts` relocated to `src/modules/auth/server/account-provisioning.ts` and
+both former importers (`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) now
+point at the in-module path directly. `src/server/auth/**` no longer exists. See
+`docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.
 
 | Importer | Imported specifier |
 | --- | --- |
-| `src/app/auth/callback/route.ts` | `@/server/auth/profile` |
-| `src/modules/auth/server/session.ts` | `@/server/auth/profile` |
 | `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/modules/storefront-shell/ui/site-chrome.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/modules/storefront-shell/ui/storefront-account-menu.tsx` | `@/features/storefront/shared/storefront-auth-provider` |
 | `src/app/storefront-client-boundary.tsx` | `@/features/storefront/shared/storefront-auth-dialog-host` |
 
-Only `src/server/auth/profile.ts` is declared a legacy top-level auth file (until P7-T04). A
-second production file under `src/server/auth/**` is not allowed by folder or glob.
+No legacy top-level auth file remains declared. `src/server/auth/**` no longer exists.
 
 ## Phase 8 checkout compatibility
 
@@ -84,3 +83,9 @@ directly. The relocated file's own `@/server/auth/profile` import is registered 
 temporary edge (`src/modules/auth/server/session.ts` → `@/server/auth/profile`, replacing the
 prior `src/server/auth/session.ts` entry), retired in P7-T04 when `profile.ts` itself moves into
 the module. See `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.
+
+On 2026-07-27, as part of Phase 7 task P7-T04, the last 2 auth compatibility edges tied to
+`src/server/auth/**` were removed in one commit: `src/server/auth/profile.ts` relocated to
+`src/modules/auth/server/account-provisioning.ts` (content unchanged) and both its importers
+(`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) repointed to the in-module
+path directly. `src/server/auth/**` no longer exists on disk.

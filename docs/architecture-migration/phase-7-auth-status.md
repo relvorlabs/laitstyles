@@ -71,17 +71,19 @@ base, and mirrored in `docs/architecture-migration/phase-1-legacy-exceptions.md`
 - ~~24 importers of `@/server/auth/session`~~ — **retired in P7-T03**: `session.ts` relocated to
   `src/modules/auth/server/session.ts` and all 24 production importers repointed directly; zero
   entries remain for this edge.
-- 2 importers of `@/server/auth/profile` (`phase7ProfileImporters`) — one entry updated in P7-T03:
-  `src/server/auth/session.ts` → `src/modules/auth/server/session.ts` (the moved file still
-  imports the not-yet-moved `profile.ts`; retired in P7-T04);
+- ~~2 importers of `@/server/auth/profile`~~ — **retired in P7-T04**: `profile.ts` relocated to
+  `src/modules/auth/server/account-provisioning.ts` and both importers
+  (`src/app/auth/callback/route.ts`, `src/modules/auth/server/session.ts`) repointed directly; zero
+  entries remain for this edge. `src/server/auth/**` no longer exists on disk.
 - 3 importers of `@/features/storefront/shared/storefront-auth-provider` (`phase7StorefrontAuthProviderImporters`);
 - 1 composition edge, `src/app/storefront-client-boundary.tsx` → `.../storefront-auth-dialog-host` (`phase7StorefrontAuthCompositionEdges`);
 - 1 type-only shim, `src/features/storefront/shared/catalogue-data.ts`, consumed only by
   `storefront-auth-dialog.tsx` for the `Product` type (`legacyProductTypeOnlyEdge`).
 
-Full current-state detail (exact exports, imports, and consumer lists for every one of these) is
-in the design spec's "Current-state inventory" section — this status document does not duplicate
-it and must not drift from it as files move.
+Only 5 of the original 30 Phase 7 legacy-exception edges remain registered. Full current-state
+detail (exact exports, imports, and consumer lists for every one of these) is in the design spec's
+"Current-state inventory" section — this status document does not duplicate it and must not drift
+from it as files move.
 
 The `src/features/storefront/shared/storefront-runtime.ts` checkout edge remains Phase 8-owned and
 is not in scope here.
@@ -138,7 +140,7 @@ Phase 7 must not:
       drift);
 - [x] P7-T02 create `src/modules/auth` runtime contracts (`schema.ts`, `types.ts`);
 - [x] P7-T03 move session resolution;
-- [ ] P7-T04 move account provisioning;
+- [x] P7-T04 move account provisioning;
 - [ ] P7-T05 move permission orchestration;
 - [ ] P7-T06 move redirect helpers;
 - [ ] P7-T07 move diagnostics;
@@ -230,6 +232,48 @@ Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/a
 (`AUTH_E2E=1`, requires a live Supabase/Postgres/mail-inbox stack not available in this
 environment) — deferred to a later task or the final acceptance-gate pass per this design's
 "Validation and verification" section; not claimed as run.
+
+## P7-T04 evidence (2026-07-27)
+
+`src/server/auth/profile.ts` relocated to `src/modules/auth/server/account-provisioning.ts` with
+**zero content change** — same exports (`AuthUserMetadata`, `ConsumerIdentityInput`,
+`consumerProfileValues`, `ensureConsumerAccount`, `ensureConsumerProfile`), same Prisma
+`$transaction` upserting `profiles` → `profile_details` → `customers`. `src/server/auth/**` no
+longer exists on disk — both its files have now moved (`session.ts` in P7-T03, `profile.ts` here).
+
+Both of its 2 real consumers repointed in the same commit: `src/app/auth/callback/route.ts` (the
+OAuth/email-link callback's `ensureConsumerAccount` call) and `src/modules/auth/server/session.ts`
+(its own `ensureConsumerAccount` import, now a same-module import). `session.test.ts`'s
+`vi.mock("@/server/auth/profile", ...)` updated to mock the new path.
+
+**Registry update:** the `phase7ProfileImporters` array and its mapping deleted outright (both
+entries retired, matching the actual code state — not deleted prematurely). `legacyTopLevelServerFiles`
+is now an empty `Set()`: no legacy top-level `server/auth/**` file remains, because none exists.
+`docs/architecture-migration/phase-1-legacy-exceptions.md` mirrors this with a dated
+removal-discipline note. Only the 5 non-session/profile edges (storefront-auth-provider ×3,
+composition ×1, catalogue-data shim ×1) remain registered — down from the original 30.
+
+**One test fixed as part of this task's own scope (not drive-by):** the same
+`server-client-boundary.test.ts` case updated in P7-T03 for the one-file list now asserts an empty
+list, since the last legacy top-level file is gone.
+
+Executed on this commit:
+
+- `pnpm typecheck` — 0 errors.
+- `pnpm check:architecture` — 0 errors, 0 warnings across all five guards.
+- `pnpm biome` — 1 error, 65 warnings. The 1 error is the same pre-existing, unrelated
+  `site-chrome.tsx` indentation drift flagged (and left untouched) in P7-T03's evidence — confirmed
+  by scoping Biome to only this commit's changed files, which found and fixed one line-ending issue
+  in the new `account-provisioning.ts` and nothing else. 65 warnings matches the documented
+  pre-existing baseline exactly.
+- `pnpm exec vitest run` — one run: 6 failed (the 5 documented pre-existing failures plus a 6th,
+  `admin-persistence-boundary.test.ts`); re-ran that file in isolation and it passed cleanly
+  (6/6), confirming the same full-suite worker-contention flake pattern already documented in this
+  repo's history, not a new defect. Targeted re-run of `session.test.ts` +
+  `server-client-boundary.test.ts` — 18/18 passed.
+
+Not yet run: `pnpm build`, `pnpm react-doctor`, browser/Playwright, `tests/e2e/auth-flows.spec.ts`
+— same reasons as P7-T03's evidence note; not claimed as run.
 
 ## Acceptance gate
 

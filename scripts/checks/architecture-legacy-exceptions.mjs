@@ -1,14 +1,11 @@
 // P7-T03 retired every phase7SessionImporters entry: src/server/auth/session.ts
 // no longer exists (moved to src/modules/auth/server/session.ts), so every
 // former importer now points at the in-module path and needs no exception.
-
-const phase7ProfileImporters = [
-  "src/app/auth/callback/route.ts",
-  // Temporary: src/modules/auth/server/session.ts (moved in P7-T03) still
-  // imports the legacy src/server/auth/profile.ts. Retired in P7-T04 when
-  // profile.ts itself moves into the module (same-module import then).
-  "src/modules/auth/server/session.ts",
-];
+//
+// P7-T04 retired every phase7ProfileImporters entry: src/server/auth/profile.ts
+// no longer exists (moved to src/modules/auth/server/account-provisioning.ts);
+// its two former importers (callback/route.ts and session.ts) both now import
+// the in-module path directly, needing no exception.
 
 const phase7StorefrontAuthProviderImporters = [
   "src/app/storefront-client-boundary.tsx",
@@ -34,25 +31,12 @@ const phase8Edges = [
   },
 ];
 
-const phase7ProfileReason =
-  "src/modules/auth/server/session.ts (moved in P7-T03) still imports the legacy " +
-  "src/server/auth/profile.ts; auth ownership of profile.ts moves in Phase 7 (P7-T04).";
 const phase7StorefrontProviderReason =
   "Phase 1-6 reuses the inherited storefront auth provider; auth ownership moves in Phase 7.";
 const phase8Reason =
   "Phase 2 preserves the existing checkout presentation; settlement authority moves in Phase 8.";
 
 export const legacyArchitectureExceptions = Object.freeze([
-  ...phase7ProfileImporters.map((importer) =>
-    Object.freeze({
-      importer,
-      imported: "@/server/auth/profile",
-      kind: "phase-7-auth",
-      reason: phase7ProfileReason,
-      owner: "domain-engineer",
-      removalPhase: 7,
-    }),
-  ),
   ...phase7StorefrontAuthProviderImporters.map((importer) =>
     Object.freeze({
       importer,
@@ -83,7 +67,9 @@ export const legacyArchitectureExceptions = Object.freeze([
   ),
 ]);
 
-export const legacyTopLevelServerFiles = new Set(["src/server/auth/profile.ts"]);
+// P7-T04 retired the last entry (src/server/auth/profile.ts). No legacy
+// top-level auth files remain; src/server/auth/** no longer exists.
+export const legacyTopLevelServerFiles = new Set();
 
 export const legacyProductTypeOnlyEdge = Object.freeze({
   importer: "src/features/storefront/shared/storefront-auth-dialog.tsx",
