@@ -14,6 +14,7 @@ import {
   AuthField,
   AuthStatusNotice,
 } from "@/modules/auth/ui/auth-page-shell";
+import { GoogleOAuthButton } from "@/modules/auth/ui/google-oauth-button";
 
 type AuthPageAction = (
   previousState: AuthPageActionState,
@@ -72,22 +73,7 @@ export function SignUpForm({
         <AuthStatusNotice tone="error">{state.message}</AuthStatusNotice>
       ) : null}
 
-      <form action="/auth/google" method="post">
-        <input name="next" type="hidden" value="/account" />
-        <input name="returnTo" type="hidden" value="/auth/sign-up" />
-        <Button
-          className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
-          disabled={pending}
-          size="lg"
-          type="submit"
-          variant="outline"
-        >
-          <span className="grid size-7 place-items-center rounded-full border border-border bg-card font-semibold">
-            G
-          </span>
-          Continue with Google
-        </Button>
-      </form>
+      <GoogleOAuthButton disabled={pending} next="/account" returnTo="/auth/sign-up" />
 
       <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
         <Separator className="flex-1" />
