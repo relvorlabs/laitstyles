@@ -164,7 +164,10 @@ Phase 7 must not:
 - [ ] P7-T14 run focused auth unit, integration, and Playwright/e2e (`tests/e2e/auth-flows.spec.ts`)
       validation — **partially done**; see evidence below for exactly what ran and what remains
       blocked;
-- [ ] P7-T15 reconcile documentation and merge evidence on the exact final head.
+- [x] P7-T15 reconcile documentation and merge evidence on the exact final head (this document,
+      the design spec's status line, and PR #52's description all updated to match; the *merge
+      itself* is separately gated on P7-T14's still-open acceptance gap above — reconciling the
+      record is not the same as declaring Phase 7 ready to merge).
 
 ## P7-T02 evidence (2026-07-27)
 
