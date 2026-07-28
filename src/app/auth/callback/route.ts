@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { completeOAuthCallback } from "@/modules/auth/server/authenticate";
+import { getRequestOrigin } from "@/modules/auth/server/redirects";
 
 export async function GET(request: NextRequest) {
   const target = await completeOAuthCallback({
@@ -10,11 +11,13 @@ export async function GET(request: NextRequest) {
     returnTo: request.nextUrl.searchParams.get("returnTo"),
   });
 
+  const origin = await getRequestOrigin();
+
   if (request.nextUrl.searchParams.get("popup") === "1") {
-    const popupTarget = new URL("/auth/oauth-complete", request.url);
+    const popupTarget = new URL("/auth/oauth-complete", origin);
     popupTarget.searchParams.set("target", target);
     return NextResponse.redirect(popupTarget);
   }
 
-  return NextResponse.redirect(new URL(target, request.url));
+  return NextResponse.redirect(new URL(target, origin));
 }
