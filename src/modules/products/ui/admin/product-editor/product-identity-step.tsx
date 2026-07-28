@@ -1,23 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { ExternalLink, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
-import {
-  EditorSelectField,
-  EditorTextareaField,
-  EditorTextField,
-} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import { generateProductSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import {
   adminProductsQueryOptions,
   productTaxonomyQueryOptions,
 } from "@/modules/products/client/hooks";
+import {
+  EditorSelectField,
+  EditorTextareaField,
+  EditorTextField,
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 
 export function ProductIdentityStep() {
   const { data: products = [] } = useQuery(adminProductsQueryOptions());
@@ -107,35 +107,13 @@ export function ProductIdentityStep() {
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2">
             <EditorSelectField label="Category" name="category" options={categories} />
-            <CatalogueTaxonomyManager
-              className="h-9 rounded-full"
-              initialKind="category"
-              onCreate={({ kind, name: createdName }) => {
-                if (kind === "category") {
-                  setValue("category", createdName, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-              onDelete={({ name: deletedName }) => {
-                if (currentCategory === deletedName) {
-                  setValue("category", "", {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-              onRename={({ previousName, nextName }) => {
-                if (currentCategory === previousName) {
-                  setValue("category", nextName, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-              triggerLabel="Manage categories"
-            />
+            <Link
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+              href="/admin/inventory/catalogue?tab=categories"
+              target="_blank"
+            >
+              Manage categories <ExternalLink aria-hidden="true" className="size-3.5" />
+            </Link>
           </div>
           <EditorTextField label="Brand or label" name="brand" placeholder="Adidas or Unlabelled" />
         </div>
@@ -148,35 +126,13 @@ export function ProductIdentityStep() {
             name="collection"
             options={collections}
           />
-          <CatalogueTaxonomyManager
-            className="h-9 rounded-full"
-            initialKind="collection"
-            onCreate={({ kind, name: createdName }) => {
-              if (kind === "collection") {
-                setValue("collection", createdName, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-              }
-            }}
-            onDelete={({ name: deletedName }) => {
-              if (currentCollection === deletedName) {
-                setValue("collection", "", {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-              }
-            }}
-            onRename={({ previousName, nextName }) => {
-              if (currentCollection === previousName) {
-                setValue("collection", nextName, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-              }
-            }}
-            triggerLabel="Manage collections"
-          />
+          <Link
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            href="/admin/inventory/catalogue?tab=collections"
+            target="_blank"
+          >
+            Manage collections <ExternalLink aria-hidden="true" className="size-3.5" />
+          </Link>
         </div>
 
         <EditorTextareaField
