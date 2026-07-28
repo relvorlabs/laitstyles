@@ -1,0 +1,102 @@
+{
+  "catalogue_categories": [
+    { "id": "category-denim", "name": "Denim" }
+  ],
+  "catalogue_collections": [
+    { "id": "collection-archive", "name": "Archive edit" }
+  ],
+  "products": [
+    {
+      "id": "product-unique",
+      "category_id": "category-denim",
+      "collection_id": "collection-archive",
+      "name": "One-off indigo jacket",
+      "description": "A single archive jacket.",
+      "inventory_mode": "unique",
+      "price": 48000,
+      "reference_price": 52000,
+      "cost": 22000,
+      "low_stock_threshold": 1,
+      "archive_number": "ARC-001",
+      "condition": "Excellent",
+      "size_label": "M",
+      "colour": "Indigo"
+    },
+    {
+      "id": "product-stocked",
+      "category_id": "category-denim",
+      "collection_id": null,
+      "name": "Studio denim shirt",
+      "description": "A repeatable stocked shirt.",
+      "inventory_mode": "stocked",
+      "price": 32000,
+      "low_stock_threshold": 3,
+      "sku": "STK-DENIM-SHIRT",
+      "size_label": "One size",
+      "colour": "Washed blue"
+    },
+    {
+      "id": "product-variant",
+      "category_id": "category-denim",
+      "collection_id": "collection-archive",
+      "name": "Selvedge trouser",
+      "description": "A trouser with stock-bearing sizes.",
+      "inventory_mode": "variant",
+      "price": 56000,
+      "low_stock_threshold": 2,
+      "sku": "VAR-SELVEDGE"
+    }
+  ],
+  "product_channels": [
+    { "product_id": "product-unique", "channel": "storefront" },
+    { "product_id": "product-stocked", "channel": "physical_store" },
+    { "product_id": "product-variant", "channel": "instagram" }
+  ],
+  "product_variants": [
+    {
+      "id": "variant-small",
+      "product_id": "product-variant",
+      "title": "Small",
+      "sku": "VAR-SELVEDGE-S",
+      "size_label": "S",
+      "colour": "Indigo",
+      "price_override": 56000,
+      "cost": 26000
+    },
+    {
+      "id": "variant-large",
+      "product_id": "product-variant",
+      "title": "Large",
+      "sku": "VAR-SELVEDGE-L",
+      "size_label": "L",
+      "colour": "Indigo",
+      "price_override": 58000,
+      "cost": 27000
+    }
+  ],
+  "stock_levels": [
+    { "product_id": "product-unique", "variant_id": null, "quantity_on_hand": 1 },
+    { "product_id": "product-stocked", "variant_id": null, "quantity_on_hand": 12 },
+    { "product_id": "product-variant", "variant_id": "variant-small", "quantity_on_hand": 3 },
+    { "product_id": "product-variant", "variant_id": "variant-large", "quantity_on_hand": 4 }
+  ],
+  "product_measurements": [
+    {
+      "product_id": "product-unique",
+      "variant_id": null,
+      "label": "Chest",
+      "value": 52,
+      "unit": "cm"
+    }
+  ],
+  "product_media": [
+    { "product_id": "product-unique", "variant_id": null, "asset_id": "asset-one" },
+    { "product_id": "product-stocked", "variant_id": null, "asset_id": "asset-two" },
+    { "product_id": "product-variant", "variant_id": "variant-small", "asset_id": "asset-three" }
+  ],
+  "cloudinary_assets": [
+    { "id": "asset-one", "secure_url": "https://res.cloudinary.com/source/image/upload/one.jpg" },
+    { "id": "asset-two", "secure_url": "https://res.cloudinary.com/source/image/upload/two.jpg" },
+    { "id": "asset-three", "secure_url": "https://res.cloudinary.com/source/image/upload/three.jpg" }
+  ]
+}

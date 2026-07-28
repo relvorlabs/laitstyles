@@ -1,0 +1,4 @@
+mode,name,description,category,collection,internalReference,sellingPrice,stock,variants,measurements,imageUrl
+unique,One-off indigo jacket,A single archive jacket.,Denim,Archive edit,ARC-001,48000,,,"[{""label"":""Chest"",""value"":""52 cm""}]",https://res.cloudinary.com/source/image/upload/one.jpg
+stocked,Studio denim shirt,A repeatable stocked shirt.,Denim,,STK-DENIM-SHIRT,32000,12,,,https://res.cloudinary.com/source/image/upload/two.jpg
+variant,Selvedge trouser,A trouser with stock-bearing sizes.,Denim,Archive edit,VAR-SELVEDGE,56000,,"[{""label"":""Small"",""sku"":""VAR-SELVEDGE-S"",""size"":""S"",""colour"":""Indigo"",""stock"":3}]",[],https://res.cloudinary.com/source/image/upload/three.jpg
