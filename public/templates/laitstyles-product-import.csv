@@ -1,0 +1,4 @@
+mode,name,description,category,collection,brand,internalReference,sellingPrice,cost,condition,size,sizeLabel,colour,stock,optionNames,variants,measurements
+unique,Archive wool coat,One-of-one black wool coat,Outerwear,Winter Archive,Unlabelled,ARC-COAT-001,85000,35000,Excellent,M,,Black,,,,"[{""label"":""Chest"",""value"":""52 cm""}]"
+stocked,Classic cotton tee,Everyday white cotton tee,Tops,,Unlabelled,TEE-WHT,18000,6000,,,M,White,12,,,
+variant,Varsity jacket,A blue varsity jacket with size variants,Outerwear,Campus,Unlabelled,VARSITY-BLU,65000,28000,,,,,,,"[""Size""]","[{""label"":""S"",""sku"":""VARSITY-BLU-S"",""size"":""S"",""stock"":2},{""label"":""M"",""sku"":""VARSITY-BLU-M"",""size"":""M"",""stock"":3}]","[]"
