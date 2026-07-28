@@ -63,16 +63,16 @@ export function getConfiguredAuthOrigin() {
 }
 
 export async function getRequestOrigin() {
-  const configuredOrigin = getConfiguredAuthOrigin();
-  if (configuredOrigin) return configuredOrigin;
-
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const protocol =
-    headerStore.get("x-forwarded-proto") ??
-    (host?.startsWith("localhost") || host?.startsWith("127.") ? "http" : "https");
+  if (host) {
+    const protocol =
+      headerStore.get("x-forwarded-proto") ??
+      (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
+    return `${protocol}://${host}`;
+  }
 
-  return host ? `${protocol}://${host}` : LOCAL_AUTH_ORIGIN;
+  return getConfiguredAuthOrigin() ?? LOCAL_AUTH_ORIGIN;
 }
 
 export async function getAuthRedirectUrl(path: string) {

@@ -63,6 +63,6 @@ The callback exchanges the code on the server, provisions the consumer account a
 
 Cart, saved-item and hold state are owned by `StorefrontStateHydrator` and the storefront Zustand stores, not the auth session. The minimal canonical snapshot uses `laitstyles-storefront:v3:client-state`: `sessionStorage` is preferred for the current tab, and `localStorage` carries the same snapshot as a fallback when an email confirmation or recovery link opens a new tab. Login, signup, confirmation callbacks and account navigation must not clear or replace that snapshot.
 
-Authentication email and OAuth callback URLs prefer `AUTH_SITE_URL`, then `NEXT_PUBLIC_APP_URL`, then `NEXT_PUBLIC_SITE_URL`, and finally the current request origin. Every configured origin must allow `/auth/callback`; manager invitations additionally require `/auth/invite/setup` in the Supabase Auth redirect allow-list.
+Authentication email and OAuth callback URLs prefer the current request's forwarded host/origin, then `AUTH_SITE_URL`, then `NEXT_PUBLIC_APP_URL`, then `NEXT_PUBLIC_SITE_URL` as a fallback for header-less contexts. Every configured origin must allow `/auth/callback`; manager invitations additionally require `/auth/invite/setup` in the Supabase Auth redirect allow-list.
 
 The authoritative implementation ledger remains `docs/architecture-migration/phase-7-closure-status.md`.

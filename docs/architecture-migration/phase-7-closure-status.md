@@ -93,12 +93,12 @@ The application triggers the exposed email workflows through:
 - password recovery — `supabase.auth.resetPasswordForEmail`;
 - store-manager invitation — `supabase.auth.admin.inviteUserByEmail`.
 
-All callback URLs resolve from the first valid origin below:
+All callback URLs resolve from the first valid origin below (fixed 2026-07-28: the request host must win over env vars, otherwise a stale/misscoped `AUTH_SITE_URL` silently hijacks redirects to the wrong environment — see `redirects.test.ts`):
 
-1. `AUTH_SITE_URL`;
-2. `NEXT_PUBLIC_APP_URL`;
-3. `NEXT_PUBLIC_SITE_URL`;
-4. current forwarded/request host;
+1. current forwarded/request host (`x-forwarded-host`/`host` header);
+2. `AUTH_SITE_URL`;
+3. `NEXT_PUBLIC_APP_URL`;
+4. `NEXT_PUBLIC_SITE_URL`;
 5. local fallback.
 
 Each callback carries a safe internal surface. Provider failures add only an allow-listed error code; raw provider messages are not exposed to the browser. Every public/local origin must include `/auth/callback` in the Supabase Auth redirect allow-list, and manager invitations additionally require `/auth/invite/setup`.

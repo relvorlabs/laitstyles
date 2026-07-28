@@ -1,10 +1,26 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(),
+}));
+
+import { headers } from "next/headers";
 import {
   getConfiguredAuthOrigin,
+  getRequestOrigin,
   getSafeNextPath,
   withAuthErrorPath,
   withAuthErrorState,
 } from "@/modules/auth/server/redirects";
+
+const AUTH_ORIGIN_ENV_KEYS = ["AUTH_SITE_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SITE_URL"] as const;
+
+function mockRequestHeaders(entries: Record<string, string>) {
+  const map = new Map(Object.entries(entries));
+  vi.mocked(headers).mockResolvedValue({
+    get: (key: string) => map.get(key) ?? null,
+  } as unknown as Awaited<ReturnType<typeof headers>>);
+}
 
 describe("auth redirect safety", () => {
   it("allows internal relative paths", () => {
@@ -57,5 +73,47 @@ describe("auth redirect safety", () => {
         "/auth/sign-in?next=%2Fadmin",
       ),
     ).toBe("/auth/sign-in?next=%2Fadmin&error=oauth-start-failed");
+  });
+});
+
+describe("getRequestOrigin", () => {
+  const previous: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    for (const key of AUTH_ORIGIN_ENV_KEYS) {
+      previous[key] = process.env[key];
+      delete process.env[key];
+    }
+  });
+
+  afterEach(() => {
+    for (const key of AUTH_ORIGIN_ENV_KEYS) {
+      if (previous[key] === undefined) delete process.env[key];
+      else process.env[key] = previous[key];
+    }
+    vi.mocked(headers).mockReset();
+  });
+
+  it("prefers the live request host over a stale configured origin", async () => {
+    process.env.AUTH_SITE_URL = "https://stale-preview.laitstyles.com";
+    mockRequestHeaders({
+      "x-forwarded-host": "laitstyle.localhost",
+      "x-forwarded-proto": "https",
+    });
+
+    await expect(getRequestOrigin()).resolves.toBe("https://laitstyle.localhost");
+  });
+
+  it("falls back to the configured origin when no request headers are present", async () => {
+    process.env.AUTH_SITE_URL = "https://shop.example.com";
+    mockRequestHeaders({});
+
+    await expect(getRequestOrigin()).resolves.toBe("https://shop.example.com");
+  });
+
+  it("falls back to the local auth origin when neither headers nor env are present", async () => {
+    mockRequestHeaders({});
+
+    await expect(getRequestOrigin()).resolves.toBe("https://laitstyle.localhost");
   });
 });
