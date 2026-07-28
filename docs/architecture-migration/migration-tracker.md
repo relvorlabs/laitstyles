@@ -10,8 +10,8 @@ checkout, refunds/disputes and owner-finance surface than those two phase rows d
 `/api/v1` endpoint baseline and every prototype/browser-owned/server-direct interaction across the
 storefront account, checkout and admin-finance surfaces:
 
-- Ledger: [`complete-api-endpoint-ledger.md`](complete-api-endpoint-ledger.md) — 109 rows (31 existing
-  real endpoints, 36 target account endpoints, 30 target checkout/payment/finance endpoints, 12
+- Ledger: [`complete-api-endpoint-ledger.md`](complete-api-endpoint-ledger.md) — 114 rows (31 existing
+  real endpoints, 36 target account endpoints, 30 target checkout/payment/finance endpoints, 17
   additional browser-owned/prototype interactions found by direct code inspection).
 - Captured at worktree `plan-01-ledger-persistence`, HEAD `54570e02ed3ebd809c6f03f4b536c17c3a98f510`,
   2026-07-28.
