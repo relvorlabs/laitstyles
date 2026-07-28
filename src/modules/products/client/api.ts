@@ -11,7 +11,9 @@ import type {
   ProductTaxonomyError,
   ProductTaxonomyInput,
   ProductTaxonomyItem,
+  ProductTaxonomyReorderInput,
   ProductTaxonomySuccess,
+  ProductTaxonomyUpdateInput,
 } from "@/modules/products/types";
 
 const PRODUCTS_URL = "/api/v1/admin/products";
@@ -133,6 +135,45 @@ export async function renameProductTaxonomyRequest({
     return ok(response.data);
   } catch (error) {
     if (error instanceof ApiClientError) return err(toProductTaxonomyError(error, taxonomyId));
+    throw error;
+  }
+}
+
+export async function updateProductTaxonomyRequest({
+  taxonomyId,
+  input,
+}: {
+  taxonomyId: string;
+  input: ProductTaxonomyUpdateInput;
+}): Promise<Result<ProductTaxonomySuccess, ProductTaxonomyError>> {
+  try {
+    const response = await apiRequest<ProductTaxonomySuccess>(
+      `${TAXONOMY_URL}/${encodeURIComponent(taxonomyId)}`,
+      {
+        method: "PATCH",
+        headers: jsonHeaders(),
+        body: JSON.stringify(input),
+      },
+    );
+    return ok(response.data);
+  } catch (error) {
+    if (error instanceof ApiClientError) return err(toProductTaxonomyError(error, taxonomyId));
+    throw error;
+  }
+}
+
+export async function reorderProductTaxonomyRequest(
+  input: ProductTaxonomyReorderInput,
+): Promise<Result<ProductTaxonomySuccess, ProductTaxonomyError>> {
+  try {
+    const response = await apiRequest<ProductTaxonomySuccess>(`${TAXONOMY_URL}/reorder`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify(input),
+    });
+    return ok(response.data);
+  } catch (error) {
+    if (error instanceof ApiClientError) return err(toProductTaxonomyError(error));
     throw error;
   }
 }
