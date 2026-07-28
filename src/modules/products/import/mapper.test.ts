@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { mapProductImport } from "@/modules/products/import/mapper";
+import {
+  mapProductImport,
+  type ProductImportRelationalSnapshot,
+} from "@/modules/products/import/mapper";
 import type { ProductImportRow } from "@/modules/products/import/types";
 
 const CATEGORY_ID = "category-1";
@@ -9,7 +12,9 @@ const COLLECTION_ID = "collection-1";
 const PRODUCT_ID = "product-1";
 const VARIANT_ID = "variant-1";
 
-function snapshotFixture(overrides: Record<string, unknown> = {}) {
+function snapshotFixture(
+  overrides: Partial<ProductImportRelationalSnapshot> = {},
+): ProductImportRelationalSnapshot {
   return {
     catalogue_categories: [{ id: CATEGORY_ID, name: "Jackets" }],
     catalogue_collections: [{ id: COLLECTION_ID, name: "After dark" }],

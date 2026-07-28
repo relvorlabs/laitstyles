@@ -67,7 +67,7 @@ const admin: StaffSession = {
   role: "admin",
 };
 
-const viewer: StaffSession = { ...admin, role: "viewer" };
+const viewer: StaffSession = { ...admin, role: "manager" };
 const now = new Date("2026-01-01T00:00:00.000Z");
 
 function categoryRow(overrides: Record<string, unknown> = {}) {

@@ -53,6 +53,7 @@ export function ProductImagesStep() {
   });
   const mediaError = getProductEditorFieldError(errors, "media");
   const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
+  const uploadActive = uploadStatus === "opening" || uploadStatus === "uploading";
 
   function handleUploadSuccess(result: CloudinaryUploadWidgetResults) {
     const normalized = normalizeCloudinaryUploadResult(result);
@@ -155,11 +156,10 @@ export function ProductImagesStep() {
           <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground md:block">
             {fields.length}/{MAX_IMAGES} images
           </span>
-          {remainingSlots > 0 ? (
+          {remainingSlots > 0 && !uploadActive ? (
             <CldUploadButton
               className={buttonVariants({ size: "lg", variant: "outline" })}
               data-slot="button"
-              disabled={uploadStatus === "opening" || uploadStatus === "uploading"}
               onClose={() =>
                 setUploadStatus((current) =>
                   current === "opening" || current === "uploading" ? "cancelled" : current,
@@ -191,7 +191,7 @@ export function ProductImagesStep() {
               signatureEndpoint="/api/v1/admin/assets/sign"
             >
               <AdminIcon icon={ImageAdd01Icon} size={17} />
-              Upload images
+              {uploadActive ? "Uploading images" : "Upload images"}
             </CldUploadButton>
           ) : (
             <span

@@ -314,15 +314,28 @@ export function VariantProductFields() {
                           <AdminIcon icon={Delete02Icon} size={14} />
                         </Button>
                       </div>
+                    ) : uploadStatus === "opening" || uploadStatus === "uploading" ? (
+                      <span
+                        aria-disabled="true"
+                        className={buttonVariants({
+                          size: "sm",
+                          variant: "outline",
+                          className: "pointer-events-none opacity-60",
+                        })}
+                      >
+                        Uploading image
+                      </span>
                     ) : (
                       <CldUploadButton
                         className={buttonVariants({ size: "sm", variant: "outline" })}
                         data-slot="button"
-                        disabled={uploadStatus === "opening" || uploadStatus === "uploading"}
                         onClose={() => {
-                          if (uploadStatus === "opening" || uploadStatus === "uploading") {
-                            setVariantUploadStatus(field.fieldKey, "cancelled");
-                          }
+                          setUploadStatuses((current) => {
+                            const status = current[field.fieldKey];
+                            return status === "opening" || status === "uploading"
+                              ? { ...current, [field.fieldKey]: "cancelled" }
+                              : current;
+                          });
                         }}
                         onError={() => {
                           setVariantUploadStatus(field.fieldKey, "failed");

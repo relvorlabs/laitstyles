@@ -136,7 +136,7 @@ function parseCsvTableWithSourceRows(text: string): Result<CsvTable, ProductImpo
   }
 
   if (field.length > 0 || row.length > 0 || fieldStartedQuoted) finishRow();
-  if (!rows.length) return ok([]);
+  if (!rows.length) return ok({ headers: [], rows: [] });
 
   const [headerRow, ...dataRows] = rows;
   const headers = headerRow?.values;
@@ -238,7 +238,7 @@ function isNestedJsonColumn(column: string) {
   return ["variants", "measurements", "optionNames", "channels", "fulfilment"].includes(column);
 }
 
-function invalidImport(row?: number) {
+function invalidImport(row?: number): ProductImportParseResult {
   return err({
     code: "invalid-import",
     message: "The import contains an invalid product row.",
@@ -246,7 +246,7 @@ function invalidImport(row?: number) {
   });
 }
 
-function tooManyProducts() {
+function tooManyProducts(): ProductImportParseResult {
   return err({
     code: "too-many-products",
     message: "Import files may contain at most 1,000 products.",
