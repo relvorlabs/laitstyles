@@ -1,42 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import {
-  authFlowFailure,
-  logAuthProviderFailure,
-  mapAuthProviderError,
-} from "@/modules/auth/server/diagnostics";
-import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
+  getRequestOrigin,
+  getSafeNextPath,
+  withAuthErrorState,
+} from "@/modules/auth/server/redirects";
 
-async function startGoogleOAuth(request: NextRequest, value: FormDataEntryValue | string | null) {
-  const next = getSafeNextPath(value, "/account");
-  const supabase = await createClient();
-  const redirectTo = `${request.nextUrl.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+function browserOnlyTarget(
+  nextValue: FormDataEntryValue | string | null,
+  returnToValue: FormDataEntryValue | string | null,
+) {
+  const next = getSafeNextPath(nextValue, "/account");
+  const fallback = next.startsWith("/admin")
+    ? `/auth/sign-in?next=${encodeURIComponent(next)}`
+    : `/?auth=signin&next=${encodeURIComponent(next)}`;
+  const returnTo = getSafeNextPath(returnToValue, fallback);
+  return withAuthErrorState(returnTo, "oauth-start-failed", fallback);
+}
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo,
-    },
-  });
-
-  if (error || !data.url) {
-    logAuthProviderFailure("oauth-start", error ?? { name: "MissingOAuthRedirectUrl" });
-    const failure = error
-      ? mapAuthProviderError(error, "oauth-start-failed")
-      : authFlowFailure("oauth-start-failed");
-    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), request.url), {
-      status: 303,
-    });
-  }
-
-  return NextResponse.redirect(data.url, { status: 303 });
+async function redirectToAuthTarget(target: string) {
+  const origin = await getRequestOrigin();
+  return NextResponse.redirect(new URL(target, origin), { status: 303 });
 }
 
 export async function GET(request: NextRequest) {
-  return startGoogleOAuth(request, request.nextUrl.searchParams.get("next"));
+  return redirectToAuthTarget(
+    browserOnlyTarget(
+      request.nextUrl.searchParams.get("next"),
+      request.nextUrl.searchParams.get("returnTo"),
+    ),
+  );
 }
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  return startGoogleOAuth(request, formData.get("next"));
+  return redirectToAuthTarget(browserOnlyTarget(formData.get("next"), formData.get("returnTo")));
 }

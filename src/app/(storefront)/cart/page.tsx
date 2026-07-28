@@ -5,6 +5,14 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldSuccess,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { money as naira } from "@/modules/products/ui/storefront/catalogue-data";
 import {
   useStorefrontCart,
@@ -22,6 +30,7 @@ export default function CartPage() {
   const [discountInput, setDiscountInput] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountMessage, setDiscountMessage] = useState("");
+  const [discountAttempted, setDiscountAttempted] = useState(false);
 
   const heldLines = cart.views.filter(
     ({ product }) => (holds.secondsByProduct[product.id] ?? 0) > 0,
@@ -57,6 +66,7 @@ export default function CartPage() {
   function applyDiscount() {
     const valid = discountInput.trim().toUpperCase() === "LAIT10";
     setDiscountApplied(valid);
+    setDiscountAttempted(true);
     setDiscountMessage(
       valid
         ? "LAIT10 applied — 10% off your pieces."
@@ -224,32 +234,38 @@ export default function CartPage() {
                 Order summary
               </h2>
 
-              <div className="mb-2 flex gap-2.5">
-                <label className="sr-only" htmlFor="discount-code">
-                  Discount code
-                </label>
-                <input
-                  className="h-[46px] min-w-0 flex-1 rounded-[9px] border border-[#E4E2DA] px-3.5 text-[13.5px] outline-none focus:border-[#1B1A17]"
-                  id="discount-code"
-                  name="discount-code"
-                  onChange={(event) => setDiscountInput(event.target.value)}
-                  placeholder="Discount code"
-                  value={discountInput}
-                />
-                <Button size="lg" onClick={applyDiscount} type="button">
-                  Apply
-                </Button>
-              </div>
-              <p
-                aria-live="polite"
-                className={
-                  discountApplied
-                    ? "mb-4 text-[11.5px] text-[#5F7043]"
-                    : "mb-4 text-[11.5px] text-[#8A887E]"
-                }
-              >
-                {discountMessage || "Preview code: LAIT10"}
-              </p>
+              <Field className="mb-4" data-invalid={discountAttempted && !discountApplied}>
+                <div className="flex gap-2.5">
+                  <FieldLabel className="sr-only" htmlFor="discount-code">
+                    Discount code
+                  </FieldLabel>
+                  <Input
+                    aria-invalid={discountAttempted && !discountApplied}
+                    id="discount-code"
+                    inputSize="lg"
+                    isValid={discountAttempted && discountApplied}
+                    name="discount-code"
+                    onChange={(event) => {
+                      setDiscountInput(event.target.value);
+                      setDiscountAttempted(false);
+                    }}
+                    placeholder="Discount code"
+                    value={discountInput}
+                  />
+                  <Button size="lg" onClick={applyDiscount} type="button">
+                    Apply
+                  </Button>
+                </div>
+                {discountAttempted && !discountApplied ? (
+                  <FieldError>{discountMessage}</FieldError>
+                ) : null}
+                {discountAttempted && discountApplied ? (
+                  <FieldSuccess>{discountMessage}</FieldSuccess>
+                ) : null}
+                {!discountAttempted ? (
+                  <FieldDescription>Preview code: LAIT10</FieldDescription>
+                ) : null}
+              </Field>
 
               <SummaryRow
                 label={`Subtotal · ${itemCount} ${itemCount === 1 ? "item" : "items"}`}

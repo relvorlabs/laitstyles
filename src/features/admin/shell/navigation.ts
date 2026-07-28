@@ -5,12 +5,14 @@ import {
   Store01Icon,
 } from "@hugeicons/core-free-icons";
 import type { AdminIconData } from "@/features/admin/shared/admin-icon";
+import type { StaffCapability } from "@/modules/auth/permissions";
 
 export type AdminNavigationItem = {
   label: string;
   href: string;
   icon: AdminIconData;
   description: string;
+  requiredCapability?: StaffCapability;
 };
 
 export type AdminNavigationGroup = {
@@ -60,6 +62,14 @@ const customersItem: AdminNavigationItem = {
   description: "Relationships, spend, follow-up and delivery context.",
 };
 
+const teamItem: AdminNavigationItem = {
+  label: "Team",
+  href: "/admin/team",
+  icon: Store01Icon,
+  description: "Invite and review store-manager access.",
+  requiredCapability: "team:read",
+};
+
 const settingsItem: AdminNavigationItem = {
   label: "Settings",
   href: "/admin/settings",
@@ -71,7 +81,7 @@ export const adminNavigationGroups: AdminNavigationGroup[] = [
   { label: "Admin", items: [overviewItem] },
   { label: "Catalogue", items: [inventoryItem] },
   { label: "Sales", items: [ordersItem, holdsItem, returnsItem] },
-  { label: "People", items: [customersItem] },
+  { label: "People", items: [customersItem, teamItem] },
   { label: "Store", items: [settingsItem] },
 ];
 

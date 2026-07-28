@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ConvertHoldInput } from "@/modules/holds/types";
 
@@ -75,11 +75,14 @@ export function HoldConversionDialog({
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-2">
-            <Label htmlFor="hold-delivery-city">Delivery or pickup city</Label>
+          <Field data-invalid={Boolean(error)}>
+            <FieldLabel htmlFor="hold-delivery-city">Delivery or pickup city</FieldLabel>
             <Input
+              aria-invalid={Boolean(error)}
               autoComplete="address-level2"
               id="hold-delivery-city"
+              inputSize="lg"
+              isValid={!error && deliveryCity.trim().length > 0}
               onChange={(event) => {
                 setDeliveryCity(event.target.value);
                 setError(null);
@@ -87,10 +90,10 @@ export function HoldConversionDialog({
               placeholder="e.g. Ikeja"
               value={deliveryCity}
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="hold-conversion-notes">Internal notes</Label>
+          <Field>
+            <FieldLabel htmlFor="hold-conversion-notes">Internal notes</FieldLabel>
             <Textarea
               id="hold-conversion-notes"
               onChange={(event) => {
@@ -98,9 +101,10 @@ export function HoldConversionDialog({
                 setError(null);
               }}
               placeholder="Pickup arrangement or staff note…"
+              textareaSize="lg"
               value={notes}
             />
-          </div>
+          </Field>
 
           {error ? (
             <p aria-live="polite" className="text-[12px] text-destructive">

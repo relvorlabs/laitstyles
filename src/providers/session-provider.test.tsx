@@ -1,8 +1,13 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SessionProvider, useSession } from "@/providers/session-provider";
+import {
+  SessionProvider,
+  useSession,
+  useSessionActions,
+} from "@/providers/session-provider";
 
 afterEach(() => {
   cleanup();
@@ -18,9 +23,73 @@ function Consumer() {
   );
 }
 
+function SessionControls() {
+  const { resetSession, setSession } = useSessionActions();
+  return (
+    <>
+      <button
+        onClick={() =>
+          setSession({
+            signedIn: true,
+            email: "shopper@example.com",
+            displayName: "Shopper",
+            role: null,
+          })
+        }
+        type="button"
+      >
+        Sign in locally
+      </button>
+      <button onClick={resetSession} type="button">
+        Sign out locally
+      </button>
+    </>
+  );
+}
+
 describe("SessionProvider", () => {
   it("exposes the provided session to descendants", () => {
     render(
+      <SessionProvider
+        session={{ signedIn: true, email: "a@b.com", displayName: "Ada", role: "admin" }}
+      >
+        <Consumer />
+      </SessionProvider>,
+    );
+
+    expect(screen.getByTestId("session").textContent).toBe("signed-in:Ada:admin");
+  });
+
+  it("updates sign-in and sign-out state without remounting the provider", async () => {
+    const user = userEvent.setup();
+    render(
+      <SessionProvider
+        session={{ signedIn: false, email: null, displayName: null, role: null }}
+      >
+        <Consumer />
+        <SessionControls />
+      </SessionProvider>,
+    );
+
+    expect(screen.getByTestId("session").textContent).toBe("signed-out:none:no-role");
+
+    await user.click(screen.getByRole("button", { name: "Sign in locally" }));
+    expect(screen.getByTestId("session").textContent).toBe("signed-in:Shopper:no-role");
+
+    await user.click(screen.getByRole("button", { name: "Sign out locally" }));
+    expect(screen.getByTestId("session").textContent).toBe("signed-out:none:no-role");
+  });
+
+  it("synchronizes a new server session prop", () => {
+    const { rerender } = render(
+      <SessionProvider
+        session={{ signedIn: false, email: null, displayName: null, role: null }}
+      >
+        <Consumer />
+      </SessionProvider>,
+    );
+
+    rerender(
       <SessionProvider
         session={{ signedIn: true, email: "a@b.com", displayName: "Ada", role: "admin" }}
       >

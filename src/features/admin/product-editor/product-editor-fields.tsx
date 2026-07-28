@@ -35,11 +35,11 @@ export function EditorTextField({
   autoComplete = "off",
   type = "text",
 }: EditorTextFieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<ProductEditorValues>();
+  const { register, getFieldState, formState } = useFormContext<ProductEditorValues>();
+  const { errors } = formState;
   const error = getProductEditorFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = fieldState.isTouched && !fieldState.invalid;
   const descriptionId = description ? `${name}-description` : undefined;
   const errorId = error ? `${name}-error` : undefined;
 
@@ -52,8 +52,9 @@ export function EditorTextField({
         aria-describedby={[descriptionId, errorId].filter(Boolean).join(" ")}
         aria-invalid={Boolean(error)}
         autoComplete={autoComplete}
-        className="h-11"
         id={name}
+        inputSize="lg"
+        isValid={isValid}
         placeholder={placeholder}
         type={type}
       />
@@ -81,11 +82,11 @@ export function EditorNumberField({
   max,
   step = 1,
 }: EditorNumberFieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<ProductEditorValues>();
+  const { register, getFieldState, formState } = useFormContext<ProductEditorValues>();
+  const { errors } = formState;
   const error = getProductEditorFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = fieldState.isTouched && !fieldState.invalid;
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -96,9 +97,11 @@ export function EditorNumberField({
           setValueAs: (value) => (value === "" ? null : Number(value)),
         })}
         aria-invalid={Boolean(error)}
-        className="h-11 tabular-nums"
+        className="tabular-nums"
         id={name}
         inputMode="decimal"
+        inputSize="lg"
+        isValid={isValid}
         max={max}
         min={min}
         placeholder={placeholder}
@@ -125,11 +128,11 @@ export function EditorTextareaField({
   placeholder,
   rows = 4,
 }: EditorTextareaFieldProps) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<ProductEditorValues>();
+  const { register, getFieldState, formState } = useFormContext<ProductEditorValues>();
+  const { errors } = formState;
   const error = getProductEditorFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = fieldState.isTouched && !fieldState.invalid;
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -138,10 +141,12 @@ export function EditorTextareaField({
       <Textarea
         {...register(name)}
         aria-invalid={Boolean(error)}
-        className="min-h-28 resize-y"
+        className="resize-y"
         id={name}
+        isValid={isValid}
         placeholder={placeholder}
         rows={rows}
+        textareaSize="lg"
       />
       <FieldError>{error}</FieldError>
     </Field>

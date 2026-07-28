@@ -7,9 +7,25 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldSuccess,
+} from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
-/** `.field` — the shared input/select/textarea surface. */
+/**
+ * `.field` — the legacy input/select/textarea surface.
+ *
+ * @deprecated Retired from the account workspace's own text fields. Retained only
+ * because `return-wizard.tsx` and `preferences-section.tsx` (out of scope for the
+ * fieldClass retirement — their fields are radio/checkbox-adjacent prototype
+ * screens) still import it. Do not use in new code: compose `Field`/`FieldLabel`/
+ * `Input`/`Textarea`/`Select` with `inputSize="lg"` (see `LabeledField` below)
+ * instead.
+ */
 export const fieldClass =
   "min-h-12 h-auto w-full rounded-[10px] border border-[var(--acc-line-strong)] bg-[var(--acc-surface)] px-[.9rem] py-[.78rem] text-base text-[var(--acc-ink)] shadow-none placeholder:text-muted-foreground focus-visible:border-[var(--acc-oxblood)] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[color-mix(in_srgb,var(--acc-oxblood)_25%,transparent)]";
 
@@ -111,23 +127,37 @@ export function PlaceholderLink({ className, onClick, ...props }: ComponentProps
 }
 
 // ---- Labeled field -------------------------------------------------------
+/**
+ * Composes the doctrine `Field`/`FieldLabel`/`FieldError`/`FieldSuccess`
+ * primitives for the account workspace's label + control + hint/error/success
+ * layout. Pass `htmlFor` with a matching `id` on the child control so the
+ * label stays programmatically associated (screen readers, click-to-focus).
+ */
 export function LabeledField({
   label,
+  htmlFor,
   hint,
+  error,
+  success,
   className,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   hint?: ReactNode;
+  error?: ReactNode;
+  success?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <label className={cn("block", className)}>
-      <span className="text-sm font-semibold">{label}</span>
-      <span className="mt-2 block">{children}</span>
-      {hint ? <span className="mt-2 block text-sm text-[var(--acc-muted)]">{hint}</span> : null}
-    </label>
+    <Field className={className} data-invalid={Boolean(error)}>
+      <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
+      {children}
+      {hint && !error && !success ? <FieldDescription>{hint}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
+      {success ? <FieldSuccess>{success}</FieldSuccess> : null}
+    </Field>
   );
 }
 

@@ -1,12 +1,19 @@
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 import { getSafeNextPath } from "@/modules/auth/server/redirects";
+import {
+  AUTH_PRIMARY_BUTTON_CLASS_NAME,
+  AUTH_SECONDARY_BUTTON_CLASS_NAME,
+  AuthPageShell,
+  AuthStatusNotice,
+} from "@/modules/auth/ui/auth-page-shell";
 
 export const metadata: Metadata = {
-  title: "Auth issue | Laitstyle",
+  title: "Authentication issue | Laitstyle",
+  description: "Recover from a Laitstyle authentication problem.",
 };
 
 type AuthErrorPageProps = {
@@ -22,7 +29,7 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
   const code = isAuthFlowErrorCode(params.code) ? params.code : null;
   const message = code
     ? getAuthFlowErrorMessage(code)
-    : "We could not complete that sign-in request.";
+    : "We could not complete that authentication request.";
   const signInHref = `/auth/sign-in?next=${encodeURIComponent(next)}`;
   const recoveryHref =
     code === "email-not-confirmed"
@@ -32,33 +39,56 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
         : null;
 
   return (
-    <main className="flex min-h-[calc(100dvh-160px)] items-center justify-center px-4 py-12">
-      <Card className="max-w-[520px] gap-5 rounded-lg p-6 text-center shadow-laitstyle sm:p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Sign-in issue
-        </p>
-        <h1 className="font-serif text-4xl font-medium">Let&apos;s try that again</h1>
-        <p className="text-sm leading-6 text-muted-foreground">{message}</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button size="lg" nativeButton={false} render={<Link href={signInHref} />}>
+    <AuthPageShell
+      description="Nothing has been changed on your account. Choose the safest next step below and we will return you to the correct authentication flow."
+      eyebrow="Authentication issue"
+      highlights={[
+        "Provider details are never exposed in the browser",
+        "Return paths are restricted to Laitstyle routes",
+        "Recovery links remain available when needed",
+      ]}
+      sideDescription="Authentication errors should explain the next useful action without exposing provider internals or leaving you on a dead-end page."
+      sideTitle="A safe route forward, even when sign-in stops."
+      title="We could not finish that request"
+    >
+      <div className="grid gap-6">
+        <AuthStatusNotice tone="error">{message}</AuthStatusNotice>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+            nativeButton={false}
+            render={<Link href={signInHref} />}
+            size="lg"
+          >
+            <ArrowLeft className="size-4" />
             Back to sign in
           </Button>
+
           {recoveryHref ? (
             <Button
-              size="lg"
+              className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
               nativeButton={false}
               render={<Link href={recoveryHref} />}
+              size="lg"
               variant="outline"
             >
-              {code === "email-not-confirmed" ? "Resend confirmation" : "Request new reset link"}
+              <RotateCcw className="size-4" />
+              {code === "email-not-confirmed" ? "Resend confirmation" : "New reset link"}
             </Button>
           ) : (
-            <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
+            <Button
+              className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
+              nativeButton={false}
+              render={<Link href="/" />}
+              size="lg"
+              variant="outline"
+            >
               Return to storefront
             </Button>
           )}
         </div>
-      </Card>
-    </main>
+      </div>
+    </AuthPageShell>
   );
 }

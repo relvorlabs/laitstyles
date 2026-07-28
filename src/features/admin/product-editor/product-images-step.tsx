@@ -225,8 +225,9 @@ export function ProductImagesStep() {
                     <FieldLabel htmlFor={`media.${index}.alt`}>Image description</FieldLabel>
                     <Input
                       aria-invalid={Boolean(altError)}
-                      className="h-11"
                       id={`media.${index}.alt`}
+                      inputSize="lg"
+                      isValid={!altError && media.alt.trim().length > 0}
                       onChange={(event) =>
                         setValue(`media.${index}.alt`, event.target.value, { shouldDirty: true })
                       }

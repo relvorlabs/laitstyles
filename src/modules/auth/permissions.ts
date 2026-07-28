@@ -19,6 +19,8 @@ export const STAFF_CAPABILITIES = [
   "customers:note",
   "settings:read",
   "settings:update",
+  "team:read",
+  "team:invite",
   "reports:export",
   "audit:read",
 ] as const;

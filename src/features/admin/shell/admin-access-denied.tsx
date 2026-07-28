@@ -1,32 +1,53 @@
+import { ArrowLeft, LogIn } from "lucide-react";
 import Link from "next/link";
-import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { AUTH_DENIED_MESSAGES, type AuthDeniedReason } from "@/modules/auth/server/diagnostics";
+import {
+  AUTH_PRIMARY_BUTTON_CLASS_NAME,
+  AUTH_SECONDARY_BUTTON_CLASS_NAME,
+  AuthPageShell,
+  AuthStatusNotice,
+} from "@/modules/auth/ui/auth-page-shell";
 
 export function AdminAccessDenied({ reason }: { reason: AuthDeniedReason }) {
   return (
-    <main className="grid min-h-dvh place-items-center bg-background px-4 py-10 text-foreground">
-      <Card className="w-full max-w-[560px] gap-5 rounded-lg p-6 text-center shadow-laitstyle sm:p-8">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl border border-border bg-surface-raised">
-          <LaitstyleSymbol aria-hidden="true" className="h-10 w-7" focusable="false" />
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Permission restricted
-          </p>
-          <h1 className="mt-2 font-serif text-4xl font-medium">Admin is staff-only</h1>
-        </div>
-        <p className="text-sm leading-6 text-muted-foreground">{AUTH_DENIED_MESSAGES[reason]}</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button size="lg" nativeButton={false} render={<Link href="/auth/sign-in?next=/admin" />}>
+    <AuthPageShell
+      description="The store workspace is available only to approved owner and manager accounts. Your current session does not have the required capability."
+      eyebrow="Permission restricted"
+      highlights={[
+        "Server-verified owner and manager roles",
+        "Operational controls hidden from storefront accounts",
+        "Safe return path when access is unavailable",
+      ]}
+      sideDescription="Inventory, customer, order and reporting controls stay behind staff permissions. A storefront account cannot enter the workspace simply by knowing the URL."
+      sideTitle="Store operations remain staff-only."
+      staff
+      title="This account cannot open Admin"
+    >
+      <div className="grid gap-6">
+        <AuthStatusNotice tone="error">{AUTH_DENIED_MESSAGES[reason]}</AuthStatusNotice>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            className={`w-full ${AUTH_PRIMARY_BUTTON_CLASS_NAME}`}
+            nativeButton={false}
+            render={<Link href="/auth/sign-in?next=/admin" />}
+            size="lg"
+          >
+            <LogIn className="size-4" />
             Sign in as staff
           </Button>
-          <Button size="lg" nativeButton={false} render={<Link href="/" />} variant="outline">
+          <Button
+            className={`w-full ${AUTH_SECONDARY_BUTTON_CLASS_NAME}`}
+            nativeButton={false}
+            render={<Link href="/" />}
+            size="lg"
+            variant="outline"
+          >
+            <ArrowLeft className="size-4" />
             Back to storefront
           </Button>
         </div>
-      </Card>
-    </main>
+      </div>
+    </AuthPageShell>
   );
 }

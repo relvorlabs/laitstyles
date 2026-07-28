@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  redirect: vi.fn(),
   signInWithPassword: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn(),
@@ -11,12 +12,18 @@ const mocks = vi.hoisted(() => ({
   logAuthProviderFailure: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({ auth: mocks })),
 }));
 vi.mock("@/modules/auth/server/redirects", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/modules/auth/server/redirects")>();
-  return { ...actual, getRequestOrigin: vi.fn(async () => "https://laitstyle.example") };
+  return {
+    ...actual,
+    getAuthRedirectUrl: vi.fn(async (path: string) =>
+      new URL(path, "https://laitstyle.example").toString(),
+    ),
+  };
 });
 vi.mock("@/modules/auth/server/diagnostics", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/modules/auth/server/diagnostics")>();
@@ -25,8 +32,11 @@ vi.mock("@/modules/auth/server/diagnostics", async (importOriginal) => {
 
 import {
   requestPasswordReset,
+  requestPasswordResetWithRedirect,
   resendSignupConfirmation,
+  signInWithPassword,
   signOutStorefrontSession,
+  signUpWithPassword,
   submitPasswordSignIn,
   submitPasswordSignUp,
   submitRecoveredPassword,
@@ -38,9 +48,26 @@ function formData(values: Record<string, string>) {
   return data;
 }
 
+function signupData(overrides: Record<string, string> = {}) {
+  return formData({
+    email: "shopper@example.com",
+    password: "password123",
+    confirmPassword: "password123",
+    first: "Ada",
+    last: "Lovelace",
+    terms: "true",
+    ...overrides,
+  });
+}
+
+const idleState = { status: "idle" } as const;
+
 describe("password auth actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.redirect.mockImplementation((path: string) => {
+      throw new Error(`REDIRECT:${path}`);
+    });
     mocks.signInWithPassword.mockResolvedValue({ error: null });
     mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
     mocks.signOut.mockResolvedValue({ error: null });
@@ -109,15 +136,7 @@ describe("password auth actions", () => {
   });
 
   it("requires terms acceptance before calling the sign-up provider", async () => {
-    const result = await submitPasswordSignUp(
-      formData({
-        email: "shopper@example.com",
-        password: "password123",
-        first: "Ada",
-        last: "Lovelace",
-        terms: "false",
-      }),
-    );
+    const result = await submitPasswordSignUp(signupData({ terms: "false" }));
 
     expect(result).toEqual({
       ok: false,
@@ -130,14 +149,26 @@ describe("password auth actions", () => {
     expect(mocks.signUp).not.toHaveBeenCalled();
   });
 
+  it("rejects mismatched signup passwords before calling Supabase", async () => {
+    await expect(
+      submitPasswordSignUp(signupData({ confirmPassword: "different123" })),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "invalid-input",
+        message: "Check the highlighted fields and try again.",
+        fieldErrors: { confirmPassword: "Passwords do not match." },
+      },
+    });
+    expect(mocks.signUp).not.toHaveBeenCalled();
+  });
+
   it("validates and normalizes sign-up input before the provider call", async () => {
     const result = await submitPasswordSignUp(
-      formData({
+      signupData({
         email: "  shopper@example.com ",
-        password: "password123",
         first: " Ada ",
         last: " Lovelace ",
-        terms: "true",
         next: "https://attacker.example",
       }),
     );
@@ -151,7 +182,8 @@ describe("password auth actions", () => {
           last_name: "Lovelace",
           full_name: "Ada Lovelace",
         },
-        emailRedirectTo: "https://laitstyle.example/auth/callback?next=%2Faccount",
+        emailRedirectTo:
+          "https://laitstyle.example/auth/callback?next=%2Faccount&returnTo=%2Fauth%2Fsign-up",
       },
     });
     expect(result).toEqual({
@@ -166,17 +198,7 @@ describe("password auth actions", () => {
       error: null,
     });
 
-    await expect(
-      submitPasswordSignUp(
-        formData({
-          email: "shopper@example.com",
-          password: "password123",
-          first: "Ada",
-          last: "Lovelace",
-          terms: "true",
-        }),
-      ),
-    ).resolves.toEqual({
+    await expect(submitPasswordSignUp(signupData())).resolves.toEqual({
       ok: true,
       value: { status: "check-email", email: "shopper@example.com" },
     });
@@ -190,7 +212,8 @@ describe("password auth actions", () => {
       value: { status: "accepted", email: "shopper@example.com" },
     });
     expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith("shopper@example.com", {
-      redirectTo: "https://laitstyle.example/auth/callback?next=%2Fauth%2Freset-password",
+      redirectTo:
+        "https://laitstyle.example/auth/callback?next=%2Fauth%2Freset-password&returnTo=%2Fauth%2Fforgot-password",
     });
   });
 
@@ -205,7 +228,8 @@ describe("password auth actions", () => {
       type: "signup",
       email: "shopper@example.com",
       options: {
-        emailRedirectTo: "https://laitstyle.example/auth/callback?next=%2Faccount",
+        emailRedirectTo:
+          "https://laitstyle.example/auth/callback?next=%2Faccount&returnTo=%2Fauth%2Fresend-confirmation",
       },
     });
   });
@@ -274,5 +298,66 @@ describe("password auth actions", () => {
       },
     });
     expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith("sign-out", providerError);
+  });
+
+  it("returns page validation errors without redirecting or losing safe values", async () => {
+    await expect(
+      signInWithPassword(idleState, formData({ email: " bad-email ", password: "" })),
+    ).resolves.toEqual({
+      status: "error",
+      code: "invalid-input",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: {
+        email: "Enter a valid email address.",
+        password: "Enter your password.",
+      },
+      values: {
+        email: "bad-email",
+        first: undefined,
+        last: undefined,
+        termsAccepted: false,
+      },
+    });
+    expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("returns email workflow success in place instead of navigating", async () => {
+    await expect(
+      requestPasswordResetWithRedirect(
+        idleState,
+        formData({ email: "shopper@example.com" }),
+      ),
+    ).resolves.toEqual({
+      status: "success",
+      email: "shopper@example.com",
+      message:
+        "If this address can receive a reset email, a secure link is on its way. Check your inbox and spam folder.",
+    });
+    expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("redirects only after a completed password sign-in", async () => {
+    await expect(
+      signInWithPassword(
+        idleState,
+        formData({ email: "shopper@example.com", password: "password123", next: "/admin" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/admin");
+    expect(mocks.redirect).toHaveBeenCalledWith("/admin");
+  });
+
+  it("keeps confirmation-required signup success on the same page", async () => {
+    await expect(
+      signUpWithPassword(
+        idleState,
+        signupData({ next: "/account", returnTo: "/auth/sign-up" }),
+      ),
+    ).resolves.toEqual({
+      status: "success",
+      email: "shopper@example.com",
+      message:
+        "If this address can receive a confirmation email, a secure link is on its way. Check your inbox and spam folder.",
+    });
+    expect(mocks.redirect).not.toHaveBeenCalled();
   });
 });

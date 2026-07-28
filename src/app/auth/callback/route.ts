@@ -1,55 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { ensureConsumerAccount } from "@/modules/auth/server/account-provisioning";
-import { logAuthProviderFailure, mapAuthProviderError } from "@/modules/auth/server/diagnostics";
-import { getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
+import { completeOAuthCallback } from "@/modules/auth/server/authenticate";
+import { getRequestOrigin } from "@/modules/auth/server/redirects";
 
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const providerErrorCode =
-    requestUrl.searchParams.get("error_code") ?? requestUrl.searchParams.get("error");
-  const next = getSafeNextPath(requestUrl.searchParams.get("next"), "/account");
+  const target = await completeOAuthCallback({
+    code: request.nextUrl.searchParams.get("code"),
+    providerErrorCode:
+      request.nextUrl.searchParams.get("error_code") ?? request.nextUrl.searchParams.get("error"),
+    next: request.nextUrl.searchParams.get("next"),
+    returnTo: request.nextUrl.searchParams.get("returnTo"),
+  });
 
-  if (providerErrorCode) {
-    logAuthProviderFailure("oauth-callback", {
-      name: "OAuthCallbackProviderError",
-      code: providerErrorCode,
-    });
-    const failure = mapAuthProviderError({ code: providerErrorCode }, "oauth-callback-invalid");
-    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
+  const origin = await getRequestOrigin();
+
+  if (request.nextUrl.searchParams.get("popup") === "1") {
+    const popupTarget = new URL("/auth/oauth-complete", origin);
+    popupTarget.searchParams.set("target", target);
+    return NextResponse.redirect(popupTarget);
   }
 
-  if (!code) {
-    logAuthProviderFailure("oauth-callback", { name: "MissingOAuthCallbackCode" });
-    return NextResponse.redirect(
-      new URL(withAuthErrorPath("oauth-callback-invalid", next), requestUrl),
-    );
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-  if (error) {
-    logAuthProviderFailure("oauth-callback", error);
-    const failure = mapAuthProviderError(error, "oauth-callback-invalid");
-    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
-  }
-
-  const { data, error: userError } = await supabase.auth.getUser();
-  if (userError) {
-    logAuthProviderFailure("oauth-callback-user", userError);
-    const failure = mapAuthProviderError(userError, "oauth-callback-invalid");
-    return NextResponse.redirect(new URL(withAuthErrorPath(failure.code, next), requestUrl));
-  }
-
-  if (data.user) {
-    await ensureConsumerAccount({
-      id: data.user.id,
-      email: data.user.email ?? null,
-      userMetadata: data.user.user_metadata,
-    });
-  }
-
-  return NextResponse.redirect(new URL(next, requestUrl));
+  return NextResponse.redirect(new URL(target, origin));
 }

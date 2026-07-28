@@ -141,6 +141,11 @@ export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCus
               aria-invalid={Boolean(methods.formState.errors.customerName)}
               autoComplete="name"
               id="record-sale-customer-name"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("customerName", methods.formState).isTouched &&
+                !methods.getFieldState("customerName", methods.formState).invalid
+              }
               placeholder="Customer name"
               {...methods.register("customerName")}
             />
@@ -153,6 +158,11 @@ export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCus
               aria-invalid={Boolean(methods.formState.errors.customerCity)}
               autoComplete="address-level2"
               id="record-sale-customer-city"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("customerCity", methods.formState).isTouched &&
+                !methods.getFieldState("customerCity", methods.formState).invalid
+              }
               placeholder="e.g. Ikeja"
               {...methods.register("customerCity")}
             />
@@ -165,6 +175,11 @@ export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCus
               aria-invalid={Boolean(methods.formState.errors.customerPhone)}
               autoComplete="tel"
               id="record-sale-customer-phone"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("customerPhone", methods.formState).isTouched &&
+                !methods.getFieldState("customerPhone", methods.formState).invalid
+              }
               placeholder="+234…"
               type="tel"
               {...methods.register("customerPhone")}
@@ -178,6 +193,11 @@ export function RecordSaleCustomerStep({ customers }: { customers: AdminOrderCus
               aria-invalid={Boolean(methods.formState.errors.customerEmail)}
               autoComplete="email"
               id="record-sale-customer-email"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("customerEmail", methods.formState).isTouched &&
+                !methods.getFieldState("customerEmail", methods.formState).invalid
+              }
               placeholder="Required for Paystack checkout"
               type="email"
               {...methods.register("customerEmail")}

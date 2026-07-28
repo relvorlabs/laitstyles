@@ -180,7 +180,7 @@ export function CatalogueTaxonomyManager({
           <div className="grid gap-3 rounded-2xl border border-border bg-surface-sunken p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
             <Input
               aria-label={`New ${kind} name`}
-              className="h-11"
+              inputSize="lg"
               onChange={(event) => setNewName(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
@@ -224,7 +224,7 @@ export function CatalogueTaxonomyManager({
                           <Input
                             aria-label={`Rename ${item.name}`}
                             autoFocus
-                            className="h-10"
+                            inputSize="default"
                             onChange={(event) => setEditingName(event.target.value)}
                             onKeyDown={(event) => {
                               if (event.key === "Enter") {

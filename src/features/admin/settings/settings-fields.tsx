@@ -15,6 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getSettingsFieldError } from "@/features/admin/settings/settings-errors";
 import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
+import { cn } from "@/lib/utils";
 
 export type SettingsFieldName = FieldPath<SaveStoreSettingsInput>;
 
@@ -38,11 +39,11 @@ export function SettingsTextField({
   type?: "text" | "email" | "tel" | "url";
   readOnly?: boolean;
 }) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<SaveStoreSettingsInput>();
+  const { register, getFieldState, formState } = useFormContext<SaveStoreSettingsInput>();
+  const { errors } = formState;
   const error = getSettingsFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = !readOnly && fieldState.isTouched && !fieldState.invalid;
   const descriptionId = description ? `${fieldId(name)}-description` : undefined;
   const errorId = error ? `${fieldId(name)}-error` : undefined;
 
@@ -55,8 +56,10 @@ export function SettingsTextField({
         aria-describedby={[descriptionId, errorId].filter(Boolean).join(" ")}
         aria-invalid={Boolean(error)}
         autoComplete={autoComplete}
-        className="h-11 read-only:bg-muted/50 read-only:text-muted-foreground"
+        className="read-only:bg-muted/50 read-only:text-muted-foreground"
         id={fieldId(name)}
+        inputSize="lg"
+        isValid={isValid}
         placeholder={placeholder}
         readOnly={readOnly}
         type={type}
@@ -82,11 +85,11 @@ export function SettingsNumberField({
   step?: number;
   suffix?: string;
 }) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<SaveStoreSettingsInput>();
+  const { register, getFieldState, formState } = useFormContext<SaveStoreSettingsInput>();
+  const { errors } = formState;
   const error = getSettingsFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = fieldState.isTouched && !fieldState.invalid;
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -98,9 +101,11 @@ export function SettingsNumberField({
             setValueAs: (value) => (value === "" ? Number.NaN : Number(value)),
           })}
           aria-invalid={Boolean(error)}
-          className={suffix ? "h-11 pr-20 tabular-nums" : "h-11 tabular-nums"}
+          className={cn("tabular-nums", suffix && "pr-20")}
           id={fieldId(name)}
           inputMode="decimal"
+          inputSize="lg"
+          isValid={isValid}
           max={max}
           min={min}
           placeholder={placeholder}
@@ -128,11 +133,11 @@ export function SettingsTextareaField({
   placeholder?: string;
   rows?: number;
 }) {
-  const {
-    register,
-    formState: { errors },
-  } = useFormContext<SaveStoreSettingsInput>();
+  const { register, getFieldState, formState } = useFormContext<SaveStoreSettingsInput>();
+  const { errors } = formState;
   const error = getSettingsFieldError(errors, name);
+  const fieldState = getFieldState(name, formState);
+  const isValid = fieldState.isTouched && !fieldState.invalid;
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -141,10 +146,12 @@ export function SettingsTextareaField({
       <Textarea
         {...register(name)}
         aria-invalid={Boolean(error)}
-        className="min-h-28 resize-y"
+        className="resize-y"
         id={fieldId(name)}
+        isValid={isValid}
         placeholder={placeholder}
         rows={rows}
+        textareaSize="lg"
       />
       <FieldError>{error}</FieldError>
     </Field>

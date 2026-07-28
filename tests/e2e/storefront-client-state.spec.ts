@@ -55,7 +55,9 @@ test("cart and saved state survive navigation and reload without catalogue paylo
 
   await waitForState(
     page,
-    (state) => state.saved.includes(product.id) && state.cart.some((line) => line.productId === product.id),
+    (state) =>
+      state.saved.includes(product.id) &&
+      state.cart.some((line) => line.productId === product.id),
   );
 
   const firstSnapshot = await storedState(page);
@@ -88,7 +90,10 @@ test("cart and saved state survive navigation and reload without catalogue paylo
 });
 
 test("desktop and tablet holds use the canonical expiry record", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile-chromium", "The card hold affordance is intentionally hover-only on mobile.");
+  test.skip(
+    testInfo.project.name === "mobile-chromium",
+    "The card hold affordance is intentionally hover-only on mobile.",
+  );
 
   const card = await firstAddableCard(page);
   const product = await cardProduct(card);
@@ -111,14 +116,21 @@ test("desktop and tablet holds use the canonical expiry record", async ({ page }
   await page.reload({ waitUntil: "domcontentloaded" });
   const reloadedCard = page.locator(`[data-card="${product.id}"]`);
   await expect(reloadedCard.getByText(/Held · \d{2}:\d{2}/)).toBeVisible();
-  expect((await storedState(page)).holds.find((hold) => hold.productId === product.id)?.expiresAt).toBe(expiry);
+  expect(
+    (await storedState(page)).holds.find((hold) => hold.productId === product.id)?.expiresAt,
+  ).toBe(expiry);
 
   await reloadedCard.hover();
   await reloadedCard.getByRole("button", { name: "Release hold" }).click();
   await waitForState(page, (state) => !state.holds.some((hold) => hold.productId === product.id));
 });
 
-test("URL-driven sign-in opens the canonical dialog and removes transport params", async ({ page }) => {
+test("URL-driven sign-in keeps validation inside the mounted dialog", async ({ page }) => {
+  await page.addInitScript(() => {
+    const key = "auth-document-load-count";
+    const count = Number(window.sessionStorage.getItem(key) ?? "0") + 1;
+    window.sessionStorage.setItem(key, String(count));
+  });
   await page.goto("/products?auth=signin&next=/account", { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
@@ -127,7 +139,34 @@ test("URL-driven sign-in opens the canonical dialog and removes transport params
   await expect.poll(() => new URL(page.url()).searchParams.has("auth")).toBe(false);
   expect(new URL(page.url()).searchParams.has("next")).toBe(false);
 
+  const stableUrl = page.url();
   await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
   await expect(page.getByText("Enter a valid email address")).toBeVisible();
-  await expect(page.getByText("Password must be at least 8 characters")).toBeVisible();
+  await expect(page.getByText("Enter your password")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  expect(page.url()).toBe(stableUrl);
+  await expect
+    .poll(() => page.evaluate(() => window.sessionStorage.getItem("auth-document-load-count")))
+    .toBe("1");
+});
+
+test("OAuth callback errors reopen the same storefront dialog without a second document load", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const key = "oauth-error-document-load-count";
+    const count = Number(window.sessionStorage.getItem(key) ?? "0") + 1;
+    window.sessionStorage.setItem(key, String(count));
+  });
+  await page.goto(
+    "/products?auth=signin&next=/account&error=oauth-callback-invalid",
+    { waitUntil: "domcontentloaded" },
+  );
+
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await expect(page.getByText("The sign-in link is incomplete or has expired. Please try again.")).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.has("error")).toBe(false);
+  await expect
+    .poll(() => page.evaluate(() => window.sessionStorage.getItem("oauth-error-document-load-count")))
+    .toBe("1");
 });

@@ -210,9 +210,14 @@ export function loadStorefrontClientState(
   localStorage: StorefrontStateStorage,
   now: number = Date.now(),
 ): { snapshot: StorefrontClientStateSnapshot; migrated: boolean } {
-  const current = parseStoredValue(sessionStorage, STOREFRONT_CLIENT_STATE_STORAGE_KEY);
-  if (isCurrentSnapshot(current)) {
-    return { snapshot: normalizeStorefrontClientState(current, now), migrated: false };
+  const sessionCurrent = parseStoredValue(sessionStorage, STOREFRONT_CLIENT_STATE_STORAGE_KEY);
+  if (isCurrentSnapshot(sessionCurrent)) {
+    return { snapshot: normalizeStorefrontClientState(sessionCurrent, now), migrated: false };
+  }
+
+  const localCurrent = parseStoredValue(localStorage, STOREFRONT_CLIENT_STATE_STORAGE_KEY);
+  if (isCurrentSnapshot(localCurrent)) {
+    return { snapshot: normalizeStorefrontClientState(localCurrent, now), migrated: true };
   }
 
   const cart = firstStoredValue(sessionStorage, localStorage, LEGACY_STOREFRONT_STORAGE_KEYS.cart);
@@ -230,11 +235,12 @@ export function loadStorefrontClientState(
 
   return {
     snapshot: migrateLegacyStorefrontClientState(
-      { current, cart, saved, holds: experienceHolds, heldItems: shopHolds },
+      { current: sessionCurrent, cart, saved, holds: experienceHolds, heldItems: shopHolds },
       now,
     ),
     migrated:
-      current !== undefined ||
+      sessionCurrent !== undefined ||
+      localCurrent !== undefined ||
       cart !== undefined ||
       saved !== undefined ||
       experienceHolds !== undefined ||
@@ -249,10 +255,18 @@ export function persistStorefrontClientState(
   now: number = Date.now(),
 ): StorefrontClientStateSnapshot {
   const snapshot = normalizeStorefrontClientState(value, now);
+  const serialized = JSON.stringify(snapshot);
+
   try {
-    sessionStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, JSON.stringify(snapshot));
+    sessionStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, serialized);
   } catch {
-    return snapshot;
+    // The cross-tab local copy remains available when session storage is blocked.
+  }
+
+  try {
+    localStorage.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, serialized);
+  } catch {
+    // The current tab's in-memory and session state remain authoritative.
   }
 
   for (const key of Object.values(LEGACY_STOREFRONT_STORAGE_KEYS).flat()) {

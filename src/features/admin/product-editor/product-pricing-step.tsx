@@ -93,8 +93,9 @@ export function ProductPricingStep() {
             price edits remain allowed.
           </FieldDescription>
           <Input
-            className="h-11 tabular-nums"
+            className="tabular-nums"
             id="desired-discount"
+            inputSize="lg"
             inputMode="decimal"
             max={99}
             min={0}

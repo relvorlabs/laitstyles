@@ -2,13 +2,13 @@
 
 import type { FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
   AcctButton,
   Eyebrow,
-  fieldClass,
   monoClass,
   panelClass,
   panelElevatedClass,
@@ -67,15 +67,16 @@ export function TicketDetailSection() {
             </article>
           </div>
           <form className="border-t border-[var(--acc-line)] p-5 sm:p-6" onSubmit={onSubmit}>
-            <label className="block" htmlFor="ticket-reply">
-              <span className="text-sm font-semibold">Reply</span>
-              <Textarea
-                id="ticket-reply"
-                required
-                placeholder="Write a message"
-                className={cn(fieldClass, "mt-2 min-h-32")}
-              />
-            </label>
+            <FieldLabel className="block" htmlFor="ticket-reply">
+              Reply
+            </FieldLabel>
+            <Textarea
+              id="ticket-reply"
+              className="mt-2"
+              placeholder="Write a message"
+              required
+              textareaSize="lg"
+            />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
               {/* TODO(button-action): Open an attachment picker after support uploads, file validation and storage are connected. */}
               <AcctButton

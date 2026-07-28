@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { Label } from "@/components/ui/label";
@@ -211,6 +213,33 @@ function FieldError({
   );
 }
 
+function FieldSuccess({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div"> & {
+  children?: React.ReactNode;
+}) {
+  if (!children) {
+    return null;
+  }
+
+  return (
+    <div
+      role="status"
+      data-slot="field-success"
+      className={cn(
+        "flex items-center gap-1.5 text-sm font-normal text-success",
+        className,
+      )}
+      {...props}
+    >
+      <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4 shrink-0" />
+      {children}
+    </div>
+  );
+}
+
 export {
   Field,
   FieldContent,
@@ -221,5 +250,6 @@ export {
   FieldLegend,
   FieldSeparator,
   FieldSet,
+  FieldSuccess,
   FieldTitle,
 };

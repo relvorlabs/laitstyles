@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type MouseEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
@@ -77,20 +78,25 @@ export function SearchOverlay() {
             <IconClose />
           </Button>
         </div>
-        <div className="relative mt-5">
+        <div className="mt-5">
           <label className="eyebrow" htmlFor="searchInput">
             Product, brand, category or grade
           </label>
-          <input
-            autoComplete="off"
-            className="min-h-[66px] w-full border-0 border-b border-[var(--line-strong)] bg-transparent pr-[52px] text-[1.35rem]"
-            id="searchInput"
-            onChange={(event) => setValue(event.target.value)}
-            onKeyDown={onSearchKeyDown}
-            placeholder="Try “Levi’s denim”"
-            value={value}
-          />
-          <IconSearch className="absolute right-[14px] top-[22px] h-5 w-5 text-[var(--muted)]" />
+          <InputGroup className="mt-3 h-14 bg-control" groupSize="lg">
+            <InputGroupInput
+              autoComplete="off"
+              className="text-lg"
+              id="searchInput"
+              inputSize="lg"
+              onChange={(event) => setValue(event.target.value)}
+              onKeyDown={onSearchKeyDown}
+              placeholder="Try “Levi’s denim”"
+              value={value}
+            />
+            <InputGroupAddon align="inline-end">
+              <IconSearch className="h-5 w-5" />
+            </InputGroupAddon>
+          </InputGroup>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {searchSuggestions.map(([term, label]) => (
