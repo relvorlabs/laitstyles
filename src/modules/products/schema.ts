@@ -29,3 +29,43 @@ export const productTaxonomyIdSchema = z
 export const productTaxonomyRenameSchema = z.object({
   name: z.string().trim().min(1),
 });
+
+const productTaxonomyUpdateBaseSchema = z.object({
+  name: z.string().trim().min(1),
+  position: z.number().int().min(0),
+});
+
+export const productTaxonomyUpdateSchema = z.discriminatedUnion("kind", [
+  productTaxonomyUpdateBaseSchema.extend({
+    kind: z.literal("category"),
+    imageUrl: z.url().nullable(),
+  }),
+  productTaxonomyUpdateBaseSchema.extend({
+    kind: z.literal("collection"),
+    productIds: z.array(productIdSchema).refine((ids) => new Set(ids).size === ids.length, {
+      message: "Choose each product only once.",
+    }),
+  }),
+]);
+
+export const productTaxonomyReorderSchema = z
+  .object({
+    kind: z.enum(["category", "collection"]),
+    orderedIds: z.array(productTaxonomyIdSchema),
+  })
+  .superRefine(({ kind, orderedIds }, context) => {
+    if (new Set(orderedIds).size !== orderedIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["orderedIds"],
+        message: "Choose each catalogue group only once.",
+      });
+    }
+    if (orderedIds.some((id) => !id.startsWith(`${kind}:`))) {
+      context.addIssue({
+        code: "custom",
+        path: ["orderedIds"],
+        message: "Every catalogue group must match the selected kind.",
+      });
+    }
+  });

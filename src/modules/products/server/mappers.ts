@@ -60,6 +60,28 @@ export const adminProductInclude = {
   stock_levels: { where: { variant_id: null } },
 } satisfies Prisma.productsInclude;
 
+export const categoryTaxonomyInclude = {
+  _count: { select: { products: true } },
+} satisfies Prisma.catalogue_categoriesInclude;
+
+export const collectionTaxonomyInclude = {
+  _count: { select: { products: true } },
+  products: {
+    orderBy: { updated_at: "desc" },
+    take: 3,
+    select: {
+      product_media: {
+        where: { variant_id: null, kind: "product_cover" },
+        orderBy: { position: "asc" },
+        take: 1,
+        select: {
+          cloudinary_assets: { select: { secure_url: true, delivery_url: true } },
+        },
+      },
+    },
+  },
+} satisfies Prisma.catalogue_collectionsInclude;
+
 export type AdminProductRow = Prisma.productsGetPayload<{
   include: typeof adminProductInclude;
 }>;
@@ -204,7 +226,21 @@ export function decodeProductTaxonomyId(
 }
 
 export function mapProductTaxonomyRow(
-  row: { id: string; slug: string; name: string; created_at: Date; updated_at: Date },
+  row: {
+    id: string;
+    slug: string;
+    name: string;
+    image_url?: string | null;
+    position?: number;
+    created_at: Date;
+    updated_at: Date;
+    _count?: { products: number };
+    products?: Array<{
+      product_media: Array<{
+        cloudinary_assets: { secure_url: string; delivery_url: string | null };
+      }>;
+    }>;
+  },
   kind: ProductTaxonomyKind,
 ): ProductTaxonomyItem {
   return {
@@ -212,6 +248,16 @@ export function mapProductTaxonomyRow(
     kind,
     name: row.name,
     slug: row.slug,
+    imageUrl: kind === "category" ? (row.image_url ?? null) : null,
+    position: row.position ?? 0,
+    productCount: row._count?.products ?? 0,
+    previewImageUrls:
+      kind === "collection"
+        ? (row.products?.flatMap((product) => {
+            const asset = product.product_media[0]?.cloudinary_assets;
+            return asset ? [asset.delivery_url ?? asset.secure_url] : [];
+          }) ?? [])
+        : [],
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
   };

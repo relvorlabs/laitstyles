@@ -280,6 +280,10 @@ export type ProductTaxonomyItem = {
   kind: ProductTaxonomyKind;
   name: string;
   slug: string;
+  imageUrl: string | null;
+  position: number;
+  productCount: number;
+  previewImageUrls: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -287,6 +291,25 @@ export type ProductTaxonomyItem = {
 export type ProductTaxonomyInput = {
   kind: ProductTaxonomyKind;
   name: string;
+};
+
+export type ProductTaxonomyUpdateInput =
+  | {
+      kind: "category";
+      name: string;
+      imageUrl: string | null;
+      position: number;
+    }
+  | {
+      kind: "collection";
+      name: string;
+      position: number;
+      productIds: string[];
+    };
+
+export type ProductTaxonomyReorderInput = {
+  kind: ProductTaxonomyKind;
+  orderedIds: string[];
 };
 
 export type ProductMutationInput = {

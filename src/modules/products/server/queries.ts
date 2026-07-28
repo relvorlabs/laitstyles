@@ -4,6 +4,8 @@ import type { ApiPaginationMeta } from "@/lib/http/contracts";
 import { prisma } from "@/lib/prisma";
 import {
   adminProductInclude,
+  categoryTaxonomyInclude,
+  collectionTaxonomyInclude,
   mapAdminProductRow,
   mapProductTaxonomyRow,
 } from "@/modules/products/server/mappers";
@@ -67,8 +69,14 @@ export async function getAdminProduct(productId: string): Promise<AdminProduct |
 
 export async function listProductTaxonomy(): Promise<ProductTaxonomyItem[]> {
   const [categories, collections] = await Promise.all([
-    prisma.catalogue_categories.findMany({ orderBy: { name: "asc" } }),
-    prisma.catalogue_collections.findMany({ orderBy: { name: "asc" } }),
+    prisma.catalogue_categories.findMany({
+      include: categoryTaxonomyInclude,
+      orderBy: [{ position: "asc" }, { name: "asc" }],
+    }),
+    prisma.catalogue_collections.findMany({
+      include: collectionTaxonomyInclude,
+      orderBy: [{ position: "asc" }, { name: "asc" }],
+    }),
   ]);
   return [
     ...categories.map((row) => mapProductTaxonomyRow(row, "category")),
