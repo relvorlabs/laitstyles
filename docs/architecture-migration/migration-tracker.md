@@ -1,5 +1,31 @@
 # Architecture Migration Tracker
 
+## Complete API, Account and Paystack Migration Suite (started 2026-07-28)
+
+A new, separately-tracked 8-plan suite continues this tracker's Phase 8 ("Make checkout and payment
+server-authoritative") and Phase 9 ("Delete remaining legacy architecture") scope with a fuller account,
+checkout, refunds/disputes and owner-finance surface than those two phase rows described. Index:
+`docs/superpowers/plans/2026-07-28-complete-api-account-paystack-index.md`. That suite's Task 1
+(`2026-07-28-complete-api-01-ledger-persistence-foundation.md`) froze the exact current
+`/api/v1` endpoint baseline and every prototype/browser-owned/server-direct interaction across the
+storefront account, checkout and admin-finance surfaces:
+
+- Ledger: [`complete-api-endpoint-ledger.md`](complete-api-endpoint-ledger.md) — 109 rows (31 existing
+  real endpoints, 36 target account endpoints, 30 target checkout/payment/finance endpoints, 12
+  additional browser-owned/prototype interactions found by direct code inspection).
+- Captured at worktree `plan-01-ledger-persistence`, HEAD `54570e02ed3ebd809c6f03f4b536c17c3a98f510`,
+  2026-07-28.
+- Key finding not previously recorded anywhere in this tracker: the storefront checkout
+  (`checkout-flow-v2.tsx`) is entirely client-side — it opens a hardcoded external
+  `https://paystack.shop/pay/...` link and fakes order placement into `sessionStorage`, with no server
+  order, no real Paystack transaction, and no persisted payment record, even though a real, tested
+  Paystack transaction-initialize client already exists unused at `src/modules/payments/server/paystack.ts`.
+  See the ledger's PAY-001..004 rows and "Judged classifications" section for the full evidence trail,
+  including a mobile-vs-desktop account sign-out inconsistency (MISC-011/012) found during the same pass.
+
+This suite's own plan files carry their own task ledgers going forward; this tracker's Phase 8/9 rows
+below are superseded in scope by that suite and are not being updated further here.
+
 **Baseline commit:** `6f5087f4aa08a5d9bce5989bad7b230344cdb493`  
 **Phase 0 merge:** `072cc92aa5301342f060633663094f956089ef1a`  
 **Phase 1 merge:** `1ca1b184207ea2a36fa41c10162b8a059abe5289`  
