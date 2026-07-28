@@ -1,10 +1,14 @@
+"use client";
+
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { CatalogueTaxonomyManager } from "@/features/admin/inventory/catalogue-taxonomy-manager";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
+import { useProductEditorController } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 
 export function InventoryWorkspaceHeader() {
+  const { openProductImport } = useProductEditorController();
+
   return (
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
       <div>
@@ -20,10 +24,20 @@ export function InventoryWorkspaceHeader() {
         </p>
       </div>
       <div className="flex flex-wrap gap-2 xl:justify-end">
-        <CatalogueTaxonomyManager
+        <Button
           className="h-11 rounded-full px-5"
-          triggerLabel="Manage catalogue groups"
-        />
+          onClick={openProductImport}
+          type="button"
+          variant="outline"
+        >
+          Import products
+        </Button>
+        <Link
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+          href="/admin/inventory/catalogue"
+        >
+          Catalogue structure
+        </Link>
         <Link
           className={buttonVariants({
             variant: "outline",

@@ -65,7 +65,8 @@ export type ProductImportRelationalSnapshot = {
     value: number;
     unit: string;
   }>;
-  product_media: Array<{ product_id: string; variant_id: string | null }>;
+  product_media: Array<{ product_id: string; variant_id: string | null; asset_id?: string }>;
+  cloudinary_assets?: Array<{ id: string }>;
 };
 
 export type ProductImportMappingSource = ProductImportRow[] | ProductImportRelationalSnapshot;
@@ -74,6 +75,23 @@ export type ProductImportMappingResult = {
   children: ProductImportChild[];
   ignoredAssetCount: number;
 };
+
+export function isProductImportRelationalSnapshot(
+  value: unknown,
+): value is ProductImportRelationalSnapshot {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const source = value as Record<string, unknown>;
+  return [
+    "catalogue_categories",
+    "catalogue_collections",
+    "products",
+    "product_channels",
+    "product_variants",
+    "stock_levels",
+    "product_measurements",
+    "product_media",
+  ].every((key) => Array.isArray(source[key]));
+}
 
 const supportedChannels = new Set<CatalogueChannel>([
   "storefront",
@@ -404,9 +422,7 @@ function deriveOptionNames(
   variants: Array<{ size_label?: string | null; colour?: string | null }> | ProductImportVariant[],
 ) {
   const names: string[] = [];
-  if (
-    variants.some((variant) => Boolean("size_label" in variant ? variant.size_label : variant.size))
-  ) {
+  if (variants.some((variant) => Boolean("label" in variant ? variant.size : variant.size_label))) {
     names.push("Size");
   }
   if (variants.some((variant) => Boolean(variant.colour))) names.push("Colour");

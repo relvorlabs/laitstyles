@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type FieldPath, FormProvider, type Resolver, useForm, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -22,9 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProductEditorFooter } from "@/modules/products/ui/admin/product-editor/product-editor-footer";
-import { ProductEditorStepContent } from "@/modules/products/ui/admin/product-editor/product-editor-step-content";
-import { ProductEditorStepper } from "@/modules/products/ui/admin/product-editor/product-editor-stepper";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
@@ -46,6 +43,9 @@ import type {
   ProductEditorValues,
 } from "@/lib/admin/shared/types";
 import { adminProductsQueryOptions, useSaveProduct } from "@/modules/products/client/hooks";
+import { ProductEditorFooter } from "@/modules/products/ui/admin/product-editor/product-editor-footer";
+import { ProductEditorStepContent } from "@/modules/products/ui/admin/product-editor/product-editor-step-content";
+import { ProductEditorStepper } from "@/modules/products/ui/admin/product-editor/product-editor-stepper";
 
 export function ProductEditorDialog({
   open,
@@ -68,7 +68,9 @@ export function ProductEditorDialog({
     <Dialog onOpenChange={(nextOpen) => closeRequest.current(nextOpen)} open={open}>
       <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]">
         <ProductEditorExperience
-          initialValues={product ? createProductEditorValues(product) : createEmptyProductEditorValues()}
+          initialValues={
+            product ? createProductEditorValues(product) : createEmptyProductEditorValues()
+          }
           key={product?.id ?? "new-product"}
           onCompleted={onCompleted}
           registerCloseRequest={(handler) => {
@@ -85,8 +87,11 @@ export type ProductEditorSurfaceProps = {
   initialValues: ProductEditorValues;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
   onValuesChange?: (values: ProductEditorValues) => void;
+  onPersistenceStatusChange?: (status: "saving" | "saved" | "failed") => void;
   onRequestClose: () => void;
   queueNavigation?: ReactNode;
+  manageDiscardConfirmation?: boolean;
+  closeAfterSave?: boolean;
 };
 
 type ProductEditorExperienceProps = ProductEditorSurfaceProps & {
@@ -101,8 +106,11 @@ function ProductEditorExperience({
   initialValues,
   onCompleted,
   onValuesChange,
+  onPersistenceStatusChange,
   onRequestClose,
   queueNavigation,
+  manageDiscardConfirmation = true,
+  closeAfterSave = true,
   registerCloseRequest,
 }: ProductEditorExperienceProps) {
   const saveProductMutation = useSaveProduct();
@@ -119,7 +127,9 @@ function ProductEditorExperience({
   const watchedValues = useWatch({
     control: methods.control,
   }) as ProductEditorValues;
-  useEffect(() => onValuesChange?.(watchedValues), [onValuesChange, watchedValues]);
+  useEffect(() => {
+    if (methods.formState.isDirty) onValuesChange?.(watchedValues);
+  }, [methods.formState.isDirty, onValuesChange, watchedValues]);
   const publishIssues = useMemo(() => validateProductForPublish(watchedValues), [watchedValues]);
   const activeIndex = productEditorSteps.indexOf(activeStep);
   const editing = Boolean(initialValues.productId);
@@ -165,18 +175,25 @@ function ProductEditorExperience({
     setActionError(null);
   }
 
-  function requestClose(nextOpen: boolean) {
-    if (nextOpen) return;
-    if (methods.formState.isDirty) {
-      setDiscardOpen(true);
-      return;
-    }
-    onRequestClose();
-  }
+  const requestClose = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) return;
+      if (!manageDiscardConfirmation) {
+        onRequestClose();
+        return;
+      }
+      if (methods.formState.isDirty) {
+        setDiscardOpen(true);
+        return;
+      }
+      onRequestClose();
+    },
+    [manageDiscardConfirmation, methods.formState.isDirty, onRequestClose],
+  );
 
   useEffect(() => {
     registerCloseRequest?.(requestClose);
-  }, [registerCloseRequest, methods.formState.isDirty]);
+  }, [registerCloseRequest, requestClose]);
 
   function discardChanges() {
     methods.reset(initialValues);
@@ -196,13 +213,16 @@ function ProductEditorExperience({
     applyIssues(issues);
     setActionError(null);
     if (issues.length) {
+      onPersistenceStatusChange?.("failed");
       setHighestVisited(productEditorSteps.length - 1);
       setActiveStep(getFirstIssueStep(issues));
       return;
     }
 
+    onPersistenceStatusChange?.("saving");
     const result = await saveProductMutation.mutateAsync({ values, intent });
     if (!result.ok) {
+      onPersistenceStatusChange?.("failed");
       const resultIssues = result.error.issues ?? [];
       applyIssues(resultIssues);
       setActionError(result.error.message);
@@ -214,66 +234,73 @@ function ProductEditorExperience({
     }
 
     methods.reset(createProductEditorValues(result.value.product));
+    onPersistenceStatusChange?.("saved");
     onCompleted?.(result.value);
-    onRequestClose();
+    if (closeAfterSave) onRequestClose();
   }
 
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {editing ? "Continue product" : "Add product"}
-            </p>
-            <DialogTitle className="font-serif text-[28px] font-medium leading-tight">
-              {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
-            </DialogTitle>
-            <DialogDescription>
-              Seven guided steps Â· changes are saved to the shared catalogue
-            </DialogDescription>
-          </DialogHeader>
+        <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            {editing ? "Continue product" : "Add product"}
+          </p>
+          <DialogTitle className="font-serif text-[28px] font-medium leading-tight">
+            {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
+          </DialogTitle>
+          <DialogDescription>
+            Seven guided steps Â· changes are saved to the shared catalogue
+          </DialogDescription>
+        </DialogHeader>
 
-          {actionError ? (
-            <Alert className="mx-4 mt-4 shrink-0 sm:mx-6" variant="destructive">
-              <AlertTitle>Product action could not be completed</AlertTitle>
-              <AlertDescription>{actionError}</AlertDescription>
-            </Alert>
-          ) : null}
+        {actionError ? (
+          <Alert className="mx-4 mt-4 shrink-0 sm:mx-6" variant="destructive">
+            <AlertTitle>Product action could not be completed</AlertTitle>
+            <AlertDescription>{actionError}</AlertDescription>
+          </Alert>
+        ) : null}
 
-          <FormProvider {...methods}>
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="grid min-h-0 flex-1 lg:grid-cols-[230px_minmax(0,1fr)]">
-                <ProductEditorStepper
-                  activeStep={activeStep}
-                  highestVisited={highestVisited}
-                  onStepChange={goToStep}
-                />
-                {queueNavigation}
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 sm:py-8 lg:px-9">
-                  <div className="mx-auto w-full max-w-[820px]">
-                    <ProductEditorStepContent
-                      activeStep={activeStep}
-                      issues={publishIssues}
-                      onModeChange={changeMode}
-                      onStepChange={(step) => {
-                        setHighestVisited(productEditorSteps.length - 1);
-                        setActiveStep(step);
-                      }}
-                    />
-                  </div>
+        <FormProvider {...methods}>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div
+              className={
+                queueNavigation
+                  ? "grid min-h-0 flex-1 lg:grid-cols-[230px_220px_minmax(0,1fr)]"
+                  : "grid min-h-0 flex-1 lg:grid-cols-[230px_minmax(0,1fr)]"
+              }
+            >
+              <ProductEditorStepper
+                activeStep={activeStep}
+                highestVisited={highestVisited}
+                onStepChange={goToStep}
+              />
+              {queueNavigation}
+              <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 sm:py-8 lg:px-9">
+                <div className="mx-auto w-full max-w-[820px]">
+                  <ProductEditorStepContent
+                    activeStep={activeStep}
+                    issues={publishIssues}
+                    onModeChange={changeMode}
+                    onStepChange={(step) => {
+                      setHighestVisited(productEditorSteps.length - 1);
+                      setActiveStep(step);
+                    }}
+                  />
                 </div>
               </div>
-
-              <ProductEditorFooter
-                activeStep={activeStep}
-                onBack={goBack}
-                onNext={goNext}
-                onPublish={() => commit("publish")}
-                onSaveDraft={() => commit("draft")}
-                onSchedule={() => commit("schedule")}
-              />
             </div>
-          </FormProvider>
+
+            <ProductEditorFooter
+              activeStep={activeStep}
+              onBack={goBack}
+              onNext={goNext}
+              onPublish={() => commit("publish")}
+              onSaveDraft={() => commit("draft")}
+              onSchedule={() => commit("schedule")}
+            />
+          </div>
+        </FormProvider>
       </div>
 
       <AlertDialog onOpenChange={setDiscardOpen} open={discardOpen}>

@@ -4,13 +4,15 @@ import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ProductEditorDialog } from "@/modules/products/ui/admin/product-editor/product-editor-dialog";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
+import { ProductImportDialog } from "@/modules/products/ui/admin/import/product-import-dialog";
+import { ProductEditorDialog } from "@/modules/products/ui/admin/product-editor/product-editor-dialog";
 
 type ProductEditorControllerValue = {
   openNewProduct: () => void;
   openExistingProduct: (productId: string) => void;
+  openProductImport: () => void;
 };
 
 const ProductEditorControllerContext = createContext<ProductEditorControllerValue | null>(null);
@@ -18,23 +20,32 @@ const ProductEditorControllerContext = createContext<ProductEditorControllerValu
 export function ProductEditorControllerProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [result, setResult] = useState<ProductEditorActionSuccess | null>(null);
 
   const openNewProduct = useCallback(() => {
     setProductId(null);
     setOpen(true);
+    setImportOpen(false);
     setResult(null);
   }, []);
 
   const openExistingProduct = useCallback((nextProductId: string) => {
     setProductId(nextProductId);
     setOpen(true);
+    setImportOpen(false);
+    setResult(null);
+  }, []);
+  const openProductImport = useCallback(() => {
+    setProductId(null);
+    setOpen(false);
+    setImportOpen(true);
     setResult(null);
   }, []);
 
   const value = useMemo(
-    () => ({ openNewProduct, openExistingProduct }),
-    [openNewProduct, openExistingProduct],
+    () => ({ openNewProduct, openExistingProduct, openProductImport }),
+    [openNewProduct, openExistingProduct, openProductImport],
   );
 
   return (
@@ -46,6 +57,7 @@ export function ProductEditorControllerProvider({ children }: { children: ReactN
         open={open}
         productId={productId}
       />
+      <ProductImportDialog onOpenChange={setImportOpen} open={importOpen} />
       {result ? (
         <Alert
           aria-live="polite"
