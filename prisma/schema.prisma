@@ -102,9 +102,10 @@ model cloudinary_assets {
   created_by_profile_id String?               @db.Uuid
   created_at            DateTime              @default(now()) @db.Timestamptz(6)
 
-  profiles           profiles?            @relation(fields: [created_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  product_media      product_media[]
-  store_brand_assets store_brand_assets[]
+  profiles            profiles?             @relation(fields: [created_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  product_media       product_media[]
+  store_brand_assets  store_brand_assets[]
+  support_attachments support_attachments[]
 
   @@unique([public_id])
   @@index([kind], map: "cloudinary_assets_store_kind_idx")
@@ -169,13 +170,20 @@ model customers {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
-  activity_events         activity_events[]
-  customer_addresses      customer_addresses[]
-  customer_notes          customer_notes[]
-  customer_saved_products customer_saved_products[]
-  profile                 profiles?                 @relation(fields: [profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  holds                   holds[]
-  orders                  orders[]
+  activity_events           activity_events[]
+  account_deletion_requests account_deletion_requests[]
+  customer_addresses        customer_addresses[]
+  customer_notes            customer_notes[]
+  customer_preferences      customer_preferences?
+  customer_saved_products   customer_saved_products[]
+  data_export_jobs          data_export_jobs[]
+  notification_preferences  notification_preferences[]
+  notifications             notifications[]
+  privacy_consents          privacy_consents[]
+  profile                   profiles?                   @relation(fields: [profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  holds                     holds[]
+  orders                    orders[]
+  support_tickets           support_tickets[]
 
   /// One authenticated profile may own at most one commerce customer record.
   /// Guest/CRM customers may have profile_id = NULL.
@@ -688,6 +696,7 @@ model profiles {
   orders                    orders[]
   stock_movements           stock_movements[]
   store_settings_updates    store_settings[]        @relation("store_settings_updater")
+  support_messages          support_messages[]
 
   /// Multiple admins are allowed. Authorization must check both role and status.
   @@index([role, status], map: "profiles_role_status_idx")
