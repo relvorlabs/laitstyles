@@ -6,9 +6,9 @@ import {
   Delete02Icon,
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
-import type { CloudinaryUploadWidgetInfo, CloudinaryUploadWidgetResults } from "next-cloudinary";
+import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { CldUploadButton } from "next-cloudinary";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -18,11 +18,27 @@ import { Input } from "@/components/ui/input";
 import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import {
+  finishCloudinaryUploadQueue,
+  normalizeCloudinaryUploadResult,
+  type UploadedCloudinaryAsset,
+} from "@/lib/assets/client/cloudinary-upload";
 
 const MAX_IMAGES = 12;
+type UploadStatus = "opening" | "uploading" | "completed" | "cancelled" | "failed";
+
+const uploadStatusMessage: Record<UploadStatus, string> = {
+  opening: "Opening image uploader.",
+  uploading: "Uploading images.",
+  completed: "Image upload completed.",
+  cancelled: "Image upload cancelled.",
+  failed: "Image upload failed. Try again.",
+};
 
 export function ProductImagesStep() {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
+  const uploadAppended = useRef(false);
   const {
     control,
     getValues,
@@ -39,36 +55,42 @@ export function ProductImagesStep() {
   const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
 
   function handleUploadSuccess(result: CloudinaryUploadWidgetResults) {
-    const info = result.info;
-    if (!info || typeof info === "string") return;
-    addUploadedImage(info);
+    const normalized = normalizeCloudinaryUploadResult(result);
+    if (!normalized.ok) {
+      setUploadStatus("failed");
+      setFeedback(normalized.error.message);
+      return;
+    }
+    if (!addUploadedImage(normalized.value)) setUploadStatus("failed");
   }
 
-  function addUploadedImage(info: CloudinaryUploadWidgetInfo) {
+  function addUploadedImage(image: UploadedCloudinaryAsset) {
     const existing = getValues("media");
     if (existing.length >= MAX_IMAGES) {
       setFeedback(`A product can have up to ${MAX_IMAGES} images.`);
-      return;
+      return false;
     }
-    if (existing.some((item) => item.publicId === info.public_id)) {
+    if (existing.some((item) => item.publicId === image.publicId)) {
       setFeedback("That image is already in this product record.");
-      return;
+      return false;
     }
 
     append({
       id: `media-${crypto.randomUUID()}`,
-      publicId: info.public_id,
-      url: info.secure_url,
-      width: info.width ?? null,
-      height: info.height ?? null,
-      format: info.format ?? null,
-      bytes: info.bytes ?? null,
+      publicId: image.publicId,
+      url: image.url,
+      width: image.width,
+      height: image.height,
+      format: image.format,
+      bytes: image.bytes,
       alt: "",
       kind: existing.some((item) => item.kind === "cover") ? "detail" : "cover",
       position: existing.length,
       source: "upload",
     });
+    uploadAppended.current = true;
     setFeedback("Image added. Add a description and choose the featured cover.");
+    return true;
   }
 
   function setCover(index: number) {
@@ -137,7 +159,27 @@ export function ProductImagesStep() {
             <CldUploadButton
               className={buttonVariants({ size: "lg", variant: "outline" })}
               data-slot="button"
-              onError={() => setFeedback("That upload failed. Try again.")}
+              disabled={uploadStatus === "opening" || uploadStatus === "uploading"}
+              onClose={() =>
+                setUploadStatus((current) =>
+                  current === "opening" || current === "uploading" ? "cancelled" : current,
+                )
+              }
+              onError={() => {
+                setUploadStatus("failed");
+                setFeedback("That upload failed. Try again.");
+              }}
+              onOpen={() => {
+                uploadAppended.current = false;
+                setFeedback(null);
+                setUploadStatus("opening");
+              }}
+              onQueuesEnd={() =>
+                setUploadStatus((current) =>
+                  current ? finishCloudinaryUploadQueue(current, uploadAppended.current) : current,
+                )
+              }
+              onQueuesStart={() => setUploadStatus("uploading")}
               onSuccess={handleUploadSuccess}
               options={{
                 multiple: true,
@@ -166,12 +208,12 @@ export function ProductImagesStep() {
         </div>
       </div>
 
-      {feedback ? (
+      {uploadStatus || feedback ? (
         <p
           aria-live="polite"
           className="rounded-xl border border-border bg-surface-interactive px-4 py-3 text-sm text-surface-interactive-foreground"
         >
-          {feedback}
+          {feedback ?? (uploadStatus ? uploadStatusMessage[uploadStatus] : null)}
         </p>
       ) : null}
 

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { CldUploadButton } from "next-cloudinary";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
@@ -19,9 +19,25 @@ import {
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import {
+  finishCloudinaryUploadQueue,
+  normalizeCloudinaryUploadResult,
+} from "@/lib/assets/client/cloudinary-upload";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
+type UploadStatus = "opening" | "uploading" | "completed" | "cancelled" | "failed";
+
+const uploadStatusMessage: Record<UploadStatus, string> = {
+  opening: "Opening image uploader.",
+  uploading: "Uploading image.",
+  completed: "Image upload completed.",
+  cancelled: "Image upload cancelled.",
+  failed: "Image upload failed. Try again.",
+};
+
 export function VariantProductFields() {
+  const [uploadStatuses, setUploadStatuses] = useState<Record<string, UploadStatus>>({});
+  const [uploadFeedback, setUploadFeedback] = useState<Record<string, string>>({});
   const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const {
     control,
@@ -86,21 +102,42 @@ export function VariantProductFields() {
     });
   }
 
-  function setVariantImage(index: number, result: CloudinaryUploadWidgetResults) {
-    const info = result.info;
-    if (!info || typeof info === "string") return;
+  function setVariantUploadStatus(fieldKey: string, status: UploadStatus) {
+    setUploadStatuses((current) => ({ ...current, [fieldKey]: status }));
+  }
+
+  function clearVariantUploadFeedback(fieldKey: string) {
+    setUploadFeedback((current) => {
+      const { [fieldKey]: _, ...next } = current;
+      return next;
+    });
+  }
+
+  function setVariantImage(
+    index: number,
+    fieldKey: string,
+    result: CloudinaryUploadWidgetResults,
+  ) {
+    const normalized = normalizeCloudinaryUploadResult(result);
+    if (!normalized.ok) {
+      setVariantUploadStatus(fieldKey, "failed");
+      setUploadFeedback((current) => ({ ...current, [fieldKey]: normalized.error.message }));
+      return;
+    }
     setValue(
       `variant.variants.${index}.image`,
       {
-        publicId: info.public_id,
-        url: info.secure_url,
-        width: info.width ?? null,
-        height: info.height ?? null,
-        format: info.format ?? null,
-        bytes: info.bytes ?? null,
+        publicId: normalized.value.publicId,
+        url: normalized.value.url,
+        width: normalized.value.width,
+        height: normalized.value.height,
+        format: normalized.value.format,
+        bytes: normalized.value.bytes,
       },
       { shouldDirty: true },
     );
+    clearVariantUploadFeedback(fieldKey);
+    setVariantUploadStatus(fieldKey, "completed");
   }
 
   function removeVariantImage(index: number) {
@@ -192,6 +229,7 @@ export function VariantProductFields() {
             const name = (suffix: string) =>
               `variant.variants.${index}.${suffix}` as EditorFieldName;
             const current = watchedVariants[index] ?? field;
+            const uploadStatus = uploadStatuses[field.fieldKey];
 
             return (
               <article
@@ -280,7 +318,38 @@ export function VariantProductFields() {
                       <CldUploadButton
                         className={buttonVariants({ size: "sm", variant: "outline" })}
                         data-slot="button"
-                        onSuccess={(result) => setVariantImage(index, result)}
+                        disabled={uploadStatus === "opening" || uploadStatus === "uploading"}
+                        onClose={() => {
+                          if (uploadStatus === "opening" || uploadStatus === "uploading") {
+                            setVariantUploadStatus(field.fieldKey, "cancelled");
+                          }
+                        }}
+                        onError={() => {
+                          setVariantUploadStatus(field.fieldKey, "failed");
+                          setUploadFeedback((current) => ({
+                            ...current,
+                            [field.fieldKey]: "That upload failed. Try again.",
+                          }));
+                        }}
+                        onOpen={() => {
+                          clearVariantUploadFeedback(field.fieldKey);
+                          setVariantUploadStatus(field.fieldKey, "opening");
+                        }}
+                        onQueuesEnd={() =>
+                          setUploadStatuses((current) =>
+                            current[field.fieldKey]
+                              ? {
+                                  ...current,
+                                  [field.fieldKey]: finishCloudinaryUploadQueue(
+                                    current[field.fieldKey],
+                                    true,
+                                  ),
+                                }
+                              : current,
+                          )
+                        }
+                        onQueuesStart={() => setVariantUploadStatus(field.fieldKey, "uploading")}
+                        onSuccess={(result) => setVariantImage(index, field.fieldKey, result)}
                         options={{
                           multiple: false,
                           sources: ["local", "camera"],
@@ -292,6 +361,11 @@ export function VariantProductFields() {
                         Upload image
                       </CldUploadButton>
                     )}
+                    {uploadStatus ? (
+                      <p aria-live="polite" className="text-xs text-muted-foreground">
+                        {uploadFeedback[field.fieldKey] ?? uploadStatusMessage[uploadStatus]}
+                      </p>
+                    ) : null}
                   </div>
                   <EditorNumberField
                     description="Leave blank to use the product selling price."
