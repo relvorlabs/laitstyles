@@ -11,7 +11,6 @@ import { useAccountUi } from "../account-context";
 import {
   AcctButton,
   Eyebrow,
-  fieldClass,
   LabeledField,
   panelElevatedClass,
 } from "../components/account-primitives";
@@ -59,53 +58,73 @@ export function ProfileSection({
           <h2 className="font-serif text-3xl font-normal">Personal information</h2>
         </div>
         <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-          <LabeledField label="First name">
+          <LabeledField
+            label="First name"
+            htmlFor="profile-first-name"
+            error={state.fieldErrors?.firstName}
+            success={state.status === "success" && !state.fieldErrors?.firstName ? "Saved." : null}
+          >
             <Input
-              aria-invalid={!!state.fieldErrors?.firstName}
-              className={fieldClass}
+              id="profile-first-name"
+              aria-invalid={Boolean(state.fieldErrors?.firstName)}
+              isValid={state.status === "success" && !state.fieldErrors?.firstName}
               defaultValue={firstName}
+              inputSize="lg"
               name="firstName"
               required
             />
-            {state.fieldErrors?.firstName ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.firstName}</p>
-            ) : null}
           </LabeledField>
-          <LabeledField label="Last name">
+          <LabeledField
+            label="Last name"
+            htmlFor="profile-last-name"
+            error={state.fieldErrors?.lastName}
+            success={state.status === "success" && !state.fieldErrors?.lastName ? "Saved." : null}
+          >
             <Input
-              aria-invalid={!!state.fieldErrors?.lastName}
-              className={fieldClass}
+              id="profile-last-name"
+              aria-invalid={Boolean(state.fieldErrors?.lastName)}
+              isValid={state.status === "success" && !state.fieldErrors?.lastName}
               defaultValue={lastName}
+              inputSize="lg"
               name="lastName"
               required
             />
-            {state.fieldErrors?.lastName ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.lastName}</p>
-            ) : null}
           </LabeledField>
-          <LabeledField label="Preferred name" hint="Used in account greetings only.">
+          <LabeledField
+            label="Preferred name"
+            htmlFor="profile-preferred-name"
+            hint="Used in account greetings only."
+            error={state.fieldErrors?.preferredName}
+            success={
+              state.status === "success" && !state.fieldErrors?.preferredName ? "Saved." : null
+            }
+          >
             <Input
-              aria-invalid={!!state.fieldErrors?.preferredName}
-              className={fieldClass}
+              id="profile-preferred-name"
+              aria-invalid={Boolean(state.fieldErrors?.preferredName)}
+              isValid={state.status === "success" && !state.fieldErrors?.preferredName}
               defaultValue={preferredName}
+              inputSize="lg"
               name="preferredName"
             />
-            {state.fieldErrors?.preferredName ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.preferredName}</p>
-            ) : null}
           </LabeledField>
-          <LabeledField label="Phone number" hint="Used for delivery updates.">
+          <LabeledField
+            label="Phone number"
+            htmlFor="profile-phone"
+            hint="Used for delivery updates."
+            error={state.fieldErrors?.phone}
+            success={state.status === "success" && !state.fieldErrors?.phone ? "Saved." : null}
+          >
             <Input
-              aria-invalid={!!state.fieldErrors?.phone}
+              id="profile-phone"
+              aria-invalid={Boolean(state.fieldErrors?.phone)}
+              isValid={state.status === "success" && !state.fieldErrors?.phone}
               autoComplete="tel"
-              className={fieldClass}
               defaultValue={phone}
+              inputSize="lg"
               name="phone"
               type="tel"
             />
-            {state.fieldErrors?.phone ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.phone}</p>
-            ) : null}
           </LabeledField>
         </div>
 

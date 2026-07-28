@@ -177,6 +177,13 @@ export function CreateReturnDialog({
                   autoComplete="off"
                   id="return-quantity"
                   inputMode="numeric"
+                  inputSize="lg"
+                  isValid={
+                    error?.field !== "quantity" &&
+                    Number.isInteger(quantity) &&
+                    quantity >= 1 &&
+                    quantity <= eligible
+                  }
                   max={Math.max(eligible, 1)}
                   min={1}
                   name="return-quantity"
@@ -196,6 +203,8 @@ export function CreateReturnDialog({
                   aria-invalid={error?.field === "reason"}
                   autoComplete="off"
                   id="return-reason"
+                  inputSize="lg"
+                  isValid={error?.field !== "reason" && reason.trim().length > 0}
                   name="return-reason"
                   onChange={(event) => {
                     setReason(event.target.value);
@@ -217,6 +226,7 @@ export function CreateReturnDialog({
                     setError(null);
                   }}
                   placeholder="Condition expected, collection arrangement, or customer context…"
+                  textareaSize="lg"
                   value={note}
                 />
               </Field>

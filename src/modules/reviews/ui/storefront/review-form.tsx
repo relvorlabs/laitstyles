@@ -28,6 +28,14 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewInputSchema } from "@/modules/reviews/schema";
 import type { ReviewActionState, ReviewInput } from "@/modules/reviews/types";
@@ -52,6 +60,12 @@ export interface ReviewFormProps {
 
 const initialActionState: ReviewActionState = { status: "idle" };
 const ratingOptions = [1, 2, 3, 4, 5] as const;
+const fitLabels: Record<string, string> = {
+  not_applicable: "Not applicable",
+  runs_small: "Runs small",
+  true_to_size: "True to size",
+  runs_large: "Runs large",
+};
 
 const submitCopy: Record<ReviewFormIntent, string> = {
   create: "Submit review",
@@ -244,19 +258,37 @@ export function ReviewForm({
           </Field>
 
           <Field data-invalid={Boolean(fitError)}>
-            <FieldLabel htmlFor="review-fit">Fit</FieldLabel>
-            <select
-              aria-invalid={Boolean(fitError)}
-              className="h-11 w-full rounded-lg border border-input bg-control px-3 text-base text-control-foreground outline-none transition-colors hover:bg-control-hover focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:bg-surface-sunken disabled:opacity-50 md:text-sm"
-              disabled={!canSubmit || isMutating}
-              id="review-fit"
-              {...form.register("fit")}
-            >
-              <option value="not_applicable">Not applicable</option>
-              <option value="runs_small">Runs small</option>
-              <option value="true_to_size">True to size</option>
-              <option value="runs_large">Runs large</option>
-            </select>
+            <FieldLabel>Fit</FieldLabel>
+            <Controller
+              control={form.control}
+              name="fit"
+              render={({ field }) => (
+                <Select
+                  disabled={!canSubmit || isMutating}
+                  items={fitLabels}
+                  onValueChange={(value) => {
+                    if (value) field.onChange(value);
+                  }}
+                  value={field.value}
+                >
+                  <SelectTrigger
+                    aria-invalid={Boolean(fitError)}
+                    aria-label="Fit"
+                    className="h-11 w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="not_applicable">Not applicable</SelectItem>
+                      <SelectItem value="runs_small">Runs small</SelectItem>
+                      <SelectItem value="true_to_size">True to size</SelectItem>
+                      <SelectItem value="runs_large">Runs large</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
             <FieldError>{fitError}</FieldError>
           </Field>
         </FieldGroup>

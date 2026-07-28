@@ -2,7 +2,7 @@
 
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -37,20 +37,20 @@ export function ReturnControls({
 
   return (
     <div className="flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center">
-      <div className="relative flex-1">
-        <AdminIcon
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          icon={Search01Icon}
-          size={17}
-        />
-        <Input
+      <InputGroup className="h-11 flex-1 bg-card">
+        <InputGroupAddon>
+          <AdminIcon icon={Search01Icon} size={17} />
+        </InputGroupAddon>
+        <InputGroupInput
           aria-label="Search returns"
-          className="h-11 pl-10"
+          autoComplete="off"
+          name="return-search"
           onChange={(event) => onQueryChange({ search: event.target.value })}
           placeholder="Search return, order, customer or product"
+          spellCheck={false}
           value={query.search}
         />
-      </div>
+      </InputGroup>
 
       <div className="grid grid-cols-2 gap-2 sm:flex">
         <Select

@@ -301,7 +301,7 @@ export function CheckoutFlowV2() {
                     value={form.phone}
                     withRightPadding
                   />
-                  <HelpCircle className="absolute right-3.5 top-4 size-5 text-[#8A887E]" />
+                  <HelpCircle className="absolute right-3.5 top-3 size-5 text-[#8A887E]" />
                 </div>
                 <div className="mb-2.5 mt-6 text-[12.5px] font-semibold uppercase tracking-[.04em] text-[#57554E]">
                   Delivery zone

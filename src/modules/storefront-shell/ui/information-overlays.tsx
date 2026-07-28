@@ -2,6 +2,17 @@
 
 import { type FormEvent, type MouseEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel, FieldSuccess } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   showStorefrontToast,
   useStorefrontCatalogueData,
@@ -9,25 +20,40 @@ import {
 } from "@/modules/storefront-shell/client/storefront-runtime";
 import { IconClose } from "@/modules/storefront-shell/ui/storefront-icons";
 
+const supportTopics = ["Measurements", "Condition or flaw", "Delivery", "Return eligibility"];
+
 export function InformationOverlays() {
   const overlay = useStorefrontOverlay();
   const { measurementsCm } = useStorefrontCatalogueData();
   const [measureUnit, setMeasureUnit] = useState<"cm" | "in">("cm");
+  const [deliveryArea, setDeliveryArea] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("");
+  const [deliveryValid, setDeliveryValid] = useState<boolean | null>(null);
+  const [supportTopic, setSupportTopic] = useState(supportTopics[0]);
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportTouched, setSupportTouched] = useState(false);
   const overlayBackdrop = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) overlay.close();
   };
   const onDeliverySubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const area = new FormData(event.currentTarget).get("area")?.toString().trim() ?? "";
+    const area = deliveryArea.trim();
+    const valid = area.length >= 3;
+    setDeliveryValid(valid);
     setDeliveryStatus(
-      area.length < 3
-        ? "Enter a valid state or delivery area."
-        : `Estimated delivery to ${area}: 2–5 business days. Final fee is confirmed at checkout.`,
+      valid
+        ? `Estimated delivery to ${area}: 2–5 business days. Final fee is confirmed at checkout.`
+        : "Enter a valid state or delivery area.",
     );
   };
+  const supportMessageError =
+    supportTouched && supportMessage.trim().length < 10
+      ? "Add a little more detail (at least 10 characters)."
+      : undefined;
   const onSupportSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSupportTouched(true);
+    if (supportMessage.trim().length < 10) return;
     overlay.close();
     showStorefrontToast("Your question has been recorded.");
   };
@@ -170,17 +196,29 @@ export function InformationOverlays() {
               <IconClose />
             </Button>
           </div>
-          <form className="mt-5" id="deliveryForm" onSubmit={onDeliverySubmit}>
-            <div className="field">
-              <label htmlFor="deliveryArea">State or delivery area</label>
-              <input id="deliveryArea" name="area" placeholder="e.g. Lagos" required />
-            </div>
+          <form className="mt-5" id="deliveryForm" noValidate onSubmit={onDeliverySubmit}>
+            <Field data-invalid={deliveryValid === false}>
+              <FieldLabel htmlFor="deliveryArea">State or delivery area</FieldLabel>
+              <Input
+                aria-invalid={deliveryValid === false}
+                id="deliveryArea"
+                inputSize="lg"
+                isValid={deliveryValid === true}
+                name="area"
+                onChange={(event) => {
+                  setDeliveryArea(event.target.value);
+                  setDeliveryValid(null);
+                }}
+                placeholder="e.g. Lagos"
+                required
+                value={deliveryArea}
+              />
+              {deliveryValid === false ? <FieldError>{deliveryStatus}</FieldError> : null}
+              {deliveryValid === true ? <FieldSuccess>{deliveryStatus}</FieldSuccess> : null}
+            </Field>
             <Button className="mt-3" type="submit">
               Check estimate
             </Button>
-            <p aria-live="polite" className="text-[0.8rem]" id="deliveryStatus">
-              {deliveryStatus}
-            </p>
           </form>
         </section>
       </div>
@@ -251,20 +289,49 @@ export function InformationOverlays() {
               <IconClose />
             </Button>
           </div>
-          <form className="mt-5 grid gap-[14px]" id="supportForm" onSubmit={onSupportSubmit}>
-            <div className="field">
-              <label htmlFor="supportTopic">Topic</label>
-              <select defaultValue="Measurements" id="supportTopic">
-                <option>Measurements</option>
-                <option>Condition or flaw</option>
-                <option>Delivery</option>
-                <option>Return eligibility</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="supportMessage">Message</label>
-              <textarea className="p-3" id="supportMessage" required rows={5} />
-            </div>
+          <form
+            className="mt-5 grid gap-[14px]"
+            id="supportForm"
+            noValidate
+            onSubmit={onSupportSubmit}
+          >
+            <Field>
+              <FieldLabel>Topic</FieldLabel>
+              <Select
+                onValueChange={(value) => value && setSupportTopic(value)}
+                value={supportTopic}
+              >
+                <SelectTrigger aria-label="Topic" className="h-11 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {supportTopics.map((topic) => (
+                      <SelectItem key={topic} value={topic}>
+                        {topic}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field data-invalid={Boolean(supportMessageError)}>
+              <FieldLabel htmlFor="supportMessage">Message</FieldLabel>
+              <Textarea
+                aria-invalid={Boolean(supportMessageError)}
+                id="supportMessage"
+                isValid={supportTouched && !supportMessageError}
+                onBlur={() => setSupportTouched(true)}
+                onChange={(event) => setSupportMessage(event.target.value)}
+                required
+                textareaSize="lg"
+                value={supportMessage}
+              />
+              {supportMessageError ? <FieldError>{supportMessageError}</FieldError> : null}
+              {supportTouched && !supportMessageError ? (
+                <FieldSuccess>Looks good.</FieldSuccess>
+              ) : null}
+            </Field>
             <Button type="submit">Send question</Button>
           </form>
         </section>

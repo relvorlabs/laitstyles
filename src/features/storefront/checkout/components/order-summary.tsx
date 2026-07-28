@@ -72,10 +72,7 @@ export function OrderSummary({
       ))}
 
       <div className="my-[18px] mb-[22px] flex gap-2.5">
-        <Input
-          className="h-12 flex-1 rounded-[9px] bg-card px-[15px] text-[13.5px]"
-          placeholder="Discount code or gift card"
-        />
+        <Input className="flex-1" inputSize="lg" placeholder="Discount code or gift card" />
         <Button size="lg">Apply</Button>
       </div>
 

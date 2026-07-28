@@ -148,6 +148,11 @@ export function RecordSaleItemStep() {
             <Input
               aria-invalid={Boolean(methods.formState.errors.quantity)}
               id="record-sale-quantity"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("quantity", methods.formState).isTouched &&
+                !methods.getFieldState("quantity", methods.formState).invalid
+              }
               max={Math.max(available, 1)}
               min={1}
               type="number"
@@ -162,6 +167,11 @@ export function RecordSaleItemStep() {
             <Input
               aria-invalid={Boolean(methods.formState.errors.unitPrice)}
               id="record-sale-price"
+              inputSize="lg"
+              isValid={
+                methods.getFieldState("unitPrice", methods.formState).isTouched &&
+                !methods.getFieldState("unitPrice", methods.formState).invalid
+              }
               min={0}
               step={500}
               type="number"

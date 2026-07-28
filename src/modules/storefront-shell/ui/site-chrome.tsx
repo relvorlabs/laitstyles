@@ -7,7 +7,8 @@ import { isAuthFlowErrorCode } from "@/modules/auth/errors";
 import type { StorefrontAuthSupportMode } from "@/modules/auth/ui/auth-dialog";
 import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
 import { useCatalogueNavigation } from "@/modules/products/client/use-catalogue-navigation";
-import { type NavShop, SiteFooter, SiteHeader } from "@/modules/storefront-shell/ui/site-header";
+import { SiteFooter } from "@/modules/storefront-shell/ui/site-footer";
+import { type NavShop, SiteHeader } from "@/modules/storefront-shell/ui/site-header";
 import { StorefrontOverlays } from "@/modules/storefront-shell/ui/storefront-overlays";
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
@@ -66,7 +67,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
       {children}
 
-      <SiteFooter onNavShop={navigateShop} />
+      <SiteFooter />
       <StorefrontOverlays />
       <Analytics />
     </div>

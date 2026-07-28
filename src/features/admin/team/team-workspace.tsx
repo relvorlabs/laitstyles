@@ -1,14 +1,35 @@
 "use client";
 
 import { MailPlus, ShieldCheck, UserRoundCheck } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel, FieldSuccess } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { ManagerMember } from "@/modules/auth/types";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type InviteFormField = "firstName" | "lastName" | "email";
+
+function validateInviteField(field: InviteFormField, value: string): string | undefined {
+  const trimmed = value.trim();
+  if (field === "firstName" && !trimmed) return "Enter a first name.";
+  if (field === "lastName" && !trimmed) return "Enter a last name.";
+  if (field === "email") {
+    if (!trimmed) return "Enter a work email.";
+    if (!EMAIL_PATTERN.test(trimmed)) return "Enter a valid email address.";
+  }
+  return undefined;
+}
 
 export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMember[] }) {
   const [members, setMembers] = useState(initialMembers);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
+  const [touched, setTouched] = useState<Record<InviteFormField, boolean>>({
+    firstName: false,
+    lastName: false,
+    email: false,
+  });
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<{
     tone: "error" | "success";
@@ -16,8 +37,34 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
   } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  function fieldError(field: InviteFormField): string | undefined {
+    return (
+      fieldErrors[field] ?? (touched[field] ? validateInviteField(field, form[field]) : undefined)
+    );
+  }
+
+  function fieldValid(field: InviteFormField): boolean {
+    return touched[field] && !fieldError(field) && form[field].trim().length > 0;
+  }
+
   async function submitInvitation() {
     if (pending) return;
+    setTouched({ firstName: true, lastName: true, email: true });
+
+    const localErrors: Record<string, string> = {};
+    for (const field of ["firstName", "lastName", "email"] as const) {
+      const localError = validateInviteField(field, form[field]);
+      if (localError) localErrors[field] = localError;
+    }
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
+      setMessage({
+        tone: "error",
+        text: "Fix the highlighted fields before sending the invitation.",
+      });
+      return;
+    }
+
     setPending(true);
     setMessage(null);
     setFieldErrors({});
@@ -44,6 +91,7 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
         ...current.filter((member) => member.id !== result.member.id),
       ]);
       setForm({ firstName: "", lastName: "", email: "" });
+      setTouched({ firstName: false, lastName: false, email: false });
       setMessage({ tone: "success", text: result.message });
     } catch {
       setMessage({
@@ -70,9 +118,7 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
         </div>
         <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
           <strong className="block text-2xl font-semibold">{members.length}</strong>
-          <span className="text-muted-foreground">
-            manager{members.length === 1 ? "" : "s"}
-          </span>
+          <span className="text-muted-foreground">manager{members.length === 1 ? "" : "s"}</span>
         </div>
       </header>
 
@@ -92,34 +138,54 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field error={fieldErrors.firstName} label="First name">
+            <Field data-invalid={Boolean(fieldError("firstName"))}>
+              <FieldLabel htmlFor="invite-first-name">First name</FieldLabel>
               <Input
+                aria-invalid={Boolean(fieldError("firstName"))}
                 autoComplete="given-name"
                 disabled={pending}
+                id="invite-first-name"
+                inputSize="lg"
+                isValid={fieldValid("firstName")}
+                onBlur={() => setTouched((current) => ({ ...current, firstName: true }))}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, firstName: event.target.value }))
                 }
                 placeholder="First name"
                 value={form.firstName}
               />
+              <FieldError>{fieldError("firstName")}</FieldError>
             </Field>
-            <Field error={fieldErrors.lastName} label="Last name">
+            <Field data-invalid={Boolean(fieldError("lastName"))}>
+              <FieldLabel htmlFor="invite-last-name">Last name</FieldLabel>
               <Input
+                aria-invalid={Boolean(fieldError("lastName"))}
                 autoComplete="family-name"
                 disabled={pending}
+                id="invite-last-name"
+                inputSize="lg"
+                isValid={fieldValid("lastName")}
+                onBlur={() => setTouched((current) => ({ ...current, lastName: true }))}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, lastName: event.target.value }))
                 }
                 placeholder="Last name"
                 value={form.lastName}
               />
+              <FieldError>{fieldError("lastName")}</FieldError>
             </Field>
           </div>
           <div className="mt-4">
-            <Field error={fieldErrors.email} label="Work email">
+            <Field data-invalid={Boolean(fieldError("email"))}>
+              <FieldLabel htmlFor="invite-email">Work email</FieldLabel>
               <Input
+                aria-invalid={Boolean(fieldError("email"))}
                 autoComplete="email"
                 disabled={pending}
+                id="invite-email"
+                inputSize="lg"
+                isValid={fieldValid("email")}
+                onBlur={() => setTouched((current) => ({ ...current, email: true }))}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, email: event.target.value }))
                 }
@@ -127,6 +193,8 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
                 type="email"
                 value={form.email}
               />
+              <FieldError>{fieldError("email")}</FieldError>
+              {fieldValid("email") ? <FieldSuccess>Looks good.</FieldSuccess> : null}
             </Field>
           </div>
 
@@ -203,23 +271,5 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
         </section>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: ReactNode;
-}) {
-  return (
-    <label className="grid gap-2 text-sm font-semibold">
-      {label}
-      {children}
-      {error ? <span className="text-xs font-medium text-destructive">{error}</span> : null}
-    </label>
   );
 }

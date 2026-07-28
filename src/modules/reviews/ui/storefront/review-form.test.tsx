@@ -112,7 +112,7 @@ describe("ReviewForm", () => {
       "A lasting favourite",
     );
     expect(screen.getByLabelText<HTMLTextAreaElement>("Your review").value).toBe(body);
-    expect(screen.getByLabelText<HTMLSelectElement>("Fit").value).toBe("runs_small");
+    expect(screen.getByLabelText("Fit").textContent).toContain("Runs small");
     expect(screen.getByRole("button", { name: "Update review" })).toBeTruthy();
   });
 

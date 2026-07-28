@@ -4,18 +4,17 @@ import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import {
-  showStorefrontToast,
   useStorefrontCatalogueData,
   useStorefrontOverlay,
   useStorefrontSavedItems,
   useStorefrontUtility,
 } from "@/modules/storefront-shell/client/storefront-runtime";
-import { BrandMark } from "@/modules/storefront-shell/ui/brand-mark";
 import { StorefrontAccountMenu } from "@/modules/storefront-shell/ui/storefront-account-menu";
 import { StorefrontCartSheet } from "@/modules/storefront-shell/ui/storefront-cart-sheet";
 import { IconClose, IconSearch } from "@/modules/storefront-shell/ui/storefront-icons";
@@ -125,7 +124,14 @@ export function SiteHeader({
 
           <Button aria-label="Laitstyles home" onClick={onGoHome} type="button" variant="ghost">
             <span className="brand-symbol">
-              <BrandMark />
+              <LaitstyleSymbol
+                aria-hidden="true"
+                className="h-full w-full"
+                data-storefront-logo="woven"
+                focusable="false"
+                role="presentation"
+                title=""
+              />
             </span>
             <span className="brand-word">LAITSTYLES</span>
           </Button>
@@ -172,7 +178,14 @@ export function SiteHeader({
           <div className="drawer-head">
             <div className="brand">
               <span className="brand-symbol">
-                <BrandMark />
+                <LaitstyleSymbol
+                  aria-hidden="true"
+                  className="h-full w-full"
+                  data-storefront-logo="woven"
+                  focusable="false"
+                  role="presentation"
+                  title=""
+                />
               </span>
               <span className="brand-word">LAITSTYLES</span>
             </div>
@@ -262,107 +275,5 @@ export function SiteHeader({
         </aside>
       </div>
     </>
-  );
-}
-
-export function SiteFooter({ onNavShop }: { onNavShop: NavShop }) {
-  const overlay = useStorefrontOverlay();
-  const headingClass =
-    "mb-[18px] mt-0 font-mono text-[0.68rem] font-medium uppercase leading-none tracking-[0.1em] text-[rgba(243,240,232,0.56)]";
-
-  return (
-    <footer className="bg-[var(--ink)] pb-[30px] pt-[70px] text-[var(--bone)]">
-      <div className="shell">
-        <div className="grid grid-cols-[1.25fr_repeat(3,0.75fr)] gap-[50px] max-[1100px]:grid-cols-[1.2fr_repeat(3,1fr)] max-[860px]:grid-cols-2 max-[600px]:grid-cols-1">
-          <div>
-            <div className="footer-brand">
-              <span className="brand-symbol">
-                <BrandMark />
-              </span>
-              <span className="brand-word">LAITSTYLES</span>
-            </div>
-            <p className="max-w-[28rem] text-[0.85rem] text-[rgba(243,240,232,0.6)]">
-              Curated premium pre-owned fashion, selected for condition, fit and real wardrobe
-              value.
-            </p>
-          </div>
-          <div>
-            <h3 className={headingClass}>Shop</h3>
-            <div className="footer-links">
-              <Button
-                onClick={() => onNavShop({ collection: "new" })}
-                type="button"
-                variant="ghost"
-              >
-                New arrivals
-              </Button>
-              <Button
-                onClick={() => onNavShop({ category: "Women" })}
-                type="button"
-                variant="ghost"
-              >
-                Women
-              </Button>
-              <Button onClick={() => onNavShop({ category: "Men" })} type="button" variant="ghost">
-                Men
-              </Button>
-              <Button
-                onClick={() => onNavShop({ collection: "one-of-one" })}
-                type="button"
-                variant="ghost"
-              >
-                One-of-one
-              </Button>
-            </div>
-          </div>
-          <div>
-            <h3 className={headingClass}>Customer care</h3>
-            <div className="footer-links">
-              <Button onClick={() => overlay.open("deliveryModal")} type="button" variant="ghost">
-                Delivery and returns
-              </Button>
-              <Button onClick={() => overlay.open("conditionModal")} type="button" variant="ghost">
-                Condition guide
-              </Button>
-              <Button onClick={() => overlay.open("measureModal")} type="button" variant="ghost">
-                Measurements
-              </Button>
-              <Button onClick={() => overlay.open("authModal")} type="button" variant="ghost">
-                Brand labelling
-              </Button>
-            </div>
-          </div>
-          <div>
-            <h3 className={headingClass}>Follow</h3>
-            <div className="footer-links">
-              <Button
-                aria-label="Instagram"
-                onClick={() => showStorefrontToast("Instagram is not available yet.")}
-                type="button"
-                variant="ghost"
-              >
-                Instagram
-              </Button>
-              <Button
-                aria-label="TikTok"
-                onClick={() => showStorefrontToast("TikTok is not available yet.")}
-                type="button"
-                variant="ghost"
-              >
-                TikTok
-              </Button>
-              <Button onClick={() => overlay.open("supportModal")} type="button" variant="ghost">
-                Contact
-              </Button>
-            </div>
-          </div>
-        </div>
-        <div className="mt-16 flex flex-wrap justify-between gap-5 border-t border-[rgba(243,240,232,0.15)] pt-[22px] text-[0.72rem] text-[rgba(243,240,232,0.5)] max-[600px]:grid">
-          <span>© 2026 Laitstyles</span>
-          <span>Nigeria · NGN ₦</span>
-          <span>Privacy · Terms</span>
-        </div>
-      </div>
-    </footer>
   );
 }

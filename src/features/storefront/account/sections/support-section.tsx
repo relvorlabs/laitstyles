@@ -1,12 +1,15 @@
 "use client";
 
+import { Search01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@/components/ui/button";
+import { FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
 import { useAccountUi } from "../account-context";
 import {
   AcctButton,
   Eyebrow,
-  fieldClass,
   monoClass,
   panelClass,
   panelElevatedClass,
@@ -32,14 +35,18 @@ export function SupportSection() {
       </header>
 
       <section className={cn("mt-7 p-5 sm:p-6", panelClass)}>
-        <label className="block">
-          <span className="text-sm font-semibold">Search help</span>
-          <input
-            className={cn(fieldClass, "mt-2")}
-            type="search"
+        <FieldLabel htmlFor="support-search">Search help</FieldLabel>
+        <InputGroup className="mt-2" groupSize="lg">
+          <InputGroupAddon>
+            <HugeiconsIcon aria-hidden="true" icon={Search01Icon} size={18} />
+          </InputGroupAddon>
+          <InputGroupInput
+            id="support-search"
+            inputSize="lg"
             placeholder="Delivery, returns, measurements…"
+            type="search"
           />
-        </label>
+        </InputGroup>
         <div className="mt-4 flex flex-wrap gap-2">
           {/* TODO(button-action): Open the delivery help article when support content routes exist. */}
           <AcctButton
