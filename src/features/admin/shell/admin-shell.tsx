@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ProductEditorControllerProvider } from "@/features/admin/product-editor/product-editor-controller";
+import { ProductEditorControllerProvider } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 import { RecordSaleControllerProvider } from "@/features/admin/record-sale/record-sale-controller";
 import { AdminAccessProvider } from "@/features/admin/shell/admin-access-provider";
 import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";

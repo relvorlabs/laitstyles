@@ -15,7 +15,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
+import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import {
@@ -136,7 +136,7 @@ export function ProductImagesStep() {
           className="mt-2 font-serif text-[30px] font-medium leading-tight sm:text-[36px]"
           id="product-images-title"
         >
-          Build the product’s visual record.
+          Build the productâ€™s visual record.
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
           Upload up to {MAX_IMAGES} images, reorder them, mark defects and choose one featured

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { type FieldPath, FormProvider, type Resolver, useForm, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -22,9 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProductEditorFooter } from "@/features/admin/product-editor/product-editor-footer";
-import { ProductEditorStepContent } from "@/features/admin/product-editor/product-editor-step-content";
-import { ProductEditorStepper } from "@/features/admin/product-editor/product-editor-stepper";
+import { ProductEditorFooter } from "@/modules/products/ui/admin/product-editor/product-editor-footer";
+import { ProductEditorStepContent } from "@/modules/products/ui/admin/product-editor/product-editor-step-content";
+import { ProductEditorStepper } from "@/modules/products/ui/admin/product-editor/product-editor-stepper";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
@@ -58,35 +58,53 @@ export function ProductEditorDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
 }) {
+  const closeRequest = useRef<(nextOpen: boolean) => void>(() => {});
   const { data: products = [] } = useQuery(adminProductsQueryOptions());
   const product = productId ? products.find((item) => item.id === productId) : undefined;
 
   if (!open) return null;
 
   return (
-    <ProductEditorForm
-      initialValues={
-        product ? createProductEditorValues(product) : createEmptyProductEditorValues()
-      }
-      key={product?.id ?? "new-product"}
-      onCompleted={onCompleted}
-      onOpenChange={onOpenChange}
-      open={open}
-    />
+    <Dialog onOpenChange={(nextOpen) => closeRequest.current(nextOpen)} open={open}>
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]">
+        <ProductEditorExperience
+          initialValues={product ? createProductEditorValues(product) : createEmptyProductEditorValues()}
+          key={product?.id ?? "new-product"}
+          onCompleted={onCompleted}
+          registerCloseRequest={(handler) => {
+            closeRequest.current = handler;
+          }}
+          onRequestClose={() => onOpenChange(false)}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function ProductEditorForm({
-  initialValues,
-  open,
-  onOpenChange,
-  onCompleted,
-}: {
+export type ProductEditorSurfaceProps = {
   initialValues: ProductEditorValues;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   onCompleted?: (result: ProductEditorActionSuccess) => void;
-}) {
+  onValuesChange?: (values: ProductEditorValues) => void;
+  onRequestClose: () => void;
+  queueNavigation?: ReactNode;
+};
+
+type ProductEditorExperienceProps = ProductEditorSurfaceProps & {
+  registerCloseRequest?: (handler: (nextOpen: boolean) => void) => void;
+};
+
+export function ProductEditorSurface(props: ProductEditorSurfaceProps) {
+  return <ProductEditorExperience {...props} />;
+}
+
+function ProductEditorExperience({
+  initialValues,
+  onCompleted,
+  onValuesChange,
+  onRequestClose,
+  queueNavigation,
+  registerCloseRequest,
+}: ProductEditorExperienceProps) {
   const saveProductMutation = useSaveProduct();
   const [activeStep, setActiveStep] = useState<ProductEditorStep>("type");
   const [highestVisited, setHighestVisited] = useState(0);
@@ -101,6 +119,7 @@ function ProductEditorForm({
   const watchedValues = useWatch({
     control: methods.control,
   }) as ProductEditorValues;
+  useEffect(() => onValuesChange?.(watchedValues), [onValuesChange, watchedValues]);
   const publishIssues = useMemo(() => validateProductForPublish(watchedValues), [watchedValues]);
   const activeIndex = productEditorSteps.indexOf(activeStep);
   const editing = Boolean(initialValues.productId);
@@ -152,13 +171,17 @@ function ProductEditorForm({
       setDiscardOpen(true);
       return;
     }
-    onOpenChange(false);
+    onRequestClose();
   }
+
+  useEffect(() => {
+    registerCloseRequest?.(requestClose);
+  }, [registerCloseRequest, methods.formState.isDirty]);
 
   function discardChanges() {
     methods.reset(initialValues);
     setDiscardOpen(false);
-    onOpenChange(false);
+    onRequestClose();
   }
 
   async function commit(intent: ProductEditorIntent) {
@@ -192,13 +215,12 @@ function ProductEditorForm({
 
     methods.reset(createProductEditorValues(result.value.product));
     onCompleted?.(result.value);
-    onOpenChange(false);
+    onRequestClose();
   }
 
   return (
     <>
-      <Dialog onOpenChange={requestClose} open={open}>
-        <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 max-sm:inset-0 max-sm:h-dvh max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:duration-0 max-sm:data-open:animate-none max-sm:data-closed:animate-none sm:h-[min(92dvh,900px)] sm:w-[min(94vw,1120px)] sm:max-w-[1120px] sm:rounded-[18px]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <DialogHeader className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {editing ? "Continue product" : "Add product"}
@@ -207,7 +229,7 @@ function ProductEditorForm({
               {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
             </DialogTitle>
             <DialogDescription>
-              Seven guided steps · changes are saved to the shared catalogue
+              Seven guided steps Â· changes are saved to the shared catalogue
             </DialogDescription>
           </DialogHeader>
 
@@ -226,6 +248,7 @@ function ProductEditorForm({
                   highestVisited={highestVisited}
                   onStepChange={goToStep}
                 />
+                {queueNavigation}
                 <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 sm:py-8 lg:px-9">
                   <div className="mx-auto w-full max-w-[820px]">
                     <ProductEditorStepContent
@@ -251,8 +274,7 @@ function ProductEditorForm({
               />
             </div>
           </FormProvider>
-        </DialogContent>
-      </Dialog>
+      </div>
 
       <AlertDialog onOpenChange={setDiscardOpen} open={discardOpen}>
         <AlertDialogContent>

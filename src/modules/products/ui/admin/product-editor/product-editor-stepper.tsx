@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { productEditorStepLabels } from "@/features/admin/product-editor/product-editor-step-labels";
+import { productEditorStepLabels } from "@/modules/products/ui/admin/product-editor/product-editor-step-labels";
 import { productEditorSteps } from "@/lib/admin/product-editor/product-editor-types";
 import type { ProductEditorStep } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,7 @@ export function ProductEditorStepper({
                           : "border-border bg-card",
                     )}
                   >
-                    {complete ? "✓" : index + 1}
+                    {complete ? "âœ“" : index + 1}
                   </span>
                   <span className="text-[12px] font-semibold">{productEditorStepLabels[step]}</span>
                 </Button>

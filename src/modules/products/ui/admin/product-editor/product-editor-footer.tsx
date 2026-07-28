@@ -29,7 +29,7 @@ export function ProductEditorFooter({
             Save draft
           </Button>
           <span className="hidden text-[10.5px] text-muted-foreground xl:inline">
-            Session only · refresh resets the prototype
+            Product changes are saved to the shared catalogue
           </span>
         </div>
 

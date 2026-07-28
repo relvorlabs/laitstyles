@@ -7,7 +7,7 @@ import { FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   EditorSelectField,
   EditorTextField,
-} from "@/features/admin/product-editor/product-editor-fields";
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 

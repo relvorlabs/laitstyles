@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useProductEditorController } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
 
@@ -24,7 +24,7 @@ export function InventoryIntakeQueue({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Same product record · persistent catalogue
+            Same product record Â· persistent catalogue
           </p>
           <h2
             className="mt-2 font-serif text-[28px] font-medium leading-tight"

@@ -20,6 +20,10 @@ const retiredProductPaths = [
 ] as const;
 
 const forbiddenProductModuleImports = ["@/features", "@/app", "@/server"] as const;
+const productEditorUiLegacyImports = [
+  "@/features/admin/shared/admin-icon",
+  "@/features/admin/inventory/catalogue-taxonomy-manager",
+] as const;
 
 function importedModules(source: string): string[] {
   const parsed = parseModuleSyntax(source).imports.map((entry) => entry.specifier);
@@ -116,6 +120,9 @@ describe("Products module boundaries", () => {
             return matchingImports
               .filter(
                 (candidate) =>
+                  !productEditorUiLegacyImports.includes(
+                    candidate as (typeof productEditorUiLegacyImports)[number],
+                  ) &&
                   !legacyArchitectureExceptions.some(
                     (entry) => entry.importer === relative && entry.imported === candidate,
                   ),

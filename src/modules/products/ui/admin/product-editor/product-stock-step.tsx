@@ -1,9 +1,9 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
-import { StockedProductFields } from "@/features/admin/product-editor/stocked-product-fields";
-import { UniqueStockFields } from "@/features/admin/product-editor/unique-stock-fields";
-import { VariantProductFields } from "@/features/admin/product-editor/variant-product-fields";
+import { StockedProductFields } from "@/modules/products/ui/admin/product-editor/stocked-product-fields";
+import { UniqueStockFields } from "@/modules/products/ui/admin/product-editor/unique-stock-fields";
+import { VariantProductFields } from "@/modules/products/ui/admin/product-editor/variant-product-fields";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function ProductStockStep() {

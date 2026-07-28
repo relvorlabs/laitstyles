@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useProductEditorController } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 import { useRecordSaleController } from "@/features/admin/record-sale/record-sale-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { getAdminPage } from "@/features/admin/shell/navigation";
@@ -71,7 +71,7 @@ export function AdminTopbar({ pathname, onOpenNavigation, onOpenSearch }: AdminT
             </span>
           </span>
           <kbd className="rounded-lg border border-border bg-surface-sunken px-2 py-1 font-mono text-[10px] text-muted-foreground">
-            ⌘ K
+            âŒ˜ K
           </kbd>
         </Button>
 

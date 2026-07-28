@@ -4,7 +4,7 @@ import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ProductEditorDialog } from "@/features/admin/product-editor/product-editor-dialog";
+import { ProductEditorDialog } from "@/modules/products/ui/admin/product-editor/product-editor-dialog";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
 

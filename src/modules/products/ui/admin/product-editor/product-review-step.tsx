@@ -6,8 +6,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EditorTextField } from "@/features/admin/product-editor/product-editor-fields";
-import { getProductEditorStepLabel } from "@/features/admin/product-editor/product-editor-step-labels";
+import { EditorTextField } from "@/modules/products/ui/admin/product-editor/product-editor-fields";
+import { getProductEditorStepLabel } from "@/modules/products/ui/admin/product-editor/product-editor-step-labels";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 import type {
@@ -86,12 +86,12 @@ export function ProductReviewStep({
         <ReviewCard
           label="Product"
           value={values.name || "Untitled product"}
-          supporting={`${values.category || "Uncategorised"} · ${values.brand || "Unlabelled"}`}
+          supporting={`${values.category || "Uncategorised"} Â· ${values.brand || "Unlabelled"}`}
         />
         <ReviewCard
           label="Inventory model"
           value={modeLabel(values.inventoryMode)}
-          supporting={`${received} received · threshold ${values.lowStockThreshold}`}
+          supporting={`${received} received Â· threshold ${values.lowStockThreshold}`}
         />
         <ReviewCard
           label="Reference"
@@ -114,7 +114,7 @@ export function ProductReviewStep({
         <ReviewCard
           label="Selling channels"
           value={`${values.channels.length} selected`}
-          supporting={values.channels.length ? values.channels.join(" · ") : "No channel selected"}
+          supporting={values.channels.length ? values.channels.join(" Â· ") : "No channel selected"}
         />
         <ReviewCard
           label="Fulfilment"
@@ -149,7 +149,7 @@ export function ProductReviewStep({
 
       <div className="flex items-start gap-3 rounded-[14px] border border-border bg-card p-4">
         <span className="mt-0.5 text-[18px]" aria-hidden="true">
-          ⓘ
+          â“˜
         </span>
         <p className="text-[11.5px] leading-5 text-muted-foreground">
           Drafts, published products and Intake changes in this prototype are session-only.

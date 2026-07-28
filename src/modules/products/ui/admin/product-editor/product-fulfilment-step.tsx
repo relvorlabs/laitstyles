@@ -14,7 +14,7 @@ import {
   EditorCheckboxField,
   EditorNumberField,
   EditorTextareaField,
-} from "@/features/admin/product-editor/product-editor-fields";
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import type { CatalogueChannel, ProductEditorValues } from "@/lib/admin/shared/types";
 
 const channels = [

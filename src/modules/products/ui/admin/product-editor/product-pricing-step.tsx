@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { EditorNumberField } from "@/features/admin/product-editor/product-editor-fields";
+import { EditorNumberField } from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
@@ -62,7 +62,7 @@ export function ProductPricingStep() {
         </h2>
         <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-muted-foreground">
           Selling price is what the customer pays. Unit cost is what one unit cost your store to
-          obtain and is optional—it exists only to show gross margin. Compare-at price is the higher
+          obtain and is optionalâ€”it exists only to show gross margin. Compare-at price is the higher
           original or list price used to communicate a genuine discount.
         </p>
       </div>
@@ -134,7 +134,7 @@ export function ProductPricingStep() {
         <PricingPreview
           label="Margin rate"
           tone={marginRate !== null && marginRate < 20 ? "warning" : "default"}
-          value={marginRate === null ? "—" : `${marginRate}%`}
+          value={marginRate === null ? "â€”" : `${marginRate}%`}
         />
       </div>
 

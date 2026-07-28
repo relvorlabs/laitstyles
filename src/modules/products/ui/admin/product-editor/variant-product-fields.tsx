@@ -10,12 +10,12 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { getProductEditorFieldError } from "@/features/admin/product-editor/product-editor-errors";
+import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
 import {
   type EditorFieldName,
   EditorNumberField,
   EditorTextField,
-} from "@/features/admin/product-editor/product-editor-fields";
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";

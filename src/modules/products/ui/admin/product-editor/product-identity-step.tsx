@@ -11,7 +11,7 @@ import {
   EditorSelectField,
   EditorTextareaField,
   EditorTextField,
-} from "@/features/admin/product-editor/product-editor-fields";
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import { generateProductSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import {
@@ -142,7 +142,7 @@ export function ProductIdentityStep() {
 
         <div className="space-y-2">
           <EditorSelectField
-            description="Optional. Use collections for campaigns, seasons or curated edits—not as a replacement for category."
+            description="Optional. Use collections for campaigns, seasons or curated editsâ€”not as a replacement for category."
             emptyLabel="No collection"
             label="Collection"
             name="collection"
@@ -183,7 +183,7 @@ export function ProductIdentityStep() {
           description="Describe construction, material, finish and the details a shopper should understand."
           label="Product description"
           name="description"
-          placeholder="Relaxed Adidas denim jeans with…"
+          placeholder="Relaxed Adidas denim jeans withâ€¦"
           rows={5}
         />
 
@@ -193,14 +193,14 @@ export function ProductIdentityStep() {
             name="material"
             placeholder="Wool body / leather sleeves"
           />
-          <EditorTextField label="Recommended fit" name="fit" placeholder="M–L" />
+          <EditorTextField label="Recommended fit" name="fit" placeholder="Mâ€“L" />
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
           <EditorTextField
             label="Style"
             name="style"
-            placeholder="Vintage, Streetwear, Workwear…"
+            placeholder="Vintage, Streetwear, Workwearâ€¦"
           />
           <EditorTextField
             label="Care instructions"

@@ -1,10 +1,10 @@
-import { ProductFulfilmentStep } from "@/features/admin/product-editor/product-fulfilment-step";
-import { ProductIdentityStep } from "@/features/admin/product-editor/product-identity-step";
-import { ProductImagesStep } from "@/features/admin/product-editor/product-images-step";
-import { ProductPricingStep } from "@/features/admin/product-editor/product-pricing-step";
-import { ProductReviewStep } from "@/features/admin/product-editor/product-review-step";
-import { ProductStockStep } from "@/features/admin/product-editor/product-stock-step";
-import { ProductTypeStep } from "@/features/admin/product-editor/product-type-step";
+import { ProductFulfilmentStep } from "@/modules/products/ui/admin/product-editor/product-fulfilment-step";
+import { ProductIdentityStep } from "@/modules/products/ui/admin/product-editor/product-identity-step";
+import { ProductImagesStep } from "@/modules/products/ui/admin/product-editor/product-images-step";
+import { ProductPricingStep } from "@/modules/products/ui/admin/product-editor/product-pricing-step";
+import { ProductReviewStep } from "@/modules/products/ui/admin/product-editor/product-review-step";
+import { ProductStockStep } from "@/modules/products/ui/admin/product-editor/product-stock-step";
+import { ProductTypeStep } from "@/modules/products/ui/admin/product-editor/product-type-step";
 import type {
   InventoryMode,
   ProductEditorIssue,

@@ -20,7 +20,7 @@ import { InventoryTable } from "@/features/admin/inventory/inventory-table";
 import { buildInventoryHref } from "@/features/admin/inventory/inventory-url";
 import { InventoryWorkspaceHeader } from "@/features/admin/inventory/inventory-workspace-header";
 import { ProductMediaViewer } from "@/features/admin/inventory/product-media-viewer";
-import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
+import { useProductEditorController } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 import { useAdmin } from "@/features/admin/state/admin-provider";
 import {
   defaultInventoryQuery,

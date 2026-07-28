@@ -6,7 +6,7 @@ import { FieldGroup } from "@/components/ui/field";
 import {
   EditorNumberField,
   EditorTextField,
-} from "@/features/admin/product-editor/product-editor-fields";
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
