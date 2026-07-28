@@ -22,6 +22,10 @@ type ApiOperation<TData, TMeta extends ApiMeta> = (
   context: ApiRequestContext,
 ) => ApiRouteResult<TData, TMeta> | Promise<ApiRouteResult<TData, TMeta>>;
 
+type RawApiOperation<TData> = (
+  context: ApiRequestContext,
+) => ApiRouteResult<TData> | Promise<ApiRouteResult<TData>>;
+
 export function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
   operation: ApiOperation<TData, TMeta>,
 ): Promise<NextResponse<ApiSuccess<TData, TMeta> | ApiFailure>>;
@@ -48,6 +52,25 @@ export async function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
       headers: withRequestId(result.headers, context.requestId),
       meta: result.meta,
       status: result.status,
+    });
+  } catch (error) {
+    return apiFailure(mapApiError(error, context), {
+      headers: withRequestId(undefined, context.requestId),
+    });
+  }
+}
+
+export async function handleApiRequestRaw<TData>(
+  request: Request,
+  operation: RawApiOperation<TData>,
+): Promise<NextResponse<TData | ApiFailure>> {
+  const context = createApiRequestContext(request);
+
+  try {
+    const result = await operation(context);
+    return NextResponse.json(result.data, {
+      status: result.status ?? 200,
+      headers: withRequestId(result.headers, context.requestId),
     });
   } catch (error) {
     return apiFailure(mapApiError(error, context), {

@@ -4,12 +4,12 @@ import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import {
   EditorSelectField,
   EditorTextField,
 } from "@/modules/products/ui/admin/product-editor/product-editor-fields";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
-import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 const standardConditions = [
   ["Like new", "Like new"],

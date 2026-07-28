@@ -100,8 +100,11 @@ function collectionRow(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  harness.tx.products.findMany.mockReset();
+  harness.tx.catalogue_collections.findUnique.mockReset();
   harness.canManageProduct.mockReturnValue(true);
   harness.tx.catalogue_categories.create.mockResolvedValue(categoryRow());
+  harness.tx.catalogue_collections.create.mockResolvedValue(collectionRow());
   harness.tx.catalogue_categories.update.mockResolvedValue(categoryRow());
   harness.tx.catalogue_collections.update.mockResolvedValue(collectionRow());
   harness.tx.audit_events.create.mockResolvedValue({});
@@ -117,7 +120,18 @@ beforeEach(() => {
 
 describe("product taxonomy commands", () => {
   it("creates a category and returns an encoded public taxonomy id", async () => {
-    const result = await createProductTaxonomy(admin, { kind: "category", name: " Jeans " });
+    harness.tx.catalogue_categories.create.mockResolvedValueOnce(
+      categoryRow({
+        image_url: "https://res.cloudinary.com/store/image/upload/category.jpg",
+        position: 2,
+      }),
+    );
+    const result = await createProductTaxonomy(admin, {
+      kind: "category",
+      name: " Jeans ",
+      imageUrl: "https://res.cloudinary.com/store/image/upload/category.jpg",
+      position: 2,
+    });
 
     expect(result).toMatchObject({
       ok: true,
@@ -137,6 +151,79 @@ describe("product taxonomy commands", () => {
         target_table: "catalogue_categories",
       }),
     });
+    expect(harness.tx.catalogue_categories.create).toHaveBeenCalledWith({
+      data: {
+        name: "Jeans",
+        slug: "jeans",
+        image_url: "https://res.cloudinary.com/store/image/upload/category.jpg",
+        position: 2,
+      },
+      include: expect.any(Object),
+    });
+    expect(harness.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: "Serializable" }),
+    );
+  });
+
+  it("creates a Collection with exact initial membership in one transaction", async () => {
+    harness.tx.products.findMany.mockResolvedValueOnce([
+      { id: PRODUCT_ONE_ID, slug: "first-product", collection_id: null },
+      { id: PRODUCT_TWO_ID, slug: "moved-product", collection_id: OTHER_COLLECTION_ID },
+    ]);
+    harness.tx.catalogue_collections.findUnique.mockResolvedValueOnce(
+      collectionRow({
+        position: 3,
+        _count: { products: 2 },
+        products: [{ product_media: [] }, { product_media: [] }],
+      }),
+    );
+
+    const result = await createProductTaxonomy(admin, {
+      kind: "collection",
+      name: " New season ",
+      position: 3,
+      productIds: [PRODUCT_ONE_ID, PRODUCT_TWO_ID],
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        item: { kind: "collection", name: "New season", position: 3, productCount: 2 },
+        affectedProductSlugs: ["first-product", "moved-product"],
+      },
+    });
+    expect(harness.tx.catalogue_collections.create).toHaveBeenCalledWith({
+      data: { name: "New season", slug: "new-season", position: 3 },
+      select: { id: true },
+    });
+    expect(harness.tx.products.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [PRODUCT_ONE_ID, PRODUCT_TWO_ID] } },
+      data: { collection_id: COLLECTION_ID },
+    });
+    expect(harness.tx.audit_events.create).toHaveBeenCalledTimes(1);
+    expect(harness.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: "Serializable" }),
+    );
+  });
+
+  it("rolls back Collection creation when any initial member does not exist", async () => {
+    harness.tx.products.findMany.mockResolvedValueOnce([
+      { id: PRODUCT_ONE_ID, slug: "first-product", collection_id: null },
+    ]);
+
+    const result = await createProductTaxonomy(admin, {
+      kind: "collection",
+      name: "New season",
+      position: 3,
+      productIds: [PRODUCT_ONE_ID, PRODUCT_TWO_ID],
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: "taxonomy-not-found" } });
+    expect(harness.tx.catalogue_collections.create).not.toHaveBeenCalled();
+    expect(harness.tx.products.updateMany).not.toHaveBeenCalled();
+    expect(harness.tx.audit_events.create).not.toHaveBeenCalled();
   });
 
   it("maps a database uniqueness conflict to duplicate-name", async () => {
@@ -144,7 +231,12 @@ describe("product taxonomy commands", () => {
       new harness.Prisma.PrismaClientKnownRequestError("duplicate", "P2002"),
     );
 
-    const result = await createProductTaxonomy(admin, { kind: "category", name: "Jeans" });
+    const result = await createProductTaxonomy(admin, {
+      kind: "category",
+      name: "Jeans",
+      imageUrl: null,
+      position: 0,
+    });
 
     expect(result).toEqual({
       ok: false,

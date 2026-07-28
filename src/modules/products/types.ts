@@ -288,10 +288,19 @@ export type ProductTaxonomyItem = {
   updatedAt: string;
 };
 
-export type ProductTaxonomyInput = {
-  kind: ProductTaxonomyKind;
-  name: string;
-};
+export type ProductTaxonomyInput =
+  | {
+      kind: "category";
+      name: string;
+      imageUrl: string | null;
+      position: number;
+    }
+  | {
+      kind: "collection";
+      name: string;
+      position: number;
+      productIds: string[];
+    };
 
 export type ProductTaxonomyUpdateInput =
   | {

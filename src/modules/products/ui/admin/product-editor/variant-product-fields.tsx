@@ -1,8 +1,7 @@
 "use client";
 
-import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, AiMagicIcon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
 import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { CldUploadButton } from "next-cloudinary";
 import { useMemo, useState } from "react";
@@ -10,13 +9,6 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
-import {
-  type EditorFieldName,
-  EditorNumberField,
-  EditorTextField,
-} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import {
@@ -24,6 +16,13 @@ import {
   normalizeCloudinaryUploadResult,
 } from "@/lib/assets/client/cloudinary-upload";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
+import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
+import {
+  type EditorFieldName,
+  EditorNumberField,
+  EditorTextField,
+} from "@/modules/products/ui/admin/product-editor/product-editor-fields";
 
 type UploadStatus = "opening" | "uploading" | "completed" | "cancelled" | "failed";
 
@@ -113,11 +112,7 @@ export function VariantProductFields() {
     });
   }
 
-  function setVariantImage(
-    index: number,
-    fieldKey: string,
-    result: CloudinaryUploadWidgetResults,
-  ) {
+  function setVariantImage(index: number, fieldKey: string, result: CloudinaryUploadWidgetResults) {
     const normalized = normalizeCloudinaryUploadResult(result);
     if (!normalized.ok) {
       setVariantUploadStatus(fieldKey, "failed");
@@ -197,7 +192,7 @@ export function VariantProductFields() {
               type="button"
               variant="outline"
             >
-              <Sparkles aria-hidden="true" className="size-4" />
+              <AdminIcon icon={AiMagicIcon} size={16} />
               Generate all SKUs
             </Button>
             <Button
@@ -276,7 +271,7 @@ export function VariantProductFields() {
                       type="button"
                       variant="outline"
                     >
-                      <Sparkles aria-hidden="true" className="size-4" />
+                      <AdminIcon icon={AiMagicIcon} size={16} />
                       Generate SKU
                     </Button>
                   </div>

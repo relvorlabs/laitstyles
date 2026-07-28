@@ -1,9 +1,9 @@
 "use client";
 
-import { ImagePlus, Trash2 } from "lucide-react";
+import { Delete02Icon, ImageAdd01Icon } from "@hugeicons/core-free-icons";
 import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { CldUploadButton } from "next-cloudinary";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import {
@@ -14,15 +14,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { normalizeCloudinaryUploadResult } from "@/lib/assets/client/cloudinary-upload";
+import {
+  type CloudinaryUploadStatus,
+  finishCloudinaryUploadQueue,
+  normalizeCloudinaryUploadResult,
+} from "@/lib/assets/client/cloudinary-upload";
 import {
   useCreateProductTaxonomy,
   useUpdateProductTaxonomy,
 } from "@/modules/products/client/hooks";
 import type { ProductTaxonomyItem } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { TaxonomyDeleteDialog } from "@/modules/products/ui/admin/catalogue/taxonomy-delete-dialog";
+
+const uploadStatusMessage: Record<CloudinaryUploadStatus, string> = {
+  opening: "Opening category image uploader.",
+  uploading: "Uploading category image.",
+  completed: "Category image upload completed. Save the category to keep it.",
+  cancelled: "Category image upload cancelled.",
+  failed: "Category image upload failed. Try again.",
+};
 
 export function CategoryEditorDialog({
   item,
@@ -37,6 +50,9 @@ export function CategoryEditorDialog({
   const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<CloudinaryUploadStatus | null>(null);
+  const uploadAppended = useRef(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const create = useCreateProductTaxonomy();
   const update = useUpdateProductTaxonomy();
@@ -44,17 +60,22 @@ export function CategoryEditorDialog({
     setName(editing?.name ?? "");
     setImageUrl(editing?.imageUrl ?? null);
     setFeedback(null);
+    setSubmitted(false);
+    setUploadStatus(null);
   }, [editing]);
   function uploaded(result: CloudinaryUploadWidgetResults) {
     const normalized = normalizeCloudinaryUploadResult(result);
     if (!normalized.ok) {
+      setUploadStatus("failed");
       setFeedback(normalized.error.message);
       return;
     }
+    uploadAppended.current = true;
     setImageUrl(normalized.value.url);
-    setFeedback("Image ready locally. Save the category to keep it.");
+    setFeedback(null);
   }
   async function save() {
+    setSubmitted(true);
     if (!name.trim()) return;
     if (editing) {
       const result = await update.mutateAsync({
@@ -65,18 +86,17 @@ export function CategoryEditorDialog({
       onOpenChange(false);
       return;
     }
-    const created = await create.mutateAsync({ kind: "category", name });
+    const created = await create.mutateAsync({
+      kind: "category",
+      name,
+      imageUrl,
+      position: itemCount,
+    });
     if (!created.ok) return setFeedback(created.error.message);
-    if (created.value.item) {
-      const saved = await update.mutateAsync({
-        taxonomyId: created.value.item.id,
-        input: { kind: "category", name, imageUrl, position: itemCount },
-      });
-      if (!saved.ok) return setFeedback(saved.error.message);
-    }
     onOpenChange(false);
   }
   const pending = create.isPending || update.isPending;
+  const uploadActive = uploadStatus === "opening" || uploadStatus === "uploading";
   return (
     <>
       <Dialog onOpenChange={onOpenChange} open={Boolean(item)}>
@@ -92,7 +112,7 @@ export function CategoryEditorDialog({
               />
             ) : (
               <div className="grid size-full place-items-center text-muted-foreground">
-                <ImagePlus className="size-10" />
+                <AdminIcon icon={ImageAdd01Icon} size={40} />
               </div>
             )}
           </div>
@@ -106,14 +126,16 @@ export function CategoryEditorDialog({
                 alone does not save the category.
               </DialogDescription>
             </DialogHeader>
-            <Field>
+            <Field data-invalid={submitted && !name.trim()}>
               <FieldLabel htmlFor="category-name">Category name</FieldLabel>
               <Input
+                aria-invalid={submitted && !name.trim()}
                 id="category-name"
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. Archive outerwear"
                 value={name}
               />
+              {submitted && !name.trim() ? <FieldError>Enter a category name.</FieldError> : null}
             </Field>
             <Field>
               <FieldLabel>Category image</FieldLabel>
@@ -121,21 +143,54 @@ export function CategoryEditorDialog({
                 The preview remains local until you choose Save category.
               </FieldDescription>
               <div className="flex flex-wrap gap-2">
-                <CldUploadButton
-                  className={buttonVariants({ variant: "outline" })}
-                  data-slot="button"
-                  onSuccess={uploaded}
-                  options={{
-                    multiple: false,
-                    sources: ["local", "camera"],
-                    folder: "laitstyles/categories",
-                  }}
-                  signatureEndpoint="/api/v1/admin/assets/sign"
-                >
-                  {" "}
-                  <ImagePlus className="size-4" />
-                  {imageUrl ? "Replace image" : "Upload image"}
-                </CldUploadButton>
+                {!uploadActive ? (
+                  <CldUploadButton
+                    className={buttonVariants({ variant: "outline" })}
+                    data-slot="button"
+                    onClose={() =>
+                      setUploadStatus((current) =>
+                        current === "opening" || current === "uploading" ? "cancelled" : current,
+                      )
+                    }
+                    onError={() => {
+                      setUploadStatus("failed");
+                      setFeedback(null);
+                    }}
+                    onOpen={() => {
+                      uploadAppended.current = false;
+                      setFeedback(null);
+                      setUploadStatus("opening");
+                    }}
+                    onQueuesEnd={() =>
+                      setUploadStatus((current) =>
+                        current
+                          ? finishCloudinaryUploadQueue(current, uploadAppended.current)
+                          : current,
+                      )
+                    }
+                    onQueuesStart={() => setUploadStatus("uploading")}
+                    onSuccess={uploaded}
+                    options={{
+                      multiple: false,
+                      sources: ["local", "camera"],
+                      folder: "laitstyles/categories",
+                    }}
+                    signatureEndpoint="/api/v1/admin/assets/sign"
+                  >
+                    <AdminIcon icon={ImageAdd01Icon} size={16} />
+                    {imageUrl ? "Replace image" : "Upload image"}
+                  </CldUploadButton>
+                ) : (
+                  <span
+                    className={buttonVariants({
+                      variant: "outline",
+                      className: "pointer-events-none opacity-50",
+                    })}
+                  >
+                    <AdminIcon icon={ImageAdd01Icon} size={16} />
+                    Uploading image
+                  </span>
+                )}
                 {imageUrl ? (
                   <Button
                     onClick={() => {
@@ -150,18 +205,18 @@ export function CategoryEditorDialog({
                 ) : null}
               </div>
             </Field>
-            {feedback ? (
+            {feedback || uploadStatus ? (
               <p
                 aria-live="polite"
                 className="rounded-xl border border-border bg-surface-interactive p-3 text-sm"
               >
-                {feedback}
+                {feedback ?? (uploadStatus ? uploadStatusMessage[uploadStatus] : null)}
               </p>
             ) : null}
             <DialogFooter className="gap-2 sm:justify-between">
               {editing ? (
                 <Button onClick={() => setDeleteOpen(true)} type="button" variant="ghost">
-                  <Trash2 />
+                  <AdminIcon icon={Delete02Icon} size={18} />
                   Delete
                 </Button>
               ) : (
@@ -171,7 +226,7 @@ export function CategoryEditorDialog({
                 <Button onClick={() => onOpenChange(false)} type="button" variant="ghost">
                   Cancel
                 </Button>
-                <Button disabled={pending || !name.trim()} onClick={save} type="button">
+                <Button disabled={pending || uploadActive} onClick={save} type="button">
                   {pending ? "Saving…" : "Save category"}
                 </Button>
               </div>

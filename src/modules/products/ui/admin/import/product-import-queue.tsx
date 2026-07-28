@@ -45,7 +45,7 @@ export function ProductImportQueue({
           >
             {items.map((child, index) => (
               <option key={child.importId} value={child.importId}>
-                {index + 1}. {child.values.name || "Untitled product"} ({child.status})
+                {index + 1}. {child.values.name || "Untitled product"} ({queueStatusLabel(child)})
               </option>
             ))}
           </select>
@@ -86,11 +86,11 @@ export function ProductImportQueue({
             value={search}
           />
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto p-2">
           {visibleChildren.map((child) => (
             <button
               aria-current={child.importId === selectedImportId ? "true" : undefined}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=true]:bg-accent"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm outline-none transition-colors [contain-intrinsic-size:auto_40px] [content-visibility:auto] hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=true]:bg-accent"
               key={child.importId}
               onClick={() => onSelect(child.importId)}
               type="button"
@@ -100,7 +100,7 @@ export function ProductImportQueue({
                 {child.values.name || "Untitled product"}
               </span>
               <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                {child.status}
+                {queueStatusLabel(child)}
               </span>
             </button>
           ))}
@@ -167,6 +167,12 @@ function QueueNavigation({
       </Button>
     </div>
   );
+}
+
+function queueStatusLabel(child: ProductImportChild) {
+  if (child.status === "saved" && child.persistence) return child.persistence;
+  if (child.isDirty && child.persistence) return `${child.persistence} edited`;
+  return child.status;
 }
 
 function StatusDot({ status }: { status: ProductImportChild["status"] }) {

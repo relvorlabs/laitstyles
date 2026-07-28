@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
+  createProductTaxonomyRequest,
   getAdminProduct,
   listAdminProducts,
   reorderProductTaxonomyRequest,
@@ -162,6 +163,59 @@ describe("product browser API", () => {
         method: "POST",
         body: JSON.stringify(reorderInput),
       }),
+    );
+  });
+
+  it("sends the complete atomic Collection create contract", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        { data: { item: { id: "collection:one" }, message: "Created." } },
+        { status: 201 },
+      ),
+    );
+    const input = {
+      kind: "collection" as const,
+      name: "New season",
+      position: 3,
+      productIds: ["019f65c1-74fe-7bd3-8400-000000000021"],
+    };
+
+    await createProductTaxonomyRequest(input);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/admin/products/taxonomy",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    );
+  });
+
+  it("loads every product page so exact collection membership is never truncated", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [{ id: "product-1" }],
+          meta: { page: 1, pageSize: 500, total: 501, pageCount: 2 },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          data: [{ id: "product-501" }],
+          meta: { page: 2, pageSize: 500, total: 501, pageCount: 2 },
+        }),
+      );
+
+    await expect(listAdminProducts()).resolves.toEqual([
+      { id: "product-1" },
+      { id: "product-501" },
+    ]);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/admin/products?page=2&pageSize=500",
+      expect.objectContaining({ cache: "no-store" }),
     );
   });
 

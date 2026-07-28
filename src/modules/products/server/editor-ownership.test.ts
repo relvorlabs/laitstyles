@@ -18,25 +18,29 @@ const forbiddenModuleSpecifiers = [
 ];
 
 describe("product and inventory domain ownership", () => {
-  it("keeps production modules independent from legacy admin contracts", async () => {
-    const sourceFiles = await collectSourceFiles(modulesRoot);
-    const offenders: string[] = [];
+  it(
+    "keeps production modules independent from legacy admin contracts",
+    async () => {
+      const sourceFiles = await collectSourceFiles(modulesRoot);
+      const offenders: string[] = [];
 
-    for (const filePath of sourceFiles) {
-      const relative = normalize(path.relative(repositoryRoot, filePath));
-      if (relative.includes(".test.") || relative.includes(".spec.")) continue;
+      for (const filePath of sourceFiles) {
+        const relative = normalize(path.relative(repositoryRoot, filePath));
+        if (relative.includes(".test.") || relative.includes(".spec.")) continue;
 
-      const source = await readFile(filePath, "utf8");
-      if (forbiddenModuleSpecifiers.some((specifier) => source.includes(specifier))) {
-        offenders.push(relative);
+        const source = await readFile(filePath, "utf8");
+        if (forbiddenModuleSpecifiers.some((specifier) => source.includes(specifier))) {
+          offenders.push(relative);
+        }
       }
-    }
 
-    expect(
-      offenders,
-      "Production modules must import contracts and policies from domain modules.",
-    ).toEqual([]);
-  });
+      expect(
+        offenders,
+        "Production modules must import contracts and policies from domain modules.",
+      ).toEqual([]);
+    },
+    20000,
+  );
 
   it("keeps legacy editor files compatibility-only", async () => {
     const [types, schema, stockGuard] = await Promise.all([

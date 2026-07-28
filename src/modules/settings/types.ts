@@ -1,4 +1,4 @@
-import type { InventoryMode } from "@/lib/admin/inventory/inventory-types";
+import type { InventoryMode } from "@/modules/products/types";
 
 export type SettingsSection = "identity" | "selling" | "delivery" | "payments" | "notifications";
 export type StoreBrandLogo = {

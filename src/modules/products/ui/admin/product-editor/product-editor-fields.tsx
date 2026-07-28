@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
 
 export type EditorFieldName = FieldPath<ProductEditorValues>;
 

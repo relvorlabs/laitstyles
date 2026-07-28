@@ -12,13 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { parseProductImportText } from "@/modules/products/import/csv";
 import {
-  isProductImportRelationalSnapshot,
+  isBoundedProductImportRelationalSnapshot,
   mapProductImport,
 } from "@/modules/products/import/mapper";
 import type {
   ProductImportFileIssue,
   ProductImportSessionState,
 } from "@/modules/products/import/types";
+import { PRODUCT_IMPORT_MAX_ROWS } from "@/modules/products/import/types";
 import { ProductImportSession } from "@/modules/products/ui/admin/import/product-import-session";
 
 export function ProductImportDialog({
@@ -46,7 +47,20 @@ export function ProductImportDialog({
       if (file.name.toLocaleLowerCase("en-NG").endsWith(".json")) {
         try {
           const snapshot: unknown = JSON.parse(text);
-          if (isProductImportRelationalSnapshot(snapshot)) {
+          if (
+            snapshot &&
+            typeof snapshot === "object" &&
+            !Array.isArray(snapshot) &&
+            Array.isArray((snapshot as { products?: unknown }).products) &&
+            (snapshot as { products: unknown[] }).products.length > PRODUCT_IMPORT_MAX_ROWS
+          ) {
+            setIssue({
+              code: "too-many-products",
+              message: "Import files may contain at most 1,000 products.",
+            });
+            return;
+          }
+          if (isBoundedProductImportRelationalSnapshot(snapshot, file.size)) {
             const mapped = mapProductImport(snapshot);
             if (mapped.children.length) {
               setIssue(null);
@@ -66,7 +80,7 @@ export function ProductImportDialog({
       setIssue(parsed.error);
       return;
     }
-    const mapped = mapProductImport(parsed.value.rows);
+    const mapped = mapProductImport(parsed.value.rows, parsed.value.ignoredAssetCount);
     if (!mapped.children.length) {
       setIssue({
         code: "invalid-import",

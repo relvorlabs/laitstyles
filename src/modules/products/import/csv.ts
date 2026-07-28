@@ -1,5 +1,6 @@
 import { err, ok, type Result } from "@/lib/errors";
 import {
+  isProductImportAssetField,
   productImportCsvRowSchema,
   productImportJsonFileSchema,
 } from "@/modules/products/import/schema";
@@ -217,7 +218,11 @@ function parseCsvImport(text: string): ProductImportParseResult {
       Object.fromEntries(table.value.headers.map((header, index) => [header, values[index] ?? ""])),
     ),
   );
-  return ok({ source: "csv", rows });
+  return ok({
+    source: "csv",
+    rows,
+    ignoredAssetCount: countIgnoredAssets(table.value.rows, table.value.headers),
+  });
 }
 
 function parseJsonImport(text: string): ProductImportParseResult {
@@ -231,7 +236,7 @@ function parseJsonImport(text: string): ProductImportParseResult {
   if (Array.isArray(source) && source.length > PRODUCT_IMPORT_MAX_ROWS) return tooManyProducts();
   const parsed = productImportJsonFileSchema.safeParse(source);
   if (!parsed.success) return invalidImport();
-  return ok({ source: "json", rows: parsed.data });
+  return ok({ source: "json", rows: parsed.data, ignoredAssetCount: countIgnoredAssets(source) });
 }
 
 function isNestedJsonColumn(column: string) {
@@ -251,4 +256,46 @@ function tooManyProducts(): ProductImportParseResult {
     code: "too-many-products",
     message: "Import files may contain at most 1,000 products.",
   });
+}
+
+function countIgnoredAssets(source: unknown, headers?: string[]) {
+  if (Array.isArray(source) && headers) {
+    return source.reduce(
+      (total, row) =>
+        total +
+        headers.reduce(
+          (rowTotal, header, index) =>
+            rowTotal +
+            (isProductImportAssetField(header)
+              ? countIgnoredAssetValue((row as CsvSourceRow).values[index] ?? "")
+              : 0),
+          0,
+        ),
+      0,
+    );
+  }
+  if (!Array.isArray(source)) return 0;
+  return source.reduce((total, row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return total;
+    return (
+      total +
+      Object.entries(row as Record<string, unknown>).reduce(
+        (rowTotal, [key, value]) =>
+          rowTotal + (isProductImportAssetField(key) ? countIgnoredAssetValue(value) : 0),
+        0,
+      )
+    );
+  }, 0);
+}
+
+function countIgnoredAssetValue(value: unknown): number {
+  if (Array.isArray(value)) return value.length;
+  if (typeof value !== "string") return value === null || value === undefined ? 0 : 1;
+  if (!value.trim()) return 0;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed) ? parsed.length : 1;
+  } catch {
+    return 1;
+  }
 }

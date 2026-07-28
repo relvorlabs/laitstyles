@@ -130,6 +130,32 @@ describe("parseProductImportText", () => {
     ).toMatchObject({ ok: false, error: { code: "invalid-import" } });
   });
 
+  it("ignores direct JSON and CSV media fields while reporting their asset count", () => {
+    const json = JSON.stringify([
+      {
+        mode: "unique",
+        name: "Archive coat",
+        images: [{ id: "image-1" }, { id: "image-2" }],
+        media: "legacy-cover",
+      },
+    ]);
+    const csv =
+      "mode,name,imageUrl,asset_id\nunique,Archive coat,https://example.com/cover.jpg,asset-1";
+
+    expect(
+      parseProductImportText({ fileName: "products.json", size: json.length, text: json }),
+    ).toMatchObject({
+      ok: true,
+      value: { ignoredAssetCount: 3, rows: [expect.objectContaining({ name: "Archive coat" })] },
+    });
+    expect(
+      parseProductImportText({ fileName: "products.csv", size: csv.length, text: csv }),
+    ).toMatchObject({
+      ok: true,
+      value: { ignoredAssetCount: 2, rows: [expect.objectContaining({ name: "Archive coat" })] },
+    });
+  });
+
   it.each([false, true])("preserves pickupAvailable=%s from direct JSON", (pickupAvailable) => {
     const text = JSON.stringify([
       {

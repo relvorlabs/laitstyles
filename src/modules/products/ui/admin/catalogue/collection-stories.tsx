@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Images, Pencil } from "lucide-react";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Edit02Icon,
+  Image02Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import {
@@ -12,6 +17,7 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ProductTaxonomyItem } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 
 type Props = {
   items: ProductTaxonomyItem[];
@@ -34,7 +40,7 @@ export function CollectionStories({ items, loading, onEdit, onMove }: Props) {
       <Empty className="min-h-80 rounded-3xl border border-dashed">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <Images />
+            <AdminIcon icon={Image02Icon} size={22} />
           </EmptyMedia>
           <EmptyTitle>No collections found</EmptyTitle>
           <EmptyDescription>
@@ -66,7 +72,7 @@ export function CollectionStories({ items, loading, onEdit, onMove }: Props) {
             ) : (
               <div className="col-span-2 row-span-2 grid place-items-center bg-surface-sunken text-center text-muted-foreground">
                 <div>
-                  <Images className="mx-auto size-10" />
+                  <AdminIcon className="mx-auto" icon={Image02Icon} size={40} />
                   <p className="mt-3 text-sm">Add products to build this cover canvas.</p>
                 </div>
               </div>
@@ -85,7 +91,7 @@ export function CollectionStories({ items, loading, onEdit, onMove }: Props) {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={() => onEdit(item)} variant="outline">
-                <Pencil />
+                <AdminIcon icon={Edit02Icon} size={18} />
                 Edit story
               </Button>
               <Button
@@ -95,7 +101,7 @@ export function CollectionStories({ items, loading, onEdit, onMove }: Props) {
                 size="icon"
                 variant="ghost"
               >
-                <ArrowUp />
+                <AdminIcon icon={ArrowUp01Icon} size={18} />
               </Button>
               <Button
                 aria-label={`Move ${item.name} later`}
@@ -104,7 +110,7 @@ export function CollectionStories({ items, loading, onEdit, onMove }: Props) {
                 size="icon"
                 variant="ghost"
               >
-                <ArrowDown />
+                <AdminIcon icon={ArrowDown01Icon} size={18} />
               </Button>
             </div>
           </div>

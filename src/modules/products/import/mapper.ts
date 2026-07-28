@@ -3,6 +3,7 @@ import type {
   ProductImportRow,
   ProductImportVariant,
 } from "@/modules/products/import/types";
+import { PRODUCT_IMPORT_MAX_BYTES, PRODUCT_IMPORT_MAX_ROWS } from "@/modules/products/import/types";
 import type {
   CatalogueChannel,
   ProductEditorIssue,
@@ -81,16 +82,49 @@ export function isProductImportRelationalSnapshot(
 ): value is ProductImportRelationalSnapshot {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const source = value as Record<string, unknown>;
-  return [
-    "catalogue_categories",
-    "catalogue_collections",
-    "products",
-    "product_channels",
-    "product_variants",
-    "stock_levels",
-    "product_measurements",
-    "product_media",
-  ].every((key) => Array.isArray(source[key]));
+  const categories = source.catalogue_categories;
+  const collections = source.catalogue_collections;
+  const products = source.products;
+  const channels = source.product_channels;
+  const variants = source.product_variants;
+  const stockLevels = source.stock_levels;
+  const measurements = source.product_measurements;
+  const media = source.product_media;
+  if (
+    !Array.isArray(categories) ||
+    !Array.isArray(collections) ||
+    !Array.isArray(products) ||
+    !Array.isArray(channels) ||
+    !Array.isArray(variants) ||
+    !Array.isArray(stockLevels) ||
+    !Array.isArray(measurements) ||
+    !Array.isArray(media)
+  ) {
+    return false;
+  }
+  return (
+    categories.every(isNamedRecord) &&
+    collections.every(isNamedRecord) &&
+    products.every(isRelationalProduct) &&
+    channels.every(isProductChannel) &&
+    variants.every(isProductVariant) &&
+    stockLevels.every(isStockLevel) &&
+    measurements.every(isMeasurement) &&
+    media.every(isProductMedia) &&
+    (source.cloudinary_assets === undefined ||
+      (Array.isArray(source.cloudinary_assets) && source.cloudinary_assets.every(isAsset)))
+  );
+}
+
+export function isBoundedProductImportRelationalSnapshot(
+  value: unknown,
+  size: number,
+): value is ProductImportRelationalSnapshot {
+  return (
+    size <= PRODUCT_IMPORT_MAX_BYTES &&
+    isProductImportRelationalSnapshot(value) &&
+    value.products.length <= PRODUCT_IMPORT_MAX_ROWS
+  );
 }
 
 const supportedChannels = new Set<CatalogueChannel>([
@@ -100,17 +134,25 @@ const supportedChannels = new Set<CatalogueChannel>([
   "instagram",
 ]);
 
-export function mapProductImport(source: ProductImportMappingSource): ProductImportMappingResult {
-  return Array.isArray(source) ? mapDirectRows(source) : mapRelationalSnapshot(source);
+export function mapProductImport(
+  source: ProductImportMappingSource,
+  ignoredAssetCount = 0,
+): ProductImportMappingResult {
+  return Array.isArray(source)
+    ? mapDirectRows(source, ignoredAssetCount)
+    : mapRelationalSnapshot(source);
 }
 
-function mapDirectRows(rows: ProductImportRow[]): ProductImportMappingResult {
+function mapDirectRows(
+  rows: ProductImportRow[],
+  ignoredAssetCount: number,
+): ProductImportMappingResult {
   return {
     children: rows.map((row, index) => {
       const importId = `direct-${index + 1}`;
       return createChild(importId, mapDirectRow(row, importId), []);
     }),
-    ignoredAssetCount: 0,
+    ignoredAssetCount,
   };
 }
 
@@ -378,7 +420,76 @@ function createChild(
   values: ProductEditorValues,
   issues: ProductEditorIssue[],
 ): ProductImportChild {
-  return { importId, values, issues, status: "ready" };
+  return { importId, values, issues, status: "ready", isDirty: false, persistence: null };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isNamedRecord(value: unknown) {
+  return isRecord(value) && typeof value.id === "string" && typeof value.name === "string";
+}
+
+function isRelationalProduct(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    (typeof value.category_id === "string" || value.category_id === null) &&
+    (typeof value.collection_id === "string" || value.collection_id === null) &&
+    typeof value.name === "string" &&
+    typeof value.description === "string" &&
+    ["unique", "stocked", "variant"].includes(value.inventory_mode as string) &&
+    typeof value.price === "number" &&
+    typeof value.low_stock_threshold === "number"
+  );
+}
+
+function isProductChannel(value: unknown) {
+  return (
+    isRecord(value) && typeof value.product_id === "string" && typeof value.channel === "string"
+  );
+}
+
+function isProductVariant(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.product_id === "string" &&
+    typeof value.title === "string"
+  );
+}
+
+function isStockLevel(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.product_id === "string" &&
+    (typeof value.variant_id === "string" || value.variant_id === null) &&
+    typeof value.quantity_on_hand === "number"
+  );
+}
+
+function isMeasurement(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.product_id === "string" &&
+    (typeof value.variant_id === "string" || value.variant_id === null) &&
+    typeof value.label === "string" &&
+    typeof value.value === "number" &&
+    typeof value.unit === "string"
+  );
+}
+
+function isProductMedia(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.product_id === "string" &&
+    (typeof value.variant_id === "string" || value.variant_id === null)
+  );
+}
+
+function isAsset(value: unknown) {
+  return isRecord(value) && typeof value.id === "string";
 }
 
 function mapImportVariant(variant: ProductImportVariant, importId: string, index: number) {

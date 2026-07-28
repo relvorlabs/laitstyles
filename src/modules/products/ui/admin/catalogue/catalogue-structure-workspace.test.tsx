@@ -1,18 +1,25 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { productKeys } from "@/modules/products/client/keys";
 import type { AdminProduct, ProductTaxonomyItem } from "@/modules/products/types";
 import { CatalogueStructureWorkspace } from "./catalogue-structure-workspace";
 
 vi.mock("next-cloudinary", () => ({
-  CldUploadButton: ({ children }: { children: ReactNode }) => (
-    <button type="button">{children}</button>
+  CldUploadButton: ({ children, onOpen }: { children: ReactNode; onOpen?: () => void }) => (
+    <button onClick={onOpen} type="button">
+      {children}
+    </button>
   ),
 }));
+
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, "", "/admin/inventory/catalogue?tab=categories");
+});
 
 const taxonomy: ProductTaxonomyItem[] = [
   {
@@ -63,6 +70,16 @@ describe("CatalogueStructureWorkspace", () => {
     expect(screen.getByText(/preview remains local until/i)).toBeTruthy();
   });
 
+  it("reports category upload opening and locks duplicate upload starts", () => {
+    renderWorkspace();
+    fireEvent.click(screen.getByRole("button", { name: "New category" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upload image" }));
+
+    expect(screen.getByText("Opening category image uploader.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Upload image" })).toBeNull();
+    expect(screen.getByText("Uploading image")).toBeTruthy();
+  });
+
   it("renders full collection stories without a collection upload control", () => {
     renderWorkspace("collections");
     expect(screen.getByRole("heading", { name: "After hours" })).toBeTruthy();
@@ -79,5 +96,23 @@ describe("CatalogueStructureWorkspace", () => {
       target: { value: "missing" },
     });
     expect(screen.getByText("No categories found")).toBeTruthy();
+  });
+
+  it("keeps the active catalogue tab in the URL", () => {
+    window.history.replaceState(null, "", "/admin/inventory/catalogue?tab=categories");
+    renderWorkspace();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Collections" }));
+
+    expect(window.location.search).toBe("?tab=collections");
+  });
+
+  it("shows an inline error when a category name is blank", () => {
+    renderWorkspace();
+    fireEvent.click(screen.getByRole("button", { name: "New category" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save category" }));
+
+    expect(screen.getByText("Enter a category name.")).toBeTruthy();
+    expect(screen.getByLabelText("Category name").getAttribute("aria-invalid")).toBe("true");
   });
 });

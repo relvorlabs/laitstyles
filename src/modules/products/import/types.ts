@@ -89,7 +89,7 @@ export type ProductImportFileIssue = {
 };
 
 export type ProductImportParseResult = Result<
-  { source: ProductImportSource; rows: ProductImportRow[] },
+  { source: ProductImportSource; rows: ProductImportRow[]; ignoredAssetCount: number },
   ProductImportFileIssue
 >;
 
@@ -100,12 +100,15 @@ export type ProductImportFileInput = {
 };
 
 export type ProductImportChildStatus = "ready" | "saving" | "saved" | "failed";
+export type ProductImportPersistence = "draft" | "scheduled" | "published" | null;
 
 export type ProductImportChild = {
   importId: string;
   values: ProductEditorValues;
   issues: ProductEditorIssue[];
   status: ProductImportChildStatus;
+  isDirty: boolean;
+  persistence: ProductImportPersistence;
 };
 
 export type ProductImportSessionState = {

@@ -15,12 +15,7 @@ export type CloudinaryUploadIssue = {
   message: string;
 };
 
-export type CloudinaryUploadStatus =
-  | "opening"
-  | "uploading"
-  | "completed"
-  | "cancelled"
-  | "failed";
+export type CloudinaryUploadStatus = "opening" | "uploading" | "completed" | "cancelled" | "failed";
 
 export function finishCloudinaryUploadQueue(
   status: CloudinaryUploadStatus,

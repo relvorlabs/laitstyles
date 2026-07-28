@@ -1,3 +1,8 @@
+import type {
+  InventoryMode,
+  ProductEditorIssue,
+  ProductEditorStep,
+} from "@/lib/admin/shared/types";
 import { ProductFulfilmentStep } from "@/modules/products/ui/admin/product-editor/product-fulfilment-step";
 import { ProductIdentityStep } from "@/modules/products/ui/admin/product-editor/product-identity-step";
 import { ProductImagesStep } from "@/modules/products/ui/admin/product-editor/product-images-step";
@@ -5,11 +10,6 @@ import { ProductPricingStep } from "@/modules/products/ui/admin/product-editor/p
 import { ProductReviewStep } from "@/modules/products/ui/admin/product-editor/product-review-step";
 import { ProductStockStep } from "@/modules/products/ui/admin/product-editor/product-stock-step";
 import { ProductTypeStep } from "@/modules/products/ui/admin/product-editor/product-type-step";
-import type {
-  InventoryMode,
-  ProductEditorIssue,
-  ProductEditorStep,
-} from "@/lib/admin/shared/types";
 
 export function ProductEditorStepContent({
   activeStep,

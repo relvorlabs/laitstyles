@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { createProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
+import { createProductEditorValues } from "@/modules/products/editor-defaults";
 import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
 import {
   hasUnsavedProductImportChanges,
@@ -70,7 +70,16 @@ export function ProductImportSession({
         importId: selectedChild.importId,
         values: createProductEditorValues(result.product),
       });
-      dispatch({ type: "set-status", importId: selectedChild.importId, status: "saved" });
+      dispatch({
+        type: "set-persisted",
+        importId: selectedChild.importId,
+        persistence:
+          result.intent === "draft"
+            ? "draft"
+            : result.intent === "schedule"
+              ? "scheduled"
+              : "published",
+      });
     },
     [selectedChild],
   );

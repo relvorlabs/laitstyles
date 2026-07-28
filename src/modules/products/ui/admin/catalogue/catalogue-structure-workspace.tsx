@@ -1,8 +1,13 @@
 "use client";
 
+import {
+  Add01Icon,
+  Layers01Icon,
+  Search01Icon,
+  ShapeCollectionIcon,
+} from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Layers3, Plus, Search, Shapes } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +17,7 @@ import {
   useReorderProductTaxonomy,
 } from "@/modules/products/client/hooks";
 import type { ProductTaxonomyItem, ProductTaxonomyKind } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { CategoryEditorDialog } from "@/modules/products/ui/admin/catalogue/category-editor-dialog";
 import { CategoryGrid } from "@/modules/products/ui/admin/catalogue/category-grid";
 import { CollectionEditorDialog } from "@/modules/products/ui/admin/catalogue/collection-editor-dialog";
@@ -39,6 +45,24 @@ export function CatalogueStructureWorkspace({ initialTab }: { initialTab: Catalo
         .toSorted((a, b) => a.position - b.position || a.name.localeCompare(b.name, "en-NG")),
     [kind, query, taxonomy.data],
   );
+
+  useEffect(() => {
+    function syncTabFromHistory() {
+      const next = new URLSearchParams(window.location.search).get("tab");
+      setTab(next === "collections" ? "collections" : "categories");
+    }
+    window.addEventListener("popstate", syncTabFromHistory);
+    return () => window.removeEventListener("popstate", syncTabFromHistory);
+  }, []);
+
+  function selectTab(nextTab: CatalogueTab) {
+    setTab(nextTab);
+    setQuery("");
+    setEditing(null);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", nextTab);
+    window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
 
   async function move(item: ProductTaxonomyItem, offset: -1 | 1) {
     const all = (taxonomy.data ?? [])
@@ -78,7 +102,7 @@ export function CatalogueStructureWorkspace({ initialTab }: { initialTab: Catalo
             </p>
           </div>
           <Button onClick={() => setEditing("new")} size="lg">
-            <Plus aria-hidden="true" className="size-4" />
+            <AdminIcon icon={Add01Icon} size={16} />
             New {kind}
           </Button>
         </header>
@@ -86,27 +110,26 @@ export function CatalogueStructureWorkspace({ initialTab }: { initialTab: Catalo
         <div className="grid gap-4 md:grid-cols-[auto_minmax(260px,420px)] md:items-center md:justify-between">
           <Tabs
             onValueChange={(value) => {
-              setTab(value as CatalogueTab);
-              setQuery("");
-              setEditing(null);
+              selectTab(value as CatalogueTab);
             }}
             value={tab}
           >
             <TabsList className="grid w-full grid-cols-2 md:w-[420px]">
               <TabsTrigger value="categories">
-                <Shapes aria-hidden="true" className="size-4" />
+                <AdminIcon icon={ShapeCollectionIcon} size={16} />
                 Categories
               </TabsTrigger>
               <TabsTrigger value="collections">
-                <Layers3 aria-hidden="true" className="size-4" />
+                <AdminIcon icon={Layers01Icon} size={16} />
                 Collections
               </TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="relative">
-            <Search
-              aria-hidden="true"
+            <AdminIcon
               className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              icon={Search01Icon}
+              size={16}
             />
             <Input
               aria-label={`Search ${tab}`}

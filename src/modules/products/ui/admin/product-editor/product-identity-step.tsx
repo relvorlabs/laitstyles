@@ -1,7 +1,7 @@
 "use client";
 
+import { AiMagicIcon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -13,6 +13,7 @@ import {
   adminProductsQueryOptions,
   productTaxonomyQueryOptions,
 } from "@/modules/products/client/hooks";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import {
   EditorSelectField,
   EditorTextareaField,
@@ -98,7 +99,7 @@ export function ProductIdentityStep() {
               placeholder="LS-STK-ADI-JEA-ARDJ"
             />
             <Button onClick={generateReference} size="sm" type="button" variant="outline">
-              <Sparkles aria-hidden="true" className="size-4" />
+              <AdminIcon icon={AiMagicIcon} size={16} />
               Auto-generate reference
             </Button>
           </div>
@@ -112,7 +113,7 @@ export function ProductIdentityStep() {
               href="/admin/inventory/catalogue?tab=categories"
               target="_blank"
             >
-              Manage categories <ExternalLink aria-hidden="true" className="size-3.5" />
+              Manage categories <AdminIcon icon={ArrowUpRight01Icon} size={14} />
             </Link>
           </div>
           <EditorTextField label="Brand or label" name="brand" placeholder="Adidas or Unlabelled" />
@@ -120,7 +121,7 @@ export function ProductIdentityStep() {
 
         <div className="space-y-2">
           <EditorSelectField
-            description="Optional. Use collections for campaigns, seasons or curated editsâ€”not as a replacement for category."
+            description="Optional. Use collections for campaigns, seasons or curated edits—not as a replacement for category."
             emptyLabel="No collection"
             label="Collection"
             name="collection"
@@ -131,7 +132,7 @@ export function ProductIdentityStep() {
             href="/admin/inventory/catalogue?tab=collections"
             target="_blank"
           >
-            Manage collections <ExternalLink aria-hidden="true" className="size-3.5" />
+            Manage collections <AdminIcon icon={ArrowUpRight01Icon} size={14} />
           </Link>
         </div>
 
@@ -139,7 +140,7 @@ export function ProductIdentityStep() {
           description="Describe construction, material, finish and the details a shopper should understand."
           label="Product description"
           name="description"
-          placeholder="Relaxed Adidas denim jeans withâ€¦"
+          placeholder="Relaxed Adidas denim jeans with…"
           rows={5}
         />
 
@@ -149,14 +150,14 @@ export function ProductIdentityStep() {
             name="material"
             placeholder="Wool body / leather sleeves"
           />
-          <EditorTextField label="Recommended fit" name="fit" placeholder="Mâ€“L" />
+          <EditorTextField label="Recommended fit" name="fit" placeholder="M–L" />
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
           <EditorTextField
             label="Style"
             name="style"
-            placeholder="Vintage, Streetwear, Workwearâ€¦"
+            placeholder="Vintage, Streetwear, Workwear…"
           />
           <EditorTextField
             label="Care instructions"

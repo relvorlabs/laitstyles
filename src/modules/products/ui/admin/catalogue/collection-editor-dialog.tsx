@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightLeft, Search, Trash2 } from "lucide-react";
+import { Delete02Icon, Exchange01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,13 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   useCreateProductTaxonomy,
   useUpdateProductTaxonomy,
 } from "@/modules/products/client/hooks";
 import type { AdminProduct, ProductTaxonomyItem } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { TaxonomyDeleteDialog } from "@/modules/products/ui/admin/catalogue/taxonomy-delete-dialog";
 
 export function CollectionEditorDialog({
@@ -37,6 +38,7 @@ export function CollectionEditorDialog({
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const create = useCreateProductTaxonomy();
   const update = useUpdateProductTaxonomy();
@@ -51,6 +53,7 @@ export function CollectionEditorDialog({
     );
     setQuery("");
     setFeedback(null);
+    setSubmitted(false);
   }, [editing, products]);
   const visible = useMemo(
     () =>
@@ -69,17 +72,21 @@ export function CollectionEditorDialog({
     );
   }
   async function save() {
+    setSubmitted(true);
     if (!name.trim()) return;
-    let target = editing;
-    if (!target) {
-      const created = await create.mutateAsync({ kind: "collection", name });
+    if (!editing) {
+      const created = await create.mutateAsync({
+        kind: "collection",
+        name,
+        position: itemCount,
+        productIds: selected,
+      });
       if (!created.ok) return setFeedback(created.error.message);
-      target = created.value.item ?? null;
+      onOpenChange(false);
+      return;
     }
-    if (!target)
-      return setFeedback("The collection was created but could not be opened for membership.");
     const result = await update.mutateAsync({
-      taxonomyId: target.id,
+      taxonomyId: editing.id,
       input: {
         kind: "collection",
         name,
@@ -105,19 +112,21 @@ export function CollectionEditorDialog({
                 from product covers—there is no separate collection upload.
               </DialogDescription>
             </DialogHeader>
-            <Field>
+            <Field data-invalid={submitted && !name.trim()}>
               <FieldLabel htmlFor="collection-name">Collection name</FieldLabel>
               <Input
+                aria-invalid={submitted && !name.trim()}
                 id="collection-name"
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. After-hours tailoring"
                 value={name}
               />
+              {submitted && !name.trim() ? <FieldError>Enter a collection name.</FieldError> : null}
             </Field>
             {moved.length ? (
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
                 <p className="flex items-center gap-2 font-semibold">
-                  <ArrowRightLeft className="size-4" />
+                  <AdminIcon icon={Exchange01Icon} size={16} />
                   Products will move from another collection
                 </p>
                 <p className="mt-1 text-muted-foreground">
@@ -126,9 +135,13 @@ export function CollectionEditorDialog({
               </div>
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8">
+          <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto p-6 sm:p-8">
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <AdminIcon
+                className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                icon={Search01Icon}
+                size={16}
+              />
               <Input
                 aria-label="Search products"
                 className="pl-9"
@@ -142,7 +155,7 @@ export function CollectionEditorDialog({
                 const checked = selected.includes(product.id);
                 return (
                   <label
-                    className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 hover:bg-accent"
+                    className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 [contain-intrinsic-size:auto_72px] [content-visibility:auto] hover:bg-accent"
                     htmlFor={`collection-product-${product.id}`}
                     key={product.id}
                   >
@@ -175,7 +188,7 @@ export function CollectionEditorDialog({
           <DialogFooter className="border-t border-border p-6 sm:justify-between sm:px-8">
             {editing ? (
               <Button onClick={() => setDeleteOpen(true)} type="button" variant="ghost">
-                <Trash2 />
+                <AdminIcon icon={Delete02Icon} size={18} />
                 Delete
               </Button>
             ) : (
@@ -185,7 +198,7 @@ export function CollectionEditorDialog({
               <Button onClick={() => onOpenChange(false)} type="button" variant="ghost">
                 Cancel
               </Button>
-              <Button disabled={pending || !name.trim()} onClick={save} type="button">
+              <Button disabled={pending} onClick={save} type="button">
                 {pending ? "Saving…" : `Save ${selected.length} products`}
               </Button>
             </div>

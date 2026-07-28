@@ -37,6 +37,7 @@ describe("storefront product read-model ownership", () => {
     const uiRoot = path.join(productModuleRoot, "ui");
     const sourceFiles = await collectSourceFiles(uiRoot);
     const offenders: string[] = [];
+    const importStatementPattern = /^import\s[\s\S]*?;/gm;
 
     for (const filePath of sourceFiles) {
       const relative = normalize(path.relative(repositoryRoot, filePath));
@@ -44,8 +45,10 @@ describe("storefront product read-model ownership", () => {
       const source = await readFile(filePath, "utf8");
       if (!source.includes(compatibilitySpecifier)) continue;
 
-      const imports = source.split("\n").filter((line) => line.includes(compatibilitySpecifier));
-      if (imports.some((line) => !line.trimStart().startsWith("import type"))) {
+      const imports = [...source.matchAll(importStatementPattern)]
+        .map((match) => match[0])
+        .filter((statement) => statement.includes(compatibilitySpecifier));
+      if (imports.length === 0 || imports.some((statement) => !/^import\s+type\s/.test(statement))) {
         offenders.push(relative);
       }
     }

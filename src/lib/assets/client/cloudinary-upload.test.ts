@@ -21,10 +21,12 @@ describe("normalizeCloudinaryUploadResult", () => {
     });
   });
 
-  it.each([{ info: undefined }, { info: "pending" }, { info: { public_id: "", secure_url: "" } }])(
-    "rejects incomplete success metadata",
-    (result) => expect(normalizeCloudinaryUploadResult(result as never)).toMatchObject({ ok: false }),
-  );
+  it.each([
+    { info: undefined },
+    { info: "pending" },
+    { info: { public_id: "", secure_url: "" } },
+  ])("rejects incomplete success metadata", (result) =>
+    expect(normalizeCloudinaryUploadResult(result as never)).toMatchObject({ ok: false }));
 });
 
 describe("finishCloudinaryUploadQueue", () => {

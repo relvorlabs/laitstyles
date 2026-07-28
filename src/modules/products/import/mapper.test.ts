@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  isBoundedProductImportRelationalSnapshot,
   mapProductImport,
   type ProductImportRelationalSnapshot,
 } from "@/modules/products/import/mapper";
@@ -87,6 +88,31 @@ function snapshotFixture(
 }
 
 describe("mapProductImport", () => {
+  it("accepts only bounded, structurally valid relational fallback snapshots", () => {
+    const invalid = {
+      catalogue_categories: [],
+      catalogue_collections: [],
+      products: [{}],
+      product_channels: [],
+      product_variants: [],
+      stock_levels: [],
+      product_measurements: [],
+      product_media: [],
+    };
+    const firstProduct = snapshotFixture().products[0];
+    if (!firstProduct) throw new Error("Expected a relational product fixture.");
+    const tooMany = snapshotFixture({
+      products: Array.from({ length: 1_001 }, () => firstProduct),
+    });
+
+    expect(isBoundedProductImportRelationalSnapshot(invalid, 1)).toBe(false);
+    expect(isBoundedProductImportRelationalSnapshot(tooMany, 1)).toBe(false);
+    expect(isBoundedProductImportRelationalSnapshot(snapshotFixture(), 10 * 1024 * 1024 + 1)).toBe(
+      false,
+    );
+    expect(isBoundedProductImportRelationalSnapshot(snapshotFixture(), 1)).toBe(true);
+  });
+
   it("maps direct rows into editor drafts for every inventory mode", () => {
     const rows: ProductImportRow[] = [
       {

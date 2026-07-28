@@ -4,9 +4,9 @@ import { Archive02Icon, Layers01Icon, PackageAddIcon } from "@hugeicons/core-fre
 import { useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { InventoryMode, ProductEditorValues } from "@/lib/admin/shared/types";
 import { cn } from "@/lib/utils";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 
 const productTypes = [
   {

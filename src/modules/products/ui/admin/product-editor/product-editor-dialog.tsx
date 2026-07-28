@@ -26,14 +26,14 @@ import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
   createProductEditorValues,
-} from "@/lib/admin/product-editor/product-editor-defaults";
+} from "@/modules/products/editor-defaults";
 import {
   productEditorDraftSchema,
   validateProductEditorStep,
   validateProductForPublish,
   validateProductForSchedule,
-} from "@/lib/admin/product-editor/product-editor-schema";
-import { productEditorSteps } from "@/lib/admin/product-editor/product-editor-types";
+} from "@/modules/products/editor-schema";
+import { productEditorSteps } from "@/modules/products/types";
 import type {
   InventoryMode,
   ProductEditorActionSuccess,
@@ -250,7 +250,7 @@ function ProductEditorExperience({
             {editing ? initialValues.name || "Untitled product" : "Create a catalogue record"}
           </DialogTitle>
           <DialogDescription>
-            Seven guided steps Â· changes are saved to the shared catalogue
+            Seven guided steps · changes are saved to the shared catalogue
           </DialogDescription>
         </DialogHeader>
 

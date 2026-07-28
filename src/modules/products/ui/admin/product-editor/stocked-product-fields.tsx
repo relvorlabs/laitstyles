@@ -3,12 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext, useWatch } from "react-hook-form";
 import { FieldGroup } from "@/components/ui/field";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
+import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 import {
   EditorNumberField,
   EditorTextField,
 } from "@/modules/products/ui/admin/product-editor/product-editor-fields";
-import type { ProductEditorValues } from "@/lib/admin/shared/types";
-import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 
 export function StockedProductFields() {
   const { data: products = [] } = useQuery(adminProductsQueryOptions());

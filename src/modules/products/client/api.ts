@@ -1,5 +1,6 @@
 import { err, ok, type Result } from "@/lib/errors";
 import { ApiClientError, apiRequest } from "@/lib/http/client";
+import type { ApiPaginationMeta } from "@/lib/http/contracts";
 import type {
   AdminProduct,
   ProductLifecycleError,
@@ -20,11 +21,24 @@ const PRODUCTS_URL = "/api/v1/admin/products";
 const TAXONOMY_URL = `${PRODUCTS_URL}/taxonomy`;
 
 export async function listAdminProducts(signal?: AbortSignal): Promise<AdminProduct[]> {
-  const response = await apiRequest<AdminProduct[]>(`${PRODUCTS_URL}?page=1&pageSize=500`, {
-    cache: "no-store",
-    signal,
-  });
-  return response.data;
+  const products: AdminProduct[] = [];
+  let page = 1;
+  let pageCount = 1;
+
+  do {
+    const response = await apiRequest<AdminProduct[], ApiPaginationMeta>(
+      `${PRODUCTS_URL}?page=${page}&pageSize=500`,
+      {
+        cache: "no-store",
+        signal,
+      },
+    );
+    products.push(...response.data);
+    pageCount = response.meta?.pageCount ?? page;
+    page += 1;
+  } while (page <= pageCount);
+
+  return products;
 }
 
 export async function getAdminProduct(

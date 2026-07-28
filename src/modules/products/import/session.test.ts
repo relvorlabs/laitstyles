@@ -15,13 +15,48 @@ function twoChildState(): ProductImportSessionState {
     ignoredAssetCount: 0,
     selectedImportId: "child-1",
     children: [
-      { importId: "child-1", values: firstValues, issues: [], status: "ready" },
-      { importId: "child-2", values: secondValues, issues: [], status: "ready" },
+      {
+        importId: "child-1",
+        values: firstValues,
+        issues: [],
+        status: "ready",
+        isDirty: false,
+        persistence: null,
+      },
+      {
+        importId: "child-2",
+        values: secondValues,
+        issues: [],
+        status: "ready",
+        isDirty: false,
+        persistence: null,
+      },
     ],
   };
 }
 
 describe("productImportSessionReducer", () => {
+  it("does not warn when parsed children remain untouched", () => {
+    expect(hasUnsavedProductImportChanges(twoChildState())).toBe(false);
+  });
+
+  it("tracks a saved child as dirty when it is edited and preserves its persistence intent", () => {
+    const saved = productImportSessionReducer(twoChildState(), {
+      type: "set-persisted",
+      importId: "child-1",
+      persistence: "draft",
+    } as never);
+    const edited = productImportSessionReducer(saved, {
+      type: "update-values",
+      importId: "child-1",
+      values: { ...firstValues, name: "Edited after saving" },
+    });
+
+    expect(saved.children[0]).toMatchObject({ isDirty: false, persistence: "draft" });
+    expect(edited.children[0]).toMatchObject({ isDirty: true, persistence: "draft" });
+    expect(hasUnsavedProductImportChanges(edited)).toBe(true);
+  });
+
   it("ignores selection IDs that are not part of the imported queue", () => {
     const state = twoChildState();
     expect(productImportSessionReducer(state, { type: "select", importId: "missing" })).toBe(state);
@@ -105,7 +140,7 @@ describe("productImportSessionReducer", () => {
     expect(failed.children).toHaveLength(2);
     expect(failed.children[0]).toMatchObject({ importId: "child-1", status: "failed" });
     expect(hasUnsavedProductImportChanges(failed)).toBe(true);
-    expect(hasUnsavedProductImportChanges(saved)).toBe(true);
+    expect(hasUnsavedProductImportChanges(saved)).toBe(false);
     expect(
       hasUnsavedProductImportChanges(
         productImportSessionReducer(saved, {

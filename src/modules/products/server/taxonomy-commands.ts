@@ -49,31 +49,90 @@ export async function createProductTaxonomy(
   }
   const name = cleanProductText(input.name);
   if (!name) return err({ code: "empty-name", message: `Enter a ${input.kind} name.` });
+  if (!Number.isInteger(input.position) || input.position < 0) {
+    return err(taxonomyNotFound(undefined, "The catalogue group position is invalid."));
+  }
+  if (
+    input.kind === "collection" &&
+    (new Set(input.productIds).size !== input.productIds.length ||
+      input.productIds.some((id) => !isProductId(id)))
+  ) {
+    return err(taxonomyNotFound(undefined, "One or more selected products could not be found."));
+  }
   const slug = slugifyProductName(name);
 
   try {
-    const row = await prisma.$transaction(async (tx) => {
-      const created =
-        input.kind === "category"
-          ? await tx.catalogue_categories.create({ data: { name, slug } })
-          : await tx.catalogue_collections.create({ data: { name, slug } });
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: actor.authUserId,
-          action: `inventory:${input.kind}:create`,
-          target_table:
-            input.kind === "category" ? "catalogue_categories" : "catalogue_collections",
-          target_id: created.id,
-        },
-      });
-      return created;
-    });
+    const outcome = await prisma.$transaction(
+      async (tx) => {
+        if (input.kind === "category") {
+          const row = await tx.catalogue_categories.create({
+            data: {
+              name,
+              slug,
+              image_url: input.imageUrl?.trim() || null,
+              position: input.position,
+            },
+            include: categoryTaxonomyInclude,
+          });
+          await tx.audit_events.create({
+            data: {
+              actor_profile_id: actor.authUserId,
+              action: "inventory:category:create",
+              target_table: "catalogue_categories",
+              target_id: row.id,
+            },
+          });
+          return { row, affectedProductSlugs: [] };
+        }
+
+        const selectedProducts = input.productIds.length
+          ? await tx.products.findMany({
+              where: { id: { in: input.productIds } },
+              select: { id: true, slug: true, collection_id: true },
+            })
+          : [];
+        if (selectedProducts.length !== input.productIds.length) {
+          throw new TaxonomyRuleViolation(
+            taxonomyNotFound(undefined, "One or more selected products could not be found."),
+          );
+        }
+        const created = await tx.catalogue_collections.create({
+          data: { name, slug, position: input.position },
+          select: { id: true },
+        });
+        if (input.productIds.length) {
+          await tx.products.updateMany({
+            where: { id: { in: input.productIds } },
+            data: { collection_id: created.id },
+          });
+        }
+        const row = await tx.catalogue_collections.findUnique({
+          where: { id: created.id },
+          include: collectionTaxonomyInclude,
+        });
+        if (!row) throw new TaxonomyRuleViolation(taxonomyNotFound());
+        await tx.audit_events.create({
+          data: {
+            actor_profile_id: actor.authUserId,
+            action: "inventory:collection:create",
+            target_table: "catalogue_collections",
+            target_id: created.id,
+          },
+        });
+        return {
+          row,
+          affectedProductSlugs: selectedProducts.map(({ slug: productSlug }) => productSlug),
+        };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
     return ok({
-      item: mapProductTaxonomyRow(row, input.kind),
+      item: mapProductTaxonomyRow(outcome.row, input.kind),
       message: `${input.kind === "category" ? "Category" : "Collection"} “${name}” created.`,
-      affectedProductSlugs: [],
+      affectedProductSlugs: outcome.affectedProductSlugs,
     });
   } catch (error) {
+    if (error instanceof TaxonomyRuleViolation) return err(error.taxonomyError);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return err({
         code: "duplicate-name",
@@ -90,7 +149,9 @@ export async function updateProductTaxonomy(
   input: ProductTaxonomyUpdateInput,
 ): Promise<Result<ProductTaxonomyOutcome, ProductTaxonomyError>> {
   if (!canManageProduct(actor, "inventory:update")) {
-    return err(taxonomyNotFound(taxonomyId, "You don't have permission to update catalogue groups."));
+    return err(
+      taxonomyNotFound(taxonomyId, "You don't have permission to update catalogue groups."),
+    );
   }
   const decoded = decodeProductTaxonomyId(taxonomyId);
   if (!decoded || !isProductId(decoded.id) || decoded.kind !== input.kind) {
@@ -225,7 +286,9 @@ export async function reorderProductTaxonomy(
   input: ProductTaxonomyReorderInput,
 ): Promise<Result<ProductTaxonomyOutcome, ProductTaxonomyError>> {
   if (!canManageProduct(actor, "inventory:update")) {
-    return err(taxonomyNotFound(undefined, "You don't have permission to reorder catalogue groups."));
+    return err(
+      taxonomyNotFound(undefined, "You don't have permission to reorder catalogue groups."),
+    );
   }
   const decodedIds = input.orderedIds.map((taxonomyId) => decodeProductTaxonomyId(taxonomyId));
   if (

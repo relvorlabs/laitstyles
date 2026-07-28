@@ -1,4 +1,7 @@
-import type { ProductImportSessionState } from "@/modules/products/import/types";
+import type {
+  ProductImportPersistence,
+  ProductImportSessionState,
+} from "@/modules/products/import/types";
 import type { ProductEditorValues } from "@/modules/products/types";
 
 export type ProductImportSessionAction =
@@ -6,7 +9,12 @@ export type ProductImportSessionAction =
   | { type: "select-previous" }
   | { type: "select-next" }
   | { type: "update-values"; importId: string; values: ProductEditorValues }
-  | { type: "set-status"; importId: string; status: "ready" | "saving" | "saved" | "failed" };
+  | { type: "set-status"; importId: string; status: "ready" | "saving" | "saved" | "failed" }
+  | {
+      type: "set-persisted";
+      importId: string;
+      persistence: Exclude<ProductImportPersistence, null>;
+    };
 
 export function productImportSessionReducer(
   state: ProductImportSessionState,
@@ -31,6 +39,16 @@ export function productImportSessionReducer(
     const current = state.children.find((child) => child.importId === action.importId);
     if (current && sameEditorValues(current.values, action.values)) return state;
   }
+  if (action.type === "set-persisted") {
+    return {
+      ...state,
+      children: state.children.map((child) =>
+        child.importId === action.importId
+          ? { ...child, status: "saved", isDirty: false, persistence: action.persistence }
+          : child,
+      ),
+    };
+  }
   return {
     ...state,
     children: state.children.map((child) =>
@@ -40,12 +58,22 @@ export function productImportSessionReducer(
           ? {
               ...child,
               values: action.values,
+              isDirty: true,
               status:
                 child.status === "saved" && !sameEditorValues(child.values, action.values)
                   ? "ready"
                   : child.status,
             }
-          : { ...child, status: action.status },
+          : {
+              ...child,
+              status: action.status,
+              isDirty:
+                action.status === "saved"
+                  ? false
+                  : action.status === "saving" || action.status === "failed"
+                    ? true
+                    : child.isDirty,
+            },
     ),
   };
 }
@@ -55,5 +83,5 @@ function sameEditorValues(left: ProductEditorValues, right: ProductEditorValues)
 }
 
 export function hasUnsavedProductImportChanges(state: ProductImportSessionState) {
-  return state.children.some((child) => child.status !== "saved");
+  return state.children.some((child) => child.isDirty);
 }

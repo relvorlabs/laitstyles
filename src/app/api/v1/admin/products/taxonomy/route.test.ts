@@ -85,6 +85,8 @@ describe("/api/v1/admin/products/taxonomy", () => {
       jsonRequest("http://localhost/api/v1/admin/products/taxonomy", {
         kind: "category",
         name: "Jeans",
+        imageUrl: "https://res.cloudinary.com/store/image/upload/category.jpg",
+        position: 2,
       }),
     );
 
@@ -94,6 +96,8 @@ describe("/api/v1/admin/products/taxonomy", () => {
     expect(mocks.createProductTaxonomy).toHaveBeenCalledWith(staff, {
       kind: "category",
       name: "Jeans",
+      imageUrl: "https://res.cloudinary.com/store/image/upload/category.jpg",
+      position: 2,
     });
     expect(mocks.invalidateProductCatalogue).toHaveBeenCalledWith([]);
     await expect(response.json()).resolves.toEqual({
@@ -102,6 +106,31 @@ describe("/api/v1/admin/products/taxonomy", () => {
         message: "Created.",
       },
     });
+  });
+
+  it("passes exact initial Collection membership to the domain command", async () => {
+    const input = {
+      kind: "collection" as const,
+      name: "New season",
+      position: 3,
+      productIds: ["019f65c1-74fe-7bd3-8400-000000000021"],
+    };
+    mocks.createProductTaxonomy.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        item: { id: "collection:one", ...input },
+        message: "Created.",
+        affectedProductSlugs: ["selected-product"],
+      },
+    });
+
+    const response = await POST(
+      jsonRequest("http://localhost/api/v1/admin/products/taxonomy", input),
+    );
+
+    expect(response.status).toBe(201);
+    expect(mocks.createProductTaxonomy).toHaveBeenCalledWith(staff, input);
+    expect(mocks.invalidateProductCatalogue).toHaveBeenCalledWith(["selected-product"]);
   });
 });
 

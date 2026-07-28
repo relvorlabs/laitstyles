@@ -53,36 +53,39 @@ const baseShape = {
   scheduledAt: optionalTextSchema,
 };
 
-export const productImportRowSchema = z.discriminatedUnion("mode", [
-  z
-    .object({
-      ...baseShape,
-      mode: z.literal("unique"),
-      condition: optionalTextSchema,
-      size: optionalTextSchema,
-      colour: optionalTextSchema,
-      measurements: z.array(measurementSchema).default([]),
-    })
-    .strict(),
-  z
-    .object({
-      ...baseShape,
-      mode: z.literal("stocked"),
-      sizeLabel: optionalTextSchema,
-      colour: optionalTextSchema,
-      stock: z.coerce.number().int().nonnegative(),
-    })
-    .strict(),
-  z
-    .object({
-      ...baseShape,
-      mode: z.literal("variant"),
-      optionNames: z.array(textSchema).optional(),
-      variants: z.array(variantSchema).default([]),
-      measurements: z.array(measurementSchema).default([]),
-    })
-    .strict(),
-]);
+export const productImportRowSchema = z.preprocess(
+  stripProductImportAssetFields,
+  z.discriminatedUnion("mode", [
+    z
+      .object({
+        ...baseShape,
+        mode: z.literal("unique"),
+        condition: optionalTextSchema,
+        size: optionalTextSchema,
+        colour: optionalTextSchema,
+        measurements: z.array(measurementSchema).default([]),
+      })
+      .strict(),
+    z
+      .object({
+        ...baseShape,
+        mode: z.literal("stocked"),
+        sizeLabel: optionalTextSchema,
+        colour: optionalTextSchema,
+        stock: z.coerce.number().int().nonnegative(),
+      })
+      .strict(),
+    z
+      .object({
+        ...baseShape,
+        mode: z.literal("variant"),
+        optionNames: z.array(textSchema).optional(),
+        variants: z.array(variantSchema).default([]),
+        measurements: z.array(measurementSchema).default([]),
+      })
+      .strict(),
+  ]),
+);
 
 export const productImportJsonFileSchema = z.array(productImportRowSchema).max(1_000);
 
@@ -94,6 +97,22 @@ const nestedJsonFields = [
   "fulfilment",
 ] as const;
 
+export function isProductImportAssetField(key: string) {
+  const normalized = key.toLocaleLowerCase("en-NG");
+  return (
+    normalized.includes("asset") || normalized.includes("image") || normalized.includes("media")
+  );
+}
+
+function stripProductImportAssetFields(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      ([key]) => !isProductImportAssetField(key),
+    ),
+  );
+}
+
 function parseNestedJsonCell(value: unknown) {
   if (typeof value !== "string") return value;
   return JSON.parse(value) as unknown;
@@ -102,7 +121,9 @@ function parseNestedJsonCell(value: unknown) {
 export const productImportCsvRowSchema = z.preprocess((value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const row = Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).filter(([, cell]) => cell !== ""),
+    Object.entries(stripProductImportAssetFields(value) as Record<string, unknown>).filter(
+      ([, cell]) => cell !== "",
+    ),
   ) as Record<string, unknown>;
   for (const key of nestedJsonFields) {
     if (typeof row[key] === "string" && row[key].trim()) {

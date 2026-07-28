@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { Alert01Icon } from "@hugeicons/core-free-icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useDeleteProductTaxonomy } from "@/modules/products/client/hooks";
 import type { ProductTaxonomyItem } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 
 export function TaxonomyDeleteDialog({
   item,
@@ -39,7 +40,7 @@ export function TaxonomyDeleteDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="size-5 text-destructive" />
+            <AdminIcon className="text-destructive" icon={Alert01Icon} size={20} />
             Delete {item.name}?
           </AlertDialogTitle>
           <AlertDialogDescription>

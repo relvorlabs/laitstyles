@@ -1,10 +1,10 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
+import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import { StockedProductFields } from "@/modules/products/ui/admin/product-editor/stocked-product-fields";
 import { UniqueStockFields } from "@/modules/products/ui/admin/product-editor/unique-stock-fields";
 import { VariantProductFields } from "@/modules/products/ui/admin/product-editor/variant-product-fields";
-import type { ProductEditorValues } from "@/lib/admin/shared/types";
 
 export function ProductStockStep() {
   const { control } = useFormContext<ProductEditorValues>();

@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ImageIcon, Pencil } from "lucide-react";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Edit02Icon,
+  Image01Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import {
@@ -12,6 +17,7 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ProductTaxonomyItem } from "@/modules/products/types";
+import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 
 type Props = {
   items: ProductTaxonomyItem[];
@@ -38,7 +44,7 @@ export function CategoryGrid({ items, loading, onEdit, onMove }: Props) {
       <Empty className="min-h-80 rounded-3xl border border-dashed">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <ImageIcon />
+            <AdminIcon icon={Image01Icon} size={22} />
           </EmptyMedia>
           <EmptyTitle>No categories found</EmptyTitle>
           <EmptyDescription>
@@ -65,7 +71,7 @@ export function CategoryGrid({ items, loading, onEdit, onMove }: Props) {
               />
             ) : (
               <div className="grid size-full place-items-center text-muted-foreground">
-                <ImageIcon className="size-10" />
+                <AdminIcon icon={Image01Icon} size={40} />
               </div>
             )}
             <span className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold backdrop-blur">
@@ -86,7 +92,7 @@ export function CategoryGrid({ items, loading, onEdit, onMove }: Props) {
               size="icon"
               variant="ghost"
             >
-              <ArrowUp />
+              <AdminIcon icon={ArrowUp01Icon} size={18} />
             </Button>
             <Button
               aria-label={`Move ${item.name} later`}
@@ -95,7 +101,7 @@ export function CategoryGrid({ items, loading, onEdit, onMove }: Props) {
               size="icon"
               variant="ghost"
             >
-              <ArrowDown />
+              <AdminIcon icon={ArrowDown01Icon} size={18} />
             </Button>
             <Button
               aria-label={`Edit ${item.name}`}
@@ -103,7 +109,7 @@ export function CategoryGrid({ items, loading, onEdit, onMove }: Props) {
               size="icon"
               variant="outline"
             >
-              <Pencil />
+              <AdminIcon icon={Edit02Icon} size={18} />
             </Button>
           </div>
         </article>

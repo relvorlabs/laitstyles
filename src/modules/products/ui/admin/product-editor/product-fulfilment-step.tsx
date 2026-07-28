@@ -10,12 +10,12 @@ import {
   FieldSet,
   FieldTitle,
 } from "@/components/ui/field";
+import type { CatalogueChannel, ProductEditorValues } from "@/lib/admin/shared/types";
 import {
   EditorCheckboxField,
   EditorNumberField,
   EditorTextareaField,
 } from "@/modules/products/ui/admin/product-editor/product-editor-fields";
-import type { CatalogueChannel, ProductEditorValues } from "@/lib/admin/shared/types";
 
 const channels = [
   ["storefront", "Storefront", "Visible in the customer-facing catalogue."],
