@@ -1,8 +1,8 @@
 # Plan 03 - Extended Account Reviewer Gate
 
-**Plan:** `docs/superpowers/plans/2026-07-28-complete-api-03-extended-account.md`  
-**Branch:** `worktree-agent-aad8976cafec05ba2`  
-**Merge base:** `5f032648d4741cbd09a7148cd577c476b93b2e5f`  
+**Plan:** `docs/superpowers/plans/2026-07-28-complete-api-03-extended-account.md`
+**Branch:** `worktree-agent-aad8976cafec05ba2`
+**Merge base:** `5f032648d4741cbd09a7148cd577c476b93b2e5f`
 **Verdict:** PASS under the user-narrowed focused completion gate.
 
 ## Implemented scope
