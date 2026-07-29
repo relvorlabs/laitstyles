@@ -5,6 +5,7 @@ import {
   claimIdempotency,
   completeIdempotency,
   failIdempotency,
+  IdempotencyTerminalStateError,
 } from "@/modules/operations/server/idempotency";
 
 // Real Postgres round-trips through a hosted pooler; the first connection in
@@ -96,5 +97,84 @@ describe("claimIdempotency / completeIdempotency", () => {
     await expect(
       claimIdempotency(testScope, "key-6", "customer-1", "hash-a"),
     ).resolves.toMatchObject({ id: first.id, state: "claimed" });
+  });
+});
+
+describe("completeIdempotency / failIdempotency terminal-state guard", () => {
+  it("no-ops a second completeIdempotency call and does not overwrite the original response", async () => {
+    const claim = await claimIdempotency(scope("checkout"), "key-7", "customer-1", "hash-a");
+    createdIds.push(claim.id);
+    await completeIdempotency(claim.id, { checkoutId: "checkout-1" });
+
+    await expect(
+      completeIdempotency(claim.id, { checkoutId: "checkout-DIFFERENT" }),
+    ).resolves.toBeUndefined();
+
+    const record = await prisma.idempotency_records.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(record.status).toBe("completed");
+    expect(record.response_snapshot).toEqual({ checkoutId: "checkout-1" });
+  });
+
+  it("no-ops a second failIdempotency call on an already-failed record", async () => {
+    const claim = await claimIdempotency(scope("checkout"), "key-8", "customer-1", "hash-a");
+    createdIds.push(claim.id);
+    await failIdempotency(claim.id);
+    const firstFailedAt = (
+      await prisma.idempotency_records.findUniqueOrThrow({ where: { id: claim.id } })
+    ).completed_at;
+
+    await expect(failIdempotency(claim.id)).resolves.toBeUndefined();
+
+    const record = await prisma.idempotency_records.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(record.status).toBe("failed");
+    expect(record.completed_at).toEqual(firstFailedAt);
+  });
+
+  it("rejects failIdempotency on a record that already completed, instead of overwriting it", async () => {
+    const claim = await claimIdempotency(scope("checkout"), "key-9", "customer-1", "hash-a");
+    createdIds.push(claim.id);
+    await completeIdempotency(claim.id, { checkoutId: "checkout-1" });
+
+    await expect(failIdempotency(claim.id)).rejects.toMatchObject({
+      code: "IDEMPOTENCY_INVALID_TRANSITION",
+    });
+    await expect(failIdempotency(claim.id)).rejects.toBeInstanceOf(IdempotencyTerminalStateError);
+
+    const record = await prisma.idempotency_records.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(record.status).toBe("completed");
+    expect(record.response_snapshot).toEqual({ checkoutId: "checkout-1" });
+  });
+
+  it("rejects completeIdempotency on a record that already failed, instead of overwriting it", async () => {
+    const claim = await claimIdempotency(scope("checkout"), "key-10", "customer-1", "hash-a");
+    createdIds.push(claim.id);
+    await failIdempotency(claim.id);
+
+    await expect(completeIdempotency(claim.id, { checkoutId: "checkout-x" })).rejects.toMatchObject(
+      { code: "IDEMPOTENCY_INVALID_TRANSITION" },
+    );
+
+    const record = await prisma.idempotency_records.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(record.status).toBe("failed");
+    expect(record.response_snapshot).toBeNull();
+  });
+
+  it("rejects completeIdempotency/failIdempotency on a record id that doesn't exist", async () => {
+    const missingId = randomUUID();
+
+    await expect(completeIdempotency(missingId, {})).rejects.toMatchObject({
+      code: "IDEMPOTENCY_INVALID_TRANSITION",
+    });
+    await expect(failIdempotency(missingId)).rejects.toMatchObject({
+      code: "IDEMPOTENCY_INVALID_TRANSITION",
+    });
   });
 });
