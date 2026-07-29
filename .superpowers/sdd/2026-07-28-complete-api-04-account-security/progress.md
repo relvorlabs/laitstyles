@@ -19,8 +19,8 @@ Identity: Plan 04 account-security implementation owner — branch `worktree-age
 ## Current work
 
 - Task 5 — complete in `87775591` (`feat(auth): expose account security APIs`). Added all eight ledger methods across seven thin Route Handler files, stable transport mapping, typed browser API, hooks, and query keys.
-- Task 6 — implementation complete; pending exact-file commit. Auth-owned UI now drives real email/password/TOTP/session operations and the fake session/history rows are removed.
-- Task 7 — pending.
+- Task 6 — complete in `080c0936` (`refactor(auth): connect account security workspace`). Auth-owned UI now drives real email/password/TOTP/session operations and the fake session/history rows are removed.
+- Task 7 — reviewer pass complete with concerns. The implementation is ready for live validation, but cannot be fully accepted without the unavailable configured Supabase/mail/database environment and authenticated browser target. See `docs/architecture-migration/account-security-implementation-report.md`.
 
 ## Evidence ledger
 
@@ -37,3 +37,12 @@ Identity: Plan 04 account-security implementation owner — branch `worktree-age
 - 2026-07-29 Task 6 GREEN: `pnpm test src/modules/auth/ui/account-security-section.test.tsx` passed 5/5; subsequent `pnpm test src/modules/auth` passed 91/91.
 - 2026-07-29 Task 6 architecture: module export and architecture guards passed (the legacy modal host is now 712 lines, warning-only); error-validation and layout/provider contracts passed. The remaining HTTP contract failure is the pre-existing, out-of-scope `src/app/api/v1/auth/invitations/route.ts` ad hoc response implementation.
 - 2026-07-29 self-review RED/GREEN: added four failing security-boundary assertions, then fixed them: identity now carries verified `iat`/`aal`, email changes require a <=15-minute session, session summaries reuse those verified claims without divergent reads, and unverified TOTP enrollment no longer writes a misleading enrolled audit fact. The three focused domain files pass 23/23.
+- 2026-07-29 Task 7 focused gate: the default-worker run completed 101 assertions but exited non-zero when two fork workers failed to start; the isolated files passed 7/7, and the deterministic one-worker rerun passed 23 files / 108 tests.
+- 2026-07-29 Task 7 typecheck: `pnpm typecheck` passed with 0 errors.
+- 2026-07-29 Task 7 repo gates: `pnpm test` ran 149 files / 699 tests and failed 6 assertions in unchanged, non-account-security paths; `pnpm biome` reported 34 errors / 63 warnings across 849 files; `pnpm check:architecture` failed only the unchanged invitations route HTTP contract. Changed-scope checks remained clean.
+- 2026-07-29 Task 7 changed-scope Biome: `pnpm biome --changed --since=5f032648 --max-diagnostics=200` checked 39 files with 0 diagnostics after two deterministic import/format repairs.
+- 2026-07-29 Task 7 post-repair focused gate: the repository's 5-second per-test timeout was exceeded by two UI tests under the degraded validator runtime; `pnpm test src/app/api/v1/account/security src/modules/auth --maxWorkers=1 --testTimeout=20000` then passed all 23 files / 108 tests, and the UI file passed 5/5 in isolation.
+- 2026-07-29 Task 7 post-repair typecheck note: two later no-output reruns exceeded 3-minute and 6-minute command limits. The earlier exact source typecheck passed; the only intervening source edits were Biome's import ordering and line wrapping. These timeouts are reported, not treated as new passes.
+- 2026-07-29 Task 7 build/live gates: `pnpm build` compiled and type-checked, then failed prerender because `DATABASE_URL` is absent. `pnpm test:auth:e2e` reported missing `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. React Doctor could not complete after a sandbox cache error and a 10-minute approved retry timeout.
+- 2026-07-29 Task 7 browser gate: not run because there is no startable authenticated source-backed target without the same database/Supabase credentials. Email, password, MFA and session flows therefore remain pending live provider/mail and required viewport/theme execution; no pass is inferred.
+- 2026-07-29 Task 7 aggregate gate: `pnpm validate:full` was executed and timed out after 15 minutes during its build suite after recording the Node 25 mismatch, existing static/test failures, unavailable disposable database/auth preflights, and dependency advisories. Its generated evidence mutations were restored; the worktree was returned to the implementation-only state.
