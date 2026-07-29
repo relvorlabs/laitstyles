@@ -2,10 +2,7 @@ import { requireApiConsumer } from "@/lib/http/auth";
 import { createPaginationMeta } from "@/lib/http/pagination";
 import { parseJsonBody, parseSearchParams } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
-import {
-  createSupportTicketSchema,
-  supportTicketListSearchSchema,
-} from "@/modules/support/schema";
+import { createSupportTicketSchema, supportTicketListSearchSchema } from "@/modules/support/schema";
 import { createSupportTicket } from "@/modules/support/server/commands";
 import { listSupportTickets } from "@/modules/support/server/queries";
 

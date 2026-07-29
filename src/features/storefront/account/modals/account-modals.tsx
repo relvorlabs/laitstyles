@@ -2,7 +2,6 @@
 
 import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -12,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { AccountModalId } from "../account-context";
 import { useAccountUi } from "../account-context";
@@ -518,245 +516,6 @@ function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => 
   );
 }
 
-// ---- Support request -------------------------------------------------
-
-const supportTopics = [
-  "Order question",
-  "Return or refund",
-  "Product information",
-  "Account and security",
-] as const;
-
-const supportRelatedItems = ["None", "Order #LS-1048", "Return #RT-0038"] as const;
-
-function SupportRequestModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { toast } = useAccountUi();
-  const [topic, setTopic] = useState<string>(supportTopics[0]);
-  const [relatedItem, setRelatedItem] = useState<string>(supportRelatedItems[0]);
-  const subject = useValidatedValue((value) => requiredError(value, "Enter a subject."));
-  const message = useValidatedValue((value) => requiredError(value, "Enter a message."));
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    subject.touch();
-    message.touch();
-    if (!event.currentTarget.checkValidity()) {
-      event.currentTarget.reportValidity();
-      return;
-    }
-    toast("Support request created");
-    onClose();
-  }
-
-  return (
-    <AccountModal
-      open={open}
-      onClose={onClose}
-      eyebrow="New support request"
-      title="How can support help?"
-      size="2xl"
-      scroll
-    >
-      <form className="mt-6 grid gap-5" onSubmit={handleSubmit}>
-        <LabeledField label="Topic" htmlFor="support-request-topic">
-          <Select
-            name="topic"
-            onValueChange={(value) => {
-              if (value) setTopic(value);
-            }}
-            value={topic}
-          >
-            <SelectTrigger id="support-request-topic" className="h-11 w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {supportTopics.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </LabeledField>
-        <LabeledField label="Related order or return" htmlFor="support-request-related">
-          <Select
-            name="relatedItem"
-            onValueChange={(value) => {
-              if (value) setRelatedItem(value);
-            }}
-            value={relatedItem}
-          >
-            <SelectTrigger id="support-request-related" className="h-11 w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {supportRelatedItems.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </LabeledField>
-        <LabeledField
-          label="Subject"
-          htmlFor="support-request-subject"
-          error={subject.error}
-          success={subject.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="support-request-subject"
-            aria-invalid={Boolean(subject.error)}
-            isValid={subject.isValid}
-            inputSize="lg"
-            name="subject"
-            onBlur={subject.touch}
-            onChange={subject.onChange}
-            required
-            value={subject.value}
-          />
-        </LabeledField>
-        <LabeledField
-          label="Message"
-          htmlFor="support-request-message"
-          error={message.error}
-          success={message.isValid ? "Looks good." : null}
-        >
-          <Textarea
-            id="support-request-message"
-            aria-invalid={Boolean(message.error)}
-            isValid={message.isValid}
-            name="message"
-            onBlur={message.touch}
-            onChange={message.onChange}
-            required
-            textareaSize="lg"
-            value={message.value}
-          />
-        </LabeledField>
-        <Button
-          type="button"
-          onClick={() => toast("Attachment picker opened with validation.")}
-          className="text-left"
-          variant="ghost"
-        >
-          <strong>Attach files</strong>
-          <span className="mt-2 block text-sm text-[var(--acc-muted)]">
-            Only supported file types and sizes.
-          </span>
-        </Button>
-        <div className="flex flex-col-reverse gap-3 border-t border-[var(--acc-line)] pt-5 sm:flex-row sm:justify-end">
-          <AcctButton variant="secondary" type="button" onClick={onClose}>
-            Cancel
-          </AcctButton>
-          <AcctButton type="submit">Submit request</AcctButton>
-        </div>
-      </form>
-    </AccountModal>
-  );
-}
-
-// ---- Account deletion (high-risk) -------------------------------------
-
-function DeleteAccountModal({
-  open,
-  onClose,
-  onViewOrder,
-  onViewReturn,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onViewOrder: () => void;
-  onViewReturn: () => void;
-}) {
-  const confirmation = useValidatedValue((value) => {
-    if (!value.trim()) return "Type DELETE to confirm.";
-    return value === "DELETE" ? undefined : "Type DELETE exactly as shown.";
-  });
-
-  return (
-    <AccountModal
-      open={open}
-      onClose={onClose}
-      eyebrow="High-risk action"
-      eyebrowTone="oxblood"
-      title="Review account deletion."
-      size="2xl"
-      fullMobile
-    >
-      <div className="mt-6 rounded-[14px] border border-[var(--acc-line)] border-l-[5px] border-l-[var(--acc-oxblood)] bg-[rgba(250,248,242,.88)] p-5">
-        <p className="font-mono text-[.69rem] font-semibold uppercase leading-none tracking-[.13em] text-[var(--acc-oxblood)]">
-          Currently blocked
-        </p>
-        <h3 className="mt-3 font-serif text-3xl font-normal">Two commerce tasks remain open.</h3>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-[var(--acc-muted)]">
-          <li>Order #LS-1048 is still in transit.</li>
-          <li>Return #RT-0038 is awaiting shipment.</li>
-        </ul>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <AcctButton variant="secondary" onClick={onViewOrder}>
-            View order
-          </AcctButton>
-          <AcctButton variant="secondary" onClick={onViewReturn}>
-            View return
-          </AcctButton>
-        </div>
-      </div>
-
-      <section className="mt-7">
-        <h3 className="font-serif text-3xl font-normal">When deletion becomes available.</h3>
-        <ul className="mt-4 list-disc space-y-2 pl-5 leading-7 text-[var(--acc-muted)]">
-          <li>Profile and preferences may be deleted or anonymized.</li>
-          <li>Saved products and active sessions are removed.</li>
-          <li>Transaction records may be retained where required.</li>
-          <li>Support and refund history follows the real retention policy.</li>
-        </ul>
-      </section>
-
-      <fieldset
-        className="mt-7 rounded-[14px] border border-[var(--acc-line-strong)] p-5 opacity-55"
-        disabled
-      >
-        <legend className="px-2 text-sm font-semibold">Final confirmation</legend>
-        <LabeledField
-          label="Type DELETE"
-          htmlFor="delete-account-confirm"
-          error={confirmation.error}
-          success={confirmation.isValid ? "Confirmed." : null}
-        >
-          <Input
-            id="delete-account-confirm"
-            aria-invalid={Boolean(confirmation.error)}
-            inputSize="lg"
-            isValid={confirmation.isValid}
-            onBlur={confirmation.touch}
-            onChange={confirmation.onChange}
-            placeholder="DELETE"
-            value={confirmation.value}
-          />
-        </LabeledField>
-        <label className="mt-4 flex items-start gap-3">
-          <input type="checkbox" className="mt-1 size-5" />
-          <span>I understand the deletion and retention consequences.</span>
-        </label>
-      </fieldset>
-
-      <Footer>
-        <AcctButton variant="secondary" onClick={onClose}>
-          Close
-        </AcctButton>
-        <AcctButton variant="danger" disabled>
-          Delete account
-        </AcctButton>
-      </Footer>
-    </AccountModal>
-  );
-}
-
 export function AccountModals({
   modal,
   onClose,
@@ -764,7 +523,7 @@ export function AccountModals({
   modal: AccountModalId | null;
   onClose: () => void;
 }) {
-  const { toast, navigate } = useAccountUi();
+  const { toast } = useAccountUi();
 
   // `data-success` buttons: toast + close.
   function success(message: string) {
@@ -914,46 +673,6 @@ export function AccountModals({
           </AcctButton>
         </Footer>
       </AccountModal>
-
-      {/* Data export */}
-      <AccountModal
-        open={modal === "export"}
-        onClose={onClose}
-        eyebrow="Asynchronous request"
-        title="Export account data."
-        size="xl"
-      >
-        <p className="mt-5 leading-7 text-[var(--acc-muted)]">
-          The export may include profile, orders, returns, addresses, preferences and support
-          records. Security secrets and payment credentials stay excluded.
-        </p>
-        <div className={cn(softClass, "mt-6 p-4 text-sm text-[var(--acc-muted)]")}>
-          Production states: pending, processing, ready, expired, failed and rate-limited.
-        </div>
-        <Footer>
-          <AcctButton variant="secondary" onClick={onClose}>
-            Cancel
-          </AcctButton>
-          <AcctButton onClick={success("Data export requested")}>Request export</AcctButton>
-        </Footer>
-      </AccountModal>
-
-      {/* Support request */}
-      <SupportRequestModal open={modal === "support"} onClose={onClose} />
-
-      {/* Account deletion (high-risk) */}
-      <DeleteAccountModal
-        open={modal === "delete"}
-        onClose={onClose}
-        onViewOrder={() => {
-          navigate("orders");
-          onClose();
-        }}
-        onViewReturn={() => {
-          navigate("return-detail");
-          onClose();
-        }}
-      />
 
       {/* Return wizard */}
       <ReturnWizardModal open={modal === "return"} onClose={onClose} />

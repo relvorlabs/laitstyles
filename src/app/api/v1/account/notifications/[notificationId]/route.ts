@@ -15,6 +15,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const notificationId = notificationIdentifierSchema.parse((await params).notificationId);
     await parseJsonBody(request, markNotificationReadSchema);
     await markNotificationRead(identity, notificationId);
-    return { data: { id: notificationId, read: true }, headers: { "Cache-Control": "private, no-store" } };
+    return {
+      data: { id: notificationId, read: true },
+      headers: { "Cache-Control": "private, no-store" },
+    };
   });
 }

@@ -15,10 +15,7 @@ export type AccountModalId =
   | "return"
   | "password"
   | "revoke"
-  | "signout-all"
-  | "export"
-  | "delete"
-  | "support";
+  | "signout-all";
 
 export type AccountUi = {
   currentRoute: AccountRoute;

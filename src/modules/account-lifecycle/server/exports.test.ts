@@ -82,15 +82,13 @@ describe("requestAccountExport", () => {
       completed_at: null,
       expires_at: null,
     });
-    mocks.update.mockImplementation(
-      async ({ data }: { data: Record<string, unknown> }) => ({
-        id: "export-1",
-        status: data.status,
-        requested_at: new Date("2026-07-29T00:00:00.000Z"),
-        completed_at: data.completed_at,
-        expires_at: data.expires_at,
-      }),
-    );
+    mocks.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "export-1",
+      status: data.status,
+      requested_at: new Date("2026-07-29T00:00:00.000Z"),
+      completed_at: data.completed_at,
+      expires_at: data.expires_at,
+    }));
 
     await requestAccountExport(identity);
 
@@ -126,15 +124,13 @@ describe("requestAccountExport", () => {
       completed_at: null,
       expires_at: null,
     }));
-    mocks.update.mockImplementation(
-      async ({ data }: { data: Record<string, unknown> }) => ({
-        id: "export-1",
-        status: data.status,
-        requested_at: new Date("2026-07-29T00:00:00.000Z"),
-        completed_at: data.completed_at,
-        expires_at: data.expires_at,
-      }),
-    );
+    mocks.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "export-1",
+      status: data.status,
+      requested_at: new Date("2026-07-29T00:00:00.000Z"),
+      completed_at: data.completed_at,
+      expires_at: data.expires_at,
+    }));
 
     const result = await requestAccountExport(identity);
 
@@ -167,15 +163,13 @@ describe("requestAccountExport", () => {
       completed_at: null,
       expires_at: null,
     });
-    mocks.update.mockImplementation(
-      async ({ data }: { data: Record<string, unknown> }) => ({
-        id: "export-1",
-        status: data.status,
-        requested_at: new Date("2026-07-29T00:00:00.000Z"),
-        completed_at: data.completed_at,
-        expires_at: data.expires_at,
-      }),
-    );
+    mocks.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "export-1",
+      status: data.status,
+      requested_at: new Date("2026-07-29T00:00:00.000Z"),
+      completed_at: data.completed_at,
+      expires_at: data.expires_at,
+    }));
 
     await requestAccountExport(identity);
 

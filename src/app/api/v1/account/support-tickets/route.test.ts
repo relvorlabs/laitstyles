@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireApiConsumer: vi.fn(),
@@ -6,8 +6,12 @@ const mocks = vi.hoisted(() => ({
   createSupportTicket: vi.fn(),
 }));
 vi.mock("@/lib/http/auth", () => ({ requireApiConsumer: mocks.requireApiConsumer }));
-vi.mock("@/modules/support/server/queries", () => ({ listSupportTickets: mocks.listSupportTickets }));
-vi.mock("@/modules/support/server/commands", () => ({ createSupportTicket: mocks.createSupportTicket }));
+vi.mock("@/modules/support/server/queries", () => ({
+  listSupportTickets: mocks.listSupportTickets,
+}));
+vi.mock("@/modules/support/server/commands", () => ({
+  createSupportTicket: mocks.createSupportTicket,
+}));
 
 import { POST } from "./route";
 

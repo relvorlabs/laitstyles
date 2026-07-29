@@ -162,7 +162,10 @@ describe("replyToTicket", () => {
       data: expect.objectContaining({ topic: "support.ticket.replied.staff", status: "pending" }),
     });
     expect(mocks.outboxCreate).toHaveBeenCalledWith({
-      data: expect.objectContaining({ topic: "support.ticket.replied.customer", status: "pending" }),
+      data: expect.objectContaining({
+        topic: "support.ticket.replied.customer",
+        status: "pending",
+      }),
     });
   });
 

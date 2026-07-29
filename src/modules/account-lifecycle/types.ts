@@ -70,4 +70,5 @@ export type CustomerIdentity = {
 };
 
 export type RequestAccountDeletionInput = { reason?: string };
+
 import { ApiError } from "@/lib/errors/api-error";

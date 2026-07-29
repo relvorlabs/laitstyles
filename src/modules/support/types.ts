@@ -75,4 +75,5 @@ export class SupportActionError extends ApiError {
 }
 
 export type SupportTicketListInput = { page: number; pageSize: number };
+
 import { ApiError } from "@/lib/errors/api-error";
