@@ -229,3 +229,14 @@ export async function streamAccountExport(
     body: await readAccountExportArtifact(row.storage_key, now),
   };
 }
+
+export async function listAccountExports(
+  identity: CustomerIdentity,
+): Promise<AccountExportSummary[]> {
+  const rows = await prisma.data_export_jobs.findMany({
+    where: { customer_id: identity.customerId },
+    orderBy: { requested_at: "desc" },
+    take: 25,
+  });
+  return rows.map(mapSummary);
+}

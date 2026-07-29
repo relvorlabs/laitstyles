@@ -1,3 +1,4 @@
+import { ApiError } from "@/lib/errors/api-error";
 import type { ApiPaginationMeta } from "@/lib/http/contracts";
 
 export type NotificationCategory = "order_updates" | "promotions" | "support" | "security";
@@ -57,10 +58,13 @@ export type NotificationEvent = {
   eventKey: string;
 };
 
-export class NotificationPolicyError extends Error {
-  readonly code = "NOTIFICATION_CATEGORY_REQUIRED";
+export class NotificationPolicyError extends ApiError {
   constructor(category: NotificationCategory) {
-    super(`The "${category}" notification category cannot be fully disabled.`);
+    super({
+      code: "NOTIFICATION_CATEGORY_REQUIRED",
+      message: `The "${category}" notification category cannot be fully disabled.`,
+      status: 409,
+    });
     this.name = "NotificationPolicyError";
   }
 }

@@ -11,7 +11,10 @@ export const notificationCategorySchema = z.enum([
 export const notificationIdentifierSchema = z.string().trim().uuid();
 
 export const notificationListSearchSchema = paginationQuerySchema.extend({
-  unreadOnly: z.coerce.boolean().default(false),
+  unreadOnly: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .default(false),
 });
 
 export const updateNotificationPreferenceSchema = z

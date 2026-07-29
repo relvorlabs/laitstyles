@@ -45,15 +45,20 @@ export type DeletionBlockerReason =
   | "open-dispute"
   | "pending-payout";
 
-export class AccountLifecycleError extends Error {
-  readonly code: string;
+export class AccountLifecycleError extends ApiError {
   readonly blockedBy?: DeletionBlockerReason;
   constructor(code: string, message: string, blockedBy?: DeletionBlockerReason) {
-    super(message);
+    super({ code, message, status: accountLifecycleErrorStatus(code) });
     this.name = "AccountLifecycleError";
-    this.code = code;
     this.blockedBy = blockedBy;
   }
+}
+
+function accountLifecycleErrorStatus(code: string): number {
+  if (code.endsWith("NOT_FOUND")) return 404;
+  if (code === "EXPORT_EXPIRED") return 410;
+  if (code === "EXPORT_STORAGE_UNAVAILABLE") return 503;
+  return 409;
 }
 
 export type CustomerIdentity = {
@@ -65,3 +70,4 @@ export type CustomerIdentity = {
 };
 
 export type RequestAccountDeletionInput = { reason?: string };
+import { ApiError } from "@/lib/errors/api-error";

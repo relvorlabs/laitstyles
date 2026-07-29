@@ -63,13 +63,16 @@ export type ReplyToTicketInput = {
 
 export type CustomerIdentity = { customerId: string; authUserId: string };
 
-export class SupportActionError extends Error {
-  readonly code: string;
+export class SupportActionError extends ApiError {
   constructor(code: string, message: string) {
-    super(message);
+    super({
+      code,
+      message,
+      status: code === "SUPPORT_TICKET_NOT_FOUND" ? 404 : code.endsWith("NOT_OWNED") ? 403 : 422,
+    });
     this.name = "SupportActionError";
-    this.code = code;
   }
 }
 
 export type SupportTicketListInput = { page: number; pageSize: number };
+import { ApiError } from "@/lib/errors/api-error";

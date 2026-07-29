@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
+  findMany: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   addressesFindMany: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     data_export_jobs: {
       findFirst: mocks.findFirst,
+      findMany: mocks.findMany,
       create: mocks.create,
       update: mocks.update,
     },
@@ -43,6 +45,7 @@ vi.mock("@/modules/account-lifecycle/server/artifacts", () => ({
 
 import {
   getAccountExport,
+  listAccountExports,
   requestAccountExport,
   streamAccountExport,
 } from "@/modules/account-lifecycle/server/exports";
@@ -215,6 +218,30 @@ describe("getAccountExport", () => {
     mocks.findFirst.mockResolvedValue(null);
 
     await expect(getAccountExport(identity, "export-1")).resolves.toBeNull();
+  });
+});
+
+describe("listAccountExports", () => {
+  it("lists only the authenticated customer's newest jobs", async () => {
+    mocks.findMany.mockResolvedValue([
+      {
+        id: "export-1",
+        status: "ready",
+        requested_at: new Date("2026-07-29T00:00:00.000Z"),
+        completed_at: new Date("2026-07-29T00:01:00.000Z"),
+        expires_at: new Date("2026-08-05T00:01:00.000Z"),
+      },
+    ]);
+
+    const result = await listAccountExports(identity);
+
+    expect(mocks.findMany).toHaveBeenCalledWith({
+      where: { customer_id: identity.customerId },
+      orderBy: { requested_at: "desc" },
+      take: 25,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("export-1");
   });
 });
 
