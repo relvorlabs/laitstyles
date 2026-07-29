@@ -55,6 +55,9 @@ export {
   verifyTransaction,
 } from "@/modules/payments/server/paystack/transactions";
 export {
+  isSupportedPaystackChargeEvent,
+  parsePaystackChargeEvent,
+  parsePaystackEventEnvelope,
   PaystackWebhookSignatureError,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack/webhooks";

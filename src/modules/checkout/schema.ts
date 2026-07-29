@@ -9,29 +9,40 @@ const checkoutLineSchema = z
   })
   .strict();
 
-export const createCheckoutSchema = z
-  .object({
-    idempotencyKey: z.string().uuid(),
-    addressId: z.string().uuid(),
-    deliveryZoneId: z.string().uuid(),
-    callbackUrl: z.string().url(),
-    lines: z.array(checkoutLineSchema).min(1).max(50),
-  })
-  .strict()
-  .superRefine((input, context) => {
-    const seen = new Set<string>();
-    for (const [index, line] of input.lines.entries()) {
-      const key = `${line.productId}:${line.variantId ?? "product"}`;
-      if (seen.has(key)) {
-        context.addIssue({
-          code: "custom",
-          path: ["lines", index],
-          message: "Combine duplicate checkout lines before continuing.",
-        });
-      }
-      seen.add(key);
+const createCheckoutFields = {
+  idempotencyKey: z.string().uuid(),
+  addressId: z.string().uuid(),
+  deliveryZoneId: z.string().uuid(),
+  lines: z.array(checkoutLineSchema).min(1).max(50),
+};
+
+function rejectDuplicateLines(
+  input: { lines: Array<{ productId: string; variantId?: string }> },
+  context: z.RefinementCtx,
+) {
+  const seen = new Set<string>();
+  for (const [index, line] of input.lines.entries()) {
+    const key = `${line.productId}:${line.variantId ?? "product"}`;
+    if (seen.has(key)) {
+      context.addIssue({
+        code: "custom",
+        path: ["lines", index],
+        message: "Combine duplicate checkout lines before continuing.",
+      });
     }
-  });
+    seen.add(key);
+  }
+}
+
+export const createCheckoutRequestSchema = z
+  .object(createCheckoutFields)
+  .strict()
+  .superRefine(rejectDuplicateLines);
+
+export const createCheckoutSchema = z
+  .object({ ...createCheckoutFields, callbackUrl: z.string().url() })
+  .strict()
+  .superRefine(rejectDuplicateLines);
 
 export const checkoutIdentifierSchema = z.string().uuid();
 export const paymentIdentifierSchema = z.string().uuid();

@@ -1,11 +1,13 @@
 import type { z } from "zod";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import type {
+  createCheckoutRequestSchema,
   createCheckoutSchema,
   paystackSettlementEventSchema,
 } from "@/modules/checkout/schema";
 
 export type CheckoutIdentity = ConsumerSession;
+export type CreateCheckoutRequestInput = z.infer<typeof createCheckoutRequestSchema>;
 export type CreateCheckoutInput = z.infer<typeof createCheckoutSchema>;
 export type PaystackSettlementEvent = z.infer<typeof paystackSettlementEventSchema>;
 
