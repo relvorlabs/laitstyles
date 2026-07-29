@@ -65,6 +65,44 @@ export const recoveredPasswordSchema = z
     message: "Passwords do not match.",
   });
 
+export const accountEmailChangeSchema = z.object({
+  email: emailSchema,
+});
+
+export const accountPasswordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password.").max(1024),
+    password: strongPasswordSchema,
+    confirmPassword: z.string().min(1, "Confirm your new password."),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
+
+export type AccountEmailChangeInput = z.infer<typeof accountEmailChangeSchema>;
+export type AccountPasswordChangeInput = z.infer<typeof accountPasswordChangeSchema>;
+
+export const mfaEnrollTotpSchema = z.object({
+  friendlyName: z.string().trim().min(1, "Name this authenticator.").max(60).optional(),
+});
+
+export const mfaChallengeSchema = z.object({
+  factorId: z.string().min(1, "Select an authenticator."),
+});
+
+export const mfaVerifySchema = z.object({
+  factorId: z.string().min(1, "Select an authenticator."),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Enter the 6-digit code from your authenticator app."),
+});
+
+export type MfaEnrollTotpInput = z.infer<typeof mfaEnrollTotpSchema>;
+export type MfaChallengeInput = z.infer<typeof mfaChallengeSchema>;
+export type MfaVerifyInput = z.infer<typeof mfaVerifySchema>;
+
 export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
 export type PasswordSignUpInput = z.infer<typeof passwordSignUpSchema>;
 export type AuthEmailInput = z.infer<typeof authEmailSchema>;
