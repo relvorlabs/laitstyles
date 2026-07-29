@@ -124,6 +124,10 @@ describePersistence("claimIdempotency / completeIdempotency", () => {
 });
 
 describePersistence("completeIdempotency / failIdempotency terminal-state guard", () => {
+  beforeAll(() => {
+    assertDisposableAcceptanceDatabase();
+  });
+
   it("no-ops a second completeIdempotency call and does not overwrite the original response", async () => {
     const claim = await claimIdempotency(scope("checkout"), "key-7", "customer-1", "hash-a");
     createdIds.push(claim.id);
