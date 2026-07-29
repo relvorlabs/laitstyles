@@ -1,0 +1,181 @@
+/// An owner-approved destination for manual transfers. Only safe account
+/// descriptors are stored; the provider's own `recipient_code` is the
+/// authoritative reference used to initiate a transfer.
+model payout_recipients {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider              payment_provider @default(paystack)
+  recipient_code        String
+  recipient_type        String
+  name                  String
+  bank_name             String?
+  bank_code             String?
+  account_number_last4  String?
+  currency              String           @default("NGN") @db.VarChar(3)
+  is_active             Boolean          @default(true)
+  created_by_profile_id String?          @db.Uuid
+  created_at            DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
+
+  profiles         profiles?          @relation(fields: [created_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  payout_transfers payout_transfers[]
+
+  @@unique([provider, recipient_code], map: "payout_recipients_provider_code_unique")
+  @@index([is_active], map: "payout_recipients_active_idx")
+  @@schema("public")
+}
+
+/// A single owner-initiated transfer of store balance to a payout recipient.
+/// `reference` is server-generated before the provider is ever called, so a
+/// retried request reuses the same reference instead of creating a duplicate
+/// transfer.
+model payout_transfers {
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipient_id            String                 @db.Uuid
+  provider                payment_provider       @default(paystack)
+  reference               String
+  provider_transfer_code  String?
+  amount                  Decimal                @db.Decimal(12, 2)
+  currency                String                 @default("NGN") @db.VarChar(3)
+  reason                  String?
+  status                  payout_transfer_status @default(pending)
+  otp_required            Boolean                @default(false)
+  failure_reason          String?
+  initiated_by_profile_id String?                @db.Uuid
+  initiated_at            DateTime               @default(now()) @db.Timestamptz(6)
+  completed_at            DateTime?              @db.Timestamptz(6)
+  created_at              DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
+
+  payout_recipients               payout_recipients                 @relation(fields: [recipient_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  profiles                        profiles?                         @relation(fields: [initiated_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  payout_transfer_events          payout_transfer_events[]
+  settlement_transaction_mappings settlement_transaction_mappings[]
+
+  @@unique([provider, reference], map: "payout_transfers_provider_reference_unique")
+  @@index([recipient_id], map: "payout_transfers_recipient_idx")
+  @@index([status, updated_at], map: "payout_transfers_status_updated_idx")
+  @@schema("public")
+}
+
+/// Append-only transfer history, mirroring order_payment_events: the transfer
+/// row stores current facts, this table records how it got there (OTP
+/// requested, provider success/failure/reversal, operator note).
+model payout_transfer_events {
+  id               String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transfer_id      String                     @db.Uuid
+  kind             payout_transfer_event_kind
+  status           payout_transfer_status?
+  occurred_at      DateTime                   @default(now()) @db.Timestamptz(6)
+  actor_profile_id String?                    @db.Uuid
+  note             String?
+  metadata         Json                       @default("{}")
+
+  payout_transfers payout_transfers @relation(fields: [transfer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles         profiles?        @relation(fields: [actor_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([transfer_id, occurred_at(sort: Desc)], map: "payout_transfer_events_transfer_occurred_idx")
+  @@schema("public")
+}
+
+/// Read-only reconciliation of a provider settlement/payout of the store's
+/// captured balance to its configured bank account.
+model provider_settlements {
+  id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider               payment_provider  @default(paystack)
+  provider_settlement_id String
+  status                 settlement_status @default(pending)
+  total_amount           Decimal           @db.Decimal(12, 2)
+  total_fees             Decimal           @default(0) @db.Decimal(12, 2)
+  currency               String            @default("NGN") @db.VarChar(3)
+  settled_at             DateTime?         @db.Timestamptz(6)
+  created_at             DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+
+  settlement_transaction_mappings settlement_transaction_mappings[]
+
+  @@unique([provider, provider_settlement_id], map: "provider_settlements_provider_id_unique")
+  @@index([status, settled_at], map: "provider_settlements_status_settled_idx")
+  @@schema("public")
+}
+
+/// Maps one provider settlement to the individual payment or transfer it
+/// reconciles. Exactly one of `payment_id`/`transfer_id` is set per row
+/// (enforced by a CHECK constraint), since a settlement line either pays out
+/// captured revenue or reconciles an outgoing transfer, never both.
+model settlement_transaction_mappings {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  settlement_id String   @db.Uuid
+  payment_id    String?  @db.Uuid
+  transfer_id   String?  @db.Uuid
+  amount        Decimal  @db.Decimal(12, 2)
+  fee           Decimal  @default(0) @db.Decimal(12, 2)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  provider_settlements provider_settlements @relation(fields: [settlement_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  payments             payments?            @relation(fields: [payment_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  payout_transfers     payout_transfers?    @relation(fields: [transfer_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([settlement_id], map: "settlement_transaction_mappings_settlement_idx")
+  @@index([payment_id], map: "settlement_transaction_mappings_payment_idx")
+  @@index([transfer_id], map: "settlement_transaction_mappings_transfer_idx")
+  @@schema("public")
+}
+
+/// Non-critical follow-up (receipts, notifications, reconciliation fan-out)
+/// queued alongside a financial state transition so the transition itself
+/// never blocks on a downstream side effect.
+model outbox_messages {
+  id           String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  topic        String
+  payload      Json
+  status       outbox_message_status @default(pending)
+  attempts     Int                   @default(0)
+  last_error   String?
+  available_at DateTime              @default(now()) @db.Timestamptz(6)
+  sent_at      DateTime?             @db.Timestamptz(6)
+  created_at   DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime              @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([status, available_at], map: "outbox_messages_status_available_idx")
+  @@schema("public")
+}
+
+enum payout_transfer_status {
+  pending
+  otp_required
+  processing
+  success
+  failed
+  reversed
+
+  @@schema("public")
+}
+
+enum payout_transfer_event_kind {
+  initiated
+  otp_requested
+  otp_verified
+  success
+  failed
+  reversed
+  note
+
+  @@schema("public")
+}
+
+enum settlement_status {
+  pending
+  success
+  failed
+
+  @@schema("public")
+}
+
+enum outbox_message_status {
+  pending
+  processing
+  sent
+  failed
+
+  @@schema("public")
+}
