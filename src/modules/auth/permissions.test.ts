@@ -27,4 +27,16 @@ describe("role capabilities", () => {
     expect(hasCapability("manager", "team:read")).toBe(false);
     expect(hasCapability("manager", "team:invite")).toBe(false);
   });
+
+  it("gives the store owner finance and refund execution capabilities", () => {
+    expect(hasCapability("admin", "finance:read")).toBe(true);
+    expect(hasCapability("admin", "finance:transfer")).toBe(true);
+    expect(hasCapability("admin", "payments:refund")).toBe(true);
+  });
+
+  it("lets managers read finance without moving money", () => {
+    expect(hasCapability("manager", "finance:read")).toBe(true);
+    expect(hasCapability("manager", "finance:transfer")).toBe(false);
+    expect(hasCapability("manager", "payments:refund")).toBe(false);
+  });
 });
