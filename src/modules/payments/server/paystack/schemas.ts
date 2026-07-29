@@ -72,6 +72,38 @@ export const paystackPaginationSchema = z.object({
   pageCount: z.number().int().nonnegative(),
 });
 
+const paystackRefundTransactionSchema = z.union([
+  paystackProviderIdSchema,
+  z.object({
+    id: paystackProviderIdSchema,
+    reference: z.string().min(1).optional().nullable(),
+  }),
+]);
+
+export const paystackRefundSchema = z.object({
+  id: paystackProviderIdSchema,
+  transaction: paystackRefundTransactionSchema,
+  integration: paystackProviderIdSchema.optional(),
+  dispute: paystackProviderIdSchema.optional().nullable(),
+  settlement: paystackProviderIdSchema.optional().nullable(),
+  amount: z.number().int().positive().safe(),
+  deducted_amount: z.number().int().nonnegative().safe().optional().nullable(),
+  currency: z.literal("NGN"),
+  channel: z.string().optional().nullable(),
+  fully_deducted: z.union([z.boolean(), z.literal(0), z.literal(1)]).optional().nullable(),
+  refunded_by: z.string().optional().nullable(),
+  refunded_at: z.string().optional().nullable(),
+  expected_at: z.string().optional().nullable(),
+  customer_note: z.string().optional().nullable(),
+  merchant_note: z.string().optional().nullable(),
+  status: z.string().min(1),
+  domain: z.string().optional(),
+  createdAt: z.string().optional().nullable(),
+  updatedAt: z.string().optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
 export function paystackSuccessEnvelope<TSchema extends z.ZodType>(data: TSchema) {
   return z.object({
     status: z.literal(true),
@@ -113,4 +145,14 @@ export const paystackDeactivateAuthorizationResponseSchema = z.object({
   message: z.string().min(1),
 });
 
+export const paystackRefundResponseSchema = paystackSuccessEnvelope(paystackRefundSchema);
+
+export const paystackListRefundsResponseSchema = z.object({
+  status: z.literal(true),
+  message: z.string().min(1),
+  data: z.array(paystackRefundSchema),
+  meta: paystackPaginationSchema.optional(),
+});
+
 export type PaystackRawTransaction = z.infer<typeof paystackTransactionSchema>;
+export type PaystackRawRefund = z.infer<typeof paystackRefundSchema>;
