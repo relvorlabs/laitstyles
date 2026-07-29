@@ -107,8 +107,6 @@ export function ProductImportSession({
           <ProductImportQueue
             ignoredAssetCount={state.ignoredAssetCount}
             items={state.children}
-            onNext={() => dispatch({ type: "select-next" })}
-            onPrevious={() => dispatch({ type: "select-previous" })}
             onSelect={(importId) => dispatch({ type: "select", importId })}
             selectedImportId={state.selectedImportId}
           />

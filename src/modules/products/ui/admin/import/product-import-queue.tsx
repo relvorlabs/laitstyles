@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProductImportChild } from "@/modules/products/import/types";
 
@@ -10,8 +9,6 @@ type ProductImportQueueProps = {
   ignoredAssetCount: number;
   selectedImportId: string | null;
   onSelect: (importId: string) => void;
-  onPrevious: () => void;
-  onNext: () => void;
 };
 
 export function ProductImportQueue({
@@ -19,11 +16,8 @@ export function ProductImportQueue({
   ignoredAssetCount,
   selectedImportId,
   onSelect,
-  onPrevious,
-  onNext,
 }: ProductImportQueueProps) {
   const [search, setSearch] = useState("");
-  const selectedIndex = items.findIndex((child) => child.importId === selectedImportId);
   const visibleChildren = useMemo(
     () =>
       items.filter((child) =>
@@ -50,14 +44,7 @@ export function ProductImportQueue({
             ))}
           </select>
         </label>
-        <QueueNavigation
-          canGoNext={selectedIndex >= 0 && selectedIndex < items.length - 1}
-          canGoPrevious={selectedIndex > 0}
-          onNext={onNext}
-          onPrevious={onPrevious}
-          position={selectedIndex + 1}
-          total={items.length}
-        />
+
         <p className="mt-3 text-xs leading-5 text-muted-foreground">
           Nothing has been uploaded or saved yet. Imported values stay in this browser until you
           save the active product.
@@ -109,14 +96,6 @@ export function ProductImportQueue({
           ) : null}
         </div>
         <div className="border-t border-border px-4 py-3">
-          <QueueNavigation
-            canGoNext={selectedIndex >= 0 && selectedIndex < items.length - 1}
-            canGoPrevious={selectedIndex > 0}
-            onNext={onNext}
-            onPrevious={onPrevious}
-            position={selectedIndex + 1}
-            total={items.length}
-          />
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
             Nothing has been uploaded or saved yet. Imported values stay in this browser until you
             save the active product.
@@ -133,41 +112,6 @@ export function ProductImportQueue({
   );
 }
 
-function QueueNavigation({
-  position,
-  total,
-  canGoPrevious,
-  canGoNext,
-  onPrevious,
-  onNext,
-}: {
-  position: number;
-  total: number;
-  canGoPrevious: boolean;
-  canGoNext: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-}) {
-  return (
-    <div className="mt-3 flex items-center justify-between gap-2">
-      <Button
-        disabled={!canGoPrevious}
-        onClick={onPrevious}
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        Previous product
-      </Button>
-      <span className="text-xs tabular-nums text-muted-foreground">
-        {Math.max(position, 0)} / {total}
-      </span>
-      <Button disabled={!canGoNext} onClick={onNext} size="sm" type="button" variant="outline">
-        Next product
-      </Button>
-    </div>
-  );
-}
 
 function queueStatusLabel(child: ProductImportChild) {
   if (child.status === "saved" && child.persistence) return child.persistence;
