@@ -3,14 +3,14 @@ import { signCloudinaryUploadParams } from "@/lib/assets/server/cloudinary-signa
 import { ApiError } from "@/lib/errors/api-error";
 import { requireApiStaff } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
-import { handleApiRequest } from "@/lib/http/server";
+import { handleApiRequestRaw } from "@/lib/http/server";
 
 const signRequestSchema = z.object({
   paramsToSign: z.record(z.string(), z.union([z.string(), z.number()])),
 });
 
 export async function POST(request: Request) {
-  return handleApiRequest(request, async () => {
+  return handleApiRequestRaw(request, async () => {
     await requireApiStaff();
     const { paramsToSign } = await parseJsonBody(request, signRequestSchema);
 
@@ -26,6 +26,9 @@ export async function POST(request: Request) {
       });
     }
 
-    return { data: { signature }, headers: { "Cache-Control": "private, no-store" } };
+    return {
+      data: { signature },
+      headers: { "Cache-Control": "private, no-store" },
+    };
   });
 }

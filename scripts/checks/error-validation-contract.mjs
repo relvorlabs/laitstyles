@@ -142,7 +142,8 @@ if (
   !productSchema.includes("productTaxonomyIdSchema") ||
   !productSchema.includes("productTaxonomyRenameSchema") ||
   !productTaxonomyRoute.includes("productTaxonomyIdSchema.safeParse") ||
-  !productTaxonomyRoute.includes("parseJsonBody(request, productTaxonomyRenameSchema)")
+  !productTaxonomyRoute.includes("parseJsonBody") ||
+  !productTaxonomyRoute.includes("productTaxonomyUpdateSchema.or(productTaxonomyRenameSchema.strict())")
 ) {
   errors.push("Product taxonomy routes must validate encoded identifiers and names.");
 }

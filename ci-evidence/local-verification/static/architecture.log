@@ -1,0 +1,19 @@
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ node scripts/checks/module-export-guard.mjs && node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs
+## Module export guard
+
+- Source files scanned: 796
+- Errors: 0
+## Architecture guard
+
+- Source files scanned: 796
+- Server Action modules indexed: 3
+- Errors: 1
+- Warnings: 1
+
+### Warnings
+- src/modules/auth/ui/auth-dialog.tsx has 642 lines and needs a responsibility review.
+
+### Failures
+- [god-module] src/features/storefront/account/modals/account-modals.tsx: src/features/storefront/account/modals/account-modals.tsx has 963 lines; split the god module.
+[ELIFECYCLE] Command failed with exit code 1.

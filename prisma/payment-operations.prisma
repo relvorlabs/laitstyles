@@ -1,0 +1,194 @@
+/// A saved Paystack authorization (customer payment method). Verified only
+/// after a successful transaction; reused only when `reusable` and `status`
+/// are both eligible. `signature` deduplicates instruments per customer.
+model payment_authorizations {
+  id                     String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id            String                       @db.Uuid
+  provider               payment_provider             @default(paystack)
+  provider_customer_code String?
+  authorization_code     String
+  signature              String
+  status                 payment_authorization_status @default(pending)
+  reusable               Boolean                      @default(false)
+  is_default             Boolean                      @default(false)
+  channel                String?
+  card_type              String?
+  bank                   String?
+  last4                  String?
+  exp_month              String?
+  exp_year               String?
+  continuation_url       String?
+  verified_at            DateTime?                    @db.Timestamptz(6)
+  deactivated_at         DateTime?                    @db.Timestamptz(6)
+  created_at             DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                     @default(now()) @updatedAt @db.Timestamptz(6)
+
+  customers customers  @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  payments  payments[]
+
+  /// One default authorization per customer, mirroring customer_addresses'
+  /// one-default-address pattern.
+  @@unique([customer_id], map: "payment_authorizations_one_default_unique", where: { is_default: true })
+  @@unique([customer_id, provider, signature], map: "payment_authorizations_customer_provider_signature_unique")
+  @@unique([provider, authorization_code], map: "payment_authorizations_provider_code_unique")
+  @@index([customer_id, status], map: "payment_authorizations_customer_status_idx")
+  @@schema("public")
+}
+
+/// A refund request against a captured payment. `requested_amount` is set at
+/// creation before the provider is ever called; `processed_amount` only moves
+/// once the provider confirms, and can never exceed `requested_amount`.
+model payment_refunds {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_id              String                @db.Uuid
+  return_id               String?               @db.Uuid
+  provider                payment_provider      @default(paystack)
+  provider_reference      String?
+  requested_amount        Decimal               @db.Decimal(12, 2)
+  processed_amount        Decimal               @default(0) @db.Decimal(12, 2)
+  currency                String                @default("NGN") @db.VarChar(3)
+  status                  payment_refund_status @default(pending)
+  reason                  String?
+  failure_reason          String?
+  requested_by_profile_id String?               @db.Uuid
+  requested_at            DateTime              @default(now()) @db.Timestamptz(6)
+  processed_at            DateTime?             @db.Timestamptz(6)
+  failed_at               DateTime?             @db.Timestamptz(6)
+  metadata                Json                  @default("{}")
+  created_at              DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime              @default(now()) @updatedAt @db.Timestamptz(6)
+
+  payments payments  @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  returns  returns?  @relation(fields: [return_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  profiles profiles? @relation(fields: [requested_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@unique([provider, provider_reference], map: "payment_refunds_provider_reference_unique", where: raw("(provider_reference IS NOT NULL)"))
+  @@index([payment_id, requested_at(sort: Desc)], map: "payment_refunds_payment_requested_idx")
+  @@index([return_id], map: "payment_refunds_return_idx")
+  @@index([status, updated_at], map: "payment_refunds_status_updated_idx")
+  @@schema("public")
+}
+
+/// Durable inbox for signed provider webhooks. `event_id` is the provider's
+/// own dedupe key so a redelivered webhook cannot be processed twice.
+model provider_webhook_events {
+  id           String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider     payment_provider              @default(paystack)
+  event_type   String
+  event_id     String
+  signature    String
+  payload      Json
+  status       provider_webhook_event_status @default(received)
+  attempts     Int                           @default(0)
+  last_error   String?
+  received_at  DateTime                      @default(now()) @db.Timestamptz(6)
+  processed_at DateTime?                     @db.Timestamptz(6)
+  created_at   DateTime                      @default(now()) @db.Timestamptz(6)
+
+  @@unique([provider, event_id], map: "provider_webhook_events_provider_event_unique")
+  @@index([status, received_at], map: "provider_webhook_events_status_received_idx")
+  @@schema("public")
+}
+
+/// A provider-reported chargeback/dispute against a captured payment.
+/// `evidence` holds opaque references (e.g. signed-upload asset descriptors),
+/// never raw uploaded content. Viewing/resolution is a staff-only capability;
+/// there is no consumer-facing policy on this table.
+model payment_disputes {
+  id                  String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_id          String                 @db.Uuid
+  provider            payment_provider       @default(paystack)
+  provider_dispute_id String
+  status              payment_dispute_status @default(awaiting_evidence)
+  category            String?
+  amount              Decimal                @db.Decimal(12, 2)
+  currency            String                 @default("NGN") @db.VarChar(3)
+  reason              String?
+  evidence            Json                   @default("[]")
+  evidence_due_at     DateTime?              @db.Timestamptz(6)
+  resolved_at         DateTime?              @db.Timestamptz(6)
+  resolution_note     String?
+  created_at          DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
+
+  payments payments @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, provider_dispute_id], map: "payment_disputes_provider_dispute_unique")
+  @@index([payment_id], map: "payment_disputes_payment_idx")
+  @@index([status, evidence_due_at], map: "payment_disputes_status_evidence_due_idx")
+  @@schema("public")
+}
+
+/// Operation-scoped idempotency ledger. `scope` names the guarded operation
+/// (e.g. "checkout.create_order", "payout.transfer"); the combination with
+/// `idempotency_key` must be unique so a retried client request cannot repeat
+/// a side effect.
+model idempotency_records {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scope             String
+  idempotency_key   String
+  status            idempotency_status @default(in_progress)
+  request_hash      String?
+  response_snapshot Json?
+  created_at        DateTime           @default(now()) @db.Timestamptz(6)
+  completed_at      DateTime?          @db.Timestamptz(6)
+  expires_at        DateTime?          @db.Timestamptz(6)
+
+  @@unique([scope, idempotency_key], map: "idempotency_records_scope_key_unique")
+  @@index([expires_at], map: "idempotency_records_expires_idx")
+  @@schema("public")
+}
+
+enum payment_authorization_status {
+  pending
+  active
+  challenged
+  inactive
+
+  @@schema("public")
+}
+
+enum payment_refund_status {
+  pending
+  processing
+  needs_attention
+  processed
+  failed
+
+  @@schema("public")
+}
+
+enum provider_webhook_event_status {
+  received
+  processing
+  processed
+  failed
+
+  @@schema("public")
+}
+
+enum payment_dispute_status {
+  awaiting_evidence
+  pending
+  resolved
+  declined
+
+  @@schema("public")
+}
+
+enum idempotency_status {
+  in_progress
+  completed
+  failed
+
+  @@schema("public")
+}
+
+/// How a payment attempt's success/failure was established.
+enum payment_verification_source {
+  webhook
+  manual_verify
+  callback
+
+  @@schema("public")
+}

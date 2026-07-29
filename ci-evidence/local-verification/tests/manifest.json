@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "kind": "gate-suite",
+  "repository": null,
+  "workflow": null,
+  "runId": null,
+  "runAttempt": null,
+  "job": null,
+  "sha": null,
+  "ref": null,
+  "suite": "tests",
+  "project": null,
+  "startedAt": "2026-07-28T17:22:22.404Z",
+  "completedAt": "2026-07-28T17:27:21.987Z",
+  "status": "failed",
+  "results": [
+    {
+      "name": "vitest",
+      "suite": "tests",
+      "project": null,
+      "required": true,
+      "status": "failed",
+      "command": "pnpm exec vitest run --passWithNoTests --coverage --reporter=verbose",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 299565,
+      "logPath": "C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\tests\\vitest.log",
+      "failureTail": "  }\n]\n ❯ src/modules/auth/schema.test.ts:13:28\n     11|   it(\"trims normalized identity fields\", () => {\n     12|     expect(\n     13|       passwordSignUpSchema.parse({\n       |                            ^\n     14|         email: \"  shopper@example.com \",\n     15|         password: \"password123\",\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\nSerialized Error: { _zod: { def: [ { expected: 'string', code: 'invalid_type', path: [ 'confirmPassword' ], message: 'Invalid input: expected string, received undefined' } ], constr: 'Function<ZodError>', traits: { constructor: 'Function<Set>', has: 'Function<has>', add: 'Function<add>', delete: 'Function<delete>', difference: 'Function<difference>', clear: 'Function<clear>', entries: 'Function<entries>', forEach: 'Function<forEach>', intersection: 'Function<intersection>', isSubsetOf: 'Function<isSubsetOf>', isSupersetOf: 'Function<isSupersetOf>', isDisjointFrom: 'Function<isDisjointFrom>', size: 2, symmetricDifference: 'Function<symmetricDifference>', union: 'Function<union>', values: 'Function<values>', keys: 'Function<values>' }, deferred: [] }, issues: [ { expected: 'string', code: 'invalid_type', path: [ 'confirmPassword' ], message: 'Invalid input: expected string, received undefined' } ], format: 'Function<value>', flatten: 'Function<value>', addIssue: 'Function<value>', addIssues: 'Function<value>', isEmpty: false }\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯\n\n FAIL  src/modules/auth/schema.test.ts > password auth schemas > requires names, terms, and an eight-character sign-up password\nAssertionError: expected { …(5) } to deeply equal { …(4) }\n\n- Expected\n+ Received\n\n  {\n+   \"confirmPassword\": \"Invalid input: expected string, received undefined\",\n    \"first\": \"Enter your first name.\",\n    \"last\": \"Enter your last name.\",\n    \"password\": \"Password must be at least 8 characters.\",\n    \"terms\": \"Please accept the Terms to continue.\",\n  }\n\n ❯ src/modules/auth/schema.test.ts:53:43\n     51|     if (result.success) return;\n     52|\n     53|     expect(authFieldErrors(result.error)).toEqual({\n       |                                           ^\n     54|       password: \"Password must be at least 8 characters.\",\n     55|       first: \"Enter your first name.\",\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯\n\n FAIL  src/features/storefront/shared/storefront-client-state-persistence.test.ts > storefront client-state persistence failures > does not clean legacy keys when the canonical write fails\nAssertionError: expected null not to be null\n ❯ src/features/storefront/shared/storefront-client-state-persistence.test.ts:50:42\n     48|     ).not.toThrow();\n     49|     expect(session.getItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY)).toBeN…\n     50|     expect(local.getItem(legacyKey)).not.toBeNull();\n       |                                          ^\n     51|   });\n     52|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯\n\n FAIL  src/modules/inventory/client/api.test.ts > inventory browser API > posts stock adjustments through the versioned inventory boundary\nAssertionError: expected { method: 'POST', …(2) } to match object { method: 'POST', headers: { …(1) } }\n(1 matching property omitted from actual)\n\n- Expected\n+ Received\n\n  {\n-   \"headers\": {\n-     \"Content-Type\": \"application/json\",\n-   },\n+   \"headers\": Headers {},\n    \"method\": \"POST\",\n  }\n\n ❯ src/modules/inventory/client/api.test.ts:140:18\n    138|       \"/api/v1/admin/inventory/adjustments\",\n    139|     );\n    140|     expect(init).toMatchObject({\n       |                  ^\n    141|       method: \"POST\",\n    142|       headers: { \"Content-Type\": \"application/json\" },\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯\n\n FAIL  src/app/api/v1/admin/inventory/route.test.ts > /api/v1/admin/inventory > rejects an unsupported page size before any domain query\nAssertionError: expected 422 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 422\n\n ❯ src/app/api/v1/admin/inventory/route.test.ts:112:29\n    110|     const response = await GET(new Request(\"http://localhost/api/v1/ad…\n    111|\n    112|     expect(response.status).toBe(400);\n       |                             ^\n    113|     await expect(response.json()).resolves.toMatchObject({\n    114|       error: { code: \"INVALID_QUERY\", fieldErrors: { pageSize: expect.…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯\n\n FAIL  src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > validates the body before calling the domain command\nAssertionError: expected 422 to be 400 // Object.is equality\n\n- Expected\n+ Received\n\n- 400\n+ 422\n\n ❯ src/app/api/v1/admin/inventory/adjustments/route.test.ts:53:29\n     51|     const response = await POST(adjustmentRequest({ quantityDelta: 0 }…\n     52|\n     53|     expect(response.status).toBe(400);\n       |                             ^\n     54|     await expect(response.json()).resolves.toMatchObject({\n     55|       error: {\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯\n\n\n Test Files  7 failed | 124 passed (131)\n      Tests  8 failed | 608 passed | 6 skipped (622)\n   Start at  18:22:40\n   Duration  280.47s (transform 37.26s, setup 0ms, import 703.77s, tests 125.08s, environment 318.09s)\n\n"
+    }
+  ]
+}

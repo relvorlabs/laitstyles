@@ -280,13 +280,45 @@ export type ProductTaxonomyItem = {
   kind: ProductTaxonomyKind;
   name: string;
   slug: string;
+  imageUrl: string | null;
+  position: number;
+  productCount: number;
+  previewImageUrls: string[];
   createdAt: string;
   updatedAt: string;
 };
 
-export type ProductTaxonomyInput = {
+export type ProductTaxonomyInput =
+  | {
+      kind: "category";
+      name: string;
+      imageUrl: string | null;
+      position: number;
+    }
+  | {
+      kind: "collection";
+      name: string;
+      position: number;
+      productIds: string[];
+    };
+
+export type ProductTaxonomyUpdateInput =
+  | {
+      kind: "category";
+      name: string;
+      imageUrl: string | null;
+      position: number;
+    }
+  | {
+      kind: "collection";
+      name: string;
+      position: number;
+      productIds: string[];
+    };
+
+export type ProductTaxonomyReorderInput = {
   kind: ProductTaxonomyKind;
-  name: string;
+  orderedIds: string[];
 };
 
 export type ProductMutationInput = {

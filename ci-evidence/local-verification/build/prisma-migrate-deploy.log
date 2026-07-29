@@ -1,0 +1,14 @@
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ pnpm prisma:clean && prisma migrate deploy
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ node scripts/db/clean-prisma-schema-input.mjs
+◇ injected env (24) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma.
+Datasource "db": PostgreSQL database "postgres", schemas "public" at "aws-0-eu-west-1.pooler.supabase.com:5432"
+
+4 migrations found in prisma/migrations
+
+
+No pending migrations to apply.

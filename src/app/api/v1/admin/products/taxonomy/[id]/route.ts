@@ -2,10 +2,15 @@ import { ApiError } from "@/lib/errors/api-error";
 import { requireApiStaff } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
-import { productTaxonomyIdSchema, productTaxonomyRenameSchema } from "@/modules/products/schema";
+import {
+  productTaxonomyIdSchema,
+  productTaxonomyRenameSchema,
+  productTaxonomyUpdateSchema,
+} from "@/modules/products/schema";
 import { throwProductTaxonomyError } from "@/modules/products/server/api-errors";
 import { invalidateProductCatalogue } from "@/modules/products/server/cache";
 import { deleteProductTaxonomy, renameProductTaxonomy } from "@/modules/products/server/commands";
+import { updateProductTaxonomy } from "@/modules/products/server/taxonomy-commands";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type TaxonomyRouteContext = { params: Promise<{ id: string }> };
@@ -14,8 +19,14 @@ export async function PATCH(request: Request, context: TaxonomyRouteContext) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("inventory:update");
     const taxonomyId = await parseTaxonomyId(context);
-    const input = await parseJsonBody(request, productTaxonomyRenameSchema);
-    const result = await renameProductTaxonomy(actor, taxonomyId, input.name);
+    const input = await parseJsonBody(
+      request,
+      productTaxonomyUpdateSchema.or(productTaxonomyRenameSchema.strict()),
+    );
+    const result =
+      "kind" in input
+        ? await updateProductTaxonomy(actor, taxonomyId, input)
+        : await renameProductTaxonomy(actor, taxonomyId, input.name);
     if (!result.ok) throwProductTaxonomyError(result.error);
 
     invalidateProductCatalogue(result.value.affectedProductSlugs);

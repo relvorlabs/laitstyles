@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-07-28T17:44:16.508Z",
+  "node": "v26.5.0",
+  "mode": {
+    "fix": false,
+    "full": true,
+    "browser": false
+  },
+  "passed": 0,
+  "warnings": 1,
+  "failed": 5,
+  "results": [
+    {
+      "name": "node-version",
+      "command": "node -p process.version",
+      "status": "failed",
+      "exitCode": 1,
+      "detail": "Expected Node 25.x but found v26.5.0."
+    },
+    {
+      "name": "static",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci/run-gates.mjs --suite static --output C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\static",
+      "status": "failed",
+      "exitCode": 1,
+      "detail": null
+    },
+    {
+      "name": "tests",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci/run-gates.mjs --suite tests --output C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\tests",
+      "status": "failed",
+      "exitCode": 1,
+      "detail": null
+    },
+    {
+      "name": "persistence",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci/run-gates.mjs --suite persistence --output C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\persistence",
+      "status": "failed",
+      "exitCode": 1,
+      "detail": null
+    },
+    {
+      "name": "authorization",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci/run-gates.mjs --suite authorization --output C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\authorization",
+      "status": "failed",
+      "exitCode": 1,
+      "detail": null
+    },
+    {
+      "name": "build",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/ci/run-gates.mjs --suite build --output C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\build",
+      "status": "passed-with-warnings",
+      "exitCode": 0,
+      "detail": null
+    }
+  ]
+}

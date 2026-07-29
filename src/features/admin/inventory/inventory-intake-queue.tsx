@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { useProductEditorController } from "@/features/admin/product-editor/product-editor-controller";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { InventoryListItem } from "@/lib/admin/shared/types";
+import { useProductEditorController } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 
 export function InventoryIntakeQueue({
   items,

@@ -1,0 +1,866 @@
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ pnpm dlx react-doctor@0.7.2 . --verbose --no-telemetry
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 3, reused 0, downloaded 0, added 0
+Progress: resolved 4, reused 3, downloaded 0, added 0
+Progress: resolved 14, reused 5, downloaded 0, added 0
+Progress: resolved 16, reused 12, downloaded 0, added 0
+Progress: resolved 16, reused 14, downloaded 0, added 0
+Progress: resolved 16, reused 15, downloaded 0, added 0
+Progress: resolved 16, reused 16, downloaded 0, added 0
+[WARN] Request took 12301ms: https://registry.npmjs.org/typescript
+Progress: resolved 17, reused 16, downloaded 0, added 0
+Progress: resolved 17, reused 17, downloaded 0, added 0
+Progress: resolved 18, reused 17, downloaded 0, added 0
+Progress: resolved 41, reused 19, downloaded 0, added 0
+Progress: resolved 42, reused 22, downloaded 0, added 0
+Progress: resolved 54, reused 22, downloaded 0, added 0
+Progress: resolved 55, reused 29, downloaded 0, added 0
+Progress: resolved 59, reused 34, downloaded 0, added 0
+Progress: resolved 75, reused 42, downloaded 0, added 0
+Progress: resolved 78, reused 56, downloaded 0, added 0
+Progress: resolved 79, reused 60, downloaded 0, added 0
+Progress: resolved 79, reused 61, downloaded 0, added 0
+[WARN] Request took 13207ms: https://registry.npmjs.org/@typescript-eslint%2Ftypes
+Progress: resolved 80, reused 61, downloaded 0, added 0
+Progress: resolved 121, reused 66, downloaded 0, added 0
+Progress: resolved 148, reused 73, downloaded 0, added 0
+Progress: resolved 183, reused 104, downloaded 0, added 0
+Progress: resolved 209, reused 133, downloaded 0, added 0
+Progress: resolved 229, reused 154, downloaded 0, added 0
+Progress: resolved 230, reused 154, downloaded 0, added 0
+Progress: resolved 230, reused 154, downloaded 1, added 0
+Progress: resolved 231, reused 154, downloaded 1, added 0
+Progress: resolved 238, reused 160, downloaded 1, added 0
+Progress: resolved 260, reused 178, downloaded 1, added 0
+Progress: resolved 280, reused 204, downloaded 1, added 0
+Progress: resolved 289, reused 214, downloaded 1, added 0
+Packages: +206
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 289, reused 214, downloaded 1, added 5
+Progress: resolved 289, reused 214, downloaded 1, added 11
+Progress: resolved 289, reused 214, downloaded 1, added 15
+Progress: resolved 289, reused 214, downloaded 1, added 32
+Progress: resolved 289, reused 214, downloaded 1, added 40
+Progress: resolved 289, reused 214, downloaded 1, added 49
+Progress: resolved 289, reused 214, downloaded 1, added 51
+Progress: resolved 289, reused 214, downloaded 1, added 55
+Progress: resolved 289, reused 214, downloaded 1, added 63
+Progress: resolved 289, reused 214, downloaded 1, added 75
+Progress: resolved 289, reused 214, downloaded 1, added 83, done
+[1mReact Doctor[22m [2mv0.7.2[22m
+
+[32m✔[39m Select projects [2m›[22m laitstyle
+[90m  [39m
+
+  [33m⚠[39m [33mSecurity: BaaS authority map shipped in browser artifact[39m [90m×2[39m
+    A browser artifact exposes Firebase/Supabase config
+    together with sensitive collections or authorization fields.
+[2m    → Client BaaS config is often public, but shipped[22m
+[2m    collection names plus owner, role, tenant, or admin fields[22m
+[2m    give attackers a precise authorization map. Verify[22m
+[2m    rules/RLS enforce every boundary server-side.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/artifact-baas-authority-surface[39m
+
+[90m    .claude/worktrees/admin-inventory-prisma-cutover/.next/static/chunks/1bwqdxp6_qj6r.js:24[39m
+
+[90m    .next/static/chunks/18v7rmkeax_70.js:24[39m
+
+  [31m✖[39m [31mSecurity: Server env leaked to browser artifact[39m [90m×2[39m
+    A browser artifact contains server-secret environment names
+    or a full environment dump shape.
+[2m    → Treat public env prefixes as publication, not secrecy;[22m
+[2m    keep secret env vars server-only and rebuild after rotating[22m
+[2m    leaked keys.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/artifact-env-leak[39m
+
+[90m    .next/static/chunks/3sf55z0l84nsc.js:3[39m
+
+[90m    prisma/generated/prisma/internal/class.ts:73[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   72 |    * const prisma = new PrismaClient({                [2m│[22m
+    [2m│[22m > 73 |    *   adapter: new PrismaPg({ connectionString: pro[0m… [2m│[22m
+    [2m│[22m      |                                                     [0m… [2m│[22m
+    [2m│[22m   74 |    * })                                               [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+  [33m⚠[39m [33mSecurity: Redirect or frame boundary risk[39m [90m×4[39m
+    Redirect or framing configuration may let
+    attacker-controlled URLs chain into privileged UI or
+    clickjacking.
+[2m    → Allowlist redirect origins/paths, set `frame-ancestors`[22m
+[2m    for privileged pages, and avoid URL-prefilled privileged[22m
+[2m    dialogs.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/clickjacking-redirect-risk[39m
+
+[90m    .worktrees/product-creation-import-taxonomy/src/app/auth/actions.ts:150[39m
+
+[90m    .worktrees/product-creation-import-taxonomy/src/app/auth/sign-in/page.tsx:41[39m
+
+[90m    src/app/auth/actions.ts:150[39m
+
+[90m    src/app/auth/sign-in/page.tsx:41[39m
+
+  [33m⚠[39m [33mSecurity: URL pre-fills a privileged action[39m [90m×4[39m
+    Client code reads sensitive action state from the URL,
+    which can pre-fill invites, roles, redirects, or sharing
+    flows with attacker values.
+[2m    → Require server-side validation and explicit confirmation[22m
+[2m    for URL-sourced invite, role, permission, redirect, or[22m
+[2m    sharing parameters.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/url-prefilled-privileged-action[39m
+
+[90m    .worktrees/product-creation-import-taxonomy/src/app/auth/callback/route.ts:10[39m
+
+[90m    .worktrees/product-creation-import-taxonomy/src/app/auth/google/route.ts:28[39m
+
+[90m    src/app/auth/callback/route.ts:10[39m
+
+[90m    src/app/auth/google/route.ts:28[39m
+
+  [33m⚠[39m [33mSecurity: react-doctor/require-pnpm-hardening[39m [90m×2[39m
+    pnpm-workspace.yaml is missing `minimumReleaseAge` — newly
+    published versions can ship malware that gets caught and
+    unpublished within hours
+    pnpm-workspace.yaml is missing `trustPolicy` — without
+    `no-downgrade`, pnpm silently accepts packages whose trust
+    signals (provenance, signatures) weaken between updates
+[2m    → Add `minimumReleaseAge: 10080` (7 days) to[22m
+[2m    pnpm-workspace.yaml to delay installs until releases have[22m
+[2m    had time to be vetted[22m
+
+  [31m✖[39m [31mBugs: Unauthenticated server action can be called directly[39m [90m×4[39m
+    Anyone can call server action "submitReviewAction" without
+    logging in, since it has no auth check.
+[2m    → Check auth before touching data because exported server[22m
+[2m    actions can be called directly by unauthenticated clients.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/server-auth-actions[39m
+
+[90m    src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts:73[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   72 |                                                       [2m│[22m
+    [2m│[22m > 73 | export async function submitReviewAction(             [2m│[22m
+    [2m│[22m      |                       ^                               [2m│[22m
+    [2m│[22m   74 |   _previous: ReviewActionState,                       [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+[90m    src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.ts:123[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   122 |                                                      [2m│[22m
+    [2m│[22m > 123 | export async function withdrawReviewAction(          [2m│[22m
+    [2m│[22m       |                       ^                              [2m│[22m
+    [2m│[22m   124 |   _previous: ReviewActionState,                      [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+[90m    src/app/auth/actions.ts:139[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   138 |                                                      [2m│[22m
+    [2m│[22m > 139 | export async function signOutStorefrontSession(): P[0m… [2m│[22m
+    [2m│[22m       |                       ^                              [2m│[22m
+    [2m│[22m   140 |   return endSession();                               [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+[90m    src/app/auth/actions.ts:200[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   199 |                                                      [2m│[22m
+    [2m│[22m > 200 | export async function submitRecoveredPasswordWithRe[0m… [2m│[22m
+    [2m│[22m       |                       ^                              [2m│[22m
+    [2m│[22m   201 |   _previousState: AuthPageActionState,               [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+  [33m⚠[39m [33mPerformance: Intl formatter rebuilt each call[39m [90m×13[39m
+    This is slow because new Intl.NumberFormat() rebuilds on
+    every call inside a function, so move it to the top of the
+    file, or wrap it in useMemo
+[2m    → Move `new Intl.NumberFormat(...)` to the top of the file[22m
+[2m    or wrap it in `useMemo`. Building one is slow, so don't[22m
+[2m    redo it on every call[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/js-hoist-intl[39m
+
+[90m    src/app/(storefront)/cart/page.tsx:59[39m
+
+[90m    src/features/admin/settings/settings-status-strip.tsx:37[39m
+
+[90m    src/features/admin/state/admin-provider.tsx:9[39m
+
+[90m    src/modules/orders/storefront/order-state-copy.ts:10[39m
+
+[90m    src/modules/orders/ui/storefront/order-detail-section.tsx:28[39m
+
+[90m    src/modules/orders/ui/storefront/order-detail-section.tsx:36[39m
+
+[90m    src/modules/orders/ui/storefront/order-detail-section.tsx:45[39m
+
+[90m    src/modules/orders/ui/storefront/orders-section.tsx:26[39m
+
+[90m    src/modules/orders/ui/storefront/orders-section.tsx:34[39m
+
+[90m    src/modules/overview/server/queries.ts:349[39m
+
+[90m    src/modules/overview/server/queries.ts:498[39m
+
+[90m    src/modules/products/ui/storefront/product-reviews.tsx:24[39m
+
+[90m    src/modules/reviews/ui/storefront/review-page.tsx:30[39m
+
+  [33m⚠[39m [33mPerformance: Independent awaits run sequentially[39m [90m×2[39m
+    These 3 sequential await statements run one after another
+    even though they look independent, so the page waits longer
+    than it needs to. Run them together with Promise.all()
+    instead
+[2m    → Use `const [a, b] = await Promise.all([fetchA(),[22m
+[2m    fetchB()])` so independent calls run at the same time[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/async-parallel[39m
+
+[90m    src/app/api/v1/admin/products/[id]/route.ts:36[39m
+
+[90m    src/app/api/v1/admin/products/taxonomy/[id]/route.ts:20[39m
+
+  [33m⚠[39m [33mBugs: Sequential independent awaits[39m [90m×10[39m
+    This await doesn't use the previous result, so your users
+    wait twice as long for nothing.
+[2m    → These two awaits don't depend on each other. Wrap them in[22m
+[2m    `Promise.all([...])` so they run at the same time.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/server-sequential-independent-await[39m
+
+[90m    src/app/api/v1/admin/products/[id]/route.ts:38[39m
+
+[90m    src/app/api/v1/admin/products/taxonomy/[id]/route.ts:22[39m
+
+[90m    src/modules/auth/server/authenticate.ts:54[39m
+
+[90m    src/modules/auth/server/authenticate.ts:100[39m
+
+[90m    src/modules/auth/server/authenticate.ts:116[39m
+
+[90m    src/modules/auth/server/authenticate.ts:138[39m
+
+[90m    src/modules/auth/server/staff-invitations.ts:47[39m
+
+[90m    src/modules/customers/server/queries.ts:158[39m
+
+[90m    src/modules/products/server/product-commands.ts:175[39m
+
+[90m    src/modules/settings/server/queries.ts:38[39m
+
+  [33m⚠[39m [33mPerformance: Overly precise SVG path values[39m
+    Your users download extra bytes for SVG d precision they
+    can't see, so round it to 1 or 2 decimals.
+[2m    → Round path, points, and transform decimals to 1 or 2[22m
+[2m    digits. The extra precision adds bytes with no visible[22m
+[2m    difference.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/rendering-svg-precision[39m
+
+[90m    src/components/brand/laitstyle-symbol.tsx:32[39m
+
+  [33m⚠[39m [33mMaintainability: Non-component export in component file[39m [90m×9[39m
+    This file exports non-components, so Fast Refresh can't
+    safely preserve component state.
+[2m    → Move non-component exports out of component files so Fast[22m
+[2m    Refresh can preserve component state instead of[22m
+[2m    full-reloading.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/only-export-components[39m
+
+[90m    src/components/ui/badge.tsx:50[39m
+
+[90m    src/components/ui/button.tsx:56[39m
+
+[90m    src/components/ui/input.tsx:41[39m
+
+[90m    src/components/ui/tabs.tsx:75[39m
+
+[90m    src/components/ui/textarea.tsx:39[39m
+
+[90m    src/components/ui/toggle.tsx:45[39m
+
+[90m    src/modules/products/ui/storefront/catalogue-results.tsx:67[39m
+
+[90m    src/modules/storefront-shell/ui/account-primitives.tsx:9[39m
+
+[90m    src/providers/session-provider.tsx:23[39m
+
+  [33m⚠[39m [33mPerformance: Unstable context provider value[39m
+    Every reader of this context redraws on each render because
+    you build its `value` inline.
+[2m    → Wrap the context value in `useMemo` or move it outside[22m
+[2m    the component so consumers do not redraw every render.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/jsx-no-constructed-context-values[39m
+
+[90m    src/components/ui/toggle-group.tsx:49[39m
+
+  [33m⚠[39m [33mMaintainability: Large component is hard to read and change[39m [90m×5[39m
+    Component "InventoryWorkspace" is 332 lines long, which is
+    hard to read & change. Split it into a few smaller
+    components.
+[2m    → Pull each section into its own component so the parent is[22m
+[2m    easier to read, test, and change.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-giant-component[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:78[39m
+
+[90m    src/features/storefront/checkout/checkout-flow-v2.tsx:49[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-images-step.tsx:38[39m
+
+[90m    src/modules/products/ui/admin/product-editor/variant-product-fields.tsx:37[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:25[39m
+
+  [33m⚠[39m [33mPerformance: State only used in handlers[39m
+    Each update to "selectedItems" redraws your component for
+    nothing because this useState is set but never shown on
+    screen.
+[2m    → Use useRef instead of useState when the value is only set[22m
+[2m    and never shown on screen. `ref.current = ...` updates it[22m
+[2m    without redrawing the component.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/rerender-state-only-in-handlers[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:93[39m
+
+  [33m⚠[39m [33mBugs: Missing effect dependencies[39m [90m×2[39m
+    `products` is rebuilt every render, so `useMemo` runs every
+    time.
+[2m    → Don't blindly add missing dependencies. Read the hook[22m
+[2m    callback first.[22m
+[2m    [22m
+[2m    Bad:[22m
+[2m    useEffect(() => {[22m
+[2m      setCount(count + 1);[22m
+[2m    }, [count]);[22m
+[2m    [22m
+[2m    Better:[22m
+[2m    useEffect(() => {[22m
+[2m      setCount((currentCount) => currentCount + 1);[22m
+[2m    }, []);[22m
+[2m    [22m
+[2m    If the missing value is recreated every render, move it[22m
+[2m    inside the hook or stabilize it before adding it to deps.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/exhaustive-deps[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:126[39m
+
+[90m    src/features/admin/shell/admin-command-menu.tsx:140[39m
+
+  [33m⚠[39m [33mPerformance: Chained array iterations[39m [90m×14[39m
+    This loops over your list twice because .filter().map()
+    makes two passes, so do it in one pass with .reduce() or a
+    for...of loop
+[2m    → Combine `.map().filter()` style chains into one pass with[22m
+[2m    `.reduce()` or a `for...of` loop, so you only loop over the[22m
+[2m    list once[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/js-combine-iterations[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:139[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:143[39m
+
+[90m    src/features/admin/orders/order-selectors.ts:75[39m
+
+[90m    src/features/admin/record-sale/record-sale-item-step.tsx:128[39m
+
+[90m    src/lib/admin/product-editor/product-editor-conversion.ts:75[39m
+
+[90m    src/modules/inventory/server/stock-write.ts:222[39m
+
+[90m    src/modules/products/client/catalogue-search-params.ts:62[39m
+
+[90m    src/modules/products/server/storefront/page-selection.ts:76[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:49[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-identity-step.tsx:36[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-identity-step.tsx:44[39m
+
+[90m    src/modules/products/ui/admin/product-editor/variant-product-fields.tsx:74[39m
+
+[90m    src/modules/products/ui/storefront/catalogue-data.ts:60[39m
+
+[90m    src/modules/products/ui/storefront/product-selection.ts:85[39m
+
+  [33m⚠[39m [33mBugs: Derived value copied into state[39m [90m×6[39m
+    Storing "page" in state when you can derive it from other
+    values costs an extra render.
+[2m    → Work out the value while rendering (or with useMemo if[22m
+[2m    it's expensive) instead of copying it into useState through[22m
+[2m    a useEffect. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect#updating-state-based-on-props-or-state[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-derived-state[39m
+
+[90m    src/features/admin/inventory/inventory-workspace.tsx:158[39m
+
+[90m    src/modules/products/ui/admin/catalogue/category-editor-dialog.tsx:60-61[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:46-47[39m
+
+[90m    src/providers/session-provider.tsx:48[39m
+
+  [33m⚠[39m [33mPerformance: Full Framer Motion import[39m
+    Importing "motion" ships about 30 kb of extra code and
+    slows page load. Use "m" with LazyMotion instead.
+[2m    → Use `import { LazyMotion, m } from "framer-motion"` with[22m
+[2m    `domAnimation` features. Saves about 30kb.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/use-lazy-motion[39m
+
+[90m    src/features/admin/overview/ledger-lead-figure.tsx:3[39m
+
+  [33m⚠[39m [33mMaintainability: Format method on z.string()[39m [90m×14[39m
+    This `z.string().<format>()` check is deprecated in Zod 4,
+    so it can break during the upgrade.
+[2m    → Use the Zod 4 top-level format checks like `z.email()`,[22m
+[2m    `z.uuid()`, or `z.ipv4()` instead of[22m
+[2m    `z.string().<format>()`.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/zod-v4-prefer-top-level-string-formats[39m
+
+[90m    src/features/admin/record-sale/record-sale-schema.ts:50[39m
+
+[90m    src/lib/admin/inventory/inventory-action-schema.ts:4[39m
+
+[90m    src/lib/admin/inventory/inventory-fixture-schema.ts:6[39m
+
+[90m    src/modules/customers/schema.ts:13[39m
+
+[90m    src/modules/inventory/schema.ts:56[39m
+
+[90m    src/modules/inventory/schema.ts:62-63[39m
+
+[90m    src/modules/orders/schema.ts:41[39m
+
+[90m    src/modules/orders/schema.ts:61-62[39m
+
+[90m    src/modules/payments/server/paystack.ts:11[39m
+
+[90m    src/modules/products/schema.ts:4[39m
+
+[90m    src/modules/returns/schema.ts:26[39m
+
+[90m    src/modules/returns/schema.ts:42[39m
+
+  [33m⚠[39m [33mBugs: Plain img ships unoptimized images[39m
+    Plain <img> ships unoptimized, oversized images.
+[2m    → Use `next/image` so users get optimized formats,[22m
+[2m    responsive srcsets, and lazy loading instead of oversized[22m
+[2m    image downloads.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/nextjs-no-img-element[39m
+
+[90m    src/features/storefront/account/components/account-garments.tsx:28[39m
+
+  [33m⚠[39m [33mAccessibility: Anchor used as a button[39m
+    Keyboard users can't trigger this link because it's a click
+    handler with no real `href`, so use `<button>` instead.
+[2m    → Give links a real destination. Use `<button>` for in-page[22m
+[2m    actions.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/anchor-is-valid[39m
+
+[90m    src/features/storefront/account/components/account-primitives.tsx:117[39m
+
+  [33m⚠[39m [33mBugs: All state reset on prop change[39m
+    Your users briefly see stale state when a prop changes
+    because this useEffect clears all state.
+[2m    → Pass the prop as `key` so React resets the component for[22m
+[2m    you when the prop changes, instead of clearing every state[22m
+[2m    value by hand in a useEffect. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-reset-all-state-on-prop-change[39m
+
+[90m    src/features/storefront/account/modals/return-wizard.tsx:36[39m
+
+  [33m⚠[39m [33mBugs: Event logic handled in an effect[39m
+    Faking an event handler with a prop plus a useEffect costs
+    an extra render & runs late.
+[2m    → Run the side effect in the event handler that triggers[22m
+[2m    it, instead of watching its state from a useEffect. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect#sharing-logic-between-event-handlers[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-event-handler[39m
+
+[90m    src/features/storefront/account/modals/return-wizard.tsx:37[39m
+
+  [31m✖[39m [31mBugs: State synced to a prop inside an effect[39m [90m×7[39m
+    This effect adjusts state after a prop changes, so users
+    briefly see the stale value.
+[2m    → Adjust the state inline during render with a `prev`-prop[22m
+[2m    comparison (`if (prop !== prevProp) { setPrevProp(prop);[22m
+[2m    setX(...); }`), or refactor to remove the duplicated state.[22m
+[2m    Routing the adjustment through a useEffect forces an extra[22m
+[2m    render with a stale UI between the two commits. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-adjust-state-on-prop-change[39m
+
+[90m    src/features/storefront/account/modals/return-wizard.tsx:37[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   36 |   useEffect(() => {                                   [2m│[22m
+    [2m│[22m > 37 |     if (open) setStep(1);                             [2m│[22m
+    [2m│[22m      |               ^                                       [2m│[22m
+    [2m│[22m   38 |   }, [open]);                                         [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+[90m    src/modules/products/ui/admin/catalogue/category-editor-dialog.tsx:62-64[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   61 |     setImageUrl(editing?.imageUrl ?? null);           [2m│[22m
+    [2m│[22m > 62 |     setFeedback(null);                                [2m│[22m
+    [2m│[22m > 63 |     setSubmitted(false);                              [2m│[22m
+    [2m│[22m > 64 |     setUploadStatus(null);                            [2m│[22m
+    [2m│[22m   65 |   }, [editing]);                                      [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:54-56[39m
+    [2m┌[22m[2m──────────────────────────────────────────────────────────────[22m[2m┐[22m
+    [2m│[22m   53 |     );                                                [2m│[22m
+    [2m│[22m > 54 |     setQuery("");                                     [2m│[22m
+    [2m│[22m > 55 |     setFeedback(null);                                [2m│[22m
+    [2m│[22m > 56 |     setSubmitted(false);                              [2m│[22m
+    [2m│[22m   57 |   }, [editing, products]);                            [2m│[22m
+    [2m└[22m[2m──────────────────────────────────────────────────────────────[22m[2m┘[22m
+
+  [33m⚠[39m [33mAccessibility: Custom modal instead of dialog[39m [90m×14[39m
+    Screen reader users get native dialog semantics for free
+    from the HTML `<dialog>` element, so swap this
+    `role="dialog"` element for `<dialog>` and open it with
+    `dialog.show()` (non-modal) or `dialog.showModal()` (modal).
+[2m    → Replace the wrapper with `<dialog>` and open it with[22m
+[2m    `dialog.showModal()`. For the trigger, prefer `<button[22m
+[2m    commandfor="id" command="show-modal">` (Chrome 135+), or a[22m
+[2m    `useRef` with `dialogRef.current?.showModal()`.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/prefer-html-dialog[39m
+
+[90m    src/features/storefront/checkout/components/declined-dialog.tsx:26[39m
+
+[90m    src/features/storefront/checkout/components/processing-dialog.tsx:17[39m
+
+[90m    src/modules/products/ui/storefront/overlays/filter-drawer.tsx:31[39m
+
+[90m    src/modules/products/ui/storefront/overlays/image-viewer-overlay.tsx:101[39m
+
+[90m    src/modules/products/ui/storefront/overlays/quick-view-overlay.tsx:101[39m
+
+[90m    src/modules/products/ui/storefront/overlays/search-overlay.tsx:66[39m
+
+[90m    src/modules/products/ui/storefront/overlays/sort-overlay.tsx:29[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:69[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:121[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:184[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:232[39m
+
+[90m    src/modules/storefront-shell/ui/information-overlays.tsx:277[39m
+
+[90m    src/modules/storefront-shell/ui/saved-items-drawer.tsx:33[39m
+
+[90m    src/modules/storefront-shell/ui/site-header.tsx:175[39m
+
+  [33m⚠[39m [33mMaintainability: Static value rebuilt every render[39m
+    `labels` inside `StepIndicator` uses no local state but is
+    rebuilt every render, so it looks new each time & breaks
+    memoized children. Move it to the top of the file, outside
+    the component.
+[2m    → Move the value above the component, at the top of the[22m
+[2m    file. It doesn't use local state, so rebuilding it each[22m
+[2m    update is wasted and makes it look new every time.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/prefer-module-scope-static-value[39m
+
+[90m    src/features/storefront/checkout/components/step-indicator.tsx:13[39m
+
+  [33m⚠[39m [33mPerformance: Array lookup inside a loop[39m [90m×5[39m
+    This scales poorly because `array.includes()` inside a loop
+    scans the whole list every time. Use a Set for
+    constant-time lookups.
+[2m    → Use a `Set` or `Map` when you check for the same items[22m
+[2m    over and over. `Array.includes`/`find` scans the whole list[22m
+[2m    each time[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/js-set-map-lookups[39m
+
+[90m    src/lib/admin/inventory/inventory-derivations.ts:123-124[39m
+
+[90m    src/modules/products/client/catalogue-search-params.ts:74[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:67[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:155[39m
+
+  [33m⚠[39m [33mMaintainability: Zod 3 schema API breaks in Zod 4[39m [90m×16[39m
+    This Zod 3 schema API changed in Zod 4, so this schema can
+    fail after the upgrade.
+[2m    → Switch to the Zod 4 versions: top-level factories like[22m
+[2m    `z.enum()`, object helpers like `z.strictObject()`, the new[22m
+[2m    `z.function({ input, output })` form, and explicit[22m
+[2m    key/value schemas for `z.record()`.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/zod-v4-no-deprecated-schema-apis[39m
+
+[90m    src/lib/admin/inventory/inventory-fixture-schema.ts:3[39m
+
+[90m    src/lib/admin/inventory/inventory-fixture-schema.ts:15-17[39m
+
+[90m    src/modules/holds/schema.ts:16[39m
+
+[90m    src/modules/holds/schema.ts:26[39m
+
+[90m    src/modules/orders/schema.ts:30[39m
+
+[90m    src/modules/orders/schema.ts:38[39m
+
+[90m    src/modules/orders/schema.ts:45[39m
+
+[90m    src/modules/orders/schema.ts:55[39m
+
+[90m    src/modules/orders/schema.ts:59[39m
+
+[90m    src/modules/products/import/schema.ts:7[39m
+
+[90m    src/modules/products/import/schema.ts:14[39m
+
+[90m    src/modules/products/import/schema.ts:26[39m
+
+[90m    src/modules/products/import/schema.ts:59[39m
+
+[90m    src/modules/products/import/schema.ts:69[39m
+
+[90m    src/modules/products/import/schema.ts:78[39m
+
+  [33m⚠[39m [33mPerformance: .map().filter(Boolean) loops twice[39m [90m×7[39m
+    This loops over your list twice because
+    .map().filter(Boolean) makes two passes, so use .flatMap()
+    to change & drop items in one pass
+[2m    → Use `.flatMap(item => condition ? [value] : [])` to[22m
+[2m    change and drop items in one pass, instead of building a[22m
+[2m    throwaway array in between[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/js-flatmap-filter[39m
+
+[90m    src/lib/admin/product-editor/product-editor-conversion.ts:99[39m
+
+[90m    src/lib/admin/product-editor/product-editor-save-action.ts:200[39m
+
+[90m    src/modules/orders/client/api.ts:138[39m
+
+[90m    src/modules/products/client/catalogue-search-params.ts:62[39m
+
+[90m    src/modules/products/server/storefront/catalogue-projection.ts:102[39m
+
+[90m    src/modules/products/ui/admin/product-editor/variant-product-fields.tsx:74[39m
+
+[90m    src/providers/storefront-state-hydrator.tsx:123[39m
+
+  [33m⚠[39m [33mBugs: Many related useState calls[39m [90m×3[39m
+    "StorefrontAuthDialogHost" updates 9 separate useState
+    values in one place — state that changes together is easier
+    to keep consistent as a single useReducer action.
+[2m    → Group state that always changes together into[22m
+[2m    `useReducer` so one dispatched action describes the whole[22m
+[2m    transition instead of a list of setter calls.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/prefer-useReducer[39m
+
+[90m    src/modules/auth/ui/auth-dialog-host.tsx:41[39m
+
+[90m    src/modules/products/ui/admin/catalogue/category-editor-dialog.tsx:48[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:35[39m
+
+  [33m⚠[39m [33mBugs: Multiple setState calls in one effect[39m [90m×3[39m
+    6 setState calls in one useEffect redraw your screen each
+    time they run together.
+[2m    → Combine related updates in `useReducer` so one effect[22m
+[2m    does not redraw the screen once per `setState` call.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-cascading-set-state[39m
+
+[90m    src/modules/auth/ui/auth-dialog-host.tsx:57[39m
+
+[90m    src/modules/products/ui/admin/catalogue/category-editor-dialog.tsx:59[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:45[39m
+
+  [33m⚠[39m [33mPerformance: await inside a loop[39m [90m×13[39m
+    This makes the for…of loop slow because each await runs one
+    after another, so collect the independent calls & run them
+    together with `await Promise.all(items.map(...))`
+[2m    → Collect the items, then use `await[22m
+[2m    Promise.all(items.map(...))` so independent work runs at[22m
+[2m    the same time[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/async-await-in-loop[39m
+
+[90m    src/modules/inventory/server/stock-write.ts:249[39m
+
+[90m    src/modules/orders/server/offline-sale-checkout.ts:77[39m
+
+[90m    src/modules/orders/server/offline-sale-draft.ts:134[39m
+
+[90m    src/modules/orders/server/transition-order.ts:64[39m
+
+[90m    src/modules/products/server/taxonomy-commands.ts:325[39m
+
+[90m    src/modules/products/server/write-helpers.ts:63[39m
+
+[90m    src/modules/returns/server/commands.ts:54[39m
+
+[90m    src/modules/returns/server/commands.ts:207[39m
+
+[90m    src/modules/returns/server/commands.ts:296[39m
+
+[90m    src/modules/returns/server/commands.ts:382[39m
+
+[90m    src/modules/settings/server/commands.ts:38[39m
+
+[90m    src/modules/settings/server/commands.ts:77[39m
+
+[90m    src/modules/settings/server/queries.ts:62[39m
+
+  [33m⚠[39m [33mBugs: Page missing metadata for search previews[39m
+    This page has no metadata, so search engines and social
+    previews get no title or description.
+[2m    → Add metadata or `generateMetadata()` so search engines[22m
+[2m    and social previews get a title and description.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/nextjs-missing-metadata[39m
+
+[90m    src/modules/products/server/storefront/page.ts:1[39m
+
+  [33m⚠[39m [33mBugs: Derived state stored in an effect[39m [90m×3[39m
+    You pay an extra render for state you can derive from other
+    values.
+[2m    → Work out derived values while rendering: `const x =[22m
+[2m    fn(dep)`. To reset a component's state when a prop changes,[22m
+[2m    give it a key prop: `<Component key={prop} />`. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-derived-state-effect[39m
+
+[90m    src/modules/products/ui/admin/catalogue/category-editor-dialog.tsx:59[39m
+
+[90m    src/modules/products/ui/admin/catalogue/collection-editor-dialog.tsx:45[39m
+
+[90m    src/providers/session-provider.tsx:47[39m
+
+  [33m⚠[39m [33mBugs: Parent kept in sync with a callback effect[39m [90m×3[39m
+    Your parent re-renders on every local state change because
+    this useEffect calls the prop "registerCloseRequest" just
+    to stay in sync.
+[2m    → Move the shared state into a Provider so both sides read[22m
+[2m    the same value. Then you don't need a useEffect to keep[22m
+[2m    them in sync.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-prop-callback-in-effect[39m
+
+[90m    src/modules/products/ui/admin/import/product-import-session.tsx:46[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-editor-dialog.tsx:131[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-editor-dialog.tsx:195[39m
+
+  [33m⚠[39m [33mBugs: Data passed to parent via effect[39m
+    Handing data back to a parent from a useEffect costs your
+    users an extra render.
+[2m    → Fetch the data in the parent and pass it down as a prop[22m
+[2m    (or return it from the hook), instead of handing it back up[22m
+[2m    through a prop callback in a useEffect. See[22m
+[2m    https://react.dev/learn/you-might-not-need-an-effect#passing-data-to-the-parent[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-pass-data-to-parent[39m
+
+[90m    src/modules/products/ui/admin/product-editor/product-editor-dialog.tsx:131[39m
+
+  [33m⚠[39m [33mBugs: Array index used as a key[39m
+    Your users can see & submit the wrong data when this list
+    reorders or filters, so use a stable id like
+    `key={item.id}`, not the array index "index".
+[2m    → Use a stable id from the item, like `key={item.id}` or[22m
+[2m    `key={item.slug}`. Index keys break when the list reorders[22m
+[2m    or filters.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-array-index-as-key[39m
+
+[90m    src/modules/products/ui/storefront/overlays/image-viewer-overlay.tsx:126[39m
+
+  [33m⚠[39m [33mBugs: State initialized from a mount effect[39m [90m×2[39m
+    Your users see an extra render with empty "density" because
+    a useEffect sets its starting value.
+[2m    → Pass the initial value directly to useState() instead of[22m
+[2m    setting it from a mount-only useEffect. For SSR hydration,[22m
+[2m    prefer useSyncExternalStore().[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-initialize-state[39m
+
+[90m    src/modules/products/ui/storefront/product-catalogue.tsx:63[39m
+
+[90m    src/modules/storefront-shell/ui/site-footer.tsx:32[39m
+
+  [33m⚠[39m [33mMaintainability: Component rendered by inline function call[39m
+    "renderCards()" hides a component behind an inline call, so
+    pull it into its own component and render it as JSX so
+    React can track it.
+[2m    → Make it a named component rendered as JSX so React can[22m
+[2m    track it and preserve its state.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-render-in-render[39m
+
+[90m    src/modules/products/ui/storefront/product-catalogue.tsx:235[39m
+
+  [33m⚠[39m [33mPerformance: array.find() inside a loop[39m
+    This gets slow as your list grows because array.find() runs
+    inside a loop, so build a Map once before the loop for
+    instant lookups
+[2m    → Build a `Map` once before the loop instead of calling[22m
+[2m    `array.find(...)` inside it[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/js-index-maps[39m
+
+[90m    src/modules/returns/server/commands.ts:90[39m
+
+  [33m⚠[39m [33mMaintainability: React 19 API migration can break callers[39m
+    useContext is replaced by `use()` in React 19, which reads
+    context inside ifs & loops too, so switch to `import { use
+    } from 'react'`.
+[2m    → Pass `ref` as a normal prop on function components, since[22m
+[2m    `forwardRef` isn't needed in React 19. Replace[22m
+[2m    `useContext(X)` with `use(X)`. Only runs on React 19+[22m
+[2m    projects.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-react19-deprecated-apis[39m
+
+[90m    src/modules/storefront-shell/client/storefront-hold-clock.tsx:3[39m
+
+  [33m⚠[39m [33mBugs: Prop mirrored into state via effect[39m
+    Your screen shows the old value first because useState
+    "currentSession" copies prop "session" through this effect.
+[2m    → Delete both the `useState` and the `useEffect` and read[22m
+[2m    the prop directly while rendering. Copying a prop into[22m
+[2m    state shows the old value on the first render before the[22m
+[2m    effect catches up.[22m
+[90m    Curl with no cache & follow the canonical fix and false positive check recipe before fixing: https://react.doctor/docs/rules/react-doctor/no-mirror-prop-effect[39m
+
+[90m    src/providers/session-provider.tsx:47[39m
+
+
+[2m  ────────────────────────────────────────────────────────────[22m
+
+  [1mAll 185 issues[22m
+
+  [1mSecurity[22m [2m›[22m [31m2 errors[39m[2m, [22m[33m[2m12 warnings[22m[39m
+  [1mBugs[22m [2m›[22m [31m11 errors[39m[2m, [22m[33m[2m39 warnings[22m[39m
+  [1mPerformance[22m [2m›[22m [33m[2m59 warnings[22m[39m
+  [1mAccessibility[22m [2m›[22m [33m[2m15 warnings[22m[39m
+  [1mMaintainability[22m [2m›[22m [33m[2m47 warnings[22m[39m
+
+[1mAgent guidance[22m
+[90m  - Treat React Doctor diagnostics as starting hypotheses. Read the relevant code before confirming or suppressing each finding.[39m
+[90m  - For each group, decide true positive, false positive, or needs-human-review, then assign high/medium/low confidence.[39m
+[90m  - Do not suppress a finding without evidence from the file in question. Confidence requires code context.[39m
+[90m  - Understand the root cause before editing. Fix the underlying code instead of changing react-doctor config or suppressing rules unless explicitly asked.[39m
+[90m  - Investigate deeply where relevant: race conditions, security-sensitive flows, state propagation, multi-file refactors, and downstream dependency chains.[39m
+[90m  - Ignore pure style preferences, theoretical issues without real impact, missing features, and unrelated pre-existing code.[39m
+[90m  - Start with high-confidence fixes that preserve behavior. Leave low-confidence or product-dependent changes as notes.[39m
+[90m  - Run `npx react-doctor@latest --verbose --scope changed` before and after changes, plus relevant tests after each focused batch.[39m
+[90m  - When available, spawn subagents or isolated worktrees for independent rule families, then review and merge only the best safe fixes.[39m
+[90m  - Split unrelated, broad, or behavior-changing work into separate PRs/branches instead of one large cleanup.[39m
+[90m  - When one rule spans dozens of files (a migration-scale change), fix a representative sample first, confirm the recipe holds, and get the code owner's sign-off before changing the rest. Don't mass-fix a broad pattern in one unreviewed pass.[39m
+[90m  - For confirmed issues that cannot be fixed now, create GitHub issues with the rule, file/line, confidence, impact, and proposed fix.[39m
+[90m  - If a fix needs an API, UX, or architecture decision, stop and ask before editing.[39m
+
+  React Doctor [2m(https://react.doctor)[22m
+  [90mScore disabled by --no-score. Want something custom to your company? Contact us at https://react.doctor/enterprise.[39m
+
+[90m  Full diagnostics written to C:\Users\olaitan\AppData\Local\Temp\react-doctor-1536a332-2f32-4e4b-ba74-f9e903dfdeb6[39m
+
+[33m  Note: dead-code checks failed — score may be incomplete.[39m
+
+[2m  ────────────────────────────────────────────────────────────[22m
+
+  [1mDocs:[22m [36mhttps://react.doctor/docs[39m
+[2m  Learn more about fixing issues, setting up CI/CD, and[22m
+[2m  configuring rules with a config file[22m
+
+  [1mGitHub:[22m [36mhttps://github.com/millionco/react-doctor[39m
+[2m  Report issues and star the repository![22m
+
+[ELIFECYCLE] Command failed with exit code 1.

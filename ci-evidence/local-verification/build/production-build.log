@@ -1,0 +1,129 @@
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ pnpm prisma:generate
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ pnpm prisma:clean && prisma generate && pnpm prisma:clean
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ node scripts/db/clean-prisma-schema-input.mjs
+◇ injected env (24) from .env.local // tip: ⌘ override existing { override: true }
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma.
+
+✔ Generated Prisma Client (v7.8.0) to .\prisma\generated\prisma in 4.78s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ node scripts/db/clean-prisma-schema-input.mjs
+$ next build
+[1m[38;2;173;127;168m▲ Next.js 16.2.10[39m[22m (Turbopack)
+- Environments: .env.local
+- Cache Components enabled
+
+[37m[1m [22m[39m Creating an optimized production build ...
+[32m[1m✓[22m[39m Compiled successfully in 3.1min
+[37m[1m [22m[39m Running TypeScript ...
+[37m[1m [22m[39m Finished TypeScript in 3.2min ...
+[37m[1m [22m[39m Collecting page data using 7 workers ...
+[37m[1m [22m[39m Generating static pages using 7 workers (0/70) ...
+[37m[1m [22m[39m Generating static pages using 7 workers (17/70) 
+[37m[1m [22m[39m Generating static pages using 7 workers (34/70) 
+[37m[1m [22m[39m Generating static pages using 7 workers (52/70) 
+[32m[1m✓[22m[39m Generating static pages using 7 workers (70/70) in 33.3s
+[37m[1m [22m[39m Finalizing page optimization ...
+
+[4mRoute (app)[24m                                                   [4mRevalidate[24m  [4mExpire[24m
+┌ ◐ /                                                                 1m      1h
+├ ◐ /_not-found
+├ ◐ /account                                                          1m      1h
+├ ◐ /account/addresses                                                1m      1h
+├ ◐ /account/notifications                                            1m      1h
+├ ◐ /account/orders                                                   1m      1h
+├ ◐ /account/orders/[orderNumber]
+│ └ /account/orders/[orderNumber]
+├ ◐ /account/orders/[orderNumber]/items/[orderLineId]/review
+│ └ /account/orders/[orderNumber]/items/[orderLineId]/review
+├ ◐ /account/orders/detail                                            1m      1h
+├ ◐ /account/payments                                                 1m      1h
+├ ◐ /account/preferences                                              1m      1h
+├ ◐ /account/privacy                                                  1m      1h
+├ ◐ /account/profile                                                  1m      1h
+├ ◐ /account/returns                                                  1m      1h
+├ ◐ /account/returns/detail                                           1m      1h
+├ ◐ /account/saved                                                    1m      1h
+├ ◐ /account/security                                                 1m      1h
+├ ◐ /account/support                                                  1m      1h
+├ ◐ /account/support/detail                                           1m      1h
+├ ◐ /admin
+├ ◐ /admin/customers
+├ ◐ /admin/holds
+├ ◐ /admin/inventory
+├ ◐ /admin/inventory/catalogue
+├ ◐ /admin/orders
+├ ◐ /admin/returns
+├ ◐ /admin/settings
+├ ◐ /admin/team
+├ ○ /api/health
+├ ƒ /api/v1/admin/assets/sign
+├ ƒ /api/v1/admin/customers
+├ ƒ /api/v1/admin/customers/[customerId]
+├ ƒ /api/v1/admin/customers/[customerId]/notes
+├ ƒ /api/v1/admin/holds
+├ ƒ /api/v1/admin/holds/[holdId]
+├ ƒ /api/v1/admin/holds/[holdId]/convert
+├ ƒ /api/v1/admin/holds/[holdId]/extend
+├ ƒ /api/v1/admin/holds/[holdId]/release
+├ ƒ /api/v1/admin/inventory
+├ ƒ /api/v1/admin/inventory/adjustments
+├ ƒ /api/v1/admin/inventory/stock-movements
+├ ƒ /api/v1/admin/orders
+├ ƒ /api/v1/admin/orders/[orderId]
+├ ƒ /api/v1/admin/orders/offline-sales
+├ ƒ /api/v1/admin/orders/sale-customers
+├ ƒ /api/v1/admin/overview
+├ ƒ /api/v1/admin/products
+├ ƒ /api/v1/admin/products/[id]
+├ ƒ /api/v1/admin/products/[id]/archive
+├ ƒ /api/v1/admin/products/[id]/restore
+├ ƒ /api/v1/admin/products/taxonomy
+├ ƒ /api/v1/admin/products/taxonomy/[id]
+├ ƒ /api/v1/admin/products/taxonomy/reorder
+├ ƒ /api/v1/admin/returns
+├ ƒ /api/v1/admin/returns/[returnId]
+├ ƒ /api/v1/admin/returns/eligible-orders
+├ ƒ /api/v1/admin/settings
+├ ƒ /api/v1/auth/invitations
+├ ƒ /api/v1/health
+├ ƒ /api/v1/products
+├ ƒ /auth/callback
+├ ƒ /auth/email
+├ ◐ /auth/error
+├ ◐ /auth/forgot-password
+├ ƒ /auth/google
+├ ƒ /auth/invite/finalize
+├ ◐ /auth/invite/setup
+├ ◐ /auth/oauth-complete
+├ ◐ /auth/resend-confirmation
+├ ◐ /auth/reset-password
+├ ◐ /auth/sign-in
+├ ƒ /auth/sign-out
+├ ◐ /auth/sign-up
+├ ◐ /cart                                                             1m      1h
+├ ◐ /checkout                                                         1m      1h
+├ ◐ /collections/[slug]
+│ └ /collections/[slug]
+├ ◐ /control-room/[[...path]]
+│ └ /control-room/[[...path]]
+├ ◐ /order-confirmation                                               1m      1h
+├ ◐ /products                                                         1m      1h
+└ ◐ /products/[slug]
+  └ /products/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)             prerendered as static content
+◐  (Partial Prerender)  prerendered as static HTML with dynamic server-streamed content
+ƒ  (Dynamic)            server-rendered on demand
+

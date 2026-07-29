@@ -12,8 +12,10 @@ import {
   listAdminProducts,
   listProductTaxonomy,
   renameProductTaxonomyRequest,
+  reorderProductTaxonomyRequest,
   restoreProductRequest,
   saveProductRequest,
+  updateProductTaxonomyRequest,
 } from "@/modules/products/client/api";
 import { productKeys } from "@/modules/products/client/keys";
 import type { AdminProduct, ProductTaxonomyItem } from "@/modules/products/types";
@@ -56,6 +58,12 @@ function upsertProductInCache(
 function invalidateInventory(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
   queryClient.invalidateQueries({ queryKey: overviewKeys.all });
+}
+
+function invalidateTaxonomyDependencies(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: productKeys.taxonomy() });
+  queryClient.invalidateQueries({ queryKey: productKeys.list() });
+  queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
 }
 
 export function useSaveProduct() {
@@ -131,6 +139,7 @@ export function useCreateProductTaxonomy() {
         ...(previous?.filter((entry) => entry.id !== item.id) ?? []),
         item,
       ]);
+      invalidateTaxonomyDependencies(queryClient);
     },
   });
 }
@@ -146,8 +155,31 @@ export function useRenameProductTaxonomy() {
       queryClient.setQueryData(productKeys.taxonomy(), (previous?: ProductTaxonomyItem[]) =>
         previous?.map((entry) => (entry.id === item.id ? item : entry)),
       );
-      queryClient.invalidateQueries({ queryKey: productKeys.list() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
+      invalidateTaxonomyDependencies(queryClient);
+    },
+  });
+}
+
+export function useUpdateProductTaxonomy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProductTaxonomyRequest,
+    onSuccess: (result) => {
+      if (!result.ok) return;
+      invalidateTaxonomyDependencies(queryClient);
+    },
+  });
+}
+
+export function useReorderProductTaxonomy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reorderProductTaxonomyRequest,
+    onSuccess: (result) => {
+      if (!result.ok) return;
+      invalidateTaxonomyDependencies(queryClient);
     },
   });
 }
@@ -163,6 +195,7 @@ export function useDeleteProductTaxonomy() {
       queryClient.setQueryData(productKeys.taxonomy(), (previous?: ProductTaxonomyItem[]) =>
         previous?.filter((entry) => entry.id !== deletedId),
       );
+      invalidateTaxonomyDependencies(queryClient);
     },
   });
 }

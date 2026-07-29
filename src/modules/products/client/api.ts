@@ -1,5 +1,6 @@
 import { err, ok, type Result } from "@/lib/errors";
 import { ApiClientError, apiRequest } from "@/lib/http/client";
+import type { ApiPaginationMeta } from "@/lib/http/contracts";
 import type {
   AdminProduct,
   ProductLifecycleError,
@@ -11,18 +12,33 @@ import type {
   ProductTaxonomyError,
   ProductTaxonomyInput,
   ProductTaxonomyItem,
+  ProductTaxonomyReorderInput,
   ProductTaxonomySuccess,
+  ProductTaxonomyUpdateInput,
 } from "@/modules/products/types";
 
 const PRODUCTS_URL = "/api/v1/admin/products";
 const TAXONOMY_URL = `${PRODUCTS_URL}/taxonomy`;
 
 export async function listAdminProducts(signal?: AbortSignal): Promise<AdminProduct[]> {
-  const response = await apiRequest<AdminProduct[]>(`${PRODUCTS_URL}?page=1&pageSize=500`, {
-    cache: "no-store",
-    signal,
-  });
-  return response.data;
+  const products: AdminProduct[] = [];
+  let page = 1;
+  let pageCount = 1;
+
+  do {
+    const response = await apiRequest<AdminProduct[], ApiPaginationMeta>(
+      `${PRODUCTS_URL}?page=${page}&pageSize=500`,
+      {
+        cache: "no-store",
+        signal,
+      },
+    );
+    products.push(...response.data);
+    pageCount = response.meta?.pageCount ?? page;
+    page += 1;
+  } while (page <= pageCount);
+
+  return products;
 }
 
 export async function getAdminProduct(
@@ -133,6 +149,45 @@ export async function renameProductTaxonomyRequest({
     return ok(response.data);
   } catch (error) {
     if (error instanceof ApiClientError) return err(toProductTaxonomyError(error, taxonomyId));
+    throw error;
+  }
+}
+
+export async function updateProductTaxonomyRequest({
+  taxonomyId,
+  input,
+}: {
+  taxonomyId: string;
+  input: ProductTaxonomyUpdateInput;
+}): Promise<Result<ProductTaxonomySuccess, ProductTaxonomyError>> {
+  try {
+    const response = await apiRequest<ProductTaxonomySuccess>(
+      `${TAXONOMY_URL}/${encodeURIComponent(taxonomyId)}`,
+      {
+        method: "PATCH",
+        headers: jsonHeaders(),
+        body: JSON.stringify(input),
+      },
+    );
+    return ok(response.data);
+  } catch (error) {
+    if (error instanceof ApiClientError) return err(toProductTaxonomyError(error, taxonomyId));
+    throw error;
+  }
+}
+
+export async function reorderProductTaxonomyRequest(
+  input: ProductTaxonomyReorderInput,
+): Promise<Result<ProductTaxonomySuccess, ProductTaxonomyError>> {
+  try {
+    const response = await apiRequest<ProductTaxonomySuccess>(`${TAXONOMY_URL}/reorder`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify(input),
+    });
+    return ok(response.data);
+  } catch (error) {
+    if (error instanceof ApiClientError) return err(toProductTaxonomyError(error));
     throw error;
   }
 }
