@@ -1,0 +1,54 @@
+import { z } from "zod";
+
+const checkoutLineSchema = z
+  .object({
+    productId: z.string().uuid(),
+    variantId: z.string().uuid().optional(),
+    holdId: z.string().uuid().optional(),
+    quantity: z.number().int().positive().max(100),
+  })
+  .strict();
+
+export const createCheckoutSchema = z
+  .object({
+    idempotencyKey: z.string().uuid(),
+    addressId: z.string().uuid(),
+    deliveryZoneId: z.string().uuid(),
+    callbackUrl: z.string().url(),
+    lines: z.array(checkoutLineSchema).min(1).max(50),
+  })
+  .strict()
+  .superRefine((input, context) => {
+    const seen = new Set<string>();
+    for (const [index, line] of input.lines.entries()) {
+      const key = `${line.productId}:${line.variantId ?? "product"}`;
+      if (seen.has(key)) {
+        context.addIssue({
+          code: "custom",
+          path: ["lines", index],
+          message: "Combine duplicate checkout lines before continuing.",
+        });
+      }
+      seen.add(key);
+    }
+  });
+
+export const checkoutIdentifierSchema = z.string().uuid();
+export const paymentIdentifierSchema = z.string().uuid();
+
+export const paystackSettlementEventSchema = z
+  .object({
+    source: z.enum(["webhook", "manual_verify", "callback"]),
+    providerTransactionId: z.string().min(1),
+    reference: z.string().min(1),
+    status: z.enum(["success", "failed", "abandoned", "reversed", "pending"]),
+    amountMinor: z.number().int().nonnegative().safe(),
+    currency: z.string().length(3).transform((value) => value.toUpperCase()),
+    customerEmail: z.string().email().optional().nullable(),
+    paidAt: z.string().optional().nullable(),
+    channel: z.string().optional().nullable(),
+    gatewayResponse: z.string().optional().nullable(),
+    failureCode: z.string().optional().nullable(),
+    failureReason: z.string().optional().nullable(),
+  })
+  .strict();

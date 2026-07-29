@@ -48,7 +48,7 @@ export type OperationalStockMutationInput = {
   variantId?: string;
   quantity: number;
   kind: OperationalStockMutationKind;
-  actorProfileId: string;
+  actorProfileId?: string;
   note: string;
   relatedOrderId?: string;
   relatedHoldId?: string;
