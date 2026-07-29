@@ -871,11 +871,12 @@ enum account_status {
 }
 
 enum cloudinary_asset_kind {
-  product_cover  @map("product-cover")
-  product_detail @map("product-detail")
-  product_defect @map("product-defect")
-  store_logo     @map("store-logo")
-  store_brand    @map("store-brand")
+  product_cover      @map("product-cover")
+  product_detail     @map("product-detail")
+  product_defect     @map("product-defect")
+  support_attachment @map("support-attachment")
+  store_logo         @map("store-logo")
+  store_brand        @map("store-brand")
 
   @@schema("public")
 }

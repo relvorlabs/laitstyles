@@ -3,22 +3,9 @@
 // share this list; the routeTitles map drives the breadcrumb, mobile title and
 // document.title exactly as the prototype's `routeTitles` object did).
 
-export type AccountRoute =
-  | "overview"
-  | "profile"
-  | "orders"
-  | "order-detail"
-  | "returns"
-  | "return-detail"
-  | "addresses"
-  | "payments"
-  | "saved"
-  | "notifications"
-  | "preferences"
-  | "security"
-  | "privacy"
-  | "support"
-  | "ticket-detail";
+import type { AccountRoute } from "@/modules/storefront-shell/ui/account-context";
+
+export type { AccountRoute } from "@/modules/storefront-shell/ui/account-context";
 
 export type AccountNavItem = {
   route: AccountRoute;

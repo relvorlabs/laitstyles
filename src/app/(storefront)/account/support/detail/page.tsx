@@ -1,5 +1,10 @@
-import { TicketDetailSection } from "@/features/storefront/account/sections/ticket-detail-section";
+import { TicketDetailSection } from "@/modules/support/ui/storefront/ticket-detail-section";
 
-export default function AccountTicketDetailPage() {
-  return <TicketDetailSection />;
+export default async function AccountTicketDetailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ticketId?: string }>;
+}) {
+  const { ticketId = "" } = await searchParams;
+  return <TicketDetailSection ticketId={ticketId} />;
 }
