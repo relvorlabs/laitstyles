@@ -5,12 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import {
   type AccountEmailChangeInput,
-  accountEmailChangeSchema,
   type AccountPasswordChangeInput,
+  accountEmailChangeSchema,
   accountPasswordChangeSchema,
 } from "@/modules/auth/schema";
 import { getAuthRedirectUrl } from "@/modules/auth/server/redirects";
-import { AccountSecurityError, type AccountSecurityIdentity } from "@/modules/auth/types";
+import {
+  type AccountEmailChangeResult,
+  type AccountPasswordChangeResult,
+  AccountSecurityError,
+  type AccountSecurityIdentity,
+} from "@/modules/auth/types";
 
 type SupabaseAuthErrorLike = { code?: string | null; status?: number | null } | null | undefined;
 
@@ -30,9 +35,6 @@ export async function getAccountSecurityIdentity(): Promise<AccountSecurityIdent
     sessionId,
   };
 }
-
-export type AccountEmailChangeResult = { status: "confirmation-sent"; email: string };
-export type AccountPasswordChangeResult = { status: "updated" };
 
 export async function requestAccountEmailChange(
   identity: AccountSecurityIdentity,

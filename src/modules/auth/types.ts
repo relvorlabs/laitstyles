@@ -82,8 +82,7 @@ const ACCOUNT_SECURITY_ERROR_MESSAGES: Record<AccountSecurityErrorCode, string> 
 
 export function isAccountSecurityErrorCode(value: unknown): value is AccountSecurityErrorCode {
   return (
-    typeof value === "string" &&
-    (ACCOUNT_SECURITY_ERROR_CODES as readonly string[]).includes(value)
+    typeof value === "string" && (ACCOUNT_SECURITY_ERROR_CODES as readonly string[]).includes(value)
   );
 }
 
@@ -100,3 +99,36 @@ export class AccountSecurityError extends Error {
 export function isAccountSecurityError(error: unknown): error is AccountSecurityError {
   return error instanceof AccountSecurityError;
 }
+
+export type AccountEmailChangeResult = { status: "confirmation-sent"; email: string };
+export type AccountPasswordChangeResult = { status: "updated" };
+
+export type MfaFactorSummary = {
+  id: string;
+  friendlyName: string | null;
+  factorType: string;
+  status: "verified" | "unverified";
+};
+
+export type MfaFactorList = { factors: MfaFactorSummary[] };
+
+export type MfaEnrollTotpResult = {
+  status: "unverified";
+  factorId: string;
+  totp: { qrCode: string; secret: string; uri: string };
+};
+
+export type MfaChallengeResult = { challengeId: string; expiresAt: string };
+export type MfaVerifyResult = { status: "verified"; factorId: string };
+export type MfaUnenrollResult = { status: "removed"; factorId: string };
+
+export type AccountSessionSummary = {
+  current: {
+    sessionId: string;
+    authenticatedAt: string | null;
+    assuranceLevel: string | null;
+  };
+  otherSessions: { kind: "count-unavailable" };
+};
+
+export type SignOutOthersResult = { status: "signed-out" };

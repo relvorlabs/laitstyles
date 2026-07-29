@@ -3,25 +3,14 @@ import "server-only";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { AccountSecurityError, type AccountSecurityIdentity } from "@/modules/auth/types";
+import {
+  AccountSecurityError,
+  type AccountSecurityIdentity,
+  type AccountSessionSummary,
+  type SignOutOthersResult,
+} from "@/modules/auth/types";
 
 type ProviderErrorLike = { code?: string | null; status?: number | null } | null | undefined;
-
-export type AccountSessionSummary = {
-  current: {
-    sessionId: string;
-    authenticatedAt: string | null;
-    assuranceLevel: string | null;
-  };
-  // The installed Supabase Auth SDK has no supported way to list or name a
-  // user's other active sessions (see
-  // docs/architecture-migration/account-security-supabase-contract.md §5).
-  // This is an honest "we cannot see this" state, never a fabricated count or
-  // device row.
-  otherSessions: { kind: "count-unavailable" };
-};
-
-export type SignOutOthersResult = { status: "signed-out" };
 
 export async function getAccountSessionSummary(
   identity: AccountSecurityIdentity,

@@ -5,36 +5,23 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import {
   type MfaChallengeInput,
-  mfaChallengeSchema,
   type MfaEnrollTotpInput,
-  mfaEnrollTotpSchema,
   type MfaVerifyInput,
+  mfaChallengeSchema,
+  mfaEnrollTotpSchema,
   mfaVerifySchema,
 } from "@/modules/auth/schema";
-import { AccountSecurityError, type AccountSecurityIdentity } from "@/modules/auth/types";
+import {
+  AccountSecurityError,
+  type AccountSecurityIdentity,
+  type MfaChallengeResult,
+  type MfaEnrollTotpResult,
+  type MfaFactorSummary,
+  type MfaUnenrollResult,
+  type MfaVerifyResult,
+} from "@/modules/auth/types";
 
 type ProviderErrorLike = { code?: string | null; status?: number | null } | null | undefined;
-
-export type MfaFactorSummary = {
-  id: string;
-  friendlyName: string | null;
-  factorType: string;
-  status: "verified" | "unverified";
-};
-
-export type MfaEnrollTotpResult = {
-  status: "unverified";
-  factorId: string;
-  totp: { qrCode: string; secret: string; uri: string };
-};
-
-export type MfaChallengeResult = {
-  challengeId: string;
-  expiresAt: string;
-};
-
-export type MfaVerifyResult = { status: "verified"; factorId: string };
-export type MfaUnenrollResult = { status: "removed"; factorId: string };
 
 const DEFAULT_TOTP_FRIENDLY_NAME = "Authenticator app";
 
@@ -155,7 +142,8 @@ export async function unenrollFactor(
   const removesLastVerifiedFactor = target.status === "verified" && verifiedCount <= 1;
 
   if (removesLastVerifiedFactor) {
-    const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const { data: aalData, error: aalError } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aalError) {
       logProviderFailure("mfa-assurance-level", aalError);
       throw new AccountSecurityError("PROVIDER_UNAVAILABLE");
@@ -202,7 +190,8 @@ function mapMfaProviderError(
   error: ProviderErrorLike,
   fallback: "PROVIDER_UNAVAILABLE" | "MFA_CHALLENGE_EXPIRED_OR_INVALID" = "PROVIDER_UNAVAILABLE",
 ): AccountSecurityError {
-  if (error?.code === "mfa_factor_not_found") return new AccountSecurityError("MFA_FACTOR_NOT_FOUND");
+  if (error?.code === "mfa_factor_not_found")
+    return new AccountSecurityError("MFA_FACTOR_NOT_FOUND");
   if (error?.code === "mfa_verification_failed" || error?.code === "mfa_challenge_expired") {
     return new AccountSecurityError("MFA_CHALLENGE_EXPIRED_OR_INVALID");
   }
