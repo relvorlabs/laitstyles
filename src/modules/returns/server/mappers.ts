@@ -77,5 +77,6 @@ export function mapAdminReturnRow(row: AdminReturnRow): ControlRoomReturn {
     note: row.note ?? "",
     orderTotal: row.order.total.toNumber(),
     orderPaymentStatus: row.order.payment_status.replaceAll("_", "-"),
+    currency: row.order.currency,
   };
 }

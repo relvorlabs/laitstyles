@@ -8,3 +8,10 @@ export const orderKeys = {
   detail: (orderId: string) => [...orderKeys.details(), orderId.trim()] as const,
   saleCustomers: () => [...orderKeys.all, "sale-customers"] as const,
 };
+
+export const accountOrderKeys = {
+  all: ["account", "orders"] as const,
+  list: () => [...accountOrderKeys.all, "list"] as const,
+  details: () => [...accountOrderKeys.all, "detail"] as const,
+  detail: (orderNumber: string) => [...accountOrderKeys.details(), orderNumber.trim()] as const,
+};

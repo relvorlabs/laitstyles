@@ -3,17 +3,49 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
-import { orderKeys } from "@/modules/orders/client/keys";
+import { accountOrderKeys, orderKeys } from "@/modules/orders/client/keys";
 import { overviewKeys } from "@/modules/overview/client/keys";
 import {
+  createAccountReturnRequest,
   createReturnRequest,
+  getAccountReturnRequest,
   getAdminReturnRequest,
   listAdminReturnsRequest,
+  listAccountReturnsRequest,
   listEligibleReturnOrdersRequest,
   transitionReturnRequest,
 } from "@/modules/returns/client/api";
-import { returnKeys } from "@/modules/returns/client/keys";
+import { accountReturnKeys, returnKeys } from "@/modules/returns/client/keys";
 import type { ReturnListInput } from "@/modules/returns/types";
+
+export function accountReturnsQueryOptions() {
+  return queryOptions({
+    queryKey: accountReturnKeys.list(),
+    queryFn: ({ signal }) => listAccountReturnsRequest(signal),
+    staleTime: 15_000,
+  });
+}
+
+export function accountReturnQueryOptions(returnId: string) {
+  return queryOptions({
+    queryKey: accountReturnKeys.detail(returnId),
+    queryFn: ({ signal }) => getAccountReturnRequest(returnId, signal),
+    enabled: Boolean(returnId.trim()),
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateAccountReturn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createAccountReturnRequest,
+    onSuccess: (record) => {
+      queryClient.setQueryData(accountReturnKeys.detail(record.id), record);
+      queryClient.invalidateQueries({ queryKey: accountReturnKeys.list() });
+      queryClient.invalidateQueries({ queryKey: accountOrderKeys.all });
+    },
+  });
+}
 
 export function adminReturnsQueryOptions(input: ReturnListInput) {
   return queryOptions({

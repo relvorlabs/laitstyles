@@ -57,6 +57,16 @@ export interface ReviewInput {
   fit: ReviewFit;
 }
 
+export type CreateAccountReviewInput = ReviewInput & {
+  orderNumber: string;
+  orderLineId: string;
+};
+
+export type AccountReviewMutationResult = {
+  reviewId: string;
+  productSlug: string;
+};
+
 export type ReviewActionErrorCode =
   | "authentication-required"
   | "customer-profile-required"

@@ -2,8 +2,10 @@ import { err, ok, type Result } from "@/lib/errors";
 import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
   AdminReturnListResult,
+  AccountReturn,
   ControlRoomReturn,
   CreateReturnInput,
+  CreateAccountReturnInput,
   EligibleReturnOrder,
   ReturnActionError,
   ReturnActionErrorCode,
@@ -13,6 +15,7 @@ import type {
 } from "@/modules/returns/types";
 
 const RETURNS_URL = "/api/v1/admin/returns";
+const ACCOUNT_RETURNS_URL = "/api/v1/account/returns";
 const returnActionErrorCodes = new Set<string>([
   "order-not-found",
   "return-not-found",
@@ -25,6 +28,41 @@ const returnActionErrorCodes = new Set<string>([
   "insufficient-returned-stock",
   "stock-write-conflict",
 ]);
+
+export async function listAccountReturnsRequest(signal?: AbortSignal): Promise<AccountReturn[]> {
+  const response = await apiRequest<AccountReturn[]>(ACCOUNT_RETURNS_URL, {
+    cache: "no-store",
+    signal,
+  });
+  return response.data;
+}
+
+export async function getAccountReturnRequest(
+  returnId: string,
+  signal?: AbortSignal,
+): Promise<AccountReturn | null> {
+  try {
+    const response = await apiRequest<AccountReturn>(
+      `${ACCOUNT_RETURNS_URL}/${encodeURIComponent(returnId)}`,
+      { cache: "no-store", signal },
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export async function createAccountReturnRequest(
+  input: CreateAccountReturnInput,
+): Promise<AccountReturn> {
+  const response = await apiRequest<AccountReturn>(ACCOUNT_RETURNS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return response.data;
+}
 
 export async function listAdminReturnsRequest(
   input: ReturnListInput,

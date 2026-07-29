@@ -21,4 +21,15 @@ export const reviewInputSchema = z.object({
   fit: z.enum(["runs_small", "true_to_size", "runs_large", "not_applicable"]),
 }) satisfies z.ZodType<ReviewInput>;
 
+export const reviewIdentifierSchema = z.string().uuid();
+
+export const createAccountReviewSchema = reviewInputSchema
+  .extend({
+    orderNumber: z.string().trim().min(1).max(128),
+    orderLineId: z.string().trim().min(1).max(128),
+  })
+  .strict();
+
+export const updateAccountReviewSchema = reviewInputSchema.strict();
+
 export type { ReviewInput } from "@/modules/reviews/types";
