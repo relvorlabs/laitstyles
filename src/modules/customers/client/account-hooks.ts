@@ -1,7 +1,7 @@
 "use client";
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   createOwnedAddressRequest,
   deleteOwnedAddressRequest,
@@ -116,18 +116,30 @@ export function useRemoveOwnedSavedProduct() {
  */
 export function useReconcileSavedProductsOnAuth(authenticated: boolean) {
   const query = useQuery(ownedSavedProductIdsQueryOptions(authenticated));
+  const queryClient = useQueryClient();
   const localIds = useSavedItemsStore(selectSavedIds);
   const hydrate = useSavedItemsStore((state) => state.hydrate);
+  const reconciledServerList = useRef<readonly string[] | null>(null);
 
   useEffect(() => {
-    if (!authenticated || !query.data) return;
+    if (!authenticated) {
+      reconciledServerList.current = null;
+      return;
+    }
+    if (!query.data || reconciledServerList.current === query.data) return;
+    reconciledServerList.current = query.data;
+    const serverIds = new Set(query.data);
+    const guestIds = localIds.filter((id) => !serverIds.has(id));
     const merged = new Set([...localIds, ...query.data]);
-    if (merged.size === localIds.length && query.data.every((id) => localIds.includes(id))) return;
-    hydrate([...merged]);
-    // localIds is read but intentionally not a dependency: this effect should
-    // only re-run when the server list or auth state changes, not on every
-    // local toggle (which would immediately re-trigger this merge).
-  }, [authenticated, query.data, hydrate]);
+    if (merged.size !== localIds.length || !query.data.every((id) => localIds.includes(id))) {
+      hydrate([...merged]);
+    }
+    if (guestIds.length > 0) {
+      void Promise.all(guestIds.map((id) => saveProductRequest(id))).then(() => {
+        void queryClient.invalidateQueries({ queryKey: accountCustomerKeys.savedProducts() });
+      });
+    }
+  }, [authenticated, hydrate, localIds, query.data, queryClient]);
 }
 
 export type { OwnedAddress };

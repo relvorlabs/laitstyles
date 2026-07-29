@@ -3,6 +3,10 @@
 import { useCallback, useMemo } from "react";
 import { toast as sonnerToast } from "sonner";
 import { type CartSelection, cartSubtotal } from "@/modules/cart/cart-lines";
+import {
+  useRemoveOwnedSavedProduct,
+  useSaveOwnedProduct,
+} from "@/modules/customers/client/account-hooks";
 import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import { type Product, productById } from "@/modules/products/ui/storefront/catalogue-data";
 import { useStorefrontHoldNow } from "@/modules/storefront-shell/client/storefront-hold-clock";
@@ -10,6 +14,7 @@ import {
   closeStorefrontOverlays,
   openStorefrontOverlay as openCoordinatedStorefrontOverlay,
 } from "@/modules/storefront-shell/client/storefront-overlay-events";
+import { useSession } from "@/providers/session-provider";
 import {
   selectCartCount,
   selectCartHydrated,
@@ -147,10 +152,13 @@ export function useStorefrontCart() {
 }
 
 export function useStorefrontSavedItems() {
+  const session = useSession();
   const { products } = useStorefrontCatalogueData();
   const ids = useSavedItemsStore(selectSavedIds);
   const hydrated = useSavedItemsStore(selectSavedHydrated);
   const toggle = useSavedItemsStore((state) => state.toggle);
+  const saveOwned = useSaveOwnedProduct();
+  const removeOwned = useRemoveOwnedSavedProduct();
 
   const idSet = useMemo(() => new Set(ids), [ids]);
   const items = useMemo(
@@ -163,8 +171,21 @@ export function useStorefrontSavedItems() {
   );
 
   const toggleProduct = useCallback(
-    (productId: string) => {
-      const saved = toggle(productId);
+    async (productId: string) => {
+      const wasSaved = idSet.has(productId);
+      let saved: boolean;
+      if (session.signedIn) {
+        try {
+          if (wasSaved) await removeOwned.mutateAsync(productId);
+          else await saveOwned.mutateAsync(productId);
+          saved = !wasSaved;
+        } catch {
+          showStorefrontToast("We could not update your saved items. Please try again.");
+          return wasSaved;
+        }
+      } else {
+        saved = toggle(productId);
+      }
       const product = productLookup.get(productId);
       showStorefrontToast(
         saved
@@ -173,7 +194,7 @@ export function useStorefrontSavedItems() {
       );
       return saved;
     },
-    [productLookup, toggle],
+    [idSet, productLookup, removeOwned, saveOwned, session.signedIn, toggle],
   );
 
   return { ids, idSet, items, hydrated, toggleProduct };
