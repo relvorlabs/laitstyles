@@ -211,14 +211,14 @@ export async function submitRecoveredPasswordWithRedirect(
 }
 
 function pageActionError(
-  error: PasswordAuthActionError,
+  failure: PasswordAuthActionError,
   formData: FormData,
 ): AuthPageActionState {
   return {
     status: "error",
-    code: error.code,
-    message: error.message,
-    fieldErrors: error.fieldErrors,
+    code: failure.code,
+    message: failure.message,
+    fieldErrors: failure.fieldErrors,
     values: retainedValues(formData),
   };
 }

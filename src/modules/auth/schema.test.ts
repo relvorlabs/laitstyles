@@ -13,6 +13,7 @@ describe("password auth schemas", () => {
       passwordSignUpSchema.parse({
         email: "  shopper@example.com ",
         password: "password123",
+        confirmPassword: "password123",
         first: "  Ada ",
         last: " Lovelace  ",
         terms: "true",
@@ -21,6 +22,7 @@ describe("password auth schemas", () => {
     ).toEqual({
       email: "shopper@example.com",
       password: "password123",
+      confirmPassword: "password123",
       first: "Ada",
       last: "Lovelace",
       terms: true,
@@ -43,6 +45,7 @@ describe("password auth schemas", () => {
     const result = passwordSignUpSchema.safeParse({
       email: "shopper@example.com",
       password: "short",
+      confirmPassword: "short",
       first: "",
       last: "",
       terms: "false",

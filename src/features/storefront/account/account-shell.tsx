@@ -4,6 +4,10 @@ import { ChevronDownIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  AccountSecurityModals,
+  isAccountSecurityModalId,
+} from "@/modules/auth/ui/account-security-modals";
 import { type AccountModalId, AccountUiProvider } from "./account-context";
 import { type AccountRoute, routeFromPathname, routePaths, routeTitles } from "./account-nav";
 import { AccountBreadcrumb } from "./components/account-breadcrumb";
@@ -118,6 +122,11 @@ export function AccountShell({ children }: { children: ReactNode }) {
 
       <AccountMobileMenu open={menuOpen} onOpenChange={setMenuOpen} />
       <AccountModals modal={modal} onClose={() => setModal(null)} />
+      <AccountSecurityModals
+        modal={isAccountSecurityModalId(modal) ? modal : null}
+        onClose={() => setModal(null)}
+        onNotice={toast}
+      />
 
       {/* Toast (bottom-center pill) */}
       <div

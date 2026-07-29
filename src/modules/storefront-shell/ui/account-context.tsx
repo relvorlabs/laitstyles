@@ -25,7 +25,6 @@ export type AccountModalId =
   | "payment"
   | "remove-payment"
   | "password"
-  | "revoke"
   | "signout-all";
 
 export type AccountUi = {
