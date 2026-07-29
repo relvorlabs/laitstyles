@@ -119,3 +119,70 @@ RLS policies before this plan can be considered merge-ready, because the exposur
 (browser Supabase client plus default PostgREST grants), not merely theoretical or deferred to
 future application code. No RLS SQL was added in this task, per Task 5's reviewer-only, no-source-
 edit mandate - this is a fix to be dispatched as a follow-up implementer task.
+
+## Re-review: RLS fix (commit ac8e9e40)
+
+**Re-reviewed at:** HEAD ac8e9e40 on worktree-plan-01-ledger-persistence
+**Re-reviewer verdict:** PASS - the Step 1 blocking finding above is resolved.
+
+### Fix inspected
+
+New migration `prisma/migrations/20260729080000_payment_customer_rls/migration.sql` (does not
+edit either already-deployed Task 3 migration file, avoiding checksum mismatch). It enables RLS
+on `payment_authorizations` and `payment_refunds` and adds exactly one SELECT-only, owner-scoped
+policy per table for the `authenticated` role, inside the same `do $$ ... end $$` guard pattern
+(`auth.uid()` resolvable and `authenticated` role present) used by
+`20260728205817_complete_account_foundation`, so a bare-Postgres `migrate reset`/CI run still
+succeeds. No INSERT/UPDATE/DELETE policy was added for either table, matching this plan's
+server-authoritative financial-mutation constraint (all writes go through Prisma's service-role
+connection, which bypasses RLS regardless of policy).
+
+### Independent ownership-join verification (not taken on the fix report's word)
+
+Read the fix report's SQL and re-derived the ownership chain directly against
+`prisma/schema.prisma` / `prisma/payment-operations.prisma` myself:
+
+- `payment_authorizations.customer_id` -> `customers.id`: direct FK, `String @db.Uuid`
+  (non-nullable). Policy join is `customers c where c.id = payment_authorizations.customer_id and
+  c.profile_id = (select auth.uid())`. Correct and matches the Task 2 pattern exactly.
+- `payment_refunds` has no direct customer column, so the policy joins
+  `payment_refunds.payment_id -> payments.id -> payments.order_id -> orders.id ->
+  orders.customer_id -> customers.id`. Confirmed directly in schema.prisma:
+  - `payments.order_id` is `String @db.Uuid` with no `?` (schema.prisma:475) - non-nullable.
+  - `orders.customer_id` is `String @db.Uuid` with no `?` (schema.prisma:403) - non-nullable.
+  - `customers.profile_id` is `String? @unique(map: "customers_profile_unique")`
+    (schema.prisma:164) - nullable (guest/CRM customers correctly never match any `auth.uid()`,
+    not a leak) but `@unique`, so one profile can never resolve to more than one customer row -
+    no cross-owner ambiguity is possible even if two customers existed with unrelated data.
+
+Both FKs in the join chain (`payments.order_id`, `orders.customer_id`) are non-nullable, so there
+is no gap that could let a refund fall outside any owner's visibility, and the `@unique` on
+`customers.profile_id` means the join can never resolve to the wrong owner. The join chain in the
+migration SQL is correct and safe. This independently confirms the fix report's own claim rather
+than trusting it at face value.
+
+### Gate re-run (full Step 2 suite, all 8 commands)
+
+All commands run from the worktree with `.env.local` sourced.
+
+| Command | Result |
+| --- | --- |
+| `pnpm prisma:format` | PASS - "Formatted prisma in 490ms" |
+| `pnpm prisma:validate` | PASS - "The schemas at prisma are valid" |
+| `pnpm prisma:generate` | PASS - Prisma Client v7.8.0 generated |
+| `pnpm prisma:migrate:status` | PASS - "Database schema is up to date!" (8 migrations found, applied - one more than the prior run's 7, reflecting the new RLS migration) |
+| `pnpm test src/modules/account-persistence-boundary.test.ts src/modules/payment-persistence-boundary.test.ts src/modules/operations` | PASS - 5 test files, 22/22 tests passed (unchanged from the prior run - this fix added no new tests) |
+| `pnpm check:architecture` | Raw exit code 1 (1 error, 1 warning), identical pre-existing findings to the prior run: `src/features/storefront/account/modals/account-modals.tsx` (963 lines, god-module error) and `src/modules/auth/ui/auth-dialog.tsx` (642 lines, warning). No new finding. |
+| `pnpm biome` | Raw exit code 1 (56 errors, 63 warnings) - identical counts to the prior run, same unrelated files (`src/app/auth/**`, `src/app/api/v1/admin/assets/sign/route.ts`, etc.), none overlapping this plan's touched files or the new RLS migration SQL. No new finding. |
+| `pnpm typecheck` | PASS - `tsc --noEmit` exit code 0, no diagnostics |
+
+Identical pre-existing-noise counts on `check:architecture` and `biome` between this run and the
+prior BLOCKED run's evidence is itself confirmation that the RLS fix introduced no new failures
+anywhere in scope.
+
+### Outcome
+
+The previously-blocking gap is closed: both `payment_authorizations` and `payment_refunds` now
+have RLS enabled with a correct, verified, owner-scoped SELECT policy, no consumer write access,
+and no ownership-join ambiguity. All Step 2 gate commands pass with no new failures. **Plan 01's
+Foundation Reviewer Gate now PASSES.**
