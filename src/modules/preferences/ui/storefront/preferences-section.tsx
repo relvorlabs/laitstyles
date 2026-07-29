@@ -3,14 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { useAccountUi } from "@/features/storefront/account/account-context";
-import {
-  AcctButton,
-  Eyebrow,
-  fieldClass,
-  panelClass,
-  panelElevatedClass,
-} from "@/features/storefront/account/components/account-primitives";
 import { cn } from "@/lib/utils";
 import {
   notificationPreferencesQueryOptions,
@@ -21,6 +13,14 @@ import {
   customerPreferencesQueryOptions,
   useUpdateCustomerPreferences,
 } from "@/modules/preferences/client/hooks";
+import { useAccountUi } from "@/modules/storefront-shell/ui/account-context";
+import {
+  AcctButton,
+  Eyebrow,
+  fieldClass,
+  panelClass,
+  panelElevatedClass,
+} from "@/modules/storefront-shell/ui/account-primitives";
 
 const categoryCopy: Record<NotificationCategory, { title: string; detail: string }> = {
   order_updates: { title: "Order and delivery updates", detail: "Required transactional messages" },

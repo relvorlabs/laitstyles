@@ -2,10 +2,11 @@ import "server-only";
 
 import { v2 as cloudinary } from "cloudinary";
 import { AccountLifecycleError } from "@/modules/account-lifecycle/types";
-import { getAssetServerConfig } from "@/server/assets/config";
 
 function configureCloudinary() {
-  const { cloudName, apiKey, apiSecret } = getAssetServerConfig().cloudinary;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
+  const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
   if (!cloudName || !apiKey || !apiSecret) {
     throw new AccountLifecycleError(
       "EXPORT_STORAGE_UNAVAILABLE",

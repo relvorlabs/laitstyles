@@ -3,13 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAccountUi } from "@/features/storefront/account/account-context";
-import {
-  AcctButton,
-  Eyebrow,
-  panelClass,
-  panelElevatedClass,
-} from "@/features/storefront/account/components/account-primitives";
 import { cn } from "@/lib/utils";
 import { accountExportDownloadUrl } from "@/modules/account-lifecycle/client/api";
 import {
@@ -23,6 +16,13 @@ import {
   privacyPreferencesQueryOptions,
   useUpdatePrivacyPreferences,
 } from "@/modules/privacy/client/hooks";
+import { useAccountUi } from "@/modules/storefront-shell/ui/account-context";
+import {
+  AcctButton,
+  Eyebrow,
+  panelClass,
+  panelElevatedClass,
+} from "@/modules/storefront-shell/ui/account-primitives";
 import { selectRecentIds, useStorefrontUiStore } from "@/stores/storefront-ui.store";
 
 export function PrivacySection() {

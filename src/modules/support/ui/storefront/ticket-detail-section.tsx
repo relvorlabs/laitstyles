@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
-import { useAccountUi } from "@/features/storefront/account/account-context";
+import { cn } from "@/lib/utils";
+import { useAccountUi } from "@/modules/storefront-shell/ui/account-context";
 import {
   AcctButton,
   Eyebrow,
@@ -14,8 +15,7 @@ import {
   panelClass,
   panelElevatedClass,
   StatusBadge,
-} from "@/features/storefront/account/components/account-primitives";
-import { cn } from "@/lib/utils";
+} from "@/modules/storefront-shell/ui/account-primitives";
 import { supportTicketQueryOptions, useReplyToTicket } from "@/modules/support/client/hooks";
 
 export function TicketDetailSection({ ticketId }: { ticketId: string }) {

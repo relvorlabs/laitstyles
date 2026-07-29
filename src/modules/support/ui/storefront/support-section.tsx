@@ -7,7 +7,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAccountUi } from "@/features/storefront/account/account-context";
+import { cn } from "@/lib/utils";
+import { useAccountUi } from "@/modules/storefront-shell/ui/account-context";
 import {
   AcctButton,
   Eyebrow,
@@ -16,8 +17,7 @@ import {
   panelElevatedClass,
   StatusBadge,
   type StatusVariant,
-} from "@/features/storefront/account/components/account-primitives";
-import { cn } from "@/lib/utils";
+} from "@/modules/storefront-shell/ui/account-primitives";
 import { supportTicketsQueryOptions, useCreateSupportTicket } from "@/modules/support/client/hooks";
 import type { SupportTicketStatus } from "@/modules/support/types";
 

@@ -2,17 +2,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  AcctButton,
-  Eyebrow,
-  panelElevatedClass,
-} from "@/features/storefront/account/components/account-primitives";
 import { cn } from "@/lib/utils";
 import {
   notificationsQueryOptions,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from "@/modules/notifications/client/hooks";
+import {
+  AcctButton,
+  Eyebrow,
+  panelElevatedClass,
+} from "@/modules/storefront-shell/ui/account-primitives";
 
 const listInput = { page: 1, pageSize: 25, unreadOnly: false } as const;
 
