@@ -112,8 +112,8 @@ model settlement_transaction_mappings {
   created_at    DateTime @default(now()) @db.Timestamptz(6)
 
   provider_settlements provider_settlements @relation(fields: [settlement_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  payments             payments?            @relation(fields: [payment_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  payout_transfers     payout_transfers?    @relation(fields: [transfer_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  payments             payments?            @relation(fields: [payment_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  payout_transfers     payout_transfers?    @relation(fields: [transfer_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
   @@index([settlement_id], map: "settlement_transaction_mappings_settlement_idx")
   @@index([payment_id], map: "settlement_transaction_mappings_payment_idx")
