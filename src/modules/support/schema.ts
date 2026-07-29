@@ -34,3 +34,12 @@ export const replyToTicketSchema = z
   .strict();
 
 export const supportTicketListSearchSchema = paginationQuerySchema;
+
+export const completeSupportAttachmentSchema = z
+  .object({
+    publicId: z.string().trim().min(1).max(255),
+    fileName: z.string().trim().min(1).max(255),
+    ownershipToken: z.string().trim().min(1),
+    resourceType: z.enum(["image", "raw"]),
+  })
+  .strict();

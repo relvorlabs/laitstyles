@@ -188,6 +188,7 @@ describe("attachTicketAsset", () => {
     mocks.assetsFindUnique.mockResolvedValue({
       id: "asset-1",
       created_by_profile_id: "someone-else",
+      kind: "support_attachment",
       format: "jpg",
       bytes: 1_000,
     });
@@ -202,6 +203,7 @@ describe("attachTicketAsset", () => {
     mocks.assetsFindUnique.mockResolvedValue({
       id: "asset-1",
       created_by_profile_id: identity.authUserId,
+      kind: "support_attachment",
       format: "png",
       bytes: 2_048,
     });
@@ -224,6 +226,7 @@ describe("attachTicketAsset", () => {
     mocks.assetsFindUnique.mockResolvedValue({
       id: "asset-1",
       created_by_profile_id: identity.authUserId,
+      kind: "support_attachment",
       format: "png",
       bytes: 50 * 1024 * 1024,
     });
@@ -231,5 +234,52 @@ describe("attachTicketAsset", () => {
     await expect(
       attachTicketAsset(identity, ticketId, { assetId: "asset-1", fileName: "large.png" }),
     ).rejects.toMatchObject({ code: "SUPPORT_ATTACHMENT_TOO_LARGE" });
+  });
+
+  it("associates a validated attachment with the created support message", async () => {
+    mocks.assetsFindUnique.mockResolvedValue({
+      id: "asset-1",
+      created_by_profile_id: identity.authUserId,
+      kind: "support_attachment",
+      format: "png",
+      bytes: 2_048,
+    });
+    mocks.ticketsCreate.mockResolvedValue({
+      id: ticketId,
+      subject: "Receipt",
+      category: "payment",
+      status: "open",
+      last_message_at: new Date("2026-07-29T00:00:00.000Z"),
+      created_at: new Date("2026-07-29T00:00:00.000Z"),
+      support_messages: [],
+    });
+
+    await createSupportTicket(identity, {
+      subject: "Receipt",
+      category: "payment",
+      body: "Attached.",
+      attachments: [{ assetId: "asset-1", fileName: "receipt.png" }],
+    });
+
+    expect(mocks.ticketsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          support_messages: {
+            create: expect.objectContaining({
+              support_attachments: {
+                create: [
+                  {
+                    asset_id: "asset-1",
+                    file_name: "receipt.png",
+                    mime_type: "image/png",
+                    size_bytes: 2_048,
+                  },
+                ],
+              },
+            }),
+          },
+        }),
+      }),
+    );
   });
 });

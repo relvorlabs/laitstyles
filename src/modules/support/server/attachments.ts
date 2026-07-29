@@ -20,9 +20,13 @@ export async function validateTicketAttachment(
 ): Promise<ValidatedTicketAttachment> {
   const asset = await prisma.cloudinary_assets.findUnique({
     where: { id: input.assetId },
-    select: { id: true, created_by_profile_id: true, format: true, bytes: true },
+    select: { id: true, created_by_profile_id: true, kind: true, format: true, bytes: true },
   });
-  if (!asset || asset.created_by_profile_id !== identity.authUserId) {
+  if (
+    !asset ||
+    asset.created_by_profile_id !== identity.authUserId ||
+    asset.kind !== "support_attachment"
+  ) {
     throw new SupportActionError(
       "SUPPORT_ATTACHMENT_NOT_OWNED",
       "This attachment does not belong to your upload session.",

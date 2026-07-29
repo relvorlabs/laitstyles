@@ -9,11 +9,18 @@ import { supportTicketKeys } from "@/modules/support/client/keys";
 
 vi.setConfig({ testTimeout: 20_000 });
 
-const mocks = vi.hoisted(() => ({ createTicket: vi.fn(), toast: vi.fn(), push: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  createTicket: vi.fn(),
+  listTickets: vi.fn(),
+  uploadAttachment: vi.fn(),
+  toast: vi.fn(),
+  push: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("@/modules/support/client/api", () => ({
-  listSupportTicketsRequest: vi.fn(),
+  listSupportTicketsRequest: mocks.listTickets,
   createSupportTicketRequest: mocks.createTicket,
+  uploadSupportAttachmentRequest: mocks.uploadAttachment,
 }));
 
 import { SupportSection } from "./support-section";
@@ -44,6 +51,37 @@ function renderSection() {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.createTicket.mockResolvedValue({ id: "ticket-1" });
+  mocks.listTickets.mockResolvedValue({
+    data: [],
+    meta: { page: 1, pageSize: 25, total: 0, pageCount: 0 },
+  });
+  mocks.uploadAttachment.mockResolvedValue({
+    assetId: "asset-1",
+    fileName: "receipt.png",
+    mimeType: "image/png",
+    sizeBytes: 1024,
+  });
+});
+
+it("uploads and associates a completed attachment before ticket creation", async () => {
+  const user = userEvent.setup();
+  renderSection();
+  await user.click(screen.getByRole("button", { name: "Start request" }));
+  await user.upload(
+    screen.getByLabelText("Attach files"),
+    new File(["receipt"], "receipt.png", { type: "image/png" }),
+  );
+  await screen.findByText("receipt.png");
+  await user.type(screen.getByLabelText("Subject"), "Payment receipt");
+  await user.type(screen.getByLabelText("Message"), "Please review.");
+  await user.click(screen.getByRole("button", { name: "Submit request" }));
+  await waitFor(() =>
+    expect(mocks.createTicket.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        attachments: [{ assetId: "asset-1", fileName: "receipt.png" }],
+      }),
+    ),
+  );
 });
 afterEach(cleanup);
 

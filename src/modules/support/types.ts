@@ -40,6 +40,27 @@ export type AttachTicketAssetInput = {
   fileName: string;
 };
 
+export type SupportAttachmentUploadGrant = {
+  publicId: string;
+  ownershipToken: string;
+  uploadUrl: string;
+  apiKey: string;
+  params: {
+    timestamp: number;
+    folder: string;
+    publicId: string;
+    context: string;
+    signature: string;
+  };
+};
+
+export type CompleteSupportAttachmentInput = {
+  publicId: string;
+  fileName: string;
+  ownershipToken: string;
+  resourceType: "image" | "raw";
+};
+
 /** A signed upload descriptor that has already been validated (customer
  * ownership, MIME type, size) and is ready to persist alongside a message. */
 export type ValidatedTicketAttachment = {
@@ -68,7 +89,14 @@ export class SupportActionError extends ApiError {
     super({
       code,
       message,
-      status: code === "SUPPORT_TICKET_NOT_FOUND" ? 404 : code.endsWith("NOT_OWNED") ? 403 : 422,
+      status:
+        code === "SUPPORT_TICKET_NOT_FOUND"
+          ? 404
+          : code.endsWith("NOT_OWNED")
+            ? 403
+            : code.endsWith("UNAVAILABLE")
+              ? 503
+              : 422,
     });
     this.name = "SupportActionError";
   }

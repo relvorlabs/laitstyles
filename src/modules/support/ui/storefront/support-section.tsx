@@ -19,7 +19,8 @@ import {
   type StatusVariant,
 } from "@/modules/storefront-shell/ui/account-primitives";
 import { supportTicketsQueryOptions, useCreateSupportTicket } from "@/modules/support/client/hooks";
-import type { SupportTicketStatus } from "@/modules/support/types";
+import type { SupportTicketStatus, ValidatedTicketAttachment } from "@/modules/support/types";
+import { SupportAttachmentPicker } from "./support-attachment-picker";
 
 const statusVariant: Record<SupportTicketStatus, StatusVariant> = {
   open: "warning",
@@ -36,6 +37,7 @@ export function SupportSection() {
   const createTicket = useCreateSupportTicket();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<ValidatedTicketAttachment[]>([]);
 
   async function submitTicket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,9 +49,10 @@ export function SupportSection() {
         subject: String(form.get("subject") ?? ""),
         category: form.get("category") as "order" | "payment" | "product" | "account" | "other",
         body: String(form.get("body") ?? ""),
-        attachments: [],
+        attachments: attachments.map(({ assetId, fileName }) => ({ assetId, fileName })),
       });
       formElement.reset();
+      setAttachments([]);
       setShowForm(false);
       toast("Support request created");
       router.push(`/account/support/detail?ticketId=${encodeURIComponent(ticket.id)}`);
@@ -101,9 +104,7 @@ export function SupportSection() {
             <span className="text-sm font-semibold">Message</span>
             <Textarea className="mt-2" id="support-body" name="body" required textareaSize="lg" />
           </label>
-          <p className="text-sm text-[var(--acc-muted)]">
-            Attachments are unavailable until the customer upload provider is configured.
-          </p>
+          <SupportAttachmentPicker value={attachments} onChange={setAttachments} />
           {error ? (
             <p role="alert" className="text-[var(--acc-oxblood)]">
               {error}

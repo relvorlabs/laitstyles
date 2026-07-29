@@ -17,12 +17,15 @@ import {
   StatusBadge,
 } from "@/modules/storefront-shell/ui/account-primitives";
 import { supportTicketQueryOptions, useReplyToTicket } from "@/modules/support/client/hooks";
+import type { ValidatedTicketAttachment } from "@/modules/support/types";
+import { SupportAttachmentPicker } from "./support-attachment-picker";
 
 export function TicketDetailSection({ ticketId }: { ticketId: string }) {
   const { navigate, toast } = useAccountUi();
   const ticket = useQuery(supportTicketQueryOptions(ticketId));
   const reply = useReplyToTicket();
   const [error, setError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<ValidatedTicketAttachment[]>([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,8 +33,13 @@ export function TicketDetailSection({ ticketId }: { ticketId: string }) {
     const form = new FormData(formElement);
     setError(null);
     try {
-      await reply.mutateAsync({ ticketId, body: String(form.get("body") ?? ""), attachments: [] });
+      await reply.mutateAsync({
+        ticketId,
+        body: String(form.get("body") ?? ""),
+        attachments: attachments.map(({ assetId, fileName }) => ({ assetId, fileName })),
+      });
       formElement.reset();
+      setAttachments([]);
       toast("Reply sent");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The reply could not be sent.");
@@ -111,9 +119,9 @@ export function TicketDetailSection({ ticketId }: { ticketId: string }) {
               required
               textareaSize="lg"
             />
-            <p className="mt-3 text-sm text-[var(--acc-muted)]">
-              Attachments are unavailable until the customer upload provider is configured.
-            </p>
+            <div className="mt-3">
+              <SupportAttachmentPicker value={attachments} onChange={setAttachments} />
+            </div>
             {error ? (
               <p className="mt-3 text-[var(--acc-oxblood)]" role="alert">
                 {error}

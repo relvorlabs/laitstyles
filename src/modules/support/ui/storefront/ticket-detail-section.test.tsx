@@ -9,10 +9,16 @@ import { supportTicketKeys } from "@/modules/support/client/keys";
 
 vi.setConfig({ testTimeout: 20_000 });
 
-const mocks = vi.hoisted(() => ({ getTicket: vi.fn(), reply: vi.fn(), toast: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  getTicket: vi.fn(),
+  reply: vi.fn(),
+  uploadAttachment: vi.fn(),
+  toast: vi.fn(),
+}));
 vi.mock("@/modules/support/client/api", () => ({
   getSupportTicketRequest: mocks.getTicket,
   replyToTicketRequest: mocks.reply,
+  uploadSupportAttachmentRequest: mocks.uploadAttachment,
 }));
 
 import { TicketDetailSection } from "./ticket-detail-section";
@@ -59,6 +65,31 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.getTicket.mockResolvedValue(ticket);
   mocks.reply.mockResolvedValue({ id: "message-2" });
+  mocks.uploadAttachment.mockResolvedValue({
+    assetId: "asset-1",
+    fileName: "receipt.png",
+    mimeType: "image/png",
+    sizeBytes: 1024,
+  });
+});
+
+it("associates a registered attachment with a persisted reply", async () => {
+  const user = userEvent.setup();
+  renderSection();
+  await user.upload(
+    screen.getByLabelText("Attach files"),
+    new File(["receipt"], "receipt.png", { type: "image/png" }),
+  );
+  await screen.findByText("receipt.png");
+  await user.type(screen.getByLabelText("Reply"), "See receipt.");
+  await user.click(screen.getByRole("button", { name: "Send reply" }));
+  await waitFor(() =>
+    expect(mocks.reply.mock.calls[0]?.[0]).toEqual({
+      ticketId,
+      body: "See receipt.",
+      attachments: [{ assetId: "asset-1", fileName: "receipt.png" }],
+    }),
+  );
 });
 afterEach(cleanup);
 
