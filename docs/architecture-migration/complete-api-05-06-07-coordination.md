@@ -1,4 +1,4 @@
-# Complete API Plans 05, 06 and 08 Coordination
+# Complete API Plans 05, 06 and 07 Coordination
 
 This branch is the integration branch and single pull request for three isolated plan worktrees.
 
@@ -6,10 +6,10 @@ This branch is the integration branch and single pull request for three isolated
 
 - Plan 05 owns checkout, Paystack transaction settlement, saved payment methods, and the checkout/offline-sale consumers named in its plan.
 - Plan 06 owns refund and dispute provider adapters, domain operations, transports, and admin consumers named in its plan.
-- Plan 08 owns the final API/consumer ledger, remaining non-payment storefront/admin gaps, module-boundary migration, and evidence documents.
+- Plan 07 owns owner finance, Paystack settlements, recipient management, transfer workflow, transaction reporting, and the admin consumers named in its plan.
 - The integration controller owns merges into this branch, cross-plan conflict resolution, PR comments, and the final combined validation run.
 
-Plan 08 must not delete or declare closed any surface that depends on unfinished Plan 05, Plan 06, or Plan 07 work. Plan 07 is not part of this execution batch, so Plan 08's final finance-dependent closure remains pending until Plan 07 is integrated.
+Plan 07 may consume only Plan 05/06 contracts already present on the integration branch. It must not guess or duplicate unfinished checkout/refund interfaces; dependency-bound tasks wait until the owning plan's checkpoint is integrated.
 
 ## Per-commit synchronization protocol
 
@@ -25,4 +25,4 @@ Agents must not merge another agent's feature branch directly, force-push, rebas
 
 Each worktree runs focused tests for changed behavior and practical type checks needed to keep its task safe. It does not run Biome, React Doctor, full repository validation, full browser gates, or unrelated repository-wide suites.
 
-After all available tasks in Plans 05, 06 and the non-blocked portion of Plan 08 are integrated, the integration branch runs the combined long-running validation once. Any Plan 08 acceptance row blocked by missing Plan 07 remains explicitly pending rather than being presented as complete.
+After all tasks in Plans 05, 06 and 07 are integrated, the integration branch runs the combined long-running validation once.
