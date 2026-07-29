@@ -15,22 +15,11 @@ type ProviderErrorLike = { code?: string | null; status?: number | null } | null
 export async function getAccountSessionSummary(
   identity: AccountSecurityIdentity,
 ): Promise<AccountSessionSummary> {
-  const supabase = await createClient();
-  const [claimsResult, assuranceResult] = await Promise.all([
-    supabase.auth.getClaims(),
-    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-  ]);
-
-  const claims = claimsResult.data?.claims;
-  const authenticatedAt =
-    typeof claims?.iat === "number" ? new Date(claims.iat * 1000).toISOString() : null;
-  const assuranceLevel = assuranceResult.data?.currentLevel ?? null;
-
   return {
     current: {
       sessionId: identity.sessionId,
-      authenticatedAt,
-      assuranceLevel,
+      authenticatedAt: identity.authenticatedAt,
+      assuranceLevel: identity.assuranceLevel,
     },
     otherSessions: { kind: "count-unavailable" },
   };

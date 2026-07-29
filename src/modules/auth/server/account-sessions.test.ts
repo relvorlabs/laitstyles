@@ -21,12 +21,17 @@ vi.mock("@/lib/prisma", () => ({
   prisma: { audit_events: { create: mocks.auditCreate } },
 }));
 
-import { getAccountSessionSummary, signOutOtherSessions } from "@/modules/auth/server/account-sessions";
+import {
+  getAccountSessionSummary,
+  signOutOtherSessions,
+} from "@/modules/auth/server/account-sessions";
 
 const identity = {
   authUserId: "auth-user-a",
   email: "shopper@example.com",
   sessionId: "session-a",
+  authenticatedAt: new Date(1700000000 * 1000).toISOString(),
+  assuranceLevel: "aal1" as const,
 };
 
 beforeEach(() => {
@@ -57,6 +62,8 @@ describe("getAccountSessionSummary", () => {
       },
       otherSessions: { kind: "count-unavailable" },
     });
+    expect(mocks.getClaims).not.toHaveBeenCalled();
+    expect(mocks.getAuthenticatorAssuranceLevel).not.toHaveBeenCalled();
   });
 });
 

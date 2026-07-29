@@ -50,6 +50,8 @@ export type AccountSecurityIdentity = {
   authUserId: string;
   email: string | null;
   sessionId: string;
+  authenticatedAt: string | null;
+  assuranceLevel: "aal1" | "aal2" | null;
 };
 
 export const ACCOUNT_SECURITY_ERROR_CODES = [

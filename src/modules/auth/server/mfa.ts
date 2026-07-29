@@ -39,7 +39,7 @@ export async function listMfaFactors(_identity: AccountSecurityIdentity): Promis
 }
 
 export async function enrollTotp(
-  identity: AccountSecurityIdentity,
+  _identity: AccountSecurityIdentity,
   input: MfaEnrollTotpInput = {},
 ): Promise<MfaEnrollTotpResult> {
   const parsed = mfaEnrollTotpSchema.parse(input);
@@ -53,16 +53,6 @@ export async function enrollTotp(
     logProviderFailure("mfa-enroll", error);
     throw new AccountSecurityError("PROVIDER_UNAVAILABLE");
   }
-
-  await prisma.audit_events.create({
-    data: {
-      actor_profile_id: identity.authUserId,
-      action: "account.mfa.factor_enrolled",
-      target_table: "profiles",
-      target_id: identity.authUserId,
-      metadata: { factorId: data.id, factorType: "totp" },
-    },
-  });
 
   return {
     status: "unverified",

@@ -37,6 +37,8 @@ const identity = {
   authUserId: "auth-user-a",
   email: "shopper@example.com",
   sessionId: "session-a",
+  authenticatedAt: new Date().toISOString(),
+  assuranceLevel: "aal1" as const,
 };
 
 describe("getAccountSecurityIdentity", () => {
@@ -51,11 +53,19 @@ describe("getAccountSecurityIdentity", () => {
           sub: "auth-user-a",
           email: "shopper@example.com",
           session_id: "session-a",
+          iat: 1700000000,
+          aal: "aal1",
         },
       },
     });
 
-    await expect(getAccountSecurityIdentity()).resolves.toEqual(identity);
+    await expect(getAccountSecurityIdentity()).resolves.toEqual({
+      authUserId: "auth-user-a",
+      email: "shopper@example.com",
+      sessionId: "session-a",
+      authenticatedAt: new Date(1700000000 * 1000).toISOString(),
+      assuranceLevel: "aal1",
+    });
   });
 
   it("reports no identity when the session cannot be verified", async () => {
@@ -80,10 +90,7 @@ describe("requestAccountEmailChange", () => {
       requestAccountEmailChange(identity, { email: "new@example.com" }),
     ).resolves.toEqual({ status: "confirmation-sent", email: "new@example.com" });
 
-    expect(mocks.updateUser).toHaveBeenCalledWith(
-      { email: "new@example.com" },
-      expect.anything(),
-    );
+    expect(mocks.updateUser).toHaveBeenCalledWith({ email: "new@example.com" }, expect.anything());
     expect(mocks.auditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         actor_profile_id: "auth-user-a",
@@ -98,6 +105,18 @@ describe("requestAccountEmailChange", () => {
     ).rejects.toMatchObject({ code: "EMAIL_UNCHANGED" });
 
     expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("requires a freshly authenticated session before requesting an email change", async () => {
+    await expect(
+      requestAccountEmailChange(
+        { ...identity, authenticatedAt: new Date(0).toISOString() },
+        { email: "new@example.com" },
+      ),
+    ).rejects.toMatchObject({ code: "REAUTHENTICATION_REQUIRED" });
+
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
   it("maps a provider failure to a stable code without writing an audit event", async () => {

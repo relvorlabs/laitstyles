@@ -41,6 +41,8 @@ const identity = {
   authUserId: "auth-user-a",
   email: "shopper@example.com",
   sessionId: "session-a",
+  authenticatedAt: new Date().toISOString(),
+  assuranceLevel: "aal1" as const,
 };
 
 const verifiedFactor = {
@@ -63,14 +65,22 @@ const pendingFactor = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.auditCreate.mockResolvedValue(undefined);
-  mocks.listFactors.mockResolvedValue({ data: { all: [verifiedFactor], totp: [verifiedFactor] }, error: null });
+  mocks.listFactors.mockResolvedValue({
+    data: { all: [verifiedFactor], totp: [verifiedFactor] },
+    error: null,
+  });
 });
 
 describe("listMfaFactors", () => {
   it("maps provider factors to the account-security read model", async () => {
     await expect(listMfaFactors(identity)).resolves.toEqual({
       factors: [
-        { id: "factor-1", friendlyName: "Authenticator app", factorType: "totp", status: "verified" },
+        {
+          id: "factor-1",
+          friendlyName: "Authenticator app",
+          factorType: "totp",
+          status: "verified",
+        },
       ],
     });
   });
@@ -85,13 +95,14 @@ describe("enrollTotp", () => {
       factorType: "totp",
       friendlyName: "Authenticator app",
     });
-    expect(mocks.auditCreate).toHaveBeenCalledWith({
-      data: expect.objectContaining({ action: "account.mfa.factor_enrolled" }),
-    });
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
   it("maps an enrollment provider failure to a stable code", async () => {
-    mocks.enroll.mockResolvedValue({ data: null, error: { code: "mfa_enroll_failed", status: 500 } });
+    mocks.enroll.mockResolvedValue({
+      data: null,
+      error: { code: "mfa_enroll_failed", status: 500 },
+    });
 
     await expect(enrollTotp(identity)).rejects.toMatchObject({ code: "PROVIDER_UNAVAILABLE" });
     expect(mocks.auditCreate).not.toHaveBeenCalled();
@@ -100,7 +111,10 @@ describe("enrollTotp", () => {
 
 describe("createMfaChallenge", () => {
   it("creates a challenge for the selected factor", async () => {
-    mocks.challenge.mockResolvedValue({ data: { id: "challenge-1", type: "totp", expires_at: 1700000000 }, error: null });
+    mocks.challenge.mockResolvedValue({
+      data: { id: "challenge-1", type: "totp", expires_at: 1700000000 },
+      error: null,
+    });
 
     await expect(createMfaChallenge(identity, { factorId: "factor-1" })).resolves.toEqual({
       challengeId: "challenge-1",
@@ -129,7 +143,10 @@ describe("verifyMfaChallenge", () => {
   });
 
   it("maps an invalid or expired code to a stable code", async () => {
-    mocks.verify.mockResolvedValue({ data: null, error: { code: "invalid_totp_code", status: 422 } });
+    mocks.verify.mockResolvedValue({
+      data: null,
+      error: { code: "invalid_totp_code", status: 422 },
+    });
 
     await expect(
       verifyMfaChallenge(identity, "challenge-1", { factorId: "factor-1", code: "000000" }),

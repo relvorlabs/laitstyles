@@ -18,6 +18,7 @@ import {
 } from "@/modules/auth/types";
 
 type SupabaseAuthErrorLike = { code?: string | null; status?: number | null } | null | undefined;
+const FRESH_SESSION_MAX_AGE_MS = 15 * 60 * 1000;
 
 /** Every account-security domain function receives an already-resolved
  * identity (see {@link getAccountSecurityIdentity}) instead of re-deriving it,
@@ -28,11 +29,16 @@ export async function getAccountSecurityIdentity(): Promise<AccountSecurityIdent
   const claims = claimsResult.data?.claims;
   const sessionId = claims?.session_id;
   if (!claims?.sub || typeof sessionId !== "string") return null;
+  const assuranceLevel =
+    claims.aal === "aal1" || claims.aal === "aal2" ? (claims.aal as "aal1" | "aal2") : null;
 
   return {
     authUserId: claims.sub,
     email: typeof claims.email === "string" ? claims.email : null,
     sessionId,
+    authenticatedAt:
+      typeof claims.iat === "number" ? new Date(claims.iat * 1000).toISOString() : null,
+    assuranceLevel,
   };
 }
 
@@ -44,6 +50,9 @@ export async function requestAccountEmailChange(
 
   if (identity.email && parsed.email.toLowerCase() === identity.email.toLowerCase()) {
     throw new AccountSecurityError("EMAIL_UNCHANGED");
+  }
+  if (!hasFreshAuthentication(identity.authenticatedAt)) {
+    throw new AccountSecurityError("REAUTHENTICATION_REQUIRED");
   }
 
   const supabase = await createClient();
@@ -114,6 +123,14 @@ export async function changeAccountPassword(
   });
 
   return { status: "updated" };
+}
+
+function hasFreshAuthentication(authenticatedAt: string | null): boolean {
+  if (!authenticatedAt) return false;
+  const issuedAt = new Date(authenticatedAt).getTime();
+  if (!Number.isFinite(issuedAt)) return false;
+  const age = Date.now() - issuedAt;
+  return age >= 0 && age <= FRESH_SESSION_MAX_AGE_MS;
 }
 
 function mapAccountSecurityProviderError(error: SupabaseAuthErrorLike): AccountSecurityError {

@@ -1,5 +1,5 @@
-import { SecuritySection } from "@/features/storefront/account/sections/security-section";
+import { AccountSecuritySection } from "@/modules/auth/ui/account-security-section";
 
 export default function AccountSecurityPage() {
-  return <SecuritySection />;
+  return <AccountSecuritySection />;
 }

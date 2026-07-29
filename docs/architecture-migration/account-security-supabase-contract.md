@@ -28,6 +28,11 @@ updateUser(attributes: UserAttributes, options?: { emailRedirectTo?: string }): 
   `getAuthRedirectUrl()`, reusing the existing `/auth/callback` adapter — no new callback route is
   required because `exchangeCodeForSession` already handles the email-change confirmation type
   generically.
+- The email-change Route Handler also requires the verified JWT `iat` claim to be no more than
+  15 minutes old. Older, missing, or future-issued timestamps map to
+  `REAUTHENTICATION_REQUIRED`; the caller must sign in again before retrying. This is the
+  application-owned fresh-session boundary and does not assume the hosted project's optional
+  secure-email-change toggle is enabled.
 - Calling `updateUser({ password })` changes the password immediately for a session GoTrue
   considers recent. Per the installed `reauthenticate()` doc comment: *"A user is only required to
   reauthenticate before updating their password if **Secure password change** is enabled and the
@@ -101,7 +106,8 @@ every access token carries `sub`, `session_id`, `aal`, `iat`, `exp`, and optiona
 (`AMREntry[] | string[]`). `getCurrentSession`'s existing `getVerifiedIdentity()` already reads
 `claims.sub`/`claims.email`; this plan extends that same `getClaims()` call site (via a new
 `getAccountSecurityIdentity()` helper, not a second competing session reader) to also read
-`claims.session_id`, `claims.aal` and `claims.iat`.
+`claims.session_id`, `claims.aal` and `claims.iat`. Downstream session summaries reuse those
+verified identity fields rather than issuing a second, potentially divergent provider read.
 
 ## 5. Session listing/revocation — locked decision (Task 1, Step 2)
 

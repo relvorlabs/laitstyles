@@ -18,8 +18,8 @@ Identity: Plan 04 account-security implementation owner — branch `worktree-age
 
 ## Current work
 
-- Task 5 — implementation complete; pending exact-file commit. Added all eight ledger methods across seven thin Route Handler files, stable transport mapping, typed browser API, hooks, and query keys. Preserved and completed the existing `account-security-http.ts` adapter.
-- Task 6 — next.
+- Task 5 — complete in `87775591` (`feat(auth): expose account security APIs`). Added all eight ledger methods across seven thin Route Handler files, stable transport mapping, typed browser API, hooks, and query keys.
+- Task 6 — implementation complete; pending exact-file commit. Auth-owned UI now drives real email/password/TOTP/session operations and the fake session/history rows are removed.
 - Task 7 — pending.
 
 ## Evidence ledger
@@ -33,3 +33,7 @@ Identity: Plan 04 account-security implementation owner — branch `worktree-age
 - 2026-07-29 Task 5 architecture: module export guard passed; architecture guard stopped on the pre-existing 963-line `src/features/storefront/account/modals/account-modals.tsx`, which Task 6 explicitly owns and must split. No guard was weakened.
 - 2026-07-29 Task 5 scoped Biome: 26 files checked and formatted; 0 remaining scoped diagnostics after `--write`.
 - Environment note: repository requests Node 25.x / pnpm 11.13.0; this shell currently provides Node 24.14.0 / pnpm 11.9.0 and emits engine warnings on every pnpm command.
+- 2026-07-29 Task 6 RED: the interaction test initially failed because the auth-owned account security UI did not exist; after the jsdom harness was established it exercised the real intended states.
+- 2026-07-29 Task 6 GREEN: `pnpm test src/modules/auth/ui/account-security-section.test.tsx` passed 5/5; subsequent `pnpm test src/modules/auth` passed 91/91.
+- 2026-07-29 Task 6 architecture: module export and architecture guards passed (the legacy modal host is now 712 lines, warning-only); error-validation and layout/provider contracts passed. The remaining HTTP contract failure is the pre-existing, out-of-scope `src/app/api/v1/auth/invitations/route.ts` ad hoc response implementation.
+- 2026-07-29 self-review RED/GREEN: added four failing security-boundary assertions, then fixed them: identity now carries verified `iat`/`aal`, email changes require a <=15-minute session, session summaries reuse those verified claims without divergent reads, and unverified TOTP enrollment no longer writes a misleading enrolled audit fact. The three focused domain files pass 23/23.

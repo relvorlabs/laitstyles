@@ -14,7 +14,6 @@ export type AccountModalId =
   | "cancel"
   | "return"
   | "password"
-  | "revoke"
   | "signout-all"
   | "export"
   | "delete"
