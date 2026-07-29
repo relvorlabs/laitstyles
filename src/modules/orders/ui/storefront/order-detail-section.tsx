@@ -23,6 +23,7 @@ import {
   type StatusVariant,
   TimelineDot,
 } from "@/modules/storefront-shell/ui/account-primitives";
+import { OrderCancellationControl } from "./order-cancellation-control";
 
 function formatMoney(kobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
@@ -375,6 +376,10 @@ export function OrderDetailSection({
             {order.paymentMethod ? `${order.paymentMethod} · ` : ""}
             {order.paymentStatus.label}
           </p>
+          {order.paymentStatus.code === "pending" &&
+          order.fulfilmentStatus.code === "unfulfilled" ? (
+            <OrderCancellationControl orderNumber={order.orderNumber} />
+          ) : null}
         </section>
       </div>
     </>

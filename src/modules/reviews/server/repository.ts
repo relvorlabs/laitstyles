@@ -4,11 +4,10 @@ import type { PrismaClient } from "@/lib/prisma";
 import { Prisma, prisma } from "@/lib/prisma";
 import { canTransitionReview, getReviewEligibility } from "@/modules/reviews/server/policy";
 import type {
+  OwnedReviewContext,
   ReviewEligibility,
   ReviewEligibilityReason,
-  ReviewFit,
   ReviewInput,
-  ReviewStatus,
 } from "@/modules/reviews/types";
 
 const ownedLineSelect = {
@@ -59,39 +58,6 @@ async function runSerializable<T>(work: (tx: Prisma.TransactionClient) => Promis
   }
   throw new Error("Serializable review transaction exhausted its retry budget.");
 }
-
-export interface OwnedReviewLine {
-  id: string;
-  productId: string;
-  productSlug: string;
-  productName: string;
-  sizeOrdered: string | null;
-  purchasedQuantity: number;
-  deliveredQuantity: number;
-  deliveredAt: Date | null;
-}
-
-export interface OwnedReviewRecord {
-  id: string;
-  rating: number;
-  title: string | null;
-  body: string | null;
-  fit: ReviewFit | null;
-  sizeOrdered: string | null;
-  status: ReviewStatus;
-  submittedAt: Date;
-  rejectionReason: string | null;
-}
-
-export type OwnedReviewContext =
-  | { found: false; reason: "order_line_not_found" }
-  | {
-      found: true;
-      line: OwnedReviewLine;
-      review: OwnedReviewRecord | null;
-      eligibility: ReviewEligibility;
-      resubmissionEligibility: ReviewEligibility;
-    };
 
 export type SubmitReviewResult =
   | { ok: true; reviewId: string; productSlug: string }

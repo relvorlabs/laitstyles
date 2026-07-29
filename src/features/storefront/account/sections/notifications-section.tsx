@@ -24,7 +24,7 @@ const items: {
     title: "Return approved",
     detail: "Return #RT-0038 is ready to ship.",
     time: "1d",
-    route: "return-detail",
+    route: "returns",
     unread: true,
   },
   {

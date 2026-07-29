@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { restoreCartLines } from "@/modules/cart/cart-restoration";
+import { useReconcileSavedProductsOnAuth } from "@/modules/customers/client/account-hooks";
 import { useStorefrontCatalogue } from "@/modules/products/client/storefront-catalogue";
 import {
   loadStorefrontClientState,
@@ -13,6 +14,7 @@ import {
   useStorefrontHoldNow,
 } from "@/modules/storefront-shell/client/storefront-hold-clock";
 import { StorefrontHoldAlert } from "@/modules/storefront-shell/ui/storefront-feedback";
+import { useSession } from "@/providers/session-provider";
 import { cartStore, selectCartHydrated, selectCartLines, useCartStore } from "@/stores/cart.store";
 import {
   savedItemsStore,
@@ -33,6 +35,7 @@ const LEGACY_RECENT_STORAGE_KEY = "laitstyles-recent";
 const UTILITY_STORAGE_KEY = "laitstyles-storefront:v1:utility";
 
 export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
+  const session = useSession();
   const catalogue = useStorefrontCatalogue();
   const hydrationStarted = useRef(false);
   const cart = useCartStore(selectCartLines);
@@ -44,6 +47,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const uiHydrated = useStorefrontUiStore(selectUiHydrated);
   const utilityDismissed = useStorefrontUiStore((state) => state.utilityDismissed);
   const ready = cartHydrated && savedHydrated && uiHydrated;
+  useReconcileSavedProductsOnAuth(session.signedIn && savedHydrated);
 
   useEffect(() => {
     if (hydrationStarted.current || !catalogue.data) return;

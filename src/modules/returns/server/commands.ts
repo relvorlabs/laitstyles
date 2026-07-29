@@ -3,7 +3,7 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
-import type { StaffSession } from "@/modules/auth/server/session";
+import type { ConsumerSession, StaffSession } from "@/modules/auth/server/session";
 import {
   applyOperationalStockMutation,
   OperationalStockError,
@@ -36,7 +36,7 @@ const transitionMap = {
 } as const satisfies Record<ReturnStatus, readonly ReturnStatus[]>;
 
 export async function createReturn(
-  actor: StaffSession,
+  actor: StaffSession | ConsumerSession,
   input: CreateReturnInput,
 ): Promise<Result<ReturnActionSuccess, ReturnActionError>> {
   try {
@@ -55,7 +55,10 @@ export async function createReturn(
       }
 
       const order = await tx.orders.findFirst({
-        where: orderIdentifierWhere(input.orderId),
+        where: {
+          ...orderIdentifierWhere(input.orderId),
+          ...(actor.kind === "consumer" ? { customer_id: actor.customerId } : {}),
+        },
         include: {
           customer: true,
           order_lines: {
@@ -418,7 +421,7 @@ function stockMutationFor(status: ReturnStatus): OperationalStockMutationKind | 
 
 async function recordReturnAudit(
   tx: Prisma.TransactionClient,
-  actor: StaffSession,
+  actor: Pick<StaffSession, "authUserId">,
   returnId: string,
   action: string,
   metadata: Prisma.InputJsonValue,

@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { panelClass } from "@/features/storefront/account/components/account-primitives";
 import { cn } from "@/lib/utils";
+import { panelClass } from "@/modules/storefront-shell/ui/account-primitives";
 
 export default function AccountOrderItemReviewLoading() {
   return (

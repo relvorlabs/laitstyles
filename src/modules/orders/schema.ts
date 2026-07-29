@@ -27,6 +27,10 @@ export const adminOrderListSearchSchema = paginationQuerySchema.extend({
 
 export const orderIdentifierSchema = z.string().trim().min(1).max(128);
 
+export const orderCancellationRequestSchema = z
+  .object({ reason: z.string().trim().max(500).optional() })
+  .strict();
+
 export const orderTransitionSchema = z
   .object({
     nextStatus: orderStatusSchema,

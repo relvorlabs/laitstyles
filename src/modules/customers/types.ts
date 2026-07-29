@@ -123,6 +123,48 @@ export type AdminCustomerListResult = {
   };
 };
 
+export type OwnedProfile = {
+  authUserId: string;
+  email: string | null;
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  phone: string;
+};
+
+export type UpdateOwnedProfileInput = {
+  firstName: string;
+  lastName: string;
+  preferredName?: string;
+  phone?: string;
+};
+
+export type OwnedAddress = {
+  id: string;
+  label: string;
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  country: string;
+  isDefault: boolean;
+  deliveryNotes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateOwnedAddressInput = {
+  label?: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state?: string;
+  deliveryNotes?: string;
+  isDefault?: boolean;
+};
+
+export type UpdateOwnedAddressInput = Partial<CreateOwnedAddressInput>;
+
 export type AddCustomerNoteInput = { customerId: string; body: string };
 export type CustomerActionErrorCode = "customer-not-found" | "empty-note" | "note-too-long";
 export type CustomerActionError = {

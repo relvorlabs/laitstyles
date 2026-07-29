@@ -7,12 +7,8 @@ import type { AccountRoute } from "./account-nav";
 export type AccountModalId =
   | "verify-email"
   | "email"
-  | "address"
-  | "delete-address"
   | "payment"
   | "remove-payment"
-  | "cancel"
-  | "return"
   | "password"
   | "revoke"
   | "signout-all"

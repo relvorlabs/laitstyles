@@ -57,6 +57,46 @@ export type ControlRoomReturn = {
   note: string;
   orderTotal: number;
   orderPaymentStatus: string;
+  currency: string;
+};
+
+export type AccountReturnLine = {
+  id: string;
+  orderLineId: string;
+  productName: string;
+  variantLabel?: string;
+  quantity: number;
+  disposition: ReturnDisposition;
+};
+
+export type AccountReturn = {
+  id: string;
+  orderNumber: string;
+  status: ReturnStatus;
+  reason: string;
+  note: string;
+  requestedAt: string;
+  updatedAt: string;
+  refundAmountKobo: number;
+  currency: string;
+  lines: AccountReturnLine[];
+};
+
+export type CreateAccountReturnInput = {
+  orderNumber: string;
+  reason: string;
+  note?: string;
+  lines: Array<{ orderLineId: string; quantity: number }>;
+};
+
+export type AccountEligibleReturnOrder = {
+  orderNumber: string;
+  totalKobo: number;
+  lines: Array<
+    Omit<EligibleReturnLine, "unitPrice"> & {
+      unitPriceKobo: number;
+    }
+  >;
 };
 
 export type ReturnSavedViewCounts = Record<ReturnSavedView, number>;
