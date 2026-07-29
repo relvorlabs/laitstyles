@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { getCurrentSession } from "@/modules/auth/server/session";
+import { updateOwnedProfile } from "@/modules/customers/server/account-profile";
 
 const profileFormSchema = z.object({
   firstName: z.string().trim().min(1, "Enter your first name.").max(100),
@@ -62,50 +62,11 @@ export async function updateAccountProfile(
   if (session.kind === "unavailable") {
     throw new Error(`Profile authorization unavailable: ${session.error}`);
   }
+  if (session.kind !== "consumer") {
+    return { status: "error", message: "Sign in with a customer account to update your profile." };
+  }
 
-  const preferredName = parsed.data.preferredName || null;
-  const phone = parsed.data.phone || null;
-  const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim();
-  const displayName = preferredName || fullName;
-
-  await prisma.$transaction(async (transaction) => {
-    await transaction.profiles.update({
-      where: { id: session.authUserId },
-      data: { display_name: displayName, phone },
-    });
-
-    await transaction.profile_details.upsert({
-      where: { profile_id: session.authUserId },
-      update: {
-        first_name: parsed.data.firstName,
-        last_name: parsed.data.lastName,
-        preferred_name: preferredName,
-      },
-      create: {
-        profile_id: session.authUserId,
-        first_name: parsed.data.firstName,
-        last_name: parsed.data.lastName,
-        preferred_name: preferredName,
-      },
-    });
-
-    if (session.kind === "consumer") {
-      await transaction.customers.upsert({
-        where: { profile_id: session.authUserId },
-        update: {
-          name: fullName,
-          email: session.email,
-          phone,
-        },
-        create: {
-          profile_id: session.authUserId,
-          name: fullName,
-          email: session.email,
-          phone,
-        },
-      });
-    }
-  });
+  await updateOwnedProfile(session, parsed.data);
 
   revalidatePath("/account/profile");
   revalidatePath("/account");

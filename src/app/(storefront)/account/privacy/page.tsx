@@ -1,4 +1,4 @@
-import { PrivacySection } from "@/features/storefront/account/sections/privacy-section";
+import { PrivacySection } from "@/modules/privacy/ui/storefront/privacy-section";
 
 export default function AccountPrivacyPage() {
   return <PrivacySection />;

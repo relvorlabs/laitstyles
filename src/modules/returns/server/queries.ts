@@ -66,9 +66,14 @@ export async function getAdminReturn(returnId: string) {
   return row ? mapAdminReturnRow(row) : null;
 }
 
-export async function listEligibleReturnOrders(): Promise<EligibleReturnOrder[]> {
+export async function listEligibleReturnOrders(
+  customerId?: string,
+): Promise<EligibleReturnOrder[]> {
   const rows = await prisma.orders.findMany({
-    where: { fulfilment_status: { in: ["delivered", "partially_returned"] } },
+    where: {
+      fulfilment_status: { in: ["delivered", "partially_returned"] },
+      ...(customerId ? { customer_id: customerId } : {}),
+    },
     orderBy: { placed_at: "desc" },
     take: 100,
     include: {

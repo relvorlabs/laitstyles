@@ -30,6 +30,18 @@ describe("storefront UI intent store", () => {
     expect(storefrontUiStore.getState()).not.toHaveProperty("newsletterStatus");
   });
 
+  it("clears browser-owned recently viewed history", () => {
+    storefrontUiStore.getState().hydrate({
+      recentIds: ["product-1", "product-2"],
+      utilityDismissed: false,
+      holds: [],
+    });
+
+    storefrontUiStore.getState().clearRecent();
+
+    expect(storefrontUiStore.getState().recentIds).toEqual([]);
+  });
+
   it("treats holds as expiring browser intent rather than authoritative inventory", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-25T12:00:00.000Z"));

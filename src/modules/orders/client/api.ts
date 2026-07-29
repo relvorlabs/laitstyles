@@ -1,6 +1,10 @@
 import { err, ok, type Result } from "@/lib/errors";
 import { ApiClientError, apiRequest } from "@/lib/http/client";
 import type {
+  AccountOrderDetail,
+  AccountOrderSummary,
+} from "@/modules/orders/storefront/account-order-contract";
+import type {
   AdminOrderCustomer,
   AdminOrderListResult,
   ControlRoomOrder,
@@ -16,6 +20,7 @@ import type {
 const ORDERS_URL = "/api/v1/admin/orders";
 const OFFLINE_SALES_URL = `${ORDERS_URL}/offline-sales`;
 const SALE_CUSTOMERS_URL = `${ORDERS_URL}/sale-customers`;
+const ACCOUNT_ORDERS_URL = "/api/v1/account/orders";
 const salesActionErrorCodes = new Set<string>([
   "invalid-quantity",
   "invalid-price",
@@ -36,6 +41,50 @@ const salesActionErrorCodes = new Set<string>([
   "paystack-not-configured",
   "paystack-initialization-failed",
 ]);
+
+export async function listAccountOrdersRequest(
+  signal?: AbortSignal,
+): Promise<AccountOrderSummary[]> {
+  const response = await apiRequest<AccountOrderSummary[]>(ACCOUNT_ORDERS_URL, {
+    cache: "no-store",
+    signal,
+  });
+  return response.data;
+}
+
+export async function getAccountOrderRequest(
+  orderNumber: string,
+  signal?: AbortSignal,
+): Promise<AccountOrderDetail | null> {
+  try {
+    const response = await apiRequest<AccountOrderDetail>(
+      `${ACCOUNT_ORDERS_URL}/${encodeURIComponent(orderNumber)}`,
+      { cache: "no-store", signal },
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export async function requestAccountOrderCancellation({
+  orderNumber,
+  reason,
+}: {
+  orderNumber: string;
+  reason?: string;
+}): Promise<{ orderNumber: string }> {
+  const response = await apiRequest<{ orderNumber: string }>(
+    `${ACCOUNT_ORDERS_URL}/${encodeURIComponent(orderNumber)}/cancellation-requests`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...(reason ? { reason } : {}) }),
+    },
+  );
+  return response.data;
+}
 
 export async function listAdminOrdersRequest(
   input: OrderListInput,

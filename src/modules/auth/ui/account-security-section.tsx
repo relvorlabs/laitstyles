@@ -67,6 +67,21 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
         <section className={`${panelElevatedClass} p-5 sm:p-6`}>
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
+              <Eyebrow tone="muted">Email address</Eyebrow>
+              <h2 className="mt-3 font-serif text-3xl font-normal">Protected email change.</h2>
+              <p className="mt-2 text-[var(--acc-muted)]">
+                Start the provider confirmation flow from this verified account session.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => setModal("email")}>
+              Change email
+            </Button>
+          </div>
+        </section>
+
+        <section className={`${panelElevatedClass} p-5 sm:p-6`}>
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
               <Eyebrow tone="muted">Password</Eyebrow>
               <h2 className="mt-3 font-serif text-3xl font-normal">Password protection.</h2>
               <p className="mt-2 text-[var(--acc-muted)]">

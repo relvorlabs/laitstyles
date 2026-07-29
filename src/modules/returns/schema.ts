@@ -44,4 +44,18 @@ export const createReturnSchema = z.object({
     .max(100),
 });
 
+export const createAccountReturnSchema = z
+  .object({
+    orderNumber: z.string().trim().min(1).max(120),
+    reason: z.string().trim().min(1).max(500),
+    note: z.string().trim().max(2_000).optional(),
+    lines: z
+      .array(
+        z.object({ orderLineId: z.string().uuid(), quantity: z.number().int().min(1) }).strict(),
+      )
+      .min(1)
+      .max(100),
+  })
+  .strict();
+
 export const returnTransitionSchema = z.object({ nextStatus: z.enum(returnStatuses) });

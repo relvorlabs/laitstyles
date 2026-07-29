@@ -7,3 +7,10 @@ export const returnKeys = {
   detail: (returnId: string) => [...returnKeys.all, "detail", returnId] as const,
   eligibleOrders: () => [...returnKeys.all, "eligible-orders"] as const,
 };
+
+export const accountReturnKeys = {
+  all: ["account", "returns"] as const,
+  list: () => [...accountReturnKeys.all, "list"] as const,
+  details: () => [...accountReturnKeys.all, "detail"] as const,
+  detail: (returnId: string) => [...accountReturnKeys.details(), returnId.trim()] as const,
+};

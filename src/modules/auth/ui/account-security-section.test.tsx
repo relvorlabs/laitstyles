@@ -70,6 +70,16 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("account security interactions", () => {
+  it("opens the email-change workflow from the cumulative security page", async () => {
+    const user = userEvent.setup();
+
+    render(<AccountSecuritySection />);
+    await user.click(screen.getByRole("button", { name: "Change email" }));
+
+    expect(screen.getByRole("dialog", { name: "Change email." })).not.toBeNull();
+    expect(screen.getByLabelText("New email address")).not.toBeNull();
+  });
+
   it("keeps an email change pending until provider confirmation", async () => {
     const user = userEvent.setup();
     mocks.requestEmail.mockResolvedValueOnce({

@@ -1,11 +1,27 @@
+"use client";
+
 import { ArrowLeft01Icon, PackageDeliveredIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
+import { ApiClientError } from "@/lib/http/client";
 import { cn } from "@/lib/utils";
-import type { OwnedReviewContext } from "@/modules/reviews/server/repository";
-import type { ReviewEligibilityReason, ReviewInput } from "@/modules/reviews/types";
+import {
+  useCreateAccountReview,
+  useUpdateAccountReview,
+  useWithdrawAccountReview,
+} from "@/modules/reviews/client/hooks";
+import { reviewInputSchema } from "@/modules/reviews/schema";
+import type {
+  OwnedReviewContext,
+  ReviewActionErrorCode,
+  ReviewActionState,
+  ReviewEligibilityReason,
+  ReviewInput,
+} from "@/modules/reviews/types";
 import {
   Eyebrow,
   panelClass,
@@ -112,14 +128,14 @@ function purchaseState(context: FoundReviewContext) {
 export function ReviewPage({
   context,
   orderNumber,
-  submitAction,
-  withdrawAction,
 }: {
   context: FoundReviewContext;
   orderNumber: string;
-  submitAction: ReviewFormAction;
-  withdrawAction: ReviewFormAction;
 }) {
+  const router = useRouter();
+  const createMutation = useCreateAccountReview();
+  const updateMutation = useUpdateAccountReview();
+  const withdrawMutation = useWithdrawAccountReview();
   const orderPath = `/account/orders/${encodeURIComponent(orderNumber)}`;
   const treatment = statusTreatment(context);
   const purchase = purchaseState(context);
@@ -132,6 +148,66 @@ export function ReviewPage({
     : context.review?.status === "pending"
       ? "Your submitted review cannot be edited while moderation is in progress."
       : undefined;
+  const submitAction = useCallback<ReviewFormAction>(
+    async (_previous, formData) => {
+      const parsed = reviewInputSchema.safeParse({
+        rating: Number(formData.get("rating")),
+        title: String(formData.get("title") ?? "").trim(),
+        body: String(formData.get("body") ?? "").trim(),
+        fit: String(formData.get("fit") ?? ""),
+      });
+      if (!parsed.success) {
+        return {
+          status: "error",
+          code: "invalid-review-fields",
+          message: "Check the highlighted review fields and try again.",
+          fieldErrors: parsed.error.flatten().fieldErrors,
+        };
+      }
+      try {
+        if (context.review) {
+          await updateMutation.mutateAsync({ reviewId: context.review.id, input: parsed.data });
+        } else {
+          await createMutation.mutateAsync({
+            orderNumber,
+            orderLineId: context.line.id,
+            ...parsed.data,
+          });
+        }
+        router.push(`${orderPath}?review=submitted`);
+        router.refresh();
+        return { status: "idle" };
+      } catch (error) {
+        return reviewApiError(error, "invalid-review-fields");
+      }
+    },
+    [
+      context.line.id,
+      context.review,
+      createMutation,
+      orderNumber,
+      orderPath,
+      router,
+      updateMutation,
+    ],
+  );
+  const withdrawAction = useCallback<ReviewFormAction>(async () => {
+    if (!context.review) {
+      return {
+        status: "error",
+        code: "withdrawal-failed",
+        message: "This review is no longer available to withdraw.",
+      };
+    }
+    try {
+      await withdrawMutation.mutateAsync(context.review.id);
+      router.push(`${orderPath}?review=withdrawn`);
+      router.refresh();
+      return { status: "idle" };
+    } catch (error) {
+      return reviewApiError(error, "withdrawal-failed");
+    }
+  }, [context.review, orderPath, router, withdrawMutation]);
 
   return (
     <div className="mx-auto w-full max-w-4xl pb-12">
@@ -221,4 +297,34 @@ export function ReviewPage({
       )}
     </div>
   );
+}
+
+const reviewApiCode: Record<string, ReviewActionErrorCode> = {
+  AUTHENTICATION_REQUIRED: "authentication-required",
+  CUSTOMER_RECORD_REQUIRED: "customer-profile-required",
+  AWAITING_DELIVERY: "awaiting_delivery",
+  CANCELLED: "cancelled",
+  FULLY_RETURNED: "fully_returned",
+  FULLY_REFUNDED: "fully_refunded",
+  REVIEW_WINDOW_EXPIRED: "review_window_expired",
+  ALREADY_REVIEWED: "already_reviewed",
+};
+
+function reviewApiError(
+  error: unknown,
+  fallback: ReviewActionErrorCode,
+): Extract<ReviewActionState, { status: "error" }> {
+  if (error instanceof ApiClientError) {
+    return {
+      status: "error",
+      code: reviewApiCode[error.code] ?? fallback,
+      message: error.message,
+      fieldErrors: error.fieldErrors as Partial<Record<keyof ReviewInput, string[]>> | undefined,
+    };
+  }
+  return {
+    status: "error",
+    code: fallback,
+    message: "We could not update your review. Please try again.",
+  };
 }

@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/server/session";
 import { getOwnedReviewContext } from "@/modules/reviews/server/repository";
 import { ReviewPage } from "@/modules/reviews/ui/storefront/review-page";
-import { submitReviewAction, withdrawReviewAction } from "./actions";
 
 export default async function AccountOrderItemReviewPage({
   params,
@@ -23,12 +22,5 @@ export default async function AccountOrderItemReviewPage({
     orderLineId,
   });
   if (!context.found) notFound();
-  return (
-    <ReviewPage
-      context={context}
-      orderNumber={orderNumber}
-      submitAction={submitReviewAction}
-      withdrawAction={withdrawReviewAction}
-    />
-  );
+  return <ReviewPage context={context} orderNumber={orderNumber} />;
 }

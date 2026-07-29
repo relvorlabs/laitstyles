@@ -31,6 +31,7 @@ type StorefrontUiStore = {
   open: (id: StorefrontOverlayId) => void;
   close: () => void;
   addRecent: (productId: string) => void;
+  clearRecent: () => void;
   dismissUtility: () => void;
   hold: (productId: string, expiresAt: number) => void;
   release: (productId: string) => void;
@@ -64,6 +65,7 @@ export const useStorefrontUiStore = create<StorefrontUiStore>()((set) => ({
     set((state) => ({
       recentIds: [productId, ...state.recentIds.filter((id) => id !== productId)].slice(0, 8),
     })),
+  clearRecent: () => set({ recentIds: [] }),
   dismissUtility: () => set({ utilityDismissed: true }),
   hold: (productId, expiresAt) =>
     set((state) => ({

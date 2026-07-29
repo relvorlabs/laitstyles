@@ -45,6 +45,39 @@ export type ReviewEligibility =
   | { eligible: true; expiresAt: Date }
   | { eligible: false; reason: ReviewEligibilityReason };
 
+export interface OwnedReviewLine {
+  id: string;
+  productId: string;
+  productSlug: string;
+  productName: string;
+  sizeOrdered: string | null;
+  purchasedQuantity: number;
+  deliveredQuantity: number;
+  deliveredAt: Date | null;
+}
+
+export interface OwnedReviewRecord {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  fit: ReviewFit | null;
+  sizeOrdered: string | null;
+  status: ReviewStatus;
+  submittedAt: Date;
+  rejectionReason: string | null;
+}
+
+export type OwnedReviewContext =
+  | { found: false; reason: "order_line_not_found" }
+  | {
+      found: true;
+      line: OwnedReviewLine;
+      review: OwnedReviewRecord | null;
+      eligibility: ReviewEligibility;
+      resubmissionEligibility: ReviewEligibility;
+    };
+
 export type ReviewAccessFailure = {
   eligible: false;
   reason: ReviewAccessFailureReason;
@@ -56,6 +89,16 @@ export interface ReviewInput {
   body: string;
   fit: ReviewFit;
 }
+
+export type CreateAccountReviewInput = ReviewInput & {
+  orderNumber: string;
+  orderLineId: string;
+};
+
+export type AccountReviewMutationResult = {
+  reviewId: string;
+  productSlug: string;
+};
 
 export type ReviewActionErrorCode =
   | "authentication-required"
