@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AcctButton, Eyebrow, panelClass } from "../components/account-primitives";
-import { AccountProductGrid } from "../components/account-product-grid";
-import { useAccountProducts } from "../hooks/use-account-products";
+import { useStorefrontSavedItems } from "@/modules/storefront-shell/client/storefront-runtime";
+import { Eyebrow, panelClass } from "@/modules/storefront-shell/ui/account-primitives";
+import { SavedProductGrid } from "./saved-product-grid";
 
 export function SavedSection() {
-  const { saved } = useAccountProducts();
-
+  const saved = useStorefrontSavedItems();
   return (
     <>
       <header>
@@ -20,9 +20,8 @@ export function SavedSection() {
           One-of-one availability can change before you come back.
         </p>
       </header>
-
-      {saved.length ? (
-        <AccountProductGrid products={saved} className="mt-7" />
+      {saved.items.length ? (
+        <SavedProductGrid className="mt-7" products={saved.items} />
       ) : (
         <div
           className={cn(
@@ -32,10 +31,11 @@ export function SavedSection() {
         >
           <h2 className="font-serif text-3xl font-normal">Nothing saved yet.</h2>
           <p className="max-w-md text-[var(--acc-muted)]">
-            Tap the heart on any piece in the shop and it will appear here, ready to hold or add to
-            your bag.
+            Tap the heart on any piece in the shop and it will appear here.
           </p>
-          <AcctButton render={<Link href="/products" />}>Browse products</AcctButton>
+          <Link className={buttonVariants({ size: "lg" })} href="/products">
+            Browse products
+          </Link>
         </div>
       )}
     </>

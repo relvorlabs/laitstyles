@@ -4,15 +4,57 @@ import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@ta
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
+  getAccountOrderRequest,
   getAdminOrderRequest,
+  listAccountOrdersRequest,
   listAdminOrdersRequest,
   listSaleCustomersRequest,
   recordOfflineSaleRequest,
+  requestAccountOrderCancellation,
   transitionOrderRequest,
 } from "@/modules/orders/client/api";
-import { orderKeys } from "@/modules/orders/client/keys";
+import { accountOrderKeys, orderKeys } from "@/modules/orders/client/keys";
+import type { AccountOrderDetail } from "@/modules/orders/storefront/account-order-contract";
 import type { ControlRoomOrder, OrderListInput } from "@/modules/orders/types";
 import { overviewKeys } from "@/modules/overview/client/keys";
+
+export function accountOrdersQueryOptions() {
+  return queryOptions({
+    queryKey: accountOrderKeys.list(),
+    queryFn: ({ signal }) => listAccountOrdersRequest(signal),
+    staleTime: 15_000,
+  });
+}
+
+export function accountOrderQueryOptions(orderNumber: string) {
+  return queryOptions({
+    queryKey: accountOrderKeys.detail(orderNumber),
+    queryFn: ({ signal }) => getAccountOrderRequest(orderNumber, signal),
+    enabled: Boolean(orderNumber.trim()),
+    staleTime: 15_000,
+  });
+}
+
+export function useRequestAccountOrderCancellation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: requestAccountOrderCancellation,
+    onSuccess: ({ orderNumber }) => {
+      queryClient.setQueryData<AccountOrderDetail | null>(
+        accountOrderKeys.detail(orderNumber),
+        (order) =>
+          order
+            ? {
+                ...order,
+                paymentStatus: { code: "cancelled", label: "Cancelled" },
+                fulfilmentStatus: { code: "cancelled", label: "Cancelled" },
+              }
+            : order,
+      );
+      queryClient.invalidateQueries({ queryKey: accountOrderKeys.all });
+    },
+  });
+}
 
 export function adminOrdersQueryOptions(input: OrderListInput) {
   return queryOptions({

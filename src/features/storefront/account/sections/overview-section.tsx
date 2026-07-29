@@ -112,7 +112,7 @@ export function OverviewSection() {
           <div className="mt-6 divide-y divide-[var(--acc-line)] border-y border-[var(--acc-line)]">
             {[
               { label: "View all orders", action: () => navigate("orders") },
-              { label: "Start an eligible return", action: () => openModal("return") },
+              { label: "Start an eligible return", action: () => navigate("returns") },
               { label: "Manage addresses", action: () => navigate("addresses") },
               { label: "Contact support", action: () => navigate("support") },
             ].map((item) => (

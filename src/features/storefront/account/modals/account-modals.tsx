@@ -3,20 +3,11 @@
 import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { AccountModalId } from "../account-context";
 import { useAccountUi } from "../account-context";
 import { AcctButton, LabeledField, softClass } from "../components/account-primitives";
 import { AccountModal } from "./account-modal";
-import { ReturnWizardModal } from "./return-wizard";
 
 function Footer({ children }: { children: ReactNode }) {
   return (
@@ -134,269 +125,6 @@ function ChangeEmailModal({ open, onClose }: { open: boolean; onClose: () => voi
             Cancel
           </AcctButton>
           <AcctButton type="submit">Continue</AcctButton>
-        </Footer>
-      </form>
-    </AccountModal>
-  );
-}
-
-// ---- Add / edit address ------------------------------------------------
-
-const countryOptions = ["Nigeria", "Ghana", "United Kingdom"];
-
-function AddAddressModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { toast } = useAccountUi();
-  const recipientName = useValidatedValue((value) =>
-    requiredError(value, "Enter the recipient's name."),
-  );
-  const addressLine1 = useValidatedValue((value) => requiredError(value, "Enter an address."));
-  const city = useValidatedValue((value) => requiredError(value, "Enter a city."));
-  const stateRegion = useValidatedValue((value) =>
-    requiredError(value, "Enter a state or region."),
-  );
-  const phone = useValidatedValue((value) => requiredError(value, "Enter a phone number."));
-  const [country, setCountry] = useState(countryOptions[0]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    recipientName.touch();
-    addressLine1.touch();
-    city.touch();
-    stateRegion.touch();
-    phone.touch();
-    if (!event.currentTarget.checkValidity()) {
-      event.currentTarget.reportValidity();
-      return;
-    }
-    toast("Address saved");
-    onClose();
-  }
-
-  return (
-    <AccountModal
-      open={open}
-      onClose={onClose}
-      eyebrow="Delivery and billing"
-      title="Add or edit address."
-      size="2xl"
-      scroll
-    >
-      <form className="mt-6 grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit}>
-        <LabeledField
-          label="Recipient name"
-          htmlFor="add-address-recipient-name"
-          className="sm:col-span-2"
-          error={recipientName.error}
-          success={recipientName.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="add-address-recipient-name"
-            aria-invalid={Boolean(recipientName.error)}
-            isValid={recipientName.isValid}
-            inputSize="lg"
-            name="recipientName"
-            onBlur={recipientName.touch}
-            onChange={recipientName.onChange}
-            required
-            value={recipientName.value}
-          />
-        </LabeledField>
-        <LabeledField
-          label="Address line 1"
-          htmlFor="add-address-line-1"
-          className="sm:col-span-2"
-          error={addressLine1.error}
-          success={addressLine1.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="add-address-line-1"
-            aria-invalid={Boolean(addressLine1.error)}
-            isValid={addressLine1.isValid}
-            inputSize="lg"
-            name="addressLine1"
-            onBlur={addressLine1.touch}
-            onChange={addressLine1.onChange}
-            required
-            value={addressLine1.value}
-          />
-        </LabeledField>
-        <LabeledField label="Address line 2" htmlFor="add-address-line-2" className="sm:col-span-2">
-          <Input id="add-address-line-2" inputSize="lg" name="addressLine2" />
-        </LabeledField>
-        <LabeledField
-          label="City"
-          htmlFor="add-address-city"
-          error={city.error}
-          success={city.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="add-address-city"
-            aria-invalid={Boolean(city.error)}
-            isValid={city.isValid}
-            inputSize="lg"
-            name="city"
-            onBlur={city.touch}
-            onChange={city.onChange}
-            required
-            value={city.value}
-          />
-        </LabeledField>
-        <LabeledField
-          label="State / region"
-          htmlFor="add-address-state"
-          error={stateRegion.error}
-          success={stateRegion.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="add-address-state"
-            aria-invalid={Boolean(stateRegion.error)}
-            isValid={stateRegion.isValid}
-            inputSize="lg"
-            name="state"
-            onBlur={stateRegion.touch}
-            onChange={stateRegion.onChange}
-            required
-            value={stateRegion.value}
-          />
-        </LabeledField>
-        <LabeledField label="Postal code" htmlFor="add-address-postal-code">
-          <Input id="add-address-postal-code" inputSize="lg" name="postalCode" />
-        </LabeledField>
-        <LabeledField label="Country" htmlFor="add-address-country">
-          <Select
-            name="country"
-            onValueChange={(value) => {
-              if (value) setCountry(value);
-            }}
-            value={country}
-          >
-            <SelectTrigger id="add-address-country" className="h-11 w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {countryOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </LabeledField>
-        <LabeledField
-          label="Phone"
-          htmlFor="add-address-phone"
-          className="sm:col-span-2"
-          error={phone.error}
-          success={phone.isValid ? "Looks good." : null}
-        >
-          <Input
-            id="add-address-phone"
-            aria-invalid={Boolean(phone.error)}
-            isValid={phone.isValid}
-            inputSize="lg"
-            name="phone"
-            onBlur={phone.touch}
-            onChange={phone.onChange}
-            required
-            type="tel"
-            value={phone.value}
-          />
-        </LabeledField>
-        <label className="flex min-h-11 items-center gap-3 sm:col-span-2">
-          <input type="checkbox" className="size-5 accent-[var(--acc-ink)]" />
-          <span>Set as default shipping address</span>
-        </label>
-        <div className="flex flex-col-reverse gap-3 border-t border-[var(--acc-line)] pt-5 sm:col-span-2 sm:flex-row sm:justify-end">
-          <AcctButton variant="secondary" type="button" onClick={onClose}>
-            Cancel
-          </AcctButton>
-          <AcctButton type="submit">Save address</AcctButton>
-        </div>
-      </form>
-    </AccountModal>
-  );
-}
-
-// ---- Cancel item ---------------------------------------------------------
-
-const cancelReasons = ["Ordered by mistake", "Need to change delivery details", "Other"] as const;
-
-function CancelItemModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { toast } = useAccountUi();
-  const reason = useValidatedValue((value) => requiredError(value, "Choose a reason."));
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    reason.touch();
-    if (!event.currentTarget.checkValidity()) {
-      event.currentTarget.reportValidity();
-      return;
-    }
-    toast("Cancellation request submitted");
-    onClose();
-  }
-
-  return (
-    <AccountModal
-      open={open}
-      onClose={onClose}
-      eyebrow="Eligibility rechecked on submit"
-      eyebrowTone="oxblood"
-      title="Cancel this item?"
-      showClose={false}
-      size="xl"
-    >
-      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-        <div className={cn(softClass, "p-4")}>
-          <p className="font-semibold">Broken-in Leather Moto</p>
-          <p className="mt-1 text-sm text-[var(--acc-muted)]">Order #LS-1048 · ₦41,000</p>
-        </div>
-        <LabeledField
-          label="Reason"
-          htmlFor="cancel-item-reason"
-          error={reason.error}
-          success={reason.isValid ? "Reason recorded." : null}
-        >
-          <Select
-            name="reason"
-            onValueChange={(value) => {
-              if (value) {
-                reason.setValue(value);
-                reason.touch();
-              }
-            }}
-            value={reason.value}
-          >
-            <SelectTrigger
-              id="cancel-item-reason"
-              aria-invalid={Boolean(reason.error)}
-              className="h-11 w-full"
-            >
-              <span className="flex-1 truncate text-left">{reason.value || "Choose a reason"}</span>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {cancelReasons.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </LabeledField>
-        <p className="text-sm leading-6 text-[var(--acc-muted)]">
-          Refund timing and method must come from the payment backend.
-        </p>
-        <Footer>
-          <AcctButton variant="secondary" type="button" onClick={onClose}>
-            Keep item
-          </AcctButton>
-          <AcctButton variant="danger" type="submit">
-            Request cancellation
-          </AcctButton>
         </Footer>
       </form>
     </AccountModal>
@@ -558,30 +286,6 @@ export function AccountModals({
       {/* Change email */}
       <ChangeEmailModal open={modal === "email"} onClose={onClose} />
 
-      {/* Add / edit address */}
-      <AddAddressModal open={modal === "address"} onClose={onClose} />
-
-      {/* Delete address (confirm) */}
-      <AccountModal
-        open={modal === "delete-address"}
-        onClose={onClose}
-        title="Delete this address?"
-        showClose={false}
-        size="lg"
-      >
-        <p className="mt-4 leading-7 text-[var(--acc-muted)]">
-          This does not change an address recorded on an existing order.
-        </p>
-        <Footer>
-          <AcctButton variant="secondary" onClick={onClose}>
-            Keep address
-          </AcctButton>
-          <AcctButton variant="danger" onClick={success("Address deleted")}>
-            Delete
-          </AcctButton>
-        </Footer>
-      </AccountModal>
-
       {/* Add payment method */}
       <AccountModal
         open={modal === "payment"}
@@ -625,9 +329,6 @@ export function AccountModals({
           </AcctButton>
         </Footer>
       </AccountModal>
-
-      {/* Cancel item */}
-      <CancelItemModal open={modal === "cancel"} onClose={onClose} />
 
       {/* Change password */}
       <ChangePasswordModal open={modal === "password"} onClose={onClose} />
@@ -673,9 +374,6 @@ export function AccountModals({
           </AcctButton>
         </Footer>
       </AccountModal>
-
-      {/* Return wizard */}
-      <ReturnWizardModal open={modal === "return"} onClose={onClose} />
     </>
   );
 }

@@ -22,12 +22,8 @@ export type AccountRoute =
 export type AccountModalId =
   | "verify-email"
   | "email"
-  | "address"
-  | "delete-address"
   | "payment"
   | "remove-payment"
-  | "cancel"
-  | "return"
   | "password"
   | "revoke"
   | "signout-all";

@@ -1,6 +1,9 @@
 import "server-only";
 
+import { ApiError } from "@/lib/errors/api-error";
 import { type Prisma, prisma } from "@/lib/prisma";
+import type { ConsumerSession } from "@/modules/auth/server/session";
+import { applyOperationalStockMutation } from "@/modules/inventory/server/operational-stock";
 import type {
   AccountDeliveryAddress,
   AccountLineReviewState,
@@ -357,4 +360,112 @@ export async function getAccountOrder(
       occurredAt: event.occurred_at.toISOString(),
     })),
   };
+}
+
+export type OrderCancellationResult = { orderNumber: string };
+export type OrderCancellationInput = { reason?: string };
+
+function orderNotFoundError(): ApiError {
+  return new ApiError({
+    code: "ORDER_NOT_FOUND",
+    message: "The selected order could not be found.",
+    status: 404,
+  });
+}
+
+function orderNotCancellableError(): ApiError {
+  return new ApiError({
+    code: "ORDER_NOT_CANCELLABLE",
+    message:
+      "This order has already been paid or fulfilment has started. Contact support for help cancelling it.",
+    status: 409,
+  });
+}
+
+/**
+ * A customer may only self-cancel an order that has not been paid and has
+ * not entered fulfilment. Once paid or fulfilled, cancellation requires a
+ * staff-mediated refund/return workflow, so this command refuses rather than
+ * silently discarding payment or in-progress fulfilment work.
+ */
+export async function requestOrderCancellation(
+  identity: ConsumerSession,
+  orderNumber: string,
+  input: OrderCancellationInput = {},
+): Promise<OrderCancellationResult> {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.orders.findFirst({
+      where: { customer_id: identity.customerId, order_number: orderNumber },
+      select: {
+        id: true,
+        order_number: true,
+        payment_status: true,
+        fulfilment_status: true,
+        order_lines: {
+          select: {
+            id: true,
+            product_id: true,
+            variant_id: true,
+            quantity: true,
+            stock_state: true,
+          },
+        },
+      },
+    });
+    if (!order) throw orderNotFoundError();
+    if (order.payment_status !== "pending" || order.fulfilment_status !== "unfulfilled") {
+      throw orderNotCancellableError();
+    }
+
+    for (const line of order.order_lines) {
+      if (line.stock_state !== "reserved" && line.stock_state !== "committed") continue;
+
+      await applyOperationalStockMutation(tx, {
+        productId: line.product_id,
+        ...(line.variant_id ? { variantId: line.variant_id } : {}),
+        quantity: line.quantity,
+        kind: line.stock_state === "reserved" ? "release-reserved" : "release-committed",
+        actorProfileId: identity.authUserId,
+        note: `${order.order_number} cancelled by the customer.`,
+        relatedOrderId: order.id,
+        metadata: {
+          previousStatus: order.fulfilment_status,
+          nextStatus: "cancelled",
+          orderLineId: line.id,
+        },
+      });
+      await tx.order_lines.update({
+        where: { id: line.id },
+        data: { stock_state: "released" },
+      });
+    }
+
+    await tx.orders.update({
+      where: { id: order.id },
+      data: { payment_status: "cancelled", fulfilment_status: "cancelled", attention: null },
+    });
+    await tx.order_timeline_events.create({
+      data: {
+        order_id: order.id,
+        status: "cancelled",
+        actor_profile_id: identity.authUserId,
+        note: input.reason
+          ? `Customer cancellation request: ${input.reason}`
+          : "Cancelled by the customer before payment.",
+        metadata: { requestedBy: "customer" },
+      },
+    });
+    await tx.activity_events.create({
+      data: {
+        kind: "order",
+        title: `${order.order_number} cancelled by customer`,
+        detail: "Customer requested cancellation before fulfilment began.",
+        actor_profile_id: identity.authUserId,
+        order_id: order.id,
+        customer_id: identity.customerId,
+      },
+    });
+
+    return { orderNumber: order.order_number };
+  });
 }
