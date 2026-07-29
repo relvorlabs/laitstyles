@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   refundsFindFirst: vi.fn(),
   disputesFindFirst: vi.fn(),
   authorizationsFindFirst: vi.fn(),
+  exportFindMany: vi.fn(),
+  deleteArtifact: vi.fn(),
   transaction: vi.fn(),
   anonymize: vi.fn(),
 }));
@@ -27,12 +29,17 @@ vi.mock("@/lib/prisma", () => ({
     payment_refunds: { findFirst: mocks.refundsFindFirst },
     payment_disputes: { findFirst: mocks.disputesFindFirst },
     payment_authorizations: { findFirst: mocks.authorizationsFindFirst },
+    data_export_jobs: { findMany: mocks.exportFindMany },
     $transaction: mocks.transaction,
   },
 }));
 
 vi.mock("@/modules/account-lifecycle/server/anonymize", () => ({
   anonymizeCustomerData: mocks.anonymize,
+}));
+
+vi.mock("@/modules/account-lifecycle/server/artifacts", () => ({
+  deleteAccountExportArtifact: mocks.deleteArtifact,
 }));
 
 import {
@@ -61,6 +68,8 @@ function clearBlockers() {
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.deletionFindFirst.mockResolvedValue(null);
+  mocks.exportFindMany.mockResolvedValue([]);
+  mocks.deleteArtifact.mockResolvedValue(undefined);
   clearBlockers();
 });
 
@@ -264,9 +273,16 @@ describe("executeScheduledDeletion", () => {
         },
       }),
     );
+    mocks.exportFindMany.mockResolvedValue([
+      { storage_key: "laitstyles/account-exports/customer/export-1" },
+      { storage_key: null },
+    ]);
 
     const result = await executeScheduledDeletion("req-1", now);
 
+    expect(mocks.deleteArtifact).toHaveBeenCalledWith(
+      "laitstyles/account-exports/customer/export-1",
+    );
     expect(mocks.anonymize).toHaveBeenCalledWith(expect.anything(), identity.customerId);
     expect(result.status).toBe("completed");
   });

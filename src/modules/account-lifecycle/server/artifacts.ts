@@ -12,7 +12,12 @@ function configureCloudinary() {
       "Account export storage is not configured.",
     );
   }
-  cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true });
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  });
 }
 
 export async function storeAccountExportArtifact(input: {
@@ -62,4 +67,13 @@ export async function readAccountExportArtifact(storageKey: string, now: Date): 
     );
   }
   return response.text();
+}
+
+export async function deleteAccountExportArtifact(storageKey: string): Promise<void> {
+  configureCloudinary();
+  await cloudinary.uploader.destroy(storageKey, {
+    resource_type: "raw",
+    type: "authenticated",
+    invalidate: true,
+  });
 }

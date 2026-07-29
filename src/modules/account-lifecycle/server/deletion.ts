@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { anonymizeCustomerData } from "@/modules/account-lifecycle/server/anonymize";
+import { deleteAccountExportArtifact } from "@/modules/account-lifecycle/server/artifacts";
 import {
   addDays,
   DELETION_CANCELLATION_DAYS,
@@ -146,6 +147,16 @@ export async function executeScheduledDeletion(
       "New account activity blocked this scheduled deletion.",
       blocker,
     );
+  }
+
+  const exportArtifacts = await prisma.data_export_jobs.findMany({
+    where: { customer_id: request.customer_id, storage_key: { not: null } },
+    select: { storage_key: true },
+  });
+  for (const artifact of exportArtifacts) {
+    if (artifact.storage_key) {
+      await deleteAccountExportArtifact(artifact.storage_key);
+    }
   }
 
   const completed = await prisma.$transaction(async (tx) => {
