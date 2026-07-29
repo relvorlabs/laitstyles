@@ -1,13 +1,20 @@
 import { randomUUID } from "node:crypto";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { receiveProviderEvent } from "@/modules/operations/server/provider-events";
 import type { ProviderEventInput } from "@/modules/operations/types";
+import { assertDisposableAcceptanceDatabase } from "@/test/persistence-harness";
 
 // Real Postgres round-trips through a hosted pooler; the first connection in
 // this worker can exceed Vitest's 5s default, independent of the module's
 // own concurrency behaviour under test.
 vi.setConfig({ testTimeout: 20_000 });
+
+// These tests write directly through the real Prisma client (no fixtures),
+// so they must never run against a database that isn't disposable. See
+// src/modules/products/server/product-persistence.test.ts for the pattern.
+const acceptanceDatabaseEnabled = process.env.LAITSTYLES_ACCEPTANCE_DATABASE === "1";
+const describePersistence = acceptanceDatabaseEnabled ? describe : describe.skip;
 
 const createdIds: string[] = [];
 
@@ -28,7 +35,11 @@ function baseInput(overrides: Partial<ProviderEventInput> = {}): ProviderEventIn
   };
 }
 
-describe("receiveProviderEvent", () => {
+describePersistence("receiveProviderEvent", () => {
+  beforeAll(() => {
+    assertDisposableAcceptanceDatabase();
+  });
+
   it("persists a new event on first receipt", async () => {
     const input = baseInput();
     const result = await receiveProviderEvent(input);

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
 import {
   claimIdempotency,
@@ -7,11 +7,18 @@ import {
   failIdempotency,
   IdempotencyTerminalStateError,
 } from "@/modules/operations/server/idempotency";
+import { assertDisposableAcceptanceDatabase } from "@/test/persistence-harness";
 
 // Real Postgres round-trips through a hosted pooler; the first connection in
 // this worker can exceed Vitest's 5s default, independent of the module's
 // own concurrency behaviour under test.
 vi.setConfig({ testTimeout: 20_000 });
+
+// These tests write directly through the real Prisma client (no fixtures),
+// so they must never run against a database that isn't disposable. See
+// src/modules/products/server/product-persistence.test.ts for the pattern.
+const acceptanceDatabaseEnabled = process.env.LAITSTYLES_ACCEPTANCE_DATABASE === "1";
+const describePersistence = acceptanceDatabaseEnabled ? describe : describe.skip;
 
 const createdIds: string[] = [];
 
@@ -25,12 +32,28 @@ function scope(name: string): string {
   return `test.${name}.${randomUUID()}`;
 }
 
-describe("claimIdempotency / completeIdempotency", () => {
+describePersistence("claimIdempotency / completeIdempotency", () => {
+  beforeAll(() => {
+    assertDisposableAcceptanceDatabase();
+  });
+
   it("claims a new scope/key pair for the first request", async () => {
     const claim = await claimIdempotency(scope("checkout"), "key-1", "customer-1", "hash-a");
     createdIds.push(claim.id);
 
     expect(claim.state).toBe("claimed");
+  });
+
+  it("sets a future expires_at on a new claim so the orphan-reclaim sweep can query it directly", async () => {
+    const before = Date.now();
+    const claim = await claimIdempotency(scope("checkout"), "key-1-expiry", "customer-1", "hash-a");
+    createdIds.push(claim.id);
+
+    const record = await prisma.idempotency_records.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(record.expires_at).not.toBeNull();
+    expect(record.expires_at?.getTime()).toBeGreaterThan(before);
   });
 
   it("returns the completed response for an identical replay", async () => {
@@ -100,7 +123,7 @@ describe("claimIdempotency / completeIdempotency", () => {
   });
 });
 
-describe("completeIdempotency / failIdempotency terminal-state guard", () => {
+describePersistence("completeIdempotency / failIdempotency terminal-state guard", () => {
   it("no-ops a second completeIdempotency call and does not overwrite the original response", async () => {
     const claim = await claimIdempotency(scope("checkout"), "key-7", "customer-1", "hash-a");
     createdIds.push(claim.id);

@@ -39,6 +39,22 @@ function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+// No other TTL-style column in this codebase (data_export_jobs.expires_at,
+// holds.expires_at) shares this claim's semantics — those model a job's
+// artifact lifetime or a stock reservation window, not "how long can a stuck
+// in-progress claim block retries before it's abandoned". In the absence of
+// a repo precedent, this follows the widely-used idempotency-key convention
+// (e.g. Stripe's 24h idempotency key expiry): long enough that a legitimate
+// in-flight request (including a slow payout/webhook retry chain) is never
+// mistaken for abandoned, short enough that a truly stuck claim does not
+// block retries indefinitely once the orphan-reclaim sweep (a later plan)
+// exists to act on it.
+const IDEMPOTENCY_CLAIM_TTL_MS = 24 * 60 * 60 * 1_000;
+
+function nextExpiresAt(): Date {
+  return new Date(Date.now() + IDEMPOTENCY_CLAIM_TTL_MS);
+}
+
 // idempotency_records only has one hash column (request_hash), so the actor
 // and the caller-supplied input hash are folded into a single composite
 // value: a retried request must present both the same actor and the same
@@ -80,6 +96,7 @@ export async function claimIdempotency(
         idempotency_key: key,
         status: "in_progress",
         request_hash: requestHash,
+        expires_at: nextExpiresAt(),
       },
     });
     return { id: created.id, state: "claimed" };
@@ -116,7 +133,7 @@ export async function claimIdempotency(
   // for a retry, guarding the transition so only one concurrent retrier wins.
   const reclaimed = await prisma.idempotency_records.updateMany({
     where: { id: existing.id, status: "failed" },
-    data: { status: "in_progress", completed_at: null },
+    data: { status: "in_progress", completed_at: null, expires_at: nextExpiresAt() },
   });
   if (reclaimed.count === 1) {
     return { id: existing.id, state: "claimed" };

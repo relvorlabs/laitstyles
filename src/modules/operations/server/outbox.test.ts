@@ -1,12 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { enqueueOutbox } from "@/modules/operations/server/outbox";
+import { assertDisposableAcceptanceDatabase } from "@/test/persistence-harness";
 
 // Real Postgres round-trips through a hosted pooler; the first connection in
 // this worker can exceed Vitest's 5s default, independent of the module's
 // own concurrency behaviour under test.
 vi.setConfig({ testTimeout: 20_000 });
+
+// These tests write directly through the real Prisma client (no fixtures),
+// so they must never run against a database that isn't disposable. See
+// src/modules/products/server/product-persistence.test.ts for the pattern.
+const acceptanceDatabaseEnabled = process.env.LAITSTYLES_ACCEPTANCE_DATABASE === "1";
+const describePersistence = acceptanceDatabaseEnabled ? describe : describe.skip;
 
 const createdIds: string[] = [];
 
@@ -21,7 +28,11 @@ afterEach(async () => {
   createdIds.length = 0;
 });
 
-describe("enqueueOutbox", () => {
+describePersistence("enqueueOutbox", () => {
+  beforeAll(() => {
+    assertDisposableAcceptanceDatabase();
+  });
+
   it("persists a pending message through the supplied transaction client", async () => {
     const topic = `test.topic.${randomUUID()}`;
     const { id } = await prisma.$transaction(
