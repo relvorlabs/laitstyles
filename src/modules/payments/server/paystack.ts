@@ -22,12 +22,26 @@ export {
 export {
   paystackAuthorizationSchema,
   paystackCustomerSchema,
+  paystackListRefundsResponseSchema,
   paystackListTransactionsResponseSchema,
   paystackPaginationSchema,
   paystackProviderIdSchema,
+  paystackRefundResponseSchema,
+  paystackRefundSchema,
   paystackSuccessEnvelope,
   paystackTransactionSchema,
 } from "@/modules/payments/server/paystack/schemas";
+export {
+  createRefund,
+  type CreateRefundInput,
+  fetchRefund,
+  listRefunds,
+  type ListRefundsInput,
+  mapPaystackRefund,
+  type PaystackRefund,
+  type PaystackRefundPagination,
+  type PaystackRefundStatus,
+} from "@/modules/payments/server/paystack/refunds";
 export {
   fetchTransaction,
   initializeTransaction,
