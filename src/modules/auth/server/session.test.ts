@@ -181,6 +181,37 @@ describe("getStaffAccess", () => {
     });
   });
 
+  it("allows the persisted owner role to initiate transfers", async () => {
+    mocks.profileFindUnique.mockResolvedValue(activeStaff("admin"));
+
+    await expect(getStaffAccess("finance:transfer")).resolves.toEqual({
+      ok: true,
+      role: "admin",
+    });
+  });
+
+  it("uses the persisted manager role instead of editable user metadata", async () => {
+    mocks.getClaims.mockResolvedValue({
+      data: {
+        claims: {
+          sub: "user-a",
+          email: "manager@example.com",
+          user_metadata: { role: "admin" },
+        },
+      },
+    });
+    mocks.profileFindUnique.mockResolvedValue(activeStaff("manager"));
+
+    await expect(getStaffAccess("finance:read")).resolves.toEqual({
+      ok: true,
+      role: "manager",
+    });
+    await expect(getStaffAccess("finance:transfer")).resolves.toEqual({
+      ok: false,
+      reason: "missing-capability",
+    });
+  });
+
   it("denies consumers with missing-capability", async () => {
     mocks.profileFindUnique.mockResolvedValue(activeConsumer());
 
