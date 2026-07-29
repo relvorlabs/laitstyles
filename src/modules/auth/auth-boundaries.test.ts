@@ -41,6 +41,29 @@ describe("auth ownership boundaries", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps the trusted Supabase admin client out of the auth security UI", () => {
+    const violations = sourceFiles(authUiRoot)
+      .filter((file) => readFileSync(file, "utf8").includes("@/lib/supabase/admin"))
+      .map((file) => relative(root, file).replaceAll("\\", "/"));
+
+    expect(violations).toEqual([]);
+  });
+
+  it("never exposes the trusted Supabase admin client from account security Route Handlers", () => {
+    // Account security (email/password/MFA/session-management) never needs the
+    // secret-key-backed admin client: every operation runs against the caller's
+    // own authenticated server session. See
+    // docs/architecture-migration/account-security-supabase-contract.md §5.
+    const securityRoot = join(root, "src/app/api/v1/account/security");
+    const violations = existsSync(securityRoot)
+      ? sourceFiles(securityRoot)
+          .filter((file) => readFileSync(file, "utf8").includes("@/lib/supabase/admin"))
+          .map((file) => relative(root, file).replaceAll("\\", "/"))
+      : [];
+
+    expect(violations).toEqual([]);
+  });
+
   it("keeps the auth module structure concrete rather than aspirational", () => {
     const required = [
       "src/app/auth/email/route.ts",
