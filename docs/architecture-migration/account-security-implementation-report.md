@@ -55,9 +55,9 @@ No Prisma schema/migration, package manifest, lockfile, service-role boundary, o
   23 files, 108 tests, all passed. Earlier repository-default runs encountered worker-start and
   5-second UI-test timeouts under the degraded runtime; the UI file passed 5/5 in isolation with the
   same expanded timeout.
-- `pnpm typecheck` — passed with zero TypeScript errors before the final Biome-only import-order and
-  line-wrap repairs. Two post-repair no-output reruns exceeded 3-minute and 6-minute command limits;
-  those timeouts are not reported as passes.
+- `pnpm typecheck` — the final exact-head retry passed with zero TypeScript errors in 505.5 seconds.
+  Two shorter post-repair attempts had previously timed out without diagnostics, illustrating the
+  degraded validator runtime; the completed run is the authoritative result.
 - Architecture sub-gates before the unchanged invitation route: module exports 0 errors;
   architecture 0 errors / 2 size warnings; error-validation 0 errors; layout/provider passed.
 - `pnpm biome --changed --since=5f032648 --max-diagnostics=200` — 39 changed files checked with zero
