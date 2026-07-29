@@ -1,0 +1,54 @@
+<h2>How should Categories &amp; Collections live in Admin?</h2>
+<p class="subtitle">Choose the workspace structure that feels clearest for daily catalogue management. Category image upload is shown in every direction; collections stay text-led unless we later decide otherwise.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#f4efe6;color:#211d18;min-height:270px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><small style="letter-spacing:.12em">CATALOGUE STUDIO</small><div style="font-family:serif;font-size:22px">Groups &amp; stories</div></div>
+        <button class="mock-button">New category</button>
+      </div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:10px">
+        <div style="border:1px solid #d8cdbd;border-radius:10px;padding:10px;font-size:11px">
+          <b>Categories</b><div style="margin-top:8px;color:#766b5e">Collections</div><div style="margin-top:22px;color:#766b5e">24 groups<br>186 products</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+          <div style="border:1px solid #d8cdbd;border-radius:10px;overflow:hidden"><div style="height:72px;background:linear-gradient(135deg,#392e27,#b58b68)"></div><div style="padding:8px"><b>Jackets</b><br><small>38 products · Live</small></div></div>
+          <div style="border:1px solid #d8cdbd;border-radius:10px;overflow:hidden"><div style="height:72px;background:linear-gradient(135deg,#12293e,#89a5b5)"></div><div style="padding:8px"><b>Denim</b><br><small>29 products · Live</small></div></div>
+          <div style="border:1px dashed #b8aa98;border-radius:10px;display:grid;place-items:center;min-height:104px"><small>Upload cover<br>+ Add category</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A — Unified taxonomy studio</h3><p>One dedicated responsive route with a category/collection rail, image-led category cards, search, usage counts, ordering, and an editor panel.</p></div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#f7f3ed;color:#211d18;min-height:270px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #d8cdbd;padding-bottom:10px">
+        <div><small style="letter-spacing:.12em">CATALOGUE / CATEGORIES</small><div style="font-family:serif;font-size:24px">Visual departments</div></div>
+        <button class="mock-button">Create</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-top:12px">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+          <div style="height:118px;border-radius:12px;background:linear-gradient(145deg,#2c211a 45%,#c5a083);color:white;padding:10px;display:flex;align-items:end"><b>Outerwear · 42</b></div>
+          <div style="height:118px;border-radius:12px;background:linear-gradient(145deg,#17334a 45%,#9ab4c3);color:white;padding:10px;display:flex;align-items:end"><b>Denim · 29</b></div>
+        </div>
+        <div style="border:1px solid #d8cdbd;border-radius:12px;padding:12px"><b>Selected category</b><div class="placeholder" style="height:70px;margin:9px 0">Image upload</div><div class="mock-input">Outerwear</div><button class="mock-button" style="margin-top:8px">Save changes</button></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B — Separate editorial pages</h3><p>Categories and Collections each get their own route and purpose-built design. Strongest visual identity, but users switch pages to manage both.</p></div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#22201e;color:#f8f2ea;min-height:270px">
+      <div style="opacity:.45;border-radius:10px;background:#423d38;height:230px;padding:14px">Inventory remains visible behind</div>
+      <div style="position:relative;margin:-205px auto 0;width:88%;height:205px;background:#faf6ef;color:#211d18;border-radius:14px;padding:12px;box-shadow:0 18px 45px #0008">
+        <div style="display:flex;justify-content:space-between"><div><small>MANAGE GROUPS</small><br><b style="font-family:serif;font-size:20px">Catalogue structure</b></div><span>×</span></div>
+        <div style="display:grid;grid-template-columns:92px 1fr;gap:8px;margin-top:10px"><div style="border-right:1px solid #ddd;padding:8px"><b>Categories</b><br><small>Collections</small></div><div><div class="mock-input">Search groups</div><div style="margin-top:8px;border:1px solid #ddd;border-radius:8px;padding:9px"><b>Jackets</b><br><small>Image · 38 products · Edit</small></div><div style="margin-top:6px;border:1px solid #ddd;border-radius:8px;padding:9px"><b>Denim</b><br><small>Image · 29 products · Edit</small></div></div></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C — Full-screen management overlay</h3><p>Keeps users inside Inventory and upgrades the current dialog into a mobile-first sheet/full-screen manager. Fastest workflow, less room for rich merchandising.</p></div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:18px">My recommendation is <strong>A</strong>: it gives both taxonomies a proper home, keeps their relationship visible, and adapts cleanly from desktop rail to mobile tabs without turning Inventory into another nested-dialog workflow.</p>

@@ -1,0 +1,2 @@
+[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
+$ tsc --noEmit --pretty false --incremental false

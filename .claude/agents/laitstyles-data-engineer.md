@@ -15,4 +15,4 @@ Own `prisma/**`, `supabase/**`, and the `lib/prisma` / `lib/supabase` wiring. Pr
 authority for schema, migrations, relations, and generated types; keep the three inventory
 models representable without the legacy quantity-one assumption; treat stock/ownership/payment
 transitions as concurrency-sensitive at the constraint level. Supabase is for auth/session
-only. Hand generated types and auth primitives to the domain-engineer.
+only and no supabase cli we only use prisma cli. Hand generated types and auth primitives to the domain-engineer.

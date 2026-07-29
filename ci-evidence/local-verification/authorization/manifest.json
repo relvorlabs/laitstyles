@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "kind": "gate-suite",
+  "repository": null,
+  "workflow": null,
+  "runId": null,
+  "runAttempt": null,
+  "job": null,
+  "sha": null,
+  "ref": null,
+  "suite": "authorization",
+  "project": null,
+  "startedAt": "2026-07-28T17:27:39.297Z",
+  "completedAt": "2026-07-28T17:27:53.235Z",
+  "status": "failed",
+  "results": [
+    {
+      "name": "auth-preflight",
+      "suite": "authorization",
+      "project": null,
+      "required": true,
+      "status": "failed",
+      "command": "pnpm auth:local:setup",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13923,
+      "logPath": "C:\\Users\\olaitan\\Dev\\laitstyles\\ci-evidence\\local-verification\\authorization\\auth-preflight.log",
+      "failureTail": "[WARN] Unsupported engine: wanted: {\"node\":\"25.x\"} (current: {\"node\":\"v26.5.0\",\"pnpm\":\"11.13.0\"})\n$ tsx scripts/auth/setup-local-auth.mjs\nfile:///C:/Users/olaitan/Dev/laitstyles/scripts/auth/setup-local-auth.mjs:23\n  throw new Error(\n        ^\n\nError: Pre-provisioned auth test environment is incomplete: missing DATABASE_URL, DIRECT_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY\n    at file:///C:/Users/olaitan/Dev/laitstyles/scripts/auth/setup-local-auth.mjs:23:9\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.5.0\n[ELIFECYCLE] Command failed with exit code 1.\n"
+    }
+  ]
+}

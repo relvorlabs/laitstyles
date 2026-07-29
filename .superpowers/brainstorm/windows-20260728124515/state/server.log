@@ -1,0 +1,77 @@
+{"type":"server-started","port":60152,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:60152/?key=ca2148cb37eacd05a980f33d577290e5c99e27fb1cd6262c92cb10ab2d4fc5c8","screen_dir":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content","state_dir":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\state","idle_timeout_ms":14400000}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"source":"user-event","type":"click","text":"CATALOGUE STUDIOGroups & stories\n        New category\n      \n      \n        \n          CategoriesCollections24 groups186 products\n        \n        \n          Jackets38 products · Live\n          Denim29 products · Live\n          Upload cover+ Add category\n        \n      \n    \n    A — Unified taxonomy studioOne dedicated responsive route with a category/collection rail, image-led category cards, search, usage counts, ordering, and an editor panel.","choice":"a","id":null,"timestamp":1785239198949}
+{"source":"user-event","type":"click","text":"CATALOGUE / CATEGORIESVisual departments\n        Create\n      \n      \n        \n          Outerwear · 42\n          Denim · 29\n        \n        Selected categoryImage uploadOuterwearSave changes\n      \n    \n    B — Separate editorial pagesCategories and Collections each get their own route and purpose-built design. Strongest visual identity, but users switch pages to manage both.","choice":"b","id":null,"timestamp":1785239202755}
+{"source":"user-event","type":"click","text":"CATALOGUE / CATEGORIESVisual departments\n        Create\n      \n      \n        \n          Outerwear · 42\n          Denim · 29\n        \n        Selected categoryImage uploadOuterwearSave changes\n      \n    \n    B — Separate editorial pagesCategories and Collections each get their own route and purpose-built design. Strongest visual identity, but users switch pages to manage both.","choice":"b","id":null,"timestamp":1785239265765}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"source":"user-event","type":"click","text":"Revise Collections","choice":"collection-revise","id":null,"timestamp":1785239506995}
+{"source":"user-event","type":"click","text":"Revise Collections","choice":"collection-revise","id":null,"timestamp":1785239522840}
+{"source":"user-event","type":"click","text":"Revise Collections","choice":"collection-revise","id":null,"timestamp":1785239523494}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-added","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\category-workspace-desktop-v2.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-desktop-v3.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\collection-workspace-editorial-v5.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\import-draft-session-v7.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-collection-feedback-v4.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\taxonomy-layout-options.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-import-contract-v6.html"}
+{"type":"screen-updated","file":"C:\\Users\\olaitan\\Dev\\laitstyles\\.superpowers\\brainstorm\\windows-20260728124515\\content\\waiting-for-final-design-v8.html"}

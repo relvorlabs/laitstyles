@@ -1,0 +1,820 @@
+
+ RUN  v4.1.10 C:/Users/olaitan/Dev/laitstyles
+      Coverage enabled with v8
+
+ ✓ src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > detects alias and relative production fixture imports 53ms
+ ✓ src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > classifies executable imports without treating comments as dependencies 76ms
+ ✓ src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > follows relative and re-exported Server Action imports 27ms
+ ✓ src/modules/inventory/client/api.test.ts > inventory browser API > sends every result-affecting URL value and returns server metadata 266ms
+ × src/modules/inventory/client/api.test.ts > inventory browser API > posts stock adjustments through the versioned inventory boundary 63ms
+   → expected { method: 'POST', …(2) } to match object { method: 'POST', headers: { …(1) } }
+(1 matching property omitted from actual)
+ ✓ src/modules/inventory/client/api.test.ts > inventory browser API > maps adjustment conflict envelopes back to the domain error contract 4ms
+ × src/modules/auth/schema.test.ts > password auth schemas > trims normalized identity fields 78ms
+   → [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "confirmPassword"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+ ✓ src/modules/auth/schema.test.ts > password auth schemas > returns fixed field copy for malformed sign-in data 16ms
+ × src/modules/auth/schema.test.ts > password auth schemas > requires names, terms, and an eight-character sign-up password 58ms
+   → expected { …(5) } to deeply equal { …(4) }
+ ✓ src/modules/auth/schema.test.ts > password auth schemas > normalizes recovery email input 2ms
+ ✓ src/modules/auth/schema.test.ts > password auth schemas > requires recovered passwords to match 12ms
+ ✓ src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > does not import server-only modules from client components 3158ms
+ × src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > keeps infrastructure, components and domain modules from importing upward 1015ms
+   → expected [ Array(1) ] to deeply equal []
+ ✓ src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > keeps compatibility exceptions exact, immutable, owned and scheduled 7ms
+ × src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > keeps production code free of seed, AdminStore, repository and fixture ownership 5061ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ✓ src/app/api/v1/admin/inventory/route.test.ts > /api/v1/admin/inventory > returns the standard authorization error envelope 74ms
+ ✓ src/app/api/v1/admin/inventory/route.test.ts > /api/v1/admin/inventory > validates every inventory query value before reading the database 58ms
+ ✓ src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > keeps every migrated admin consumer off legacy data ownership 873ms
+ × src/app/api/v1/admin/inventory/route.test.ts > /api/v1/admin/inventory > rejects an unsupported page size before any domain query 78ms
+   → expected 422 to be 400 // Object.is equality
+ × src/features/storefront/shared/storefront-client-state-persistence.test.ts > storefront client-state persistence failures > does not clean legacy keys when the canonical write fails 52ms
+   → expected null not to be null
+ ✓ src/features/storefront/shared/storefront-client-state-persistence.test.ts > storefront client-state persistence failures > keeps the canonical snapshot when legacy cleanup is blocked 3ms
+ ✓ src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > keeps the removed seed, store, repository and reducer implementations deleted 595ms
+ ✓ src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > keeps canonical Prisma/API module ownership present for every Phase 5 domain 201ms
+ ✓ src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > does not restore browser-authoritative paid, cash, POS or transfer controls 234ms
+ ✓ src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > returns the standard authorization error envelope 67ms
+ × src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > validates the body before calling the domain command 105ms
+   → expected 422 to be 400 // Object.is equality
+ ✓ src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > translates adjustment conflicts into a stable API error 12ms
+ ✓ src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > returns the adjusted balance and movement with private no-store caching 76ms
+ ✓ src/stores/storefront-state-boundary.test.ts > storefront browser-state ownership > recognizes static, re-exported, dynamic and required module edges 33ms
+ ✓ src/stores/storefront-state-boundary.test.ts > storefront browser-state ownership > allows only the approved focused storefront stores 43ms
+ ✓ src/modules/products/product-module-boundaries.test.ts > Products module boundaries > resolves default, named, type and re-exported bindings without checking packages 34ms
+ ✓ src/modules/products/product-module-boundaries.test.ts > Products module boundaries > reports exact missing internal modules and exports 3ms
+ ✓ src/stores/storefront-state-boundary.test.ts > storefront browser-state ownership > keeps Zustand store definitions inside src/stores 8454ms
+ ✓ src/stores/storefront-state-boundary.test.ts > storefront browser-state ownership > keeps persistent records and complete products out of browser stores 48ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects an unmarked database 16ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > accepts a marked local disposable database 4ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > accepts a marked remote database with an explicit disposable host and name 3ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects a marked database on a host that was not explicitly allowed 3ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects an unsafe Prisma direct URL even when the runtime URL is disposable 3ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects a marked database without a disposable database name 2ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects malformed URLs without echoing credentials 3ms
+ ✓ src/test/persistence-harness.test.ts > acceptance database guard > rejects a fresh-process probe before spawning when the marker is absent 10ms
+ ✓ src/test/persistence-harness.test.ts > persistence CLI > fails safely before connecting when the disposable marker is absent 5828ms
+ ✓ src/modules/products/product-module-boundaries.test.ts > Products module boundaries > keeps production consumers off retired product and catalogue paths 11920ms
+ ✓ src/modules/products/server/editor-ownership.test.ts > product and inventory domain ownership > keeps production modules independent from legacy admin contracts 15709ms
+ ✓ src/modules/products/server/editor-ownership.test.ts > product and inventory domain ownership > keeps legacy editor files compatibility-only 16ms
+ ✓ src/stores/storefront-state-boundary.test.ts > storefront browser-state ownership > keeps catalogue URL mutation inside the Products navigation hook 9107ms
+ ✓ src/modules/products/product-module-boundaries.test.ts > Products module boundaries > keeps the Products domain independent of app, feature and top-level server layers 1400ms
+ ✓ src/modules/products/product-module-boundaries.test.ts > Products module boundaries > keeps browser catalogue transport on the versioned Products API 33ms
+ ✓ src/modules/products/server/storefront/type-ownership.test.ts > storefront product read-model ownership > keeps Product server, client and contracts on module-owned storefront types 184ms
+ ✓ src/modules/products/server/storefront/type-ownership.test.ts > storefront product read-model ownership > allows the compatibility type facade only as a type-only UI dependency 420ms
+ ✓ src/modules/products/server/storefront/type-ownership.test.ts > storefront product read-model ownership > keeps the compatibility storefront type path export-only 5ms
+ ✓ src/modules/auth/auth-boundaries.test.ts > auth ownership boundaries > keeps Supabase provider access out of app/auth adapters 35ms
+ ✓ src/modules/auth/auth-boundaries.test.ts > auth ownership boundaries > keeps client auth UI away from server-only auth modules 14ms
+ ✓ src/modules/auth/auth-boundaries.test.ts > auth ownership boundaries > keeps the trusted Supabase admin client server-only 744ms
+ ✓ src/modules/auth/auth-boundaries.test.ts > auth ownership boundaries > keeps the auth module structure concrete rather than aspirational 75ms
+ ✓ src/modules/auth/auth-boundaries.test.ts > auth ownership boundaries > keeps browser routes as thin auth-module adapters 63ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > checks only added American catalogue debt and ignores packages and retained database fields 31ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > does not retain retired providers or compatibility modules 16ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > does not import a retired storefront state path 4326ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > keeps the storefront catalogue contract British and module-owned 108ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > keeps only storefront-specific state in the storefront client boundary 6ms
+ ✓ src/lib/boundaries/storefront-state-boundary.test.ts > storefront state boundaries > persists only minimal intent fields 2ms
+ ✓ src/lib/http/server.test.ts > handleApiRequest > returns the standard success envelope and request ID 57ms
+ ✓ src/lib/http/server.test.ts > handleApiRequest > omits meta when the operation does not provide it 18ms
+ ✓ src/lib/http/server.test.ts > handleApiRequest > maps expected API errors without exposing internals 14ms
+ ✓ src/lib/http/server.test.ts > handleApiRequest > maps Zod issues to stable field errors 59ms
+ ✓ src/lib/http/server.test.ts > handleApiRequest > sanitizes and correlates unexpected failures 12ms
+ ✓ src/app/api/v1/admin/orders/offline-sales/route.test.ts > POST /api/v1/admin/orders/offline-sales > requires the sales:record capability before creating a draft 200ms
+ ✓ src/app/api/v1/admin/orders/offline-sales/route.test.ts > POST /api/v1/admin/orders/offline-sales > requires an email for a new customer before Paystack initialization 51ms
+ ✓ src/app/api/v1/admin/orders/offline-sales/route.test.ts > POST /api/v1/admin/orders/offline-sales > rejects cash and client-declared paid status from legacy clients 13ms
+ ✓ src/app/api/v1/admin/orders/offline-sales/route.test.ts > POST /api/v1/admin/orders/offline-sales > returns a stable unavailable response without creating an untracked payment 60ms
+ ✓ src/app/api/v1/admin/orders/offline-sales/route.test.ts > POST /api/v1/admin/orders/offline-sales > returns the persisted pending order and recoverable one-time checkout 88ms
+ ✓ src/app/api/v1/admin/returns/route.test.ts > GET /api/v1/admin/returns > requires returns:read before querying persisted records 62ms
+ ✓ src/app/api/v1/admin/returns/route.test.ts > GET /api/v1/admin/returns > parses every result-affecting URL value and returns pagination metadata 88ms
+ ✓ src/modules/payments/server/paystack.test.ts > initializePaystackTransaction > fails before making a request when the secret key is absent 26ms
+ ✓ src/modules/payments/server/paystack.test.ts > initializePaystackTransaction > initializes from the server and returns the persisted checkout fields 316ms
+ ✓ src/modules/payments/server/paystack.test.ts > initializePaystackTransaction > surfaces a stable initialization failure for an upstream rejection 7ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the integer rating 1 31ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the integer rating 2 2ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the integer rating 3 1ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the integer rating 4 4ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the integer rating 5 3ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > requires callers to normalize form ratings to a number 6ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > rejects the invalid rating 0 2ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > rejects the invalid rating 6 2ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > rejects the invalid rating 1.5 24ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > rejects the invalid rating not-a-rating 15ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > trims the optional title and normalizes an empty one 12ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts a 120-character title and rejects a 121-character title 2ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > trims the body and enforces the inclusive 20-2000 character limits 13ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the runs_small fit value 1ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the true_to_size fit value 1ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the runs_large fit value 1ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > accepts the not_applicable fit value 119ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > rejects fit values outside the review enum 11ms
+ ✓ src/modules/reviews/schema.test.ts > reviewInputSchema > exposes inferred input fields to typed action errors 2ms
+ ✓ src/lib/http/client.test.ts > apiRequest > returns a typed success envelope and requests JSON 488ms
+ ✓ src/lib/http/client.test.ts > apiRequest > accepts a valid success envelope without meta 15ms
+ ✓ src/lib/http/client.test.ts > apiRequest > throws a typed client error for API failures 16ms
+ ✓ src/lib/http/client.test.ts > apiRequest > maps network failures without swallowing query cancellation 6ms
+ ✓ src/lib/http/client.test.ts > apiRequest > rejects malformed JSON responses 3ms
+ ✓ src/lib/http/client.test.ts > apiRequest > rejects successful responses that do not match the envelope 5ms
+ ✓ src/app/api/v1/admin/products/route.test.ts > /api/v1/admin/products > returns the standard authorization error envelope 294ms
+ ✓ src/app/api/v1/admin/products/route.test.ts > /api/v1/admin/products > parses pagination and returns the paginated success envelope 64ms
+ ✓ src/app/api/v1/admin/products/route.test.ts > /api/v1/admin/products > rejects a create request that includes an existing product id 146ms
+ ✓ src/app/api/v1/admin/products/route.test.ts > /api/v1/admin/products > creates through the domain command and invalidates both product slugs 12ms
+ ✓ src/app/api/v1/admin/assets/sign/route.test.ts > POST /api/v1/admin/assets/sign > returns the top-level signature required by next-cloudinary 93ms
+ ✓ src/app/api/v1/admin/assets/sign/route.test.ts > POST /api/v1/admin/assets/sign > keeps the safe API error envelope when signing is unavailable 21ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'order_line_not_found' for an ineligible order line 19ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'awaiting_delivery' for an ineligible order line 5ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'cancelled' for an ineligible order line 72ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'fully_returned' for an ineligible order line 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'fully_refunded' for an ineligible order line 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > returns 'already_reviewed' for an ineligible order line 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > does not unlock the unfulfilled fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > does not unlock the processing fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > does not unlock the ready_for_dispatch fulfilment state 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > does not unlock the dispatched fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > does not unlock the partially_cancelled fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > accepts delivery evidence for the partially_delivered fulfilment state 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > accepts delivery evidence for the delivered fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > accepts delivery evidence for the partially_returned fulfilment state 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > requires both a delivered quantity and timestamp 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > requires both a delivered quantity and timestamp 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > keeps a partially delivered line eligible 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > keeps a partially returned line eligible while a delivered unit remains 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > fails safely when fulfilment or return data indicates a full return 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > fails safely when fulfilment or return data indicates a full return 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > fails safely when fulfilment or return data indicates a full return 10ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > keeps a partially refunded delivered line eligible 20ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > includes the exact end of day 90 and expires immediately afterward 35ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > evaluates repeat purchase lines independently 9ms
+ ✓ src/modules/reviews/server/policy.test.ts > getReviewEligibility > uses line-state precedence so stale pages cannot expose a weaker reason 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether pending can transition to pending 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether pending can transition to published 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether pending can transition to rejected 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether pending can transition to withdrawn 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether published can transition to pending 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether published can transition to published 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether published can transition to rejected 1ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether published can transition to withdrawn 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether rejected can transition to pending 2ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether rejected can transition to published 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether rejected can transition to rejected 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether rejected can transition to withdrawn 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether withdrawn can transition to pending 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether withdrawn can transition to published 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether withdrawn can transition to rejected 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > canTransitionReview > reports whether withdrawn can transition to withdrawn 0ms
+ ✓ src/modules/reviews/server/policy.test.ts > review access types > discriminates session failures from line eligibility while sharing canonical reasons 4ms
+ ✓ src/features/storefront/home/components/category-card.test.tsx > renders the existing card-surface fallback when a category has no image 1777ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > maps the shared create-account fields to Supabase metadata 31ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > provisions the Prisma consumer account before reporting immediate signup success 4ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > starts Google OAuth with the deterministic callback and return surface 4ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > exchanges the callback code and provisions the consumer account 3ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > maps provider cancellation back to the originating storefront dialog 3ms
+ ✓ src/modules/auth/server/authenticate-provider.test.ts > auth provider orchestration > maps OAuth start failures back to staff sign-in instead of the generic error page 2ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > scopes the order list to its customer and returns an empty list 93ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > counts only unreviewed eligible lines in a mixed order 15ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > queries an order by customer and public number in the same predicate 5ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > serializes Decimal and Date values and aggregates completed return quantities 11ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > keeps purchase snapshots and imagery for an archived historical product 4ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > maps every review lifecycle and preserves a published review after a later return 4ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > does not mark a migrated published review as returned when both delivery and returns are zero 2ms
+ ✓ src/server/commerce/orders/account-orders.test.ts > account order reads > returns an allow-listed DTO with no costs, notes, profile IDs, or internal ownership IDs 3ms
+ ✓ src/app/api/v1/admin/holds/route.test.ts > GET /api/v1/admin/holds > requires holds:read before querying persisted records 57ms
+ ✓ src/app/api/v1/admin/holds/route.test.ts > GET /api/v1/admin/holds > parses all result-affecting URL values and returns pagination metadata 54ms
+ ✓ src/lib/admin/settings/settings-schema.test.ts > Store settings validation > accepts the deterministic prototype defaults 42ms
+ ✓ src/lib/admin/settings/settings-schema.test.ts > Store settings validation > normalizes numeric values captured from HTML controls 4ms
+ ✓ src/lib/admin/settings/settings-schema.test.ts > Store settings validation > returns business-language issues for invalid identity and selling values 28ms
+ ✓ src/lib/admin/settings/settings-schema.test.ts > Store settings validation > keeps at least one delivery option and payment method available 6ms
+ ✓ src/lib/admin/settings/settings-schema.test.ts > Store settings validation > requires pay on delivery to agree across selling and payment settings 10ms
+ ✓ src/modules/products/ui/admin/import/product-import-session.test.tsx > ProductImportSession > keeps each imported product's editor values while switching queue items 4096ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > requests the paginated versioned product collection with cancellation 282ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > returns null only for a typed product-not-found response 39ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > uses POST for create and PATCH for update 16ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > maps API field errors back to product-editor issues 11ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > sends richer taxonomy updates and atomic reorder requests 15ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > sends the complete atomic Collection create contract 6ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > loads every product page so exact collection membership is never truncated 9ms
+ ✓ src/modules/products/client/api.test.ts > product browser API > maps taxonomy update and reorder API failures to typed Results 5ms
+ ✓ src/modules/products/client/api.test.ts > taxonomy mutation cache policy > invalidates all dependent queries after successful 'create' 17ms
+ ✓ src/modules/products/client/api.test.ts > taxonomy mutation cache policy > invalidates all dependent queries after successful 'update' 6ms
+ ✓ src/modules/products/client/api.test.ts > taxonomy mutation cache policy > invalidates all dependent queries after successful 'delete' 5ms
+ ✓ src/modules/products/client/api.test.ts > taxonomy mutation cache policy > invalidates all dependent queries after successful 'reorder' 8ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > allows internal relative paths 12ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > rejects external and protocol-relative redirects 3ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > falls back for missing values 1ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > prefers the configured public auth origin and strips paths 2ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > carries only an allow-listed error code and safe return path 3ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > adds a safe error state to the originating auth surface 2ms
+ ✓ src/modules/auth/server/redirects.test.ts > auth redirect safety > rejects an external origin surface before adding error state 17ms
+ ✓ src/modules/auth/server/redirects.test.ts > getRequestOrigin > prefers the live request host over a stale configured origin 16ms
+ ✓ src/modules/auth/server/redirects.test.ts > getRequestOrigin > falls back to the configured origin when no request headers are present 8ms
+ ✓ src/modules/auth/server/redirects.test.ts > getRequestOrigin > falls back to the local auth origin when neither headers nor env are present 2ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > returns a safe authentication error when the visitor is not a consumer 382ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > does not disguise unexpected session or database failures as an authentication error 13ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > requires a linked customer record 3ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > allow-lists identifiers and validated review fields from FormData 42ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > returns field-level validation errors without calling the repository 15ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > turns repository eligibility failures into typed customer copy 4ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > revalidates owned order and public product paths before redirecting on success 5ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > returns expected withdrawal auth failures instead of throwing 3ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > rejects malformed withdrawal identifiers before the repository 7ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > returns fixed copy when the review cannot be withdrawn 2ms
+ ✓ src/app/(storefront)/account/orders/[orderNumber]/items/[orderLineId]/review/actions.test.ts > review Server Actions > withdraws by owned identifiers and redirects with a withdrawal notice 5ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 0 132ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 1 93ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 2 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 3 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 4 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 5 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 6 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 7 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 8 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 9 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 10 8ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 11 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 12 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 13 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 14 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewStateCopy > returns customer-facing copy for 15 1ms
+ ✓ src/features/storefront/account/orders/order-state-copy.test.ts > reviewLifecycleMarkerCopy > uses honest, non-punitive public labels 2ms
+ ✓ src/modules/inventory/server/stock-write.test.ts > writeProductStockAndVariants > preserves reserved and committed balances separately during a stock update 40ms
+ ✓ src/modules/inventory/server/stock-write.test.ts > writeProductStockAndVariants > blocks removal of a variant that has stock history 26ms
+ ✓ src/lib/http/request.test.ts > HTTP request validation > parses JSON bodies through the supplied schema 386ms
+ ✓ src/lib/http/request.test.ts > HTTP request validation > returns stable transport errors for missing content type and malformed JSON 14ms
+ ✓ src/lib/http/request.test.ts > HTTP request validation > parses scalar and repeated query parameters 16ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > rejects malformed sign-in data before calling Supabase 31ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > maps provider codes, records diagnostics, and hides raw provider text 10ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > maps an unconfirmed login to an actionable safe state 7ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > requires terms acceptance before calling the sign-up provider 15ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > rejects mismatched signup passwords before calling Supabase 4ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > validates and normalizes sign-up input before the provider call 5ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > keeps the duplicate-signup response enumeration-safe 2ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > requests a password reset with a callback to the reset page 4ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > requests another signup confirmation without exposing account existence 4ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > rejects mismatched recovered passwords before calling Supabase 6ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > rejects an expired recovery session 3ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > updates the recovered password and revokes other sessions 3ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > returns fixed sign-out copy and records diagnostics 3ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > returns page validation errors without redirecting or losing safe values 4ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > returns email workflow success in place instead of navigating 3ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > redirects only after a completed password sign-in 8ms
+ ✓ src/app/auth/actions.test.ts > password auth actions > keeps confirmation-required signup success on the same page 3ms
+ ✓ src/app/api/v1/admin/products/taxonomy/[id]/route.test.ts > /api/v1/admin/products/taxonomy/:id > validates richer PATCH input before invoking the domain command 118ms
+ ✓ src/app/api/v1/admin/products/taxonomy/[id]/route.test.ts > /api/v1/admin/products/taxonomy/:id > updates through the domain command and invalidates every affected product slug 43ms
+ ✓ src/app/api/v1/admin/products/taxonomy/[id]/route.test.ts > /api/v1/admin/products/taxonomy/:id > preserves the existing name-only rename transport 21ms
+ ✓ src/app/api/v1/admin/products/taxonomy/[id]/route.test.ts > /api/v1/admin/products/taxonomy/:id > rejects an invalid public taxonomy id before invoking a command 5ms
+ ✓ src/app/api/v1/admin/products/taxonomy/[id]/route.test.ts > /api/v1/admin/products/taxonomy/:id > deletes through the domain command and invalidates storefront catalogue tags 19ms
+ ✓ src/lib/errors/index.test.ts > canonical Result > uses value only for success 21ms
+ ✓ src/lib/errors/index.test.ts > canonical Result > uses a typed error only for expected failure 2ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > accepts a complete unique-mode fixture 43ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > rejects a fixture that carries an id field 4ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > rejects unique mode without an archiveNumber 5ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > rejects stocked mode without a stock count 10ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > accepts stocked mode with a stock count 7ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > rejects variant mode with a variant missing stock 31ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > requires categoryName when categorySlug has no matching well-known slug hint 11ms
+ ✓ src/lib/admin/inventory/inventory-fixture-schema.test.ts > productFixtureSchema > parses a file as an array of fixtures 2ms
+ ✓ src/modules/orders/client/api.test.ts > Orders API error contracts > preserves stock quantities and conflicting hold IDs across HTTP 247ms
+ ✓ src/modules/orders/client/api.test.ts > Orders API error contracts > keeps a concurrent stock write conflict distinct 7ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > maps canonical summaries without inventing detail media 23ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > converts kobo prices and maps taxonomy into the storefront shape 5ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > maps condition grades 6ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > maps availability states 1ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > derives size and variant labels for variant products 2ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue product projection > keeps stocked inventory distinct 2ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue payload projection > assembles products, categories, measurements and variant options 13ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue payload projection > is safe on an empty catalogue 5ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue payload projection > removes product-detail-only data from the global client boundary 6ms
+ ✓ src/modules/products/server/storefront/catalogue-projection.test.ts > storefront catalogue payload projection > does not mutate the server-owned full catalogue 9ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > accepts only bounded, structurally valid relational fallback snapshots 18ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > maps direct rows into editor drafts for every inventory mode 20ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > joins relational taxonomy, channels, stock, measurements, pricing and fulfilment 9ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > never imports product or variant images 2ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > adds identity issues for missing taxonomy references 3ms
+ ✓ src/modules/products/import/mapper.test.ts > mapProductImport > maps the real snapshot as a test-only bounded fixture 59ms
+ ✓ src/app/auth/email/route.test.ts > auth email JSON adapter > requests password recovery with the originating dialog surface 73ms
+ ✓ src/app/auth/email/route.test.ts > auth email JSON adapter > requests another confirmation with the originating dialog surface 4ms
+ ✓ src/app/auth/email/route.test.ts > auth email JSON adapter > rejects malformed payloads before invoking an email provider 9ms
+ ✓ src/app/api/v1/admin/products/taxonomy/reorder/route.test.ts > POST /api/v1/admin/products/taxonomy/reorder > validates duplicate and mixed-kind public ids before invoking the domain command 131ms
+ ✓ src/app/api/v1/admin/products/taxonomy/reorder/route.test.ts > POST /api/v1/admin/products/taxonomy/reorder > requires update capability, reorders, and invalidates the storefront catalogue 65ms
+ ✓ src/modules/products/import/csv.test.ts > parseCsvTable > keeps quoted commas, escaped quotes, CRLF, and embedded newlines in their fields 19ms
+ ✓ src/modules/products/import/csv.test.ts > parseCsvTable > ignores blank trailing rows 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseCsvTable > reports the row and column for an unterminated quoted field 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseCsvTable > rejects rows with cells beyond the header width 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > parses variants and measurements JSON cells 58ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > accepts blank columns that belong to the other inventory modes 14ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > accepts direct JSON rows with nested arrays and rejects database ids 45ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > ignores direct JSON and CSV media fields while reporting their asset count 11ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > preserves pickupAvailable=false from direct JSON 6ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > preserves pickupAvailable=true from direct JSON 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > rejects a string pickupAvailable value instead of coercing it 5ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > reports invalid nested JSON CSV cells with their row and column 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > reports the physical source row for nested JSON after an embedded newline 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > reports the physical source row for schema errors after an embedded newline 2ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > rejects files larger than 10 MiB before parsing 1ms
+ ✓ src/modules/products/import/csv.test.ts > parseProductImportText > rejects files with more than 1,000 products 45ms
+ ✓ src/server/commerce/inventory/inventory-regression-mappers.test.ts > inventory mapper regressions > preserves the database condition label without downgrading it 25ms
+ ✓ src/server/commerce/inventory/inventory-read.test.ts > inventory reads > lists products with explicit database pagination 46ms
+ ✓ src/server/commerce/inventory/inventory-read.test.ts > inventory reads > queries a valid identifier and returns null for an unknown product 7ms
+ ✓ src/server/commerce/inventory/inventory-read.test.ts > inventory reads > combines categories and collections using encoded ids 7ms
+ ✓ src/server/commerce/inventory/inventory-read.test.ts > inventory reads > filters and paginates stock movement reads by product 3ms
+ ✓ src/features/storefront/checkout/checkout-helpers.test.ts > checkout helpers > uses bag line totals instead of a fabricated catalogue selection 152ms
+ ✓ src/features/storefront/checkout/checkout-helpers.test.ts > checkout helpers > does not invent a hold when no canonical expiry exists 4ms
+ ✓ src/features/storefront/checkout/checkout-helpers.test.ts > checkout helpers > reports a real active or expired hold from supplied seconds 22ms
+ ✓ src/features/storefront/checkout/checkout-helpers.test.ts > checkout helpers > formats negative time defensively 1ms
+ ✓ src/features/storefront/checkout/checkout-helpers.test.ts > checkout helpers > validates contact and Nigerian delivery fields 3ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > scopes the order-line ownership inside the Prisma query 52ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > does not distinguish a missing line from a line owned by another customer 7ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > derives expired resubmission eligibility without losing duplicate-review truth 2ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > derives returned resubmission eligibility without losing duplicate-review truth 1ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > derives refunded resubmission eligibility without losing duplicate-review truth 1ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > rechecks stale delivery truth inside the transaction 7ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > rechecks stale completed returns truth inside the transaction 5ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > rechecks stale refund truth inside the transaction 1ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > creates a pending review using only server-derived purchase context 362ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > creates a category and returns an encoded public taxonomy id 311ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > maps the order-line unique race to already_reviewed 131ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > creates a Collection with exact initial membership in one transaction 277ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > resubmits a published review to moderation 267ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > resubmits a rejected review to moderation 5ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > resubmits a withdrawn review to moderation 95ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rolls back Collection creation when any initial member does not exist 7ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > maps a database uniqueness conflict to duplicate-name 3ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > updates a Category name, image and position in one serializable transaction 11ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > sets Collection membership to the exact submitted product set and collects affected slugs 5ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rejects Collection membership when any submitted product does not exist 2ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rejects a missing Collection before assigning any submitted products 3ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > maps an update uniqueness conflict to duplicate-name 4ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > returns not-found for a missing taxonomy update 2ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > does not open an update transaction without permission 3ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > reorders a complete Category set atomically and audits once 5ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > reorders a complete Collection set through the Collection branch 5ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rejects reorder input containing 'a duplicate' 2ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rejects reorder input containing 'a mixed kind' 1ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > rejects a reorder whose submitted set differs from the current set 2ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > does not open a reorder transaction without permission 1ms
+ ✓ src/modules/products/server/taxonomy-commands.test.ts > product taxonomy commands > blocks deletion while products still reference the taxonomy 3ms
+ ✓ src/modules/reviews/server/repository.test.ts > owned review repository > withdraws an owned review after repeating the ownership query in a transaction 5ms
+ ✓ src/modules/orders/server/offline-sale-checkout.test.ts > cancelFailedOfflineSaleDraft > releases only the exact draft lines and cancels the persisted attempt 31ms
+ ✓ src/app/api/v1/admin/customers/route.test.ts > GET /api/v1/admin/customers > requires customers:read before querying persisted profiles 75ms
+ ✓ src/app/api/v1/admin/customers/route.test.ts > GET /api/v1/admin/customers > parses segmentation, search, sorting and pagination before querying 71ms
+ ✓ src/modules/orders/server/offline-sale-draft.test.ts > createOfflineSaleDraft > creates the pending order before reserving exact stock against its ID 92ms
+ ✓ src/app/api/v1/admin/products/taxonomy/route.test.ts > /api/v1/admin/products/taxonomy > enforces taxonomy read capability and returns the private standard envelope 61ms
+ ✓ src/app/api/v1/admin/products/taxonomy/route.test.ts > /api/v1/admin/products/taxonomy > returns the standard authorization error envelope 11ms
+ ✓ src/app/api/v1/admin/products/taxonomy/route.test.ts > /api/v1/admin/products/taxonomy > validates create input before invoking the domain command 45ms
+ ✓ src/app/api/v1/admin/products/taxonomy/route.test.ts > /api/v1/admin/products/taxonomy > creates through the domain command and invalidates storefront catalogue tags 88ms
+ ✓ src/app/api/v1/admin/products/taxonomy/route.test.ts > /api/v1/admin/products/taxonomy > passes exact initial Collection membership to the domain command 14ms
+ ✓ src/modules/orders/rules.test.ts > order transition rules > prohibits returns before the order has been delivered 21ms
+ ✓ src/modules/orders/rules.test.ts > order transition rules > permits a return after delivered or refunded state 1ms
+ ✓ src/modules/products/server/product-commands.test.ts > saveProduct > creates through one serializable transaction without a client database id 83ms
+ ✓ src/modules/products/server/product-commands.test.ts > saveProduct > rejects media that was never uploaded before opening a transaction 11ms
+ ✓ src/modules/products/server/product-commands.test.ts > saveProduct > maps Prisma uniqueness failures to the stable product error 5ms
+ ✓ src/lib/boundaries/module-export-guard.test.ts > module export guard generated-module compatibility > resolves an existing internal asset through a resource query 40ms
+ ✓ src/lib/boundaries/module-export-guard.test.ts > module export guard generated-module compatibility > reports a queried internal asset that does not exist 15ms
+ ✓ src/lib/boundaries/module-export-guard.test.ts > module export guard generated-module compatibility > follows generated Prisma CommonJS exports through its client facade 3ms
+ ✓ src/lib/boundaries/module-export-guard.test.ts > module export guard generated-module compatibility > reports names absent from a generated CommonJS export chain 5ms
+ ✓ src/lib/admin/product-editor/product-editor-catalogue-validation.test.ts > Product editor catalogue edge cases > rejects duplicate images and more than one featured cover 232ms
+ ✓ src/lib/admin/product-editor/product-editor-catalogue-validation.test.ts > Product editor catalogue edge cases > rejects a compare-at price that does not represent a discount 4ms
+ ✓ src/lib/admin/product-editor/product-editor-catalogue-validation.test.ts > Product editor catalogue edge cases > requires unique variant SKUs and at least one received unit 43ms
+ ✓ src/modules/auth/ui/google-oauth-popup.test.ts > Google OAuth popup > opens synchronously, stores PKCE through the browser client and resolves from the popup message 214ms
+ ✓ src/modules/auth/ui/google-oauth-popup.test.ts > Google OAuth popup > reports a blocked popup before starting Supabase OAuth 6ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > createProductSelection > chooses the first colour with stock and leaves an ambiguous size unselected 16ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > createProductSelection > auto-selects one unambiguous compatible size 2ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > transitionProductSelection > clears an incompatible size when colour changes 4ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > transitionProductSelection > preserves a size that exists for the next colour, even when one option is sold out 1ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > transitionProductSelection > records size and quantity transitions without prematurely applying stock caps 1ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > resolves exact price, stock, quantity, and linked media in priority order 3ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > uses the product price but prevents purchase when no exact variant is resolved 2ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > falls back to the base product price when the exact variant has no override 2ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > keeps sold-out sizes visible and resolves them as unavailable 2ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > deduplicates compatible sizes by shopper-facing label 3ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > preserves the full position-sorted gallery when the selection has no linked media 7ms
+ ✓ src/modules/products/ui/storefront/product-selection.test.ts > resolveProductSelection > caps unique inventory at one 1ms
+ ✓ src/app/auth/callback/route.test.ts > GET /auth/callback > redirects to the proxied public origin, not the internal dev-server request URL 46ms
+ ✓ src/app/auth/callback/route.test.ts > GET /auth/callback > sends the popup completion redirect through the proxied origin 4ms
+ ✓ src/features/admin/inventory/inventory-url.test.ts > Inventory URL state > omits every default value 17ms
+ ✓ src/features/admin/inventory/inventory-url.test.ts > Inventory URL state > serializes filters, presentation, pagination and open product 2ms
+ ✓ src/modules/storefront-shell/client/storefront-hold-clock.test.tsx > StorefrontHoldClockBoundary > uses one interval for every mounted countdown consumer 395ms
+ ✓ src/modules/storefront-shell/client/storefront-hold-clock.test.tsx > StorefrontHoldClockBoundary > removes expired hold intents from the shared tick 67ms
+ ✓ src/modules/holds/server/commands.test.ts > Holds commands > atomically extends the persisted expiry and records an audit event 66ms
+ ✓ src/modules/holds/server/commands.test.ts > Holds commands > claims the hold before releasing its exact reserved quantity 19ms
+ ✓ src/modules/holds/server/commands.test.ts > Holds commands > claims the hold before creating one pending-payment order 35ms
+ ✓ src/modules/holds/server/commands.test.ts > Holds commands > performs no stock or order side effect when another action wins the hold claim 8ms
+ ✓ src/lib/http/policy.test.ts > requireApiPermission > allows valid policies and maps denied policies to stable errors 27ms
+ ✓ src/server/commerce/inventory/inventory-regression-writes.test.ts > inventory write regressions > rechecks inventory-mode changes against transactional stock 113ms
+ ✓ src/server/commerce/inventory/inventory-regression-writes.test.ts > inventory write regressions > rejects media that was never uploaded before starting a database transaction 24ms
+ ✓ src/modules/auth/server/diagnostics.test.ts > auth provider error mapping > maps known provider codes to fixed customer copy 93ms
+ ✓ src/modules/auth/server/diagnostics.test.ts > auth provider error mapping > never exposes an unknown provider message 3ms
+ ✓ src/modules/auth/server/diagnostics.test.ts > auth provider error mapping > uses the operation-specific fallback for unknown provider codes 1ms
+ ✓ src/modules/auth/server/diagnostics.test.ts > auth provider error mapping > accepts only allow-listed redirect codes 3ms
+ ✓ src/modules/auth/server/diagnostics.test.ts > auth provider diagnostics > logs structured provider metadata without raw messages 25ms
+ ✓ src/app/api/v1/admin/overview/route.test.ts > GET /api/v1/admin/overview > requires the existing admin access capability before querying projections 57ms
+ ✓ src/app/api/v1/admin/overview/route.test.ts > GET /api/v1/admin/overview > returns one private persisted operational projection 33ms
+ ✓ src/providers/session-provider.test.tsx > SessionProvider > exposes the provided session to descendants 292ms
+ ✓ src/providers/session-provider.test.tsx > SessionProvider > updates sign-in and sign-out state without remounting the provider 1928ms
+ ✓ src/providers/session-provider.test.tsx > SessionProvider > synchronizes a new server session prop 95ms
+ ✓ src/providers/session-provider.test.tsx > SessionProvider > throws when useSession is called outside the provider 43ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > resolves anonymous when no verified identity exists 23ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > resolves an active consumer with persisted profile and customer data 3ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > repairs a missing customer record instead of returning a nullable customer id 12ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > resolves staff without provisioning a customer 2ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > resolves suspended for any non-active profile, staff included 3ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > provisions a missing profile and customer atomically 3ms
+ ✓ src/modules/auth/server/session.test.ts > getCurrentSession > resolves unavailable when session resolution fails 4ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > grants staff with the requested capability 2ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > denies staff roles missing the capability 2ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > denies consumers with missing-capability 1ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > denies suspended accounts with account-inactive 1ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > denies signed-out visitors 3ms
+ ✓ src/modules/auth/server/session.test.ts > getStaffAccess > denies with authorization-unavailable when resolution fails 2ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > normalizes minimal records, deduplicates values and prunes expired holds 16ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > migrates cart, saved products and both legacy hold formats 3ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > prefers a valid v3 snapshot instead of resurrecting legacy state 2ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > falls back to legacy state when the canonical key is corrupt or the wrong version 2ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > falls back to legacy state when the canonical JSON is malformed 2ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > discards an unsupported canonical version without supported legacy state 2ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > treats unavailable or malformed storage as an empty recoverable state 6ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > persists one minimal snapshot and removes every compatibility key 7ms
+ ✓ src/features/storefront/shared/storefront-client-state.test.ts > storefront client state > returns an empty snapshot for malformed input 1ms
+ ✓ src/app/api/v1/auth/invitations/route.test.ts > manager invitation route > passes the normalized transport fields to the owner invitation operation 65ms
+ ✓ src/app/api/v1/auth/invitations/route.test.ts > manager invitation route > returns owner-only denial without exposing server details 9ms
+ ✓ src/features/storefront/shared/storefront-client-state-auth-continuity.test.ts > storefront auth continuity > writes the minimal canonical snapshot to session and local storage 31ms
+ ✓ src/features/storefront/shared/storefront-client-state-auth-continuity.test.ts > storefront auth continuity > restores the guest bag in a new tab opened by an auth email callback 2ms
+ ✓ src/features/storefront/shared/storefront-client-state-auth-continuity.test.ts > storefront auth continuity > prefers the current tab snapshot over an older cross-tab fallback 3ms
+ ✓ src/lib/admin/product-editor/product-editor-pricing.test.ts > Product pricing conversion > preserves an unknown unit cost instead of converting it to zero 17ms
+ ✓ src/lib/admin/product-editor/product-editor-pricing.test.ts > Product pricing conversion > preserves a genuine zero unit cost 2ms
+ ✓ src/modules/orders/server/transition-order.test.ts > transitionOrder stock invariants > moves committed inventory to sold when customer handoff is delivered 45ms
+ ✓ src/modules/orders/server/transition-order.test.ts > transitionOrder stock invariants > moves sold inventory into returned and marks the delivered line returned 8ms
+ ✓ src/modules/orders/server/transition-order.test.ts > transitionOrder stock invariants > releases reserved stock when a pending order is cancelled 5ms
+ ✓ src/modules/orders/server/transition-order.test.ts > transitionOrder stock invariants > rejects a return before delivery without touching stock 22ms
+ ✓ src/app/api/v1/admin/settings/route.test.ts > GET /api/v1/admin/settings > requires settings:read before reading the persisted singleton 46ms
+ ✓ src/app/api/v1/admin/settings/route.test.ts > GET /api/v1/admin/settings > returns the persisted settings projection without cacheable browser defaults 33ms
+ ✓ src/modules/storefront-shell/ui/storefront-fonts.test.ts > storefront font contract > loads only the handoff font families 12ms
+ ✓ src/app/auth/sign-out/route.test.ts > POST /auth/sign-out > redirects to the proxied public origin, not the internal dev-server request URL 65ms
+ ✓ src/app/auth/sign-out/route.test.ts > POST /auth/sign-out > carries a safe error surface through the proxied origin on sign-out failure 8ms
+ ✓ src/app/api/v1/health/route.test.ts > GET /api/v1/health > returns the versioned success envelope with request correlation 87ms
+ ✓ src/modules/products/server/lifecycle-commands.test.ts > product lifecycle commands > archives inside a serializable transaction and removes selling channels 35ms
+ ✓ src/modules/products/server/lifecycle-commands.test.ts > product lifecycle commands > restores a product as active but unpublished 4ms
+ ✓ src/modules/products/server/lifecycle-commands.test.ts > product lifecycle commands > blocks permanent deletion when operational history exists 4ms
+ ✓ src/modules/orders/server/mappers.test.ts > mapDatabaseOrderStatus > restores out-for-delivery from the latest persisted timeline event 12ms
+ ✓ src/modules/orders/server/mappers.test.ts > mapDatabaseOrderStatus > keeps terminal database states authoritative over stale timeline events 1ms
+ ✓ src/modules/orders/server/api-errors.test.ts > throwOrderActionError > maps concurrency conflicts to 409 without losing their identity 17ms
+ ✓ src/modules/orders/server/api-errors.test.ts > throwOrderActionError > preserves quantities and active hold identifiers 2ms
+ ✓ src/server/commerce/reviews/public-reviews.test.ts > getPublicProductReviews > queries only published reviews for a visible product 36ms
+ ✓ src/server/commerce/reviews/public-reviews.test.ts > getPublicProductReviews > maps privacy-safe review content and computes a full rating distribution 11ms
+ ✓ src/server/commerce/reviews/public-reviews.test.ts > getPublicProductReviews > keeps published reviews after a later full return or refund with an honest marker 2ms
+ ✓ src/server/commerce/reviews/public-reviews.test.ts > getPublicProductReviews > does not infer a return marker from zero historical delivery and return quantities 4ms
+ ✓ src/app/auth/google/route.test.ts > GET /auth/google (retired initiator) > redirects a stale caller through the proxied public origin, not the internal dev-server request URL 57ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > cartLineKey > creates deterministic default and variant keys 11ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > addCartLine > increments the matching variant while preserving distinct variants 9ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > addCartLine > ignores unavailable products and variant products without an exact selection 2ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > addCartLine > does not duplicate a unique item 1ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > changeCartLineQuantity > changes only the addressed line and clamps to its own maximum 2ms
+ ✓ src/features/storefront/shared/cart-lines.test.ts > cartSubtotal > uses each line's stored unit price 1ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > parseCatalogueSearchParams > normalizes the approved catalogue controls into bounded URL state 23ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > parseCatalogueSearchParams > accepts canonical inventory-mode query values without changing the UI vocabulary 3ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > parseCatalogueSearchParams > falls back safely for invalid pagination, prices and sort 1ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > parseCatalogueSearchParams > parses every result-affecting canonical navigation value from one URL 2ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > catalogueHref > produces a canonical shareable URL and omits defaults 4ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > catalogueHref > removes stale values instead of synchronizing them back from component state 2ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > catalogueHref > keeps pagination, filters, search and sort in the generated URL 3ms
+ ✓ src/modules/products/client/catalogue-search-params.test.ts > catalogueHref > serializes every selected colour and size as a repeated URL value 2ms
+ ✓ src/modules/inventory/server/adjust-stock.test.ts > adjustInventoryStock > updates the balance and appends an immutable movement 111ms
+ ✓ src/modules/inventory/server/adjust-stock.test.ts > adjustInventoryStock > rejects a reduction that would make available stock negative 9ms
+ ✓ src/modules/inventory/server/adjust-stock.test.ts > adjustInventoryStock > requires a variant that belongs to variant-managed products 2ms
+ ✓ src/modules/inventory/server/adjust-stock.test.ts > adjustInventoryStock > rejects stale concurrent balances instead of overwriting them 2ms
+ ✓ src/modules/auth/server/staff-invitations.test.ts > store manager invitations > invites through Supabase and fixes the application role as manager 50ms
+ ✓ src/modules/auth/server/staff-invitations.test.ts > store manager invitations > rejects manager invitations from a manager account 9ms
+ ✓ src/modules/auth/server/staff-invitations.test.ts > store manager invitations > deletes the invited Auth user when Prisma cannot establish manager access 3ms
+ ✓ src/modules/auth/permissions.test.ts > role capabilities > gives the single admin/store owner every staff capability 39ms
+ ✓ src/modules/auth/permissions.test.ts > role capabilities > keeps consumers on shopper-owned capabilities 7ms
+ ✓ src/modules/auth/permissions.test.ts > role capabilities > lets managers operate the store without owner-only settings or team powers 2ms
+ ✓ src/modules/products/ui/storefront/use-product-selection.test.tsx > useProductSelection > hydrates the pure canonical selection model for its first render 87ms
+ ✓ src/stores/cart.store.test.ts > cart store > hydrates intent lines without product records 30ms
+ ✓ src/stores/cart.store.test.ts > cart store > preserves one line per product and variant and enforces quantity limits 5ms
+ ✓ src/stores/cart.store.test.ts > cart store > supports remove, undo, quantity change and clear 10ms
+ ✓ src/app/api/v1/products/route.test.ts > GET /api/v1/products > returns the public product shell projection in the standard data envelope 72ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > selects only the explicit products authorization domain 23ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > fails with variable names rather than unavailable actor secrets 2ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > accepts the stable anonymous denial envelope 2ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > accepts the stable consumer denial envelope 1ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > requires a successful manager create 2ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > requires a successful admin create 1ms
+ ✓ src/test/product-authorization-contract.test.ts > Product authorization acceptance contract > rejects a denial with an unstable envelope 1ms
+ ✓ src/features/storefront/checkout/order-receipt.test.ts > order receipt > creates deterministic order numbers from the supplied time 15ms
+ ✓ src/features/storefront/checkout/order-receipt.test.ts > order receipt > round-trips only the explicit receipt shape 6ms
+ ✓ src/features/storefront/checkout/order-receipt.test.ts > order receipt > rejects malformed or partial receipt items 1ms
+ ✓ src/features/storefront/checkout/order-receipt.test.ts > order receipt > writes the canonical key and removes the legacy key 3ms
+ ✓ src/features/storefront/checkout/order-receipt.test.ts > order receipt > reads a valid legacy receipt while migration is pending 1ms
+ ✓ src/stores/storefront-ui.store.test.ts > storefront UI intent store > hydrates only IDs, timestamps and UI preferences 22ms
+ ✓ src/stores/storefront-ui.store.test.ts > storefront UI intent store > owns shared overlay identity without local form or viewer state 7ms
+ ✓ src/stores/storefront-ui.store.test.ts > storefront UI intent store > treats holds as expiring browser intent rather than authoritative inventory 23ms
+ ✓ src/lib/http/auth.test.ts > API authentication helpers > maps anonymous, suspended and unavailable sessions to stable API errors 34ms
+ ✓ src/lib/http/auth.test.ts > API authentication helpers > returns the authenticated consumer session and rejects staff-only access 12ms
+ ✓ src/lib/http/auth.test.ts > API authentication helpers > enforces staff capabilities 5ms
+ ✓ src/lib/http/pagination.test.ts > pagination contract > coerces bounded query values and returns standard metadata 49ms
+ ✓ src/lib/http/pagination.test.ts > pagination contract > uses safe defaults and rejects invalid totals 32ms
+ ✓ src/server/commerce/catalogue/catalogue-limits.test.ts > normalizePublishedProductDetailLimit > defaults invalid limits to the bounded full-catalogue ceiling 11ms
+ ✓ src/server/commerce/catalogue/catalogue-limits.test.ts > normalizePublishedProductDetailLimit > clamps finite limits to an integer between one and 300 1ms
+ ✓ src/modules/products/server/taxonomy-queries.test.ts > listProductTaxonomy > projects Category images and product-derived Collection previews 25ms
+ ✓ src/modules/products/server/taxonomy-queries.test.ts > listProductTaxonomy > requests only the first three newest Collection product covers 16ms
+ ✓ src/server/commerce/catalogue/storefront-page-query.test.ts > buildStorefrontCatalogueWhere > translates URL-owned filters into Prisma predicates 29ms
+ ✓ src/server/commerce/catalogue/storefront-page-query.test.ts > buildStorefrontCatalogueWhere > maps special collections and semantic legacy searches 7ms
+ ✓ src/server/commerce/catalogue/storefront-page-query.test.ts > storefront catalogue ordering > uses stable database ordering and explicit legacy buckets 9ms
+ ✓ src/lib/admin/product-editor/product-editor-conversion.test.ts > convertEditorValuesToProduct shopper fields > carries material/fit/style/care/flaw into the domain product 41ms
+ ✓ src/lib/admin/product-editor/product-editor-conversion.test.ts > convertEditorValuesToProduct shopper fields > normalizes empty shopper fields to null 3ms
+ ✓ src/lib/admin/inventory/inventory-action-schema.test.ts > inventory action schemas > accepts canonical product and encoded taxonomy identifiers 15ms
+ ✓ src/lib/admin/inventory/inventory-action-schema.test.ts > inventory action schemas > rejects malformed or untyped identifiers 6ms
+ ✓ src/lib/admin/inventory/inventory-action-schema.test.ts > inventory action schemas > normalizes taxonomy names and restricts kinds 12ms
+ ✓ src/lib/admin/inventory/inventory-action-schema.test.ts > inventory action schemas > allows only declared product save intents 2ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > does not warn when parsed children remain untouched 13ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > tracks a saved child as dirty when it is edited and preserves its persistence intent 9ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > ignores selection IDs that are not part of the imported queue 1ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > returns the same state when the editor reports unchanged values 1ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > keeps a saved child saved when the editor reports the same reset values 1ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > keeps sibling edits isolated 2ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > moves selection only within the import queue bounds 1ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > retains a failed child and keeps the session dirty until that child saves 8ms
+ ✓ src/modules/products/import/session.test.ts > productImportSessionReducer > marks a saved child as unsaved when its values change again 2ms
+ ✓ src/server/commerce/inventory/inventory-mappers.test.ts > mapInventoryCounts > protects committed units by exposing them with reserved units 18ms
+ ✓ src/server/commerce/inventory/inventory-mappers.test.ts > mapInventoryProductRow > maps stocked products without fabricating catalogue state 23ms
+ ✓ src/server/commerce/inventory/inventory-mappers.test.ts > mapInventoryProductRow > maps unique measurements and the one-of-one stock record 2ms
+ ✓ src/server/commerce/inventory/inventory-mappers.test.ts > mapInventoryProductRow > maps variant stock and derives option names 3ms
+ ✓ src/server/commerce/inventory/inventory-mappers.test.ts > taxonomy ids > round-trips the table discriminator and real database id 4ms
+ ✓ src/features/storefront/shared/storefront-overlay-events.test.ts > storefront overlay coordination > closes the active Zustand overlay before opening quick view 34ms
+ ✓ src/features/storefront/shared/storefront-overlay-events.test.ts > storefront overlay coordination > closes transient overlays before opening a Zustand overlay 4ms
+ ✓ src/features/storefront/shared/storefront-overlay-events.test.ts > storefront overlay coordination > closes the current transient overlay before opening the image viewer 4ms
+ ✓ src/modules/auth/types.test.ts > account roles > supports only consumer, admin and manager 12ms
+ ✓ src/modules/auth/types.test.ts > account roles > keeps consumers out of staff-only surfaces 1ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > buildProductDetailPresentation > uses real commerce and canonical detail values without inventing facts 21ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > buildProductDetailPresentation > omits a discount when there is no valid compare-at price 2ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > buildProductDetailPresentation > does not mutate canonical media while ordering campaign imagery 1ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > selectProductRecommendations > uses existing catalogue products and never recommends the current product 2ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > wrapCampaignIndex > wraps campaign navigation in both directions 1ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > reviewDistributionRows > returns truthful zero percentages for an empty aggregate 2ms
+ ✓ src/modules/products/ui/storefront/product-detail-presentation.test.ts > productReviewAccessCopy > directs review creation to delivered items in order history 1ms
+ ✓ src/modules/inventory/server/product-page.test.ts > findInventoryProductPage > returns requested product ids, pagination, summary and saved-view counts 27ms
+ ✓ src/modules/inventory/server/product-page.test.ts > findInventoryProductPage > keeps the requested page metadata when the page has no rows 3ms
+ ✓ src/server/commerce/catalogue/mappers.test.ts > mapProductDetail > maps shopper attributes and never leaks internal cost 30ms
+ ✓ src/server/commerce/catalogue/mappers.test.ts > mapProductDetail > preserves media variant identity without inventing a variant colour hex 12ms
+ ✓ src/server/commerce/catalogue/mappers.test.ts > mapProductSummary > carries material/fit/style onto the card model 2ms
+ ✓ src/features/admin/orders/orders-url.test.ts > Orders URL state > omits default values 14ms
+ ✓ src/features/admin/orders/orders-url.test.ts > Orders URL state > serializes views, filters and the open order 1ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > normalizeCloudinaryUploadResult > normalizes a complete widget success result 16ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > normalizeCloudinaryUploadResult > rejects incomplete success metadata 5ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > normalizeCloudinaryUploadResult > rejects incomplete success metadata 1ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > normalizeCloudinaryUploadResult > rejects incomplete success metadata 1ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > finishCloudinaryUploadQueue > keeps a multi-file queue pending until its end and completes only after an appended image 4ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > finishCloudinaryUploadQueue > preserves failed status at queue end 1ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > finishCloudinaryUploadQueue > preserves cancelled status at queue end 0ms
+ ✓ src/lib/assets/client/cloudinary-upload.test.ts > finishCloudinaryUploadQueue > cancels an upload queue with no appended image 1ms
+ ✓ src/server/commerce/inventory/inventory-transaction-boundaries.test.ts > inventory transaction boundaries > checks product dependencies inside the delete transaction 23ms
+ ✓ src/server/commerce/inventory/inventory-transaction-boundaries.test.ts > inventory transaction boundaries > checks taxonomy usage inside the delete transaction 4ms
+ ✓ src/modules/products/server/storefront/page-selection.test.ts > selectStorefrontCataloguePage > filters taxonomy, condition, inventory, stock and search before pagination 23ms
+ ✓ src/modules/products/server/storefront/page-selection.test.ts > selectStorefrontCataloguePage > preserves the special collection semantics 5ms
+ ✓ src/modules/products/server/storefront/page-selection.test.ts > selectStorefrontCataloguePage > preserves global new-arrival positions when SQL facet matches are intersected 1ms
+ ✓ src/modules/products/server/storefront/page-selection.test.ts > selectStorefrontCataloguePage > sorts and clamps pagination on the server 2ms
+ ✓ src/lib/admin/customers/customer-selectors.test.ts > customer relationship mapper > derives metrics, segments and attention from persisted projections 38ms
+ ✓ src/lib/admin/customers/customer-selectors.test.ts > customer relationship mapper > connects purchased, held, saved and reviewed product context 11ms
+ ✓ src/modules/products/server/product-persistence.test.ts > Product persistence source readiness > keeps the acceptance matrix aligned with the three inventory modes 17ms
+ ✓ src/modules/products/server/product-persistence.test.ts > Product persistence source readiness > preserves the manager and admin Product capability difference 3ms
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > persists a published unique Product through direct, domain, list, and fresh-process reads
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > persists a published stocked Product through direct, domain, list, and fresh-process reads
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > persists a published variant Product through direct, domain, list, and fresh-process reads
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > persists archive and restore lifecycle changes
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > denies manager deletion without changing the Product row
+ ↓ src/modules/products/server/product-persistence.test.ts > Product persistence acceptance > rejects deletion when Product stock history makes deletion unsafe
+ ✓ src/modules/products/server/storefront/catalogue-loader.test.ts > storefront product-page reads > reads the requested detail and slug order without loading the full catalogue 35ms
+ ✓ src/features/admin/data/admin-domain-keys.test.ts > Admin domain query keys > scopes list and detail keys under a stable domain root 21ms
+ ✓ src/features/admin/data/admin-domain-keys.test.ts > Admin domain query keys > uses the owning module's detail-key normalization contract 3ms
+ ✓ src/features/admin/data/admin-domain-keys.test.ts > Admin domain query keys > keeps domain roots distinct so invalidation cannot collide 2ms
+ ✓ src/lib/boundaries/app-provider-boundary.test.ts > application provider ownership > resolves session once at root and delegates provider ownership to AppProvider 18ms
+ ✓ src/lib/boundaries/app-provider-boundary.test.ts > application provider ownership > mounts theme and query ownership in the shared provider 3ms
+ ✓ src/lib/boundaries/app-provider-boundary.test.ts > application provider ownership > does not let admin mount its own query or session provider 3ms
+ ✓ src/stores/saved-items.store.test.ts > saved-items store > hydrates unique product IDs only 21ms
+ ✓ src/stores/saved-items.store.test.ts > saved-items store > toggles, saves, removes and clears IDs deterministically 5ms
+ ✓ src/features/admin/holds/holds-url.test.ts > Holds URL state > omits default values 11ms
+ ✓ src/features/admin/holds/holds-url.test.ts > Holds URL state > serializes views, filters and the open hold 3ms
+ ✓ src/modules/cart/cart-restoration.test.ts > restoreCartLines > rebuilds variant lines from canonical product and availability data 15ms
+ ✓ src/modules/cart/cart-restoration.test.ts > restoreCartLines > resolves a unique legacy label or size token but rejects ambiguity 2ms
+ ✓ src/modules/cart/cart-restoration.test.ts > restoreCartLines > discards unknown products, sold-out variants and invalid variant intent 1ms
+ ✓ src/modules/cart/cart-restoration.test.ts > restoreCartLines > accepts canonical database identifiers for non-variant products 1ms
+ ✓ src/features/admin/inventory/data/inventory-keys.test.ts > Inventory query keys > normalises equivalent list inputs into stable keys 25ms
+ ✓ src/features/admin/inventory/data/inventory-keys.test.ts > Inventory query keys > separates filters and pagination that change list results 3ms
+ ✓ src/features/admin/inventory/data/inventory-keys.test.ts > Inventory query keys > uses stable business IDs for product detail and media keys 1ms
+ ✓ src/features/admin/customers/customers-url.test.ts > Customers workspace URL state > keeps the default workspace URL clean 10ms
+ ✓ src/features/admin/customers/customers-url.test.ts > Customers workspace URL state > serializes filters and the open customer 1ms
+ ✓ src/lib/query/app-query-client.test.ts > app QueryClient defaults > configures the shared admin/storefront cache behaviour intentionally 17ms
+ ✓ src/server/commerce/catalogue/variant-measurements.test.ts > groupVariantMeasurements > groups ordered measurements by variant 20ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'sold', inventory: 'one-of-one', stock: +0 } as Sold 11ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'reserved', inventory: 'one-of-one', stock: 1 } as Reserved 1ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'available', inventory: 'variant', stock: 4 } as Select size 1ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'available', inventory: 'one-of-one', stock: 1 } as Grab it — the only one 1ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'available', inventory: 'matching-stock', stock: 1 } as Grab it — last one 1ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'available', inventory: 'matching-stock', stock: 3 } as Add to bag · 3 left 1ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > labels { status: 'available', inventory: 'matching-stock', stock: 12 } as Add to bag 0ms
+ ✓ src/features/storefront/shared/add-to-bag-label.test.ts > addToBagLabel > prioritises sold status over inventory/stock 1ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > presents a labelled rating group, five named radios, and visible review fields 5006ms
+ ✓ src/features/admin/settings/settings-url.test.ts > buildSettingsHref > keeps Store identity at the clean route 17ms
+ ✓ src/features/admin/settings/settings-url.test.ts > buildSettingsHref > writes another section into the query string 1ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > shows client validation beside the relevant fields 1238ms
+ ✓ src/features/admin/returns/returns-url.test.ts > Returns URL state > keeps the default workspace URL clean 12ms
+ ✓ src/features/admin/returns/returns-url.test.ts > Returns URL state > serializes filters, search and an open return 1ms
+ ✓ src/lib/admin/inventory/sku.test.ts > SKU generation > creates a stocked catalogue SKU without assigning one SKU per unit 13ms
+ ✓ src/lib/admin/inventory/sku.test.ts > SKU generation > adds a deterministic suffix when the generated product reference is used 1ms
+ ✓ src/lib/admin/inventory/sku.test.ts > SKU generation > creates readable separate SKUs for variant option combinations 2ms
+ ✓ src/lib/admin/inventory/sku.test.ts > SKU generation > falls back to a label code when size and colour are not used 1ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > shows pending copy while the injected action is in flight 7603ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > renders image-led categories and opens an upload-backed editor 3239ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > reports category upload opening and locks duplicate upload starts 1500ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > renders full collection stories without a collection upload control 716ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > filters the active catalogue view 406ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > keeps the active catalogue tab in the URL 312ms
+ ✓ src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx > CatalogueStructureWorkspace > shows an inline error when a category name is blank 1050ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > renders field errors returned by the injected action 7600ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > prefills an existing review for editing 411ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > requires a separate confirmation before withdrawing 1030ms
+ ✓ src/modules/reviews/ui/storefront/review-form.test.tsx > ReviewForm > renders an expected withdrawal failure inline 1085ms
+6:27:11 PM [vite] [33m[2m(ssr)[22m[39m Failed to load source map for C:/Users/olaitan/Dev/laitstyles/prisma/generated/prisma/runtime/client.js.
+Error: An error occurred while trying to read the map file at client.js.map
+Error: ENOENT: no such file or directory, open 'C:\Users\olaitan\Dev\laitstyles\prisma\generated\prisma\runtime\client.js.map'
+    at Object.readFileSync (node:fs:539:20)
+    at file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:18740:13
+    at readFromFileMap (file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:18440:13)
+    at Object.exports.fromMapFileComment (file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:18534:12)
+    at Object.exports.fromMapFileSource (file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:18545:22)
+    at extractSourcemapFromFile (file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:18726:87)
+    at loadAndTransform (file:///C:/Users/olaitan/Dev/laitstyles/node_modules/.pnpm/vite@8.1.3_@types+node@20.1_7c951a8d50856d055eb9e952d885657d/node_modules/vite/dist/node/chunks/node.js:19695:22)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/modules/admin-persistence-boundary.test.ts > Phase 5 admin persistence boundary > keeps production code free of seed, AdminStore, repository and fixture ownership
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/modules/admin-persistence-boundary.test.ts:145:3
+    143|   });
+    144|
+    145|   it("keeps production code free of seed, AdminStore, repository and f…
+       |   ^
+    146|     const sourceFiles = await collectSourceFiles(sourceRoot);
+    147|     const offenders: string[] = [];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/lib/boundaries/server-client-boundary.test.ts > server/client boundaries > keeps infrastructure, components and domain modules from importing upward
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "src/modules/storefront-shell/ui/account-primitives.tsx imports @/features",
++ ]
+
+ ❯ src/lib/boundaries/server-client-boundary.test.ts:141:26
+    139|       );
+    140|
+    141|       expect(violations).toEqual([]);
+       |                          ^
+    142|     },
+    143|     CHECK_TIMEOUT_MS,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/modules/auth/schema.test.ts > password auth schemas > trims normalized identity fields
+ZodError: [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "confirmPassword"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+ ❯ src/modules/auth/schema.test.ts:13:28
+     11|   it("trims normalized identity fields", () => {
+     12|     expect(
+     13|       passwordSignUpSchema.parse({
+       |                            ^
+     14|         email: "  shopper@example.com ",
+     15|         password: "password123",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { _zod: { def: [ { expected: 'string', code: 'invalid_type', path: [ 'confirmPassword' ], message: 'Invalid input: expected string, received undefined' } ], constr: 'Function<ZodError>', traits: { constructor: 'Function<Set>', has: 'Function<has>', add: 'Function<add>', delete: 'Function<delete>', difference: 'Function<difference>', clear: 'Function<clear>', entries: 'Function<entries>', forEach: 'Function<forEach>', intersection: 'Function<intersection>', isSubsetOf: 'Function<isSubsetOf>', isSupersetOf: 'Function<isSupersetOf>', isDisjointFrom: 'Function<isDisjointFrom>', size: 2, symmetricDifference: 'Function<symmetricDifference>', union: 'Function<union>', values: 'Function<values>', keys: 'Function<values>' }, deferred: [] }, issues: [ { expected: 'string', code: 'invalid_type', path: [ 'confirmPassword' ], message: 'Invalid input: expected string, received undefined' } ], format: 'Function<value>', flatten: 'Function<value>', addIssue: 'Function<value>', addIssues: 'Function<value>', isEmpty: false }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/modules/auth/schema.test.ts > password auth schemas > requires names, terms, and an eight-character sign-up password
+AssertionError: expected { …(5) } to deeply equal { …(4) }
+
+- Expected
++ Received
+
+  {
++   "confirmPassword": "Invalid input: expected string, received undefined",
+    "first": "Enter your first name.",
+    "last": "Enter your last name.",
+    "password": "Password must be at least 8 characters.",
+    "terms": "Please accept the Terms to continue.",
+  }
+
+ ❯ src/modules/auth/schema.test.ts:53:43
+     51|     if (result.success) return;
+     52|
+     53|     expect(authFieldErrors(result.error)).toEqual({
+       |                                           ^
+     54|       password: "Password must be at least 8 characters.",
+     55|       first: "Enter your first name.",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/features/storefront/shared/storefront-client-state-persistence.test.ts > storefront client-state persistence failures > does not clean legacy keys when the canonical write fails
+AssertionError: expected null not to be null
+ ❯ src/features/storefront/shared/storefront-client-state-persistence.test.ts:50:42
+     48|     ).not.toThrow();
+     49|     expect(session.getItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY)).toBeN…
+     50|     expect(local.getItem(legacyKey)).not.toBeNull();
+       |                                          ^
+     51|   });
+     52|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  src/modules/inventory/client/api.test.ts > inventory browser API > posts stock adjustments through the versioned inventory boundary
+AssertionError: expected { method: 'POST', …(2) } to match object { method: 'POST', headers: { …(1) } }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "headers": {
+-     "Content-Type": "application/json",
+-   },
++   "headers": Headers {},
+    "method": "POST",
+  }
+
+ ❯ src/modules/inventory/client/api.test.ts:140:18
+    138|       "/api/v1/admin/inventory/adjustments",
+    139|     );
+    140|     expect(init).toMatchObject({
+       |                  ^
+    141|       method: "POST",
+    142|       headers: { "Content-Type": "application/json" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  src/app/api/v1/admin/inventory/route.test.ts > /api/v1/admin/inventory > rejects an unsupported page size before any domain query
+AssertionError: expected 422 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 422
+
+ ❯ src/app/api/v1/admin/inventory/route.test.ts:112:29
+    110|     const response = await GET(new Request("http://localhost/api/v1/ad…
+    111|
+    112|     expect(response.status).toBe(400);
+       |                             ^
+    113|     await expect(response.json()).resolves.toMatchObject({
+    114|       error: { code: "INVALID_QUERY", fieldErrors: { pageSize: expect.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  src/app/api/v1/admin/inventory/adjustments/route.test.ts > POST /api/v1/admin/inventory/adjustments > validates the body before calling the domain command
+AssertionError: expected 422 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 422
+
+ ❯ src/app/api/v1/admin/inventory/adjustments/route.test.ts:53:29
+     51|     const response = await POST(adjustmentRequest({ quantityDelta: 0 }…
+     52|
+     53|     expect(response.status).toBe(400);
+       |                             ^
+     54|     await expect(response.json()).resolves.toMatchObject({
+     55|       error: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  7 failed | 124 passed (131)
+      Tests  8 failed | 608 passed | 6 skipped (622)
+   Start at  18:22:40
+   Duration  280.47s (transform 37.26s, setup 0ms, import 703.77s, tests 125.08s, environment 318.09s)
+
