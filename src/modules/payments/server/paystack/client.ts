@@ -33,7 +33,7 @@ export type PaystackRequestOptions<TSchema extends z.ZodType> = {
   operation: string;
   path: string;
   schema: TSchema;
-  method?: "DELETE" | "GET" | "PATCH" | "POST";
+  method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
   body?: unknown;
   query?: Record<string, QueryValue>;
   fetchImplementation?: typeof fetch;
