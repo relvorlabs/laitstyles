@@ -52,10 +52,7 @@ describe("updateAccountProfile", () => {
     const formData = validFormData();
     formData.set("firstName", "  ");
 
-    const result = await updateAccountProfile(
-      { status: "idle", message: "" },
-      formData,
-    );
+    const result = await updateAccountProfile({ status: "idle", message: "" }, formData);
 
     expect(result.status).toBe("error");
     expect(result.fieldErrors?.firstName).toBeTruthy();

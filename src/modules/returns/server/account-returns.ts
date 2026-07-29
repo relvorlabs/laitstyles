@@ -99,10 +99,7 @@ function accountReturnError(error: ReturnActionError): ApiError {
       status: 404,
     });
   }
-  if (
-    error.code === "invalid-return-transition" ||
-    error.code === "return-line-not-sold"
-  ) {
+  if (error.code === "invalid-return-transition" || error.code === "return-line-not-sold") {
     return new ApiError({ code: "RETURN_NOT_ELIGIBLE", message: error.message, status: 409 });
   }
   if (error.code === "return-quantity-exceeded") {

@@ -38,7 +38,9 @@ describe("account returns API client", () => {
   });
 
   it("creates a return through the account endpoint", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(response({ id: "r-1" }, 201));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(response({ id: "r-1" }, 201));
     const input = {
       orderNumber: "LS-1",
       reason: "Wrong fit",

@@ -4,10 +4,10 @@ import { ApiError } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import {
-  submitReview,
   type SubmitReviewResult,
-  withdrawReview,
+  submitReview,
   type WithdrawReviewResult,
+  withdrawReview,
 } from "@/modules/reviews/server/repository";
 import type {
   AccountReviewMutationResult,
@@ -105,7 +105,9 @@ function reviewNotFoundError(): ApiError {
   });
 }
 
-function submitFailureMessage(reason: Extract<SubmitReviewResult, { ok: false }>["reason"]): string {
+function submitFailureMessage(
+  reason: Extract<SubmitReviewResult, { ok: false }>["reason"],
+): string {
   const messages = {
     awaiting_delivery: "You can review this item after it is delivered.",
     cancelled: "This item was cancelled and cannot be reviewed.",

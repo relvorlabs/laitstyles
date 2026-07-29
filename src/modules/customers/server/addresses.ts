@@ -115,7 +115,9 @@ export async function updateOwnedAddress(
         ...(input.line2 !== undefined ? { line2: input.line2 ?? null } : {}),
         ...(input.city !== undefined ? { city: input.city } : {}),
         ...(input.state !== undefined ? { state: input.state ?? null } : {}),
-        ...(input.deliveryNotes !== undefined ? { delivery_notes: input.deliveryNotes ?? null } : {}),
+        ...(input.deliveryNotes !== undefined
+          ? { delivery_notes: input.deliveryNotes ?? null }
+          : {}),
         ...(input.isDefault !== undefined && (input.isDefault || !existing.is_default)
           ? { is_default: input.isDefault }
           : {}),

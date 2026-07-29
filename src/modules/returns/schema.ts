@@ -50,7 +50,9 @@ export const createAccountReturnSchema = z
     reason: z.string().trim().min(1).max(500),
     note: z.string().trim().max(2_000).optional(),
     lines: z
-      .array(z.object({ orderLineId: z.string().uuid(), quantity: z.number().int().min(1) }).strict())
+      .array(
+        z.object({ orderLineId: z.string().uuid(), quantity: z.number().int().min(1) }).strict(),
+      )
       .min(1)
       .max(100),
   })

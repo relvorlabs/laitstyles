@@ -78,6 +78,4 @@ export const updateOwnedAddressSchema = createOwnedAddressSchema.partial().stric
 
 export const productIdentifierSchema = z.string().trim().min(1).max(64);
 
-export const saveOwnedProductSchema = z
-  .object({ productId: productIdentifierSchema })
-  .strict();
+export const saveOwnedProductSchema = z.object({ productId: productIdentifierSchema }).strict();

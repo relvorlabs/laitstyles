@@ -76,9 +76,7 @@ describe("PATCH /api/v1/account/profile", () => {
       new ApiError({ code: "AUTHENTICATION_REQUIRED", message: "Sign in.", status: 401 }),
     );
 
-    const response = await PATCH(
-      jsonRequest({ firstName: "Ada", lastName: "Okafor" }),
-    );
+    const response = await PATCH(jsonRequest({ firstName: "Ada", lastName: "Okafor" }));
 
     expect(response.status).toBe(401);
     expect(mocks.updateOwnedProfile).not.toHaveBeenCalled();

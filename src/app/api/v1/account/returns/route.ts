@@ -2,10 +2,7 @@ import { requireApiConsumer } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
 import { createAccountReturnSchema } from "@/modules/returns/schema";
-import {
-  createCustomerReturn,
-  listAccountReturns,
-} from "@/modules/returns/server/account-returns";
+import { createCustomerReturn, listAccountReturns } from "@/modules/returns/server/account-returns";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
