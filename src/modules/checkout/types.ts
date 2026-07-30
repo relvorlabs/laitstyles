@@ -5,7 +5,7 @@ import type {
   createCheckoutSchema,
   paystackSettlementEventSchema,
 } from "@/modules/checkout/schema";
-import type { OwnedAddress } from "@/modules/customers/types";
+import type { OwnedAddress, OwnedProfile } from "@/modules/customers/types";
 
 export type CheckoutIdentity = ConsumerSession;
 export type CreateCheckoutRequestInput = z.infer<typeof createCheckoutRequestSchema>;
@@ -31,6 +31,8 @@ export type CheckoutDeliveryZone = {
 };
 
 export type CheckoutContext = {
+  profile: OwnedProfile;
+  profileComplete: boolean;
   addresses: OwnedAddress[];
   defaultAddressId: string | null;
   deliveryZones: CheckoutDeliveryZone[];
