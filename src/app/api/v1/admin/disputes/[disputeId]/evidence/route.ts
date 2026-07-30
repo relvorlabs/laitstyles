@@ -1,6 +1,7 @@
 import { ApiError } from "@/lib/errors/api-error";
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
+import { DISPUTE_EVIDENCE_MAX_BYTES } from "@/modules/payments/dispute-contract";
 import {
   disputeEvidenceBodySchema,
   disputeEvidenceFileSchema,
@@ -8,7 +9,6 @@ import {
 } from "@/modules/payments/dispute-schema";
 import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
 import { submitDisputeEvidence } from "@/modules/payments/server/disputes";
-import { DISPUTE_EVIDENCE_MAX_BYTES } from "@/modules/payments/server/paystack/disputes";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
@@ -26,8 +26,16 @@ export async function POST(request: Request, context: RouteContext) {
     const { disputeId } = await context.params;
     const id = disputeIdentifierSchema.parse(disputeId);
 
-    const contentLength = Number(request.headers.get("content-length") ?? "0");
-    if (Number.isFinite(contentLength) && contentLength > MAX_MULTIPART_BYTES) {
+    const rawContentLength = request.headers.get("content-length")?.trim();
+    const contentLength = rawContentLength ? Number(rawContentLength) : Number.NaN;
+    if (!Number.isSafeInteger(contentLength) || contentLength < 1) {
+      throw new ApiError({
+        code: "CONTENT_LENGTH_REQUIRED",
+        message: "A bounded Content-Length is required for dispute evidence.",
+        status: 411,
+      });
+    }
+    if (contentLength > MAX_MULTIPART_BYTES) {
       throw new ApiError({
         code: "EVIDENCE_FILE_TOO_LARGE",
         message: "Dispute evidence cannot exceed 5 MB.",
