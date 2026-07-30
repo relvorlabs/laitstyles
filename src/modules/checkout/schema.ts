@@ -47,6 +47,35 @@ export const createCheckoutSchema = z
 export const checkoutIdentifierSchema = z.string().uuid();
 export const paymentIdentifierSchema = z.string().uuid();
 
+export const checkoutStatusSchema = z.enum([
+  "initializing",
+  "initialized",
+  "pending",
+  "success",
+  "failed",
+  "abandoned",
+  "reversed",
+  "review_required",
+]);
+
+const checkoutAmountSchema = z.number().int().nonnegative().safe();
+
+export const checkoutDraftSchema = z
+  .object({
+    checkoutId: checkoutIdentifierSchema,
+    paymentId: paymentIdentifierSchema,
+    orderNumber: z.string().trim().min(1),
+    reference: z.string().trim().min(1),
+    accessCode: z.string().trim().min(1).nullable(),
+    status: checkoutStatusSchema,
+    currency: z.string().trim().length(3).transform((value) => value.toUpperCase()),
+    subtotalMinor: checkoutAmountSchema,
+    deliveryFeeMinor: checkoutAmountSchema,
+    discountMinor: checkoutAmountSchema,
+    totalMinor: checkoutAmountSchema,
+  })
+  .strict();
+
 export const paystackSettlementEventSchema = z
   .object({
     source: z.enum(["webhook", "manual_verify", "callback"]),
