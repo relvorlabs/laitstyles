@@ -104,6 +104,50 @@ export const paystackRefundSchema = z.object({
   updated_at: z.string().optional().nullable(),
 });
 
+const paystackDisputeTransactionSchema = z.union([
+  paystackProviderIdSchema,
+  z.object({
+    id: paystackProviderIdSchema,
+    reference: z.string().min(1).optional().nullable(),
+    amount: z.number().int().nonnegative().optional().nullable(),
+    currency: z.string().length(3).optional().nullable(),
+    customer: paystackCustomerSchema.optional().nullable(),
+  }),
+]);
+
+export const paystackDisputeSchema = z.object({
+  id: paystackProviderIdSchema,
+  refund_amount: z.number().int().nonnegative().optional().nullable(),
+  currency: z.string().length(3).optional().nullable(),
+  status: z.string().min(1),
+  resolution: z.string().optional().nullable(),
+  domain: z.string().optional().nullable(),
+  transaction: paystackDisputeTransactionSchema,
+  category: z.string().optional().nullable(),
+  amount: z.number().int().nonnegative().optional().nullable(),
+  reason: z.string().optional().nullable(),
+  message: z.string().optional().nullable(),
+  due_at: z.string().optional().nullable(),
+  evidence: z.unknown().optional().nullable(),
+  createdAt: z.string().optional().nullable(),
+  updatedAt: z.string().optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const paystackDisputeEvidenceSchema = z.object({
+  id: paystackProviderIdSchema,
+  dispute: paystackProviderIdSchema,
+  customer_email: z.string().email(),
+  customer_name: z.string().min(1),
+  customer_phone: z.string().min(1),
+  service_details: z.string().min(1),
+  delivery_address: z.string().optional().nullable(),
+  delivery_date: z.string().optional().nullable(),
+  createdAt: z.string().optional().nullable(),
+  updatedAt: z.string().optional().nullable(),
+});
+
 export function paystackSuccessEnvelope<TSchema extends z.ZodType>(data: TSchema) {
   return z.object({
     status: z.literal(true),
@@ -154,5 +198,25 @@ export const paystackListRefundsResponseSchema = z.object({
   meta: paystackPaginationSchema.optional(),
 });
 
+export const paystackDisputeResponseSchema = paystackSuccessEnvelope(paystackDisputeSchema);
+export const paystackListDisputesResponseSchema = z.object({
+  status: z.literal(true),
+  message: z.string().min(1),
+  data: z.array(paystackDisputeSchema),
+  meta: paystackPaginationSchema.optional(),
+});
+export const paystackDisputeEvidenceResponseSchema = paystackSuccessEnvelope(
+  paystackDisputeEvidenceSchema,
+);
+export const paystackDisputeUploadResponseSchema = paystackSuccessEnvelope(
+  z.object({ signedUrl: z.string().url(), fileName: z.string().min(1) }),
+);
+export const paystackDisputeMutationResponseSchema = z.object({
+  status: z.literal(true),
+  message: z.string().min(1),
+  data: z.unknown().optional(),
+});
+
 export type PaystackRawTransaction = z.infer<typeof paystackTransactionSchema>;
 export type PaystackRawRefund = z.infer<typeof paystackRefundSchema>;
+export type PaystackRawDispute = z.infer<typeof paystackDisputeSchema>;
