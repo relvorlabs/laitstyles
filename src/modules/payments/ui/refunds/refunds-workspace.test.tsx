@@ -25,6 +25,11 @@ vi.mock("@/modules/payments/client/refunds", () => ({
   useCreateRefund: () => ({ isPending: false, mutateAsync: mocks.createRefund }),
   useRetryRefund: () => ({ isPending: false, mutateAsync: mocks.retryRefund }),
 }));
+vi.mock("@/modules/payments/ui/payment-timeline", () => ({
+  PaymentTimeline: ({ paymentId }: { paymentId: string | null }) => (
+    <div data-testid="payment-timeline">{paymentId ?? "none"}</div>
+  ),
+}));
 
 import { RefundsWorkspace } from "./refunds-workspace";
 
@@ -114,6 +119,7 @@ describe("RefundsWorkspace", () => {
     expect(
       screen.getByText(/Refund submitted\. Financial totals will change only after Paystack confirms/i),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("payment-timeline")).toHaveTextContent(payment.id);
   });
 
   it("shows an over-refund error before calling the API", async () => {
