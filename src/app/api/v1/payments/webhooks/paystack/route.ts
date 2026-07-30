@@ -50,47 +50,62 @@ export async function POST(request: Request) {
 
     const envelope = parsePaystackEventEnvelope(payload);
     const eventId = createHash("sha256").update(rawBody).digest("hex");
-    const existing = await prisma.provider_webhook_events.findUnique({
-      where: { provider_event_id: { provider: "paystack", event_id: eventId } },
-    });
-    if (existing?.status === "processed") {
-      return { data: { accepted: true, duplicate: true }, headers: noStore };
-    }
+    const uniqueEvent = {
+      provider_event_id: { provider: "paystack" as const, event_id: eventId },
+    };
 
     if (!isSupportedPaystackChargeEvent(envelope.event)) {
-      if (!existing) {
-        await prisma.provider_webhook_events.create({
-          data: {
-            provider: "paystack",
-            event_type: envelope.event,
-            event_id: eventId,
-            signature,
-            payload: payload as Prisma.InputJsonValue,
-            status: "received",
-            attempts: 0,
-          },
-        });
-      }
+      await prisma.provider_webhook_events.upsert({
+        where: uniqueEvent,
+        update: { attempts: { increment: 1 } },
+        create: {
+          provider: "paystack",
+          event_type: envelope.event,
+          event_id: eventId,
+          signature,
+          payload: payload as Prisma.InputJsonValue,
+          status: "received",
+          attempts: 1,
+        },
+      });
       return { data: { accepted: true, deferred: true }, headers: noStore };
     }
 
     const event = parsePaystackChargeEvent(payload);
-    const inbox = existing
-      ? await prisma.provider_webhook_events.update({
-          where: { id: existing.id },
-          data: { status: "processing", attempts: { increment: 1 }, last_error: null },
-        })
-      : await prisma.provider_webhook_events.create({
-          data: {
-            provider: "paystack",
-            event_type: event.event,
-            event_id: eventId,
-            signature,
-            payload: payload as Prisma.InputJsonValue,
-            status: "processing",
-            attempts: 1,
-          },
-        });
+    const inbox = await prisma.provider_webhook_events.upsert({
+      where: uniqueEvent,
+      update: { attempts: { increment: 1 } },
+      create: {
+        provider: "paystack",
+        event_type: event.event,
+        event_id: eventId,
+        signature,
+        payload: payload as Prisma.InputJsonValue,
+        status: "received",
+        attempts: 1,
+      },
+    });
+
+    if (inbox.status === "processed") {
+      return { data: { accepted: true, duplicate: true }, headers: noStore };
+    }
+
+    const claim = await prisma.provider_webhook_events.updateMany({
+      where: {
+        id: inbox.id,
+        status: { in: ["received", "failed"] },
+      },
+      data: {
+        status: "processing",
+        last_error: null,
+      },
+    });
+    if (claim.count !== 1) {
+      return {
+        data: { accepted: true, duplicate: true, processing: true },
+        headers: noStore,
+      };
+    }
 
     try {
       const result = await settlePaystackEvent(event.settlement);

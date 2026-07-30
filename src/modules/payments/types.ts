@@ -13,6 +13,7 @@ export type PaymentMethod = {
   last4: string | null;
   expMonth: string | null;
   expYear: string | null;
+  countryCode: string | null;
   channel: string | null;
   reusable: boolean;
   isDefault: boolean;
@@ -26,7 +27,13 @@ export type PaymentMethodSetup = {
   reference: string;
   accessCode: string | null;
   status: "initializing" | "initialized" | "pending" | "success" | "failed";
-  refundStatus: "not_requested" | "pending" | "processing" | "needs_attention" | "processed" | "failed";
+  refundStatus:
+    | "not_requested"
+    | "pending"
+    | "processing"
+    | "needs_attention"
+    | "processed"
+    | "failed";
   method: PaymentMethod | null;
 };
 

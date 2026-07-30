@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
   updateAuthorizations: vi.fn(),
   findIdempotency: vi.fn(),
   transaction: vi.fn(),
+  updatePayment: vi.fn(),
+  updateRefund: vi.fn(),
+  claimRefund: vi.fn(),
   verifyTransaction: vi.fn(),
   initializeTransaction: vi.fn(),
   createRefund: vi.fn(),
@@ -22,8 +25,11 @@ vi.mock("@/lib/prisma", () => ({
       updateMany: mocks.updateAuthorizations,
     },
     idempotency_records: { findUnique: mocks.findIdempotency },
-    payments: { update: vi.fn() },
-    payment_refunds: { update: vi.fn() },
+    payments: { update: mocks.updatePayment },
+    payment_refunds: {
+      update: mocks.updateRefund,
+      updateMany: mocks.claimRefund,
+    },
     $transaction: mocks.transaction,
   },
 }));
@@ -39,6 +45,7 @@ vi.mock("@/modules/payments/server/authorization-secrets", () => ({
 }));
 
 import {
+  createPaymentMethodSetup,
   deletePaymentMethod,
   getPaymentMethodSetup,
   setDefaultPaymentMethod,
@@ -71,6 +78,7 @@ const pendingAuthorization = {
   last4: null,
   exp_month: null,
   exp_year: null,
+  country_code: null,
   channel: null,
   card_type: null,
   reusable: false,
@@ -79,32 +87,81 @@ const pendingAuthorization = {
   created_at: new Date("2026-07-30T00:00:00.000Z"),
   payments: [payment],
 };
+const providerTransaction = {
+  id: "123",
+  status: "success",
+  reference: payment.reference,
+  amountMinor: 5_000,
+  currency: "NGN",
+  customer: { email: identity.email, customerCode: "CUS_1" },
+  authorization: {
+    authorizationCode: "AUTH_1",
+    reusable: true,
+    signature: "SIG_1",
+    channel: "card",
+    brand: "visa",
+    cardType: "visa",
+    bank: "Test Bank",
+    last4: "4081",
+    expMonth: "12",
+    expYear: "2030",
+    countryCode: "ng",
+  },
+  paidAt: "2026-07-30T00:00:00.000Z",
+  channel: "card",
+  gatewayResponse: "Successful",
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.findAuthorization.mockResolvedValue(pendingAuthorization);
-  mocks.verifyTransaction.mockResolvedValue({
-    id: "123",
-    status: "success",
-    reference: payment.reference,
-    amountMinor: 5_000,
-    currency: "NGN",
-    customer: { email: identity.email, customerCode: "CUS_1" },
-    authorization: {
-      authorizationCode: "AUTH_1",
-      reusable: true,
-      signature: "SIG_1",
-      channel: "card",
-      brand: "visa",
-      cardType: "visa",
-      bank: "Test Bank",
-      last4: "4081",
-      expMonth: "12",
-      expYear: "2030",
-    },
-    paidAt: "2026-07-30T00:00:00.000Z",
-    channel: "card",
-    gatewayResponse: "Successful",
+  mocks.findAuthorizations.mockResolvedValue([]);
+  mocks.findIdempotency.mockResolvedValue(null);
+  mocks.claimRefund.mockResolvedValue({ count: 1 });
+  mocks.updateRefund.mockResolvedValue({ id: "refund-1" });
+  mocks.verifyTransaction.mockResolvedValue(providerTransaction);
+  mocks.createRefund.mockResolvedValue({ id: "REF_1", status: "processed" });
+});
+
+describe("payment method setup idempotency", () => {
+  it("returns the canonical pending state for a concurrent setup key", async () => {
+    mocks.findIdempotency.mockResolvedValueOnce({
+      request_hash: identity.customerId,
+      response_snapshot: null,
+      status: "in_progress",
+    });
+
+    await expect(
+      createPaymentMethodSetup(
+        identity,
+        { idempotencyKey: "55555555-5555-4555-8555-555555555555" },
+        "https://www.laitstyles.com/account/payment-methods",
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_SETUP_PENDING" },
+    });
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects cross-account reuse of an idempotency key", async () => {
+    mocks.findIdempotency.mockResolvedValueOnce({
+      request_hash: "99999999-9999-4999-8999-999999999999",
+      response_snapshot: null,
+      status: "in_progress",
+    });
+
+    await expect(
+      createPaymentMethodSetup(
+        identity,
+        { idempotencyKey: "55555555-5555-4555-8555-555555555555" },
+        "https://www.laitstyles.com/account/payment-methods",
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_INVALID", field: "idempotencyKey" },
+    });
+    expect(mocks.transaction).not.toHaveBeenCalled();
   });
 });
 
@@ -119,19 +176,135 @@ describe("payment method setup", () => {
 
   it("rejects a successful setup charge without a reusable authorization", async () => {
     mocks.verifyTransaction.mockResolvedValueOnce({
-      ...(await mocks.verifyTransaction()),
-      authorization: { authorizationCode: "AUTH_1", reusable: false, signature: "SIG_1" },
+      ...providerTransaction,
+      authorization: {
+        ...providerTransaction.authorization,
+        reusable: false,
+      },
     });
+
     await expect(verifyPaymentMethodSetup(identity, attemptId)).resolves.toMatchObject({
       ok: false,
       error: { code: "PAYMENT_METHOD_NOT_REUSABLE" },
     });
   });
+
+  it("rejects a provider signature owned by another customer", async () => {
+    mocks.findAuthorizations.mockResolvedValueOnce([
+      {
+        ...pendingAuthorization,
+        id: "66666666-6666-4666-8666-666666666666",
+        customer_id: "99999999-9999-4999-8999-999999999999",
+        signature: providerTransaction.authorization.signature,
+        status: "active",
+        reusable: true,
+      },
+    ]);
+
+    await expect(verifyPaymentMethodSetup(identity, attemptId)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_CUSTOMER_MISMATCH" },
+    });
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("tombstones a same-customer duplicate and persists its country descriptor", async () => {
+    const duplicate = {
+      ...pendingAuthorization,
+      id: "66666666-6666-4666-8666-666666666666",
+      signature: providerTransaction.authorization.signature,
+      status: "active",
+      reusable: true,
+      is_default: true,
+    };
+    const activeMethod = {
+      ...pendingAuthorization,
+      status: "active",
+      reusable: true,
+      is_default: true,
+      signature: providerTransaction.authorization.signature,
+      authorization_code: "encrypted:AUTH_1",
+      provider_customer_code: "CUS_1",
+      bank: "Test Bank",
+      last4: "4081",
+      exp_month: "12",
+      exp_year: "2030",
+      country_code: "NG",
+      channel: "card",
+      card_type: "visa",
+      payments: [
+        {
+          ...payment,
+          status: "success",
+          payment_refunds: [{ id: "refund-1", status: "processed" }],
+        },
+      ],
+    };
+    mocks.findAuthorizations.mockResolvedValueOnce([duplicate]);
+    mocks.findAuthorization
+      .mockResolvedValueOnce(pendingAuthorization)
+      .mockResolvedValueOnce(pendingAuthorization)
+      .mockResolvedValueOnce(activeMethod);
+
+    const tx = {
+      payment_authorizations: {
+        update: vi
+          .fn()
+          .mockResolvedValueOnce({ ...duplicate, status: "inactive" })
+          .mockResolvedValueOnce(activeMethod),
+        findFirst: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      payments: { update: vi.fn().mockResolvedValue({ id: payment.id }) },
+      payment_refunds: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "refund-1",
+          provider_reference: null,
+          status: "pending",
+        }),
+      },
+    };
+    mocks.transaction.mockImplementationOnce(
+      async (work: (client: typeof tx) => unknown) => work(tx),
+    );
+
+    const result = await verifyPaymentMethodSetup(identity, attemptId);
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        method: { id: attemptId, countryCode: "NG", isDefault: true },
+        refundStatus: "processed",
+      },
+    });
+    expect(tx.payment_authorizations.update).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: { id: duplicate.id },
+        data: expect.objectContaining({
+          status: "inactive",
+          signature: expect.stringContaining(`inactive:${duplicate.id}:`),
+        }),
+      }),
+    );
+    expect(tx.payment_authorizations.update).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        data: expect.objectContaining({ country_code: "NG" }),
+      }),
+    );
+    expect(mocks.createRefund).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("saved method ownership and defaults", () => {
   it("enforces one default method inside one transaction", async () => {
-    const active = { ...pendingAuthorization, status: "active", reusable: true };
+    const active = {
+      ...pendingAuthorization,
+      status: "active",
+      reusable: true,
+    };
     const tx = {
       payment_authorizations: {
         findFirst: vi.fn().mockResolvedValue(active),
@@ -139,18 +312,28 @@ describe("saved method ownership and defaults", () => {
         update: vi.fn().mockResolvedValue({ ...active, is_default: true }),
       },
     };
-    mocks.transaction.mockImplementationOnce(async (work: (client: typeof tx) => unknown) => work(tx));
+    mocks.transaction.mockImplementationOnce(
+      async (work: (client: typeof tx) => unknown) => work(tx),
+    );
 
     const result = await setDefaultPaymentMethod(identity, attemptId);
 
-    expect(result).toMatchObject({ ok: true, value: { id: attemptId, isDefault: true } });
+    expect(result).toMatchObject({
+      ok: true,
+      value: { id: attemptId, isDefault: true },
+    });
     expect(tx.payment_authorizations.updateMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ customer_id: identity.customerId }) }),
+      expect.objectContaining({
+        where: expect.objectContaining({ customer_id: identity.customerId }),
+      }),
     );
   });
 
   it("makes provider deactivation idempotent for an already inactive method", async () => {
-    mocks.findAuthorization.mockResolvedValueOnce({ ...pendingAuthorization, status: "inactive" });
+    mocks.findAuthorization.mockResolvedValueOnce({
+      ...pendingAuthorization,
+      status: "inactive",
+    });
     const result = await deletePaymentMethod(identity, attemptId);
     expect(result).toEqual({ ok: true, value: { id: attemptId, inactive: true } });
     expect(mocks.deactivateAuthorization).not.toHaveBeenCalled();

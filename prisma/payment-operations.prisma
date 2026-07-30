@@ -17,6 +17,7 @@ model payment_authorizations {
   last4                  String?
   exp_month              String?
   exp_year               String?
+  country_code           String?                      @db.VarChar(2)
   continuation_url       String?
   verified_at            DateTime?                    @db.Timestamptz(6)
   deactivated_at         DateTime?                    @db.Timestamptz(6)

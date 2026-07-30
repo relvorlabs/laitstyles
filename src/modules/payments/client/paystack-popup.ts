@@ -8,7 +8,6 @@ type PaystackOutcome =
 type PaystackCallbacks = {
   onSuccess?: (response: { reference?: string }) => void;
   onCancel?: () => void;
-  onClose?: () => void;
   onError?: (error: unknown) => void;
 };
 
@@ -44,21 +43,16 @@ export async function resumePaystackTransaction(accessCode: string): Promise<Pay
       popup.resumeTransaction(accessCode, {
         onSuccess: (response) => finish({ kind: "success", reference: response.reference ?? null }),
         onCancel: () => finish({ kind: "cancelled" }),
-        onClose: () => finish({ kind: "cancelled" }),
         onError: (error) =>
           finish({
             kind: "error",
-            message:
-              error instanceof Error
-                ? error.message
-                : "Paystack could not open the payment window.",
+            message: error instanceof Error ? error.message : "Paystack could not open the payment window.",
           }),
       });
     } catch (error) {
       finish({
         kind: "error",
-        message:
-          error instanceof Error ? error.message : "Paystack could not open the payment window.",
+        message: error instanceof Error ? error.message : "Paystack could not open the payment window.",
       });
     }
   });

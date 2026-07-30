@@ -141,7 +141,7 @@ function RecordSaleForm({
       onCompleted({
         orderId: payment.order.id,
         customerId: sale.customerId,
-        message: payment.messae,
+        message: payment.message,
         reference: payment.reference,
         status: payment.status,
       });

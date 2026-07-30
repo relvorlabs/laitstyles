@@ -6,8 +6,8 @@ const mocks = vi.hoisted(() => ({
   isSupportedPaystackChargeEvent: vi.fn(),
   parsePaystackChargeEvent: vi.fn(),
   settlePaystackEvent: vi.fn(),
-  findWebhook: vi.fn(),
-  createWebhook: vi.fn(),
+  upsertWebhook: vi.fn(),
+  claimWebhook: vi.fn(),
   updateWebhook: vi.fn(),
 }));
 
@@ -23,8 +23,8 @@ vi.mock("@/modules/checkout/server/settle-payment", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     provider_webhook_events: {
-      findUnique: mocks.findWebhook,
-      create: mocks.createWebhook,
+      upsert: mocks.upsertWebhook,
+      updateMany: mocks.claimWebhook,
       update: mocks.updateWebhook,
     },
   },
@@ -63,8 +63,8 @@ beforeEach(() => {
   mocks.parsePaystackEventEnvelope.mockReturnValue({ event: "charge.success", data: {} });
   mocks.isSupportedPaystackChargeEvent.mockReturnValue(true);
   mocks.parsePaystackChargeEvent.mockReturnValue({ event: "charge.success", settlement });
-  mocks.findWebhook.mockResolvedValue(null);
-  mocks.createWebhook.mockResolvedValue({ id: "webhook-1" });
+  mocks.upsertWebhook.mockResolvedValue({ id: "webhook-1", status: "received" });
+  mocks.claimWebhook.mockResolvedValue({ count: 1 });
   mocks.updateWebhook.mockResolvedValue({ id: "webhook-1" });
   mocks.settlePaystackEvent.mockResolvedValue({
     ok: true,
@@ -95,16 +95,30 @@ describe("POST /api/v1/payments/webhooks/paystack", () => {
     const response = await POST(webhookRequest());
 
     expect(response.status).toBe(401);
-    expect(mocks.findWebhook).not.toHaveBeenCalled();
+    expect(mocks.upsertWebhook).not.toHaveBeenCalled();
   });
 
   it("acknowledges an already processed duplicate without settling again", async () => {
-    mocks.findWebhook.mockResolvedValueOnce({ id: "webhook-1", status: "processed" });
+    mocks.upsertWebhook.mockResolvedValueOnce({ id: "webhook-1", status: "processed" });
 
     const response = await POST(webhookRequest());
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ data: { accepted: true, duplicate: true } });
+    expect(mocks.claimWebhook).not.toHaveBeenCalled();
+    expect(mocks.settlePaystackEvent).not.toHaveBeenCalled();
+  });
+
+  it("lets only one concurrent delivery claim processing", async () => {
+    mocks.upsertWebhook.mockResolvedValueOnce({ id: "webhook-1", status: "processing" });
+    mocks.claimWebhook.mockResolvedValueOnce({ count: 0 });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      data: { accepted: true, duplicate: true, processing: true },
+    });
     expect(mocks.settlePaystackEvent).not.toHaveBeenCalled();
   });
 
@@ -112,14 +126,17 @@ describe("POST /api/v1/payments/webhooks/paystack", () => {
     mocks.parsePaystackEventEnvelope.mockReturnValueOnce({ event: "refund.processed", data: {} });
     mocks.isSupportedPaystackChargeEvent.mockReturnValueOnce(false);
 
-    const response = await POST(webhookRequest(JSON.stringify({ event: "refund.processed", data: {} })));
+    const response = await POST(
+      webhookRequest(JSON.stringify({ event: "refund.processed", data: {} })),
+    );
 
     expect(response.status).toBe(200);
-    expect(mocks.createWebhook).toHaveBeenCalledWith(
+    expect(mocks.upsertWebhook).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ event_type: "refund.processed", status: "received" }),
+        create: expect.objectContaining({ event_type: "refund.processed", status: "received" }),
       }),
     );
+    expect(mocks.claimWebhook).not.toHaveBeenCalled();
     expect(mocks.settlePaystackEvent).not.toHaveBeenCalled();
   });
 });
