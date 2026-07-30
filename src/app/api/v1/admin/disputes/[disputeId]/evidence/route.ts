@@ -7,9 +7,11 @@ import {
   disputeEvidenceFileSchema,
   disputeIdentifierSchema,
 } from "@/modules/payments/dispute-schema";
-import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
-import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
-import { submitDisputeEvidence } from "@/modules/payments/server/disputes";
+import {
+  reconcileOrderDisputeState,
+  submitDisputeEvidence,
+  throwDisputeApiError,
+} from "@/modules/payments/server/disputes";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
@@ -54,7 +56,7 @@ export async function POST(request: Request, context: RouteContext) {
     let form: FormData;
     try {
       form = await request.formData();
-    } catch (cause) {
+    } catch (cause: unknown) {
       throw new ApiError({
         code: "MALFORMED_MULTIPART",
         message: "The dispute evidence form could not be read.",
@@ -73,11 +75,11 @@ export async function POST(request: Request, context: RouteContext) {
       uploadedFilename: optionalStringField(form, "uploadedFilename"),
     });
 
-    const value = form.get("file");
-    const file = value instanceof Blob && value.size > 0 ? value : null;
+    const formValue = form.get("file");
+    const file = formValue instanceof Blob && formValue.size > 0 ? formValue : null;
     const fileDescriptor = file
       ? disputeEvidenceFileSchema.parse({
-          name: typeof (file as File).name === "string" ? (file as File).name : "evidence",
+          name: readUploadedFileName(file),
           type: file.type,
           size: file.size,
         })
@@ -104,17 +106,25 @@ export async function POST(request: Request, context: RouteContext) {
         : {}),
     });
     if (!result.ok) throwDisputeApiError(result.error);
-    const normalized = await reconcileOrderDisputeState(result.value);
-    return { data: normalized, headers: privateNoStore };
+    return {
+      data: await reconcileOrderDisputeState(result.value),
+      headers: privateNoStore,
+    };
   });
 }
 
-function stringField(form: FormData, name: string) {
+function stringField(form: FormData, name: string): string {
   const value = form.get(name);
   return typeof value === "string" ? value : "";
 }
 
-function optionalStringField(form: FormData, name: string) {
+function optionalStringField(form: FormData, name: string): string | undefined {
   const value = form.get(name);
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function readUploadedFileName(file: Blob): string {
+  return typeof File !== "undefined" && file instanceof File && file.name.trim()
+    ? file.name
+    : "evidence";
 }
