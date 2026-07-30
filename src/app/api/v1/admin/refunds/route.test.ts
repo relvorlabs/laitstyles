@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/errors/api-error";
+import type { RefundRecord } from "@/modules/payments/client/refunds";
 
 const mocks = vi.hoisted(() => ({
   requireApiStaff: vi.fn(),
   listRefunds: vi.fn(),
   requestRefund: vi.fn(),
+  throwRefundApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/http/auth", () => ({ requireApiStaff: mocks.requireApiStaff }));
-vi.mock("@/modules/payments/server/refunds", () => ({
+vi.mock("@/modules/payments/server/refunds/index", () => ({
   listRefunds: mocks.listRefunds,
   requestRefund: mocks.requestRefund,
+  throwRefundApiError: mocks.throwRefundApiError,
 }));
 
 import { GET, POST } from "./route";
@@ -44,7 +47,7 @@ const refund = {
   failedAt: null,
   lastProviderSyncAt: "2026-07-30T12:00:00.000Z",
   lineAllocations: [],
-};
+} satisfies RefundRecord;
 
 beforeEach(() => {
   vi.clearAllMocks();
