@@ -16,7 +16,6 @@ import {
   minorToDecimal,
   type RefundError,
   refundInclude,
-  type RefundLineAllocation,
   type RefundProjection,
   type RefundRow,
   type RequestRefundInput,
@@ -38,7 +37,8 @@ export type {
 
 const countedRefundStatuses = ["pending", "processing", "needs_attention", "processed"] as const;
 const terminalRefundStatuses = ["processed", "failed"] as const;
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type NormalizedRefundRequest = RequestRefundInput & { reason: string };
 
@@ -53,7 +53,10 @@ export async function requestRefund(
   const normalized = normalizeRequest(input);
   if (!normalized.ok) return normalized;
 
-  const replay = await findRefundReplay(normalized.value.paymentId, normalized.value.idempotencyKey);
+  const replay = await findRefundReplay(
+    normalized.value.paymentId,
+    normalized.value.idempotencyKey,
+  );
   if (replay) return ok(toRefundProjection(replay));
 
   let command: Result<RefundRow, RefundError>;
@@ -62,7 +65,7 @@ export async function requestRefund(
       (tx) => createRefundCommand(tx, actor, normalized.value),
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
-  } catch (error) {
+  } catch (error: unknown) {
     if (!isUniqueConstraintError(error)) throw error;
     const raced = await findRefundReplay(
       normalized.value.paymentId,
@@ -72,7 +75,8 @@ export async function requestRefund(
       ? ok(toRefundProjection(raced))
       : err({
           code: "REFUND_RECONCILIATION_REQUIRED",
-          message: "This refund request is already being processed. Refresh its status before retrying.",
+          message:
+            "This refund request is already being processed. Refresh its status before retrying.",
         });
   }
 
@@ -139,11 +143,8 @@ export async function listRefunds(
     return err({ code: "FORBIDDEN", message: "You do not have permission to view refunds." });
   }
 
-  const page = Number.isInteger(query.page) && (query.page ?? 0) > 0 ? query.page! : 1;
-  const perPage =
-    Number.isInteger(query.perPage) && (query.perPage ?? 0) > 0
-      ? Math.min(query.perPage!, 100)
-      : 25;
+  const page = normalizePositiveInteger(query.page, 1);
+  const perPage = Math.min(normalizePositiveInteger(query.perPage, 25), 100);
   const where: Prisma.payment_refundsWhereInput = {
     ...(query.paymentId ? { payment_id: query.paymentId } : {}),
     ...(query.returnId ? { return_id: query.returnId } : {}),
@@ -197,7 +198,9 @@ export async function applyRefundProviderState(input: {
 
       const now = new Date();
       if (mappedStatus === "processed" && refund.status !== "processed") {
-        const nextOrderRefunded = refund.payments.orders.refunded_amount.add(providerProcessedAmount);
+        const nextOrderRefunded = refund.payments.orders.refunded_amount.add(
+          providerProcessedAmount,
+        );
         if (nextOrderRefunded.gt(refund.payments.orders.total)) {
           return err({
             code: "REFUND_LIMIT_EXCEEDED",
@@ -258,7 +261,11 @@ export async function applyRefundProviderState(input: {
                 (input.provider.refundedAt ? new Date(input.provider.refundedAt) : now)
               : refund.processed_at,
           failed_at:
-            mappedStatus === "failed" ? now : mappedStatus === "processed" ? null : refund.failed_at,
+            mappedStatus === "failed"
+              ? now
+              : mappedStatus === "processed"
+                ? null
+                : refund.failed_at,
           failure_reason:
             mappedStatus === "failed"
               ? "Paystack marked the refund as failed."
@@ -419,7 +426,7 @@ function isProviderReplay(
   provider: PaystackRefund,
   status: RefundProjection["status"],
   processedAmount: Prisma.Decimal,
-) {
+): boolean {
   return (
     refund.provider_reference === provider.id &&
     refund.status === status &&
@@ -428,7 +435,11 @@ function isProviderReplay(
   );
 }
 
-function isUniqueConstraintError(error: unknown) {
+function normalizePositiveInteger(value: number | undefined, fallback: number): number {
+  return Number.isInteger(value) && value !== undefined && value > 0 ? value : fallback;
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
