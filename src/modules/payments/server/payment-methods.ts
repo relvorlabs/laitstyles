@@ -4,6 +4,25 @@ import { err, ok, type Result } from "@/lib/errors";
 import { prisma, type Prisma } from "@/lib/prisma";
 import { paymentMethodIdentifierSchema } from "@/modules/payments/schema";
 import {
+  findPaymentMethodSetupReplay,
+  isAuthorizationSignatureConflict,
+  isPrismaUniqueConstraintError,
+  paymentMethodSetupReplayResult,
+  PAYMENT_METHOD_SETUP_SCOPE,
+} from "@/modules/payments/server/payment-method-idempotency";
+import {
+  failInitializedPaymentMethodSetup,
+  failVerifiedPaymentMethodSetup,
+  type PendingPaymentMethodSetup,
+  tombstonePaymentAuthorizationSignature,
+} from "@/modules/payments/server/payment-method-lifecycle";
+import {
+  mapPaymentMethodRefundStatus,
+  type PaymentMethodProjectionRow,
+  toPaymentMethod,
+  toPaymentMethodSetup,
+} from "@/modules/payments/server/payment-method-projection";
+import {
   decryptAuthorizationCode,
   encryptAuthorizationCode,
 } from "@/modules/payments/server/authorization-secrets";
@@ -23,20 +42,6 @@ import type {
 
 const SETUP_AMOUNT_MINOR = 5_000;
 const SETUP_AMOUNT_DECIMAL = "50.00";
-const IDEMPOTENCY_SCOPE = "payment-method.setup";
-
-type SetupReplay =
-  | { kind: "replay"; value: PaymentMethodSetup }
-  | { kind: "pending" }
-  | { kind: "failed" }
-  | { kind: "conflict" };
-
-type PendingSetup = {
-  idempotencyId: string;
-  authorizationId: string;
-  orderId: string;
-  paymentId: string;
-};
 
 export async function listPaymentMethods(identity: PaymentMethodIdentity): Promise<PaymentMethod[]> {
   const methods = await prisma.payment_authorizations.findMany({
@@ -59,8 +64,8 @@ export async function createPaymentMethodSetup(
     });
   }
 
-  const replay = await findSetupReplay(identity.customerId, input.idempotencyKey);
-  const replayResult = setupReplayResult(replay);
+  const replay = await findPaymentMethodSetupReplay(identity.customerId, input.idempotencyKey);
+  const replayResult = paymentMethodSetupReplayResult(replay);
   if (replayResult) return replayResult;
 
   const attemptId = crypto.randomUUID();
@@ -68,12 +73,12 @@ export async function createPaymentMethodSetup(
   const orderNumber = `LS-METHOD-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const placeholderCode = encryptAuthorizationCode(`pending:${attemptId}`);
 
-  let pending: PendingSetup;
+  let pending: PendingPaymentMethodSetup;
   try {
     pending = await prisma.$transaction(async (tx) => {
       const idempotency = await tx.idempotency_records.create({
         data: {
-          scope: IDEMPOTENCY_SCOPE,
+          scope: PAYMENT_METHOD_SETUP_SCOPE,
           idempotency_key: input.idempotencyKey,
           request_hash: identity.customerId,
           status: "in_progress",
@@ -125,10 +130,10 @@ export async function createPaymentMethodSetup(
       };
     });
   } catch (error) {
-    if (!isUniqueConstraintError(error)) throw error;
-    const raced = await findSetupReplay(identity.customerId, input.idempotencyKey);
+    if (!isPrismaUniqueConstraintError(error)) throw error;
+    const raced = await findPaymentMethodSetupReplay(identity.customerId, input.idempotencyKey);
     return (
-      setupReplayResult(raced) ??
+      paymentMethodSetupReplayResult(raced) ??
       err({
         code: "PAYMENT_METHOD_SETUP_PENDING",
         message: "This payment method setup is already being prepared.",
@@ -175,7 +180,7 @@ export async function createPaymentMethodSetup(
     });
     return ok(setup);
   } catch {
-    await failInitializedSetup(pending);
+    await failInitializedPaymentMethodSetup(pending);
     return err({
       code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE",
       message: "Payment method setup could not be initialized.",
@@ -212,7 +217,7 @@ export async function getPaymentMethodSetup(
       message: "Payment method setup was not found.",
     });
   }
-  return ok(toSetup(authorization, authorization.payments[0]));
+  return ok(toPaymentMethodSetup(authorization, authorization.payments[0]));
 }
 
 export async function verifyPaymentMethodSetup(
@@ -251,7 +256,7 @@ export async function verifyPaymentMethodSetup(
     const terminal = provider.status === "failed" || provider.status === "abandoned";
     if (terminal) {
       const terminalStatus = provider.status === "abandoned" ? "abandoned" : "failed";
-      await failVerifiedSetup({
+      await failVerifiedPaymentMethodSetup({
         authorizationId: authorization.id,
         authorizationSignature: authorization.signature,
         orderId: payment.orders.id,
@@ -327,7 +332,7 @@ export async function verifyPaymentMethodSetup(
   }
 
   let saved: {
-    method: Parameters<typeof toPaymentMethod>[0];
+    method: PaymentMethodProjectionRow;
     refund: {
       id: string;
       provider_reference: string | null;
@@ -340,7 +345,7 @@ export async function verifyPaymentMethodSetup(
         await tx.payment_authorizations.update({
           where: { id: duplicate.id },
           data: {
-            signature: tombstoneSignature(duplicate.id, duplicate.signature),
+            signature: tombstonePaymentAuthorizationSignature(duplicate.id, duplicate.signature),
             status: "inactive",
             reusable: false,
             is_default: false,
@@ -433,7 +438,7 @@ export async function verifyPaymentMethodSetup(
       return { method, refund };
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) {
+    if (isAuthorizationSignatureConflict(error)) {
       return err({
         code: "PAYMENT_METHOD_CUSTOMER_MISMATCH",
         message: "This reusable authorization is already associated with another account.",
@@ -464,7 +469,7 @@ export async function verifyPaymentMethodSetup(
           where: { id: saved.refund.id },
           data: {
             provider_reference: providerRefund.id,
-            status: mapRefundStatus(providerRefund.status),
+            status: mapPaymentMethodRefundStatus(providerRefund.status),
             ...(providerRefund.status === "processed"
               ? {
                   processed_amount: SETUP_AMOUNT_DECIMAL,
@@ -563,7 +568,7 @@ export async function deletePaymentMethod(
   await prisma.payment_authorizations.update({
     where: { id: method.id },
     data: {
-      signature: tombstoneSignature(method.id, method.signature),
+      signature: tombstonePaymentAuthorizationSignature(method.id, method.signature),
       status: "inactive",
       reusable: false,
       is_default: false,
@@ -571,192 +576,4 @@ export async function deletePaymentMethod(
     },
   });
   return ok({ id: method.id, inactive: true });
-}
-
-async function failInitializedSetup(pending: PendingSetup) {
-  const failedAt = new Date();
-  await prisma.$transaction(async (tx) => {
-    await tx.payments.update({
-      where: { id: pending.paymentId },
-      data: { status: "failed", failure_reason: "Paystack setup initialization failed." },
-    });
-    await tx.payment_authorizations.update({
-      where: { id: pending.authorizationId },
-      data: {
-        signature: tombstoneSignature(pending.authorizationId, `setup:${pending.authorizationId}`),
-        status: "inactive",
-        reusable: false,
-        is_default: false,
-        deactivated_at: failedAt,
-      },
-    });
-    await tx.orders.update({
-      where: { id: pending.orderId },
-      data: {
-        payment_status: "cancelled",
-        fulfilment_status: "cancelled",
-        attention: null,
-      },
-    });
-    await tx.idempotency_records.update({
-      where: { id: pending.idempotencyId },
-      data: { status: "failed", completed_at: failedAt },
-    });
-  });
-}
-
-async function failVerifiedSetup(input: {
-  authorizationId: string;
-  authorizationSignature: string;
-  orderId: string;
-  paymentId: string;
-  paymentStatus: "failed" | "abandoned";
-}) {
-  const failedAt = new Date();
-  await prisma.$transaction(async (tx) => {
-    await tx.payments.update({
-      where: { id: input.paymentId },
-      data: { status: input.paymentStatus, verified_at: failedAt, verification_source: "manual_verify" },
-    });
-    await tx.payment_authorizations.update({
-      where: { id: input.authorizationId },
-      data: {
-        signature: tombstoneSignature(input.authorizationId, input.authorizationSignature),
-        status: "inactive",
-        reusable: false,
-        is_default: false,
-        deactivated_at: failedAt,
-      },
-    });
-    await tx.orders.update({
-      where: { id: input.orderId },
-      data: {
-        payment_status: "cancelled",
-        fulfilment_status: "cancelled",
-        attention: null,
-      },
-    });
-  });
-}
-
-async function findSetupReplay(
-  customerId: string,
-  idempotencyKey: string,
-): Promise<SetupReplay | null> {
-  const record = await prisma.idempotency_records.findUnique({
-    where: {
-      scope_idempotency_key: {
-        scope: IDEMPOTENCY_SCOPE,
-        idempotency_key: idempotencyKey,
-      },
-    },
-  });
-  if (!record) return null;
-  if (record.request_hash !== customerId) return { kind: "conflict" };
-  if (record.response_snapshot) {
-    return {
-      kind: "replay",
-      value: record.response_snapshot as unknown as PaymentMethodSetup,
-    };
-  }
-  return record.status === "failed" ? { kind: "failed" } : { kind: "pending" };
-}
-
-function setupReplayResult(
-  replay: SetupReplay | null,
-): Result<PaymentMethodSetup, PaymentMethodError> | null {
-  if (!replay) return null;
-  switch (replay.kind) {
-    case "replay":
-      return ok(replay.value);
-    case "pending":
-      return err({
-        code: "PAYMENT_METHOD_SETUP_PENDING",
-        message: "This payment method setup is already being prepared.",
-      });
-    case "failed":
-      return err({
-        code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE",
-        message: "The previous setup attempt failed. Start again with a new request.",
-      });
-    case "conflict":
-      return err({
-        code: "PAYMENT_METHOD_INVALID",
-        message: "The idempotency key is already associated with another account.",
-        field: "idempotencyKey",
-      });
-  }
-}
-
-function toPaymentMethod(method: {
-  id: string;
-  bank: string | null;
-  last4: string | null;
-  exp_month: string | null;
-  exp_year: string | null;
-  country_code: string | null;
-  channel: string | null;
-  card_type: string | null;
-  reusable: boolean;
-  is_default: boolean;
-  status: string;
-  created_at: Date;
-}): PaymentMethod {
-  return {
-    id: method.id,
-    brand: method.card_type,
-    bank: method.bank,
-    last4: method.last4,
-    expMonth: method.exp_month,
-    expYear: method.exp_year,
-    countryCode: method.country_code,
-    channel: method.channel,
-    reusable: method.reusable,
-    isDefault: method.is_default,
-    status: method.status as PaymentMethod["status"],
-    createdAt: method.created_at.toISOString(),
-  };
-}
-
-function toSetup(authorization: any, payment: any): PaymentMethodSetup {
-  const refund = payment.payment_refunds?.[0];
-  return {
-    attemptId: authorization.id,
-    paymentId: payment.id,
-    reference: payment.reference,
-    accessCode: payment.access_code,
-    status: payment.status,
-    refundStatus: refund?.status ?? "not_requested",
-    method: authorization.status === "active" ? toPaymentMethod(authorization) : null,
-  };
-}
-
-function tombstoneSignature(id: string, signature: string) {
-  return `inactive:${id}:${signature}`;
-}
-
-function mapRefundStatus(
-  status: string,
-): "pending" | "processing" | "needs_attention" | "processed" | "failed" {
-  switch (status) {
-    case "processing":
-      return "processing";
-    case "processed":
-      return "processed";
-    case "failed":
-      return "failed";
-    case "needs-attention":
-      return "needs_attention";
-    default:
-      return "pending";
-  }
-}
-
-function isUniqueConstraintError(error: unknown) {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002",
-  );
 }
