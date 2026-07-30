@@ -1,0 +1,31 @@
+name: Plan 07 Agent Export
+
+on:
+  push:
+    branches:
+      - codex/plan-07-owner-finance
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Archive source snapshot
+        shell: bash
+        run: tar --exclude=.git --exclude=node_modules --exclude=.next -czf laitstyles-plan07-source.tar.gz .
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: laitstyles-plan07-source-${{ github.sha }}
+          path: laitstyles-plan07-source.tar.gz
+          retention-days: 1
+          if-no-files-found: error
