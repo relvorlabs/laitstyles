@@ -16,6 +16,7 @@ import {
   DISPUTE_EVIDENCE_CONTENT_TYPES,
   DISPUTE_EVIDENCE_MAX_BYTES,
 } from "@/modules/payments/dispute-contract";
+import { PaymentTimeline } from "@/modules/payments/ui/payment-timeline";
 
 export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
   const disputesQuery = useQuery(disputesQueryOptions({ perPage: 50 }));
@@ -40,8 +41,8 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
     () => disputes.find((dispute) => dispute.id === selectedId) ?? disputes[0] ?? null,
     [disputes, selectedId],
   );
-  const unresolved = disputes.filter((item) =>
-    item.status === "awaiting_evidence" || item.status === "pending",
+  const unresolved = disputes.filter(
+    (item) => item.status === "awaiting_evidence" || item.status === "pending",
   ).length;
 
   async function uploadEvidence() {
@@ -178,7 +179,11 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span>{formatMoney(dispute.amountMinor, dispute.currency)}</span>
                     <span>{dispute.category ?? "Uncategorised"}</span>
-                    <span>{dispute.evidenceDueAt ? `Due ${formatDate(dispute.evidenceDueAt)}` : "No due date"}</span>
+                    <span>
+                      {dispute.evidenceDueAt
+                        ? `Due ${formatDate(dispute.evidenceDueAt)}`
+                        : "No due date"}
+                    </span>
                   </div>
                 </button>
               ))
@@ -214,14 +219,18 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                     disabled={!canDecide}
                     id="evidence-name"
                     label="Customer name"
-                    onChange={(value) => setEvidence((current) => ({ ...current, customerName: value }))}
+                    onChange={(value) =>
+                      setEvidence((current) => ({ ...current, customerName: value }))
+                    }
                     value={evidence.customerName}
                   />
                   <TextField
                     disabled={!canDecide}
                     id="evidence-email"
                     label="Customer email"
-                    onChange={(value) => setEvidence((current) => ({ ...current, customerEmail: value }))}
+                    onChange={(value) =>
+                      setEvidence((current) => ({ ...current, customerEmail: value }))
+                    }
                     type="email"
                     value={evidence.customerEmail}
                   />
@@ -229,14 +238,18 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                     disabled={!canDecide}
                     id="evidence-phone"
                     label="Customer phone"
-                    onChange={(value) => setEvidence((current) => ({ ...current, customerPhone: value }))}
+                    onChange={(value) =>
+                      setEvidence((current) => ({ ...current, customerPhone: value }))
+                    }
                     value={evidence.customerPhone}
                   />
                   <TextField
                     disabled={!canDecide}
                     id="evidence-date"
                     label="Delivery date"
-                    onChange={(value) => setEvidence((current) => ({ ...current, deliveryDate: value }))}
+                    onChange={(value) =>
+                      setEvidence((current) => ({ ...current, deliveryDate: value }))
+                    }
                     type="date"
                     value={evidence.deliveryDate}
                   />
@@ -288,7 +301,9 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                     disabled={!canDecide}
                     id="decision-refund"
                     label="Refund amount (NGN)"
-                    onChange={(value) => setDecision((current) => ({ ...current, refundNaira: value }))}
+                    onChange={(value) =>
+                      setDecision((current) => ({ ...current, refundNaira: value }))
+                    }
                     type="number"
                     value={decision.refundNaira}
                   />
@@ -327,6 +342,8 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
           )}
         </section>
       </div>
+
+      <PaymentTimeline paymentId={selected?.paymentId ?? null} />
     </div>
   );
 }
@@ -455,7 +472,9 @@ function Feedback({ message }: { message: { tone: "error" | "success"; text: str
 }
 
 function isDueSoon(dispute: DisputeRecord) {
-  if (!dispute.evidenceDueAt || dispute.status === "resolved" || dispute.status === "declined") return false;
+  if (!dispute.evidenceDueAt || dispute.status === "resolved" || dispute.status === "declined") {
+    return false;
+  }
   const remaining = new Date(dispute.evidenceDueAt).getTime() - Date.now();
   return remaining >= 0 && remaining <= 3 * 24 * 60 * 60 * 1_000;
 }
