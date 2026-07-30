@@ -5,6 +5,7 @@ import type {
   createCheckoutSchema,
   paystackSettlementEventSchema,
 } from "@/modules/checkout/schema";
+import type { OwnedAddress } from "@/modules/customers/types";
 
 export type CheckoutIdentity = ConsumerSession;
 export type CreateCheckoutRequestInput = z.infer<typeof createCheckoutRequestSchema>;
@@ -20,6 +21,22 @@ export type CheckoutStatus =
   | "abandoned"
   | "reversed"
   | "review_required";
+
+export type CheckoutDeliveryZone = {
+  id: string;
+  name: string;
+  city: string;
+  feeMinor: number;
+  estimatedDays: string | null;
+};
+
+export type CheckoutContext = {
+  addresses: OwnedAddress[];
+  defaultAddressId: string | null;
+  deliveryZones: CheckoutDeliveryZone[];
+  selectedDeliveryZoneId: string | null;
+  deliveryAmountStatus: "estimated";
+};
 
 export type CheckoutDraft = {
   checkoutId: string;
