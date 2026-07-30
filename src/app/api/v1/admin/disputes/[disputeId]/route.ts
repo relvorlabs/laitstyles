@@ -40,7 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const input = await parseJsonBody(request, updateDisputeBodySchema);
     const result = await updatePaymentDispute(actor, id, { ...input, idempotencyKey });
     if (!result.ok) throwDisputeApiError(result.error);
-    await reconcileOrderDisputeState(result.value);
-    return { data: result.value, headers: privateNoStore };
+    const normalized = await reconcileOrderDisputeState(result.value);
+    return { data: normalized, headers: privateNoStore };
   });
 }
