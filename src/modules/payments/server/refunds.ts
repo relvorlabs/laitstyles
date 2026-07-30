@@ -5,92 +5,42 @@ import { Prisma, prisma } from "@/lib/prisma";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import {
+  applyRefundLineAllocations,
+  buildRefundLineAllocations,
+} from "@/modules/payments/server/refund-lines";
+import {
+  decimalToMinor,
+  type ListRefundsQuery,
+  mapProviderRefundStatus,
+  mergeRefundProviderMetadata,
+  minorToDecimal,
+  type RefundError,
+  refundInclude,
+  type RefundLineAllocation,
+  type RefundProjection,
+  type RefundRow,
+  type RequestRefundInput,
+  readLineAllocations,
+  toRefundProjection,
+} from "@/modules/payments/server/refund-projection";
+import {
   createRefund as createPaystackRefund,
-  fetchRefund as fetchPaystackRefund,
   type PaystackRefund,
 } from "@/modules/payments/server/paystack";
+
+export type {
+  ListRefundsQuery,
+  RefundError,
+  RefundLineAllocation,
+  RefundProjection,
+  RequestRefundInput,
+} from "@/modules/payments/server/refund-projection";
 
 const countedRefundStatuses = ["pending", "processing", "needs_attention", "processed"] as const;
 const terminalRefundStatuses = ["processed", "failed"] as const;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const refundInclude = {
-  payments: {
-    include: {
-      orders: {
-        include: {
-          order_lines: true,
-        },
-      },
-    },
-  },
-  returns: true,
-  profiles: { select: { display_name: true, email: true } },
-} satisfies Prisma.payment_refundsInclude;
-
-type RefundRow = Prisma.payment_refundsGetPayload<{ include: typeof refundInclude }>;
-type TransactionClient = Prisma.TransactionClient;
-
-export type RefundLineAllocation = {
-  orderLineId: string;
-  amountMinor: number;
-};
-
-export type RequestRefundInput = {
-  paymentId: string;
-  amountMinor: number;
-  currency: "NGN";
-  reason?: string;
-  returnId?: string;
-  idempotencyKey: string;
-  lineAllocations?: RefundLineAllocation[];
-};
-
-export type ListRefundsQuery = {
-  page?: number;
-  perPage?: number;
-  paymentId?: string;
-  returnId?: string;
-  status?: RefundProjection["status"];
-};
-
-export type RefundProjection = {
-  id: string;
-  paymentId: string;
-  orderId: string;
-  orderNumber: string;
-  returnId: string | null;
-  providerReference: string | null;
-  providerStatus: string | null;
-  idempotencyKey: string | null;
-  requestedAmountMinor: number;
-  processedAmountMinor: number;
-  currency: string;
-  status: "pending" | "processing" | "needs_attention" | "processed" | "failed";
-  reason: string | null;
-  failureReason: string | null;
-  retryCount: number;
-  requestedBy: string | null;
-  requestedAt: string;
-  processedAt: string | null;
-  failedAt: string | null;
-  lastProviderSyncAt: string | null;
-  lineAllocations: RefundLineAllocation[];
-};
-
-export type RefundError = {
-  code:
-    | "FORBIDDEN"
-    | "REFUND_INVALID"
-    | "REFUND_NOT_FOUND"
-    | "PAYMENT_NOT_REFUNDABLE"
-    | "REFUND_LIMIT_EXCEEDED"
-    | "REFUND_RETURN_MISMATCH"
-    | "REFUND_INVALID_STATE"
-    | "REFUND_RECONCILIATION_REQUIRED";
-  message: string;
-  remainingAmountMinor?: number;
-};
+type NormalizedRefundRequest = RequestRefundInput & { reason: string };
 
 export async function requestRefund(
   actor: StaffSession,
@@ -114,7 +64,10 @@ export async function requestRefund(
     );
   } catch (error) {
     if (!isUniqueConstraintError(error)) throw error;
-    const raced = await findRefundReplay(normalized.value.paymentId, normalized.value.idempotencyKey);
+    const raced = await findRefundReplay(
+      normalized.value.paymentId,
+      normalized.value.idempotencyKey,
+    );
     return raced
       ? ok(toRefundProjection(raced))
       : err({
@@ -133,7 +86,11 @@ export async function requestRefund(
       customerNote: normalized.value.reason || undefined,
       merchantNote: `Laitstyles refund ${command.value.id}`,
     });
-    return applyRefundProviderState({ refundId: command.value.id, provider, actorProfileId: actor.authUserId });
+    return applyRefundProviderState({
+      refundId: command.value.id,
+      provider,
+      actorProfileId: actor.authUserId,
+    });
   } catch {
     const persisted = await prisma.payment_refunds.update({
       where: { id: command.value.id },
@@ -157,82 +114,6 @@ export async function requestRefund(
   }
 }
 
-export async function retryRefund(
-  actor: StaffSession,
-  refundId: string,
-): Promise<Result<RefundProjection, RefundError>> {
-  if (!hasCapability(actor.role, "payments:refund")) {
-    return err({ code: "FORBIDDEN", message: "You do not have permission to retry refunds." });
-  }
-  if (!uuidPattern.test(refundId)) {
-    return err({ code: "REFUND_INVALID", message: "The refund identifier is invalid." });
-  }
-
-  const refund = await prisma.payment_refunds.findUnique({ where: { id: refundId }, include: refundInclude });
-  if (!refund) return err({ code: "REFUND_NOT_FOUND", message: "The refund could not be found." });
-  if (refund.status !== "failed" && refund.status !== "needs_attention") {
-    return err({
-      code: "REFUND_INVALID_STATE",
-      message: "Only failed or needs-attention refunds can be retried.",
-    });
-  }
-
-  if (refund.provider_reference) {
-    try {
-      const provider = await fetchPaystackRefund(refund.provider_reference);
-      return applyRefundProviderState({ refundId: refund.id, provider, actorProfileId: actor.authUserId });
-    } catch {
-      return err({
-        code: "REFUND_RECONCILIATION_REQUIRED",
-        message: "Paystack truth could not be resolved, so no second refund was submitted.",
-      });
-    }
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.payment_refunds.update({
-      where: { id: refund.id },
-      data: {
-        status: "pending",
-        retry_count: { increment: 1 },
-        failure_reason: null,
-        failed_at: null,
-      },
-    });
-    await tx.audit_events.create({
-      data: {
-        actor_profile_id: actor.authUserId,
-        action: "payments:refund:retry",
-        target_table: "payment_refunds",
-        target_id: refund.id,
-        metadata: { payment_id: refund.payment_id, retry_count: refund.retry_count + 1 },
-      },
-    });
-  });
-
-  try {
-    const provider = await createPaystackRefund({
-      transaction: refund.payments.reference,
-      amountMinor: decimalToMinor(refund.requested_amount),
-      currency: "NGN",
-      customerNote: refund.reason || undefined,
-      merchantNote: `Laitstyles refund ${refund.id}`,
-    });
-    return applyRefundProviderState({ refundId: refund.id, provider, actorProfileId: actor.authUserId });
-  } catch {
-    const persisted = await prisma.payment_refunds.update({
-      where: { id: refund.id },
-      data: {
-        status: "needs_attention",
-        failure_reason: "The provider did not confirm the retry.",
-        last_provider_sync_at: new Date(),
-      },
-      include: refundInclude,
-    });
-    return ok(toRefundProjection(persisted));
-  }
-}
-
 export async function getRefund(
   actor: StaffSession,
   id: string,
@@ -251,7 +132,9 @@ export async function getRefund(
 export async function listRefunds(
   actor: StaffSession,
   query: ListRefundsQuery = {},
-): Promise<Result<{ items: RefundProjection[]; page: number; perPage: number; total: number }, RefundError>> {
+): Promise<
+  Result<{ items: RefundProjection[]; page: number; perPage: number; total: number }, RefundError>
+> {
   if (!hasCapability(actor.role, "finance:read")) {
     return err({ code: "FORBIDDEN", message: "You do not have permission to view refunds." });
   }
@@ -292,12 +175,27 @@ export async function applyRefundProviderState(input: {
           : { provider: "paystack", provider_reference: input.provider.id },
         include: refundInclude,
       });
-      if (!refund) return err({ code: "REFUND_NOT_FOUND", message: "The refund could not be found." });
+      if (!refund) {
+        return err({ code: "REFUND_NOT_FOUND", message: "The refund could not be found." });
+      }
 
-      const mappedStatus = mapProviderStatus(input.provider.status);
+      const providerStatus = mapProviderRefundStatus(input.provider.status);
+      const mappedStatus =
+        refund.status === "processed" && providerStatus !== "processed"
+          ? "processed"
+          : providerStatus;
       const providerProcessedAmount = minorToDecimal(input.provider.amountMinor);
-      const now = new Date();
+      if (providerProcessedAmount.gt(refund.requested_amount)) {
+        return err({
+          code: "REFUND_RECONCILIATION_REQUIRED",
+          message: "Paystack reported a refund amount above the local request.",
+        });
+      }
+      if (isProviderReplay(refund, input.provider, mappedStatus, providerProcessedAmount)) {
+        return ok(refund);
+      }
 
+      const now = new Date();
       if (mappedStatus === "processed" && refund.status !== "processed") {
         const nextOrderRefunded = refund.payments.orders.refunded_amount.add(providerProcessedAmount);
         if (nextOrderRefunded.gt(refund.payments.orders.total)) {
@@ -306,12 +204,14 @@ export async function applyRefundProviderState(input: {
             message: "The provider refund exceeds the captured order total and needs reconciliation.",
             remainingAmountMinor: Math.max(
               0,
-              decimalToMinor(refund.payments.orders.total.sub(refund.payments.orders.refunded_amount)),
+              decimalToMinor(
+                refund.payments.orders.total.sub(refund.payments.orders.refunded_amount),
+              ),
             ),
           });
         }
 
-        await applyLineRefunds(tx, refund, readLineAllocations(refund.metadata));
+        await applyRefundLineAllocations(tx, refund, readLineAllocations(refund.metadata));
         if (refund.return_id) {
           await tx.returns.update({
             where: { id: refund.return_id },
@@ -345,16 +245,20 @@ export async function applyRefundProviderState(input: {
         where: { id: refund.id },
         data: {
           provider_reference: input.provider.id,
-          provider_status: input.provider.providerStatus,
+          provider_status:
+            refund.status === "processed" && providerStatus !== "processed"
+              ? refund.provider_status
+              : input.provider.providerStatus,
           status: mappedStatus,
-          processed_amount: mappedStatus === "processed" ? providerProcessedAmount : refund.processed_amount,
+          processed_amount:
+            mappedStatus === "processed" ? providerProcessedAmount : refund.processed_amount,
           processed_at:
             mappedStatus === "processed"
-              ? input.provider.refundedAt
-                ? new Date(input.provider.refundedAt)
-                : now
+              ? refund.processed_at ??
+                (input.provider.refundedAt ? new Date(input.provider.refundedAt) : now)
               : refund.processed_at,
-          failed_at: mappedStatus === "failed" ? now : mappedStatus === "processed" ? null : refund.failed_at,
+          failed_at:
+            mappedStatus === "failed" ? now : mappedStatus === "processed" ? null : refund.failed_at,
           failure_reason:
             mappedStatus === "failed"
               ? "Paystack marked the refund as failed."
@@ -362,7 +266,7 @@ export async function applyRefundProviderState(input: {
                 ? null
                 : refund.failure_reason,
           last_provider_sync_at: now,
-          metadata: mergeProviderMetadata(refund.metadata, input.provider),
+          metadata: mergeRefundProviderMetadata(refund.metadata, input.provider),
         },
         include: refundInclude,
       });
@@ -388,7 +292,7 @@ export async function applyRefundProviderState(input: {
 }
 
 async function createRefundCommand(
-  tx: TransactionClient,
+  tx: Prisma.TransactionClient,
   actor: StaffSession,
   input: NormalizedRefundRequest,
 ): Promise<Result<RefundRow, RefundError>> {
@@ -408,7 +312,9 @@ async function createRefundCommand(
 
   const requested = minorToDecimal(input.amountMinor);
   const reserved = payment.payment_refunds.reduce((total, refund) => {
-    return total.add(refund.status === "processed" ? refund.processed_amount : refund.requested_amount);
+    return total.add(
+      refund.status === "processed" ? refund.processed_amount : refund.requested_amount,
+    );
   }, new Prisma.Decimal(0));
   const remaining = payment.amount.sub(reserved);
   if (requested.gt(remaining)) {
@@ -419,21 +325,20 @@ async function createRefundCommand(
     });
   }
 
-  let linkedReturn: { id: string; return_lines: { order_line_id: string }[] } | null = null;
-  if (input.returnId) {
-    linkedReturn = await tx.returns.findFirst({
-      where: { id: input.returnId, order_id: payment.order_id },
-      include: { return_lines: { select: { order_line_id: true } } },
+  const linkedReturn = input.returnId
+    ? await tx.returns.findFirst({
+        where: { id: input.returnId, order_id: payment.order_id },
+        include: { return_lines: { select: { order_line_id: true } } },
+      })
+    : null;
+  if (input.returnId && !linkedReturn) {
+    return err({
+      code: "REFUND_RETURN_MISMATCH",
+      message: "The selected return does not belong to this payment's order.",
     });
-    if (!linkedReturn) {
-      return err({
-        code: "REFUND_RETURN_MISMATCH",
-        message: "The selected return does not belong to this payment's order.",
-      });
-    }
   }
 
-  const allocationsResult = buildLineAllocations({
+  const allocationsResult = buildRefundLineAllocations({
     amountMinor: input.amountMinor,
     requested: input.lineAllocations,
     orderLines: payment.orders.order_lines,
@@ -478,9 +383,9 @@ async function createRefundCommand(
   return ok(created);
 }
 
-type NormalizedRefundRequest = RequestRefundInput & { reason: string };
-
-function normalizeRequest(input: RequestRefundInput): Result<NormalizedRefundRequest, RefundError> {
+function normalizeRequest(
+  input: RequestRefundInput,
+): Result<NormalizedRefundRequest, RefundError> {
   const reason = input.reason?.trim().replace(/\s+/g, " ") ?? "";
   const key = input.idempotencyKey?.trim();
   if (
@@ -490,159 +395,16 @@ function normalizeRequest(input: RequestRefundInput): Result<NormalizedRefundReq
     input.amountMinor <= 0 ||
     input.currency !== "NGN" ||
     !key ||
+    key.length < 8 ||
     key.length > 200 ||
     reason.length > 500
   ) {
-    return err({ code: "REFUND_INVALID", message: "Provide a valid refund amount and request identity." });
-  }
-  return ok({ ...input, idempotencyKey: key, reason });
-}
-
-function buildLineAllocations(input: {
-  amountMinor: number;
-  requested?: RefundLineAllocation[];
-  orderLines: Array<{
-    id: string;
-    quantity: number;
-    unit_price: Prisma.Decimal;
-    refunded_amount: Prisma.Decimal;
-  }>;
-  allowedLineIds: Set<string> | null;
-}): Result<RefundLineAllocation[], RefundError> {
-  const lines = input.orderLines.filter(
-    (line) => !input.allowedLineIds || input.allowedLineIds.has(line.id),
-  );
-  const availableByLine = new Map(
-    lines.map((line) => [
-      line.id,
-      Math.max(0, decimalToMinor(line.unit_price.mul(line.quantity).sub(line.refunded_amount))),
-    ]),
-  );
-
-  if (input.requested?.length) {
-    const seen = new Set<string>();
-    let total = 0;
-    for (const allocation of input.requested) {
-      const available = availableByLine.get(allocation.orderLineId);
-      if (
-        seen.has(allocation.orderLineId) ||
-        available === undefined ||
-        !Number.isSafeInteger(allocation.amountMinor) ||
-        allocation.amountMinor <= 0 ||
-        allocation.amountMinor > available
-      ) {
-        return err({
-          code: "REFUND_INVALID",
-          message: "One or more refund line allocations are invalid for this order.",
-        });
-      }
-      seen.add(allocation.orderLineId);
-      total += allocation.amountMinor;
-    }
-    if (total > input.amountMinor) {
-      return err({
-        code: "REFUND_INVALID",
-        message: "Refund line allocations cannot exceed the requested refund amount.",
-      });
-    }
-    return ok(input.requested);
-  }
-
-  let remaining = input.amountMinor;
-  const allocations: RefundLineAllocation[] = [];
-  for (const line of lines) {
-    const available = availableByLine.get(line.id) ?? 0;
-    const amountMinor = Math.min(available, remaining);
-    if (amountMinor > 0) allocations.push({ orderLineId: line.id, amountMinor });
-    remaining -= amountMinor;
-    if (remaining === 0) break;
-  }
-  return ok(allocations);
-}
-
-async function applyLineRefunds(
-  tx: TransactionClient,
-  refund: RefundRow,
-  allocations: RefundLineAllocation[],
-) {
-  const orderLines = new Map(refund.payments.orders.order_lines.map((line) => [line.id, line]));
-  for (const allocation of allocations) {
-    const line = orderLines.get(allocation.orderLineId);
-    if (!line) continue;
-    const amount = minorToDecimal(allocation.amountMinor);
-    const next = line.refunded_amount.add(amount);
-    const lineTotal = line.unit_price.mul(line.quantity);
-    await tx.order_lines.update({
-      where: { id: line.id },
-      data: {
-        refunded_amount: next,
-        refund_status: next.gte(lineTotal) ? "refunded" : "partially_refunded",
-        refunded_at: new Date(),
-      },
+    return err({
+      code: "REFUND_INVALID",
+      message: "Provide a valid refund amount and request identity.",
     });
   }
-}
-
-function mapProviderStatus(status: PaystackRefund["status"]): RefundProjection["status"] {
-  if (status === "needs-attention" || status === "unknown") return "needs_attention";
-  return status;
-}
-
-function readLineAllocations(metadata: Prisma.JsonValue): RefundLineAllocation[] {
-  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return [];
-  const value = (metadata as Record<string, unknown>).lineAllocations;
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
-    const row = entry as Record<string, unknown>;
-    return typeof row.orderLineId === "string" && Number.isSafeInteger(row.amountMinor)
-      ? [{ orderLineId: row.orderLineId, amountMinor: row.amountMinor as number }]
-      : [];
-  });
-}
-
-function mergeProviderMetadata(
-  metadata: Prisma.JsonValue,
-  provider: PaystackRefund,
-): Prisma.InputJsonValue {
-  const current =
-    metadata && typeof metadata === "object" && !Array.isArray(metadata)
-      ? (metadata as Record<string, Prisma.JsonValue>)
-      : {};
-  return {
-    ...current,
-    provider: {
-      expectedAt: provider.expectedAt,
-      refundedAt: provider.refundedAt,
-      updatedAt: provider.updatedAt,
-    },
-  } as Prisma.InputJsonValue;
-}
-
-function toRefundProjection(row: RefundRow): RefundProjection {
-  return {
-    id: row.id,
-    paymentId: row.payment_id,
-    orderId: row.payments.order_id,
-    orderNumber: row.payments.orders.order_number,
-    returnId: row.return_id,
-    providerReference: row.provider_reference,
-    providerStatus: row.provider_status,
-    idempotencyKey: row.idempotency_key,
-    requestedAmountMinor: decimalToMinor(row.requested_amount),
-    processedAmountMinor: decimalToMinor(row.processed_amount),
-    currency: row.currency,
-    status: row.status,
-    reason: row.reason,
-    failureReason: row.failure_reason,
-    retryCount: row.retry_count,
-    requestedBy: row.profiles?.display_name ?? row.profiles?.email ?? null,
-    requestedAt: row.requested_at.toISOString(),
-    processedAt: row.processed_at?.toISOString() ?? null,
-    failedAt: row.failed_at?.toISOString() ?? null,
-    lastProviderSyncAt: row.last_provider_sync_at?.toISOString() ?? null,
-    lineAllocations: readLineAllocations(row.metadata),
-  };
+  return ok({ ...input, idempotencyKey: key, reason });
 }
 
 async function findRefundReplay(paymentId: string, idempotencyKey: string) {
@@ -652,16 +414,22 @@ async function findRefundReplay(paymentId: string, idempotencyKey: string) {
   });
 }
 
+function isProviderReplay(
+  refund: RefundRow,
+  provider: PaystackRefund,
+  status: RefundProjection["status"],
+  processedAmount: Prisma.Decimal,
+) {
+  return (
+    refund.provider_reference === provider.id &&
+    refund.status === status &&
+    (status !== "processed" || refund.processed_amount.equals(processedAmount)) &&
+    (refund.status === "processed" || refund.provider_status === provider.providerStatus)
+  );
+}
+
 function isUniqueConstraintError(error: unknown) {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-}
-
-function minorToDecimal(amountMinor: number) {
-  return new Prisma.Decimal(amountMinor).div(100);
-}
-
-function decimalToMinor(amount: Prisma.Decimal) {
-  return amount.mul(100).toDecimalPlaces(0).toNumber();
 }
 
 export const REFUND_TERMINAL_STATUSES = terminalRefundStatuses;
