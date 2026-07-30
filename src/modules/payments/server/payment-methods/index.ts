@@ -13,6 +13,7 @@ import {
   PaystackConfigurationError,
   PaystackProviderError,
 } from "@/modules/payments/server/paystack";
+import type { PaymentMethodError } from "@/modules/payments/types";
 
 export {
   createPaymentMethodSetup,
@@ -32,7 +33,7 @@ export async function verifyPaymentMethodSetup(
     return err({
       code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE",
       message: "Paystack could not verify the payment-method setup. Try again safely.",
-    });
+    } satisfies PaymentMethodError);
   }
 }
 
@@ -46,7 +47,7 @@ export async function deletePaymentMethod(
     return err({
       code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE",
       message: "Paystack could not deactivate this payment method, so it remains active locally.",
-    });
+    } satisfies PaymentMethodError);
   }
 }
 
