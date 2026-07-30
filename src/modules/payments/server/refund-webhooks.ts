@@ -9,7 +9,7 @@ const refundIdPattern = /Laitstyles refund ([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f
 export async function applyRefundWebhookState(provider: PaystackRefund) {
   const explicitRefundId = provider.merchantNote?.match(refundIdPattern)?.[1] ?? null;
   if (explicitRefundId) {
-    return applyRefundProviderState({ refundId: explicitRefundId, provider });
+    return applyTerminalSafeRefundState(explicitRefundId, provider);
   }
 
   if (provider.transactionReference) {
@@ -26,9 +26,33 @@ export async function applyRefundWebhookState(provider: PaystackRefund) {
       select: { id: true },
     });
     if (candidate) {
-      return applyRefundProviderState({ refundId: candidate.id, provider });
+      return applyTerminalSafeRefundState(candidate.id, provider);
     }
   }
 
-  return applyRefundProviderState({ provider });
+  const known = await prisma.payment_refunds.findFirst({
+    where: { provider: "paystack", provider_reference: provider.id },
+    select: { id: true },
+  });
+  return known
+    ? applyTerminalSafeRefundState(known.id, provider)
+    : applyRefundProviderState({ provider });
+}
+
+async function applyTerminalSafeRefundState(refundId: string, provider: PaystackRefund) {
+  const local = await prisma.payment_refunds.findUnique({
+    where: { id: refundId },
+    select: { status: true, provider_status: true },
+  });
+  if (local?.status === "processed" && provider.status !== "processed") {
+    return applyRefundProviderState({
+      refundId,
+      provider: {
+        ...provider,
+        status: "processed",
+        providerStatus: local.provider_status ?? "processed",
+      },
+    });
+  }
+  return applyRefundProviderState({ refundId, provider });
 }
