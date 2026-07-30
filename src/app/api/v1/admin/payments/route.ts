@@ -1,8 +1,10 @@
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { adminPaymentListQuerySchema } from "@/modules/payments/refund-schema";
-import { listAdminPayments } from "@/modules/payments/server/admin-payments";
-import { throwAdminPaymentApiError } from "@/modules/payments/server/refund-api-errors";
+import {
+  listAdminPayments,
+  throwAdminPaymentApiError,
+} from "@/modules/payments/server/admin";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
