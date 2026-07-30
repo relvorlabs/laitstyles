@@ -83,8 +83,13 @@ export {
 } from "@/modules/payments/server/paystack/transactions";
 export {
   isSupportedPaystackChargeEvent,
+  isSupportedPaystackDisputeEvent,
+  isSupportedPaystackFinancialEvent,
+  isSupportedPaystackRefundEvent,
   parsePaystackChargeEvent,
+  parsePaystackDisputeEvent,
   parsePaystackEventEnvelope,
+  parsePaystackRefundEvent,
   PaystackWebhookSignatureError,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack/webhooks";
