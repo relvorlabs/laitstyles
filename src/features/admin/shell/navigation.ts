@@ -71,6 +71,14 @@ const disputesItem: AdminNavigationItem = {
   requiredCapability: "finance:read",
 };
 
+const financeItem: AdminNavigationItem = {
+  label: "Finance",
+  href: "/admin/finance",
+  icon: Store01Icon,
+  description: "Paystack balance, settlements, recipients and deliberate transfers.",
+  requiredCapability: "finance:read",
+};
+
 const customersItem: AdminNavigationItem = {
   label: "Customers",
   href: "/admin/customers",
@@ -96,7 +104,10 @@ const settingsItem: AdminNavigationItem = {
 export const adminNavigationGroups: AdminNavigationGroup[] = [
   { label: "Admin", items: [overviewItem] },
   { label: "Catalogue", items: [inventoryItem] },
-  { label: "Sales", items: [ordersItem, holdsItem, returnsItem, paymentsItem, disputesItem] },
+  {
+    label: "Sales",
+    items: [ordersItem, holdsItem, returnsItem, paymentsItem, disputesItem, financeItem],
+  },
   { label: "People", items: [customersItem, teamItem] },
   { label: "Store", items: [settingsItem] },
 ];
