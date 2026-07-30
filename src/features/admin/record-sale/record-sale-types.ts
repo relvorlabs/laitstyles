@@ -1,4 +1,5 @@
 import type { InPersonSalesChannel, OfflineSaleInput } from "@/modules/orders/types";
+import type { CheckoutStatus } from "@/modules/checkout/types";
 
 export const recordSaleSteps = ["item", "customer", "payment", "review"] as const;
 export type RecordSaleStep = (typeof recordSaleSteps)[number];
@@ -22,9 +23,8 @@ export type RecordSaleCompletion = {
   orderId: string;
   customerId: string;
   message: string;
-  authorizationUrl: string;
-  accessCode: string;
   reference: string;
+  status: CheckoutStatus;
 };
 
 export function toOfflineSaleInput(values: RecordSaleValues): OfflineSaleInput {
