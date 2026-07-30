@@ -3,21 +3,26 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createCheckoutRequest,
+  getCheckoutContextRequest,
   getCheckoutRequest,
   verifyCheckoutPaymentRequest,
 } from "@/modules/checkout/client/http";
 import { checkoutKeys } from "@/modules/checkout/client/keys";
-import type { CheckoutDraft, CheckoutStatus } from "@/modules/checkout/types";
+import type { CheckoutDraft } from "@/modules/checkout/types";
+import { accountCustomerKeys } from "@/modules/customers/client/account-keys";
 import { accountOrderKeys } from "@/modules/orders/client/keys";
 
 const storefrontCartKeys = ["storefront", "cart"] as const;
 const accountSummaryKeys = ["account", "summary"] as const;
-const recoveryStatuses = new Set<CheckoutStatus>([
-  "failed",
-  "abandoned",
-  "reversed",
-  "review_required",
-]);
+
+export function checkoutContextQueryOptions(enabled = true) {
+  return queryOptions({
+    queryKey: checkoutKeys.context(),
+    queryFn: ({ signal }) => getCheckoutContextRequest(signal),
+    enabled,
+    staleTime: 15_000,
+  });
+}
 
 export function checkoutQueryOptions(checkoutId: string) {
   return queryOptions({
@@ -41,7 +46,6 @@ export function useCreateCheckout() {
     onSuccess: (checkout) => {
       queryClient.setQueryData(checkoutKeys.detail(checkout.checkoutId), checkout);
       queryClient.setQueryData(checkoutKeys.payment(checkout.paymentId), checkout);
-      persistCheckoutLocation(checkout.checkoutId, false);
     },
   });
 }
@@ -59,36 +63,10 @@ export function useVerifyCheckoutPayment() {
       queryClient.invalidateQueries({ queryKey: checkoutKeys.detail(settlement.checkoutId) });
       queryClient.invalidateQueries({ queryKey: accountOrderKeys.all });
       queryClient.invalidateQueries({ queryKey: accountSummaryKeys });
+      queryClient.invalidateQueries({ queryKey: accountCustomerKeys.addresses() });
       if (settlement.status === "success") {
         queryClient.invalidateQueries({ queryKey: storefrontCartKeys });
-      } else if (recoveryStatuses.has(settlement.status)) {
-        persistCheckoutLocation(settlement.checkoutId, true);
       }
     },
-    onError: () => {
-      const checkoutId = currentCheckoutId();
-      if (checkoutId) persistCheckoutLocation(checkoutId, true);
-    },
   });
-}
-
-function currentCheckoutId() {
-  if (typeof window === "undefined") return null;
-  return new URL(window.location.href).searchParams.get("checkout")?.trim() || null;
-}
-
-function persistCheckoutLocation(checkoutId: string, recovery: boolean) {
-  if (typeof window === "undefined" || window.location.pathname !== "/checkout") return;
-  const url = new URL(window.location.href);
-  url.searchParams.set("checkout", checkoutId);
-  if (recovery) url.searchParams.set("recovery", "1");
-  else url.searchParams.delete("recovery");
-  const next = `${url.pathname}${url.search}${url.hash}`;
-
-  if (recovery) {
-    if (window.location.search === url.search) return;
-    window.location.replace(next);
-    return;
-  }
-  window.history.replaceState(window.history.state, "", next);
 }
