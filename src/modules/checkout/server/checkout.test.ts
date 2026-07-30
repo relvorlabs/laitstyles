@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ConsumerSession } from "@/modules/auth/server/session";
+import type { CreateCheckoutInput, PaystackSettlementEvent } from "@/modules/checkout/types";
 
 const mocks = vi.hoisted(() => ({
   transaction: vi.fn(),
@@ -9,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   initializeTransaction: vi.fn(),
   verifyTransaction: vi.fn(),
   applyStockMutation: vi.fn(),
+  getOwnedProfile: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -30,36 +33,44 @@ vi.mock("@/modules/inventory/server/operational-stock", () => ({
   OperationalStockError: class OperationalStockError extends Error {},
 }));
 
+vi.mock("@/modules/customers/server/account-profile", () => ({
+  getOwnedProfile: mocks.getOwnedProfile,
+}));
+
 type CheckoutApi = {
-  createCheckout: (identity: typeof identity, input: ReturnType<typeof checkoutInput>) => Promise<any>;
-  settlePaystackEvent: (event: ReturnType<typeof settlementEvent>) => Promise<any>;
-  verifyCheckoutPayment: (identity: typeof identity, paymentId: string) => Promise<any>;
+  createCheckout: typeof import("@/modules/checkout/server/create-checkout").createCheckout;
+  settlePaystackEvent: typeof import("@/modules/checkout/server/settle-payment").settlePaystackEvent;
+  verifyCheckoutPayment: typeof import("@/modules/checkout/server/verify-payment").verifyCheckoutPayment;
 };
 
-async function loadCheckout(): Promise<Partial<CheckoutApi>> {
+async function loadCheckout(): Promise<CheckoutApi> {
   const [createModule, settlementModule, verificationModule] = await Promise.all([
-    import("@/modules/checkout/server/create-checkout").catch(() => ({})),
-    import("@/modules/checkout/server/settle-payment").catch(() => ({})),
-    import("@/modules/checkout/server/verify-payment").catch(() => ({})),
+    import("@/modules/checkout/server/create-checkout"),
+    import("@/modules/checkout/server/settle-payment"),
+    import("@/modules/checkout/server/verify-payment"),
   ]);
-  return { ...createModule, ...settlementModule, ...verificationModule };
+  return {
+    createCheckout: createModule.createCheckout,
+    settlePaystackEvent: settlementModule.settlePaystackEvent,
+    verifyCheckoutPayment: verificationModule.verifyCheckoutPayment,
+  };
 }
 
 const identity = {
-  kind: "consumer" as const,
+  kind: "consumer",
   authUserId: "11111111-1111-4111-8111-111111111111",
   customerId: "22222222-2222-4222-8222-222222222222",
   email: "buyer@example.com",
   displayName: "Buyer",
   phone: "+2348000000000",
-};
+} satisfies ConsumerSession;
 
-function checkoutInput(overrides: Record<string, unknown> = {}) {
+function checkoutInput(overrides: Partial<CreateCheckoutInput> = {}): CreateCheckoutInput {
   return {
     idempotencyKey: "33333333-3333-4333-8333-333333333333",
     addressId: "44444444-4444-4444-8444-444444444444",
     deliveryZoneId: "55555555-5555-4555-8555-555555555555",
-    callbackUrl: "https://laitstyles.com/checkout/callback",
+    callbackUrl: "https://laitstyles.com/account/orders?payment=processing",
     lines: [
       {
         productId: "66666666-6666-4666-8666-666666666666",
@@ -71,9 +82,11 @@ function checkoutInput(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function settlementEvent(overrides: Record<string, unknown> = {}) {
+function settlementEvent(
+  overrides: Partial<PaystackSettlementEvent> = {},
+): PaystackSettlementEvent {
   return {
-    source: "manual_verify" as const,
+    source: "manual_verify",
     providerTransactionId: "4099260516",
     reference: "LS-CHECKOUT-reference",
     status: "success",
@@ -214,6 +227,14 @@ beforeEach(() => {
   mocks.findIdempotency.mockResolvedValue(null);
   mocks.updatePayment.mockResolvedValue({});
   mocks.updateHolds.mockResolvedValue({ count: 1 });
+  mocks.getOwnedProfile.mockResolvedValue({
+    authUserId: identity.authUserId,
+    email: identity.email,
+    firstName: "Ada",
+    lastName: "Buyer",
+    preferredName: "Buyer",
+    phone: identity.phone,
+  });
   mocks.initializeTransaction.mockResolvedValue({
     authorizationUrl: "https://checkout.paystack.com/access123",
     accessCode: "access123",
@@ -226,9 +247,11 @@ describe("checkout draft", () => {
   it("reconstructs authoritative product and delivery prices on the server", async () => {
     const api = await loadCheckout();
     const tx = createTransaction();
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof createTransaction>) => unknown) => work(tx),
+    );
 
-    const result = await api.createCheckout?.(identity, checkoutInput());
+    const result = await api.createCheckout(identity, checkoutInput());
 
     expect(result).toMatchObject({
       ok: true,
@@ -244,12 +267,38 @@ describe("checkout draft", () => {
     });
     expect(tx.orders.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ subtotal: "2500.00", delivery_fee: "15.00", total: "2515.00" }),
+        data: expect.objectContaining({
+          customer_name: "Buyer",
+          customer_email: "buyer@example.com",
+          delivery_phone: "+2348000000000",
+          subtotal: "2500.00",
+          delivery_fee: "15.00",
+          total: "2515.00",
+        }),
       }),
     );
     expect(mocks.initializeTransaction).toHaveBeenCalledWith(
       expect.objectContaining({ amountMinor: 251_500, reference: "LS-CHECKOUT-reference" }),
     );
+  });
+
+  it("rejects checkout when required account details are incomplete", async () => {
+    const api = await loadCheckout();
+    mocks.getOwnedProfile.mockResolvedValueOnce({
+      authUserId: identity.authUserId,
+      email: identity.email,
+      firstName: "Ada",
+      lastName: "Buyer",
+      preferredName: "",
+      phone: "",
+    });
+
+    await expect(api.createCheckout(identity, checkoutInput())).resolves.toMatchObject({
+      ok: false,
+      error: { code: "CHECKOUT_INVALID", field: "profile" },
+    });
+    expect(mocks.transaction).not.toHaveBeenCalled();
+    expect(mocks.initializeTransaction).not.toHaveBeenCalled();
   });
 
   it("rejects a variant that does not belong to the selected product", async () => {
@@ -267,9 +316,11 @@ describe("checkout draft", () => {
         product_variants: [],
       },
     ]);
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof createTransaction>) => unknown) => work(tx),
+    );
 
-    await expect(api.createCheckout?.(identity, checkoutInput())).resolves.toMatchObject({
+    await expect(api.createCheckout(identity, checkoutInput())).resolves.toMatchObject({
       ok: false,
       error: { code: "CHECKOUT_VARIANT_INVALID" },
     });
@@ -280,9 +331,11 @@ describe("checkout draft", () => {
     const api = await loadCheckout();
     const tx = createTransaction();
     tx.customer_addresses.findFirst.mockResolvedValueOnce(null);
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof createTransaction>) => unknown) => work(tx),
+    );
 
-    await expect(api.createCheckout?.(identity, checkoutInput())).resolves.toMatchObject({
+    await expect(api.createCheckout(identity, checkoutInput())).resolves.toMatchObject({
       ok: false,
       error: { code: "RESOURCE_NOT_OWNED" },
     });
@@ -300,12 +353,19 @@ describe("checkout draft", () => {
       status: "active",
       expires_at: new Date("2020-01-01T00:00:00.000Z"),
     });
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof createTransaction>) => unknown) => work(tx),
+    );
 
     const input = checkoutInput({
-      lines: [{ ...checkoutInput().lines[0], holdId: "88888888-8888-4888-8888-888888888888" }],
+      lines: [
+        {
+          ...checkoutInput().lines[0],
+          holdId: "88888888-8888-4888-8888-888888888888",
+        },
+      ],
     });
-    await expect(api.createCheckout?.(identity, input)).resolves.toMatchObject({
+    await expect(api.createCheckout(identity, input)).resolves.toMatchObject({
       ok: false,
       error: { code: "CHECKOUT_HOLD_EXPIRED" },
     });
@@ -315,13 +375,15 @@ describe("checkout draft", () => {
     const api = await loadCheckout();
     const tx = createTransaction();
     let attempts = 0;
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => {
-      attempts += 1;
-      if (attempts === 1) throw { code: "P2002", meta: { target: ["reference"] } };
-      return work(tx);
-    });
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof createTransaction>) => unknown) => {
+        attempts += 1;
+        if (attempts === 1) throw { code: "P2002", meta: { target: ["reference"] } };
+        return work(tx);
+      },
+    );
 
-    await expect(api.createCheckout?.(identity, checkoutInput())).resolves.toMatchObject({
+    await expect(api.createCheckout(identity, checkoutInput())).resolves.toMatchObject({
       ok: true,
       value: { paymentId: "payment-1", accessCode: "access123" },
     });
@@ -333,21 +395,22 @@ describe("payment settlement", () => {
   it("allows only one stock transition across concurrent settlement attempts", async () => {
     const api = await loadCheckout();
     let claimed = false;
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) =>
-      work(
-        settlementTransaction({
-          claim: () => {
-            if (claimed) return 0;
-            claimed = true;
-            return 1;
-          },
-        }),
-      ),
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof settlementTransaction>) => unknown) =>
+        work(
+          settlementTransaction({
+            claim: () => {
+              if (claimed) return 0;
+              claimed = true;
+              return 1;
+            },
+          }),
+        ),
     );
 
     const [first, replay] = await Promise.all([
-      api.settlePaystackEvent?.(settlementEvent()),
-      api.settlePaystackEvent?.(settlementEvent()),
+      api.settlePaystackEvent(settlementEvent()),
+      api.settlePaystackEvent(settlementEvent()),
     ]);
 
     expect([first, replay]).toEqual(
@@ -362,9 +425,11 @@ describe("payment settlement", () => {
   it("treats a paid order replay as a no-op", async () => {
     const api = await loadCheckout();
     const tx = settlementTransaction({ alreadyPaid: true });
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof settlementTransaction>) => unknown) => work(tx),
+    );
 
-    await expect(api.settlePaystackEvent?.(settlementEvent())).resolves.toMatchObject({
+    await expect(api.settlePaystackEvent(settlementEvent())).resolves.toMatchObject({
       ok: true,
       value: { paymentId: "payment-1", status: "success", replayed: true },
     });
@@ -382,11 +447,13 @@ describe("payment settlement", () => {
         return 1;
       },
     });
-    mocks.transaction.mockImplementation(async (work: (client: any) => unknown) => work(tx));
+    mocks.transaction.mockImplementation(
+      async (work: (client: ReturnType<typeof settlementTransaction>) => unknown) => work(tx),
+    );
     const event = settlementEvent({ status: "failed", paidAt: null });
 
-    const first = await api.settlePaystackEvent?.(event);
-    const duplicate = await api.settlePaystackEvent?.(event);
+    const first = await api.settlePaystackEvent(event);
+    const duplicate = await api.settlePaystackEvent(event);
 
     expect(first).toMatchObject({ ok: true, value: { status: "failed", replayed: false } });
     expect(duplicate).toMatchObject({ ok: true, value: { status: "failed", replayed: true } });
@@ -395,7 +462,10 @@ describe("payment settlement", () => {
 
   it("rejects verification when Paystack returns a different reference", async () => {
     const api = await loadCheckout();
-    mocks.findOwnedPayment.mockResolvedValue({ id: "99999999-9999-4999-8999-999999999999", reference: "pay_expected" });
+    mocks.findOwnedPayment.mockResolvedValue({
+      id: "99999999-9999-4999-8999-999999999999",
+      reference: "pay_expected",
+    });
     mocks.verifyTransaction.mockResolvedValue({
       id: "4099260516",
       status: "success",
@@ -410,7 +480,7 @@ describe("payment settlement", () => {
     });
 
     await expect(
-      api.verifyCheckoutPayment?.(identity, "99999999-9999-4999-8999-999999999999"),
+      api.verifyCheckoutPayment(identity, "99999999-9999-4999-8999-999999999999"),
     ).resolves.toMatchObject({ ok: false, error: { code: "PAYMENT_REFERENCE_MISMATCH" } });
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
