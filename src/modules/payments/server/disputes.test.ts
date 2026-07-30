@@ -96,6 +96,15 @@ const payment = {
     customer: { name: "Buyer" },
   },
 };
+const localEvidence = {
+  evidenceId: "7",
+  providerFilename: "proof.pdf",
+  originalFilename: "proof.pdf",
+  contentType: "application/pdf",
+  size: 1024,
+  submittedByProfileId: admin.authUserId,
+  submittedAt: "2026-07-30T11:00:00.000Z",
+};
 const row = {
   id: "55555555-5555-4555-8555-555555555555",
   payment_id: payment.id,
@@ -112,7 +121,15 @@ const row = {
   resolved_at: null,
   resolution_note: null,
   last_provider_sync_at: new Date("2026-07-30T12:00:00.000Z"),
-  metadata: {},
+  metadata: {
+    provider: {
+      transactionId: "9001",
+      transactionReference: "pay_dispute_1",
+      createdAt: "2026-07-30T10:00:00.000Z",
+      updatedAt: "2026-07-30T12:00:00.000Z",
+    },
+    localEvidence: [localEvidence],
+  },
   created_at: new Date("2026-07-30T10:00:00.000Z"),
   updated_at: new Date("2026-07-30T12:00:00.000Z"),
   payments: payment,
@@ -149,9 +166,7 @@ beforeEach(() => {
 
 describe("dispute lifecycle", () => {
   it("allows finance readers to list safe local dispute projections", async () => {
-    await expect(
-      listPaymentDisputes(manager, { page: 1, perPage: 25 }),
-    ).resolves.toEqual({
+    await expect(listPaymentDisputes(manager, { page: 1, perPage: 25 })).resolves.toEqual({
       ok: true,
       value: expect.objectContaining({
         total: 1,
@@ -162,6 +177,7 @@ describe("dispute lifecycle", () => {
             orderNumber: "LS-1001",
             amountMinor: 25_000,
             status: "awaiting_evidence",
+            evidence: [localEvidence],
           }),
         ],
       }),
