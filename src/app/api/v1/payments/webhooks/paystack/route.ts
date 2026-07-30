@@ -1,5 +1,5 @@
 import { handleApiRequest } from "@/lib/http/server";
-import { processPaystackWebhook } from "@/modules/payments/server/webhooks/paystack-handler";
+import { processPaystackWebhook } from "@/modules/payments/server/webhooks";
 
 const noStore = { "Cache-Control": "no-store" };
 
