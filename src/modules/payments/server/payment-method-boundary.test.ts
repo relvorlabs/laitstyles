@@ -43,7 +43,9 @@ beforeEach(() => {
 
 describe("payment method server boundary", () => {
   it("normalizes provider verification failures", async () => {
-    mocks.verify.mockRejectedValueOnce(new PaystackProviderError("provider unavailable"));
+    mocks.verify.mockRejectedValueOnce(
+      new PaystackProviderError("provider unavailable", "verify-transaction", null),
+    );
 
     await expect(
       verifyPaymentMethodSetup(identity, "33333333-3333-4333-8333-333333333333"),
@@ -57,7 +59,9 @@ describe("payment method server boundary", () => {
   });
 
   it("keeps the local method active when provider removal fails", async () => {
-    mocks.remove.mockRejectedValueOnce(new PaystackProviderError("provider unavailable"));
+    mocks.remove.mockRejectedValueOnce(
+      new PaystackProviderError("provider unavailable", "deactivate-authorization", null),
+    );
 
     await expect(
       deletePaymentMethod(identity, "33333333-3333-4333-8333-333333333333"),
