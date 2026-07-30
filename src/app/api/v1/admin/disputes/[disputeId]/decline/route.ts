@@ -5,9 +5,11 @@ import {
   disputeDecisionBodySchema,
   disputeIdentifierSchema,
 } from "@/modules/payments/dispute-schema";
-import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
-import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
-import { declinePaymentDispute } from "@/modules/payments/server/disputes";
+import {
+  declinePaymentDispute,
+  reconcileOrderDisputeState,
+  throwDisputeApiError,
+} from "@/modules/payments/server/disputes";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
@@ -22,11 +24,15 @@ export async function POST(request: Request, context: RouteContext) {
     const idempotencyKey = requireIdempotencyKey(request);
     const actor = await requireApiStaff("payments:refund");
     const { disputeId } = await context.params;
-    const id = disputeIdentifierSchema.parse(disputeId);
     const input = await parseJsonBody(request, disputeDecisionBodySchema);
-    const result = await declinePaymentDispute(actor, id, { ...input, idempotencyKey });
+    const result = await declinePaymentDispute(actor, disputeIdentifierSchema.parse(disputeId), {
+      ...input,
+      idempotencyKey,
+    });
     if (!result.ok) throwDisputeApiError(result.error);
-    const normalized = await reconcileOrderDisputeState(result.value);
-    return { data: normalized, headers: privateNoStore };
+    return {
+      data: await reconcileOrderDisputeState(result.value),
+      headers: privateNoStore,
+    };
   });
 }
