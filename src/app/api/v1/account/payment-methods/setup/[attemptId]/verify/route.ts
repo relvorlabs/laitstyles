@@ -5,12 +5,14 @@ import {
   throwPaymentMethodApiError,
   verifyPaymentMethodSetup,
 } from "@/modules/payments/server/payment-methods/index";
+import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ attemptId: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
+    requireFinancialMutationOrigin(request);
     const identity = await requireApiConsumer();
     const { attemptId } = await context.params;
     const result = await verifyPaymentMethodSetup(
