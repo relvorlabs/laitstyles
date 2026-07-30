@@ -112,10 +112,13 @@ export async function resolveAccount(
     },
   });
   const accountNumber = response.data.account_number;
+  const maskedAccountNumber = `${"*".repeat(Math.max(0, accountNumber.length - 4))}${accountNumber.slice(-4)}`;
   return {
     accountName: response.data.account_name,
     bankId: response.data.bank_id === undefined ? null : String(response.data.bank_id),
-    maskedNumber: `${"*".repeat(Math.max(0, accountNumber.length - 4))}${accountNumber.slice(-4)}`,
+    bankCode: parsed.bankCode,
+    maskedNumber: maskedAccountNumber,
+    maskedAccountNumber,
     fingerprint: createHash("sha256")
       .update(`NGN:${parsed.bankCode}:${accountNumber}`)
       .digest("hex"),

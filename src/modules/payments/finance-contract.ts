@@ -121,9 +121,8 @@ export type PayoutBankRecord = {
   name: string;
   slug: string;
   code: string;
-  longCode: string;
   gateway: string | null;
-  payWithBank: boolean;
+  supportsTransfer: boolean;
   active: boolean;
   country: string;
   currency: string;

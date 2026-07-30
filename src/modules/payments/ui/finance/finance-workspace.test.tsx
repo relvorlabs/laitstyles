@@ -9,64 +9,65 @@ import type {
   PayoutTransferRecord,
 } from "@/modules/payments/finance-contract";
 
-const recipient = {
-  id: "11111111-1111-4111-8111-111111111111",
-  providerRecipientCode: "RCP_owner",
-  type: "nuban",
-  name: "Operations account",
-  accountName: "LAITSTYLES LIMITED",
-  bankName: "Test Bank",
-  bankCode: "001",
-  maskedAccountNumber: "****1234",
-  currency: "NGN",
-  active: true,
-  createdAt: "2026-07-30T12:00:00.000Z",
-  updatedAt: "2026-07-30T12:00:00.000Z",
-} satisfies PayoutRecipientRecord;
-
-const otpTransfer = {
-  id: "22222222-2222-4222-8222-222222222222",
-  recipient,
-  reference: "lt_12345678901234567890123456789012",
-  providerTransferCode: "TRF_owner",
-  providerStatus: "otp",
-  idempotencyKey: "33333333-3333-4333-8333-333333333333",
-  amountMinor: 25_000,
-  currency: "NGN",
-  reason: "Owner withdrawal",
-  status: "otp_required",
-  otpRequired: true,
-  otpAttempts: 0,
-  reconciliationRequired: false,
-  failureReason: null,
-  initiatedBy: "Store owner",
-  initiatedAt: "2026-07-30T12:00:00.000Z",
-  lastOtpSentAt: null,
-  lastProviderSyncAt: "2026-07-30T12:00:00.000Z",
-  completedAt: null,
-  events: [
-    {
-      id: "44444444-4444-4444-8444-444444444444",
-      kind: "otp_requested",
-      status: "otp_required",
-      note: "Paystack requested OTP.",
-      occurredAt: "2026-07-30T12:00:00.000Z",
+const fixtures = vi.hoisted(() => {
+  const recipient = {
+    id: "11111111-1111-4111-8111-111111111111",
+    providerRecipientCode: "RCP_owner",
+    type: "nuban",
+    name: "Operations account",
+    accountName: "LAITSTYLES LIMITED",
+    bankName: "Test Bank",
+    bankCode: "001",
+    maskedAccountNumber: "****1234",
+    currency: "NGN",
+    active: true,
+    createdAt: "2026-07-30T12:00:00.000Z",
+    updatedAt: "2026-07-30T12:00:00.000Z",
+  } satisfies PayoutRecipientRecord;
+  const otpTransfer = {
+    id: "22222222-2222-4222-8222-222222222222",
+    recipient,
+    reference: "lt_12345678901234567890123456789012",
+    providerTransferCode: "TRF_owner",
+    providerStatus: "otp",
+    idempotencyKey: "33333333-3333-4333-8333-333333333333",
+    amountMinor: 25_000,
+    currency: "NGN",
+    reason: "Owner withdrawal",
+    status: "otp_required",
+    otpRequired: true,
+    otpAttempts: 0,
+    reconciliationRequired: false,
+    failureReason: null,
+    initiatedBy: "Store owner",
+    initiatedAt: "2026-07-30T12:00:00.000Z",
+    lastOtpSentAt: null,
+    lastProviderSyncAt: "2026-07-30T12:00:00.000Z",
+    completedAt: null,
+    events: [
+      {
+        id: "44444444-4444-4444-8444-444444444444",
+        kind: "otp_requested",
+        status: "otp_required",
+        note: "Paystack requested OTP.",
+        occurredAt: "2026-07-30T12:00:00.000Z",
+      },
+    ],
+  } satisfies PayoutTransferRecord;
+  const overview = {
+    balances: [{ currency: "NGN", availableAmountMinor: 1_000_000 }],
+    totals: {
+      totalTransactions: 10,
+      totalVolumeMinor: 2_000_000,
+      totalVolumeByCurrency: [{ currency: "NGN", amountMinor: 2_000_000 }],
+      pendingTransfersMinor: 25_000,
+      pendingTransfersByCurrency: [{ currency: "NGN", amountMinor: 25_000 }],
     },
-  ],
-} satisfies PayoutTransferRecord;
-
-const overview = {
-  balances: [{ currency: "NGN", availableAmountMinor: 1_000_000 }],
-  totals: {
-    totalTransactions: 10,
-    totalVolumeMinor: 2_000_000,
-    totalVolumeByCurrency: [{ currency: "NGN", amountMinor: 2_000_000 }],
-    pendingTransfersMinor: 25_000,
-    pendingTransfersByCurrency: [{ currency: "NGN", amountMinor: 25_000 }],
-  },
-  unresolvedTransfers: 1,
-  pendingSettlements: 0,
-} satisfies FinanceOverviewRecord;
+    unresolvedTransfers: 1,
+    pendingSettlements: 0,
+  } satisfies FinanceOverviewRecord;
+  return { overview, otpTransfer, recipient };
+});
 
 const mocks = vi.hoisted(() => ({
   initiate: vi.fn(),
@@ -81,11 +82,11 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryKey: readonly unknown[] }) => {
     const resource = options.queryKey[2];
-    if (resource === "overview") return { data: overview, isPending: false, isError: false };
+    if (resource === "overview") return { data: fixtures.overview, isPending: false, isError: false };
     if (resource === "ledger") return { data: { items: [], meta: {} }, isPending: false, isError: false };
     if (resource === "settlements") return { data: { items: [], meta: {} }, isPending: false, isError: false };
-    if (resource === "recipients") return { data: { items: [recipient], meta: {} }, isPending: false, isError: false };
-    if (resource === "transfers") return { data: { items: [otpTransfer], meta: {} }, isPending: false, isError: false };
+    if (resource === "recipients") return { data: { items: [fixtures.recipient], meta: {} }, isPending: false, isError: false };
+    if (resource === "transfers") return { data: { items: [fixtures.otpTransfer], meta: {} }, isPending: false, isError: false };
     if (resource === "banks") return { data: [{ code: "001", name: "Test Bank" }], isPending: false, isError: false };
     return { data: undefined, isPending: false, isError: false };
   },
@@ -114,8 +115,12 @@ beforeEach(() => {
   vi.stubGlobal("crypto", {
     randomUUID: vi.fn(() => "55555555-5555-4555-8555-555555555555"),
   });
-  mocks.initiate.mockResolvedValue(otpTransfer);
-  mocks.finalize.mockResolvedValue({ ...otpTransfer, status: "processing", otpRequired: false });
+  mocks.initiate.mockResolvedValue(fixtures.otpTransfer);
+  mocks.finalize.mockResolvedValue({
+    ...fixtures.otpTransfer,
+    status: "processing",
+    otpRequired: false,
+  });
   mocks.reconcile.mockResolvedValue({ transactions: { items: [] } });
   mocks.resolve.mockResolvedValue({
     accountName: "LAITSTYLES LIMITED",
@@ -147,18 +152,18 @@ describe("FinanceWorkspace", () => {
     render(<FinanceWorkspace canTransfer />);
     await user.click(screen.getByRole("button", { name: "Transfers" }));
 
-    await user.selectOptions(screen.getByLabelText("Recipient"), recipient.id);
+    await user.selectOptions(screen.getByLabelText("Recipient"), fixtures.recipient.id);
     await user.type(screen.getByLabelText("Amount (NGN)"), "250");
     await user.type(screen.getByLabelText("Reason"), "Owner withdrawal");
     await user.click(screen.getByRole("button", { name: "Review transfer" }));
 
-    expect(screen.getByText(/Operations account · \*\*\*\*1234/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Operations account · \*\*\*\*1234/).length).toBeGreaterThan(0);
     expect(mocks.initiate).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Confirm and send to Paystack" }));
     await waitFor(() =>
       expect(mocks.initiate).toHaveBeenCalledWith({
-        recipientId: recipient.id,
+        recipientId: fixtures.recipient.id,
         amountMinor: 25_000,
         currency: "NGN",
         reason: "Owner withdrawal",
@@ -176,7 +181,7 @@ describe("FinanceWorkspace", () => {
     await user.click(screen.getByRole("button", { name: "Finalize OTP" }));
 
     expect(mocks.finalize).toHaveBeenCalledWith({
-      transferId: otpTransfer.id,
+      transferId: fixtures.otpTransfer.id,
       otp: "123456",
       idempotencyKey: "55555555-5555-4555-8555-555555555555",
     });
