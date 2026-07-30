@@ -176,10 +176,10 @@ async function processFinancialEvent(eventName: string, payload: unknown) {
     const event = parsePaystackDisputeEvent(payload);
     const result = await applyDisputeProviderState({ provider: event.dispute });
     if (!result.ok) return { ok: false as const, error: result.error };
-    await reconcileOrderDisputeState(result.value);
+    const normalized = await reconcileOrderDisputeState(result.value);
     return {
       ok: true as const,
-      status: result.value.status,
+      status: normalized.status,
       resource: "dispute" as const,
       replayed: false,
     };
