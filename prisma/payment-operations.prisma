@@ -1,6 +1,6 @@
 /// A saved Paystack authorization (customer payment method). Verified only
 /// after a successful transaction; reused only when `reusable` and `status`
-/// are both eligible. `signature` deduplicates instruments per customer.
+/// are both eligible. `signature` has one owning customer per provider.
 model payment_authorizations {
   id                     String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   customer_id            String                       @db.Uuid
@@ -30,7 +30,7 @@ model payment_authorizations {
   /// One default authorization per customer, mirroring customer_addresses'
   /// one-default-address pattern.
   @@unique([customer_id], map: "payment_authorizations_one_default_unique", where: { is_default: true })
-  @@unique([customer_id, provider, signature], map: "payment_authorizations_customer_provider_signature_unique")
+  @@unique([provider, signature], map: "payment_authorizations_provider_signature_unique")
   @@unique([provider, authorization_code], map: "payment_authorizations_provider_code_unique")
   @@index([customer_id, status], map: "payment_authorizations_customer_status_idx")
   @@schema("public")

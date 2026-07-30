@@ -15,22 +15,26 @@ const datasourceUrl =
     : null;
 
 export default defineConfig({
-  // Prisma's multi-file schema keeps the large public baseline stable while
-  // Phase 2 adds the normalized variant-measurement model in its own file.
-  schema: "prisma",
+  // Database-facing wrappers point Prisma at a temporary combined schema that
+  // includes Supabase's auth namespace for cross-schema FK validation.
+  schema: process.env.PRISMA_SCHEMA_INPUT ?? "prisma",
   migrations: {
     path: "prisma/migrations",
-    // Prisma 7 does not automatically seed after migrate dev/reset. Keep
-    // deterministic development seeding explicit through the repository script.
+    // Supabase owns auth.users. Prisma still needs the referenced table in its
+    // disposable shadow database because a reviewed SQL migration creates the
+    // public.profiles -> auth.users foreign key.
+    initShadowDb: `
+      CREATE SCHEMA IF NOT EXISTS auth;
+      CREATE TABLE IF NOT EXISTS auth.users (
+        id uuid PRIMARY KEY
+      );
+    `,
   },
-  // This table is created and constrained by the checked-in SQL migration. It is
-  // still available through Prisma Client, but Prisma Migrate must not infer away
-  // the SQL-owned foreign key to product_variants on a later schema diff.
   experimental: {
     externalTables: true,
   },
   tables: {
-    external: ["public.product_variant_measurements"],
+    external: ["auth.users", "public.product_variant_measurements"],
   },
   // DB commands use the direct/session-pooler URL when configured. The runtime
   // Prisma client continues to use DATABASE_URL in src/lib/prisma/client.ts.
