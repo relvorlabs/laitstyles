@@ -42,6 +42,20 @@ const terminalStatuses = ["failed", "reversed", "success"] as const;
 const OTP_RESEND_COOLDOWN_MS = 60_000;
 const MAX_OTP_RESENDS = 5;
 
+type PersistedTransferIntent = Pick<
+  PayoutTransferRow,
+  | "amount"
+  | "currency"
+  | "id"
+  | "last_provider_sync_at"
+  | "payout_recipients"
+  | "provider_status"
+  | "provider_transfer_code"
+  | "reason"
+  | "reference"
+  | "status"
+>;
+
 export async function initiatePayoutTransfer(
   actor: StaffSession,
   input: InitiateTransferBody & { idempotencyKey: string },
@@ -56,12 +70,15 @@ export async function initiatePayoutTransfer(
     include: payoutTransferInclude,
   });
   if (replay) {
-    return replay.request_hash === requestHash
-      ? ok(toTransferProjection(replay))
-      : err({
-          code: "TRANSFER_INVALID",
-          message: "This idempotency key was already used for a different transfer.",
-        });
+    if (replay.request_hash !== requestHash) {
+      return err({
+        code: "TRANSFER_INVALID",
+        message: "This idempotency key was already used for a different transfer.",
+      });
+    }
+    return shouldResumePersistedTransferIntent(replay)
+      ? resumePersistedTransferIntent(replay, actor.authUserId)
+      : ok(toTransferProjection(replay));
   }
 
   const recipient = await prisma.payout_recipients.findFirst({
@@ -157,7 +174,11 @@ export async function initiatePayoutTransfer(
         where: { provider: "paystack", idempotency_key: input.idempotencyKey },
         include: payoutTransferInclude,
       });
-      if (raced?.request_hash === requestHash) return ok(toTransferProjection(raced));
+      if (raced?.request_hash === requestHash) {
+        return shouldResumePersistedTransferIntent(raced)
+          ? resumePersistedTransferIntent(raced, actor.authUserId)
+          : ok(toTransferProjection(raced));
+      }
       return err({
         code: "TRANSFER_INVALID",
         message: "This transfer request is already being processed.",
@@ -166,29 +187,83 @@ export async function initiatePayoutTransfer(
     throw error;
   }
 
+  return submitPersistedTransferIntent(intent, actor.authUserId, false);
+}
+
+export function shouldResumePersistedTransferIntent(
+  intent: Pick<
+    PersistedTransferIntent,
+    "last_provider_sync_at" | "provider_status" | "provider_transfer_code" | "status"
+  >,
+): boolean {
+  return (
+    intent.status === "pending" &&
+    intent.provider_transfer_code === null &&
+    intent.provider_status === null &&
+    intent.last_provider_sync_at === null
+  );
+}
+
+export function buildPersistedTransferCommand(intent: PersistedTransferIntent) {
+  if (!intent.reason?.trim()) {
+    throw new TypeError("A persisted payout transfer must retain its original reason.");
+  }
+  return {
+    amountMinor: decimalToMinor(intent.amount),
+    recipientCode: intent.payout_recipients.recipient_code,
+    reference: intent.reference,
+    reason: intent.reason,
+    currency: intent.currency,
+  };
+}
+
+async function resumePersistedTransferIntent(
+  intent: PayoutTransferRow,
+  actorProfileId: string,
+): Promise<Result<PayoutTransferProjection, FinanceError>> {
   try {
-    const providerResult = await initiatePaystackTransfer({
-      amountMinor: input.amountMinor,
-      recipientCode: recipient.recipient_code,
-      reference,
-      reason: input.reason,
-      currency: input.currency,
+    const provider = await verifyTransfer(intent.reference);
+    return applyTransferProviderState({
+      transferId: intent.id,
+      provider,
+      actorProfileId,
+      eventNote: "Recovered a persisted transfer intent from its original provider reference.",
     });
+  } catch (error: unknown) {
+    if (isMissingProviderTransfer(error)) {
+      return submitPersistedTransferIntent(intent, actorProfileId, true);
+    }
+    if (error instanceof PaystackConfigurationError || error instanceof PaystackProviderError) {
+      return markTransferForReconciliation(intent.id, actorProfileId);
+    }
+    throw error;
+  }
+}
+
+async function submitPersistedTransferIntent(
+  intent: PayoutTransferRow,
+  actorProfileId: string,
+  resumed: boolean,
+): Promise<Result<PayoutTransferProjection, FinanceError>> {
+  try {
+    const providerResult = await initiatePaystackTransfer(buildPersistedTransferCommand(intent));
     if (providerResult.kind === "needs_reconciliation") {
-      return markTransferForReconciliation(intent.id, actor.authUserId);
+      return markTransferForReconciliation(intent.id, actorProfileId);
     }
     return applyTransferProviderState({
       transferId: intent.id,
       provider: providerResult.transfer,
-      actorProfileId: actor.authUserId,
+      actorProfileId,
       eventNote:
         providerResult.kind === "recovered"
           ? "Provider state recovered by exact reference after an ambiguous response."
-          : "Provider accepted the transfer command.",
+          : resumed
+            ? "Resumed the persisted transfer intent using its original provider reference."
+            : "Provider accepted the transfer command.",
     });
   } catch (error: unknown) {
     if (error instanceof PaystackConfigurationError || error instanceof PaystackProviderError) {
-      return markTransferForReconciliation(intent.id, actor.authUserId);
+      return markTransferForReconciliation(intent.id, actorProfileId);
     }
     throw error;
   }
@@ -560,6 +635,10 @@ function providerFailure<T>(error: unknown, message: string): Result<T, FinanceE
     return err({ code: "FINANCE_PROVIDER_UNAVAILABLE", message });
   }
   throw error;
+}
+
+function isMissingProviderTransfer(error: unknown): boolean {
+  return error instanceof PaystackProviderError && error.status === 404;
 }
 
 function isTerminalStatus(status: PayoutTransferStatus): boolean {
