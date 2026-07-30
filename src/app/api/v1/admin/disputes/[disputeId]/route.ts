@@ -10,7 +10,7 @@ import {
   reconcileOrderDisputeState,
   throwDisputeApiError,
   updatePaymentDispute,
-} from "@/modules/payments/server/disputes";
+} from "@/modules/payments/server/disputes/index";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
