@@ -25,6 +25,11 @@ vi.mock("@/modules/payments/client/disputes", () => ({
   useAcceptDispute: () => ({ isPending: false, mutateAsync: mocks.accept }),
   useDeclineDispute: () => ({ isPending: false, mutateAsync: mocks.decline }),
 }));
+vi.mock("@/modules/payments/ui/payment-timeline", () => ({
+  PaymentTimeline: ({ paymentId }: { paymentId: string | null }) => (
+    <div data-testid="payment-timeline">{paymentId ?? "none"}</div>
+  ),
+}));
 
 import { DisputesWorkspace } from "./disputes-workspace";
 
@@ -68,13 +73,14 @@ afterEach(() => {
 });
 
 describe("DisputesWorkspace", () => {
-  it("renders authoritative status, amount and evidence deadline", () => {
+  it("renders authoritative status, amount, evidence deadline and payment audit", () => {
     render(<DisputesWorkspace canDecide />);
 
     expect(screen.getAllByText("LS-1001").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/awaiting evidence/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Paystack dispute 42/i)).toBeInTheDocument();
     expect(screen.getByText(/Aug 2, 2026/i)).toBeInTheDocument();
+    expect(screen.getByTestId("payment-timeline")).toHaveTextContent(dispute.paymentId);
   });
 
   it("validates evidence file type before calling the API", async () => {
