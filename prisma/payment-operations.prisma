@@ -45,16 +45,20 @@ model payment_refunds {
   return_id               String?               @db.Uuid
   provider                payment_provider      @default(paystack)
   provider_reference      String?
+  provider_status         String?
+  idempotency_key         String?
   requested_amount        Decimal               @db.Decimal(12, 2)
   processed_amount        Decimal               @default(0) @db.Decimal(12, 2)
   currency                String                @default("NGN") @db.VarChar(3)
   status                  payment_refund_status @default(pending)
   reason                  String?
   failure_reason          String?
+  retry_count             Int                   @default(0)
   requested_by_profile_id String?               @db.Uuid
   requested_at            DateTime              @default(now()) @db.Timestamptz(6)
   processed_at            DateTime?             @db.Timestamptz(6)
   failed_at               DateTime?             @db.Timestamptz(6)
+  last_provider_sync_at   DateTime?             @db.Timestamptz(6)
   metadata                Json                  @default("{}")
   created_at              DateTime              @default(now()) @db.Timestamptz(6)
   updated_at              DateTime              @default(now()) @updatedAt @db.Timestamptz(6)
@@ -64,6 +68,7 @@ model payment_refunds {
   profiles profiles? @relation(fields: [requested_by_profile_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@unique([provider, provider_reference], map: "payment_refunds_provider_reference_unique", where: raw("(provider_reference IS NOT NULL)"))
+  @@unique([payment_id, idempotency_key], map: "payment_refunds_payment_idempotency_unique", where: raw("(idempotency_key IS NOT NULL)"))
   @@index([payment_id, requested_at(sort: Desc)], map: "payment_refunds_payment_requested_idx")
   @@index([return_id], map: "payment_refunds_return_idx")
   @@index([status, updated_at], map: "payment_refunds_status_updated_idx")
@@ -96,21 +101,24 @@ model provider_webhook_events {
 /// never raw uploaded content. Viewing/resolution is a staff-only capability;
 /// there is no consumer-facing policy on this table.
 model payment_disputes {
-  id                  String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  payment_id          String                 @db.Uuid
-  provider            payment_provider       @default(paystack)
-  provider_dispute_id String
-  status              payment_dispute_status @default(awaiting_evidence)
-  category            String?
-  amount              Decimal                @db.Decimal(12, 2)
-  currency            String                 @default("NGN") @db.VarChar(3)
-  reason              String?
-  evidence            Json                   @default("[]")
-  evidence_due_at     DateTime?              @db.Timestamptz(6)
-  resolved_at         DateTime?              @db.Timestamptz(6)
-  resolution_note     String?
-  created_at          DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_id            String                 @db.Uuid
+  provider              payment_provider       @default(paystack)
+  provider_dispute_id   String
+  provider_status       String?
+  status                payment_dispute_status @default(awaiting_evidence)
+  category              String?
+  amount                Decimal                @db.Decimal(12, 2)
+  currency              String                 @default("NGN") @db.VarChar(3)
+  reason                String?
+  evidence              Json                   @default("[]")
+  evidence_due_at       DateTime?              @db.Timestamptz(6)
+  resolved_at           DateTime?              @db.Timestamptz(6)
+  resolution_note       String?
+  last_provider_sync_at DateTime?              @db.Timestamptz(6)
+  metadata              Json                   @default("{}")
+  created_at            DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
 
   payments payments @relation(fields: [payment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
