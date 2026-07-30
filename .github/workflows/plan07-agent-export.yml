@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - codex/plan-07-owner-finance
+  pull_request:
+    branches:
+      - codex/complete-api-05-06-08
   workflow_dispatch:
 
 permissions:
@@ -17,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Archive source snapshot
         shell: bash
@@ -25,7 +29,7 @@ jobs:
       - name: Upload source snapshot
         uses: actions/upload-artifact@v4
         with:
-          name: laitstyles-plan07-source-${{ github.sha }}
+          name: laitstyles-plan07-source-${{ github.event.pull_request.head.sha || github.sha }}
           path: laitstyles-plan07-source.tar.gz
           retention-days: 1
           if-no-files-found: error
