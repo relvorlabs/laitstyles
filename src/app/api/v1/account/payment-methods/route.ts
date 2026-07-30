@@ -7,7 +7,7 @@ import {
   createPaymentMethodSetup,
   listPaymentMethods,
   throwPaymentMethodApiError,
-} from "@/modules/payments/server/payment-methods";
+} from "@/modules/payments/server/payment-methods/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
