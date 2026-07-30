@@ -6,6 +6,7 @@ import {
   disputeIdentifierSchema,
 } from "@/modules/payments/dispute-schema";
 import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
+import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
 import { declinePaymentDispute } from "@/modules/payments/server/disputes";
 import {
   requireFinancialMutationOrigin,
@@ -25,6 +26,7 @@ export async function POST(request: Request, context: RouteContext) {
     const input = await parseJsonBody(request, disputeDecisionBodySchema);
     const result = await declinePaymentDispute(actor, id, { ...input, idempotencyKey });
     if (!result.ok) throwDisputeApiError(result.error);
+    await reconcileOrderDisputeState(result.value);
     return { data: result.value, headers: privateNoStore };
   });
 }
