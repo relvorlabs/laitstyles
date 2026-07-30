@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
 import { hasCapability } from "@/modules/auth/permissions";
@@ -11,6 +10,23 @@ import type {
   DisputeListQuery,
   UpdateDisputeBody,
 } from "@/modules/payments/dispute-schema";
+import { appendDisputeEvidenceMetadata } from "@/modules/payments/server/dispute-evidence";
+import {
+  beginDisputeCommand,
+  finishDisputeCommand,
+} from "@/modules/payments/server/dispute-idempotency";
+import {
+  decimalToMinor,
+  disputeInclude,
+  type DisputeProjection,
+  type DisputeRow,
+  mergeDisputeMetadata,
+  minorToDecimal,
+  normalizeProviderEvidence,
+  parseProviderDate,
+  sameTimestamp,
+  toDisputeProjection,
+} from "@/modules/payments/server/dispute-projection";
 import {
   acceptDispute,
   addDisputeEvidence,
@@ -22,39 +38,7 @@ import {
   uploadDisputeEvidenceFile,
 } from "@/modules/payments/server/paystack/disputes";
 
-const disputeInclude = {
-  payments: {
-    include: {
-      orders: { include: { customer: true } },
-    },
-  },
-} satisfies Prisma.payment_disputesInclude;
-
-type DisputeRow = Prisma.payment_disputesGetPayload<{ include: typeof disputeInclude }>;
-type TransactionClient = Prisma.TransactionClient;
-
-export type DisputeProjection = {
-  id: string;
-  paymentId: string;
-  orderId: string;
-  orderNumber: string;
-  customerId: string;
-  customerName: string | null;
-  providerDisputeId: string;
-  providerStatus: string | null;
-  status: "awaiting_evidence" | "pending" | "resolved" | "declined";
-  category: string | null;
-  amountMinor: number;
-  currency: string;
-  reason: string | null;
-  evidence: unknown[];
-  evidenceDueAt: string | null;
-  resolvedAt: string | null;
-  resolutionNote: string | null;
-  lastProviderSyncAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export type { DisputeProjection } from "@/modules/payments/server/dispute-projection";
 
 export type DisputeError = {
   code:
@@ -78,7 +62,9 @@ export type DisputeEvidenceFile = {
 export async function listPaymentDisputes(
   actor: StaffSession,
   query: DisputeListQuery,
-): Promise<Result<{ items: DisputeProjection[]; page: number; perPage: number; total: number }, DisputeError>> {
+): Promise<
+  Result<{ items: DisputeProjection[]; page: number; perPage: number; total: number }, DisputeError>
+> {
   if (!hasCapability(actor.role, "finance:read")) return forbidden("view disputes");
 
   const where: Prisma.payment_disputesWhereInput = {
@@ -96,7 +82,12 @@ export async function listPaymentDisputes(
     }),
     prisma.payment_disputes.count({ where }),
   ]);
-  return ok({ items: rows.map(toDisputeProjection), page: query.page, perPage: query.perPage, total });
+  return ok({
+    items: rows.map(toDisputeProjection),
+    page: query.page,
+    perPage: query.perPage,
+    total,
+  });
 }
 
 export async function getPaymentDispute(
@@ -134,9 +125,9 @@ export async function updatePaymentDispute(
   if (!hasCapability(actor.role, "payments:refund")) return forbidden("update disputes");
   const row = await findLocalDispute(disputeId);
   if (!row) return notFound();
-  if (row.status === "resolved" || row.status === "declined") return invalidState();
+  if (isTerminal(row)) return invalidState();
 
-  const command = await beginCommand({
+  const command = await beginDisputeCommand({
     scope: `dispute.update:${row.id}`,
     key: input.idempotencyKey,
     request: input,
@@ -149,11 +140,14 @@ export async function updatePaymentDispute(
 
   try {
     const provider = await updateDispute(row.provider_dispute_id, input);
-    const result = await applyDisputeProviderState({ provider, actorProfileId: actor.authUserId });
-    await finishCommand(command.value.id, result.ok ? result.value : null, result.ok);
+    const result = await applyDisputeProviderState({
+      provider,
+      actorProfileId: actor.authUserId,
+    });
+    await finishDisputeCommand(command.value.id, result.ok ? result.value : null, result.ok);
     return result;
   } catch {
-    await finishCommand(command.value.id, null, false);
+    await finishDisputeCommand(command.value.id, null, false);
     return err({
       code: "DISPUTE_PROVIDER_UNAVAILABLE",
       message: "Paystack did not confirm the dispute update.",
@@ -166,12 +160,14 @@ export async function submitDisputeEvidence(
   disputeId: string,
   input: DisputeEvidenceBody & { idempotencyKey: string; file?: DisputeEvidenceFile },
 ): Promise<Result<DisputeProjection, DisputeError>> {
-  if (!hasCapability(actor.role, "payments:refund")) return forbidden("submit dispute evidence");
+  if (!hasCapability(actor.role, "payments:refund")) {
+    return forbidden("submit dispute evidence");
+  }
   const row = await findLocalDispute(disputeId);
   if (!row) return notFound();
-  if (row.status === "resolved" || row.status === "declined") return invalidState();
+  if (isTerminal(row)) return invalidState();
 
-  const command = await beginCommand({
+  const command = await beginDisputeCommand({
     scope: `dispute.evidence:${row.id}`,
     key: input.idempotencyKey,
     request: { ...input, file: input.file ? fileFingerprint(input.file) : null },
@@ -200,13 +196,16 @@ export async function submitDisputeEvidence(
 
     const evidence = await addDisputeEvidence(row.provider_dispute_id, input);
     const provider = await fetchDispute(row.provider_dispute_id);
-    const applied = await applyDisputeProviderState({ provider, actorProfileId: actor.authUserId });
+    const applied = await applyDisputeProviderState({
+      provider,
+      actorProfileId: actor.authUserId,
+    });
     if (!applied.ok) {
-      await finishCommand(command.value.id, null, false);
+      await finishDisputeCommand(command.value.id, null, false);
       return applied;
     }
 
-    const updated = await appendEvidenceMetadata(row.id, {
+    const updated = await appendDisputeEvidenceMetadata(row.id, {
       evidenceId: evidence.id,
       providerFilename: uploadedFilename ?? null,
       originalFilename: input.file?.name ?? null,
@@ -215,10 +214,11 @@ export async function submitDisputeEvidence(
       submittedByProfileId: actor.authUserId,
       submittedAt: new Date().toISOString(),
     });
-    await finishCommand(command.value.id, toDisputeProjection(updated), true);
-    return ok(toDisputeProjection(updated));
+    const projection = toDisputeProjection(updated);
+    await finishDisputeCommand(command.value.id, projection, true);
+    return ok(projection);
   } catch {
-    await finishCommand(command.value.id, null, false);
+    await finishDisputeCommand(command.value.id, null, false);
     return err({
       code: "DISPUTE_PROVIDER_UNAVAILABLE",
       message: "Paystack did not confirm the dispute evidence submission.",
@@ -251,9 +251,9 @@ async function decideDispute(
   if (!hasCapability(actor.role, "payments:refund")) return forbidden("resolve disputes");
   const row = await findLocalDispute(disputeId);
   if (!row) return notFound();
-  if (row.status === "resolved" || row.status === "declined") return invalidState();
+  if (isTerminal(row)) return invalidState();
 
-  const command = await beginCommand({
+  const command = await beginDisputeCommand({
     scope: `dispute.${decision}:${row.id}`,
     key: input.idempotencyKey,
     request: input,
@@ -269,11 +269,14 @@ async function decideDispute(
       decision === "accept"
         ? await acceptDispute(row.provider_dispute_id, input)
         : await declineDispute(row.provider_dispute_id, input);
-    const result = await applyDisputeProviderState({ provider, actorProfileId: actor.authUserId });
-    await finishCommand(command.value.id, result.ok ? result.value : null, result.ok);
+    const result = await applyDisputeProviderState({
+      provider,
+      actorProfileId: actor.authUserId,
+    });
+    await finishDisputeCommand(command.value.id, result.ok ? result.value : null, result.ok);
     return result;
   } catch {
-    await finishCommand(command.value.id, null, false);
+    await finishDisputeCommand(command.value.id, null, false);
     return err({
       code: "DISPUTE_PROVIDER_UNAVAILABLE",
       message: "Paystack did not confirm the dispute decision.",
@@ -296,21 +299,7 @@ export async function applyDisputeProviderState(input: {
         },
         include: disputeInclude,
       });
-      const payment = existing
-        ? existing.payments
-        : await tx.payments.findFirst({
-            where: {
-              OR: [
-                ...(input.provider.transactionId
-                  ? [{ provider: "paystack" as const, provider_transaction_id: input.provider.transactionId }]
-                  : []),
-                ...(input.provider.transactionReference
-                  ? [{ reference: input.provider.transactionReference }]
-                  : []),
-              ],
-            },
-            include: { orders: { include: { customer: true } } },
-          });
+      const payment = existing?.payments ?? (await findProviderPayment(tx, input.provider));
       if (!payment) {
         return err({
           code: "DISPUTE_PAYMENT_NOT_FOUND",
@@ -320,18 +309,26 @@ export async function applyDisputeProviderState(input: {
 
       const status = mapProviderDisputeStatus(input.provider);
       const amount = minorToDecimal(input.provider.amountMinor);
-      const evidenceDueAt = parseDate(input.provider.dueAt);
-      const resolvedAt = parseDate(input.provider.resolvedAt);
-      const evidence = normalizeEvidence(input.provider.evidence, input.provider.attachments);
-      const unchanged =
+      const evidenceDueAt = parseProviderDate(input.provider.dueAt);
+      const resolvedAt = parseProviderDate(input.provider.resolvedAt);
+      const evidence = normalizeProviderEvidence(
+        input.provider.evidence,
+        input.provider.attachments,
+      );
+      const metadata = mergeDisputeMetadata(existing?.metadata, input.provider);
+      if (
         existing &&
         existing.provider_status === input.provider.providerStatus &&
         existing.status === status &&
         existing.amount.equals(amount) &&
-        sameTime(existing.evidence_due_at, evidenceDueAt) &&
-        sameTime(existing.resolved_at, resolvedAt) &&
-        existing.resolution_note === input.provider.resolution;
-      if (unchanged) return ok(existing);
+        sameTimestamp(existing.evidence_due_at, evidenceDueAt) &&
+        sameTimestamp(existing.resolved_at, resolvedAt) &&
+        existing.resolution_note === input.provider.resolution &&
+        sameJson(existing.evidence, evidence) &&
+        sameJson(existing.metadata, metadata)
+      ) {
+        return ok(existing);
+      }
 
       const row = await tx.payment_disputes.upsert({
         where: {
@@ -353,7 +350,7 @@ export async function applyDisputeProviderState(input: {
           resolved_at: resolvedAt,
           resolution_note: input.provider.resolution,
           last_provider_sync_at: new Date(),
-          metadata: providerMetadata(input.provider),
+          metadata,
         },
         create: {
           payment_id: payment.id,
@@ -370,7 +367,7 @@ export async function applyDisputeProviderState(input: {
           resolved_at: resolvedAt,
           resolution_note: input.provider.resolution,
           last_provider_sync_at: new Date(),
-          metadata: providerMetadata(input.provider),
+          metadata,
         },
         include: disputeInclude,
       });
@@ -383,23 +380,6 @@ export async function applyDisputeProviderState(input: {
             attention: `Paystack dispute ${input.provider.id} requires review.`,
           },
         });
-      } else {
-        const unresolved = await tx.payment_disputes.count({
-          where: {
-            payment_id: payment.id,
-            id: { not: row.id },
-            status: { in: ["awaiting_evidence", "pending"] },
-          },
-        });
-        if (unresolved === 0) {
-          await tx.orders.update({
-            where: { id: payment.order_id },
-            data: {
-              payment_status: payment.status === "success" ? "paid" : "review_required",
-              attention: null,
-            },
-          });
-        }
       }
 
       await tx.audit_events.create({
@@ -424,98 +404,19 @@ export async function applyDisputeProviderState(input: {
   return result.ok ? ok(toDisputeProjection(result.value)) : result;
 }
 
-async function beginCommand(input: {
-  scope: string;
-  key: string;
-  request: unknown;
-  actor: StaffSession;
-  dispute: DisputeRow;
-  action: string;
-}): Promise<Result<{ id: string; replayed: boolean }, DisputeError>> {
-  const requestHash = createHash("sha256").update(stableStringify(input.request)).digest("hex");
-  const existing = await prisma.idempotency_records.findUnique({
-    where: { scope_idempotency_key: { scope: input.scope, idempotency_key: input.key } },
-  });
-  if (existing) {
-    if (existing.request_hash !== requestHash) {
-      return err({
-        code: "DISPUTE_IDEMPOTENCY_CONFLICT",
-        message: "This idempotency key was already used for a different dispute command.",
-      });
-    }
-    if (existing.status === "completed") return ok({ id: existing.id, replayed: true });
-    if (existing.status === "in_progress") {
-      return err({
-        code: "DISPUTE_COMMAND_PENDING",
-        message: "This dispute command is already being processed.",
-      });
-    }
+async function findProviderPayment(tx: Prisma.TransactionClient, provider: PaystackDispute) {
+  const predicates: Prisma.paymentsWhereInput[] = [];
+  if (provider.transactionId) {
+    predicates.push({
+      provider: "paystack",
+      provider_transaction_id: provider.transactionId,
+    });
   }
-
-  try {
-    return await prisma.$transaction(async (tx) => {
-      const record = existing
-        ? await tx.idempotency_records.update({
-            where: { id: existing.id },
-            data: { status: "in_progress", response_snapshot: Prisma.JsonNull, completed_at: null },
-          })
-        : await tx.idempotency_records.create({
-            data: {
-              scope: input.scope,
-              idempotency_key: input.key,
-              request_hash: requestHash,
-              status: "in_progress",
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1_000),
-            },
-          });
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: input.actor.authUserId,
-          action: input.action,
-          target_table: "payment_disputes",
-          target_id: input.dispute.id,
-          metadata: {
-            provider_dispute_id: input.dispute.provider_dispute_id,
-            idempotency_key: input.key,
-          },
-        },
-      });
-      return ok({ id: record.id, replayed: false });
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return err({
-        code: "DISPUTE_COMMAND_PENDING",
-        message: "This dispute command is already being processed.",
-      });
-    }
-    throw error;
-  }
-}
-
-async function finishCommand(id: string, response: DisputeProjection | null, succeeded: boolean) {
-  await prisma.idempotency_records.update({
-    where: { id },
-    data: {
-      status: succeeded ? "completed" : "failed",
-      completed_at: new Date(),
-      response_snapshot: response ? (response as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
-    },
-  });
-}
-
-async function appendEvidenceMetadata(disputeId: string, item: Record<string, unknown>) {
-  return prisma.$transaction(async (tx) => {
-    const row = await tx.payment_disputes.findUniqueOrThrow({
-      where: { id: disputeId },
-      include: disputeInclude,
-    });
-    const current = Array.isArray(row.evidence) ? row.evidence : [];
-    return tx.payment_disputes.update({
-      where: { id: disputeId },
-      data: { evidence: [...current, item] as Prisma.InputJsonValue },
-      include: disputeInclude,
-    });
+  if (provider.transactionReference) predicates.push({ reference: provider.transactionReference });
+  if (!predicates.length) return null;
+  return tx.payments.findFirst({
+    where: { OR: predicates },
+    include: { orders: { include: { customer: true } } },
   });
 }
 
@@ -527,84 +428,22 @@ async function findLocalDispute(id: string) {
 
 function mapProviderDisputeStatus(provider: PaystackDispute): DisputeProjection["status"] {
   if (provider.providerStatus === "awaiting-merchant-feedback") return "awaiting_evidence";
-  if (provider.providerStatus === "resolved") {
+  if (provider.providerStatus === "resolved" || provider.providerStatus === "archived") {
     return provider.resolution === "declined" ? "declined" : "resolved";
   }
   return "pending";
 }
 
-function normalizeEvidence(evidence: unknown, attachments: unknown): unknown[] {
-  const values: unknown[] = [];
-  if (evidence !== null && evidence !== undefined) values.push({ kind: "provider-evidence", value: evidence });
-  if (attachments !== null && attachments !== undefined) values.push({ kind: "provider-attachments", value: attachments });
-  return values;
-}
-
-function providerMetadata(provider: PaystackDispute): Prisma.InputJsonValue {
-  return {
-    transactionId: provider.transactionId,
-    transactionReference: provider.transactionReference,
-    createdAt: provider.createdAt,
-    updatedAt: provider.updatedAt,
-  } as Prisma.InputJsonValue;
-}
-
-function toDisputeProjection(row: DisputeRow): DisputeProjection {
-  return {
-    id: row.id,
-    paymentId: row.payment_id,
-    orderId: row.payments.order_id,
-    orderNumber: row.payments.orders.order_number,
-    customerId: row.payments.orders.customer_id,
-    customerName: row.payments.orders.customer_name ?? row.payments.orders.customer.name ?? null,
-    providerDisputeId: row.provider_dispute_id,
-    providerStatus: row.provider_status,
-    status: row.status,
-    category: row.category,
-    amountMinor: decimalToMinor(row.amount),
-    currency: row.currency,
-    reason: row.reason,
-    evidence: Array.isArray(row.evidence) ? row.evidence : [],
-    evidenceDueAt: row.evidence_due_at?.toISOString() ?? null,
-    resolvedAt: row.resolved_at?.toISOString() ?? null,
-    resolutionNote: row.resolution_note,
-    lastProviderSyncAt: row.last_provider_sync_at?.toISOString() ?? null,
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString(),
-  };
+function isTerminal(row: DisputeRow) {
+  return row.status === "resolved" || row.status === "declined" || row.provider_status === "archived";
 }
 
 function fileFingerprint(file: DisputeEvidenceFile) {
   return { name: file.name, contentType: file.contentType, size: file.blob.size };
 }
 
-function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value) ?? "null";
-}
-
-function parseDate(value: string | null) {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function sameTime(left: Date | null, right: Date | null) {
-  return left?.getTime() === right?.getTime();
-}
-
-function minorToDecimal(amountMinor: number) {
-  return new Prisma.Decimal(amountMinor).div(100);
-}
-
-function decimalToMinor(amount: Prisma.Decimal) {
-  return amount.mul(100).toDecimalPlaces(0).toNumber();
+function sameJson(left: Prisma.JsonValue, right: Prisma.InputJsonValue) {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function forbidden(action: string): Result<never, DisputeError> {
