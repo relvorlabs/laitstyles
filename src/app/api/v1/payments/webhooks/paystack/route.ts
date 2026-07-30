@@ -4,12 +4,19 @@ import { handleApiRequest } from "@/lib/http/server";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import { settlePaystackEvent } from "@/modules/checkout/server/settle-payment";
+import { applyDisputeProviderState } from "@/modules/payments/server/disputes";
 import {
   isSupportedPaystackChargeEvent,
+  isSupportedPaystackDisputeEvent,
+  isSupportedPaystackFinancialEvent,
+  isSupportedPaystackRefundEvent,
   parsePaystackChargeEvent,
+  parsePaystackDisputeEvent,
   parsePaystackEventEnvelope,
+  parsePaystackRefundEvent,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack";
+import { applyRefundWebhookState } from "@/modules/payments/server/refund-webhooks";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -54,30 +61,12 @@ export async function POST(request: Request) {
       provider_event_id: { provider: "paystack" as const, event_id: eventId },
     };
 
-    if (!isSupportedPaystackChargeEvent(envelope.event)) {
-      await prisma.provider_webhook_events.upsert({
-        where: uniqueEvent,
-        update: { attempts: { increment: 1 } },
-        create: {
-          provider: "paystack",
-          event_type: envelope.event,
-          event_id: eventId,
-          signature,
-          payload: payload as Prisma.InputJsonValue,
-          status: "received",
-          attempts: 1,
-        },
-      });
-      return { data: { accepted: true, deferred: true }, headers: noStore };
-    }
-
-    const event = parsePaystackChargeEvent(payload);
     const inbox = await prisma.provider_webhook_events.upsert({
       where: uniqueEvent,
       update: { attempts: { increment: 1 } },
       create: {
         provider: "paystack",
-        event_type: event.event,
+        event_type: envelope.event,
         event_id: eventId,
         signature,
         payload: payload as Prisma.InputJsonValue,
@@ -86,6 +75,9 @@ export async function POST(request: Request) {
       },
     });
 
+    if (!isSupportedPaystackFinancialEvent(envelope.event)) {
+      return { data: { accepted: true, deferred: true }, headers: noStore };
+    }
     if (inbox.status === "processed") {
       return { data: { accepted: true, duplicate: true }, headers: noStore };
     }
@@ -108,19 +100,19 @@ export async function POST(request: Request) {
     }
 
     try {
-      const result = await settlePaystackEvent(event.settlement);
-      if (!result.ok) {
+      const outcome = await processFinancialEvent(envelope.event, payload);
+      if (!outcome.ok) {
         await prisma.provider_webhook_events.update({
           where: { id: inbox.id },
           data: {
             status: "failed",
-            last_error: `${result.error.code}: ${result.error.message}`,
+            last_error: `${outcome.error.code}: ${outcome.error.message}`,
           },
         });
         throw new ApiError({
-          code: result.error.code,
-          message: result.error.message,
-          status: result.error.code === "PAYMENT_NOT_FOUND" ? 503 : 409,
+          code: outcome.error.code,
+          message: outcome.error.message,
+          status: isMissingFinancialRecord(outcome.error.code) ? 503 : 409,
         });
       }
 
@@ -129,7 +121,12 @@ export async function POST(request: Request) {
         data: { status: "processed", processed_at: new Date(), last_error: null },
       });
       return {
-        data: { accepted: true, duplicate: result.value.replayed, status: result.value.status },
+        data: {
+          accepted: true,
+          duplicate: outcome.replayed,
+          status: outcome.status,
+          resource: outcome.resource,
+        },
         headers: noStore,
       };
     } catch (error) {
@@ -145,4 +142,55 @@ export async function POST(request: Request) {
       throw error;
     }
   });
+}
+
+async function processFinancialEvent(eventName: string, payload: unknown) {
+  if (isSupportedPaystackChargeEvent(eventName)) {
+    const event = parsePaystackChargeEvent(payload);
+    const result = await settlePaystackEvent(event.settlement);
+    return result.ok
+      ? {
+          ok: true as const,
+          status: result.value.status,
+          resource: "payment" as const,
+          replayed: result.value.replayed,
+        }
+      : { ok: false as const, error: result.error };
+  }
+
+  if (isSupportedPaystackRefundEvent(eventName)) {
+    const event = parsePaystackRefundEvent(payload);
+    const result = await applyRefundWebhookState(event.refund);
+    return result.ok
+      ? {
+          ok: true as const,
+          status: result.value.status,
+          resource: "refund" as const,
+          replayed: false,
+        }
+      : { ok: false as const, error: result.error };
+  }
+
+  if (isSupportedPaystackDisputeEvent(eventName)) {
+    const event = parsePaystackDisputeEvent(payload);
+    const result = await applyDisputeProviderState({ provider: event.dispute });
+    return result.ok
+      ? {
+          ok: true as const,
+          status: result.value.status,
+          resource: "dispute" as const,
+          replayed: false,
+        }
+      : { ok: false as const, error: result.error };
+  }
+
+  throw new ApiError({
+    code: "PAYSTACK_EVENT_UNSUPPORTED",
+    message: "The Paystack event is not supported.",
+    status: 422,
+  });
+}
+
+function isMissingFinancialRecord(code: string) {
+  return code === "PAYMENT_NOT_FOUND" || code === "REFUND_NOT_FOUND" || code === "DISPUTE_PAYMENT_NOT_FOUND";
 }
