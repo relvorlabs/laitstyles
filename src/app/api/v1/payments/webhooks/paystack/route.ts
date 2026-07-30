@@ -4,6 +4,7 @@ import { handleApiRequest } from "@/lib/http/server";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import { settlePaystackEvent } from "@/modules/checkout/server/settle-payment";
+import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
 import { applyDisputeProviderState } from "@/modules/payments/server/disputes";
 import {
   isSupportedPaystackChargeEvent,
@@ -174,14 +175,14 @@ async function processFinancialEvent(eventName: string, payload: unknown) {
   if (isSupportedPaystackDisputeEvent(eventName)) {
     const event = parsePaystackDisputeEvent(payload);
     const result = await applyDisputeProviderState({ provider: event.dispute });
-    return result.ok
-      ? {
-          ok: true as const,
-          status: result.value.status,
-          resource: "dispute" as const,
-          replayed: false,
-        }
-      : { ok: false as const, error: result.error };
+    if (!result.ok) return { ok: false as const, error: result.error };
+    await reconcileOrderDisputeState(result.value);
+    return {
+      ok: true as const,
+      status: result.value.status,
+      resource: "dispute" as const,
+      replayed: false,
+    };
   }
 
   throw new ApiError({
@@ -192,5 +193,9 @@ async function processFinancialEvent(eventName: string, payload: unknown) {
 }
 
 function isMissingFinancialRecord(code: string) {
-  return code === "PAYMENT_NOT_FOUND" || code === "REFUND_NOT_FOUND" || code === "DISPUTE_PAYMENT_NOT_FOUND";
+  return (
+    code === "PAYMENT_NOT_FOUND" ||
+    code === "REFUND_NOT_FOUND" ||
+    code === "DISPUTE_PAYMENT_NOT_FOUND"
+  );
 }
