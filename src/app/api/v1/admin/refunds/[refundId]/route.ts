@@ -1,7 +1,7 @@
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { refundIdentifierSchema } from "@/modules/payments/refund-schema";
-import { getRefund, throwRefundApiError } from "@/modules/payments/server/refunds";
+import { getRefund, throwRefundApiError } from "@/modules/payments/server/refunds/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ refundId: string }> };
