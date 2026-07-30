@@ -13,6 +13,7 @@ import {
   useCreateRefund,
   useRetryRefund,
 } from "@/modules/payments/client/refunds";
+import { PaymentTimeline } from "@/modules/payments/ui/payment-timeline";
 
 export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
   const paymentsQuery = useQuery(adminPaymentsQueryOptions({ status: "success", perPage: 50 }));
@@ -233,6 +234,8 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
           </div>
         </section>
       </div>
+
+      <PaymentTimeline paymentId={selectedPayment?.id ?? null} />
     </div>
   );
 }
