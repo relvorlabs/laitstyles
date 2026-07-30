@@ -4,7 +4,13 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { PaystackSettlementEvent } from "@/modules/checkout/types";
 import { PaystackConfigurationError } from "@/modules/payments/server/paystack/client";
-import { paystackTransactionSchema } from "@/modules/payments/server/paystack/schemas";
+import { mapPaystackDispute } from "@/modules/payments/server/paystack/disputes";
+import { mapPaystackRefund } from "@/modules/payments/server/paystack/refunds";
+import {
+  paystackDisputeSchema,
+  paystackRefundSchema,
+  paystackTransactionSchema,
+} from "@/modules/payments/server/paystack/schemas";
 import { mapPaystackTransaction } from "@/modules/payments/server/paystack/transactions";
 
 const paystackEventEnvelopeSchema = z.object({
@@ -19,11 +25,35 @@ const supportedChargeEventSchema = z.discriminatedUnion("event", [
   z.object({ event: z.literal("charge.reversed"), data: paystackTransactionSchema }),
 ]);
 
+const supportedRefundEventSchema = z.discriminatedUnion("event", [
+  z.object({ event: z.literal("refund.pending"), data: paystackRefundSchema }),
+  z.object({ event: z.literal("refund.processing"), data: paystackRefundSchema }),
+  z.object({ event: z.literal("refund.processed"), data: paystackRefundSchema }),
+  z.object({ event: z.literal("refund.failed"), data: paystackRefundSchema }),
+]);
+
+const supportedDisputeEventSchema = z.discriminatedUnion("event", [
+  z.object({ event: z.literal("charge.dispute.create"), data: paystackDisputeSchema }),
+  z.object({ event: z.literal("charge.dispute.remind"), data: paystackDisputeSchema }),
+  z.object({ event: z.literal("charge.dispute.resolve"), data: paystackDisputeSchema }),
+]);
+
 const supportedChargeEvents = new Set([
   "charge.success",
   "charge.failed",
   "charge.abandoned",
   "charge.reversed",
+]);
+const supportedRefundEvents = new Set([
+  "refund.pending",
+  "refund.processing",
+  "refund.processed",
+  "refund.failed",
+]);
+const supportedDisputeEvents = new Set([
+  "charge.dispute.create",
+  "charge.dispute.remind",
+  "charge.dispute.resolve",
 ]);
 
 export class PaystackWebhookSignatureError extends Error {
@@ -52,6 +82,22 @@ export function isSupportedPaystackChargeEvent(event: string) {
   return supportedChargeEvents.has(event);
 }
 
+export function isSupportedPaystackRefundEvent(event: string) {
+  return supportedRefundEvents.has(event);
+}
+
+export function isSupportedPaystackDisputeEvent(event: string) {
+  return supportedDisputeEvents.has(event);
+}
+
+export function isSupportedPaystackFinancialEvent(event: string) {
+  return (
+    isSupportedPaystackChargeEvent(event) ||
+    isSupportedPaystackRefundEvent(event) ||
+    isSupportedPaystackDisputeEvent(event)
+  );
+}
+
 export function parsePaystackChargeEvent(payload: unknown): {
   event: z.infer<typeof supportedChargeEventSchema>["event"];
   settlement: PaystackSettlementEvent;
@@ -75,4 +121,14 @@ export function parsePaystackChargeEvent(payload: unknown): {
       failureReason: transaction.message,
     },
   };
+}
+
+export function parsePaystackRefundEvent(payload: unknown) {
+  const parsed = supportedRefundEventSchema.parse(payload);
+  return { event: parsed.event, refund: mapPaystackRefund(parsed.data) };
+}
+
+export function parsePaystackDisputeEvent(payload: unknown) {
+  const parsed = supportedDisputeEventSchema.parse(payload);
+  return { event: parsed.event, dispute: mapPaystackDispute(parsed.data) };
 }
