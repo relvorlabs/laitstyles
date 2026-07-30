@@ -1,0 +1,33 @@
+name: Agent Source Export
+
+on:
+  pull_request:
+    branches:
+      - agent/plan-05-local-source-export
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    name: Export private source snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Package source
+        run: tar --exclude=.git --exclude=node_modules --exclude=.next -czf /tmp/laitstyles-plan05-source.tar.gz .
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan05-source-snapshot
+          path: /tmp/laitstyles-plan05-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
