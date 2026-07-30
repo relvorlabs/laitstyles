@@ -4,7 +4,7 @@ import { refundIdentifierSchema } from "@/modules/payments/refund-schema";
 import {
   retryRefundCommand,
   throwRefundApiError,
-} from "@/modules/payments/server/refunds";
+} from "@/modules/payments/server/refunds/index";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
