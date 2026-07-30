@@ -4,6 +4,10 @@ import { err, ok, type Result } from "@/lib/errors";
 import { prisma, type Prisma } from "@/lib/prisma";
 import { paymentMethodIdentifierSchema } from "@/modules/payments/schema";
 import {
+  decryptAuthorizationCode,
+  encryptAuthorizationCode,
+} from "@/modules/payments/server/authorization-secrets";
+import {
   findPaymentMethodSetupReplay,
   isAuthorizationSignatureConflict,
   isPrismaUniqueConstraintError,
@@ -22,10 +26,6 @@ import {
   toPaymentMethod,
   toPaymentMethodSetup,
 } from "@/modules/payments/server/payment-method-projection";
-import {
-  decryptAuthorizationCode,
-  encryptAuthorizationCode,
-} from "@/modules/payments/server/authorization-secrets";
 import {
   createRefund,
   deactivateAuthorization,
@@ -129,7 +129,7 @@ export async function createPaymentMethodSetup(
         paymentId: payment.id,
       };
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (!isPrismaUniqueConstraintError(error)) throw error;
     const raced = await findPaymentMethodSetupReplay(identity.customerId, input.idempotencyKey);
     return (
@@ -173,7 +173,7 @@ export async function createPaymentMethodSetup(
         data: {
           status: "completed",
           completed_at: new Date(),
-          response_snapshot: value as unknown as Prisma.InputJsonValue,
+          response_snapshot: toPrismaJsonObject(value),
         },
       });
       return value;
@@ -211,13 +211,14 @@ export async function getPaymentMethodSetup(
       },
     },
   });
-  if (!authorization || !authorization.payments[0]) {
+  const payment = authorization?.payments[0];
+  if (!authorization || !payment) {
     return err({
       code: "PAYMENT_METHOD_SETUP_NOT_FOUND",
       message: "Payment method setup was not found.",
     });
   }
-  return ok(toPaymentMethodSetup(authorization, authorization.payments[0]));
+  return ok(toPaymentMethodSetup(authorization, payment));
 }
 
 export async function verifyPaymentMethodSetup(
@@ -437,7 +438,7 @@ export async function verifyPaymentMethodSetup(
         }));
       return { method, refund };
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (isAuthorizationSignatureConflict(error)) {
       return err({
         code: "PAYMENT_METHOD_CUSTOMER_MISMATCH",
@@ -478,15 +479,13 @@ export async function verifyPaymentMethodSetup(
               : {}),
           },
         });
-      } catch (error) {
+      } catch (error: unknown) {
         await prisma.payment_refunds.update({
           where: { id: saved.refund.id },
           data: {
             status: "needs_attention",
             failure_reason:
-              error instanceof Error
-                ? error.message
-                : "Setup refund requires attention.",
+              error instanceof Error ? error.message : "Setup refund requires attention.",
           },
         });
       }
@@ -576,4 +575,24 @@ export async function deletePaymentMethod(
     },
   });
   return ok({ id: method.id, inactive: true });
+}
+
+function toPrismaJsonObject(value: object): Prisma.InputJsonObject {
+  const output: Prisma.InputJsonObject = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    if (nestedValue !== undefined) output[key] = toPrismaJsonValue(nestedValue);
+  }
+  return output;
+}
+
+function toPrismaJsonValue(value: unknown): Prisma.InputJsonValue | null {
+  if (value === null) return null;
+  if (typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new TypeError("JSON numbers must be finite.");
+    return value;
+  }
+  if (Array.isArray(value)) return value.map(toPrismaJsonValue);
+  if (typeof value === "object") return toPrismaJsonObject(value);
+  throw new TypeError(`Unsupported JSON value: ${typeof value}`);
 }
