@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { DisputeRecord } from "@/modules/payments/client/disputes";
 
 const mocks = vi.hoisted(() => ({
   requireApiStaff: vi.fn(),
@@ -6,16 +7,16 @@ const mocks = vi.hoisted(() => ({
   acceptPaymentDispute: vi.fn(),
   submitDisputeEvidence: vi.fn(),
   reconcileOrderDisputeState: vi.fn(),
+  throwDisputeApiError: vi.fn(),
 }));
 
 vi.mock("@/lib/http/auth", () => ({ requireApiStaff: mocks.requireApiStaff }));
-vi.mock("@/modules/payments/server/disputes", () => ({
+vi.mock("@/modules/payments/server/disputes/index", () => ({
   listPaymentDisputes: mocks.listPaymentDisputes,
   acceptPaymentDispute: mocks.acceptPaymentDispute,
   submitDisputeEvidence: mocks.submitDisputeEvidence,
-}));
-vi.mock("@/modules/payments/server/dispute-order-state", () => ({
   reconcileOrderDisputeState: mocks.reconcileOrderDisputeState,
+  throwDisputeApiError: mocks.throwDisputeApiError,
 }));
 
 import { POST as accept } from "./[disputeId]/accept/route";
@@ -50,7 +51,7 @@ const dispute = {
   lastProviderSyncAt: "2026-07-30T12:00:00.000Z",
   createdAt: "2026-07-30T10:00:00.000Z",
   updatedAt: "2026-07-30T12:00:00.000Z",
-};
+} satisfies DisputeRecord;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -61,7 +62,7 @@ beforeEach(() => {
   });
   mocks.acceptPaymentDispute.mockResolvedValue({ ok: true, value: dispute });
   mocks.submitDisputeEvidence.mockResolvedValue({ ok: true, value: dispute });
-  mocks.reconcileOrderDisputeState.mockResolvedValue(undefined);
+  mocks.reconcileOrderDisputeState.mockResolvedValue(dispute);
 });
 
 describe("admin dispute routes", () => {
@@ -118,6 +119,7 @@ describe("admin dispute routes", () => {
       idempotencyKey: "dispute-key-123",
     });
     expect(mocks.reconcileOrderDisputeState).toHaveBeenCalledWith(dispute);
+    await expect(response.json()).resolves.toEqual({ data: dispute });
   });
 
   it("rejects evidence requests without a bounded content length", async () => {
