@@ -3,8 +3,11 @@ import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
 import { getConfiguredAuthOrigin } from "@/modules/auth/server/redirects";
 import { createPaymentMethodSetupSchema } from "@/modules/payments/schema";
-import { throwPaymentMethodApiError } from "@/modules/payments/server/api-errors";
-import { createPaymentMethodSetup, listPaymentMethods } from "@/modules/payments/server/payment-methods";
+import {
+  createPaymentMethodSetup,
+  listPaymentMethods,
+  throwPaymentMethodApiError,
+} from "@/modules/payments/server/payment-methods";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
