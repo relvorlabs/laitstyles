@@ -3,11 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  SessionProvider,
-  useSession,
-  useSessionActions,
-} from "@/providers/session-provider";
+import { SessionProvider, useSession, useSessionActions } from "@/providers/session-provider";
 
 afterEach(() => {
   cleanup();
@@ -63,9 +59,7 @@ describe("SessionProvider", () => {
   it("updates sign-in and sign-out state without remounting the provider", async () => {
     const user = userEvent.setup();
     render(
-      <SessionProvider
-        session={{ signedIn: false, email: null, displayName: null, role: null }}
-      >
+      <SessionProvider session={{ signedIn: false, email: null, displayName: null, role: null }}>
         <Consumer />
         <SessionControls />
       </SessionProvider>,
@@ -82,9 +76,7 @@ describe("SessionProvider", () => {
 
   it("synchronizes a new server session prop", () => {
     const { rerender } = render(
-      <SessionProvider
-        session={{ signedIn: false, email: null, displayName: null, role: null }}
-      >
+      <SessionProvider session={{ signedIn: false, email: null, displayName: null, role: null }}>
         <Consumer />
       </SessionProvider>,
     );

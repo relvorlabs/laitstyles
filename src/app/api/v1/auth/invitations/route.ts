@@ -6,11 +6,17 @@ export async function POST(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, message: "Enter the manager invitation details." }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, message: "Enter the manager invitation details." },
+      { status: 400 },
+    );
   }
 
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return NextResponse.json({ ok: false, message: "Enter the manager invitation details." }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, message: "Enter the manager invitation details." },
+      { status: 400 },
+    );
   }
 
   try {

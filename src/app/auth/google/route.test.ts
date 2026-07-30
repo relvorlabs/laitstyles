@@ -31,8 +31,6 @@ describe("GET /auth/google (retired initiator)", () => {
     const response = await GET(request);
 
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")?.startsWith("https://laitstyle.localhost/")).toBe(
-      true,
-    );
+    expect(response.headers.get("location")?.startsWith("https://laitstyle.localhost/")).toBe(true);
   });
 });

@@ -48,7 +48,10 @@ describe("storefront product read-model ownership", () => {
       const imports = [...source.matchAll(importStatementPattern)]
         .map((match) => match[0])
         .filter((statement) => statement.includes(compatibilitySpecifier));
-      if (imports.length === 0 || imports.some((statement) => !/^import\s+type\s/.test(statement))) {
+      if (
+        imports.length === 0 ||
+        imports.some((statement) => !/^import\s+type\s/.test(statement))
+      ) {
         offenders.push(relative);
       }
     }

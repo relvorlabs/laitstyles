@@ -228,10 +228,7 @@ function FieldSuccess({
     <div
       role="status"
       data-slot="field-success"
-      className={cn(
-        "flex items-center gap-1.5 text-sm font-normal text-success",
-        className,
-      )}
+      className={cn("flex items-center gap-1.5 text-sm font-normal text-success", className)}
       {...props}
     >
       <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4 shrink-0" />

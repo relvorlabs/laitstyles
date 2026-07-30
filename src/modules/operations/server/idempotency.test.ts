@@ -92,17 +92,16 @@ describePersistence("claimIdempotency / completeIdempotency", () => {
     const first = await claimIdempotency(testScope, "key-4", "actor-1", "hash-a");
     createdIds.push(first.id);
 
-    await expect(
-      claimIdempotency(testScope, "key-4", "actor-1", "hash-a"),
-    ).resolves.toMatchObject({ id: first.id, state: "in_progress" });
+    await expect(claimIdempotency(testScope, "key-4", "actor-1", "hash-a")).resolves.toMatchObject({
+      id: first.id,
+      state: "in_progress",
+    });
   });
 
   it("never lets more than one concurrent caller claim the same scope/key", async () => {
     const testScope = scope("checkout-concurrent");
     const attempts = await Promise.all(
-      Array.from({ length: 8 }, () =>
-        claimIdempotency(testScope, "key-5", "customer-1", "hash-a"),
-      ),
+      Array.from({ length: 8 }, () => claimIdempotency(testScope, "key-5", "customer-1", "hash-a")),
     );
     createdIds.push(...new Set(attempts.map((attempt) => attempt.id)));
 

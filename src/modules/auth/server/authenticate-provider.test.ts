@@ -113,7 +113,10 @@ describe("auth provider orchestration", () => {
         full_name: "Ada Lovelace",
       },
     };
-    mocks.signUp.mockResolvedValueOnce({ data: { session: { access_token: "token" }, user }, error: null });
+    mocks.signUp.mockResolvedValueOnce({
+      data: { session: { access_token: "token" }, user },
+      error: null,
+    });
 
     await expect(
       registerWithPassword({
@@ -178,9 +181,7 @@ describe("auth provider orchestration", () => {
       returnTo: "/products?auth=signin&next=%2Faccount",
     });
 
-    expect(target).toBe(
-      "/products?auth=signin&next=%2Faccount&error=oauth-callback-invalid",
-    );
+    expect(target).toBe("/products?auth=signin&next=%2Faccount&error=oauth-callback-invalid");
     expect(mocks.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(mocks.logAuthProviderFailure).toHaveBeenCalledWith("oauth-callback", {
       name: "OAuthCallbackProviderError",
@@ -194,8 +195,8 @@ describe("auth provider orchestration", () => {
       error: { code: "provider_error", name: "AuthApiError" },
     });
 
-    await expect(
-      startGoogleOAuth("/admin", "/auth/sign-in?next=%2Fadmin"),
-    ).resolves.toBe("/auth/sign-in?next=%2Fadmin&error=oauth-start-failed");
+    await expect(startGoogleOAuth("/admin", "/auth/sign-in?next=%2Fadmin")).resolves.toBe(
+      "/auth/sign-in?next=%2Fadmin&error=oauth-start-failed",
+    );
   });
 });

@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { resendSignupConfirmationWithRedirect } from "@/app/auth/actions";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/modules/auth/server/diagnostics";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 import { AuthEmailForm } from "@/modules/auth/ui/auth-email-form";
 import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
 

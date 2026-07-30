@@ -41,8 +41,14 @@ describe("Google OAuth popup", () => {
       returnTo: "/?auth=signin&next=%2Faccount",
     });
 
-    expect(window.open).toHaveBeenCalledWith("about:blank", "laitstyles-google-auth", expect.any(String));
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("https://accounts.google.test/authorize"));
+    expect(window.open).toHaveBeenCalledWith(
+      "about:blank",
+      "laitstyles-google-auth",
+      expect.any(String),
+    );
+    await vi.waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("https://accounts.google.test/authorize"),
+    );
     expect(mocks.signInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
       options: {

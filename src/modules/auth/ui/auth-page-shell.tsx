@@ -149,7 +149,9 @@ export function AuthField({
     >
       <span className="flex items-center justify-between gap-3">
         <span>{label}</span>
-        {hint ? <span className="text-[11px] font-medium text-muted-foreground">{hint}</span> : null}
+        {hint ? (
+          <span className="text-[11px] font-medium text-muted-foreground">{hint}</span>
+        ) : null}
       </span>
       {children}
       {error ? (

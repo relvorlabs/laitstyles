@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { endSession } from "@/modules/auth/server/authenticate";
-import { getRequestOrigin, getSafeNextPath, withAuthErrorPath } from "@/modules/auth/server/redirects";
+import {
+  getRequestOrigin,
+  getSafeNextPath,
+  withAuthErrorPath,
+} from "@/modules/auth/server/redirects";
 
 // Sign-out mutates auth state, so it remains POST-only. A 303 redirect makes
 // the browser follow with GET instead of replaying the POST.
