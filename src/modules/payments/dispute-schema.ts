@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   DISPUTE_EVIDENCE_CONTENT_TYPES,
   DISPUTE_EVIDENCE_MAX_BYTES,
-} from "@/modules/payments/server/paystack/disputes";
+} from "@/modules/payments/dispute-contract";
 
 export const disputeIdentifierSchema = z.string().uuid();
 
@@ -38,7 +38,7 @@ export const disputeDecisionBodySchema = z.object({
 
 export const disputeEvidenceFileSchema = z.object({
   name: z.string().trim().min(1).max(180),
-  type: z.enum(DISPUTE_EVIDENCE_CONTENT_TYPES as [string, ...string[]]),
+  type: z.enum(DISPUTE_EVIDENCE_CONTENT_TYPES),
   size: z.number().int().min(1).max(DISPUTE_EVIDENCE_MAX_BYTES),
 });
 
