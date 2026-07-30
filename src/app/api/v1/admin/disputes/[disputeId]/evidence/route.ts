@@ -104,8 +104,8 @@ export async function POST(request: Request, context: RouteContext) {
         : {}),
     });
     if (!result.ok) throwDisputeApiError(result.error);
-    await reconcileOrderDisputeState(result.value);
-    return { data: result.value, headers: privateNoStore };
+    const normalized = await reconcileOrderDisputeState(result.value);
+    return { data: normalized, headers: privateNoStore };
   });
 }
 
