@@ -6,6 +6,7 @@ import {
   updateDisputeBodySchema,
 } from "@/modules/payments/dispute-schema";
 import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
+import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
 import {
   getPaymentDispute,
   updatePaymentDispute,
@@ -39,6 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const input = await parseJsonBody(request, updateDisputeBodySchema);
     const result = await updatePaymentDispute(actor, id, { ...input, idempotencyKey });
     if (!result.ok) throwDisputeApiError(result.error);
+    await reconcileOrderDisputeState(result.value);
     return { data: result.value, headers: privateNoStore };
   });
 }
