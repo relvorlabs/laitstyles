@@ -10,6 +10,7 @@ import {
 } from "@/modules/payments/server/paystack/schemas";
 
 const referenceSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9.=_-]+$/);
+const transactionIdentifierSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9.=_-]+$/);
 const currencySchema = z.string().trim().length(3).toUpperCase();
 const amountMinorSchema = z.number().int().positive().safe();
 
@@ -27,13 +28,63 @@ const listTransactionsInputSchema = z.object({
   perPage: z.number().int().min(1).max(100).default(50),
   customer: z.number().int().positive().optional(),
   status: z.enum(["abandoned", "failed", "success"]).optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-  amountMinor: z.number().int().nonnegative().optional(),
+  from: z.string().trim().min(1).optional(),
+  to: z.string().trim().min(1).optional(),
+  amountMinor: z.number().int().nonnegative().safe().optional(),
+});
+
+const transactionTotalsInputSchema = z.object({
+  page: z.number().int().positive().default(1),
+  perPage: z.number().int().min(1).max(100).default(50),
+  from: z.string().trim().min(1).optional(),
+  to: z.string().trim().min(1).optional(),
+});
+
+const currencyAmountSchema = z.object({
+  currency: z.string().trim().length(3),
+  amount: z.number().int().safe(),
+});
+
+const transactionTotalsResponseSchema = z.object({
+  status: z.literal(true),
+  message: z.string().min(1),
+  data: z
+    .object({
+      total_transactions: z.number().int().nonnegative(),
+      total_volume: z.number().int().nonnegative().safe(),
+      total_volume_by_currency: z.array(currencyAmountSchema),
+      pending_transfers: z.number().int().nonnegative().safe(),
+      pending_transfers_by_currency: z.array(currencyAmountSchema),
+    })
+    .passthrough(),
+});
+
+const timelineHistorySchema = z.object({
+  type: z.string().min(1),
+  message: z.string(),
+  time: z.number().int().nonnegative(),
+});
+
+const transactionTimelineResponseSchema = z.object({
+  status: z.literal(true),
+  message: z.string().min(1),
+  data: z
+    .object({
+      start_time: z.number().int().nonnegative(),
+      time_spent: z.number().int().nonnegative(),
+      attempts: z.number().int().nonnegative(),
+      errors: z.number().int().nonnegative(),
+      success: z.boolean(),
+      mobile: z.boolean(),
+      input: z.array(z.unknown()),
+      history: z.array(timelineHistorySchema),
+    })
+    .passthrough(),
 });
 
 export type InitializeTransactionInput = z.input<typeof initializeTransactionInputSchema>;
 export type ListTransactionsInput = z.input<typeof listTransactionsInputSchema>;
+export type TransactionTotalsInput = z.input<typeof transactionTotalsInputSchema>;
 
 export type PaystackAuthorization = {
   authorizationCode: string;
@@ -83,6 +134,10 @@ export type PaystackInitializedTransaction = {
   rawResponse: z.output<typeof paystackInitializeResponseSchema>;
 };
 
+export type TransactionProjectionOptions = {
+  includeAuthorization?: boolean;
+};
+
 export async function initializeTransaction(
   input: InitializeTransactionInput,
   fetchImplementation?: typeof fetch,
@@ -123,7 +178,7 @@ export async function verifyTransaction(
     schema: paystackTransactionResponseSchema,
     fetchImplementation,
   });
-  return mapPaystackTransaction(response.data);
+  return mapPaystackTransaction(response.data, { includeAuthorization: true });
 }
 
 export async function listTransactions(
@@ -147,7 +202,9 @@ export async function listTransactions(
     },
   });
   return {
-    transactions: response.data.map(mapPaystackTransaction),
+    transactions: response.data.map((transaction) =>
+      mapPaystackTransaction(transaction, { includeAuthorization: false }),
+    ),
     pagination: response.meta,
   };
 }
@@ -163,12 +220,70 @@ export async function fetchTransaction(
     schema: paystackTransactionResponseSchema,
     fetchImplementation,
   });
-  return mapPaystackTransaction(response.data);
+  return mapPaystackTransaction(response.data, { includeAuthorization: true });
 }
 
-export function mapPaystackTransaction(transaction: PaystackRawTransaction): PaystackTransaction {
+export async function fetchTransactionTimeline(
+  idOrReference: string,
+  fetchImplementation?: typeof fetch,
+) {
+  const identifier = transactionIdentifierSchema.parse(idOrReference);
+  const response = await paystackRequest({
+    operation: "fetch-transaction-timeline",
+    path: `/transaction/timeline/${encodeURIComponent(identifier)}`,
+    schema: transactionTimelineResponseSchema,
+    fetchImplementation,
+  });
+
+  return {
+    startTime: response.data.start_time,
+    timeSpentSeconds: response.data.time_spent,
+    attempts: response.data.attempts,
+    errors: response.data.errors,
+    success: response.data.success,
+    mobile: response.data.mobile,
+    history: response.data.history.map((entry) => ({
+      type: entry.type,
+      message: entry.message,
+      elapsedSeconds: entry.time,
+    })),
+  };
+}
+
+export async function fetchTransactionTotals(
+  input: TransactionTotalsInput = {},
+  fetchImplementation?: typeof fetch,
+) {
+  const parsed = transactionTotalsInputSchema.parse(input);
+  const response = await paystackRequest({
+    operation: "fetch-transaction-totals",
+    path: "/transaction/totals",
+    schema: transactionTotalsResponseSchema,
+    fetchImplementation,
+    query: {
+      page: parsed.page,
+      perPage: parsed.perPage,
+      from: parsed.from,
+      to: parsed.to,
+    },
+  });
+
+  return {
+    totalTransactions: response.data.total_transactions,
+    totalVolumeMinor: response.data.total_volume,
+    totalVolumeByCurrency: response.data.total_volume_by_currency.map(mapCurrencyAmount),
+    pendingTransfersMinor: response.data.pending_transfers,
+    pendingTransfersByCurrency: response.data.pending_transfers_by_currency.map(mapCurrencyAmount),
+  };
+}
+
+export function mapPaystackTransaction(
+  transaction: PaystackRawTransaction,
+  options: TransactionProjectionOptions = {},
+): PaystackTransaction {
   const authorization = transaction.authorization;
   const customer = transaction.customer;
+  const includeAuthorization = options.includeAuthorization ?? true;
   return {
     id: String(transaction.id),
     status: transaction.status,
@@ -181,23 +296,24 @@ export function mapPaystackTransaction(transaction: PaystackRawTransaction): Pay
     gatewayResponse: transaction.gateway_response ?? null,
     message: transaction.message ?? null,
     feesMinor: transaction.fees ?? null,
-    authorization: authorization
-      ? {
-          authorizationCode: authorization.authorization_code,
-          bin: authorization.bin ?? null,
-          last4: authorization.last4 ?? null,
-          expMonth: authorization.exp_month ?? null,
-          expYear: authorization.exp_year ?? null,
-          channel: authorization.channel,
-          cardType: authorization.card_type ?? null,
-          bank: authorization.bank ?? null,
-          countryCode: authorization.country_code ?? null,
-          brand: authorization.brand ?? null,
-          reusable: authorization.reusable,
-          signature: authorization.signature ?? null,
-          accountName: authorization.account_name ?? null,
-        }
-      : null,
+    authorization:
+      includeAuthorization && authorization
+        ? {
+            authorizationCode: authorization.authorization_code,
+            bin: authorization.bin ?? null,
+            last4: authorization.last4 ?? null,
+            expMonth: authorization.exp_month ?? null,
+            expYear: authorization.exp_year ?? null,
+            channel: authorization.channel,
+            cardType: authorization.card_type ?? null,
+            bank: authorization.bank ?? null,
+            countryCode: authorization.country_code ?? null,
+            brand: authorization.brand ?? null,
+            reusable: authorization.reusable,
+            signature: authorization.signature ?? null,
+            accountName: authorization.account_name ?? null,
+          }
+        : null,
     customer: customer
       ? {
           id: String(customer.id),
@@ -209,4 +325,8 @@ export function mapPaystackTransaction(transaction: PaystackRawTransaction): Pay
         }
       : null,
   };
+}
+
+function mapCurrencyAmount(value: z.output<typeof currencyAmountSchema>) {
+  return { currency: value.currency.toUpperCase(), amountMinor: value.amount };
 }

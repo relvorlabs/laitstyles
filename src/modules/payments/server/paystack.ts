@@ -13,6 +13,12 @@ export {
   type ChargeAuthorizationInput,
   type ChargeAuthorizationResult,
 } from "@/modules/payments/server/paystack/authorizations";
+export { fetchBalance, type PaystackBalance } from "@/modules/payments/server/paystack/balance";
+export {
+  listBanks,
+  type ListBanksInput,
+  resolveAccount,
+} from "@/modules/payments/server/paystack/banks";
 export {
   isPaystackConfigured,
   PaystackConfigurationError,
@@ -42,6 +48,21 @@ export {
   uploadDisputeEvidenceFile,
 } from "@/modules/payments/server/paystack/disputes";
 export {
+  fetchBalanceLedger,
+  type ListBalanceLedgerInput,
+  type PaystackBalanceLedgerEntry,
+} from "@/modules/payments/server/paystack/ledger";
+export {
+  createRecipient,
+  type CreateRecipientInput,
+  deleteRecipient,
+  listRecipients,
+  type ListRecipientsInput,
+  type PaystackTransferRecipient,
+  updateRecipient,
+  type UpdateRecipientInput,
+} from "@/modules/payments/server/paystack/recipients";
+export {
   paystackAuthorizationSchema,
   paystackCustomerSchema,
   paystackDisputeEvidenceResponseSchema,
@@ -62,6 +83,14 @@ export {
   paystackTransactionSchema,
 } from "@/modules/payments/server/paystack/schemas";
 export {
+  listSettlements,
+  type ListSettlementsInput,
+  listSettlementTransactions,
+  type ListSettlementTransactionsInput,
+  type PaystackSettlement,
+  type PaystackSettlementStatus,
+} from "@/modules/payments/server/paystack/settlements";
+export {
   createRefund,
   type CreateRefundInput,
   fetchRefund,
@@ -74,16 +103,35 @@ export {
 } from "@/modules/payments/server/paystack/refunds";
 export {
   fetchTransaction,
+  fetchTransactionTimeline,
+  fetchTransactionTotals,
   initializeTransaction,
   type InitializeTransactionInput,
   listTransactions,
   type ListTransactionsInput,
+  mapPaystackTransaction,
   type PaystackAuthorization,
   type PaystackCustomer,
   type PaystackInitializedTransaction,
   type PaystackTransaction,
+  type TransactionProjectionOptions,
+  type TransactionTotalsInput,
   verifyTransaction,
 } from "@/modules/payments/server/paystack/transactions";
+export {
+  fetchTransfer,
+  finalizeTransferOtp,
+  type FinalizeTransferOtpInput,
+  initiateTransfer,
+  type InitiateTransferInput,
+  listTransfers,
+  type ListTransfersInput,
+  normalizeTransferEvent,
+  type PaystackTransfer,
+  type PaystackTransferStatus,
+  resendTransferOtp,
+  verifyTransfer,
+} from "@/modules/payments/server/paystack/transfers";
 export {
   isSupportedPaystackChargeEvent,
   isSupportedPaystackDisputeEvent,
