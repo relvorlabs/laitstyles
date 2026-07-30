@@ -13,7 +13,7 @@ The implementation and review followed the repository roles introduced by commit
 
 1. **Orchestrator** — maintained the Plan 05 branch and integrated every checkpoint into PR #58.
 2. **Planner** — reconciled the code against the approved Plan 05 and account/payments specification.
-3. **Data engineer** — repaired Prisma/Supabase Auth schema handling and payment authorization uniqueness.
+3. **Data engineer** — restored the Prisma/Supabase ownership boundary and payment authorization uniqueness.
 4. **Domain engineer** — closed setup-charge lifecycle, ownership, refund and account-isolation gaps.
 5. **UI engineer** — completed checkout refresh recovery, retry states and saved-method interaction coverage.
 6. **Reviewer** — inspected architecture boundaries, split the oversized payment-method command and recorded this gate.
@@ -79,22 +79,22 @@ These were explicit sequential role handoffs in one controlled execution. They w
 - Enforced one owner per Paystack provider signature in both application and database layers.
 - Removed unsupported Paystack InlineJS `onClose` usage.
 - Added authorization country persistence and migration constraint.
-- Repaired Prisma P4002 handling for the reviewed `public.profiles -> auth.users` foreign key:
-  - database-facing Prisma commands generate a temporary combined schema containing `schemas = ["public", "auth"]`;
-  - `auth.users` is declared externally managed;
-  - the shadow database initializer creates the minimum `auth.users(id uuid primary key)` placeholder;
-  - temporary/generated schema input is cleaned even when Prisma fails.
+- Restored the repository's Prisma/Supabase ownership boundary after the initial P4002 workaround proved incorrect:
+  - Prisma remains scoped to `schemas = ["public"]`;
+  - Prisma commands use the repository's normal multi-file schema directly;
+  - the temporary `auth` schema injector and shadow `auth.users` table were removed;
+  - Supabase SQL drops `profiles_auth_user_fk` and owns auth-user deletion synchronization through an `auth.users` trigger.
 - Split `payment-methods.ts` from 762 lines to 579 lines into idempotency, lifecycle and projection responsibilities.
 
 ## Checks actually executed in the reviewer environment
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Prisma temporary-schema preparation fixture | PASS | Auth namespace injected, multi-file fragments combined, generated/migrations excluded and temporary schema cleaned. |
+| Prisma ownership boundary | PASS by inspection | Datasource remains public-only; no runtime auth schema injection or Prisma-managed auth table exists. |
 | TypeScript parser — transformed `payment-methods.ts` | PASS | Exact transformed source parsed with TypeScript 5.8.3 before publication. |
 | TypeScript parser — checkout recovery component | PASS | Authored recovery TSX parsed before publication. |
 | Architecture line threshold | PASS by inspection | `payment-methods.ts` reduced to 579 lines; production error is >800 and warning is >600. |
-| Exact-head branch synchronization | PASS | Plan 05 and shared PR branch both advanced through every checkpoint. |
+| Exact-head branch synchronization | PASS | Plan 05 and shared PR branch advanced through every checkpoint. |
 
 ## Commands not executed here
 
