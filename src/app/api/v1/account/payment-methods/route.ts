@@ -8,6 +8,7 @@ import {
   listPaymentMethods,
   throwPaymentMethodApiError,
 } from "@/modules/payments/server/payment-methods/index";
+import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
@@ -20,6 +21,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   return handleApiRequest(request, async () => {
+    requireFinancialMutationOrigin(request);
     const identity = await requireApiConsumer();
     const input = await parseJsonBody(request, createPaymentMethodSetupSchema);
     const origin = getConfiguredAuthOrigin() ?? new URL(request.url).origin;
