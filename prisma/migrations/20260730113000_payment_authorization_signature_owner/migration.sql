@@ -30,16 +30,16 @@ duplicates AS (
   FROM ranked
   WHERE position > 1
 )
-UPDATE public.payment_authorizations AS authorization
+UPDATE public.payment_authorizations AS pa
 SET
-  signature = 'inactive:' || authorization.id::text || ':' || authorization.signature,
+  signature = 'inactive:' || pa.id::text || ':' || pa.signature,
   status = 'inactive',
   reusable = false,
   is_default = false,
-  deactivated_at = COALESCE(authorization.deactivated_at, now()),
+  deactivated_at = COALESCE(pa.deactivated_at, now()),
   updated_at = now()
 FROM duplicates
-WHERE authorization.id = duplicates.id;
+WHERE pa.id = duplicates.id;
 
 DROP INDEX IF EXISTS public.payment_authorizations_customer_provider_signature_unique;
 
