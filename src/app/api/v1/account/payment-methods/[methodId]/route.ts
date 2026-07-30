@@ -7,12 +7,14 @@ import {
   setDefaultPaymentMethod,
   throwPaymentMethodApiError,
 } from "@/modules/payments/server/payment-methods/index";
+import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ methodId: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
+    requireFinancialMutationOrigin(request);
     const identity = await requireApiConsumer();
     const { methodId } = await context.params;
     const id = paymentMethodIdentifierSchema.parse(methodId);
@@ -25,6 +27,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
+    requireFinancialMutationOrigin(request);
     const identity = await requireApiConsumer();
     const { methodId } = await context.params;
     const result = await deletePaymentMethod(
