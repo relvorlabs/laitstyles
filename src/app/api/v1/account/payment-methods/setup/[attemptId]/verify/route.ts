@@ -4,7 +4,7 @@ import { paymentMethodIdentifierSchema } from "@/modules/payments/schema";
 import {
   throwPaymentMethodApiError,
   verifyPaymentMethodSetup,
-} from "@/modules/payments/server/payment-methods";
+} from "@/modules/payments/server/payment-methods/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ attemptId: string }> };
