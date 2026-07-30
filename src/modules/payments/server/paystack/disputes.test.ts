@@ -19,6 +19,7 @@ const dispute = {
     reference: "pay_dispute_1",
     amount: 25_000,
     currency: "NGN",
+    customer: { international_format_phone: null },
   },
   category: "transaction_not_received",
   reason: "Customer says the order did not arrive",
@@ -92,6 +93,17 @@ describe("Paystack dispute adapter", () => {
       id: "42",
       status: "unknown",
       providerStatus: "processor-review",
+      transactionReference: "pay_dispute_1",
+    });
+  });
+
+  it("accepts the provider's partial nested transaction customer shape", async () => {
+    vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(success(dispute)));
+
+    await expect(fetchDispute("42")).resolves.toMatchObject({
+      id: "42",
+      transactionId: "9001",
       transactionReference: "pay_dispute_1",
     });
   });
