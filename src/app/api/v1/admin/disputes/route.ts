@@ -4,7 +4,7 @@ import { disputeListQuerySchema } from "@/modules/payments/dispute-schema";
 import {
   listPaymentDisputes,
   throwDisputeApiError,
-} from "@/modules/payments/server/disputes";
+} from "@/modules/payments/server/disputes/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
