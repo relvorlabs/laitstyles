@@ -6,7 +6,7 @@ import {
   listRefunds,
   requestRefund,
   throwRefundApiError,
-} from "@/modules/payments/server/refunds";
+} from "@/modules/payments/server/refunds/index";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
