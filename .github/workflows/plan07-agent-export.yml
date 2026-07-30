@@ -1,25 +1,93 @@
-name: Plan 07 Validation Probe
+name: Plan 07 Completion Validation
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
-      - codex/plan-07-owner-finance
+      - codex/complete-api-05-06-08
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: plan07-completion-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "1"
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+  NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+  AUTH_SECRET: plan07-validation-secret-key-with-at-least-32-characters
+  PAYOUT_ACCOUNT_SECRET: plan07-payout-secret-key-with-at-least-32-characters
+  PAYMENT_AUTHORIZATION_SECRET: plan07-payment-secret-key-with-at-least-32-characters
+  PAYSTACK_SECRET_KEY: sk_test_plan07_validation
+  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: pk_test_plan07_validation
+
 jobs:
-  probe:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: laitstyles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d laitstyles"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
-      - name: Check out exact branch head
+      - name: Check out exact Plan 07 head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
 
-      - name: Prove hosted runner availability
+      - uses: ./.github/actions/setup-environment
+        with:
+          node-version: "25"
+
+      - name: Validate Prisma schema and migrations
         run: |
-          node --version
-          git rev-parse HEAD
+          pnpm prisma:validate
+          pnpm prisma:migrate:deploy
+          pnpm prisma:migrate:status
+
+      - name: Run Plan 07 focused tests
+        run: >-
+          pnpm test
+          src/modules/payments/server/paystack/finance.test.ts
+          src/modules/payments/server/paystack/transfers.test.ts
+          src/modules/payments/server/payout-secrets.test.ts
+          src/modules/payments/server/recent-auth.test.ts
+          src/modules/payments/server/reconciliation.test.ts
+          src/modules/payments/server/transfers.test.ts
+          src/modules/payments/server/webhooks/paystack-handler.test.ts
+          src/modules/payments/finance-schema.test.ts
+          src/app/api/v1/admin/finance/finance-routes.test.ts
+          src/modules/payments/ui/finance/finance-workspace.test.tsx
+
+      - name: Run architecture and static checks
+        run: |
+          pnpm check:architecture
+          pnpm biome
+          pnpm typecheck
+          pnpm lint
+
+      - name: Run production build
+        run: pnpm build
+
+      - name: Run React Doctor
+        run: pnpm react-doctor
