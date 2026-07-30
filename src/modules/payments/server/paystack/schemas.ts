@@ -106,34 +106,48 @@ export const paystackRefundSchema = z.object({
 
 const paystackDisputeTransactionSchema = z.union([
   paystackProviderIdSchema,
-  z.object({
-    id: paystackProviderIdSchema,
-    reference: z.string().min(1).optional().nullable(),
-    amount: z.number().int().nonnegative().optional().nullable(),
-    currency: z.string().length(3).optional().nullable(),
-    customer: paystackCustomerSchema.optional().nullable(),
-  }),
+  z
+    .object({
+      id: paystackProviderIdSchema,
+      reference: z.string().min(1).optional().nullable(),
+      amount: z.number().int().nonnegative().optional().nullable(),
+      currency: z.string().length(3).optional().nullable(),
+      customer: paystackCustomerSchema.optional().nullable(),
+    })
+    .passthrough(),
 ]);
 
-export const paystackDisputeSchema = z.object({
-  id: paystackProviderIdSchema,
-  refund_amount: z.number().int().nonnegative().optional().nullable(),
-  currency: z.string().length(3).optional().nullable(),
-  status: z.string().min(1),
-  resolution: z.string().optional().nullable(),
-  domain: z.string().optional().nullable(),
-  transaction: paystackDisputeTransactionSchema,
-  category: z.string().optional().nullable(),
-  amount: z.number().int().nonnegative().optional().nullable(),
-  reason: z.string().optional().nullable(),
-  message: z.string().optional().nullable(),
-  due_at: z.string().optional().nullable(),
-  evidence: z.unknown().optional().nullable(),
-  createdAt: z.string().optional().nullable(),
-  updatedAt: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-});
+export const paystackDisputeSchema = z
+  .object({
+    id: paystackProviderIdSchema,
+    refund_amount: z.number().int().nonnegative().optional().nullable(),
+    currency: z.string().length(3).optional().nullable(),
+    status: z.string().min(1),
+    resolution: z.string().optional().nullable(),
+    domain: z.string().optional().nullable(),
+    transaction: paystackDisputeTransactionSchema,
+    transaction_reference: z.string().optional().nullable(),
+    merchant_transaction_reference: z.string().optional().nullable(),
+    customer: paystackCustomerSchema.optional().nullable(),
+    category: z.string().optional().nullable(),
+    amount: z.number().int().nonnegative().optional().nullable(),
+    reason: z.string().optional().nullable(),
+    note: z.string().optional().nullable(),
+    message: z.unknown().optional().nullable(),
+    dueAt: z.string().optional().nullable(),
+    due_at: z.string().optional().nullable(),
+    resolvedAt: z.string().optional().nullable(),
+    resolved_at: z.string().optional().nullable(),
+    evidence: z.unknown().optional().nullable(),
+    attachments: z.unknown().optional().nullable(),
+    history: z.unknown().optional().nullable(),
+    messages: z.unknown().optional().nullable(),
+    createdAt: z.string().optional().nullable(),
+    updatedAt: z.string().optional().nullable(),
+    created_at: z.string().optional().nullable(),
+    updated_at: z.string().optional().nullable(),
+  })
+  .passthrough();
 
 export const paystackDisputeEvidenceSchema = z.object({
   id: paystackProviderIdSchema,
