@@ -1,8 +1,10 @@
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { paymentIdentifierSchema } from "@/modules/payments/refund-schema";
-import { getAdminPayment } from "@/modules/payments/server/admin-payments";
-import { throwAdminPaymentApiError } from "@/modules/payments/server/refund-api-errors";
+import {
+  getAdminPayment,
+  throwAdminPaymentApiError,
+} from "@/modules/payments/server/admin";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ paymentId: string }> };
