@@ -112,7 +112,7 @@ const paystackDisputeTransactionSchema = z.union([
       reference: z.string().min(1).optional().nullable(),
       amount: z.number().int().nonnegative().optional().nullable(),
       currency: z.string().length(3).optional().nullable(),
-      customer: paystackCustomerSchema.optional().nullable(),
+      customer: z.unknown().optional().nullable(),
     })
     .passthrough(),
 ]);
