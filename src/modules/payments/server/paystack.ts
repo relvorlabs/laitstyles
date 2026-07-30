@@ -1,12 +1,6 @@
 import "server-only";
 
-/**
- * Paystack provider facade.
- *
- * Provider HTTP calls, validation and normalization live under `server/paystack/**`.
- * Domain services import this facade or a focused provider module; this file contains
- * no persistence or duplicate transaction implementation.
- */
+/** Paystack provider facade. Provider HTTP calls and normalization live under `server/paystack/**`. */
 export {
   chargeAuthorization,
   deactivateAuthorization,
@@ -14,11 +8,7 @@ export {
   type ChargeAuthorizationResult,
 } from "@/modules/payments/server/paystack/authorizations";
 export { fetchBalance, type PaystackBalance } from "@/modules/payments/server/paystack/balance";
-export {
-  listBanks,
-  type ListBanksInput,
-  resolveAccount,
-} from "@/modules/payments/server/paystack/banks";
+export { listBanks, type ListBanksInput, resolveAccount } from "@/modules/payments/server/paystack/banks";
 export {
   isPaystackConfigured,
   PaystackConfigurationError,
@@ -137,10 +127,12 @@ export {
   isSupportedPaystackDisputeEvent,
   isSupportedPaystackFinancialEvent,
   isSupportedPaystackRefundEvent,
+  isSupportedPaystackTransferEvent,
   parsePaystackChargeEvent,
   parsePaystackDisputeEvent,
   parsePaystackEventEnvelope,
   parsePaystackRefundEvent,
+  parsePaystackTransferEvent,
   PaystackWebhookSignatureError,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack/webhooks";

@@ -12,18 +12,23 @@ import {
   isSupportedPaystackDisputeEvent,
   isSupportedPaystackFinancialEvent,
   isSupportedPaystackRefundEvent,
+  isSupportedPaystackTransferEvent,
   parsePaystackChargeEvent,
   parsePaystackDisputeEvent,
   parsePaystackEventEnvelope,
   parsePaystackRefundEvent,
+  parsePaystackTransferEvent,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack";
 import { applyRefundWebhookState } from "@/modules/payments/server/refund-webhooks";
+import { applyTransferProviderState } from "@/modules/payments/server/transfers";
 
 type PaystackWebhookInput = {
   rawBody: string;
   signature: string | null;
 };
+
+type FinancialResource = "dispute" | "payment" | "refund" | "transfer";
 
 export type PaystackWebhookResult = {
   accepted: true;
@@ -31,7 +36,7 @@ export type PaystackWebhookResult = {
   duplicate?: boolean;
   processing?: true;
   status?: string;
-  resource?: "payment" | "refund" | "dispute";
+  resource?: FinancialResource;
 };
 
 type FinancialEventFailure = {
@@ -42,7 +47,7 @@ type FinancialEventFailure = {
 type FinancialEventSuccess = {
   ok: true;
   status: string;
-  resource: "payment" | "refund" | "dispute";
+  resource: FinancialResource;
   replayed: boolean;
 };
 
@@ -85,7 +90,7 @@ export async function processPaystackWebhook({
   }
 
   try {
-    const outcome = await processFinancialEvent(envelope.event, payload);
+    const outcome = await processFinancialEvent(envelope.event, payload, eventId);
     if (!outcome.ok) {
       await failWebhookEvent(inbox.id, `${outcome.error.code}: ${outcome.error.message}`);
       throw new ApiError({
@@ -200,6 +205,7 @@ async function failWebhookEvent(inboxId: string, message: string): Promise<void>
 async function processFinancialEvent(
   eventName: string,
   payload: unknown,
+  eventId: string,
 ): Promise<FinancialEventOutcome> {
   if (isSupportedPaystackChargeEvent(eventName)) {
     const event = parsePaystackChargeEvent(payload);
@@ -230,6 +236,19 @@ async function processFinancialEvent(
     return { ok: true, status: normalized.status, resource: "dispute", replayed: false };
   }
 
+  if (isSupportedPaystackTransferEvent(eventName)) {
+    const event = parsePaystackTransferEvent(payload);
+    const result = await applyTransferProviderState({
+      reference: event.transfer.reference,
+      provider: event.transfer,
+      providerEventId: eventId,
+      eventNote: `Signed Paystack event ${event.event}.`,
+    });
+    return result.ok
+      ? { ok: true, status: result.value.status, resource: "transfer", replayed: false }
+      : { ok: false, error: result.error };
+  }
+
   throw new ApiError({
     code: "PAYSTACK_EVENT_UNSUPPORTED",
     message: "The Paystack event is not supported.",
@@ -241,6 +260,7 @@ function isMissingFinancialRecord(code: string): boolean {
   return (
     code === "PAYMENT_NOT_FOUND" ||
     code === "REFUND_NOT_FOUND" ||
-    code === "DISPUTE_PAYMENT_NOT_FOUND"
+    code === "DISPUTE_PAYMENT_NOT_FOUND" ||
+    code === "TRANSFER_NOT_FOUND"
   );
 }

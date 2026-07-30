@@ -12,6 +12,7 @@ import {
   paystackTransactionSchema,
 } from "@/modules/payments/server/paystack/schemas";
 import { mapPaystackTransaction } from "@/modules/payments/server/paystack/transactions";
+import { normalizeTransferEvent } from "@/modules/payments/server/paystack/transfers";
 
 const paystackEventEnvelopeSchema = z.object({
   event: z.string().trim().min(1),
@@ -55,6 +56,11 @@ const supportedDisputeEvents = new Set([
   "charge.dispute.remind",
   "charge.dispute.resolve",
 ]);
+const supportedTransferEvents = new Set([
+  "transfer.success",
+  "transfer.failed",
+  "transfer.reversed",
+]);
 
 export class PaystackWebhookSignatureError extends Error {
   constructor() {
@@ -90,11 +96,16 @@ export function isSupportedPaystackDisputeEvent(event: string) {
   return supportedDisputeEvents.has(event);
 }
 
+export function isSupportedPaystackTransferEvent(event: string) {
+  return supportedTransferEvents.has(event);
+}
+
 export function isSupportedPaystackFinancialEvent(event: string) {
   return (
     isSupportedPaystackChargeEvent(event) ||
     isSupportedPaystackRefundEvent(event) ||
-    isSupportedPaystackDisputeEvent(event)
+    isSupportedPaystackDisputeEvent(event) ||
+    isSupportedPaystackTransferEvent(event)
   );
 }
 
@@ -131,4 +142,8 @@ export function parsePaystackRefundEvent(payload: unknown) {
 export function parsePaystackDisputeEvent(payload: unknown) {
   const parsed = supportedDisputeEventSchema.parse(payload);
   return { event: parsed.event, dispute: mapPaystackDispute(parsed.data) };
+}
+
+export function parsePaystackTransferEvent(payload: unknown) {
+  return normalizeTransferEvent(payload);
 }
