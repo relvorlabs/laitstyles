@@ -6,8 +6,10 @@ const mocks = vi.hoisted(() => ({
   updateAuthorization: vi.fn(),
   updateAuthorizations: vi.fn(),
   findIdempotency: vi.fn(),
+  updateIdempotency: vi.fn(),
   transaction: vi.fn(),
   updatePayment: vi.fn(),
+  updateOrder: vi.fn(),
   updateRefund: vi.fn(),
   claimRefund: vi.fn(),
   verifyTransaction: vi.fn(),
@@ -24,8 +26,12 @@ vi.mock("@/lib/prisma", () => ({
       update: mocks.updateAuthorization,
       updateMany: mocks.updateAuthorizations,
     },
-    idempotency_records: { findUnique: mocks.findIdempotency },
+    idempotency_records: {
+      findUnique: mocks.findIdempotency,
+      update: mocks.updateIdempotency,
+    },
     payments: { update: mocks.updatePayment },
+    orders: { update: mocks.updateOrder },
     payment_refunds: {
       update: mocks.updateRefund,
       updateMany: mocks.claimRefund,
@@ -67,7 +73,7 @@ const payment = {
   access_code: "access",
   status: "initialized",
   payment_refunds: [],
-  orders: { id: "order-1" },
+  orders: { id: "55555555-5555-4555-8555-555555555555" },
 };
 const pendingAuthorization = {
   id: attemptId,
@@ -134,7 +140,7 @@ describe("payment method setup idempotency", () => {
     await expect(
       createPaymentMethodSetup(
         identity,
-        { idempotencyKey: "55555555-5555-4555-8555-555555555555" },
+        { idempotencyKey: "66666666-6666-4666-8666-666666666666" },
         "https://www.laitstyles.com/account/payment-methods",
       ),
     ).resolves.toMatchObject({
@@ -154,7 +160,7 @@ describe("payment method setup idempotency", () => {
     await expect(
       createPaymentMethodSetup(
         identity,
-        { idempotencyKey: "55555555-5555-4555-8555-555555555555" },
+        { idempotencyKey: "66666666-6666-4666-8666-666666666666" },
         "https://www.laitstyles.com/account/payment-methods",
       ),
     ).resolves.toMatchObject({
@@ -162,6 +168,64 @@ describe("payment method setup idempotency", () => {
       error: { code: "PAYMENT_METHOD_INVALID", field: "idempotencyKey" },
     });
     expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("closes every local record when provider initialization fails", async () => {
+    const createTx = {
+      idempotency_records: {
+        create: vi.fn().mockResolvedValue({ id: "idempotency-1" }),
+      },
+      payment_authorizations: {
+        create: vi.fn().mockResolvedValue({ id: attemptId }),
+      },
+      orders: {
+        create: vi.fn().mockResolvedValue({ id: payment.orders.id }),
+      },
+      payments: {
+        create: vi.fn().mockResolvedValue({ id: payment.id }),
+      },
+    };
+    const cleanupTx = {
+      payments: { update: vi.fn() },
+      payment_authorizations: { update: vi.fn() },
+      orders: { update: vi.fn() },
+      idempotency_records: { update: vi.fn() },
+    };
+    mocks.transaction
+      .mockImplementationOnce(async (work: (client: typeof createTx) => unknown) => work(createTx))
+      .mockImplementationOnce(async (work: (client: typeof cleanupTx) => unknown) =>
+        work(cleanupTx),
+      );
+    mocks.initializeTransaction.mockRejectedValueOnce(new Error("provider unavailable"));
+
+    const result = await createPaymentMethodSetup(
+      identity,
+      { idempotencyKey: "66666666-6666-4666-8666-666666666666" },
+      "https://www.laitstyles.com/account/payment-methods",
+    );
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE" },
+    });
+    expect(cleanupTx.payments.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "failed" }) }),
+    );
+    expect(cleanupTx.payment_authorizations.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "inactive", reusable: false }),
+      }),
+    );
+    expect(cleanupTx.orders.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ payment_status: "cancelled", attention: null }),
+      }),
+    );
+    expect(cleanupTx.idempotency_records.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "failed", completed_at: expect.any(Date) }),
+      }),
+    );
   });
 });
 
@@ -189,11 +253,42 @@ describe("payment method setup", () => {
     });
   });
 
+  it("closes the setup lifecycle after terminal provider failure", async () => {
+    const cleanupTx = {
+      payments: { update: vi.fn() },
+      payment_authorizations: { update: vi.fn() },
+      orders: { update: vi.fn() },
+    };
+    mocks.verifyTransaction.mockResolvedValueOnce({
+      ...providerTransaction,
+      status: "failed",
+    });
+    mocks.transaction.mockImplementationOnce(
+      async (work: (client: typeof cleanupTx) => unknown) => work(cleanupTx),
+    );
+
+    const result = await verifyPaymentMethodSetup(identity, attemptId);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_SETUP_FAILED" },
+    });
+    expect(cleanupTx.payments.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "failed" }) }),
+    );
+    expect(cleanupTx.payment_authorizations.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "inactive" }) }),
+    );
+    expect(cleanupTx.orders.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ payment_status: "cancelled" }) }),
+    );
+  });
+
   it("rejects a provider signature owned by another customer", async () => {
     mocks.findAuthorizations.mockResolvedValueOnce([
       {
         ...pendingAuthorization,
-        id: "66666666-6666-4666-8666-666666666666",
+        id: "77777777-7777-4777-8777-777777777777",
         customer_id: "99999999-9999-4999-8999-999999999999",
         signature: providerTransaction.authorization.signature,
         status: "active",
@@ -208,10 +303,19 @@ describe("payment method setup", () => {
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
+  it("maps a concurrent global signature conflict to an ownership error", async () => {
+    mocks.transaction.mockRejectedValueOnce({ code: "P2002" });
+
+    await expect(verifyPaymentMethodSetup(identity, attemptId)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "PAYMENT_METHOD_CUSTOMER_MISMATCH" },
+    });
+  });
+
   it("tombstones a same-customer duplicate and persists its country descriptor", async () => {
     const duplicate = {
       ...pendingAuthorization,
-      id: "66666666-6666-4666-8666-666666666666",
+      id: "77777777-7777-4777-8777-777777777777",
       signature: providerTransaction.authorization.signature,
       status: "active",
       reusable: true,
@@ -256,6 +360,7 @@ describe("payment method setup", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       payments: { update: vi.fn().mockResolvedValue({ id: payment.id }) },
+      orders: { update: vi.fn().mockResolvedValue({ id: payment.orders.id }) },
       payment_refunds: {
         findFirst: vi.fn().mockResolvedValue(null),
         create: vi.fn().mockResolvedValue({
@@ -293,6 +398,9 @@ describe("payment method setup", () => {
       expect.objectContaining({
         data: expect.objectContaining({ country_code: "NG" }),
       }),
+    );
+    expect(tx.orders.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ payment_status: "paid" }) }),
     );
     expect(mocks.createRefund).toHaveBeenCalledTimes(1);
   });
@@ -337,5 +445,26 @@ describe("saved method ownership and defaults", () => {
     const result = await deletePaymentMethod(identity, attemptId);
     expect(result).toEqual({ ok: true, value: { id: attemptId, inactive: true } });
     expect(mocks.deactivateAuthorization).not.toHaveBeenCalled();
+  });
+
+  it("tombstones a pending local method without sending a placeholder to Paystack", async () => {
+    mocks.findAuthorization.mockResolvedValueOnce(pendingAuthorization);
+    mocks.updateAuthorization.mockResolvedValueOnce({
+      ...pendingAuthorization,
+      status: "inactive",
+    });
+
+    const result = await deletePaymentMethod(identity, attemptId);
+
+    expect(result).toEqual({ ok: true, value: { id: attemptId, inactive: true } });
+    expect(mocks.deactivateAuthorization).not.toHaveBeenCalled();
+    expect(mocks.updateAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "inactive",
+          signature: expect.stringContaining(`inactive:${attemptId}:`),
+        }),
+      }),
+    );
   });
 });

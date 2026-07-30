@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/server/session";
-import { getAccountOrders } from "@/modules/orders/server/account-orders";
+import { getCommerceAccountOrders } from "@/modules/orders/server/account-commerce-orders";
 import { OrdersSection } from "@/modules/orders/ui/storefront/orders-section";
 
 export default async function AccountOrdersPage() {
@@ -12,6 +12,6 @@ export default async function AccountOrdersPage() {
     throw new Error("A customer record is required to view order history.");
   }
 
-  const orders = await getAccountOrders(session.customerId);
+  const orders = await getCommerceAccountOrders(session.customerId);
   return <OrdersSection orders={orders} />;
 }

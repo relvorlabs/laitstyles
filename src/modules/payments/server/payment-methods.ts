@@ -31,6 +31,13 @@ type SetupReplay =
   | { kind: "failed" }
   | { kind: "conflict" };
 
+type PendingSetup = {
+  idempotencyId: string;
+  authorizationId: string;
+  orderId: string;
+  paymentId: string;
+};
+
 export async function listPaymentMethods(identity: PaymentMethodIdentity): Promise<PaymentMethod[]> {
   const methods = await prisma.payment_authorizations.findMany({
     where: { customer_id: identity.customerId, status: "active" },
@@ -61,7 +68,7 @@ export async function createPaymentMethodSetup(
   const orderNumber = `LS-METHOD-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const placeholderCode = encryptAuthorizationCode(`pending:${attemptId}`);
 
-  let pending: { idempotencyId: string; paymentId: string };
+  let pending: PendingSetup;
   try {
     pending = await prisma.$transaction(async (tx) => {
       const idempotency = await tx.idempotency_records.create({
@@ -110,7 +117,12 @@ export async function createPaymentMethodSetup(
           payment_authorization_id: authorization.id,
         },
       });
-      return { idempotencyId: idempotency.id, paymentId: payment.id };
+      return {
+        idempotencyId: idempotency.id,
+        authorizationId: authorization.id,
+        orderId: order.id,
+        paymentId: payment.id,
+      };
     });
   } catch (error) {
     if (!isUniqueConstraintError(error)) throw error;
@@ -163,16 +175,7 @@ export async function createPaymentMethodSetup(
     });
     return ok(setup);
   } catch {
-    await prisma.$transaction([
-      prisma.payments.update({
-        where: { id: pending.paymentId },
-        data: { status: "failed" },
-      }),
-      prisma.idempotency_records.update({
-        where: { id: pending.idempotencyId },
-        data: { status: "failed" },
-      }),
-    ]);
+    await failInitializedSetup(pending);
     return err({
       code: "PAYMENT_METHOD_PROVIDER_UNAVAILABLE",
       message: "Payment method setup could not be initialized.",
@@ -246,10 +249,21 @@ export async function verifyPaymentMethodSetup(
   const provider = await verifyTransaction(payment.reference);
   if (provider.status !== "success") {
     const terminal = provider.status === "failed" || provider.status === "abandoned";
-    await prisma.payments.update({
-      where: { id: payment.id },
-      data: { status: terminal ? provider.status : "pending" },
-    });
+    if (terminal) {
+      const terminalStatus = provider.status === "abandoned" ? "abandoned" : "failed";
+      await failVerifiedSetup({
+        authorizationId: authorization.id,
+        authorizationSignature: authorization.signature,
+        orderId: payment.orders.id,
+        paymentId: payment.id,
+        paymentStatus: terminalStatus,
+      });
+    } else {
+      await prisma.payments.update({
+        where: { id: payment.id },
+        data: { status: "pending" },
+      });
+    }
     return err({
       code: terminal ? "PAYMENT_METHOD_SETUP_FAILED" : "PAYMENT_METHOD_SETUP_PENDING",
       message: terminal
@@ -312,99 +326,121 @@ export async function verifyPaymentMethodSetup(
     });
   }
 
-  const saved = await prisma.$transaction(async (tx) => {
-    const duplicateWasDefault = Boolean(duplicate?.is_default);
-    if (duplicate && duplicate.id !== authorization.id) {
-      await tx.payment_authorizations.update({
-        where: { id: duplicate.id },
-        data: {
-          signature: tombstoneSignature(duplicate.id, duplicate.signature),
-          status: "inactive",
-          reusable: false,
-          is_default: false,
-          deactivated_at: new Date(),
-        },
-      });
-    }
+  let saved: {
+    method: Parameters<typeof toPaymentMethod>[0];
+    refund: {
+      id: string;
+      provider_reference: string | null;
+    };
+  };
+  try {
+    saved = await prisma.$transaction(async (tx) => {
+      const duplicateWasDefault = Boolean(duplicate?.is_default);
+      if (duplicate && duplicate.id !== authorization.id) {
+        await tx.payment_authorizations.update({
+          where: { id: duplicate.id },
+          data: {
+            signature: tombstoneSignature(duplicate.id, duplicate.signature),
+            status: "inactive",
+            reusable: false,
+            is_default: false,
+            deactivated_at: new Date(),
+          },
+        });
+      }
 
-    const existingDefault = await tx.payment_authorizations.findFirst({
-      where: {
-        customer_id: identity.customerId,
-        status: "active",
-        is_default: true,
-        id: { notIn: [authorization.id, ...(duplicate ? [duplicate.id] : [])] },
-      },
-      select: { id: true },
-    });
-    const shouldBeDefault = duplicateWasDefault || !existingDefault;
-    if (shouldBeDefault) {
-      await tx.payment_authorizations.updateMany({
+      const existingDefault = await tx.payment_authorizations.findFirst({
         where: {
           customer_id: identity.customerId,
+          status: "active",
           is_default: true,
-          id: { not: authorization.id },
+          id: { notIn: [authorization.id, ...(duplicate ? [duplicate.id] : [])] },
         },
-        data: { is_default: false },
+        select: { id: true },
+      });
+      const shouldBeDefault = duplicateWasDefault || !existingDefault;
+      if (shouldBeDefault) {
+        await tx.payment_authorizations.updateMany({
+          where: {
+            customer_id: identity.customerId,
+            is_default: true,
+            id: { not: authorization.id },
+          },
+          data: { is_default: false },
+        });
+      }
+
+      const paidAt = provider.paidAt ? new Date(provider.paidAt) : new Date();
+      const method = await tx.payment_authorizations.update({
+        where: { id: authorization.id },
+        data: {
+          authorization_code: encryptAuthorizationCode(
+            providerAuthorization.authorizationCode,
+          ),
+          signature: providerAuthorization.signature,
+          provider_customer_code: providerCustomer.customerCode,
+          status: "active",
+          reusable: true,
+          is_default: shouldBeDefault,
+          channel: providerAuthorization.channel,
+          card_type: providerAuthorization.brand ?? providerAuthorization.cardType,
+          bank: providerAuthorization.bank,
+          last4: providerAuthorization.last4,
+          exp_month: providerAuthorization.expMonth,
+          exp_year: providerAuthorization.expYear,
+          country_code: providerAuthorization.countryCode?.toUpperCase() ?? null,
+          verified_at: new Date(),
+        },
+      });
+      await tx.payments.update({
+        where: { id: payment.id },
+        data: {
+          status: "success",
+          provider_transaction_id: provider.id,
+          provider_customer_code: providerCustomer.customerCode,
+          verified_at: new Date(),
+          verification_source: "manual_verify",
+          paid_at: paidAt,
+          channel: provider.channel,
+          gateway_response: provider.gatewayResponse,
+        },
+      });
+      await tx.orders.update({
+        where: { id: payment.orders.id },
+        data: { payment_status: "paid", paid_at: paidAt, attention: null },
+      });
+
+      const existingRefund = await tx.payment_refunds.findFirst({
+        where: { payment_id: payment.id },
+        orderBy: { requested_at: "desc" },
+      });
+      const refund =
+        existingRefund ??
+        (await tx.payment_refunds.create({
+          data: {
+            payment_id: payment.id,
+            requested_amount: SETUP_AMOUNT_DECIMAL,
+            currency: "NGN",
+            status: "pending",
+            reason: "Automatic refund for payment-method setup charge.",
+            requested_by_profile_id: identity.authUserId,
+            metadata: {
+              purpose: "payment-method-setup-refund",
+              attemptId: authorization.id,
+            },
+          },
+        }));
+      return { method, refund };
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return err({
+        code: "PAYMENT_METHOD_CUSTOMER_MISMATCH",
+        message: "This reusable authorization is already associated with another account.",
       });
     }
-
-    const method = await tx.payment_authorizations.update({
-      where: { id: authorization.id },
-      data: {
-        authorization_code: encryptAuthorizationCode(
-          providerAuthorization.authorizationCode,
-        ),
-        signature: providerAuthorization.signature,
-        provider_customer_code: providerCustomer.customerCode,
-        status: "active",
-        reusable: true,
-        is_default: shouldBeDefault,
-        channel: providerAuthorization.channel,
-        card_type: providerAuthorization.brand ?? providerAuthorization.cardType,
-        bank: providerAuthorization.bank,
-        last4: providerAuthorization.last4,
-        exp_month: providerAuthorization.expMonth,
-        exp_year: providerAuthorization.expYear,
-        country_code: providerAuthorization.countryCode?.toUpperCase() ?? null,
-        verified_at: new Date(),
-      },
-    });
-    await tx.payments.update({
-      where: { id: payment.id },
-      data: {
-        status: "success",
-        provider_transaction_id: provider.id,
-        provider_customer_code: providerCustomer.customerCode,
-        verified_at: new Date(),
-        verification_source: "manual_verify",
-        paid_at: provider.paidAt ? new Date(provider.paidAt) : new Date(),
-        channel: provider.channel,
-        gateway_response: provider.gatewayResponse,
-      },
-    });
-
-    const existingRefund = await tx.payment_refunds.findFirst({
-      where: { payment_id: payment.id },
-      orderBy: { requested_at: "desc" },
-    });
-    const refund =
-      existingRefund ??
-      (await tx.payment_refunds.create({
-        data: {
-          payment_id: payment.id,
-          requested_amount: SETUP_AMOUNT_DECIMAL,
-          currency: "NGN",
-          status: "pending",
-          reason: "Automatic refund for payment-method setup charge.",
-          requested_by_profile_id: identity.authUserId,
-          metadata: {
-            purpose: "payment-method-setup-refund",
-            attemptId: authorization.id,
-          },
-        },
-      }));
-    return { method, refund };
-  });
+    throw error;
+  }
 
   if (!saved.refund.provider_reference) {
     const claim = await prisma.payment_refunds.updateMany({
@@ -521,7 +557,9 @@ export async function deletePaymentMethod(
     return ok({ id: method.id, inactive: true });
   }
 
-  await deactivateAuthorization(decryptAuthorizationCode(method.authorization_code));
+  if (method.status === "active" && method.reusable) {
+    await deactivateAuthorization(decryptAuthorizationCode(method.authorization_code));
+  }
   await prisma.payment_authorizations.update({
     where: { id: method.id },
     data: {
@@ -533,6 +571,72 @@ export async function deletePaymentMethod(
     },
   });
   return ok({ id: method.id, inactive: true });
+}
+
+async function failInitializedSetup(pending: PendingSetup) {
+  const failedAt = new Date();
+  await prisma.$transaction(async (tx) => {
+    await tx.payments.update({
+      where: { id: pending.paymentId },
+      data: { status: "failed", failure_reason: "Paystack setup initialization failed." },
+    });
+    await tx.payment_authorizations.update({
+      where: { id: pending.authorizationId },
+      data: {
+        signature: tombstoneSignature(pending.authorizationId, `setup:${pending.authorizationId}`),
+        status: "inactive",
+        reusable: false,
+        is_default: false,
+        deactivated_at: failedAt,
+      },
+    });
+    await tx.orders.update({
+      where: { id: pending.orderId },
+      data: {
+        payment_status: "cancelled",
+        fulfilment_status: "cancelled",
+        attention: null,
+      },
+    });
+    await tx.idempotency_records.update({
+      where: { id: pending.idempotencyId },
+      data: { status: "failed", completed_at: failedAt },
+    });
+  });
+}
+
+async function failVerifiedSetup(input: {
+  authorizationId: string;
+  authorizationSignature: string;
+  orderId: string;
+  paymentId: string;
+  paymentStatus: "failed" | "abandoned";
+}) {
+  const failedAt = new Date();
+  await prisma.$transaction(async (tx) => {
+    await tx.payments.update({
+      where: { id: input.paymentId },
+      data: { status: input.paymentStatus, verified_at: failedAt, verification_source: "manual_verify" },
+    });
+    await tx.payment_authorizations.update({
+      where: { id: input.authorizationId },
+      data: {
+        signature: tombstoneSignature(input.authorizationId, input.authorizationSignature),
+        status: "inactive",
+        reusable: false,
+        is_default: false,
+        deactivated_at: failedAt,
+      },
+    });
+    await tx.orders.update({
+      where: { id: input.orderId },
+      data: {
+        payment_status: "cancelled",
+        fulfilment_status: "cancelled",
+        attention: null,
+      },
+    });
+  });
 }
 
 async function findSetupReplay(

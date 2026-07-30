@@ -2,7 +2,7 @@ import { requireApiConsumer } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
 import { orderCancellationRequestSchema, orderIdentifierSchema } from "@/modules/orders/schema";
-import { requestOrderCancellation } from "@/modules/orders/server/account-orders";
+import { requestCommerceOrderCancellation } from "@/modules/orders/server/account-commerce-orders";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
@@ -14,7 +14,7 @@ export async function POST(request: Request, context: RouteContext) {
     const { orderNumber } = await context.params;
     const identifier = orderIdentifierSchema.parse(orderNumber);
     const input = await parseJsonBody(request, orderCancellationRequestSchema);
-    const result = await requestOrderCancellation(identity, identifier, input);
+    const result = await requestCommerceOrderCancellation(identity, identifier, input);
     return { data: result, status: 201, headers: privateNoStore };
   });
 }

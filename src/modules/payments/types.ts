@@ -21,12 +21,22 @@ export type PaymentMethod = {
   createdAt: string;
 };
 
+export type PaymentMethodSetupStatus =
+  | "initializing"
+  | "initialized"
+  | "pending"
+  | "success"
+  | "failed"
+  | "abandoned"
+  | "reversed"
+  | "review_required";
+
 export type PaymentMethodSetup = {
   attemptId: string;
   paymentId: string;
   reference: string;
   accessCode: string | null;
-  status: "initializing" | "initialized" | "pending" | "success" | "failed";
+  status: PaymentMethodSetupStatus;
   refundStatus:
     | "not_requested"
     | "pending"

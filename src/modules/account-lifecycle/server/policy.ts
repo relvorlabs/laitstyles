@@ -36,6 +36,7 @@ export async function findActiveDeletionBlocker(
   const activeOrder = await prisma.orders.findFirst({
     where: {
       customer_id: customerId,
+      source: { not: "payment-method-setup" },
       OR: [
         { fulfilment_status: { in: [...ACTIVE_ORDER_FULFILMENT_STATUSES] } },
         { payment_status: { in: [...ACTIVE_ORDER_PAYMENT_STATUSES] } },
