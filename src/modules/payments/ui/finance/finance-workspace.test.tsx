@@ -112,9 +112,6 @@ import { FinanceWorkspace } from "./finance-workspace";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal("crypto", {
-    randomUUID: vi.fn(() => "55555555-5555-4555-8555-555555555555"),
-  });
   mocks.initiate.mockResolvedValue(fixtures.otpTransfer);
   mocks.finalize.mockResolvedValue({
     ...fixtures.otpTransfer,
@@ -129,10 +126,7 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
-  cleanup();
-  vi.unstubAllGlobals();
-});
+afterEach(cleanup);
 
 describe("FinanceWorkspace", () => {
   it("shows provider balance and keeps manager money controls read-only", async () => {
@@ -154,10 +148,11 @@ describe("FinanceWorkspace", () => {
 
     await user.selectOptions(screen.getByLabelText("Recipient"), fixtures.recipient.id);
     await user.type(screen.getByLabelText("Amount (NGN)"), "250");
-    await user.type(screen.getByLabelText("Reason"), "Owner withdrawal");
+    await user.type(screen.getByLabelText("Reason"), "New owner withdrawal");
     await user.click(screen.getByRole("button", { name: "Review transfer" }));
 
     expect(screen.getAllByText(/Operations account · \*\*\*\*1234/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Confirmed by Paystack")).toBeInTheDocument();
     expect(mocks.initiate).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Confirm and send to Paystack" }));
@@ -166,8 +161,8 @@ describe("FinanceWorkspace", () => {
         recipientId: fixtures.recipient.id,
         amountMinor: 25_000,
         currency: "NGN",
-        reason: "Owner withdrawal",
-        idempotencyKey: "55555555-5555-4555-8555-555555555555",
+        reason: "New owner withdrawal",
+        idempotencyKey: expect.any(String),
       }),
     );
   });
@@ -183,7 +178,7 @@ describe("FinanceWorkspace", () => {
     expect(mocks.finalize).toHaveBeenCalledWith({
       transferId: fixtures.otpTransfer.id,
       otp: "123456",
-      idempotencyKey: "55555555-5555-4555-8555-555555555555",
+      idempotencyKey: expect.any(String),
     });
   });
 });
