@@ -1,6 +1,8 @@
 import type { z } from "zod";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import type {
+  checkoutDraftSchema,
+  checkoutStatusSchema,
   createCheckoutRequestSchema,
   createCheckoutSchema,
   paystackSettlementEventSchema,
@@ -11,16 +13,7 @@ export type CheckoutIdentity = ConsumerSession;
 export type CreateCheckoutRequestInput = z.infer<typeof createCheckoutRequestSchema>;
 export type CreateCheckoutInput = z.infer<typeof createCheckoutSchema>;
 export type PaystackSettlementEvent = z.infer<typeof paystackSettlementEventSchema>;
-
-export type CheckoutStatus =
-  | "initializing"
-  | "initialized"
-  | "pending"
-  | "success"
-  | "failed"
-  | "abandoned"
-  | "reversed"
-  | "review_required";
+export type CheckoutStatus = z.infer<typeof checkoutStatusSchema>;
 
 export type CheckoutDeliveryZone = {
   id: string;
@@ -40,19 +33,7 @@ export type CheckoutContext = {
   deliveryAmountStatus: "estimated";
 };
 
-export type CheckoutDraft = {
-  checkoutId: string;
-  paymentId: string;
-  orderNumber: string;
-  reference: string;
-  accessCode: string | null;
-  status: CheckoutStatus;
-  currency: string;
-  subtotalMinor: number;
-  deliveryFeeMinor: number;
-  discountMinor: number;
-  totalMinor: number;
-};
+export type CheckoutDraft = z.infer<typeof checkoutDraftSchema>;
 
 export type CheckoutDetail = CheckoutDraft & {
   paidAt: string | null;
