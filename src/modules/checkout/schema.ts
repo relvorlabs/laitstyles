@@ -60,21 +60,21 @@ export const checkoutStatusSchema = z.enum([
 
 const checkoutAmountSchema = z.number().int().nonnegative().safe();
 
-export const checkoutDraftSchema = z
-  .object({
-    checkoutId: checkoutIdentifierSchema,
-    paymentId: paymentIdentifierSchema,
-    orderNumber: z.string().trim().min(1),
-    reference: z.string().trim().min(1),
-    accessCode: z.string().trim().min(1).nullable(),
-    status: checkoutStatusSchema,
-    currency: z.string().trim().length(3).transform((value) => value.toUpperCase()),
-    subtotalMinor: checkoutAmountSchema,
-    deliveryFeeMinor: checkoutAmountSchema,
-    discountMinor: checkoutAmountSchema,
-    totalMinor: checkoutAmountSchema,
-  })
-  .strict();
+// Persisted command snapshots may contain private orchestration fields. Parse and
+// strip those fields while still validating every checkout property returned to clients.
+export const checkoutDraftSchema = z.object({
+  checkoutId: checkoutIdentifierSchema,
+  paymentId: paymentIdentifierSchema,
+  orderNumber: z.string().trim().min(1),
+  reference: z.string().trim().min(1),
+  accessCode: z.string().trim().min(1).nullable(),
+  status: checkoutStatusSchema,
+  currency: z.string().trim().length(3).transform((value) => value.toUpperCase()),
+  subtotalMinor: checkoutAmountSchema,
+  deliveryFeeMinor: checkoutAmountSchema,
+  discountMinor: checkoutAmountSchema,
+  totalMinor: checkoutAmountSchema,
+});
 
 export const paystackSettlementEventSchema = z
   .object({
