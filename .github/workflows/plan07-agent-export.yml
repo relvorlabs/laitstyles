@@ -1,37 +1,25 @@
-name: Plan 07 Agent Export
+name: Plan 07 Validation Probe
 
 on:
   push:
     branches:
       - codex/plan-07-owner-finance
-  pull_request:
-    branches:
-      - codex/complete-api-05-06-08
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  export-source:
-    runs-on: [self-hosted, linux, x64]
-    timeout-minutes: 15
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check out exact branch head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
 
-      - name: Archive source snapshot
-        shell: bash
-        run: tar --exclude=.git --exclude=node_modules --exclude=.next -czf laitstyles-plan07-source.tar.gz .
-
-      - name: Upload source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: laitstyles-plan07-source-${{ github.event.pull_request.head.sha || github.sha }}
-          path: laitstyles-plan07-source.tar.gz
-          retention-days: 1
-          if-no-files-found: error
+      - name: Prove hosted runner availability
+        run: |
+          node --version
+          git rev-parse HEAD
