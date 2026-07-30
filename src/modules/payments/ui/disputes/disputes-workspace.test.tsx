@@ -3,9 +3,10 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { DisputeRecord } from "@/modules/payments/client/disputes";
 
 const mocks = vi.hoisted(() => ({
-  disputes: [] as Array<Record<string, unknown>>,
+  disputes: [] as DisputeRecord[],
   submitEvidence: vi.fn(),
   accept: vi.fn(),
   decline: vi.fn(),
@@ -54,11 +55,13 @@ const dispute = {
   lastProviderSyncAt: "2026-07-30T12:00:00.000Z",
   createdAt: "2026-07-30T10:00:00.000Z",
   updatedAt: "2026-07-30T12:00:00.000Z",
-};
+} satisfies DisputeRecord;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubGlobal("crypto", { randomUUID: vi.fn(() => "55555555-5555-4555-8555-555555555555") });
+  vi.stubGlobal("crypto", {
+    randomUUID: vi.fn(() => "55555555-5555-4555-8555-555555555555"),
+  });
   vi.spyOn(window, "confirm").mockReturnValue(true);
   mocks.disputes = [dispute];
   mocks.submitEvidence.mockResolvedValue(dispute);
@@ -79,7 +82,7 @@ describe("DisputesWorkspace", () => {
     expect(screen.getAllByText("LS-1001").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/awaiting evidence/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Paystack dispute 42/i)).toBeInTheDocument();
-    expect(screen.getByText(/Aug 2, 2026/i)).toBeInTheDocument();
+    expect(screen.getByText(formatDate(dispute.evidenceDueAt))).toBeInTheDocument();
     expect(screen.getByTestId("payment-timeline")).toHaveTextContent(dispute.paymentId);
   });
 
@@ -90,7 +93,10 @@ describe("DisputesWorkspace", () => {
     await user.type(screen.getByLabelText("Customer name"), "Buyer");
     await user.type(screen.getByLabelText("Customer email"), "buyer@example.com");
     await user.type(screen.getByLabelText("Customer phone"), "+2348000000000");
-    await user.type(screen.getByLabelText("Service and fulfilment details"), "Delivered with receipt");
+    await user.type(
+      screen.getByLabelText("Service and fulfilment details"),
+      "Delivered with receipt",
+    );
     await user.upload(
       screen.getByLabelText("Evidence file"),
       new File(["bad"], "proof.txt", { type: "text/plain" }),
@@ -109,7 +115,10 @@ describe("DisputesWorkspace", () => {
     await user.type(screen.getByLabelText("Customer name"), "Buyer");
     await user.type(screen.getByLabelText("Customer email"), "buyer@example.com");
     await user.type(screen.getByLabelText("Customer phone"), "+2348000000000");
-    await user.type(screen.getByLabelText("Service and fulfilment details"), "Delivered with receipt");
+    await user.type(
+      screen.getByLabelText("Service and fulfilment details"),
+      "Delivered with receipt",
+    );
     const file = new File(["proof"], "proof.pdf", { type: "application/pdf" });
     await user.upload(screen.getByLabelText("Evidence file"), file);
     await user.click(screen.getByRole("button", { name: "Submit evidence" }));
@@ -152,3 +161,10 @@ describe("DisputesWorkspace", () => {
     expect(screen.getByRole("button", { name: "Accept dispute" })).toBeDisabled();
   });
 });
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
