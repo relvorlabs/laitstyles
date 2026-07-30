@@ -10,6 +10,13 @@ const paymentOperations = readFileSync(
   resolve(root, "prisma/payment-operations.prisma"),
   "utf8",
 );
+const authBridgeMigration = readFileSync(
+  resolve(
+    root,
+    "prisma/migrations/20260724121500_supabase_auth_profile_bridge/migration.sql",
+  ),
+  "utf8",
+);
 const signatureMigration = readFileSync(
   resolve(
     root,
@@ -31,6 +38,14 @@ describe("Plan 05 Prisma payment contracts", () => {
     expect(packageJson).toContain(
       '"prisma:migrate:dev": "node scripts/db/run-prisma.mjs migrate dev && pnpm prisma:generate"',
     );
+  });
+
+  it("models every auth.users column referenced while migrations replay in shadow", () => {
+    expect(authBridgeMigration).toContain("after update of email, raw_user_meta_data");
+    expect(authBridgeMigration).toContain("new.email");
+    expect(authBridgeMigration).toContain("new.raw_user_meta_data");
+    expect(config).toContain("email text");
+    expect(config).toContain("raw_user_meta_data jsonb NOT NULL DEFAULT '{}'::jsonb");
   });
 
   it("enforces one owner for each provider authorization signature", () => {

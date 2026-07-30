@@ -22,11 +22,14 @@ export default defineConfig({
     path: "prisma/migrations",
     // Supabase owns auth.users. Prisma still needs the referenced table in its
     // disposable shadow database because a reviewed SQL migration creates the
-    // public.profiles -> auth.users foreign key.
+    // public.profiles -> auth.users foreign key. The bridge migration also installs
+    // an UPDATE OF trigger, so every referenced trigger column must exist here.
     initShadowDb: `
       CREATE SCHEMA IF NOT EXISTS auth;
       CREATE TABLE IF NOT EXISTS auth.users (
-        id uuid PRIMARY KEY
+        id uuid PRIMARY KEY,
+        email text,
+        raw_user_meta_data jsonb NOT NULL DEFAULT '{}'::jsonb
       );
     `,
   },
