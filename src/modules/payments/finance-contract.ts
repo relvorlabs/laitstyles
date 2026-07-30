@@ -77,6 +77,49 @@ export type FinanceLedgerRecord = {
   updatedAt: string | null;
 };
 
+export type SafeFinanceTransaction = {
+  id: string;
+  status: string;
+  reference: string;
+  amountMinor: number;
+  currency: string;
+  paidAt: string | null;
+  createdAt: string | null;
+  channel: string | null;
+  gatewayResponse: string | null;
+  message: string | null;
+  feesMinor: number | null;
+  customerEmail: string | null;
+  authorization: {
+    channel: string;
+    cardType: string | null;
+    bank: string | null;
+    last4: string | null;
+    reusable: boolean;
+  } | null;
+};
+
+export type FinanceTransactionDetailRecord = {
+  provider: SafeFinanceTransaction;
+  local: {
+    paymentId: string;
+    orderId: string;
+    orderNumber: string;
+    localStatus: string;
+    localAmountMinor: number;
+    localCurrency: string;
+  } | null;
+  timeline: {
+    startTime: number;
+    timeSpentSeconds: number;
+    attempts: number;
+    errors: number;
+    success: boolean;
+    mobile: boolean;
+    history: Array<{ type: string; message: string; elapsedSeconds: number }>;
+  };
+};
+
 export type SettlementRecord = {
   id: string;
   providerSettlementId: string;
@@ -92,6 +135,12 @@ export type SettlementRecord = {
   settledAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type SettlementTransactionRecord = SafeFinanceTransaction & {
+  localPaymentId: string | null;
+  orderId: string | null;
+  orderNumber: string | null;
 };
 
 export type ReconciliationOutcome =

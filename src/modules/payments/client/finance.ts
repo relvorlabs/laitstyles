@@ -5,12 +5,14 @@ import { apiRequest } from "@/lib/http/client";
 import type {
   FinanceLedgerRecord,
   FinanceOverviewRecord,
+  FinanceTransactionDetailRecord,
   PageMeta,
   PayoutBankRecord,
   PayoutRecipientRecord,
   PayoutTransferRecord,
   ReconciliationRecord,
   SettlementRecord,
+  SettlementTransactionRecord,
 } from "@/modules/payments/finance-contract";
 
 const FINANCE_URL = "/api/v1/admin/finance";
@@ -34,9 +36,16 @@ export const financeKeys = {
   all: ["admin", "finance"] as const,
   overview: () => [...financeKeys.all, "overview"] as const,
   ledger: (filters: ListFilters = {}) => [...financeKeys.all, "ledger", filters] as const,
-  settlements: (filters: ListFilters = {}) => [...financeKeys.all, "settlements", filters] as const,
-  recipients: (filters: RecipientFilters = {}) => [...financeKeys.all, "recipients", filters] as const,
-  transfers: (filters: TransferFilters = {}) => [...financeKeys.all, "transfers", filters] as const,
+  transaction: (identifier: string | null) =>
+    [...financeKeys.all, "transaction", identifier] as const,
+  settlements: (filters: ListFilters = {}) =>
+    [...financeKeys.all, "settlements", filters] as const,
+  settlementTransactions: (settlementId: string | null) =>
+    [...financeKeys.all, "settlement-transactions", settlementId] as const,
+  recipients: (filters: RecipientFilters = {}) =>
+    [...financeKeys.all, "recipients", filters] as const,
+  transfers: (filters: TransferFilters = {}) =>
+    [...financeKeys.all, "transfers", filters] as const,
   banks: () => [...financeKeys.all, "banks"] as const,
 };
 
@@ -44,8 +53,12 @@ export function financeOverviewQueryOptions() {
   return queryOptions({
     queryKey: financeKeys.overview(),
     queryFn: async ({ signal }) =>
-      (await apiRequest<FinanceOverviewRecord>(`${FINANCE_URL}/balance`, { cache: "no-store", signal }))
-        .data,
+      (
+        await apiRequest<FinanceOverviewRecord>(`${FINANCE_URL}/balance`, {
+          cache: "no-store",
+          signal,
+        })
+      ).data,
     staleTime: 5_000,
   });
 }
@@ -64,6 +77,23 @@ export function financeLedgerQueryOptions(filters: ListFilters = {}) {
   });
 }
 
+export function financeTransactionQueryOptions(identifier: string | null) {
+  return queryOptions({
+    queryKey: financeKeys.transaction(identifier),
+    queryFn: async ({ signal }) => {
+      if (!identifier) throw new TypeError("A finance transaction identifier is required.");
+      return (
+        await apiRequest<FinanceTransactionDetailRecord>(
+          `${FINANCE_URL}/ledger/${encodeURIComponent(identifier)}`,
+          { cache: "no-store", signal },
+        )
+      ).data;
+    },
+    enabled: Boolean(identifier),
+    staleTime: 5_000,
+  });
+}
+
 export function financeSettlementsQueryOptions(filters: ListFilters = {}) {
   return queryOptions({
     queryKey: financeKeys.settlements(filters),
@@ -74,6 +104,22 @@ export function financeSettlementsQueryOptions(filters: ListFilters = {}) {
       );
       return { items: response.data, meta: response.meta };
     },
+    staleTime: 5_000,
+  });
+}
+
+export function financeSettlementTransactionsQueryOptions(settlementId: string | null) {
+  return queryOptions({
+    queryKey: financeKeys.settlementTransactions(settlementId),
+    queryFn: async ({ signal }) => {
+      if (!settlementId) throw new TypeError("A settlement identifier is required.");
+      const response = await apiRequest<SettlementTransactionRecord[], PageMeta>(
+        `${FINANCE_URL}/settlements/${encodeURIComponent(settlementId)}/transactions?perPage=50`,
+        { cache: "no-store", signal },
+      );
+      return { items: response.data, meta: response.meta };
+    },
+    enabled: Boolean(settlementId),
     staleTime: 5_000,
   });
 }
@@ -105,7 +151,9 @@ export function payoutTransfersQueryOptions(filters: TransferFilters = {}) {
     staleTime: 3_000,
     refetchInterval: (query) =>
       query.state.data?.items.some((transfer) =>
-        ["needs_reconciliation", "otp_required", "pending", "processing"].includes(transfer.status),
+        ["needs_reconciliation", "otp_required", "pending", "processing"].includes(
+          transfer.status,
+        ),
       )
         ? 5_000
         : false,
@@ -156,7 +204,7 @@ export function useCreatePayoutRecipient() {
           jsonRequest({ type: "nuban", ...input }),
         )
       ).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.recipients() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.all }),
   });
 }
 
@@ -170,7 +218,7 @@ export function useDeletePayoutRecipient() {
           { method: "DELETE" },
         )
       ).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.recipients() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.all }),
   });
 }
 
@@ -195,11 +243,7 @@ export function useInitiatePayoutTransfer() {
         })
       ).data;
     },
-    onSuccess: (transfer) => {
-      queryClient.invalidateQueries({ queryKey: financeKeys.overview() });
-      queryClient.invalidateQueries({ queryKey: financeKeys.transfers() });
-      queryClient.setQueryData([...financeKeys.all, "transfer", transfer.id], transfer);
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.all }),
   });
 }
 
@@ -219,10 +263,7 @@ export function useFinalizePayoutTransfer() {
           },
         )
       ).data,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: financeKeys.overview() });
-      queryClient.invalidateQueries({ queryKey: financeKeys.transfers() });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.all }),
   });
 }
 
@@ -236,7 +277,7 @@ export function useResendPayoutTransferOtp() {
           { method: "POST", headers: { "Idempotency-Key": input.idempotencyKey } },
         )
       ).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.transfers() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.all }),
   });
 }
 
