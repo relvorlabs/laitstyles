@@ -95,7 +95,13 @@ vi.mock("@tanstack/react-query", () => ({
 vi.mock("@/modules/payments/client/finance", () => ({
   financeOverviewQueryOptions: () => ({ queryKey: ["admin", "finance", "overview"] }),
   financeLedgerQueryOptions: () => ({ queryKey: ["admin", "finance", "ledger"] }),
+  financeTransactionQueryOptions: (identifier: string | null) => ({
+    queryKey: ["admin", "finance", "transaction", identifier],
+  }),
   financeSettlementsQueryOptions: () => ({ queryKey: ["admin", "finance", "settlements"] }),
+  financeSettlementTransactionsQueryOptions: (settlementId: string | null) => ({
+    queryKey: ["admin", "finance", "settlement-transactions", settlementId],
+  }),
   payoutRecipientsQueryOptions: () => ({ queryKey: ["admin", "finance", "recipients"] }),
   payoutTransfersQueryOptions: () => ({ queryKey: ["admin", "finance", "transfers"] }),
   payoutBanksQueryOptions: () => ({ queryKey: ["admin", "finance", "banks"] }),
