@@ -5,10 +5,10 @@ import {
   disputeIdentifierSchema,
   updateDisputeBodySchema,
 } from "@/modules/payments/dispute-schema";
-import { throwDisputeApiError } from "@/modules/payments/server/dispute-api-errors";
-import { reconcileOrderDisputeState } from "@/modules/payments/server/dispute-order-state";
 import {
   getPaymentDispute,
+  reconcileOrderDisputeState,
+  throwDisputeApiError,
   updatePaymentDispute,
 } from "@/modules/payments/server/disputes";
 import {
@@ -23,8 +23,7 @@ export async function GET(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("finance:read");
     const { disputeId } = await context.params;
-    const id = disputeIdentifierSchema.parse(disputeId);
-    const result = await getPaymentDispute(actor, id);
+    const result = await getPaymentDispute(actor, disputeIdentifierSchema.parse(disputeId));
     if (!result.ok) throwDisputeApiError(result.error);
     return { data: result.value, headers: privateNoStore };
   });
@@ -36,11 +35,15 @@ export async function PATCH(request: Request, context: RouteContext) {
     const idempotencyKey = requireIdempotencyKey(request);
     const actor = await requireApiStaff("payments:refund");
     const { disputeId } = await context.params;
-    const id = disputeIdentifierSchema.parse(disputeId);
     const input = await parseJsonBody(request, updateDisputeBodySchema);
-    const result = await updatePaymentDispute(actor, id, { ...input, idempotencyKey });
+    const result = await updatePaymentDispute(actor, disputeIdentifierSchema.parse(disputeId), {
+      ...input,
+      idempotencyKey,
+    });
     if (!result.ok) throwDisputeApiError(result.error);
-    const normalized = await reconcileOrderDisputeState(result.value);
-    return { data: normalized, headers: privateNoStore };
+    return {
+      data: await reconcileOrderDisputeState(result.value),
+      headers: privateNoStore,
+    };
   });
 }
