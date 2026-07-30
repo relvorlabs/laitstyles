@@ -59,6 +59,8 @@ export type PaystackRefund = {
   currency: "NGN";
   status: PaystackRefundStatus;
   providerStatus: string;
+  customerNote: string | null;
+  merchantNote: string | null;
   refundedAt: string | null;
   expectedAt: string | null;
   createdAt: string | null;
@@ -158,6 +160,8 @@ export function mapPaystackRefund(refund: PaystackRawRefund): PaystackRefund {
     currency: refund.currency,
     status,
     providerStatus,
+    customerNote: refund.customer_note ?? null,
+    merchantNote: refund.merchant_note ?? null,
     refundedAt: refund.refunded_at ?? null,
     expectedAt: refund.expected_at ?? null,
     createdAt: refund.createdAt ?? refund.created_at ?? null,
