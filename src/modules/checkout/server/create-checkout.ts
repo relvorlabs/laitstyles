@@ -4,13 +4,15 @@ import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
-import { createCheckoutSchema } from "@/modules/checkout/schema";
+import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
 import type {
   CheckoutDraft,
   CheckoutError,
   CheckoutIdentity,
   CreateCheckoutInput,
 } from "@/modules/checkout/types";
+import { getOwnedProfile } from "@/modules/customers/server/account-profile";
+import type { OwnedProfile } from "@/modules/customers/types";
 import {
   applyOperationalStockMutation,
   OperationalStockError,
@@ -41,6 +43,12 @@ type DraftLine = {
 
 type PendingDraft = CheckoutDraft & { idempotencyRecordId: string };
 
+type CheckoutAccount = {
+  email: string;
+  displayName: string;
+  phone: string;
+};
+
 export async function createCheckout(
   identity: CheckoutIdentity,
   input: CreateCheckoutInput,
@@ -53,11 +61,13 @@ export async function createCheckout(
       field: parsed.error.issues[0]?.path.join("."),
     });
   }
-  if (!identity.email) {
+
+  const account = normalizeCheckoutAccount(await getOwnedProfile(identity));
+  if (!account) {
     return err({
       code: "CHECKOUT_INVALID",
-      message: "Add an email address to your account before starting payment.",
-      field: "email",
+      message: "Complete your first name, last name, email and phone number before checkout.",
+      field: "profile",
     });
   }
 
@@ -68,9 +78,9 @@ export async function createCheckout(
   let draft: PendingDraft | null = null;
   for (let attempt = 0; attempt < MAX_REFERENCE_ATTEMPTS; attempt += 1) {
     try {
-      draft = await createPendingDraft(identity, parsed.data, requestHash);
+      draft = await createPendingDraft(identity, account, parsed.data, requestHash);
       break;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof ExpectedCheckoutError) return err(error.detail);
       if (error instanceof OperationalStockError) return err(mapStockError(error));
       if (!isUniqueConstraintError(error)) throw error;
@@ -91,7 +101,7 @@ export async function createCheckout(
 
   try {
     const checkout = await initializeTransaction({
-      email: identity.email,
+      email: account.email,
       amountMinor: draft.totalMinor,
       reference: draft.reference,
       callbackUrl: parsed.data.callbackUrl,
@@ -112,7 +122,7 @@ export async function createCheckout(
       data: {
         access_code: checkout.accessCode,
         status: "initialized",
-        raw_response: checkout.rawResponse as Prisma.InputJsonValue,
+        raw_response: toPrismaJsonObject(checkout.rawResponse),
       },
     });
     await prisma.holds.updateMany({
@@ -120,11 +130,15 @@ export async function createCheckout(
       data: { stage: "payment", payment_progress: "initialized" },
     });
     return ok({ ...draft, accessCode: checkout.accessCode, status: "initialized" });
-  } catch (error) {
+  } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Paystack initialization failed.";
     await prisma.payments.update({
       where: { id: draft.paymentId },
-      data: { status: "failed", failure_code: "PAYSTACK_INITIALIZATION_FAILED", failure_reason: message },
+      data: {
+        status: "failed",
+        failure_code: "PAYSTACK_INITIALIZATION_FAILED",
+        failure_reason: message,
+      },
     });
     await prisma.holds.updateMany({
       where: { order_id: draft.checkoutId, status: "active" },
@@ -141,6 +155,7 @@ export async function createCheckout(
 
 async function createPendingDraft(
   identity: CheckoutIdentity,
+  account: CheckoutAccount,
   input: CreateCheckoutInput,
   requestHash: string,
 ): Promise<PendingDraft> {
@@ -164,13 +179,21 @@ async function createPendingDraft(
         where: { id: input.addressId, customer_id: identity.customerId },
       });
       if (!address) {
-        throw expected("RESOURCE_NOT_OWNED", "The selected address does not belong to this account.", "addressId");
+        throw expected(
+          "RESOURCE_NOT_OWNED",
+          "The selected address does not belong to this account.",
+          "addressId",
+        );
       }
       const deliveryZone = await tx.delivery_zones.findFirst({
         where: { id: input.deliveryZoneId, enabled: true },
       });
       if (!deliveryZone) {
-        throw expected("CHECKOUT_INVALID", "The selected delivery zone is unavailable.", "deliveryZoneId");
+        throw expected(
+          "CHECKOUT_INVALID",
+          "The selected delivery zone is unavailable.",
+          "deliveryZoneId",
+        );
       }
 
       const products = await tx.products.findMany({
@@ -214,7 +237,9 @@ async function createPendingDraft(
           ...(variant ? { variantId: variant.id, variantLabel: variant.label } : {}),
           ...(line.holdId ? { holdId: line.holdId } : {}),
           productName: product.name,
-          ...(variant?.sku ?? product.sku ? { sku: variant?.sku ?? product.sku ?? undefined } : {}),
+          ...(variant?.sku ?? product.sku
+            ? { sku: variant?.sku ?? product.sku ?? undefined }
+            : {}),
           quantity: line.quantity,
           unitPriceMinor: decimalToMinor(variant?.price ?? product.price),
         } satisfies DraftLine;
@@ -237,10 +262,10 @@ async function createPendingDraft(
           fulfilment_method: "delivery",
           fulfilment_status: "unfulfilled",
           delivery_zone_id: deliveryZone.id,
-          customer_name: identity.displayName,
-          customer_email: identity.email,
-          delivery_name: identity.displayName,
-          delivery_phone: identity.phone,
+          customer_name: account.displayName,
+          customer_email: account.email,
+          delivery_name: account.displayName,
+          delivery_phone: account.phone,
           delivery_city: address.city,
           delivery_address: {
             line1: address.line1,
@@ -328,7 +353,7 @@ async function createPendingDraft(
         where: { id: idempotency.id },
         data: {
           status: "completed",
-          response_snapshot: snapshot as unknown as Prisma.InputJsonValue,
+          response_snapshot: toPrismaJsonObject(snapshot),
           completed_at: new Date(),
         },
       });
@@ -345,7 +370,7 @@ async function attachCheckoutHold(
   orderNumber: string,
   line: DraftLine,
   now: Date,
-) {
+): Promise<void> {
   const expiresAt = new Date(now.getTime() + HOLD_DURATION_MS);
   if (line.holdId) {
     const hold = await tx.holds.findUnique({ where: { id: line.holdId } });
@@ -371,7 +396,10 @@ async function attachCheckoutHold(
       },
     });
     if (claimed.count !== 1) {
-      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold changed or expired. Refresh your cart.");
+      throw expected(
+        "CHECKOUT_HOLD_EXPIRED",
+        "A checkout hold changed or expired. Refresh your cart.",
+      );
     }
     return;
   }
@@ -398,7 +426,10 @@ async function attachCheckoutHold(
       },
     });
     if (claimed.count !== 1) {
-      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold changed or expired. Refresh your cart.");
+      throw expected(
+        "CHECKOUT_HOLD_EXPIRED",
+        "A checkout hold changed or expired. Refresh your cart.",
+      );
     }
     return;
   }
@@ -450,26 +481,40 @@ async function findIdempotentCheckout(
   if (record.status !== "completed" || !record.response_snapshot) {
     return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is already being created." });
   }
-  return ok(record.response_snapshot as unknown as CheckoutDraft);
+  return ok(checkoutDraftSchema.parse(record.response_snapshot));
+}
+
+function normalizeCheckoutAccount(profile: OwnedProfile): CheckoutAccount | null {
+  const email = profile.email?.trim() ?? "";
+  const firstName = profile.firstName.trim();
+  const lastName = profile.lastName.trim();
+  const preferredName = profile.preferredName.trim();
+  const phone = profile.phone.trim();
+  if (!email || !firstName || !lastName || !phone) return null;
+  return {
+    email,
+    displayName: preferredName || `${firstName} ${lastName}`,
+    phone,
+  };
 }
 
 function expected(code: CheckoutError["code"], message: string, field?: string) {
   return new ExpectedCheckoutError({ code, message, ...(field ? { field } : {}) });
 }
 
-function hashCheckoutRequest(customerId: string, input: CreateCheckoutInput) {
+function hashCheckoutRequest(customerId: string, input: CreateCheckoutInput): string {
   return createHash("sha256").update(JSON.stringify({ customerId, input })).digest("hex");
 }
 
-function decimalToMinor(value: { toString(): string }) {
+function decimalToMinor(value: { toString(): string }): number {
   return Math.round(Number(value.toString()) * 100);
 }
 
-function minorToDecimal(amountMinor: number) {
+function minorToDecimal(amountMinor: number): string {
   return (amountMinor / 100).toFixed(2);
 }
 
-function isUniqueConstraintError(error: unknown) {
+function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && Reflect.get(error, "code") === "P2002");
 }
 
@@ -478,4 +523,24 @@ function mapStockError(error: OperationalStockError): CheckoutError {
     code: "STOCK_NOT_AVAILABLE",
     message: error.message,
   };
+}
+
+function toPrismaJsonObject(value: object): Prisma.InputJsonObject {
+  const output: Prisma.InputJsonObject = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    if (nestedValue !== undefined) output[key] = toPrismaJsonValue(nestedValue);
+  }
+  return output;
+}
+
+function toPrismaJsonValue(value: unknown): Prisma.InputJsonValue | null {
+  if (value === null) return null;
+  if (typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new TypeError("JSON numbers must be finite.");
+    return value;
+  }
+  if (Array.isArray(value)) return value.map(toPrismaJsonValue);
+  if (typeof value === "object") return toPrismaJsonObject(value);
+  throw new TypeError(`Unsupported JSON value: ${typeof value}`);
 }
