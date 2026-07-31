@@ -3,6 +3,13 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import {
+  deriveCheckoutStatus,
+  isCheckoutResumable,
+  type CheckoutOrderFulfilmentStatus,
+  type CheckoutOrderPaymentStatus,
+  type CheckoutPaymentAttemptStatus,
+} from "@/modules/checkout/lifecycle";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
 import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
 import { resolveCheckoutDeliveryQuote } from "@/modules/checkout/server/delivery-policy";
@@ -504,7 +511,50 @@ async function findIdempotentCheckout(
   if (record.status !== "completed" || !record.response_snapshot) {
     return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is already being created." });
   }
-  return ok(checkoutDraftSchema.parse(record.response_snapshot));
+
+  const snapshot = checkoutDraftSchema.parse(record.response_snapshot);
+  const order = await prisma.orders.findUnique({
+    where: { id: snapshot.checkoutId },
+    select: {
+      payment_status: true,
+      fulfilment_status: true,
+      payments: {
+        where: { id: snapshot.paymentId },
+        take: 1,
+        select: { status: true, access_code: true },
+      },
+    },
+  });
+  const payment = order?.payments.at(0);
+  if (!order || !payment) {
+    return err({
+      code: "CHECKOUT_IDEMPOTENCY_CONFLICT",
+      message: "The previous checkout session no longer exists. Start a new checkout.",
+    });
+  }
+
+  const lifecycle = {
+    orderPaymentStatus: order.payment_status as CheckoutOrderPaymentStatus,
+    orderFulfilmentStatus: order.fulfilment_status as CheckoutOrderFulfilmentStatus,
+    paymentAttemptStatus: payment.status as CheckoutPaymentAttemptStatus,
+    accessCode: payment.access_code,
+  };
+  const currentStatus = deriveCheckoutStatus(lifecycle);
+  if (currentStatus === "initializing") {
+    return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is still being initialized." });
+  }
+  if (currentStatus === "success") {
+    return ok({ ...snapshot, accessCode: null, status: "success" });
+  }
+  if (!isCheckoutResumable(lifecycle)) {
+    return err({
+      code: "CHECKOUT_IDEMPOTENCY_CONFLICT",
+      message: "The previous checkout session is closed. Start a new checkout.",
+      checkoutId: snapshot.checkoutId,
+      paymentId: snapshot.paymentId,
+    });
+  }
+  return ok({ ...snapshot, accessCode: payment.access_code, status: currentStatus });
 }
 
 function normalizeCheckoutAccount(profile: OwnedProfile): CheckoutAccount | null {
