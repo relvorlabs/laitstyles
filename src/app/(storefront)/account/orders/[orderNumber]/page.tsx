@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/server/session";
-import { getAccountOrder } from "@/modules/orders/server/account-orders";
+import { getCommerceAccountOrder } from "@/modules/orders/server/account-commerce-orders";
 import {
   OrderDetailSection,
   type OrderReviewNotice,
@@ -31,7 +31,7 @@ export default async function AccountOrderDetailPage({
     throw new Error("A customer record is required to view this order.");
   }
 
-  const order = await getAccountOrder(session.customerId, orderNumber);
+  const order = await getCommerceAccountOrder(session.customerId, orderNumber);
   if (!order) notFound();
 
   return <OrderDetailSection order={order} reviewNotice={reviewNotice} />;

@@ -55,6 +55,30 @@ const returnsItem: AdminNavigationItem = {
   description: "Requests, inspection, refund state and stock disposition.",
 };
 
+const paymentsItem: AdminNavigationItem = {
+  label: "Payments",
+  href: "/admin/payments",
+  icon: Store01Icon,
+  description: "Captured payments, partial refunds and provider state.",
+  requiredCapability: "finance:read",
+};
+
+const disputesItem: AdminNavigationItem = {
+  label: "Disputes",
+  href: "/admin/disputes",
+  icon: ArrowUpRight01Icon,
+  description: "Chargebacks, evidence deadlines and owner decisions.",
+  requiredCapability: "finance:read",
+};
+
+const financeItem: AdminNavigationItem = {
+  label: "Finance",
+  href: "/admin/finance",
+  icon: Store01Icon,
+  description: "Paystack balance, settlements, recipients and deliberate transfers.",
+  requiredCapability: "finance:read",
+};
+
 const customersItem: AdminNavigationItem = {
   label: "Customers",
   href: "/admin/customers",
@@ -80,7 +104,10 @@ const settingsItem: AdminNavigationItem = {
 export const adminNavigationGroups: AdminNavigationGroup[] = [
   { label: "Admin", items: [overviewItem] },
   { label: "Catalogue", items: [inventoryItem] },
-  { label: "Sales", items: [ordersItem, holdsItem, returnsItem] },
+  {
+    label: "Sales",
+    items: [ordersItem, holdsItem, returnsItem, paymentsItem, disputesItem, financeItem],
+  },
   { label: "People", items: [customersItem, teamItem] },
   { label: "Store", items: [settingsItem] },
 ];

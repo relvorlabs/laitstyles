@@ -1,0 +1,83 @@
+// @vitest-environment jsdom
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+type PopupCallbacks = {
+  onSuccess?: (value: { reference?: string }) => void;
+  onCancel?: () => void;
+  onError?: (error: unknown) => void;
+};
+
+const mocks = vi.hoisted(() => ({
+  resume: vi.fn(),
+}));
+
+vi.mock("@paystack/inline-js", () => ({
+  default: class Paystack {
+    resumeTransaction(accessCode: string, callbacks?: PopupCallbacks) {
+      return mocks.resume(accessCode, callbacks);
+    }
+  },
+}));
+
+import { resumePaystackTransaction } from "@/modules/payments/client/paystack-popup";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("resumePaystackTransaction", () => {
+  it("rejects a missing access code before loading Popup", async () => {
+    await expect(resumePaystackTransaction(" ")).resolves.toEqual({
+      kind: "error",
+      message: "Payment access code is missing.",
+    });
+    expect(mocks.resume).not.toHaveBeenCalled();
+  });
+
+  it("normalizes Popup success", async () => {
+    mocks.resume.mockImplementationOnce(
+      (_accessCode: string, callbacks: PopupCallbacks) => {
+        callbacks.onSuccess?.({ reference: "LS-CHECKOUT-reference" });
+      },
+    );
+
+    await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
+      kind: "success",
+      reference: "LS-CHECKOUT-reference",
+    });
+  });
+
+  it("normalizes Popup cancellation", async () => {
+    mocks.resume.mockImplementationOnce(
+      (_accessCode: string, callbacks: PopupCallbacks) => callbacks.onCancel?.(),
+    );
+
+    await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
+      kind: "cancelled",
+    });
+  });
+
+  it("normalizes Popup errors", async () => {
+    mocks.resume.mockImplementationOnce(
+      (_accessCode: string, callbacks: PopupCallbacks) =>
+        callbacks.onError?.(new Error("Popup failed")),
+    );
+
+    await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
+      kind: "error",
+      message: "Popup failed",
+    });
+  });
+
+  it("normalizes synchronous SDK failures", async () => {
+    mocks.resume.mockImplementationOnce(() => {
+      throw new Error("SDK unavailable");
+    });
+
+    await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
+      kind: "error",
+      message: "SDK unavailable",
+    });
+  });
+});

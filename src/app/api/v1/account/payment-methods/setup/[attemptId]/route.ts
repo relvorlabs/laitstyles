@@ -1,0 +1,23 @@
+import { requireApiConsumer } from "@/lib/http/auth";
+import { handleApiRequest } from "@/lib/http/server";
+import { paymentMethodIdentifierSchema } from "@/modules/payments/schema";
+import {
+  getPaymentMethodSetup,
+  throwPaymentMethodApiError,
+} from "@/modules/payments/server/payment-methods/index";
+
+const privateNoStore = { "Cache-Control": "private, no-store" };
+type RouteContext = { params: Promise<{ attemptId: string }> };
+
+export async function GET(request: Request, context: RouteContext) {
+  return handleApiRequest(request, async () => {
+    const identity = await requireApiConsumer();
+    const { attemptId } = await context.params;
+    const result = await getPaymentMethodSetup(
+      identity,
+      paymentMethodIdentifierSchema.parse(attemptId),
+    );
+    if (!result.ok) throwPaymentMethodApiError(result.error);
+    return { data: result.value, headers: privateNoStore };
+  });
+}

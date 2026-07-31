@@ -15,8 +15,8 @@ const datasourceUrl =
     : null;
 
 export default defineConfig({
-  // Prisma's multi-file schema keeps the large public baseline stable while
-  // Phase 2 adds the normalized variant-measurement model in its own file.
+  // Prisma owns only the application schema. Supabase owns auth and all auth-side
+  // triggers, functions and lifecycle behavior.
   schema: "prisma",
   migrations: {
     path: "prisma/migrations",

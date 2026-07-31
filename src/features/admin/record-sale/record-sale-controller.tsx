@@ -35,28 +35,17 @@ export function RecordSaleControllerProvider({ children }: { children: ReactNode
           <AdminIcon className="text-primary" icon={CheckmarkCircle02Icon} size={18} />
           <AlertTitle>{result.message}</AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Order {result.orderId} is pending payment. Stock is reserved under Paystack reference{" "}
-            <span className="font-medium text-foreground">{result.reference}</span>; revenue has not
-            been recognised.
+            Order {result.orderId} is paid and reserved stock has been committed under Paystack
+            reference <span className="font-medium text-foreground">{result.reference}</span>.
           </AlertDescription>
           <AlertAction>
-            <div className="flex flex-wrap justify-end gap-2">
-              <a
-                className={buttonVariants({ variant: "default", size: "sm" })}
-                href={result.authorizationUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                Open checkout
-              </a>
-              <Link
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
-                href={`/admin/orders?order=${encodeURIComponent(result.orderId)}`}
-                onClick={() => setResult(null)}
-              >
-                Open order
-              </Link>
-            </div>
+            <Link
+              className={buttonVariants({ variant: "default", size: "sm" })}
+              href={`/admin/orders?order=${encodeURIComponent(result.orderId)}`}
+              onClick={() => setResult(null)}
+            >
+              Open order
+            </Link>
           </AlertAction>
         </Alert>
       ) : null}

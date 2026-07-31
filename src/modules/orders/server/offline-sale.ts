@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import type { StaffSession } from "@/modules/auth/server/session";
+import { getConfiguredAuthOrigin } from "@/modules/auth/server/redirects";
 import { mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import {
   cancelFailedOfflineSaleDraft,
@@ -14,18 +15,18 @@ import type {
   SalesActionError,
 } from "@/modules/orders/types";
 import {
-  initializePaystackTransaction,
+  initializeTransaction,
   isPaystackConfigured,
-  type PaystackCheckout,
   PaystackConfigurationError,
-  PaystackInitializationError,
+  PaystackProviderError,
 } from "@/modules/payments/server/paystack";
 
 export async function recordOfflineSale(
   actor: StaffSession,
   input: OfflineSaleInput,
 ): Promise<Result<OfflineSaleSuccess, SalesActionError>> {
-  if (!isPaystackConfigured()) {
+  const origin = getConfiguredAuthOrigin();
+  if (!isPaystackConfigured() || !origin) {
     return err({
       code: "paystack-not-configured",
       message:
@@ -37,24 +38,32 @@ export async function recordOfflineSale(
   if (!draftResult.ok) return draftResult;
   const draft = draftResult.value;
 
-  let checkout: PaystackCheckout;
+  let checkout: Awaited<ReturnType<typeof initializeTransaction>>;
   try {
-    checkout = await initializePaystackTransaction({
+    checkout = await initializeTransaction({
       email: draft.customerEmail,
-      amountKobo: draft.amountKobo,
+      amountMinor: draft.amountKobo,
       reference: draft.reference,
+      callbackUrl: new URL(
+        `/admin/orders?order=${encodeURIComponent(draft.orderNumber)}`,
+        `${origin}/`,
+      ).toString(),
+      currency: "NGN",
       metadata: {
         orderId: draft.orderId,
         orderNumber: draft.orderNumber,
+        paymentId: draft.paymentId,
         source: "in-person-admin-sale",
         channel: input.channel,
       },
     });
 
     if (checkout.reference !== draft.reference) {
-      throw new PaystackInitializationError(
+      throw new PaystackProviderError(
         "Paystack returned a transaction reference that does not match the recorded payment attempt.",
-        checkout.rawResponse,
+        "initialize",
+        null,
+        "PAYSTACK_REFERENCE_MISMATCH",
       );
     }
   } catch (error) {
@@ -65,19 +74,18 @@ export async function recordOfflineSale(
         message: "Paystack checkout is not configured for this environment.",
       });
     }
-    if (error instanceof PaystackInitializationError) {
-      return err({
-        code: "paystack-initialization-failed",
-        message: `Paystack checkout could not be generated. ${error.message}`,
-        orderId: draft.orderNumber,
-      });
-    }
-    throw error;
+    return err({
+      code: "paystack-initialization-failed",
+      message:
+        error instanceof PaystackProviderError
+          ? `Paystack checkout could not be generated. ${error.message}`
+          : "Paystack checkout could not be generated.",
+      orderId: draft.orderNumber,
+    });
   }
 
   // After Paystack has created a transaction, a local persistence failure must
   // not release the reservation: the customer may still complete that checkout.
-  // The initializing payment/reference remains available for Phase 8 reconciliation.
   const updated = await finalizeInitializedCheckout(actor, input, draft, checkout);
   const order = mapAdminOrderRow(updated);
   return ok({

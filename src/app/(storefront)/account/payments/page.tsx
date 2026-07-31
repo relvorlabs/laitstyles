@@ -1,5 +1,5 @@
-import { PaymentsSection } from "@/features/storefront/account/sections/payments-section";
+import { PaymentMethodsSection } from "@/modules/payments/ui/storefront/payment-methods-section";
 
 export default function AccountPaymentsPage() {
-  return <PaymentsSection />;
+  return <PaymentMethodsSection />;
 }
