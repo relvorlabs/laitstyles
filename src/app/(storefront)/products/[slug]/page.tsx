@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { logger } from "@/lib/logger";
+import { reportPrerenderSafeServerError } from "@/lib/server-diagnostics";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
@@ -148,13 +148,10 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
 }
 
 function reportProductPageFailure(scope: "metadata" | "content", error: unknown): void {
-  logger.error(
-    {
-      scope: `storefront-product-${scope}`,
-      errorName: error instanceof Error ? error.name : typeof error,
-    },
-    "Storefront product read failed",
-  );
+  reportPrerenderSafeServerError("Storefront product read failed", {
+    scope: `storefront-product-${scope}`,
+    errorName: error instanceof Error ? error.name : typeof error,
+  });
 }
 
 function serializeJsonLd(value: unknown) {
