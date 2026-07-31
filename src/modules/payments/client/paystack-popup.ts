@@ -5,6 +5,11 @@ export type PaystackOutcome =
   | { kind: "cancelled" }
   | { kind: "error"; message: string };
 
+export type PaystackWindowHandoff = {
+  stage: "opening" | "closed";
+  reopenCheckout: boolean;
+};
+
 type PaystackCallbacks = {
   onSuccess?: (response: { reference?: string }) => void;
   onCancel?: () => void;
@@ -17,6 +22,7 @@ type PaystackInstance = {
 
 type PaystackConstructor = new () => PaystackInstance;
 
+const PAYSTACK_WINDOW_HANDOFF_EVENT = "laitstyles:paystack-window-handoff";
 let constructorPromise: Promise<PaystackConstructor> | null = null;
 
 export function preloadPaystackPopup(): Promise<PaystackConstructor> {
@@ -27,6 +33,16 @@ export function preloadPaystackPopup(): Promise<PaystackConstructor> {
       throw error;
     });
   return constructorPromise;
+}
+
+export function subscribePaystackWindowHandoff(
+  listener: (handoff: PaystackWindowHandoff) => void,
+): () => void {
+  if (typeof window === "undefined") return () => undefined;
+  const handler = (event: Event) =>
+    listener((event as CustomEvent<PaystackWindowHandoff>).detail);
+  window.addEventListener(PAYSTACK_WINDOW_HANDOFF_EVENT, handler);
+  return () => window.removeEventListener(PAYSTACK_WINDOW_HANDOFF_EVENT, handler);
 }
 
 export async function resumePaystackTransaction(accessCode: string): Promise<PaystackOutcome> {
@@ -46,11 +62,18 @@ export async function resumePaystackTransaction(accessCode: string): Promise<Pay
     };
   }
 
+  dispatchPaystackWindowHandoff({ stage: "opening", reopenCheckout: false });
+  await waitForInternalModalExit();
+
   return new Promise((resolve) => {
     let completed = false;
     const finish = (outcome: PaystackOutcome) => {
       if (completed) return;
       completed = true;
+      dispatchPaystackWindowHandoff({
+        stage: "closed",
+        reopenCheckout: outcome.kind !== "success",
+      });
       resolve(outcome);
     };
 
@@ -75,4 +98,16 @@ export async function resumePaystackTransaction(accessCode: string): Promise<Pay
       });
     }
   });
+}
+
+function dispatchPaystackWindowHandoff(handoff: PaystackWindowHandoff): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent<PaystackWindowHandoff>(PAYSTACK_WINDOW_HANDOFF_EVENT, { detail: handoff }),
+  );
+}
+
+async function waitForInternalModalExit(): Promise<void> {
+  if (typeof window === "undefined") return;
+  await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
 }
