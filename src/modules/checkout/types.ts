@@ -23,17 +23,19 @@ export type CheckoutDeliveryZone = {
   estimatedDays: string | null;
 };
 
+export type CheckoutDraft = z.infer<typeof checkoutDraftSchema>;
+
 export type CheckoutContext = {
   profile: OwnedProfile;
   profileComplete: boolean;
+  phoneRequired: boolean;
   addresses: OwnedAddress[];
   defaultAddressId: string | null;
   deliveryZones: CheckoutDeliveryZone[];
   selectedDeliveryZoneId: string | null;
   deliveryAmountStatus: "estimated";
+  activeCheckout: CheckoutDraft | null;
 };
-
-export type CheckoutDraft = z.infer<typeof checkoutDraftSchema>;
 
 export type CheckoutDetail = CheckoutDraft & {
   paidAt: string | null;
