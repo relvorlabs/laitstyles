@@ -21,7 +21,9 @@ export function checkoutContextQueryOptions(enabled = true) {
     queryKey: checkoutKeys.context(),
     queryFn: ({ signal }) => getCheckoutContextRequest(signal),
     enabled,
-    staleTime: 15_000,
+    staleTime: 5_000,
+    refetchInterval: (query) => (query.state.data?.activeCheckout ? 3_000 : false),
+    refetchIntervalInBackground: false,
   });
 }
 
