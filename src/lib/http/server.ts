@@ -26,6 +26,33 @@ type RawApiOperation<TData> = (
   context: ApiRequestContext,
 ) => ApiRouteResult<TData> | Promise<ApiRouteResult<TData>>;
 
+type DatabaseFailure = {
+  code: "DATABASE_SCHEMA_NOT_READY" | "DATABASE_UNAVAILABLE";
+  message: string;
+  errorCode: string | null;
+  databaseCode: string | null;
+};
+
+const schemaPrismaCodes = new Set(["P2021", "P2022"]);
+const connectionPrismaCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017"]);
+const schemaDatabaseCodes = new Set(["42P01", "42703"]);
+const connectionDatabaseCodes = new Set([
+  "08000",
+  "08001",
+  "08003",
+  "08004",
+  "08006",
+  "08007",
+  "08P01",
+  "53300",
+  "57P01",
+  "57P02",
+  "57P03",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+]);
+
 export function handleApiRequest<TData, TMeta extends ApiMeta = ApiMeta>(
   operation: ApiOperation<TData, TMeta>,
 ): Promise<NextResponse<ApiSuccess<TData, TMeta> | ApiFailure>>;
@@ -129,15 +156,32 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
     });
   }
 
-  logger.error(
-    {
-      requestId: context?.requestId ?? null,
-      method: context?.method ?? null,
-      pathname: context?.pathname ?? null,
-      errorName: error instanceof Error ? error.name : typeof error,
-    },
-    "Unhandled API route failure",
-  );
+  const databaseFailure = classifyDatabaseFailure(error);
+  const diagnosticContext = {
+    requestId: context?.requestId ?? null,
+    method: context?.method ?? null,
+    pathname: context?.pathname ?? null,
+    errorName: error instanceof Error ? error.name : typeof error,
+  };
+
+  if (databaseFailure) {
+    logger.error(
+      {
+        ...diagnosticContext,
+        errorCode: databaseFailure.errorCode,
+        databaseCode: databaseFailure.databaseCode,
+      },
+      "Database request failed",
+    );
+    return new ApiError({
+      code: databaseFailure.code,
+      message: databaseFailure.message,
+      status: 503,
+      cause: error,
+    });
+  }
+
+  logger.error(diagnosticContext, "Unhandled API route failure");
 
   return new ApiError({
     code: "INTERNAL_ERROR",
@@ -145,6 +189,52 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
     status: 500,
     cause: error,
   });
+}
+
+function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
+  const record = asRecord(error);
+  if (!record) return null;
+
+  const meta = asRecord(record.meta);
+  const errorCode = readString(record.code) ?? readString(record.errorCode);
+  const databaseCode =
+    readString(meta?.code) ?? readString(meta?.databaseCode) ?? readString(record.errno);
+
+  const schemaNotReady =
+    (errorCode !== null && schemaPrismaCodes.has(errorCode)) ||
+    (errorCode === "P2010" && databaseCode !== null && schemaDatabaseCodes.has(databaseCode));
+  if (schemaNotReady) {
+    return {
+      code: "DATABASE_SCHEMA_NOT_READY",
+      message: "Store data is temporarily unavailable while an update completes.",
+      errorCode,
+      databaseCode,
+    };
+  }
+
+  const databaseUnavailable =
+    (errorCode !== null && connectionPrismaCodes.has(errorCode)) ||
+    (databaseCode !== null && connectionDatabaseCodes.has(databaseCode));
+  if (databaseUnavailable) {
+    return {
+      code: "DATABASE_UNAVAILABLE",
+      message: "Store data is temporarily unavailable. Please try again.",
+      errorCode,
+      databaseCode,
+    };
+  }
+
+  return null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 function toFieldErrors(error: ZodError): ApiFieldErrors {
