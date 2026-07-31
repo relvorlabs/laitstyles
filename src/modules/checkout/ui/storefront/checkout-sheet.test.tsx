@@ -64,6 +64,30 @@ vi.mock("sonner", () => ({
 
 import { StorefrontCheckoutSheet } from "./checkout-sheet";
 
+const defaultAddress = {
+  id: "22222222-2222-4222-8222-222222222222",
+  label: "Home",
+  line1: "1 Lagos Street",
+  line2: "",
+  city: "Lagos",
+  state: "Lagos",
+  country: "Nigeria",
+  isDefault: true,
+  deliveryNotes: "",
+  createdAt: "2026-07-30T12:00:00.000Z",
+  updatedAt: "2026-07-30T12:00:00.000Z",
+};
+
+const defaultQuote = {
+  addressId: defaultAddress.id,
+  deliveryZoneId: "33333333-3333-4333-8333-333333333333",
+  label: "Lagos Mainland",
+  coverageLabel: "Lagos Mainland rate",
+  feeMinor: 1_500,
+  estimatedDays: "1-2",
+  source: "regional-override" as const,
+};
+
 const defaultContext = {
   profile: {
     authUserId: "11111111-1111-4111-8111-111111111111",
@@ -75,32 +99,10 @@ const defaultContext = {
   },
   profileComplete: true,
   phoneRequired: false,
-  addresses: [
-    {
-      id: "22222222-2222-4222-8222-222222222222",
-      label: "Home",
-      line1: "1 Lagos Street",
-      line2: "",
-      city: "Lagos",
-      state: "Lagos",
-      country: "Nigeria",
-      isDefault: true,
-      deliveryNotes: "",
-      createdAt: "2026-07-30T12:00:00.000Z",
-      updatedAt: "2026-07-30T12:00:00.000Z",
-    },
-  ],
-  defaultAddressId: "22222222-2222-4222-8222-222222222222",
-  deliveryZones: [
-    {
-      id: "33333333-3333-4333-8333-333333333333",
-      name: "Lagos Mainland",
-      city: "Lagos",
-      feeMinor: 1_500,
-      estimatedDays: "1–2 business days",
-    },
-  ],
-  selectedDeliveryZoneId: "33333333-3333-4333-8333-333333333333",
+  addresses: [defaultAddress],
+  defaultAddressId: defaultAddress.id,
+  deliveryQuotes: [defaultQuote],
+  selectedDeliveryQuote: defaultQuote,
   deliveryAmountStatus: "estimated",
   activeCheckout: null,
 } satisfies CheckoutContext;
@@ -129,7 +131,7 @@ afterEach(() => {
 });
 
 describe("StorefrontCheckoutSheet", () => {
-  it("uses the default saved address and estimated delivery amount", async () => {
+  it("uses the default saved address and server delivery quote", async () => {
     render(
       <StorefrontCheckoutSheet
         active
@@ -140,12 +142,55 @@ describe("StorefrontCheckoutSheet", () => {
       />,
     );
 
-    expect(await screen.findByText(/Home · Default/i)).toBeInTheDocument();
+    expect(await screen.findByText("Home")).toBeInTheDocument();
+    expect(screen.getByText("Default")).toBeInTheDocument();
     expect(screen.getByText(/1 Lagos Street, Lagos, Lagos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Lagos Mainland/i)).toBeInTheDocument();
-    expect(screen.getByText("1–2 business days")).toBeInTheDocument();
+    expect(screen.getByText("Lagos Mainland")).toBeInTheDocument();
+    expect(screen.getByText("Estimated arrival: 1-2 working days.")).toBeInTheDocument();
     expect(screen.getAllByText("₦15").length).toBeGreaterThan(0);
     expect(screen.getByText("₦2,515")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pay securely" })).toBeEnabled();
+  });
+
+  it("keeps nationwide delivery available for an alternate saved address", async () => {
+    const alternateAddress = {
+      ...defaultAddress,
+      id: "77777777-7777-4777-8777-777777777777",
+      label: "Abuja studio",
+      line1: "8 Maitama Avenue",
+      city: "Abuja",
+      state: "FCT",
+      isDefault: false,
+    };
+    const alternateQuote = {
+      addressId: alternateAddress.id,
+      deliveryZoneId: "88888888-8888-4888-8888-888888888888",
+      label: "Nationwide delivery",
+      coverageLabel: "Delivery across Nigeria",
+      feeMinor: 6_500,
+      estimatedDays: "2-5",
+      source: "nationwide-fallback" as const,
+    };
+    mocks.context = {
+      ...defaultContext,
+      addresses: [defaultAddress, alternateAddress],
+      deliveryQuotes: [defaultQuote, alternateQuote],
+    };
+
+    render(
+      <StorefrontCheckoutSheet
+        active
+        lines={checkoutLines}
+        onBack={vi.fn()}
+        onPaid={vi.fn()}
+        subtotalMinor={250_000}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: /Abuja studio/i }));
+    expect(screen.getByText("Nationwide delivery")).toBeInTheDocument();
+    expect(screen.getByText(/This address is covered/i)).toBeInTheDocument();
+    expect(screen.getAllByText("₦65").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Pay securely" })).toBeEnabled();
   });
 
@@ -154,7 +199,8 @@ describe("StorefrontCheckoutSheet", () => {
       ...defaultContext,
       addresses: [],
       defaultAddressId: null,
-      selectedDeliveryZoneId: null,
+      deliveryQuotes: [],
+      selectedDeliveryQuote: null,
     };
 
     render(
@@ -168,9 +214,10 @@ describe("StorefrontCheckoutSheet", () => {
     );
 
     expect(await screen.findByText("No delivery address is saved yet.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Add an address in your account" }),
-    ).toHaveAttribute("href", "/account/addresses?returnTo=checkout");
+    expect(screen.getByRole("link", { name: "Add delivery address" })).toHaveAttribute(
+      "href",
+      "/account/addresses?returnTo=checkout",
+    );
     expect(screen.getByRole("button", { name: "Pay securely" })).toBeDisabled();
     expect(screen.getByText("Add or select a delivery address to continue.")).toBeInTheDocument();
   });
@@ -204,7 +251,7 @@ describe("StorefrontCheckoutSheet", () => {
     fireEvent.change(screen.getByLabelText("Confirm delivery phone number"), {
       target: { value: "+2348099999999" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save phone number" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save delivery number" }));
 
     expect(mocks.updateProfile).not.toHaveBeenCalled();
     expect(mocks.toastError).toHaveBeenCalledWith("The phone numbers do not match.");
@@ -212,7 +259,7 @@ describe("StorefrontCheckoutSheet", () => {
     fireEvent.change(screen.getByLabelText("Confirm delivery phone number"), {
       target: { value: "+2348012345678" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Save phone number" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save delivery number" }));
 
     await waitFor(() =>
       expect(mocks.updateProfile).toHaveBeenCalledWith(
