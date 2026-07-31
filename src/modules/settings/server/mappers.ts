@@ -183,7 +183,8 @@ function selectNationwideFallbackZoneId(
       zone.enabled &&
       /nationwide|outside\s+lagos|rest\s+of\s+nigeria|national/i.test(zone.name),
   );
-  return semanticFallback?.id ?? zones.findLast((zone) => zone.enabled)?.id ?? null;
+  if (semanticFallback) return semanticFallback.id;
+  return [...zones].reverse().find((zone) => zone.enabled)?.id ?? null;
 }
 
 function asRecord(value: Prisma.JsonValue | undefined): Record<string, Prisma.JsonValue> | null {
