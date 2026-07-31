@@ -51,16 +51,14 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
     }),
   ]);
 
-  const deliveryQuotes = await prisma.$transaction((tx) =>
-    listCheckoutDeliveryQuotes(
-      tx,
-      addresses.map((address) => ({
-        id: address.id,
-        city: address.city,
-        state: address.state,
-        country: address.country,
-      })),
-    ),
+  const deliveryQuotes = await listCheckoutDeliveryQuotes(
+    prisma,
+    addresses.map((address) => ({
+      id: address.id,
+      city: address.city,
+      state: address.state,
+      country: address.country,
+    })),
   );
   const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses.at(0) ?? null;
   const selectedDeliveryQuote =
