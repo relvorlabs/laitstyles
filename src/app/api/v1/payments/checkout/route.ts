@@ -21,10 +21,33 @@ export async function POST(request: Request) {
   return handleApiRequest(request, async () => {
     const identity = await requireApiConsumer();
     const input = await parseJsonBody(request, createCheckoutRequestSchema);
-    const callbackOrigin = getConfiguredAuthOrigin() ?? new URL(request.url).origin;
-    const callbackUrl = new URL("/account/orders?payment=processing", `${callbackOrigin}/`).toString();
-    const result = await createCheckout(identity, { ...input, callbackUrl });
+    const callbackUrl = getPaystackCallbackUrl(request);
+    const result = await createCheckout(identity, {
+      ...input,
+      ...(callbackUrl ? { callbackUrl } : {}),
+    });
     if (!result.ok) throwCheckoutApiError(result.error);
     return { data: result.value, status: 201, headers: privateNoStore };
   });
+}
+
+function getPaystackCallbackUrl(request: Request): string | undefined {
+  const configuredOrigin = getConfiguredAuthOrigin();
+  const candidate = new URL(configuredOrigin ?? request.url);
+
+  if (candidate.protocol !== "https:" || isLocalHostname(candidate.hostname)) {
+    return undefined;
+  }
+
+  return new URL("/account/orders?payment=processing", `${candidate.origin}/`).toString();
+}
+
+function isLocalHostname(hostname: string): boolean {
+  const normalized = hostname.trim().toLowerCase();
+  return (
+    normalized === "localhost" ||
+    normalized.endsWith(".localhost") ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1"
+  );
 }
