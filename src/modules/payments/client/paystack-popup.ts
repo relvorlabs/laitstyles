@@ -11,13 +11,14 @@ export type PaystackWindowHandoff = {
 };
 
 type PaystackCallbacks = {
+  onLoad?: (response: { accessCode?: string; id?: number }) => void;
   onSuccess?: (response: { reference?: string }) => void;
   onCancel?: () => void;
   onError?: (error: unknown) => void;
 };
 
 type PaystackInstance = {
-  resumeTransaction: (accessCode: string, callbacks?: PaystackCallbacks) => void;
+  resumeTransaction: (accessCode: string, callbacks?: PaystackCallbacks) => unknown;
 };
 
 type PaystackConstructor = new () => PaystackInstance;
@@ -62,23 +63,31 @@ export async function resumePaystackTransaction(accessCode: string): Promise<Pay
     };
   }
 
-  dispatchPaystackWindowHandoff({ stage: "opening", reopenCheckout: false });
-  await waitForInternalModalExit();
-
   return new Promise((resolve) => {
     let completed = false;
+    let loaded = false;
     const finish = (outcome: PaystackOutcome) => {
       if (completed) return;
       completed = true;
-      dispatchPaystackWindowHandoff({
-        stage: "closed",
-        reopenCheckout: outcome.kind !== "success",
-      });
+      if (loaded) {
+        dispatchPaystackWindowHandoff({
+          stage: "closed",
+          reopenCheckout: outcome.kind !== "success",
+        });
+      }
       resolve(outcome);
     };
 
     try {
+      // Keep this SDK call in the original user action. Closing our own modal or
+      // awaiting a timer first can lose browser user activation and prevent the
+      // provider checkout from becoming visible.
       popup.resumeTransaction(accessCode, {
+        onLoad: () => {
+          if (loaded || completed) return;
+          loaded = true;
+          dispatchPaystackWindowHandoff({ stage: "opening", reopenCheckout: false });
+        },
         onSuccess: (response) => finish({ kind: "success", reference: response.reference ?? null }),
         onCancel: () => finish({ kind: "cancelled" }),
         onError: (error) =>
@@ -105,9 +114,4 @@ function dispatchPaystackWindowHandoff(handoff: PaystackWindowHandoff): void {
   window.dispatchEvent(
     new CustomEvent<PaystackWindowHandoff>(PAYSTACK_WINDOW_HANDOFF_EVENT, { detail: handoff }),
   );
-}
-
-async function waitForInternalModalExit(): Promise<void> {
-  if (typeof window === "undefined") return;
-  await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
 }
