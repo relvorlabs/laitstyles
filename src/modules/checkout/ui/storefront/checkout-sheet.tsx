@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,15 +45,12 @@ type StorefrontCheckoutSheetProps = {
 };
 
 type PaymentStage = "ready" | "creating" | "paying" | "verifying";
-type PaymentNotice = {
-  title: string;
-  detail: string;
-  tone: "neutral" | "warning" | "danger";
-};
-type CheckoutBlocker = {
-  message: string;
-  tone: "muted" | "danger";
-};
+
+const currencyFormatter = new Intl.NumberFormat("en-NG", {
+  style: "currency",
+  currency: "NGN",
+  maximumFractionDigits: 0,
+});
 
 export function StorefrontCheckoutSheet({
   active,
@@ -79,6 +76,7 @@ export function StorefrontCheckoutSheet({
   const [activeCheckout, setActiveCheckout] = useState<CheckoutDraft | null>(null);
   const idempotencyKey = useRef<string>(crypto.randomUUID());
   const completedOrder = useRef<string | null>(null);
+
   const checkoutStatusQuery = useQuery(checkoutQueryOptions(activeCheckout?.checkoutId ?? ""));
   const couponQuery = useQuery(
     checkoutCouponQueryOptions(
@@ -116,7 +114,6 @@ export function StorefrontCheckoutSheet({
       !couponQuery.isFetching &&
       couponValidation?.valid === true);
   const currentStatus = checkoutStatusQuery.data?.status ?? activeCheckout?.status ?? null;
-  const paymentNotice = getPaymentNotice(currentStatus);
   const canResume = Boolean(
     activeCheckout?.accessCode &&
       currentStatus &&
@@ -134,20 +131,18 @@ export function StorefrontCheckoutSheet({
       paymentStage === "ready",
   );
   const canPay = canResume || canCreate;
-  const checkoutBlocker = canPay
-    ? null
-    : getCheckoutBlocker({
-        activeCheckout,
-        couponCode,
-        couponReady,
-        couponFetching: couponQuery.isFetching,
-        currentStatus,
-        lineCount: normalizedLines.length,
-        paymentStage,
-        phoneReady,
-        selectedAddressId,
-        selectedDeliveryQuote: selectedQuote,
-      });
+  const blocker = getCheckoutBlocker({
+    activeCheckout,
+    couponCode,
+    couponReady,
+    couponFetching: couponQuery.isFetching,
+    currentStatus,
+    lineCount: normalizedLines.length,
+    paymentStage,
+    phoneReady,
+    selectedAddressId,
+    selectedQuote,
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -187,12 +182,11 @@ export function StorefrontCheckoutSheet({
   async function savePhone(): Promise<void> {
     if (!context) return;
     const normalizedPhone = phone.trim();
-    const normalizedConfirmation = phoneConfirmation.trim();
     if (normalizedPhone.replaceAll(/\D/g, "").length < 7) {
       toast.error("Enter a valid phone number.");
       return;
     }
-    if (normalizedPhone !== normalizedConfirmation) {
+    if (normalizedPhone !== phoneConfirmation.trim()) {
       toast.error("The phone numbers do not match.");
       return;
     }
@@ -204,11 +198,11 @@ export function StorefrontCheckoutSheet({
         preferredName: context.profile.preferredName || undefined,
         phone: normalizedPhone,
       });
-      setPhone(profile.phone);
-      setPhoneConfirmation(profile.phone);
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current ? { ...current, profile, profileComplete: true, phoneRequired: false } : current,
       );
+      setPhone(profile.phone);
+      setPhoneConfirmation(profile.phone);
       toast.success("Delivery number saved.");
     } catch (error: unknown) {
       toast.error(readErrorMessage(error, "Your phone number could not be saved."));
@@ -244,6 +238,7 @@ export function StorefrontCheckoutSheet({
           })),
         });
       }
+
       setActiveCheckout(checkout);
       if (!checkout.accessCode) throw new Error("payment-access-unavailable");
 
@@ -251,10 +246,14 @@ export function StorefrontCheckoutSheet({
       const outcome = await resumePaystackTransaction(checkout.accessCode);
       if (outcome.kind === "cancelled") {
         setPaymentStage("ready");
-        toast.message("Payment was closed. Your checkout is saved and ready when you are.");
+        toast.message("Payment was closed. Your order is saved and ready to resume.");
         return;
       }
-      if (outcome.kind === "error") throw new Error("payment-window-failed");
+      if (outcome.kind === "error") {
+        setPaymentStage("ready");
+        toast.error("Paystack could not open. Please try again.");
+        return;
+      }
 
       setPaymentStage("verifying");
       const settlement = await verifyPayment.mutateAsync(checkout.paymentId);
@@ -263,12 +262,13 @@ export function StorefrontCheckoutSheet({
         onPaid(settlement.orderNumber);
         return;
       }
+
       setPaymentStage("ready");
       if (isTerminalFailure(settlement.status)) {
         toast.error(paymentOutcomeMessage(settlement.status));
         return;
       }
-      toast.message("We received the payment update and are waiting for confirmation.");
+      toast.message("Payment is still being confirmed. You can resume from this checkout.");
     } catch (error: unknown) {
       setPaymentStage("ready");
       toast.error(readErrorMessage(error, "Payment could not be completed."));
@@ -277,107 +277,74 @@ export function StorefrontCheckoutSheet({
 
   if (!signedIn) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Private checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
-          <Eyebrow>Your fitting room is saved</Eyebrow>
-          <div>
-            <p className="font-serif text-3xl">Sign in to arrange delivery</p>
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[var(--muted)]">
-              Your bag stays untouched while we bring in your saved contact and address details.
-            </p>
-          </div>
-          <Button
-            className="min-w-48 rounded-full"
-            onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("cartDrawer"))}
-            type="button"
-          >
-            Sign in to continue
-          </Button>
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState
+          action={
+            <Button
+              className="min-h-11 min-w-48"
+              onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("checkoutDialog"))}
+              type="button"
+            >
+              Sign in to continue
+            </Button>
+          }
+          detail="Your cart stays saved while we load your contact and delivery details."
+          title="Sign in to checkout"
+        />
+      </CheckoutShell>
     );
   }
 
   if (contextQuery.isPending) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Private checkout">
-        <div className="grid flex-1 place-items-center px-6 text-sm text-[var(--muted)]">
-          Preparing your delivery atelier…
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState detail="Loading your contact, addresses and payment status." title="Preparing checkout" />
+      </CheckoutShell>
     );
   }
 
   if (contextQuery.isError || !context) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Private checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
-          <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-            {readErrorMessage(contextQuery.error, "Checkout details could not be loaded.")}
-          </p>
-          <Button onClick={() => void contextQuery.refetch()} type="button" variant="outline">
-            Try again
-          </Button>
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState
+          action={
+            <Button onClick={() => void contextQuery.refetch()} type="button" variant="outline">
+              Retry
+            </Button>
+          }
+          detail={readErrorMessage(contextQuery.error, "Checkout details could not be loaded.")}
+          title="Checkout unavailable"
+        />
+      </CheckoutShell>
     );
   }
 
   return (
-    <CheckoutPanelShell onBack={onBack} title="Private checkout">
-      <div className="flex-1 overflow-y-auto">
-        <div className="space-y-8 px-5 py-6 sm:px-8 sm:py-8">
-          <div className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--ink)] px-5 py-5 text-[var(--bone)] sm:px-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--bone)]/60">
-                  Laitstyles delivery service
-                </p>
-                <h2 className="mt-2 font-serif text-2xl italic sm:text-3xl">
-                  Your edit, delivered nationwide.
-                </h2>
-              </div>
-              <span className="rounded-full border border-[var(--bone)]/20 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em]">
-                Nigeria-wide
-              </span>
-            </div>
-            <p className="mt-3 max-w-xl text-xs leading-5 text-[var(--bone)]/70">
-              Choose any saved Nigerian address. The applicable regional or nationwide rate is
-              quoted before the secure payment window opens.
-            </p>
-          </div>
-
-          {paymentNotice ? <PaymentStatusCard notice={paymentNotice} /> : null}
-          {activeCheckout && !paymentNotice ? (
-            <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--sage-light)] p-5 text-sm">
-              <Eyebrow>Saved order</Eyebrow>
-              <p className="mt-2 font-serif text-2xl">{activeCheckout.orderNumber}</p>
-              <p className="mt-2 leading-6 text-[var(--muted)]">
-                Delivery details and total are locked. Continue the existing payment below rather
-                than creating another order.
-              </p>
-            </section>
+    <CheckoutShell onBack={onBack}>
+      <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+        <div className="space-y-6">
+          {activeCheckout ? (
+            <StatusCard
+              detail={paymentStatusDetail(currentStatus)}
+              title={`Order ${activeCheckout.orderNumber}`}
+            />
           ) : null}
 
           {!activeCheckout ? (
             <>
-              <CheckoutSection number="01" title="Delivery contact">
+              <CheckoutSection title="Contact">
                 {phoneReady ? (
-                  <EditorialCard>
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="font-serif text-xl">{profileDisplayName(context)}</p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">{context.profile.phone}</p>
-                      </div>
-                      <span className="rounded-full bg-[var(--sage-light)] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em]">
-                        Confirmed
-                      </span>
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] p-4">
+                    <div>
+                      <p className="font-medium">{profileDisplayName(context)}</p>
+                      <p className="mt-1 text-sm text-[var(--muted)]">{context.profile.phone}</p>
                     </div>
-                  </EditorialCard>
+                    <span className="text-xs font-medium text-[var(--sage)]">Confirmed</span>
+                  </div>
                 ) : (
-                  <EditorialCard>
-                    <p className="text-sm leading-6 text-[var(--muted)]">
-                      Add the number our delivery partner should use for this order.
+                  <div className="rounded-lg border border-[var(--line)] p-4">
+                    <p className="text-sm text-[var(--muted)]">
+                      Add the number the delivery team should use for this order.
                     </p>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <Input
@@ -398,186 +365,141 @@ export function StorefrontCheckoutSheet({
                       />
                     </div>
                     <Button
-                      className="mt-3 rounded-full"
+                      className="mt-3 min-h-11"
                       disabled={updateProfile.isPending}
                       onClick={() => void savePhone()}
                       type="button"
                       variant="outline"
                     >
-                      {updateProfile.isPending ? "Saving number…" : "Save delivery number"}
+                      {updateProfile.isPending ? "Saving…" : "Save delivery number"}
                     </Button>
-                  </EditorialCard>
+                  </div>
                 )}
               </CheckoutSection>
 
-              <CheckoutSection number="02" title="Where should this edit arrive?">
-                {addresses.length > 0 ? (
-                  <div className="grid gap-3">
+              <CheckoutSection title="Delivery address">
+                {addresses.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-[var(--line)] p-4">
+                    <p className="text-sm font-medium">No delivery address is saved yet.</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      Add an address, then return here to continue.
+                    </p>
+                    <Button
+                      className="mt-4 min-h-11"
+                      render={<Link href="/account/addresses?returnTo=checkout" />}
+                      variant="outline"
+                    >
+                      Add delivery address
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
                     {addresses.map((address) => (
-                      <AddressChoice
+                      <AddressOption
                         address={address}
-                        key={`checkout-address:${address.id}`}
+                        key={address.id}
                         onSelect={() => setSelectedAddressId(address.id)}
+                        quote={context.deliveryQuotes.find(
+                          (candidate) => candidate.addressId === address.id,
+                        )}
                         selected={address.id === selectedAddressId}
                       />
                     ))}
-                  </div>
-                ) : (
-                  <EditorialCard>
-                    <p className="text-sm text-[var(--muted)]">No delivery address is saved yet.</p>
-                  </EditorialCard>
-                )}
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <Button
-                    nativeButton={false}
-                    render={<Link href="/account/addresses?returnTo=checkout" />}
-                    size="sm"
-                    variant="outline"
-                  >
-                    {addresses.length > 0 ? "Add or edit addresses" : "Add delivery address"}
-                  </Button>
-                  {selectedAddress && !selectedAddress.isDefault ? (
-                    <span className="self-center text-xs text-[var(--muted)]">
-                      This address applies to this checkout only unless you make it default in your
-                      account.
-                    </span>
-                  ) : null}
-                </div>
-              </CheckoutSection>
-
-              <CheckoutSection number="03" title="Nationwide delivery">
-                {selectedAddress && selectedQuote ? (
-                  <DeliveryQuoteCard address={selectedAddress} quote={selectedQuote} />
-                ) : (
-                  <EditorialCard>
-                    <p className="text-sm leading-6 text-[var(--muted)]">
-                      Select an address to reveal the delivery rate. Every valid Nigerian address
-                      remains eligible.
-                    </p>
-                  </EditorialCard>
-                )}
-              </CheckoutSection>
-
-              <CheckoutSection number="04" title="Private offer">
-                <EditorialCard>
-                  <label className="grid gap-2">
-                    <span className="text-xs text-[var(--muted)]">
-                      Enter a coupon code from a Laitstyles offer.
-                    </span>
-                    <Input
-                      aria-label="Coupon code"
-                      autoComplete="off"
-                      className="font-mono uppercase tracking-[0.12em]"
-                      onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-                      placeholder="LAIT-STYLE"
-                      value={couponCode}
-                    />
-                  </label>
-                  {couponCode.trim() ? (
-                    <p
-                      aria-live="polite"
-                      className={`mt-2 text-xs ${
-                        couponQuery.isFetching
-                          ? "text-[var(--muted)]"
-                          : couponValidation?.valid
-                            ? "text-emerald-700"
-                            : "text-red-700"
-                      }`}
+                    <Button
+                      render={<Link href="/account/addresses?returnTo=checkout" />}
+                      size="sm"
+                      variant="ghost"
                     >
-                      {couponQuery.isFetching
-                        ? "Checking your code…"
-                        : couponValidation?.message || "Enter at least two characters."}
-                    </p>
-                  ) : null}
-                </EditorialCard>
+                      Add or edit addresses
+                    </Button>
+                  </div>
+                )}
+              </CheckoutSection>
+
+              <CheckoutSection title="Promo code">
+                <Input
+                  aria-label="Promo code"
+                  autoCapitalize="characters"
+                  onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  value={couponCode}
+                />
+                {couponCode.trim() ? (
+                  <p
+                    className={`mt-2 text-xs ${
+                      couponValidation?.valid ? "text-[var(--sage)]" : "text-[var(--muted)]"
+                    }`}
+                  >
+                    {couponQuery.isFetching
+                      ? "Checking code…"
+                      : (couponValidation?.message ?? "Enter a valid promo code.")}
+                  </p>
+                ) : null}
               </CheckoutSection>
             </>
           ) : null}
+
+          <CheckoutSection title="Order summary">
+            <div className="rounded-lg border border-[var(--line)] p-4">
+              <SummaryRow label="Items" value={formatMoney(displaySubtotalMinor)} />
+              <SummaryRow label="Delivery" value={formatMoney(displayDeliveryFeeMinor)} />
+              {displayDiscountMinor > 0 ? (
+                <SummaryRow label="Discount" value={`−${formatMoney(displayDiscountMinor)}`} />
+              ) : null}
+              <div className="mt-4 flex items-end justify-between border-t border-[var(--line)] pt-4">
+                <span className="font-medium">Total</span>
+                <span className="font-serif text-2xl tabular-nums">{formatMoney(totalMinor)}</span>
+              </div>
+              {selectedQuote && !activeCheckout ? (
+                <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
+                  {selectedQuote.label} · {deliveryEstimate(selectedQuote)}
+                </p>
+              ) : null}
+            </div>
+          </CheckoutSection>
         </div>
       </div>
 
-      <div className="border-t border-[var(--line)] bg-[var(--bone-2)] px-5 py-5 sm:px-8 sm:py-6">
-        <div className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--bone)] p-5 shadow-[0_18px_60px_rgba(24,23,20,0.06)]">
-          <div className="flex items-center justify-between gap-4">
-            <Eyebrow>Order summary</Eyebrow>
-            <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
-              Secure Paystack payment
-            </span>
-          </div>
-          <div className="mt-4 space-y-2 text-sm">
-            <SummaryRow label="The edit" value={formatNaira(displaySubtotalMinor)} />
-            <SummaryRow
-              label={activeCheckout ? "Delivery" : "Nationwide delivery"}
-              value={displayDeliveryFeeMinor > 0 ? formatNaira(displayDeliveryFeeMinor) : "Complimentary"}
-            />
-            {displayDiscountMinor > 0 ? (
-              <SummaryRow
-                accent
-                label={activeCheckout ? "Private offer" : `Offer ${couponValidation?.code ?? ""}`}
-                value={`−${formatNaira(displayDiscountMinor)}`}
-              />
-            ) : null}
-          </div>
-          <div className="mt-4 flex items-end justify-between gap-4 border-t border-[var(--line)] pt-4">
-            <div>
-              <p className="text-xs text-[var(--muted)]">Total to pay</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                Confirmed only after verification
-              </p>
-            </div>
-            <span className="font-serif text-3xl sm:text-4xl">{formatNaira(totalMinor)}</span>
-          </div>
-          <Button
-            aria-describedby="checkout-payment-help"
-            className="mt-5 h-12 w-full rounded-full text-sm uppercase tracking-[0.12em]"
-            disabled={!canPay}
-            onClick={() => void startPayment()}
-            type="button"
-          >
-            {paymentLabel(paymentStage, Boolean(activeCheckout))}
-          </Button>
-          <p
-            className={`mx-auto mt-3 max-w-md text-center text-[11px] leading-5 ${
-              checkoutBlocker?.tone === "danger" ? "text-red-700" : "text-[var(--muted)]"
-            }`}
-            id="checkout-payment-help"
-          >
-            {checkoutBlocker?.message ??
-              "A secure payment window will open. Your order is confirmed only after payment is verified."}
+      <div className="border-t border-[var(--line)] bg-[var(--bone)] px-5 py-4 sm:px-7">
+        {blocker ? (
+          <p className="mb-3 text-sm text-[var(--muted)]" id="checkout-payment-help">
+            {blocker}
           </p>
-        </div>
+        ) : (
+          <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
+            Paystack opens in a secure payment window. Your order is confirmed only after server verification.
+          </p>
+        )}
+        <Button
+          aria-describedby="checkout-payment-help"
+          className="min-h-12 w-full text-sm"
+          disabled={!canPay}
+          onClick={() => void startPayment()}
+          type="button"
+        >
+          {paymentLabel(paymentStage, Boolean(activeCheckout), totalMinor)}
+        </Button>
       </div>
-    </CheckoutPanelShell>
+    </CheckoutShell>
   );
 }
 
-function CheckoutPanelShell({
+function CheckoutShell({
   children,
   onBack,
-  title,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   onBack: () => void;
-  title: string;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-4 border-b border-[var(--line)] px-5 py-4 sm:px-8 sm:py-5">
-        <Button
-          aria-label="Back to bag"
-          className="rounded-full"
-          onClick={onBack}
-          size="icon-sm"
-          type="button"
-          variant="outline"
-        >
+    <div className="flex min-h-0 flex-1 flex-col bg-[var(--bone)]">
+      <div className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-4 pr-14 sm:px-7">
+        <Button aria-label="Back to cart" onClick={onBack} size="icon-sm" type="button" variant="ghost">
           ←
         </Button>
-        <div className="min-w-0">
-          <p className="truncate font-serif text-2xl font-normal italic sm:text-3xl">{title}</p>
-          <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--muted)]">
-            Delivery · offer · verified payment
-          </p>
+        <div>
+          <h2 className="font-serif text-2xl">Checkout</h2>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">Delivery and secure payment</p>
         </div>
       </div>
       {children}
@@ -585,172 +507,216 @@ function CheckoutPanelShell({
   );
 }
 
-function CheckoutSection({
-  children,
-  number,
-  title,
-}: {
-  children: ReactNode;
-  number: string;
-  title: string;
-}) {
+function CheckoutSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={`checkout-section-${number}`}>
-      <div className="mb-3 flex items-baseline gap-3">
-        <span className="font-mono text-[9px] tracking-[0.18em] text-[var(--muted)]">{number}</span>
-        <h3 className="font-serif text-2xl" id={`checkout-section-${number}`}>
-          {title}
-        </h3>
-      </div>
+    <section>
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
       {children}
     </section>
   );
 }
 
-function EditorialCard({ children }: { children: ReactNode }) {
+function CenteredState({
+  title,
+  detail,
+  action,
+}: {
+  title: string;
+  detail: string;
+  action?: React.ReactNode;
+}) {
   return (
-    <div className="rounded-[1.4rem] border border-[var(--line)] bg-[var(--bone)] p-4 sm:p-5">
-      {children}
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 py-12 text-center">
+      <div>
+        <p className="font-serif text-2xl">{title}</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[var(--muted)]">{detail}</p>
+      </div>
+      {action}
     </div>
   );
 }
 
-function Eyebrow({ children }: { children: ReactNode }) {
-  return (
-    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--muted)]">
-      {children}
-    </p>
-  );
+function CheckoutSectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-semibold">{children}</h3>;
 }
 
-function AddressChoice({
+void CheckoutSectionTitle;
+
+function AddressOption({
   address,
-  onSelect,
+  quote,
   selected,
+  onSelect,
 }: {
   address: OwnedAddress;
-  onSelect: () => void;
+  quote?: CheckoutDeliveryQuote;
   selected: boolean;
+  onSelect: () => void;
 }) {
+  const addressText = [address.line1, address.line2, address.city, address.state]
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <button
-      aria-pressed={selected}
-      className={`w-full rounded-[1.4rem] border p-4 text-left transition sm:p-5 ${
+    <Button
+      aria-label={`${address.label}${address.isDefault ? ", default" : ""}`}
+      className={`h-auto min-h-11 w-full items-start justify-start rounded-lg border p-4 text-left ${
         selected
-          ? "border-[var(--ink)] bg-[var(--sage-light)] shadow-[0_12px_36px_rgba(24,23,20,0.08)]"
-          : "border-[var(--line)] bg-[var(--bone)] hover:border-[var(--ink)]/50"
+          ? "border-[var(--ink)] bg-[var(--bone-2)]"
+          : "border-[var(--line)] bg-transparent"
       }`}
       onClick={onSelect}
       type="button"
+      variant="ghost"
     >
-      <span className="flex items-start justify-between gap-4">
-        <span>
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-serif text-lg">{address.label || "Delivery address"}</span>
-            {address.isDefault ? (
-              <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]">
-                Default
-              </span>
-            ) : null}
-          </span>
-          <span className="mt-1 block text-sm leading-5 text-[var(--muted)]">
-            {[address.line1, address.line2, address.city, address.state].filter(Boolean).join(", ")}
-          </span>
-          {address.deliveryNotes ? (
-            <span className="mt-2 block text-xs italic text-[var(--muted)]">
-              “{address.deliveryNotes}”
-            </span>
-          ) : null}
+      <span className="w-full min-w-0">
+        <span className="flex items-start justify-between gap-3">
+          <span className="font-medium">{address.label}</span>
+          {address.isDefault ? <span className="text-xs text-[var(--muted)]">Default</span> : null}
         </span>
-        <span
-          aria-hidden="true"
-          className={`mt-1 grid size-5 shrink-0 place-items-center rounded-full border ${
-            selected ? "border-[var(--ink)] bg-[var(--ink)]" : "border-[var(--line)]"
-          }`}
-        >
-          {selected ? <span className="size-1.5 rounded-full bg-[var(--bone)]" /> : null}
+        <span className="mt-1 block whitespace-normal text-sm leading-5 text-[var(--muted)]">
+          {addressText}
         </span>
+        {quote ? (
+          <span className="mt-3 flex items-center justify-between gap-3 text-xs">
+            <span>{quote.label}</span>
+            <span className="tabular-nums">{formatMoney(quote.feeMinor)}</span>
+          </span>
+        ) : (
+          <span className="mt-3 block text-xs text-[var(--muted)]">Delivery quote unavailable</span>
+        )}
+        {quote ? (
+          <span className="mt-1 block text-xs text-[var(--muted)]">
+            This address is covered · {deliveryEstimate(quote)}
+          </span>
+        ) : null}
       </span>
-    </button>
+    </Button>
   );
 }
 
-function DeliveryQuoteCard({
-  address,
-  quote,
-}: {
-  address: OwnedAddress;
-  quote: CheckoutDeliveryQuote;
-}) {
+function StatusCard({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="overflow-hidden rounded-[1.5rem] border border-[var(--line)] bg-[var(--bone)]">
-      <div className="grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-start sm:p-6">
-        <div>
-          <Eyebrow>{quote.coverageLabel}</Eyebrow>
-          <p className="mt-2 font-serif text-2xl">{quote.label}</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            To {address.city}
-            {address.state ? `, ${address.state}` : ""}. This address is covered and will not be
-            blocked by its city.
-          </p>
-          <p className="mt-3 text-xs text-[var(--muted)]">
-            {formatEstimatedDays(quote.estimatedDays)}
-          </p>
-        </div>
-        <div className="sm:text-right">
-          <p className="font-serif text-3xl">
-            {quote.feeMinor > 0 ? formatNaira(quote.feeMinor) : "Complimentary"}
-          </p>
-          <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.14em] text-[var(--muted)]">
-            Applied automatically
-          </p>
-        </div>
-      </div>
-      <div className="border-t border-[var(--line)] bg-[var(--sage-light)] px-5 py-3 text-[11px] leading-5 text-[var(--muted)] sm:px-6">
-        Regional rates are used when configured; every other Nigerian address receives the
-        nationwide rate.
-      </div>
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--sage-light)] p-4">
+      <p className="font-medium">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{detail}</p>
     </div>
   );
 }
 
-function PaymentStatusCard({ notice }: { notice: PaymentNotice }) {
-  const toneClass = {
-    neutral: "border-[var(--line)] bg-[var(--sage-light)]",
-    warning:
-      "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100",
-    danger:
-      "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100",
-  }[notice.tone];
-
+function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <section aria-live="polite" className={`rounded-[1.5rem] border p-5 text-sm ${toneClass}`}>
-      <p className="font-serif text-xl">{notice.title}</p>
-      <p className="mt-2 leading-6 opacity-80">{notice.detail}</p>
-    </section>
+    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
+      <span className="text-[var(--muted)]">{label}</span>
+      <span className="tabular-nums">{value}</span>
+    </div>
   );
 }
 
-function SummaryRow({
-  accent = false,
-  label,
-  value,
+function getCheckoutBlocker({
+  activeCheckout,
+  couponCode,
+  couponReady,
+  couponFetching,
+  currentStatus,
+  lineCount,
+  paymentStage,
+  phoneReady,
+  selectedAddressId,
+  selectedQuote,
 }: {
-  accent?: boolean;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className={`flex justify-between gap-4 ${accent ? "text-emerald-700" : "text-[var(--muted)]"}`}>
-      <span>{label}</span>
-      <span className="font-medium text-current tabular-nums">{value}</span>
-    </div>
-  );
+  activeCheckout: CheckoutDraft | null;
+  couponCode: string;
+  couponReady: boolean;
+  couponFetching: boolean;
+  currentStatus: CheckoutStatus | null;
+  lineCount: number;
+  paymentStage: PaymentStage;
+  phoneReady: boolean;
+  selectedAddressId: string | null;
+  selectedQuote: CheckoutDeliveryQuote | null;
+}): string | null {
+  if (paymentStage !== "ready") return "Payment is already in progress.";
+  if (activeCheckout) {
+    if (currentStatus === "success") return "This payment has already been confirmed.";
+    if (!activeCheckout.accessCode) return "The saved payment cannot be resumed yet. Retry shortly.";
+    if (currentStatus && !isResumableCheckoutStatus(currentStatus)) {
+      return paymentOutcomeMessage(currentStatus);
+    }
+    return null;
+  }
+  if (lineCount < 1) return "Your cart is empty. Add an item before checkout.";
+  if (!phoneReady) return "Save a delivery phone number to continue.";
+  if (!selectedAddressId) return "Add or select a delivery address to continue.";
+  if (!selectedQuote) return "A delivery quote is required before payment.";
+  if (couponFetching) return "Checking your promo code…";
+  if (couponCode.trim() && !couponReady) return "Enter a valid promo code or remove it.";
+  return null;
+}
+
+function paymentLabel(stage: PaymentStage, resuming: boolean, totalMinor: number): string {
+  switch (stage) {
+    case "creating":
+      return "Preparing payment…";
+    case "paying":
+      return "Opening Paystack…";
+    case "verifying":
+      return "Confirming payment…";
+    case "ready":
+      return `${resuming ? "Resume payment" : "Pay"} · ${formatMoney(totalMinor)}`;
+  }
+}
+
+function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
+  return [
+    "initializing",
+    "initialized",
+    "pending",
+    "failed",
+    "abandoned",
+    "reversed",
+    "review_required",
+  ].includes(status);
+}
+
+function isTerminalFailure(status: CheckoutStatus): boolean {
+  return status === "failed" || status === "abandoned" || status === "reversed";
+}
+
+function paymentOutcomeMessage(status: CheckoutStatus): string {
+  switch (status) {
+    case "failed":
+      return "Payment failed. Check your details and try again.";
+    case "abandoned":
+      return "Payment was not completed. You can resume it.";
+    case "reversed":
+      return "Payment was reversed. No successful charge was recorded.";
+    case "review_required":
+      return "Payment needs review. You can retry or contact support.";
+    case "pending":
+    case "initializing":
+    case "initialized":
+      return "Payment is still being confirmed.";
+    case "success":
+      return "Payment confirmed.";
+  }
+}
+
+function paymentStatusDetail(status: CheckoutStatus | null): string {
+  if (!status) return "Your order is saved. Continue payment when you are ready.";
+  return paymentOutcomeMessage(status);
+}
+
+function deliveryEstimate(quote: CheckoutDeliveryQuote): string {
+  const value = quote.estimatedDays?.trim();
+  if (!value) return "Delivery timing will be confirmed";
+  const range = value.includes("day") ? value : `${value} working days`;
+  return `Estimated arrival: ${range}.`;
 }
 
 function profileDisplayName(context: CheckoutContext): string {
   return (
-    context.profile.preferredName.trim() ||
+    context.profile.preferredName ||
     [context.profile.firstName, context.profile.lastName].filter(Boolean).join(" ") ||
     context.profile.email?.split("@").at(0) ||
     "Your account"
@@ -769,181 +735,15 @@ function mergeCheckoutLines(lines: readonly StorefrontCheckoutLine[]): Storefron
       quantity: (current?.quantity ?? 0) + line.quantity,
     });
   }
-  return Array.from(merged.values());
+  return [...merged.values()];
 }
 
 function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
-  const byId = new Map<string, T>();
-  for (const item of items) byId.set(item.id, item);
-  return Array.from(byId.values());
+  return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
-function formatNaira(amountMinor: number): string {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(amountMinor / 100);
-}
-
-function formatEstimatedDays(value: string | null): string {
-  if (!value) return "Timing is confirmed after payment.";
-  const range = value.includes("-")
-    ? `${value} working days`
-    : `${value} working day${value === "1" ? "" : "s"}`;
-  return `Estimated arrival: ${range}.`;
-}
-
-function paymentLabel(stage: PaymentStage, resuming: boolean): string {
-  switch (stage) {
-    case "creating":
-      return "Preparing payment…";
-    case "paying":
-      return "Complete payment in the secure window…";
-    case "verifying":
-      return "Confirming payment…";
-    case "ready":
-      return resuming ? "Continue secure payment" : "Pay securely";
-  }
-}
-
-function getCheckoutBlocker({
-  activeCheckout,
-  couponCode,
-  couponFetching,
-  couponReady,
-  currentStatus,
-  lineCount,
-  paymentStage,
-  phoneReady,
-  selectedAddressId,
-  selectedDeliveryQuote,
-}: {
-  activeCheckout: CheckoutDraft | null;
-  couponCode: string;
-  couponFetching: boolean;
-  couponReady: boolean;
-  currentStatus: CheckoutStatus | null;
-  lineCount: number;
-  paymentStage: PaymentStage;
-  phoneReady: boolean;
-  selectedAddressId: string | null;
-  selectedDeliveryQuote: CheckoutDeliveryQuote | null;
-}): CheckoutBlocker | null {
-  if (paymentStage !== "ready") {
-    return { message: "Keep this checkout open while payment is being prepared.", tone: "muted" };
-  }
-  if (activeCheckout) {
-    if (!activeCheckout.accessCode) {
-      return {
-        message: "This payment cannot be reopened here. Open the order in your account for help.",
-        tone: "danger",
-      };
-    }
-    if (currentStatus === "reversed") {
-      return {
-        message: "This payment was reversed. Do not pay again from this checkout.",
-        tone: "danger",
-      };
-    }
-    if (currentStatus === "review_required") {
-      return {
-        message: "This payment is being reviewed. Please do not pay again yet.",
-        tone: "danger",
-      };
-    }
-    return null;
-  }
-  if (lineCount === 0) {
-    return { message: "Your bag has no purchasable items.", tone: "danger" };
-  }
-  if (!phoneReady) {
-    return { message: "Save a delivery phone number to continue.", tone: "muted" };
-  }
-  if (!selectedAddressId) {
-    return { message: "Add or select a delivery address to continue.", tone: "muted" };
-  }
-  if (!selectedDeliveryQuote) {
-    return {
-      message: "Refresh checkout to load the nationwide delivery quote for this address.",
-      tone: "danger",
-    };
-  }
-  if (couponCode.trim() && couponFetching) {
-    return { message: "Checking your coupon code…", tone: "muted" };
-  }
-  if (!couponReady) {
-    return { message: "Remove the coupon or enter a valid code to continue.", tone: "danger" };
-  }
-  return null;
-}
-
-function getPaymentNotice(status: CheckoutStatus | null): PaymentNotice | null {
-  switch (status) {
-    case "initializing":
-    case "initialized":
-    case "pending":
-      return {
-        title: "Payment is still in progress",
-        detail: "Continue this payment without creating another order.",
-        tone: "neutral",
-      };
-    case "failed":
-      return {
-        title: "Payment was not completed",
-        detail: "Your checkout and bag are saved. Continue payment below to try again safely.",
-        tone: "danger",
-      };
-    case "abandoned":
-      return {
-        title: "The payment window was closed",
-        detail: "Nothing has been lost. Your checkout is saved and ready to continue.",
-        tone: "warning",
-      };
-    case "reversed":
-      return {
-        title: "Payment was reversed",
-        detail: "This order was not marked paid. Open the order in your account if you need help.",
-        tone: "danger",
-      };
-    case "review_required":
-      return {
-        title: "Payment is being reviewed",
-        detail: "Please do not pay again yet. We will update the order when the review is complete.",
-        tone: "warning",
-      };
-    case "success":
-    case null:
-      return null;
-  }
-}
-
-function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
-  return status !== "success" && status !== "reversed" && status !== "review_required";
-}
-
-function isTerminalFailure(status: CheckoutStatus): boolean {
-  return (
-    status === "failed" ||
-    status === "abandoned" ||
-    status === "reversed" ||
-    status === "review_required"
-  );
-}
-
-function paymentOutcomeMessage(status: CheckoutStatus): string {
-  switch (status) {
-    case "failed":
-      return "Payment was not completed. Your checkout is saved.";
-    case "abandoned":
-      return "The payment window was closed. Your checkout is saved.";
-    case "reversed":
-      return "Payment was reversed. Open the order in your account for help.";
-    case "review_required":
-      return "Payment is being reviewed. Please do not pay again yet.";
-    default:
-      return "Payment is still being confirmed.";
-  }
+function formatMoney(minor: number): string {
+  return currencyFormatter.format(minor / 100).replace("NGN", "₦");
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {
