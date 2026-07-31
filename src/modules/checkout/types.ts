@@ -23,6 +23,13 @@ export type CheckoutDeliveryZone = {
   estimatedDays: string | null;
 };
 
+export type CheckoutCouponValidation = {
+  code: string;
+  valid: boolean;
+  message: string;
+  discountMinor: number;
+};
+
 export type CheckoutDraft = z.infer<typeof checkoutDraftSchema>;
 
 export type CheckoutContext = {
