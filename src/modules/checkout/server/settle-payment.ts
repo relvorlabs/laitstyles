@@ -1,6 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
+import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import { paystackSettlementEventSchema } from "@/modules/checkout/schema";
 import type {
@@ -137,12 +138,7 @@ export async function settlePaystackEvent(
             currency: parsed.data.currency,
             event: parsed.data,
           });
-          if (order.customer_id) {
-            await tx.$executeRaw`
-              DELETE FROM public.customer_cart_lines
-              WHERE customer_id = ${order.customer_id}::uuid
-            `;
-          }
+          await consumeSettledCartLines(tx, order.customer_id, order.order_lines);
           return ok({
             checkoutId: order.id,
             paymentId: payment.id,
@@ -159,6 +155,34 @@ export async function settlePaystackEvent(
     }
   }
   return err({ code: "CHECKOUT_IN_PROGRESS", message: "Payment settlement is still in progress." });
+}
+
+async function consumeSettledCartLines(
+  tx: Prisma.TransactionClient,
+  customerId: string,
+  lines: readonly {
+    product_id: string;
+    variant_id: string | null;
+    quantity: number;
+  }[],
+): Promise<void> {
+  for (const line of lines) {
+    await tx.$executeRaw`
+      UPDATE public.customer_cart_lines
+      SET quantity = quantity - ${line.quantity}, updated_at = now()
+      WHERE customer_id = ${customerId}::uuid
+        AND product_id = ${line.product_id}::uuid
+        AND variant_id IS NOT DISTINCT FROM ${line.variant_id}::uuid
+        AND quantity > ${line.quantity}
+    `;
+    await tx.$executeRaw`
+      DELETE FROM public.customer_cart_lines
+      WHERE customer_id = ${customerId}::uuid
+        AND product_id = ${line.product_id}::uuid
+        AND variant_id IS NOT DISTINCT FROM ${line.variant_id}::uuid
+        AND quantity <= ${line.quantity}
+    `;
+  }
 }
 
 function replay(
