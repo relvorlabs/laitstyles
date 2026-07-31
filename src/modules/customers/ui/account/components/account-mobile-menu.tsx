@@ -8,13 +8,15 @@ import { AcctButton, Eyebrow, IconButton } from "./account-primitives";
 import { SidebarLink } from "./account-sidebar";
 
 export function AccountMobileMenu({
+  displayName,
   open,
   onOpenChange,
 }: {
+  displayName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { currentRoute, navigate, toast } = useAccountUi();
+  const { currentRoute, navigate } = useAccountUi();
 
   function select(route: AccountRoute) {
     navigate(route);
@@ -30,7 +32,7 @@ export function AccountMobileMenu({
       >
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Eyebrow className="text-[var(--acc-muted)]">Signed in as Ada</Eyebrow>
+            <Eyebrow className="text-[var(--acc-muted)]">Signed in as {displayName}</Eyebrow>
             <SheetTitle className="mt-2 font-serif text-4xl font-normal text-[var(--acc-ink)]">
               Account
             </SheetTitle>
@@ -47,20 +49,15 @@ export function AccountMobileMenu({
               item={item}
               key={item.route}
               onSelect={select}
-              showMeta={false}
             />
           ))}
         </nav>
-        <AcctButton
-          className="mt-6 w-full"
-          onClick={() => {
-            toast("Current-session sign-out selected");
-            onOpenChange(false);
-          }}
-          variant="danger"
-        >
-          Sign out
-        </AcctButton>
+        <form action="/auth/sign-out" className="mt-6" method="post">
+          <input name="next" type="hidden" value="/" />
+          <AcctButton className="w-full" type="submit" variant="danger">
+            Sign out
+          </AcctButton>
+        </form>
       </SheetContent>
     </Sheet>
   );
