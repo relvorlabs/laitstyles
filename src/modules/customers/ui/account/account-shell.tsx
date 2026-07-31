@@ -3,7 +3,7 @@
 import { MenuIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "@/providers/session-provider";
 import { AccountUiProvider } from "./account-context";
 import { type AccountModalId, type AccountRoute, routeFromPathname, routePaths } from "./account-nav";
@@ -24,9 +24,13 @@ export function AccountShell({ children }: { children: ReactNode }) {
   const displayName =
     session.displayName?.trim() || session.email?.split("@")[0]?.trim() || "Customer";
 
-  function navigate(route: AccountRoute) {
-    router.push(routePaths[route]);
-  }
+  const navigate = useCallback(
+    (route: AccountRoute) => {
+      router.push(routePaths[route]);
+      setMenuOpen(false);
+    },
+    [router],
+  );
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -37,13 +41,12 @@ export function AccountShell({ children }: { children: ReactNode }) {
   const accountUi = useMemo(
     () => ({
       currentRoute,
-      modal,
       navigate,
       openModal: setModal,
       closeModal: () => setModal(null),
       toast: setToastMessage,
     }),
-    [currentRoute, modal],
+    [currentRoute, navigate],
   );
 
   return (
