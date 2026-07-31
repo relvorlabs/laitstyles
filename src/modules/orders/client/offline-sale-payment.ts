@@ -4,8 +4,8 @@ import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query
 import { apiRequest } from "@/lib/http/client";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
-import type { OfflineSalePaymentState } from "@/modules/orders/offline-sale-contract";
 import { orderKeys } from "@/modules/orders/client/keys";
+import type { OfflineSalePaymentState } from "@/modules/orders/offline-sale-contract";
 import { overviewKeys } from "@/modules/overview/client/keys";
 
 const offlineSalePaymentKeys = {
@@ -58,4 +58,8 @@ async function verifyOfflineSalePaymentRequest(
   orderId: string,
 ): Promise<OfflineSalePaymentState> {
   const response = await apiRequest<OfflineSalePaymentState>(
-    `/api/v1/admin/orders/offline-sales/${encodeURIComponent(orderId)}/verife€°(€€€ìµ•Ñ¡½è€‰A=MPˆô°(€€¤ì(€É•ÑÕÉ¸É•ÍÁ½¹Í”¹‘…Ñ„ì)ô
+    `/api/v1/admin/orders/offline-sales/${encodeURIComponent(orderId)}/verify`,
+    { method: "POST" },
+  );
+  return response.data;
+}
