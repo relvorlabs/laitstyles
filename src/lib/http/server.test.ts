@@ -111,6 +111,18 @@ describe("handleApiRequest", () => {
     expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private database detail");
   });
 
+  it("maps a direct PostgreSQL missing-table code to schema-not-ready", async () => {
+    const response = await handleApiRequest(async () => {
+      throw Object.assign(new Error("private relation name"), { code: "42P01" });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "DATABASE_SCHEMA_NOT_READY" },
+    });
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private relation name");
+  });
+
   it("maps Prisma model/column drift to schema-not-ready", async () => {
     const response = await handleApiRequest(async () => {
       throw Object.assign(new Error("column access_code does not exist"), { code: "P2022" });
@@ -136,6 +148,18 @@ describe("handleApiRequest", () => {
       },
     });
     expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private database host");
+  });
+
+  it("maps a direct socket failure code to database-unavailable", async () => {
+    const response = await handleApiRequest(async () => {
+      throw Object.assign(new Error("private socket detail"), { code: "ECONNREFUSED" });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "DATABASE_UNAVAILABLE" },
+    });
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private socket detail");
   });
 
   it("sanitizes and correlates unexpected failures", async () => {
