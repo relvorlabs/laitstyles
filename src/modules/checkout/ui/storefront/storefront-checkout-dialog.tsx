@@ -21,37 +21,42 @@ export function StorefrontCheckoutDialog({
   subtotalMinor: number;
   onPaid: (orderNumber: string) => void;
 }) {
-  const overlay = useStorefrontOverlay();
-  const open = overlay.openId === "checkoutDialog";
+  const { openId, open: openOverlay, close: closeOverlay } = useStorefrontOverlay();
+  const open = openId === "checkoutDialog";
   const reopenAfterPayment = useRef(false);
+  const checkoutOpen = useRef(open);
+
+  useEffect(() => {
+    checkoutOpen.current = open;
+  }, [open]);
 
   useEffect(
     () =>
       subscribePaystackWindowHandoff((handoff) => {
         if (handoff.stage === "opening") {
-          reopenAfterPayment.current = overlay.openId === "checkoutDialog";
-          if (reopenAfterPayment.current) overlay.close();
+          reopenAfterPayment.current = checkoutOpen.current;
+          if (reopenAfterPayment.current) closeOverlay();
           return;
         }
 
         if (handoff.reopenCheckout && reopenAfterPayment.current) {
-          window.setTimeout(() => overlay.open("checkoutDialog"), 0);
+          window.setTimeout(() => openOverlay("checkoutDialog"), 0);
         }
         reopenAfterPayment.current = false;
       }),
-    [overlay],
+    [closeOverlay, openOverlay],
   );
 
   function returnToCart(): void {
-    overlay.close();
-    window.setTimeout(() => overlay.open("cartDrawer"), 220);
+    closeOverlay();
+    window.setTimeout(() => openOverlay("cartDrawer"), 220);
   }
 
   return (
     <Dialog
       onOpenChange={(nextOpen) => {
-        if (nextOpen) overlay.open("checkoutDialog");
-        else if (overlay.openId === "checkoutDialog") overlay.close();
+        if (nextOpen) openOverlay("checkoutDialog");
+        else if (openId === "checkoutDialog") closeOverlay();
       }}
       open={open}
     >
