@@ -54,7 +54,7 @@ export async function writeProductMedia(
     const assetData = {
       kind,
       secure_url: item.url,
-      alt: cleanProductText(item.alt),
+      alt: cleanProductText(item.alt) || inferProductMediaAlt(item, position),
       width: item.width,
       height: item.height,
       format: item.format,
@@ -69,6 +69,25 @@ export async function writeProductMedia(
       data: { product_id: productId, asset_id: asset.id, kind, position },
     });
   }
+}
+
+export function inferProductMediaAlt(
+  item: Pick<ProductEditorValues["media"][number], "kind" | "publicId">,
+  position: number,
+): string {
+  const role =
+    item.kind === "cover"
+      ? "Featured product image"
+      : item.kind === "defect"
+        ? "Product condition detail"
+        : "Product detail image";
+  const sourceLabel =
+    item.publicId
+      .split("/")
+      .at(-1)
+      ?.replaceAll(/[-_]+/g, " ")
+      .trim() ?? "";
+  return cleanProductText(`${role} ${position + 1}${sourceLabel ? ` · ${sourceLabel}` : ""}`);
 }
 
 export async function writeProductChannels(
