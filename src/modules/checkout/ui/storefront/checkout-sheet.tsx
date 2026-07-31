@@ -59,6 +59,7 @@ export function StorefrontCheckoutSheet({
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [phone, setPhone] = useState("");
+  const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [debouncedCouponCode, setDebouncedCouponCode] = useState("");
   const [paymentStage, setPaymentStage] = useState<PaymentStage>("ready");
@@ -128,6 +129,7 @@ export function StorefrontCheckoutSheet({
     setSelectedAddressId((current) => current ?? context.defaultAddressId);
     setSelectedZoneId((current) => current ?? context.selectedDeliveryZoneId);
     setPhone(context.profile.phone);
+    setPhoneConfirmation(context.profile.phone);
     setActiveCheckout((current) => current ?? context.activeCheckout);
   }, [context]);
 
@@ -153,8 +155,13 @@ export function StorefrontCheckoutSheet({
   async function savePhone(): Promise<void> {
     if (!context) return;
     const normalizedPhone = phone.trim();
+    const normalizedConfirmation = phoneConfirmation.trim();
     if (normalizedPhone.replaceAll(/\D/g, "").length < 7) {
       toast.error("Enter a valid phone number.");
+      return;
+    }
+    if (normalizedPhone !== normalizedConfirmation) {
+      toast.error("The phone number confirmation does not match.");
       return;
     }
 
@@ -170,7 +177,7 @@ export function StorefrontCheckoutSheet({
           ? { ...current, profile, profileComplete: true, phoneRequired: false }
           : current,
       );
-      toast.success("Phone number saved to your account.");
+      toast.success("Phone number confirmed and saved to your account.");
     } catch (error: unknown) {
       toast.error(readErrorMessage(error, "Your phone number could not be saved."));
     }
@@ -312,13 +319,20 @@ export function StorefrontCheckoutSheet({
                 placeholder="Phone number"
                 value={phone}
               />
+              <Input
+                aria-label="Confirm phone number"
+                inputMode="tel"
+                onChange={(event) => setPhoneConfirmation(event.target.value)}
+                placeholder="Confirm phone number"
+                value={phoneConfirmation}
+              />
               <Button
                 disabled={updateProfile.isPending}
                 onClick={() => void savePhone()}
                 type="button"
                 variant="outline"
               >
-                {updateProfile.isPending ? "Saving…" : "Save phone number"}
+                {updateProfile.isPending ? "Saving…" : "Confirm and save phone number"}
               </Button>
             </div>
           ) : null}
