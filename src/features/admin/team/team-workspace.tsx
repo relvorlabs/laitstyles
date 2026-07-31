@@ -1,10 +1,12 @@
 "use client";
 
 import { MailPlus, ShieldCheck, UserRoundCheck } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel, FieldSuccess } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { ApiClientError } from "@/lib/http/client";
+import { inviteManagerRequest } from "@/modules/auth/client/staff-invitation-api";
 import type { ManagerMember } from "@/modules/auth/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +25,8 @@ function validateInviteField(field: InviteFormField, value: string): string | un
 }
 
 export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMember[] }) {
-  const [members, setMembers] = useState(initialMembers);
+  const [members, setMembers] = useState(() => uniqueMembers(initialMembers));
+  const visibleMembers = useMemo(() => uniqueMembers(members), [members]);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
   const [touched, setTouched] = useState<Record<InviteFormField, boolean>>({
     firstName: false,
@@ -35,7 +38,7 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
     tone: "error" | "success";
     text: string;
   } | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<InviteFormField, string>>>({});
 
   function fieldError(field: InviteFormField): string | undefined {
     return (
@@ -51,7 +54,7 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
     if (pending) return;
     setTouched({ firstName: true, lastName: true, email: true });
 
-    const localErrors: Record<string, string> = {};
+    const localErrors: Partial<Record<InviteFormField, string>> = {};
     for (const field of ["firstName", "lastName", "email"] as const) {
       const localError = validateInviteField(field, form[field]);
       if (localError) localErrors[field] = localError;
@@ -70,34 +73,21 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
     setFieldErrors({});
 
     try {
-      const response = await fetch("/api/v1/auth/invitations", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const result = (await response.json()) as
-        | { ok: true; member: ManagerMember; message: string }
-        | { ok: false; message: string; fieldErrors?: Record<string, string> };
-
-      if (!result.ok) {
-        setMessage({ tone: "error", text: result.message });
-        setFieldErrors(result.fieldErrors ?? {});
-        return;
-      }
-
-      setMembers((current) => [
-        result.member,
-        ...current.filter((member) => member.id !== result.member.id),
-      ]);
+      const result = await inviteManagerRequest(form);
+      setMembers((current) => uniqueMembers([result.member, ...current]));
       setForm({ firstName: "", lastName: "", email: "" });
       setTouched({ firstName: false, lastName: false, email: false });
       setMessage({ tone: "success", text: result.message });
-    } catch {
-      setMessage({
-        tone: "error",
-        text: "The invitation could not be sent. Check your connection and try again.",
-      });
+    } catch (error: unknown) {
+      if (error instanceof ApiClientError) {
+        setMessage({ tone: "error", text: error.message });
+        setFieldErrors(readInvitationFieldErrors(error.fieldErrors));
+      } else {
+        setMessage({
+          tone: "error",
+          text: "The invitation could not be sent. Check your connection and try again.",
+        });
+      }
     } finally {
       setPending(false);
     }
@@ -112,13 +102,15 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
           </div>
           <h1 className="font-serif text-4xl font-medium tracking-tight">Store team</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Invite store managers through Supabase Auth. Managers complete their own password and
-            profile from the email link and receive manager permissions—not owner access.
+            Invite trusted managers to help with inventory, orders and customer care. Store
+            ownership remains with the owner.
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card px-5 py-4 text-sm shadow-sm">
-          <strong className="block text-2xl font-semibold">{members.length}</strong>
-          <span className="text-muted-foreground">manager{members.length === 1 ? "" : "s"}</span>
+          <strong className="block text-2xl font-semibold">{visibleMembers.length}</strong>
+          <span className="text-muted-foreground">
+            manager{visibleMembers.length === 1 ? "" : "s"}
+          </span>
         </div>
       </header>
 
@@ -131,8 +123,7 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
             <div>
               <h2 className="font-serif text-2xl font-medium">Invite a manager</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Supabase sends the invitation. The recipient chooses their password after opening
-                it.
+                We will email an invitation so they can choose a password and join the store team.
               </p>
             </div>
           </div>
@@ -230,27 +221,26 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
             <div>
               <h2 className="font-serif text-2xl font-medium">Managers</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Invited accounts remain managers throughout setup. They are never elevated to store
-                owner.
+                Managers can run daily store operations without receiving ownership access.
               </p>
             </div>
           </div>
 
           <div className="grid gap-3">
-            {members.length === 0 ? (
+            {visibleMembers.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
                 No store managers have been invited yet.
               </div>
             ) : (
-              members.map((member) => (
+              visibleMembers.map((member) => (
                 <article
                   className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/25 p-4 sm:flex-row sm:items-center sm:justify-between"
-                  key={member.id}
+                  key={`store-manager:${member.id}`}
                 >
                   <div className="min-w-0">
-                    <div className="font-semibold">{member.displayName}</div>
+                    <div className="font-semibold">{member.displayName || "Store manager"}</div>
                     <div className="mt-1 truncate text-sm text-muted-foreground">
-                      {member.email}
+                      {member.email || "Email unavailable"}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 sm:text-right">
@@ -272,4 +262,25 @@ export function TeamWorkspace({ initialMembers }: { initialMembers: ManagerMembe
       </div>
     </div>
   );
+}
+
+function uniqueMembers(members: readonly ManagerMember[]): ManagerMember[] {
+  const byId = new Map<string, ManagerMember>();
+  for (const member of members) {
+    if (!member?.id) continue;
+    byId.set(member.id, member);
+  }
+  return Array.from(byId.values());
+}
+
+function readInvitationFieldErrors(
+  fieldErrors: Record<string, string[]> | undefined,
+): Partial<Record<InviteFormField, string>> {
+  if (!fieldErrors) return {};
+  const result: Partial<Record<InviteFormField, string>> = {};
+  for (const field of ["firstName", "lastName", "email"] as const) {
+    const message = fieldErrors[field]?.at(0);
+    if (message) result[field] = message;
+  }
+  return result;
 }
