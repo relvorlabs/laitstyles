@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, Trash2, X } from "lucide-react";
-import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -60,10 +59,12 @@ export function StorefrontCheckoutAlert({
 
 export function StorefrontHoldAlert({
   count,
+  onCheckout,
   onDismiss,
   secondsLeft,
 }: {
   count: number;
+  onCheckout: () => void;
   onDismiss: () => void;
   secondsLeft: number;
 }) {
@@ -76,12 +77,7 @@ export function StorefrontHoldAlert({
           <strong className="tabular-nums">{formatSeconds(secondsLeft)}</strong> before{" "}
           {count === 1 ? "it releases" : "they release"}.
         </span>
-        <Button
-          size="lg"
-          className="shrink-0"
-          nativeButton={false}
-          render={<Link href="/checkout" />}
-        >
+        <Button className="shrink-0" onClick={onCheckout} size="lg" type="button">
           Checkout
         </Button>
         <Button
