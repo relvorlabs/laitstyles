@@ -167,6 +167,15 @@ async function consumeSettledCartLines(
   }[],
 ): Promise<void> {
   for (const line of lines) {
+    // Delete exact or smaller selections before decrementing larger selections.
+    // Reversing this order would turn 3 - 2 into 1 and then delete that valid remainder.
+    await tx.$executeRaw`
+      DELETE FROM public.customer_cart_lines
+      WHERE customer_id = ${customerId}::uuid
+        AND product_id = ${line.product_id}::uuid
+        AND variant_id IS NOT DISTINCT FROM ${line.variant_id}::uuid
+        AND quantity <= ${line.quantity}
+    `;
     await tx.$executeRaw`
       UPDATE public.customer_cart_lines
       SET quantity = quantity - ${line.quantity}, updated_at = now()
@@ -174,13 +183,6 @@ async function consumeSettledCartLines(
         AND product_id = ${line.product_id}::uuid
         AND variant_id IS NOT DISTINCT FROM ${line.variant_id}::uuid
         AND quantity > ${line.quantity}
-    `;
-    await tx.$executeRaw`
-      DELETE FROM public.customer_cart_lines
-      WHERE customer_id = ${customerId}::uuid
-        AND product_id = ${line.product_id}::uuid
-        AND variant_id IS NOT DISTINCT FROM ${line.variant_id}::uuid
-        AND quantity <= ${line.quantity}
     `;
   }
 }
