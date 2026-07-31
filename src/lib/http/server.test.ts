@@ -78,6 +78,66 @@ describe("handleApiRequest", () => {
     expect(loggerError).not.toHaveBeenCalled();
   });
 
+  it("maps a missing table from a raw Prisma query to schema-not-ready", async () => {
+    const request = new Request("http://localhost/api/v1/account/cart", {
+      headers: { "x-request-id": "missing-table-test" },
+    });
+    const response = await handleApiRequest(request, async () => {
+      throw Object.assign(new Error("relation customer_cart_lines does not exist"), {
+        code: "P2010",
+        meta: { code: "42P01", message: "private database detail" },
+      });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "DATABASE_SCHEMA_NOT_READY",
+        message: "Store data is temporarily unavailable while an update completes.",
+      },
+    });
+    expect(loggerError).toHaveBeenCalledWith(
+      {
+        requestId: "missing-table-test",
+        method: "GET",
+        pathname: "/api/v1/account/cart",
+        errorName: "Error",
+        errorCode: "P2010",
+        databaseCode: "42P01",
+      },
+      "Database request failed",
+    );
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("customer_cart_lines");
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private database detail");
+  });
+
+  it("maps Prisma model/column drift to schema-not-ready", async () => {
+    const response = await handleApiRequest(async () => {
+      throw Object.assign(new Error("column access_code does not exist"), { code: "P2022" });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "DATABASE_SCHEMA_NOT_READY" },
+    });
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("access_code");
+  });
+
+  it("maps database connection failures to a retryable unavailable response", async () => {
+    const response = await handleApiRequest(async () => {
+      throw Object.assign(new Error("cannot reach private database host"), { code: "P1001" });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "DATABASE_UNAVAILABLE",
+        message: "Store data is temporarily unavailable. Please try again.",
+      },
+    });
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private database host");
+  });
+
   it("sanitizes and correlates unexpected failures", async () => {
     const request = new Request("http://localhost/api/v1/products?page=2", {
       method: "POST",
