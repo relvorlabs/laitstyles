@@ -70,7 +70,10 @@ export function StorefrontCheckoutSheet({
     checkoutCouponQueryOptions(
       debouncedCouponCode,
       subtotalMinor,
-      active && signedIn && debouncedCouponCode.trim().length >= 2,
+      active &&
+        signedIn &&
+        !activeCheckout &&
+        debouncedCouponCode.trim().length >= 2,
     ),
   );
 
@@ -85,15 +88,22 @@ export function StorefrontCheckoutSheet({
   );
   const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
-  const totalMinor = Math.max(0, subtotalMinor + (selectedZone?.feeMinor ?? 0) - discountMinor);
+  const displaySubtotalMinor = activeCheckout?.subtotalMinor ?? subtotalMinor;
+  const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedZone?.feeMinor ?? 0;
+  const displayDiscountMinor = activeCheckout?.discountMinor ?? discountMinor;
+  const totalMinor =
+    activeCheckout?.totalMinor ??
+    Math.max(0, subtotalMinor + (selectedZone?.feeMinor ?? 0) - discountMinor);
   const phoneReady = Boolean(context && !context.phoneRequired && context.profile.phone.trim());
   const couponReady =
     !couponCode.trim() ||
     (debouncedCouponCode.trim() === couponCode.trim() &&
       !couponQuery.isFetching &&
       couponValidation?.valid === true);
-  const canPay = Boolean(
-    signedIn &&
+  const canResume = Boolean(activeCheckout?.accessCode && paymentStage === "ready");
+  const canCreate = Boolean(
+    !activeCheckout &&
+      signedIn &&
       phoneReady &&
       selectedAddressId &&
       selectedZoneId &&
@@ -101,6 +111,7 @@ export function StorefrontCheckoutSheet({
       couponReady &&
       paymentStage === "ready",
   );
+  const canPay = canResume || canCreate;
 
   useEffect(() => {
     if (!active) return;
@@ -121,9 +132,9 @@ export function StorefrontCheckoutSheet({
   }, [context]);
 
   useEffect(() => {
-    if (!context || !selectedAddress) return;
+    if (!context || !selectedAddress || activeCheckout) return;
     selectZoneForAddress(selectedAddress, context, setSelectedZoneId);
-  }, [context, selectedAddress]);
+  }, [activeCheckout, context, selectedAddress]);
 
   useEffect(() => {
     const checkout = checkoutStatusQuery.data;
@@ -166,23 +177,30 @@ export function StorefrontCheckoutSheet({
   }
 
   async function startPayment(): Promise<void> {
-    if (!context || !canPay || !selectedAddressId || !selectedZoneId) return;
+    if (!context || !canPay) return;
 
     setPaymentStage("creating");
     try {
-      const checkout = activeCheckout?.accessCode
-        ? activeCheckout
-        : await createCheckout.mutateAsync({
-            idempotencyKey: idempotencyKey.current,
-            addressId: selectedAddressId,
-            deliveryZoneId: selectedZoneId,
-            ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
-            lines: lines.map((line) => ({
-              productId: line.productId,
-              ...(line.variantId ? { variantId: line.variantId } : {}),
-              quantity: line.quantity,
-            })),
-          });
+      let checkout: CheckoutDraft;
+      if (activeCheckout?.accessCode) {
+        checkout = activeCheckout;
+      } else {
+        if (!selectedAddressId || !selectedZoneId) {
+          setPaymentStage("ready");
+          return;
+        }
+        checkout = await createCheckout.mutateAsync({
+          idempotencyKey: idempotencyKey.current,
+          addressId: selectedAddressId,
+          deliveryZoneId: selectedZoneId,
+          ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
+          lines: lines.map((line) => ({
+            productId: line.productId,
+            ...(line.variantId ? { variantId: line.variantId } : {}),
+            quantity: line.quantity,
+          })),
+        });
+      }
       setActiveCheckout(checkout);
       if (!checkout.accessCode) {
         throw new Error(
@@ -268,8 +286,8 @@ export function StorefrontCheckoutSheet({
           <section className="rounded-xl border border-[var(--line)] bg-[var(--sage-light)] p-4 text-sm">
             <p className="font-medium">Resuming {activeCheckout.orderNumber}</p>
             <p className="mt-1 leading-5 text-[var(--muted)]">
-              Your order and selected delivery details are already saved. Continue the existing
-              Paystack payment instead of creating another checkout.
+              Your order and delivery details are already saved. Continue its existing Paystack
+              payment instead of creating another checkout.
             </p>
           </section>
         ) : null}
@@ -281,7 +299,7 @@ export function StorefrontCheckoutSheet({
             <p>{context.profile.email}</p>
             {phoneReady ? <p>{context.profile.phone}</p> : null}
           </SummaryCard>
-          {context.phoneRequired ? (
+          {!activeCheckout && context.phoneRequired ? (
             <div className="grid gap-3 rounded-xl border border-[var(--line)] p-4">
               <p className="text-sm leading-5 text-[var(--muted)]">
                 Add and confirm a phone number for delivery updates. We will save it to your
@@ -306,139 +324,144 @@ export function StorefrontCheckoutSheet({
           ) : null}
         </section>
 
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <SectionHeading label="Delivery address" />
-            {context.addresses.length > 1 ? (
-              <Button
-                onClick={() => setShowAddressSelector((current) => !current)}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                {showAddressSelector ? "Keep selected address" : "Change delivery address"}
-              </Button>
-            ) : null}
-          </div>
-
-          {selectedAddress ? <AddressSummary address={selectedAddress} /> : null}
-
-          {showAddressSelector && context.addresses.length > 1 ? (
-            <label className="grid gap-2 text-sm">
-              <span className="text-[var(--muted)]">Choose an existing saved address</span>
-              <select
-                className="h-10 rounded-lg border border-input bg-control px-3 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                onChange={(event) => setSelectedAddressId(event.target.value)}
-                value={selectedAddressId ?? ""}
-              >
-                {context.addresses.map((address) => (
-                  <option key={address.id} value={address.id}>
-                    {address.label}{address.isDefault ? " · Default" : ""} · {address.city}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          {context.addresses.length === 0 ? (
-            <SummaryCard>
-              <p>No delivery address is saved yet.</p>
-              <Button
-                className="mt-3 px-0"
-                nativeButton={false}
-                render={<Link href="/account/addresses?returnTo=checkout" />}
-                size="sm"
-                variant="link"
-              >
-                Add an address in your account
-              </Button>
-            </SummaryCard>
-          ) : (
-            <Button
-              className="px-0"
-              nativeButton={false}
-              render={<Link href="/account/addresses?returnTo=checkout" />}
-              size="sm"
-              variant="link"
-            >
-              Manage saved addresses
-            </Button>
-          )}
-        </section>
-
-        <section className="space-y-3">
-          <SectionHeading label="Delivery estimate" />
-          {selectedZone ? (
-            <SummaryCard>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium text-[var(--ink)]">{selectedZone.name}</p>
-                  <p className="mt-1">{selectedZone.city}</p>
-                  <p className="mt-1 text-xs">
-                    {selectedZone.estimatedDays || "Timing will be confirmed after payment."}
-                  </p>
-                </div>
-                <p className="font-mono font-medium text-[var(--ink)] tabular-nums">
-                  {formatNaira(selectedZone.feeMinor)}
-                </p>
+        {!activeCheckout ? (
+          <>
+            <section className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <SectionHeading label="Delivery address" />
+                {context.addresses.length > 1 ? (
+                  <Button
+                    onClick={() => setShowAddressSelector((current) => !current)}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    {showAddressSelector ? "Keep selected address" : "Change delivery address"}
+                  </Button>
+                ) : null}
               </div>
-            </SummaryCard>
-          ) : (
-            <SummaryCard>
-              This address is outside the configured delivery zones. Choose another saved address
-              or update your addresses in the account area.
-            </SummaryCard>
-          )}
-        </section>
 
-        <section className="space-y-3">
-          <SectionHeading label="Coupon code" />
-          <div className="rounded-xl border border-[var(--line)] p-4">
-            <Input
-              aria-label="Coupon code"
-              autoComplete="off"
-              onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-              placeholder="Enter coupon code"
-              value={couponCode}
-            />
-            {couponCode.trim() ? (
-              <p
-                aria-live="polite"
-                className={`mt-2 text-xs ${
-                  couponQuery.isFetching
-                    ? "text-[var(--muted)]"
-                    : couponValidation?.valid
-                      ? "text-emerald-700"
-                      : "text-red-700"
-                }`}
-              >
-                {couponQuery.isFetching
-                  ? "Validating automatically…"
-                  : couponValidation?.message || "Enter at least two characters."}
-              </p>
-            ) : (
-              <p className="mt-2 text-xs text-[var(--muted)]">
-                Codes validate automatically; there is no Apply button.
-              </p>
-            )}
-          </div>
-        </section>
+              {selectedAddress ? <AddressSummary address={selectedAddress} /> : null}
+
+              {showAddressSelector && context.addresses.length > 1 ? (
+                <label className="grid gap-2 text-sm">
+                  <span className="text-[var(--muted)]">Choose an existing saved address</span>
+                  <select
+                    className="h-10 rounded-lg border border-input bg-control px-3 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    onChange={(event) => setSelectedAddressId(event.target.value)}
+                    value={selectedAddressId ?? ""}
+                  >
+                    {context.addresses.map((address) => (
+                      <option key={address.id} value={address.id}>
+                        {address.label}
+                        {address.isDefault ? " · Default" : ""} · {address.city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+
+              {context.addresses.length === 0 ? (
+                <SummaryCard>
+                  <p>No delivery address is saved yet.</p>
+                  <Button
+                    className="mt-3 px-0"
+                    nativeButton={false}
+                    render={<Link href="/account/addresses?returnTo=checkout" />}
+                    size="sm"
+                    variant="link"
+                  >
+                    Add an address in your account
+                  </Button>
+                </SummaryCard>
+              ) : (
+                <Button
+                  className="px-0"
+                  nativeButton={false}
+                  render={<Link href="/account/addresses?returnTo=checkout" />}
+                  size="sm"
+                  variant="link"
+                >
+                  Manage saved addresses
+                </Button>
+              )}
+            </section>
+
+            <section className="space-y-3">
+              <SectionHeading label="Delivery estimate" />
+              {selectedZone ? (
+                <SummaryCard>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-[var(--ink)]">{selectedZone.name}</p>
+                      <p className="mt-1">{selectedZone.city}</p>
+                      <p className="mt-1 text-xs">
+                        {selectedZone.estimatedDays || "Timing will be confirmed after payment."}
+                      </p>
+                    </div>
+                    <p className="font-mono font-medium text-[var(--ink)] tabular-nums">
+                      {formatNaira(selectedZone.feeMinor)}
+                    </p>
+                  </div>
+                </SummaryCard>
+              ) : (
+                <SummaryCard>
+                  This address is outside the configured delivery zones. Choose another saved
+                  address or update your addresses in the account area.
+                </SummaryCard>
+              )}
+            </section>
+
+            <section className="space-y-3">
+              <SectionHeading label="Coupon code" />
+              <div className="rounded-xl border border-[var(--line)] p-4">
+                <Input
+                  aria-label="Coupon code"
+                  autoComplete="off"
+                  onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                />
+                {couponCode.trim() ? (
+                  <p
+                    aria-live="polite"
+                    className={`mt-2 text-xs ${
+                      couponQuery.isFetching
+                        ? "text-[var(--muted)]"
+                        : couponValidation?.valid
+                          ? "text-emerald-700"
+                          : "text-red-700"
+                    }`}
+                  >
+                    {couponQuery.isFetching
+                      ? "Validating automatically…"
+                      : couponValidation?.message || "Enter at least two characters."}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    Codes validate automatically; there is no Apply button.
+                  </p>
+                )}
+              </div>
+            </section>
+          </>
+        ) : null}
       </div>
 
       <div className="border-t border-[var(--line)] bg-[var(--bone-2)] px-6 py-5">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between gap-4 text-[var(--muted)]">
             <span>Items</span>
-            <span>{formatNaira(subtotalMinor)}</span>
+            <span>{formatNaira(displaySubtotalMinor)}</span>
           </div>
           <div className="flex justify-between gap-4 text-[var(--muted)]">
-            <span>Estimated delivery</span>
-            <span>{selectedZone ? formatNaira(selectedZone.feeMinor) : "—"}</span>
+            <span>{activeCheckout ? "Delivery" : "Estimated delivery"}</span>
+            <span>{displayDeliveryFeeMinor > 0 ? formatNaira(displayDeliveryFeeMinor) : "—"}</span>
           </div>
-          {discountMinor > 0 ? (
+          {displayDiscountMinor > 0 ? (
             <div className="flex justify-between gap-4 text-emerald-700">
-              <span>Coupon {couponValidation?.code}</span>
-              <span>−{formatNaira(discountMinor)}</span>
+              <span>{activeCheckout ? "Discount" : `Coupon ${couponValidation?.code ?? ""}`}</span>
+              <span>−{formatNaira(displayDiscountMinor)}</span>
             </div>
           ) : null}
           <div className="flex items-end justify-between gap-4 border-t border-[var(--line)] pt-3">
@@ -454,9 +477,16 @@ export function StorefrontCheckoutSheet({
         >
           {paymentLabel(paymentStage, Boolean(activeCheckout))}
         </Button>
-        <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">
-          Paystack opens securely. The order is marked paid only after server verification.
-        </p>
+        {activeCheckout && !activeCheckout.accessCode ? (
+          <p className="mt-3 text-center text-[11px] leading-4 text-red-700">
+            This payment cannot be reopened automatically. Open the order in your account for
+            support.
+          </p>
+        ) : (
+          <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">
+            Paystack opens securely. The order is marked paid only after server verification.
+          </p>
+        )}
       </div>
     </CheckoutPanelShell>
   );
@@ -474,7 +504,13 @@ function CheckoutPanelShell({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-3 border-b border-[var(--line)] px-6 py-5">
-        <Button aria-label="Back to bag" onClick={onBack} size="icon-sm" type="button" variant="ghost">
+        <Button
+          aria-label="Back to bag"
+          onClick={onBack}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
           ←
         </Button>
         <div>
@@ -507,7 +543,8 @@ function AddressSummary({ address }: { address: OwnedAddress }) {
   return (
     <SummaryCard>
       <p className="font-medium text-[var(--ink)]">
-        {address.label}{address.isDefault ? " · Default" : ""}
+        {address.label}
+        {address.isDefault ? " · Default" : ""}
       </p>
       <p className="mt-1">
         {[address.line1, address.line2, address.city, address.state].filter(Boolean).join(", ")}
