@@ -59,3 +59,21 @@ CREATE TRIGGER "customer_cart_lines_validate_variant"
 BEFORE INSERT OR UPDATE ON "public"."customer_cart_lines"
 FOR EACH ROW
 EXECUTE FUNCTION "public"."validate_customer_cart_line_variant"();
+
+-- The browser never reads or writes this table through Supabase Data API.
+-- All ownership is resolved in authenticated Route Handlers and all CRUD stays
+-- on the privileged Prisma connection. RLS plus explicit grant removal prevents
+-- accidental direct access if public is exposed through PostgREST.
+ALTER TABLE "public"."customer_cart_lines" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON FUNCTION "public"."validate_customer_cart_line_variant"() FROM PUBLIC;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE ALL ON TABLE "public"."customer_cart_lines" FROM anon;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    REVOKE ALL ON TABLE "public"."customer_cart_lines" FROM authenticated;
+  END IF;
+END
+$$;
