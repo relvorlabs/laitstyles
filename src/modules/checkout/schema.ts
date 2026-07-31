@@ -40,7 +40,7 @@ export const createCheckoutRequestSchema = z
   .superRefine(rejectDuplicateLines);
 
 export const createCheckoutSchema = z
-  .object({ ...createCheckoutFields, callbackUrl: z.string().url() })
+  .object({ ...createCheckoutFields, callbackUrl: z.string().url().optional() })
   .strict()
   .superRefine(rejectDuplicateLines);
 
