@@ -267,18 +267,13 @@ export function StorefrontAuthDialogHost() {
 
 function selectAuthProduct(products: readonly Product[]): Product | undefined {
   return (
-    products.find((product) => product?.status === "available" && Boolean(product.id)) ??
-    products.find((product) => Boolean(product?.id))
+    products.find((product) => product.status === "available" && Boolean(product.id)) ??
+    products.find((product) => Boolean(product.id))
   );
 }
 
-function flattenFieldErrors(fieldErrors: Record<string, string[]> | undefined): Record<string, string> {
-  if (!fieldErrors) return {};
-  return Object.fromEntries(
-    Object.entries(fieldErrors).flatMap(([field, messages]) =>
-      typeof messages?.[0] === "string" ? [[field, messages[0]]] : [],
-    ),
-  );
+function flattenFieldErrors(fieldErrors: Record<string, string> | undefined): Record<string, string> {
+  return fieldErrors ? { ...fieldErrors } : {};
 }
 
 function validateAuth(mode: StorefrontAuthMode, form: StorefrontAuthForm, termsAccepted: boolean) {
