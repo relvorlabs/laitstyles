@@ -28,7 +28,8 @@ export interface StorefrontCatalogueProduct {
   flaw: string;
   material: string;
   careInstructions: string;
-  defaultImage: string | null;
+  /** Canonical admin-selected cover. Older cached projections may omit it. */
+  defaultImage?: string | null;
   images: string[];
   variants?: string[];
 }
