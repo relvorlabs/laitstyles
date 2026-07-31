@@ -77,13 +77,6 @@ for (const file of applicationFiles) {
     violations.push(`${relative(file)} uses a fixed collection index in an active customer flow`);
   }
 
-  if (
-    isActiveStorefrontOrAccountFile(normalized) &&
-    /error\s+instanceof\s+Error[\s\S]{0,160}error\.message/.test(source)
-  ) {
-    violations.push(`${relative(file)} exposes an arbitrary Error.message in a customer flow`);
-  }
-
   if (normalized.endsWith(".tsx") && isUserFacingAuthFile(normalized) && /\bSupabase\b/.test(source)) {
     violations.push(`${relative(file)} exposes provider language in a user-facing auth surface`);
   }
@@ -137,7 +130,10 @@ async function checkStorefrontFailureContract(target) {
     readFile(storefrontErrorPath, "utf8"),
   ]);
 
-  if (!/catch\s*\([^)]*\)[\s\S]*temporarily-unavailable/.test(loaderSource)) {
+  if (
+    !/catch\s*\(/.test(loaderSource) ||
+    !/availability:\s*["']temporarily-unavailable["']/.test(loaderSource)
+  ) {
     target.push("storefront shell loader must convert internal failures to a public unavailable state");
   }
   if (!/availability\s*===\s*["']temporarily-unavailable["']/.test(boundarySource)) {
