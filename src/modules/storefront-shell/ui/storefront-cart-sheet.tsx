@@ -3,7 +3,7 @@
 import { FavouriteIcon, ShoppingBag03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import {
@@ -55,7 +55,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
 
   const catalogueUnavailable =
     catalogue.isError || catalogue.data?.availability === "temporarily-unavailable";
-  const cartLoading = catalogue.isPending || !cart.hydrated;
+  const cartLoading = !catalogueUnavailable && (catalogue.isPending || !cart.hydrated);
 
   function closeAndShop(): void {
     overlay.close();
@@ -118,12 +118,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
             </SheetDescription>
           </SheetHeader>
 
-          {cartLoading ? (
-            <CartMessage
-              detail="Your cart will appear as soon as the catalogue is ready."
-              title="Loading your cart"
-            />
-          ) : catalogueUnavailable ? (
+          {catalogueUnavailable ? (
             <CartMessage
               action={
                 <Button onClick={() => void catalogue.refetch()} type="button" variant="outline">
@@ -132,6 +127,11 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
               }
               detail="Your cart has not been cleared. We could not load the product details needed to display it."
               title="Cart details unavailable"
+            />
+          ) : cartLoading ? (
+            <CartMessage
+              detail="Your cart will appear as soon as the catalogue is ready."
+              title="Loading your cart"
             />
           ) : cartViews.length === 0 ? (
             <EmptyCart onShop={closeAndShop} />
@@ -273,7 +273,12 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                 <Button className="min-h-11 w-full" onClick={openCheckout} type="button">
                   Checkout · {money(cart.subtotal)}
                 </Button>
-                <Button className="min-h-11 w-full" onClick={closeAndShop} type="button" variant="ghost">
+                <Button
+                  className="min-h-11 w-full"
+                  onClick={closeAndShop}
+                  type="button"
+                  variant="ghost"
+                >
                   Continue shopping
                 </Button>
               </SheetFooter>
@@ -298,7 +303,7 @@ function CartMessage({
 }: {
   title: string;
   detail: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
