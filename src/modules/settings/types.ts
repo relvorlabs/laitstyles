@@ -33,6 +33,7 @@ export type DeliveryZoneSettings = {
   estimatedMinDays: number;
   estimatedMaxDays: number;
   enabled: boolean;
+  isNationwideFallback: boolean;
 };
 export type PickupLocationSettings = {
   id: string;
