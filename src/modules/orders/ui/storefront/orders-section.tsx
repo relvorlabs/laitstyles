@@ -31,12 +31,14 @@ function formatMoney(kobo: number, currency: string): string {
 }
 
 function formatDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
   return new Intl.DateTimeFormat("en-NG", {
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
-  }).format(new Date(isoDate));
+  }).format(date);
 }
 
 function paymentVariant(code: AccountOrderSummary["paymentStatus"]["code"]): StatusVariant {
@@ -56,7 +58,7 @@ function fulfilmentVariant(code: AccountOrderSummary["fulfilmentStatus"]["code"]
 }
 
 function OrderImages({ order }: { order: AccountOrderSummary }) {
-  const images = [...new Map(order.images.map((image) => [image.src, image])).values()];
+  const images = [...new Map(order.images.filter((image) => image?.src).map((image) => [image.src, image])).values()];
 
   if (images.length === 0) {
     return (
@@ -70,12 +72,12 @@ function OrderImages({ order }: { order: AccountOrderSummary }) {
     <div className={cn("grid gap-2", images.length > 1 && "grid-cols-2")}>
       {images.map((image) => (
         <div
-          key={image.src}
+          key={`account-order:${order.orderNumber}:image:${image.src}`}
           className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-[var(--acc-bone-2)]"
         >
           <CloudImage
             src={image.src}
-            alt={image.alt}
+            alt={image.alt || `Item from order ${order.orderNumber}`}
             fill
             sizes="(max-width: 767px) 42vw, 110px"
             className="object-cover"
@@ -87,6 +89,8 @@ function OrderImages({ order }: { order: AccountOrderSummary }) {
 }
 
 export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
+  const visibleOrders = uniqueOrders(orders);
+
   return (
     <>
       <header>
@@ -99,7 +103,7 @@ export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
         </p>
       </header>
 
-      {orders.length === 0 ? (
+      {visibleOrders.length === 0 ? (
         <Empty className={cn("mt-8 min-h-80", panelClass)}>
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -118,14 +122,14 @@ export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
         </Empty>
       ) : (
         <div className="mt-7 space-y-4">
-          {orders.map((order, index) => {
+          {visibleOrders.map((order, index) => {
             const detailsHref = `/account/orders/${encodeURIComponent(order.orderNumber)}`;
             const itemLabel = `${order.itemCount} ${order.itemCount === 1 ? "item" : "items"}`;
             const reviewLabel = `Review ${order.reviewableItemCount} ${order.reviewableItemCount === 1 ? "item" : "items"}`;
 
             return (
               <article
-                key={order.orderNumber}
+                key={`account-order:${order.orderNumber}`}
                 className={cn("overflow-hidden", index === 0 ? panelElevatedClass : panelClass)}
               >
                 <div className="flex flex-col gap-4 border-b border-[var(--acc-line)] p-5 sm:flex-row sm:items-start sm:justify-between">
@@ -155,7 +159,7 @@ export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
                   <div className="min-w-0">
                     <p className="text-lg font-semibold">{itemLabel}</p>
                     <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--acc-muted)]">
-                      {order.itemNames.join(" · ")}
+                      {order.itemNames.filter(Boolean).join(" · ") || "Order items unavailable"}
                     </p>
                     <p className="mt-3 text-sm text-[var(--acc-muted)]">
                       Last updated {formatDate(order.updatedAt)}
@@ -185,4 +189,13 @@ export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
       )}
     </>
   );
+}
+
+function uniqueOrders(orders: readonly AccountOrderSummary[]): AccountOrderSummary[] {
+  const byNumber = new Map<string, AccountOrderSummary>();
+  for (const order of orders) {
+    if (!order?.orderNumber) continue;
+    byNumber.set(order.orderNumber, order);
+  }
+  return Array.from(byNumber.values());
 }
