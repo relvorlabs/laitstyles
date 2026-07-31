@@ -91,6 +91,7 @@ const deliveryZoneSchema = z
       .min(1, "Maximum delivery time must be at least 1 day.")
       .max(60, "Maximum delivery time cannot exceed 60 days."),
     enabled: z.boolean(),
+    isNationwideFallback: z.boolean().default(false),
   })
   .superRefine((zone, context) => {
     if (zone.estimatedMaxDays < zone.estimatedMinDays) {
@@ -98,6 +99,13 @@ const deliveryZoneSchema = z
         code: "custom",
         path: ["estimatedMaxDays"],
         message: "Maximum delivery time must be the same as or later than the minimum.",
+      });
+    }
+    if (zone.isNationwideFallback && !zone.enabled) {
+      context.addIssue({
+        code: "custom",
+        path: ["enabled"],
+        message: "The nationwide delivery option must remain enabled.",
       });
     }
   });
@@ -121,18 +129,26 @@ const pickupLocationSchema = z.object({
 
 export const deliverySettingsSchema = z
   .object({
-    zones: z.array(deliveryZoneSchema).max(20),
+    zones: z.array(deliveryZoneSchema).min(1).max(20),
     pickupLocations: z.array(pickupLocationSchema).max(10),
   })
   .superRefine((delivery, context) => {
-    const enabledDeliveryExists =
-      delivery.zones.some((zone) => zone.enabled) ||
-      delivery.pickupLocations.some((location) => location.enabled);
-    if (!enabledDeliveryExists) {
+    const enabledZones = delivery.zones.filter((zone) => zone.enabled);
+    if (enabledZones.length === 0) {
       context.addIssue({
         code: "custom",
         path: ["zones"],
-        message: "Keep at least one delivery zone or pickup location available.",
+        message: "Keep at least one nationwide delivery option available.",
+      });
+      return;
+    }
+
+    const nationwideFallbacks = enabledZones.filter((zone) => zone.isNationwideFallback);
+    if (nationwideFallbacks.length !== 1) {
+      context.addIssue({
+        code: "custom",
+        path: ["zones"],
+        message: "Choose exactly one enabled zone as the nationwide delivery fallback.",
       });
     }
   });
