@@ -69,14 +69,23 @@ export async function getStoreSettings() {
         });
       }
 
-      const persistedPickups = await tx.pickup_locations.findMany({
-        where: { position: { gte: 0 } },
-        orderBy: { position: "asc" },
-      });
+      const [persistedZones, persistedPickups] = await Promise.all([
+        tx.delivery_zones.findMany({
+          where: { position: { gte: 0 } },
+          orderBy: { position: "asc" },
+        }),
+        tx.pickup_locations.findMany({
+          where: { position: { gte: 0 } },
+          orderBy: { position: "asc" },
+        }),
+      ]);
       const initialized = settingsJsonInput({
         ...defaultStoreSettingsInput,
         delivery: {
-          ...defaultStoreSettingsInput.delivery,
+          zones: persistedZones.map((persisted, index) => ({
+            ...defaultStoreSettingsInput.delivery.zones[index]!,
+            id: persisted.id,
+          })),
           pickupLocations: persistedPickups.map((persisted, index) => ({
             ...defaultStoreSettingsInput.delivery.pickupLocations[index]!,
             id: persisted.id,
