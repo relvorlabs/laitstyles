@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { logger } from "@/lib/logger";
+import { reportPrerenderSafeServerError } from "@/lib/server-diagnostics";
 import {
   buildStorefrontCatalogue,
   buildStorefrontShellCatalogue,
@@ -56,13 +56,10 @@ export async function loadStorefrontShellCatalogue(): Promise<StorefrontShellCat
   try {
     return buildStorefrontShellCatalogue((await getCatalogue()).payload);
   } catch (error: unknown) {
-    logger.error(
-      {
-        scope: "storefront-shell-catalogue",
-        errorName: error instanceof Error ? error.name : typeof error,
-      },
-      "Storefront shell catalogue load failed",
-    );
+    reportPrerenderSafeServerError("Storefront shell catalogue load failed", {
+      scope: "storefront-shell-catalogue",
+      errorName: error instanceof Error ? error.name : typeof error,
+    });
     return unavailableShellCatalogue;
   }
 }
