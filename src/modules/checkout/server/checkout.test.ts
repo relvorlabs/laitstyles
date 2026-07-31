@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   verifyTransaction: vi.fn(),
   applyStockMutation: vi.fn(),
   getOwnedProfile: vi.fn(),
+  resolveDeliveryQuote: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -35,6 +36,10 @@ vi.mock("@/modules/inventory/server/operational-stock", () => ({
 
 vi.mock("@/modules/customers/server/account-profile", () => ({
   getOwnedProfile: mocks.getOwnedProfile,
+}));
+
+vi.mock("@/modules/checkout/server/delivery-policy", () => ({
+  resolveCheckoutDeliveryQuote: mocks.resolveDeliveryQuote,
 }));
 
 type CheckoutApi = {
@@ -69,7 +74,6 @@ function checkoutInput(overrides: Partial<CreateCheckoutInput> = {}): CreateChec
   return {
     idempotencyKey: "33333333-3333-4333-8333-333333333333",
     addressId: "44444444-4444-4444-8444-444444444444",
-    deliveryZoneId: "55555555-5555-4555-8555-555555555555",
     callbackUrl: "https://laitstyles.com/account/orders?payment=processing",
     lines: [
       {
@@ -245,6 +249,15 @@ beforeEach(() => {
     preferredName: "Buyer",
     phone: identity.phone,
   });
+  mocks.resolveDeliveryQuote.mockResolvedValue({
+    addressId: "44444444-4444-4444-8444-444444444444",
+    deliveryZoneId: "55555555-5555-4555-8555-555555555555",
+    label: "Lagos Mainland",
+    coverageLabel: "Lagos Mainland rate",
+    feeMinor: 1_500,
+    estimatedDays: "1-2",
+    source: "regional-override",
+  });
   mocks.initializeTransaction.mockResolvedValue({
     authorizationUrl: "https://checkout.paystack.com/access123",
     accessCode: "access123",
@@ -275,12 +288,21 @@ describe("checkout draft", () => {
         totalMinor: 251_500,
       },
     });
+    expect(mocks.resolveDeliveryQuote).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        id: "44444444-4444-4444-8444-444444444444",
+        city: "Lagos",
+        state: "Lagos",
+      }),
+    );
     expect(tx.orders.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           customer_name: "Buyer",
           customer_email: "buyer@example.com",
           delivery_phone: "+2348000000000",
+          delivery_zone_id: "55555555-5555-4555-8555-555555555555",
           subtotal: "2500.00",
           delivery_fee: "15.00",
           total: "2515.00",
