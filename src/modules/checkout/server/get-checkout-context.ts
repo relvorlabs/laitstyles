@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
+import { listCheckoutDeliveryQuotes } from "@/modules/checkout/server/delivery-policy";
 import type { CheckoutContext, CheckoutDraft, CheckoutStatus } from "@/modules/checkout/types";
 import { getOwnedProfile } from "@/modules/customers/server/account-profile";
 import { listOwnedAddresses } from "@/modules/customers/server/addresses";
@@ -17,20 +18,9 @@ const recoverablePaymentStatuses = [
 ] as const;
 
 export async function getCheckoutContext(identity: ConsumerSession): Promise<CheckoutContext> {
-  const [profile, addresses, deliveryZones, activeOrder] = await Promise.all([
+  const [profile, addresses, activeOrder] = await Promise.all([
     getOwnedProfile(identity),
     listOwnedAddresses(identity),
-    prisma.delivery_zones.findMany({
-      where: { enabled: true },
-      orderBy: [{ position: "asc" }, { name: "asc" }],
-      select: {
-        id: true,
-        name: true,
-        city: true,
-        rate: true,
-        estimated_days: true,
-      },
-    }),
     prisma.orders.findFirst({
       where: {
         customer_id: identity.customerId,
@@ -61,12 +51,20 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
     }),
   ]);
 
-  const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
-  const matchingZone = defaultAddress
-    ? deliveryZones.find(
-        (zone) => normalizeLocation(zone.city) === normalizeLocation(defaultAddress.city),
-      )
-    : null;
+  const deliveryQuotes = await prisma.$transaction((tx) =>
+    listCheckoutDeliveryQuotes(
+      tx,
+      addresses.map((address) => ({
+        id: address.id,
+        city: address.city,
+        state: address.state,
+        country: address.country,
+      })),
+    ),
+  );
+  const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses.at(0) ?? null;
+  const selectedDeliveryQuote =
+    deliveryQuotes.find((quote) => quote.addressId === defaultAddress?.id) ?? null;
   const phoneRequired = !profile.phone.trim();
 
   return {
@@ -75,14 +73,8 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
     phoneRequired,
     addresses,
     defaultAddressId: defaultAddress?.id ?? null,
-    deliveryZones: deliveryZones.map((zone) => ({
-      id: zone.id,
-      name: zone.name,
-      city: zone.city,
-      feeMinor: Math.round(zone.rate.toNumber() * 100),
-      estimatedDays: zone.estimated_days,
-    })),
-    selectedDeliveryZoneId: matchingZone?.id ?? null,
+    deliveryQuotes,
+    selectedDeliveryQuote,
     deliveryAmountStatus: "estimated",
     activeCheckout: mapActiveCheckout(activeOrder),
   };
@@ -107,7 +99,7 @@ function mapActiveCheckout(
       }
     | null,
 ): CheckoutDraft | null {
-  const payment = order?.payments[0];
+  const payment = order?.payments.at(0);
   if (!order || !payment) return null;
   return {
     checkoutId: order.id,
@@ -126,8 +118,4 @@ function mapActiveCheckout(
 
 function decimalToMinor(value: { toString(): string }): number {
   return Math.round(Number(value.toString()) * 100);
-}
-
-function normalizeLocation(value: string): string {
-  return value.trim().toLocaleLowerCase("en-NG");
 }
