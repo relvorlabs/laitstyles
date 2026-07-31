@@ -12,7 +12,6 @@ const checkoutLineSchema = z
 const createCheckoutFields = {
   idempotencyKey: z.string().uuid(),
   addressId: z.string().uuid(),
-  deliveryZoneId: z.string().uuid(),
   couponCode: z.string().trim().min(2).max(48).optional(),
   lines: z.array(checkoutLineSchema).min(1).max(50),
 };
