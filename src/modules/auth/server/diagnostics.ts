@@ -2,14 +2,14 @@ import "server-only";
 
 import { logger } from "@/lib/logger";
 import {
+  type AuthFlowErrorCode,
   authFlowErrorCodes,
   getAuthFlowErrorMessage,
-  type AuthFlowErrorCode,
   isAuthFlowErrorCode,
 } from "@/modules/auth/errors";
 
-export { authFlowErrorCodes, getAuthFlowErrorMessage, isAuthFlowErrorCode };
 export type { AuthFlowErrorCode };
+export { authFlowErrorCodes, getAuthFlowErrorMessage, isAuthFlowErrorCode };
 
 export type AuthDeniedReason =
   | "signed-out"

@@ -473,9 +473,7 @@ function AuthSupportPanel({
         <div className="mb-3 text-[11px] font-semibold uppercase tracking-[.24em] text-primary">
           Email requested
         </div>
-        <h2 className="m-0 font-serif text-[34px] font-medium leading-[1.08]">
-          Check your inbox.
-        </h2>
+        <h2 className="m-0 font-serif text-[34px] font-medium leading-[1.08]">Check your inbox.</h2>
         <p className="mx-auto mt-4 max-w-[350px] text-[14px] leading-6 text-muted-foreground">
           {recovery
             ? "If this address can receive a reset email, a secure link is on its way. Your bag remains exactly as you left it."

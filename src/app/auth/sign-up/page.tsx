@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { signUpWithPassword } from "@/app/auth/actions";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/modules/auth/server/diagnostics";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
 import { SignUpForm } from "@/modules/auth/ui/sign-up-form";
 

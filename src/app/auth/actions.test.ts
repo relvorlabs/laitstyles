@@ -323,10 +323,7 @@ describe("password auth actions", () => {
 
   it("returns email workflow success in place instead of navigating", async () => {
     await expect(
-      requestPasswordResetWithRedirect(
-        idleState,
-        formData({ email: "shopper@example.com" }),
-      ),
+      requestPasswordResetWithRedirect(idleState, formData({ email: "shopper@example.com" })),
     ).resolves.toEqual({
       status: "success",
       email: "shopper@example.com",
@@ -348,10 +345,7 @@ describe("password auth actions", () => {
 
   it("keeps confirmation-required signup success on the same page", async () => {
     await expect(
-      signUpWithPassword(
-        idleState,
-        signupData({ next: "/account", returnTo: "/auth/sign-up" }),
-      ),
+      signUpWithPassword(idleState, signupData({ next: "/account", returnTo: "/auth/sign-up" })),
     ).resolves.toEqual({
       status: "success",
       email: "shopper@example.com",

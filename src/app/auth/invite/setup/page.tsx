@@ -19,7 +19,12 @@ export default function ManagerInviteSetupPage() {
   const [ready, setReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [form, setForm] = useState({ firstName: "", lastName: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -35,7 +40,10 @@ export default function ManagerInviteSetupPage() {
           refresh_token: refreshToken,
         });
         if (sessionResult.error) {
-          if (!cancelled) setMessage("This invitation is invalid or has expired. Ask the store owner for a new invitation.");
+          if (!cancelled)
+            setMessage(
+              "This invitation is invalid or has expired. Ask the store owner for a new invitation.",
+            );
           return;
         }
         window.history.replaceState(window.history.state, "", window.location.pathname);
@@ -43,7 +51,10 @@ export default function ManagerInviteSetupPage() {
 
       const userResult = await supabase.auth.getUser();
       if (userResult.error || !userResult.data.user) {
-        if (!cancelled) setMessage("This invitation session is missing or has expired. Ask the store owner for a new invitation.");
+        if (!cancelled)
+          setMessage(
+            "This invitation session is missing or has expired. Ask the store owner for a new invitation.",
+          );
         return;
       }
 
@@ -81,7 +92,9 @@ export default function ManagerInviteSetupPage() {
       }
       router.replace("/admin");
     } catch {
-      setMessage("Your manager account could not be completed. Check your connection and try again.");
+      setMessage(
+        "Your manager account could not be completed. Check your connection and try again.",
+      );
     } finally {
       setPending(false);
     }
@@ -104,13 +117,17 @@ export default function ManagerInviteSetupPage() {
       <div className="grid gap-6">
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-          You will enter Admin as a store manager. Only the existing owner can invite staff or change ownership-level access.
+          You will enter Admin as a store manager. Only the existing owner can invite staff or
+          change ownership-level access.
         </div>
 
         {message ? <AuthStatusNotice tone="error">{message}</AuthStatusNotice> : null}
 
         {!ready && !message ? (
-          <div className="rounded-2xl border border-border bg-muted/30 px-5 py-8 text-center text-sm text-muted-foreground" role="status">
+          <div
+            className="rounded-2xl border border-border bg-muted/30 px-5 py-8 text-center text-sm text-muted-foreground"
+            role="status"
+          >
             Verifying your invitation…
           </div>
         ) : null}
@@ -124,7 +141,9 @@ export default function ManagerInviteSetupPage() {
                   className={AUTH_INPUT_CLASS_NAME}
                   disabled={pending}
                   id="manager-first"
-                  onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, firstName: event.target.value }))
+                  }
                   value={form.firstName}
                 />
               </AuthField>
@@ -134,19 +153,27 @@ export default function ManagerInviteSetupPage() {
                   className={AUTH_INPUT_CLASS_NAME}
                   disabled={pending}
                   id="manager-last"
-                  onChange={(event) => setForm((current) => ({ ...current, lastName: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, lastName: event.target.value }))
+                  }
                   value={form.lastName}
                 />
               </AuthField>
             </div>
-            <AuthField hint="At least 8 characters" htmlFor="manager-password" label="Create password">
+            <AuthField
+              hint="At least 8 characters"
+              htmlFor="manager-password"
+              label="Create password"
+            >
               <Input
                 autoComplete="new-password"
                 className={AUTH_INPUT_CLASS_NAME}
                 disabled={pending}
                 id="manager-password"
                 minLength={8}
-                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, password: event.target.value }))
+                }
                 type="password"
                 value={form.password}
               />
@@ -158,7 +185,9 @@ export default function ManagerInviteSetupPage() {
                 disabled={pending}
                 id="manager-confirm-password"
                 minLength={8}
-                onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, confirmPassword: event.target.value }))
+                }
                 type="password"
                 value={form.confirmPassword}
               />

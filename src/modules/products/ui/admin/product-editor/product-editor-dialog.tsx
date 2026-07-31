@@ -22,6 +22,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type {
+  InventoryMode,
+  ProductEditorActionSuccess,
+  ProductEditorIntent,
+  ProductEditorIssue,
+  ProductEditorStep,
+  ProductEditorValues,
+} from "@/lib/admin/shared/types";
+import { adminProductsQueryOptions, useSaveProduct } from "@/modules/products/client/hooks";
 import {
   changeProductEditorMode,
   createEmptyProductEditorValues,
@@ -34,15 +43,6 @@ import {
   validateProductForSchedule,
 } from "@/modules/products/editor-schema";
 import { productEditorSteps } from "@/modules/products/types";
-import type {
-  InventoryMode,
-  ProductEditorActionSuccess,
-  ProductEditorIntent,
-  ProductEditorIssue,
-  ProductEditorStep,
-  ProductEditorValues,
-} from "@/lib/admin/shared/types";
-import { adminProductsQueryOptions, useSaveProduct } from "@/modules/products/client/hooks";
 import { ProductEditorFooter } from "@/modules/products/ui/admin/product-editor/product-editor-footer";
 import { ProductEditorStepContent } from "@/modules/products/ui/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/modules/products/ui/admin/product-editor/product-editor-stepper";

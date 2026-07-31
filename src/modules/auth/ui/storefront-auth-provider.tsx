@@ -95,13 +95,10 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
-  const openSignup = useCallback(
-    (onSuccess?: () => void, initialError?: AuthFlowErrorCode) => {
-      closeStorefrontOverlays();
-      setDialog({ open: true, mode: "signup", onSuccess, initialError });
-    },
-    [],
-  );
+  const openSignup = useCallback((onSuccess?: () => void, initialError?: AuthFlowErrorCode) => {
+    closeStorefrontOverlays();
+    setDialog({ open: true, mode: "signup", onSuccess, initialError });
+  }, []);
   const closeAuthDialog = useCallback(() => {
     setDialog((current) => ({
       ...current,
@@ -168,7 +165,8 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
     if (result.error || !user) {
       return {
         ok: false as const,
-        message: "Google sign-in finished, but the browser session could not be verified. Please try again.",
+        message:
+          "Google sign-in finished, but the browser session could not be verified. Please try again.",
       };
     }
 

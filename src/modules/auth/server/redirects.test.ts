@@ -13,7 +13,11 @@ import {
   withAuthErrorState,
 } from "@/modules/auth/server/redirects";
 
-const AUTH_ORIGIN_ENV_KEYS = ["AUTH_SITE_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SITE_URL"] as const;
+const AUTH_ORIGIN_ENV_KEYS = [
+  "AUTH_SITE_URL",
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SITE_URL",
+] as const;
 
 function mockRequestHeaders(entries: Record<string, string>) {
   const map = new Map(Object.entries(entries));
@@ -58,10 +62,7 @@ describe("auth redirect safety", () => {
 
   it("adds a safe error state to the originating auth surface", () => {
     expect(
-      withAuthErrorState(
-        "/products?auth=signin&next=%2Faccount",
-        "oauth-callback-invalid",
-      ),
+      withAuthErrorState("/products?auth=signin&next=%2Faccount", "oauth-callback-invalid"),
     ).toBe("/products?auth=signin&next=%2Faccount&error=oauth-callback-invalid");
   });
 

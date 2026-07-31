@@ -106,9 +106,7 @@ describePersistence("receiveProviderEvent", () => {
 
   it("dedupes concurrent redeliveries of the same event to a single stored row", async () => {
     const input = baseInput();
-    const results = await Promise.all(
-      Array.from({ length: 6 }, () => receiveProviderEvent(input)),
-    );
+    const results = await Promise.all(Array.from({ length: 6 }, () => receiveProviderEvent(input)));
     createdIds.push(...new Set(results.map((result) => result.id)));
 
     expect(new Set(results.map((result) => result.id)).size).toBe(1);

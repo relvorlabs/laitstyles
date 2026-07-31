@@ -64,7 +64,10 @@ describe("storefront auth continuity", () => {
     local.setItem(STOREFRONT_CLIENT_STATE_STORAGE_KEY, JSON.stringify(snapshot));
     session.setItem(
       STOREFRONT_CLIENT_STATE_STORAGE_KEY,
-      JSON.stringify({ ...snapshot, cart: [{ productId: "current-tab", variantId: null, quantity: 2 }] }),
+      JSON.stringify({
+        ...snapshot,
+        cart: [{ productId: "current-tab", variantId: null, quantity: 2 }],
+      }),
     );
 
     expect(loadStorefrontClientState(session, local, NOW).snapshot.cart).toEqual([

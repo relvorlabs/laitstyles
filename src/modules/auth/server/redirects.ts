@@ -4,7 +4,11 @@ import { headers } from "next/headers";
 import type { AuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 
 export const LOCAL_AUTH_ORIGIN = "https://laitstyle.localhost";
-const AUTH_ORIGIN_ENV_KEYS = ["AUTH_SITE_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SITE_URL"] as const;
+const AUTH_ORIGIN_ENV_KEYS = [
+  "AUTH_SITE_URL",
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SITE_URL",
+] as const;
 
 export function getSafeNextPath(
   value: FormDataEntryValue | string | null | undefined,

@@ -112,7 +112,6 @@ export function ProductImportQueue({
   );
 }
 
-
 function queueStatusLabel(child: ProductImportChild) {
   if (child.status === "saved" && child.persistence) return child.persistence;
   if (child.isDirty && child.persistence) return `${child.persistence} edited`;

@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signInWithPassword } from "@/app/auth/actions";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/modules/auth/server/diagnostics";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/server/diagnostics";
 import { getSafeNextPath } from "@/modules/auth/server/redirects";
 import { getCurrentSession, isAuthenticated } from "@/modules/auth/server/session";
 import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
@@ -48,7 +45,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       footer={
         <p className="text-center text-[13px] leading-5 text-muted-foreground">
           Shopping instead?{" "}
-          <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/">
+          <Link
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+            href="/"
+          >
             Return to the storefront
           </Link>
         </p>

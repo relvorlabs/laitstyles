@@ -2,10 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getAuthFlowErrorMessage,
-  isAuthFlowErrorCode,
-} from "@/modules/auth/errors";
+import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/errors";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,

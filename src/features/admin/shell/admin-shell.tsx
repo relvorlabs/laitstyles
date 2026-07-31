@@ -9,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ProductEditorControllerProvider } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 import { RecordSaleControllerProvider } from "@/features/admin/record-sale/record-sale-controller";
 import { AdminAccessProvider } from "@/features/admin/shell/admin-access-provider";
 import { AdminCommandMenu } from "@/features/admin/shell/admin-command-menu";
@@ -17,6 +16,7 @@ import { AdminSidebar } from "@/features/admin/shell/admin-sidebar";
 import { AdminTopbar } from "@/features/admin/shell/admin-topbar";
 import { AdminProvider } from "@/features/admin/state/admin-provider";
 import type { StaffRole } from "@/modules/auth/types";
+import { ProductEditorControllerProvider } from "@/modules/products/ui/admin/product-editor/product-editor-controller";
 
 export function AdminShell({ children, role }: { children: ReactNode; role: StaffRole }) {
   const pathname = usePathname();

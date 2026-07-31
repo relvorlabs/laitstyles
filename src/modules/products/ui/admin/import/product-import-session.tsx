@@ -11,8 +11,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { createProductEditorValues } from "@/modules/products/editor-defaults";
 import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
+import { createProductEditorValues } from "@/modules/products/editor-defaults";
 import {
   hasUnsavedProductImportChanges,
   productImportSessionReducer,
