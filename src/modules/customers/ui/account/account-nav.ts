@@ -5,19 +5,17 @@ export type { AccountRoute } from "@/modules/storefront-shell/ui/account-context
 export type AccountNavItem = {
   route: AccountRoute;
   label: string;
-  count?: string;
-  dot?: boolean;
 };
 
 export const accountNavItems: AccountNavItem[] = [
   { route: "overview", label: "Overview" },
   { route: "profile", label: "Profile" },
   { route: "orders", label: "Orders" },
-  { route: "returns", label: "Returns", count: "01" },
+  { route: "returns", label: "Returns" },
   { route: "addresses", label: "Addresses" },
   { route: "payments", label: "Payment methods" },
-  { route: "saved", label: "Saved items", count: "05" },
-  { route: "notifications", label: "Notifications", dot: true },
+  { route: "saved", label: "Saved items" },
+  { route: "notifications", label: "Notifications" },
   { route: "preferences", label: "Preferences" },
   { route: "security", label: "Security" },
   { route: "privacy", label: "Privacy" },
@@ -30,7 +28,7 @@ export const routeTitles: Record<AccountRoute, string> = {
   orders: "Orders",
   "order-detail": "Order details",
   returns: "Returns",
-  "return-detail": "Return #RT-0038",
+  "return-detail": "Return details",
   addresses: "Addresses",
   payments: "Payment methods",
   saved: "Saved items",
@@ -39,16 +37,16 @@ export const routeTitles: Record<AccountRoute, string> = {
   security: "Security",
   privacy: "Privacy",
   support: "Support",
-  "ticket-detail": "Ticket #SP-0119",
+  "ticket-detail": "Support ticket",
 };
 
 export const routePaths: Record<AccountRoute, string> = {
   overview: "/account",
   profile: "/account/profile",
   orders: "/account/orders",
-  "order-detail": "/account/orders/detail",
+  "order-detail": "/account/orders",
   returns: "/account/returns",
-  "return-detail": "/account/returns/detail",
+  "return-detail": "/account/returns",
   addresses: "/account/addresses",
   payments: "/account/payments",
   saved: "/account/saved",
@@ -57,7 +55,7 @@ export const routePaths: Record<AccountRoute, string> = {
   security: "/account/security",
   privacy: "/account/privacy",
   support: "/account/support",
-  "ticket-detail": "/account/support/detail",
+  "ticket-detail": "/account/support",
 };
 
 const pathToRoute = new Map<string, AccountRoute>(
@@ -66,5 +64,7 @@ const pathToRoute = new Map<string, AccountRoute>(
 
 export function routeFromPathname(pathname: string): AccountRoute {
   if (pathname.startsWith("/account/orders/")) return "order-detail";
+  if (pathname.startsWith("/account/returns/")) return "return-detail";
+  if (pathname.startsWith("/account/support/")) return "ticket-detail";
   return pathToRoute.get(pathname) ?? "overview";
 }
