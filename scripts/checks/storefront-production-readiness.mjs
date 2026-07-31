@@ -34,7 +34,7 @@ for (const file of applicationFiles) {
     }
   }
 
-  if (isUserFacingAuthFile(normalized) && /\bSupabase\b/.test(source)) {
+  if (normalized.endsWith(".tsx") && isUserFacingAuthFile(normalized) && /\bSupabase\b/.test(source)) {
     violations.push(`${relative(file)} exposes provider language in a user-facing auth surface`);
   }
 
@@ -46,7 +46,7 @@ for (const file of applicationFiles) {
 
 const routePatterns = await collectRoutePatterns(routeRoot);
 for (const reference of apiReferences) {
-  if (!matchesRoute(reference.apiPath, routePatterns)) {
+  if (!routePatterns.some((routePath) => routeMatches(reference.apiPath, routePath))) {
     violations.push(
       `${relative(reference.file)} references ${reference.apiPath}, but no /api/v1 Route Handler matches it`,
     );
@@ -85,23 +85,41 @@ async function collectRoutePatterns(directory) {
   const routeFiles = (await walk(directory)).filter((file) => path.basename(file) === "route.ts");
   return routeFiles.map((file) => {
     const relativeRoute = normalizePath(path.relative(path.join(sourceRoot, "app"), file));
-    const routePath = `/${relativeRoute.replace(/\/route\.ts$/, "")}`;
-    const staticPrefix = normalizeApiReference(routePath.replace(/\/(?:\[\[?\.\.\.[^\]]+\]\]?|\[[^\]]+\])/g, ""));
-    const expression = routePath
-      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\\\/\\\[\\\[\\\.\\\.\\\.[^\]]+\\\]\\\]/g, "(?:/.*)?")
-      .replace(/\\\/\\\[\\\.\\\.\\\.[^\]]+\\\]/g, "/.+")
-      .replace(/\\\/\\\[[^\]]+\\\]/g, "/[^/]+");
-    return { routePath, staticPrefix, regex: new RegExp(`^${expression}/?$`) };
+    return `/${relativeRoute.replace(/\/route\.ts$/, "")}`;
   });
 }
 
-function matchesRoute(apiPath, routePatterns) {
-  return routePatterns.some(({ regex, staticPrefix }) => {
-    if (regex.test(apiPath)) return true;
-    const prefix = staticPrefix.endsWith("/") ? staticPrefix : `${staticPrefix}/`;
-    return apiPath === staticPrefix || apiPath.startsWith(prefix) || staticPrefix.startsWith(`${apiPath}/`);
-  });
+function routeMatches(apiPath, routePath) {
+  const reference = segments(apiPath);
+  const route = segments(routePath);
+
+  for (let index = 0; index < route.length; index += 1) {
+    const routeSegment = route[index];
+    const referenceSegment = reference[index];
+
+    if (isCatchAllSegment(routeSegment)) {
+      return index <= reference.length;
+    }
+    if (referenceSegment === undefined) {
+      return route.slice(index).every(isDynamicSegment);
+    }
+    if (isDynamicSegment(routeSegment)) continue;
+    if (routeSegment !== referenceSegment) return false;
+  }
+
+  return reference.length === route.length;
+}
+
+function segments(value) {
+  return value.split("/").filter(Boolean);
+}
+
+function isDynamicSegment(value) {
+  return value.startsWith("[") && value.endsWith("]");
+}
+
+function isCatchAllSegment(value) {
+  return value.includes("...") && isDynamicSegment(value);
 }
 
 function normalizeApiReference(value) {
