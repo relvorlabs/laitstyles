@@ -1,10 +1,10 @@
 "use client";
 
 import { XIcon } from "lucide-react";
-import Image from "next/image";
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,7 +26,7 @@ export type AccountSecurityModalId =
   | "mfa-remove"
   | "signout-all";
 
-const securityModalIds = new Set<string>([
+const securityModalIds = new Set<AccountSecurityModalId>([
   "email",
   "password",
   "mfa-enroll",
@@ -35,7 +35,7 @@ const securityModalIds = new Set<string>([
 ]);
 
 export function isAccountSecurityModalId(value: string | null): value is AccountSecurityModalId {
-  return value !== null && securityModalIds.has(value);
+  return value !== null && securityModalIds.has(value as AccountSecurityModalId);
 }
 
 export function AccountSecurityModals({
@@ -81,12 +81,13 @@ function EmailChangeModal({ open, onClose }: ModalProps) {
       setFieldError(parsed.error.flatten().fieldErrors.email?.[0]);
       return;
     }
+
     setFieldError(undefined);
     setSubmitting(true);
     try {
       const result = await mutation.mutateAsync(parsed.data);
       setResultEmail(result.email);
-    } catch (cause) {
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -102,14 +103,14 @@ function EmailChangeModal({ open, onClose }: ModalProps) {
   }
 
   return (
-    <ModalShell open={open} onClose={close} eyebrow="Protected change" title="Change email.">
+    <ModalShell open={open} onClose={close} eyebrow="Account security" title="Change email">
       {resultEmail ? (
         <div className="mt-6 space-y-5">
           <div className="rounded-[10px] bg-[var(--acc-bone-2)] p-5">
-            <p className="font-semibold">Confirmation pending.</p>
+            <p className="font-semibold">Check your inbox</p>
             <p className="mt-2 leading-7 text-[var(--acc-muted)]">
-              Follow the confirmation link sent to {resultEmail}. Your current address remains
-              active until Supabase completes the change.
+              We sent a confirmation link to {resultEmail}. Your current email stays active until
+              you confirm the new one.
             </p>
           </div>
           <Footer>
@@ -133,7 +134,7 @@ function EmailChangeModal({ open, onClose }: ModalProps) {
             />
           </Field>
           <p className="rounded-[10px] bg-[var(--acc-bone-2)] p-4 text-sm text-[var(--acc-muted)]">
-            The current address remains active until the new address is verified.
+            You will use your current email until the new address is confirmed.
           </p>
           <ErrorMessage message={error} />
           <Footer>
@@ -141,7 +142,7 @@ function EmailChangeModal({ open, onClose }: ModalProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Sending..." : "Continue"}
+              {submitting ? "Sending…" : "Send confirmation"}
             </Button>
           </Footer>
         </form>
@@ -165,13 +166,14 @@ function PasswordChangeModal({ open, onClose, onNotice }: NoticeModalProps) {
       setFieldErrors(firstFieldErrors(parsed.error.flatten().fieldErrors));
       return;
     }
+
     setFieldErrors({});
     setSubmitting(true);
     try {
       await mutation.mutateAsync(parsed.data);
       onNotice("Password changed");
       close();
-    } catch (cause) {
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -186,7 +188,7 @@ function PasswordChangeModal({ open, onClose, onNotice }: NoticeModalProps) {
   }
 
   return (
-    <ModalShell open={open} onClose={close} eyebrow="Protected change" title="Change password.">
+    <ModalShell open={open} onClose={close} eyebrow="Account security" title="Change password">
       <form className="mt-6 space-y-5" onSubmit={submit}>
         <PasswordField
           id="change-password-current"
@@ -215,7 +217,7 @@ function PasswordChangeModal({ open, onClose, onNotice }: NoticeModalProps) {
             Cancel
           </Button>
           <Button type="submit" disabled={submitting}>
-            {submitting ? "Updating..." : "Update password"}
+            {submitting ? "Updating…" : "Update password"}
           </Button>
         </Footer>
       </form>
@@ -238,10 +240,9 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
     setError(undefined);
     setSubmitting(true);
     try {
-      setEnrollment(
-        await enroll.mutateAsync(friendlyName.trim() ? { friendlyName: friendlyName.trim() } : {}),
-      );
-    } catch (cause) {
+      const label = friendlyName.trim();
+      setEnrollment(await enroll.mutateAsync(label ? { friendlyName: label } : {}));
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -250,11 +251,15 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
 
   async function complete(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!enrollment) return;
+    if (!enrollment) {
+      setError("Start the authenticator setup again.");
+      return;
+    }
     if (!/^\d{6}$/.test(code)) {
       setError("Enter the 6-digit code from your authenticator app.");
       return;
     }
+
     setError(undefined);
     setSubmitting(true);
     try {
@@ -264,9 +269,9 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
         factorId: enrollment.factorId,
         code,
       });
-      onNotice("Two-factor authentication enabled");
+      onNotice("Two-step verification enabled");
       close();
-    } catch (cause) {
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -282,24 +287,25 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
   }
 
   return (
-    <ModalShell open={open} onClose={close} eyebrow="Authenticator app" title="Enable 2FA.">
+    <ModalShell open={open} onClose={close} eyebrow="Authenticator app" title="Add extra protection">
       {enrollment ? (
         <form className="mt-6 space-y-5" onSubmit={complete}>
           <div className="rounded-[10px] bg-[var(--acc-bone-2)] p-5">
-            <p className="font-semibold">Verification pending.</p>
+            <p className="font-semibold">Connect your authenticator app</p>
             <p className="mt-2 text-sm leading-6 text-[var(--acc-muted)]">
-              Scan this QR code, or enter the secret manually. This factor is not active until the
-              six-digit code verifies successfully.
+              Scan the QR code, or enter the setup key manually. Then enter the six-digit code from
+              your app to finish.
             </p>
-            <Image
-              alt="Authenticator QR code"
+            <CloudImage
+              alt="QR code for connecting an authenticator app"
               className="mt-4 size-44 rounded-lg bg-white p-2"
               height={176}
               src={enrollment.totp.qrCode}
               unoptimized
               width={176}
             />
-            <code className="mt-4 block break-all font-mono text-sm">{enrollment.totp.secret}</code>
+            <p className="mt-4 text-xs font-medium text-[var(--acc-muted)]">Setup key</p>
+            <code className="mt-1 block break-all font-mono text-sm">{enrollment.totp.secret}</code>
           </div>
           <Field label="6-digit code" htmlFor="mfa-enroll-code">
             <Input
@@ -318,13 +324,16 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Verifying..." : "Verify authenticator"}
+              {submitting ? "Checking…" : "Finish setup"}
             </Button>
           </Footer>
         </form>
       ) : (
         <form className="mt-6 space-y-5" onSubmit={start}>
-          <Field label="Authenticator name" htmlFor="mfa-friendly-name">
+          <p className="text-sm leading-6 text-[var(--acc-muted)]">
+            Use an authenticator app to add a six-digit code when you sign in.
+          </p>
+          <Field label="Device name" htmlFor="mfa-friendly-name">
             <Input
               id="mfa-friendly-name"
               inputSize="lg"
@@ -340,7 +349,7 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Preparing..." : "Continue"}
+              {submitting ? "Preparing…" : "Continue"}
             </Button>
           </Footer>
         </form>
@@ -354,9 +363,7 @@ function MfaRemoveModal({
   open,
   onClose,
   onNotice,
-}: NoticeModalProps & {
-  factor: MfaFactorSummary | null;
-}) {
+}: NoticeModalProps & { factor: MfaFactorSummary | null }) {
   const challenge = useCreateMfaChallenge();
   const verify = useVerifyMfaChallenge();
   const remove = useRemoveMfaFactor();
@@ -366,11 +373,15 @@ function MfaRemoveModal({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!factor) return;
+    if (!factor) {
+      setError("Choose an authenticator to remove.");
+      return;
+    }
     if (factor.status === "verified" && !/^\d{6}$/.test(code)) {
       setError("Enter the 6-digit code from your authenticator app.");
       return;
     }
+
     setError(undefined);
     setSubmitting(true);
     try {
@@ -381,7 +392,7 @@ function MfaRemoveModal({
       await remove.mutateAsync(factor.id);
       onNotice("Authenticator removed");
       close();
-    } catch (cause) {
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -394,15 +405,17 @@ function MfaRemoveModal({
     onClose();
   }
 
+  const needsCode = factor?.status === "verified";
+
   return (
     <ModalShell open={open} onClose={close} title="Remove this authenticator?" showClose={false}>
       <form className="mt-5 space-y-5" onSubmit={submit}>
         <p className="leading-7 text-[var(--acc-muted)]">
-          {factor?.status === "verified"
-            ? "Enter a current code before removing this verified factor."
-            : "This pending authenticator has not been verified and can be removed directly."}
+          {needsCode
+            ? "Enter a current six-digit code before removing this authenticator."
+            : "This authenticator setup was not completed and can be removed now."}
         </p>
-        {factor?.status === "verified" ? (
+        {needsCode ? (
           <Field label="6-digit code" htmlFor="mfa-remove-code">
             <Input
               id="mfa-remove-code"
@@ -421,7 +434,7 @@ function MfaRemoveModal({
             Keep authenticator
           </Button>
           <Button variant="destructive" type="submit" disabled={submitting || !factor}>
-            {submitting ? "Removing..." : "Remove authenticator"}
+            {submitting ? "Removing…" : "Remove authenticator"}
           </Button>
         </Footer>
       </form>
@@ -439,9 +452,9 @@ function SignOutOthersModal({ open, onClose, onNotice }: NoticeModalProps) {
     setSubmitting(true);
     try {
       await mutation.mutateAsync();
-      onNotice("Other sessions signed out");
+      onNotice("Other devices signed out");
       close();
-    } catch (cause) {
+    } catch (cause: unknown) {
       setError(errorMessage(cause));
     } finally {
       setSubmitting(false);
@@ -454,9 +467,9 @@ function SignOutOthersModal({ open, onClose, onNotice }: NoticeModalProps) {
   }
 
   return (
-    <ModalShell open={open} onClose={close} title="Sign out other sessions?" showClose={false}>
+    <ModalShell open={open} onClose={close} title="Sign out other devices?" showClose={false}>
       <p className="mt-4 leading-7 text-[var(--acc-muted)]">
-        Supabase will end every other session it can revoke. This current session remains active.
+        This signs your account out everywhere else. You will stay signed in on this device.
       </p>
       <ErrorMessage message={error} />
       <Footer>
@@ -464,7 +477,7 @@ function SignOutOthersModal({ open, onClose, onNotice }: NoticeModalProps) {
           Cancel
         </Button>
         <Button variant="destructive" type="button" onClick={confirm} disabled={submitting}>
-          {submitting ? "Signing out..." : "Confirm sign out"}
+          {submitting ? "Signing out…" : "Sign out other devices"}
         </Button>
       </Footer>
     </ModalShell>
