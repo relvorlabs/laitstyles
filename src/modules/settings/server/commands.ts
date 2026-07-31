@@ -191,16 +191,17 @@ function mergeJsonObjects(
   existing: Prisma.JsonValue | null | undefined,
   next: Prisma.InputJsonValue,
 ): Prisma.InputJsonObject {
-  return {
-    ...(isJsonObject(existing) ? existing : {}),
-    ...(isJsonObject(next) ? next : {}),
-  } as Prisma.InputJsonObject;
+  const existingObject = toInputJsonObject(existing);
+  const nextObject = toInputJsonObject(next);
+  return { ...existingObject, ...nextObject };
 }
 
-function isJsonObject(
+function toInputJsonObject(
   value: Prisma.JsonValue | Prisma.InputJsonValue | null | undefined,
-): value is Prisma.JsonObject {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+): Prisma.InputJsonObject {
+  return value !== null && value !== undefined && typeof value === "object" && !Array.isArray(value)
+    ? (value as Prisma.InputJsonObject)
+    : {};
 }
 
 function isUuid(value: string) {
