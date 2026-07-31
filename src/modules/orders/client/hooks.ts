@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import { checkoutKeys } from "@/modules/checkout/client/keys";
 import { customerKeys } from "@/modules/customers/client/keys";
 import { inventoryKeys } from "@/modules/inventory/client/keys";
 import {
@@ -52,6 +53,7 @@ export function useRequestAccountOrderCancellation() {
             : order,
       );
       queryClient.invalidateQueries({ queryKey: accountOrderKeys.all });
+      queryClient.invalidateQueries({ queryKey: checkoutKeys.all });
     },
   });
 }
