@@ -50,7 +50,9 @@ const CART_URL = "/api/v1/account/cart";
 export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const session = useSession();
   const catalogue = useStorefrontCatalogue();
-  const identityKey = session.signedIn ? `consumer:${session.email ?? "unknown"}` : "guest";
+  const identityKey = session.signedIn
+    ? `consumer:${session.identityKey ?? session.email ?? "unresolved"}`
+    : "guest";
   const ownedCartQuery = useQuery(ownedCartQueryOptions(session.signedIn, identityKey));
   const mergeOwnedCart = useMergeOwnedCart(identityKey);
   const replaceOwnedCart = useReplaceOwnedCart(identityKey);
