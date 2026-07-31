@@ -274,12 +274,12 @@ function uniqueMembers(members: readonly ManagerMember[]): ManagerMember[] {
 }
 
 function readInvitationFieldErrors(
-  fieldErrors: Record<string, string[]> | undefined,
+  fieldErrors: Record<string, string> | undefined,
 ): Partial<Record<InviteFormField, string>> {
   if (!fieldErrors) return {};
   const result: Partial<Record<InviteFormField, string>> = {};
   for (const field of ["firstName", "lastName", "email"] as const) {
-    const message = fieldErrors[field]?.at(0);
+    const message = fieldErrors[field];
     if (message) result[field] = message;
   }
   return result;
