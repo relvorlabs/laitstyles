@@ -18,13 +18,19 @@ export function OrderThumb({ className, children, ...props }: ComponentProps<"di
   );
 }
 
-export function ProductThumb({ product, className }: { product: Product; className?: string }) {
+export function ProductThumb({
+  product,
+  className,
+}: {
+  product: Product | undefined;
+  className?: string;
+}) {
   const image = getProductDefaultImage(product);
   return (
     <OrderThumb className={className}>
       {image ? (
         <CloudImage
-          alt={product.name}
+          alt={product?.name ?? "Laitstyles product"}
           className="object-cover [filter:saturate(0.72)_contrast(0.97)]"
           fill
           sizes="(min-width: 768px) 170px, 45vw"
