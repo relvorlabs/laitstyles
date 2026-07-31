@@ -32,7 +32,7 @@ export function StorefrontRecentPersistence() {
   const lastServerSignature = useRef("");
 
   const serverQuery = useQuery({
-    queryKey: accountCustomerKeys.recentProducts(),
+    queryKey: accountCustomerKeys.recentProducts(identityKey),
     queryFn: ({ signal }) => listOwnedRecentProductIdsRequest(signal),
     enabled: signedIn && uiHydrated,
     staleTime: 15_000,
