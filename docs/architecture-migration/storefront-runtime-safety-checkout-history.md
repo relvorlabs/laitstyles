@@ -13,7 +13,8 @@ The storefront could serialize a rejected Prisma-backed React Server Component p
 ### Server intelligence boundary
 
 - Prisma, provider responses, database URLs, SQL/query names, stack traces, and raw `Error.message` values remain server-only.
-- React Server Component reads return a typed public state or a generic public fallback; rejected database promises do not cross into client components.
+- Prisma-backed work resolves inside a server component. Client components receive only a resolved typed public DTO, never a database-backed promise or rejected server value.
+- React Server Component reads return a typed public state or a generic public fallback.
 - API routes continue through `handleApiRequest`, which logs internal context server-side and returns sanitized `ApiError` contracts.
 - Customer-facing code may display `ApiClientError.message` because it came through the sanitized API contract. Arbitrary browser, provider, or server `Error.message` values are never rendered.
 - The storefront segment owns a generic `error.tsx` as defense in depth and does not inspect error internals.
@@ -71,7 +72,8 @@ The implementation plan follows the repository-agent workflow and relevant `relv
 ### Phase 1 — server containment
 
 - [x] Add a typed shell availability state.
-- [x] Catch catalogue database failures before the RSC promise reaches the client.
+- [x] Catch catalogue database failures before they leave the server data layer.
+- [x] Resolve the catalogue inside a suspended server component and pass only a resolved DTO to the client boundary.
 - [x] Log only server-side scope and error class at the storefront boundary.
 - [x] Render a generic storefront fallback with no internal detail.
 - [x] Catch product-page and metadata read failures before rendering.
@@ -101,8 +103,8 @@ The implementation plan follows the repository-agent workflow and relevant `relv
 - [x] Scope TanStack Query history by consumer identity.
 - [x] Add authenticated GET/PUT recent-products API contracts.
 - [x] Reconcile guest, local consumer, and server histories.
-- [x] Add a dedicated SQL migration for `customer_recent_products`.
-- [x] Keep the table external to generated Prisma models and access it through safe parameterized raw Prisma queries.
+- [x] Add a dedicated Prisma schema model and checked-in SQL migration for `customer_recent_products`.
+- [x] Mark the table external to future Prisma Migrate diffs so SQL-owned foreign keys remain intact, while runtime writes use parameterized raw Prisma queries.
 - [x] Bound server records to eight and keep browsing history out of staff activity feeds.
 
 ## Reviewer gates
