@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { prisma } from "@/lib/prisma";
+import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/modules/auth/server/session";
 import { parseStoreSettingsInput } from "@/modules/settings/schema";
 import {
@@ -29,7 +29,10 @@ export async function saveStoreSettings(
   }
 
   return prisma.$transaction(async (tx) => {
-    const existingZones = await tx.delivery_zones.findMany();
+    const [existingZones, existingSettings] = await Promise.all([
+      tx.delivery_zones.findMany(),
+      tx.store_settings.findUnique({ where: { id: 1 }, select: { selling: true } }),
+    ]);
     const existingZoneIds = new Set(existingZones.map((zone) => zone.id));
     const persistedZones: (typeof existingZones)[number][] = [];
     for (const [position, zone] of parsed.value.delivery.zones.entries()) {
@@ -121,19 +124,20 @@ export async function saveStoreSettings(
       },
     };
     const json = settingsJsonInput(normalized);
+    const selling = mergeJsonObjects(existingSettings?.selling, json.selling);
     const row = await tx.store_settings.upsert({
       where: { id: 1 },
       create: {
         id: 1,
         identity: json.identity,
-        selling: json.selling,
+        selling,
         payments: json.payments,
         notifications: json.notifications,
         updated_by_profile_id: actor.authUserId,
       },
       update: {
         identity: json.identity,
-        selling: json.selling,
+        selling,
         payments: json.payments,
         notifications: json.notifications,
         updated_by_profile_id: actor.authUserId,
@@ -168,6 +172,10 @@ export async function saveStoreSettings(
         target_table: "store_settings",
         metadata: {
           deliveryZoneCount: persistedZones.length,
+          nationwideFallbackZoneId:
+            normalized.delivery.zones.find(
+              (zone) => zone.enabled && zone.isNationwideFallback,
+            )?.id ?? null,
           pickupLocationCount: persistedPickups.length,
         },
       },
@@ -177,6 +185,22 @@ export async function saveStoreSettings(
       message: "Store settings saved.",
     });
   });
+}
+
+function mergeJsonObjects(
+  existing: Prisma.JsonValue | null | undefined,
+  next: Prisma.InputJsonValue,
+): Prisma.InputJsonObject {
+  return {
+    ...(isJsonObject(existing) ? existing : {}),
+    ...(isJsonObject(next) ? next : {}),
+  } as Prisma.InputJsonObject;
+}
+
+function isJsonObject(
+  value: Prisma.JsonValue | Prisma.InputJsonValue | null | undefined,
+): value is Prisma.JsonObject {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function isUuid(value: string) {
