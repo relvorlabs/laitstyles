@@ -27,6 +27,7 @@ import {
   StorefrontHoldAlert,
 } from "@/modules/storefront-shell/ui/storefront-feedback";
 import { useSession } from "@/providers/session-provider";
+import { decideCartHydration } from "@/providers/storefront-cart-hydration";
 import { cartStore, selectCartHydrated, selectCartLines, useCartStore } from "@/stores/cart.store";
 import {
   savedItemsStore,
@@ -50,6 +51,8 @@ const CART_URL = "/api/v1/account/cart";
 export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const session = useSession();
   const catalogue = useStorefrontCatalogue();
+  const catalogueData = catalogue.data;
+  const catalogueReady = catalogueData?.availability === "ready";
   const identityKey = session.signedIn
     ? `consumer:${session.identityKey ?? session.email ?? "unresolved"}`
     : "guest";
@@ -79,13 +82,13 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   useReconcileSavedProductsOnAuth(session.signedIn && savedHydrated);
 
   useEffect(() => {
-    if (!catalogue.data || clientStateReady) return;
+    if (!catalogueData || !catalogueReady || clientStateReady) return;
     const frame = window.requestAnimationFrame(() => {
       const loaded = loadStorefrontClientState(window.sessionStorage, window.localStorage);
       const initialLines = restoreCartLines(
         loaded.snapshot.cart,
-        catalogue.data.products,
-        catalogue.data.variantOptionsByProductId,
+        catalogueData.products,
+        catalogueData.variantOptionsByProductId,
       );
       const storedRecentIds = readStringArray(
         window.sessionStorage.getItem(RECENT_STORAGE_KEY) ??
@@ -104,7 +107,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
       setClientStateReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [catalogue.data, clientStateReady]);
+  }, [catalogueData, catalogueReady, clientStateReady]);
 
   useEffect(() => {
     activeIdentity.current = identityKey;
@@ -115,7 +118,14 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   }, [identityKey]);
 
   useEffect(() => {
-    if (!clientStateReady || !catalogue.data || hydratedIdentity.current === identityKey) return;
+    if (
+      !clientStateReady ||
+      !catalogueData ||
+      !catalogueReady ||
+      hydratedIdentity.current === identityKey
+    ) {
+      return;
+    }
 
     if (!session.signedIn) {
       const loaded = loadStorefrontClientState(window.sessionStorage, window.localStorage);
@@ -124,8 +134,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
         .hydrate(
           restoreCartLines(
             loaded.snapshot.cart,
-            catalogue.data.products,
-            catalogue.data.variantOptionsByProductId,
+            catalogueData.products,
+            catalogueData.variantOptionsByProductId,
           ),
         );
       lastSyncedSignature.current = "";
@@ -151,22 +161,26 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
             : ownedCartQuery.data;
         if (cancelled || activeIdentity.current !== identityKey) return;
 
-        const nextLines = restoreCartLines(
+        const hydration = decideCartHydration(
+          catalogueData.availability,
           owned.lines.map((line) => ({
             productId: line.productId,
             variantId: line.variantId,
             quantity: line.quantity,
           })),
-          catalogue.data.products,
-          catalogue.data.variantOptionsByProductId,
+          catalogueData.products,
+          catalogueData.variantOptionsByProductId,
         );
-        cartStore.getState().hydrate(nextLines);
-        lastSyncedSignature.current = cartSignature(nextLines);
+        if (hydration.kind === "wait") {
+          setOwnedCartConfirmed(false);
+          return;
+        }
+
+        cartStore.getState().hydrate(hydration.lines);
+        lastSyncedSignature.current = cartSignature(hydration.lines);
         hydratedIdentity.current = identityKey;
         setOwnedCartConfirmed(true);
       } catch {
-        // Retain browser intent and retry only after the query or identity changes.
-        // The identity is deliberately left unconfirmed so it is never erased.
         if (!cancelled && activeIdentity.current === identityKey) {
           setOwnedCartConfirmed(false);
         }
@@ -179,7 +193,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [
-    catalogue.data,
+    catalogueData,
+    catalogueReady,
     clientStateReady,
     identityKey,
     mergeOwnedCartAsync,
@@ -192,7 +207,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
     if (
       !session.signedIn ||
       !ownedCartConfirmed ||
-      !catalogue.data ||
+      !catalogueData ||
+      !catalogueReady ||
       hydratedIdentity.current !== identityKey ||
       !ownedCartQuery.data ||
       syncInFlight.current ||
@@ -201,22 +217,29 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
       return;
     }
 
-    const nextLines = restoreCartLines(
+    const hydration = decideCartHydration(
+      catalogueData.availability,
       ownedCartQuery.data.lines.map((line) => ({
         productId: line.productId,
         variantId: line.variantId,
         quantity: line.quantity,
       })),
-      catalogue.data.products,
-      catalogue.data.variantOptionsByProductId,
+      catalogueData.products,
+      catalogueData.variantOptionsByProductId,
     );
-    const serverSignature = cartSignature(nextLines);
+    if (hydration.kind === "wait") {
+      setOwnedCartConfirmed(false);
+      return;
+    }
+
+    const serverSignature = cartSignature(hydration.lines);
     if (serverSignature === lastSyncedSignature.current) return;
 
-    cartStore.getState().hydrate(nextLines);
+    cartStore.getState().hydrate(hydration.lines);
     lastSyncedSignature.current = serverSignature;
   }, [
-    catalogue.data,
+    catalogueData,
+    catalogueReady,
     identityKey,
     ownedCartConfirmed,
     ownedCartQuery.data,
