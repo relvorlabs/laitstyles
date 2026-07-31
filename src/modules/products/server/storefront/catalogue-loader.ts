@@ -13,6 +13,7 @@ import {
   listPublishedProductSlugs,
   listStorefrontCategories,
 } from "@/modules/products/server/storefront/queries";
+import { getStorefrontShellCatalogue } from "@/modules/products/server/storefront/shell-query";
 import type {
   StorefrontCataloguePayload,
   StorefrontCatalogueProduct,
@@ -54,7 +55,7 @@ export async function loadStorefrontCatalogue(): Promise<StorefrontCataloguePayl
 
 export async function loadStorefrontShellCatalogue(): Promise<StorefrontShellCataloguePayload> {
   try {
-    return buildStorefrontShellCatalogue((await getCatalogue()).payload);
+    return await getStorefrontShellCatalogue();
   } catch (error: unknown) {
     reportPrerenderSafeServerError("Storefront shell catalogue load failed", {
       scope: "storefront-shell-catalogue",
