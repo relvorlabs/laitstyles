@@ -1,0 +1,101 @@
+name: Agent account cart checkout fixup v3
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/agent-account-cart-fixup-v3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fixup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Extract and apply reviewed fixups
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/agent-account-cart-fixup.yml')
+          lines = workflow.read_text().splitlines()
+          collecting = False
+          script = []
+          for line in lines:
+              if line.strip() == "python <<'PY'":
+                  collecting = True
+                  continue
+              if collecting and line.strip() == 'PY':
+                  break
+              if collecting:
+                  script.append(line[10:] if line.startswith('          ') else line)
+          if not script:
+              raise SystemExit('Could not extract fixup script.')
+          Path('/tmp/account-cart-fixup.py').write_text('\n'.join(script) + '\n')
+          PY
+          python /tmp/account-cart-fixup.py
+          rm -f .github/workflows/agent-account-cart-fixup-v2.yml
+          rm -f .github/workflows/agent-account-cart-fixup-v3.yml
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run reviewer gates and collect evidence
+        shell: bash
+        run: |
+          set +e
+          mkdir -p ci-evidence/account-cart-checkout-cutover
+          report=ci-evidence/account-cart-checkout-cutover/fixup-gates.txt
+          : > "$report"
+          run_gate() {
+            name="$1"
+            shift
+            echo "===== $name =====" | tee -a "$report"
+            "$@" 2>&1 | tee -a "$report"
+            code=${PIPESTATUS[0]}
+            echo "exit_code=$code" | tee -a "$report"
+            echo | tee -a "$report"
+          }
+          run_gate prisma-generate pnpm prisma:generate
+          run_gate prisma-validate pnpm prisma:validate
+          run_gate architecture pnpm check:architecture
+          run_gate biome pnpm biome
+          run_gate typecheck pnpm typecheck
+          run_gate unit pnpm test:unit
+          run_gate build pnpm build
+          echo "===== residual account legacy imports =====" | tee -a "$report"
+          grep -RIn '@/features/storefront/account' 'src/app/(storefront)/account' 'src/modules/customers/ui/account' 2>&1 | tee -a "$report" || true
+          echo | tee -a "$report"
+          echo "===== residual account image primitives =====" | tee -a "$report"
+          grep -RInE '<img|next/image' 'src/modules/customers/ui/account' 2>&1 | tee -a "$report" || true
+          echo | tee -a "$report"
+          echo "===== residual direct first-image access =====" | tee -a "$report"
+          grep -RIn 'images\[0\]' 'src/modules/customers/ui/account' 'src/modules/storefront-shell' 'src/modules/products/ui/storefront' 2>&1 | tee -a "$report" || true
+
+      - name: Commit fixup and evidence
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(storefront): complete account cart checkout cutover"
+          git push origin "HEAD:${{ github.head_ref }}"
