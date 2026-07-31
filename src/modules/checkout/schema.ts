@@ -47,6 +47,8 @@ export const createCheckoutSchema = z
 export const checkoutIdentifierSchema = z.string().uuid();
 export const paymentIdentifierSchema = z.string().uuid();
 
+// `cancelled` is a derived public checkout state from the aggregate order.
+// It is intentionally not part of the provider payment-attempt enum.
 export const checkoutStatusSchema = z.enum([
   "initializing",
   "initialized",
@@ -56,6 +58,7 @@ export const checkoutStatusSchema = z.enum([
   "abandoned",
   "reversed",
   "review_required",
+  "cancelled",
 ]);
 
 const checkoutAmountSchema = z.number().int().nonnegative().safe();
