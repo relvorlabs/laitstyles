@@ -62,7 +62,6 @@ export function StorefrontCheckoutDialog({
     >
       <DialogContent
         className="lst-storefront max-h-[calc(100dvh-1rem)] w-[min(760px,calc(100%-1rem))] max-w-none overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-h-[calc(100dvh-2rem)]"
-        keepMounted
         showCloseButton
       >
         <DialogTitle className="sr-only">Checkout</DialogTitle>
