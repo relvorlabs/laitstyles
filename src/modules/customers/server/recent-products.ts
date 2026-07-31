@@ -1,36 +1,29 @@
 import "server-only";
 
+import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 
-const RECENT_PRODUCT_EVENT = "storefront.product.viewed";
 const MAX_RECENT_PRODUCTS = 8;
-const RECENT_EVENT_SCAN_LIMIT = 64;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+type RecentProductRow = {
+  product_id: string;
+};
 
 export async function listOwnedRecentProductIds(
   identity: ConsumerSession,
 ): Promise<string[]> {
-  const rows = await prisma.activity_events.findMany({
-    where: {
-      customer_id: identity.customerId,
-      kind: RECENT_PRODUCT_EVENT,
-      product_id: { not: null },
-    },
-    select: { product_id: true },
-    orderBy: { occurred_at: "desc" },
-    take: RECENT_EVENT_SCAN_LIMIT,
-  });
-
-  return uniqueProductIds(
-    rows.flatMap((row) => (row.product_id ? [row.product_id] : [])),
-  ).slice(0, MAX_RECENT_PRODUCTS);
+  return readOwnedRecentProductIds(prisma, identity.customerId);
 }
 
 export async function recordOwnedRecentProductIds(
   identity: ConsumerSession,
   productIds: readonly string[],
 ): Promise<string[]> {
-  const requestedIds = uniqueProductIds(productIds).slice(0, MAX_RECENT_PRODUCTS);
+  const requestedIds = uniqueProductIds(productIds)
+    .filter((productId) => uuidPattern.test(productId))
+    .slice(0, MAX_RECENT_PRODUCTS);
   if (requestedIds.length === 0) return listOwnedRecentProductIds(identity);
 
   const publishedRows = await prisma.products.findMany({
@@ -45,61 +38,72 @@ export async function recordOwnedRecentProductIds(
   const acceptedIds = requestedIds.filter((productId) => publishedIds.has(productId));
   if (acceptedIds.length === 0) return listOwnedRecentProductIds(identity);
 
-  return prisma.$transaction(async (transaction) => {
-    await transaction.activity_events.deleteMany({
-      where: {
-        customer_id: identity.customerId,
-        kind: RECENT_PRODUCT_EVENT,
-        product_id: { in: acceptedIds },
-      },
-    });
-
-    const now = Date.now();
-    await transaction.activity_events.createMany({
-      data: acceptedIds.map((productId, index) => ({
-        kind: RECENT_PRODUCT_EVENT,
-        title: "Storefront product viewed",
-        customer_id: identity.customerId,
-        product_id: productId,
-        occurred_at: new Date(now - index),
-      })),
-    });
-
-    const rows = await transaction.activity_events.findMany({
-      where: {
-        customer_id: identity.customerId,
-        kind: RECENT_PRODUCT_EVENT,
-        product_id: { not: null },
-      },
-      select: { id: true, product_id: true },
-      orderBy: { occurred_at: "desc" },
-      take: RECENT_EVENT_SCAN_LIMIT,
-    });
-    const retainedProductIds: string[] = [];
-    const retainedSet = new Set<string>();
-    const staleEventIds: string[] = [];
-
-    for (const row of rows) {
-      if (
-        !row.product_id ||
-        retainedSet.has(row.product_id) ||
-        retainedProductIds.length >= MAX_RECENT_PRODUCTS
-      ) {
-        staleEventIds.push(row.id);
-        continue;
+  return prisma.$transaction(
+    async (transaction) => {
+      const now = Date.now();
+      for (const [index, productId] of acceptedIds.entries()) {
+        await transaction.$executeRaw`
+          INSERT INTO public.customer_recent_products (
+            customer_id,
+            product_id,
+            viewed_at
+          ) VALUES (
+            ${identity.customerId}::uuid,
+            ${productId}::uuid,
+            ${new Date(now - index)}
+          )
+          ON CONFLICT (customer_id, product_id)
+          DO UPDATE SET viewed_at = EXCLUDED.viewed_at
+        `;
       }
-      retainedSet.add(row.product_id);
-      retainedProductIds.push(row.product_id);
-    }
 
-    if (staleEventIds.length > 0) {
-      await transaction.activity_events.deleteMany({ where: { id: { in: staleEventIds } } });
-    }
+      await transaction.$executeRaw`
+        DELETE FROM public.customer_recent_products AS recent
+        WHERE recent.customer_id = ${identity.customerId}::uuid
+          AND NOT EXISTS (
+            SELECT 1
+            FROM public.products AS product
+            WHERE product.id = recent.product_id
+              AND product.lifecycle = 'active'::public.product_lifecycle
+              AND product.publication = 'published'::public.product_publication
+          )
+      `;
 
-    return retainedProductIds;
-  });
+      await transaction.$executeRaw`
+        DELETE FROM public.customer_recent_products
+        WHERE customer_id = ${identity.customerId}::uuid
+          AND product_id NOT IN (
+            SELECT product_id
+            FROM public.customer_recent_products
+            WHERE customer_id = ${identity.customerId}::uuid
+            ORDER BY viewed_at DESC, product_id ASC
+            LIMIT ${MAX_RECENT_PRODUCTS}
+          )
+      `;
+
+      return readOwnedRecentProductIds(transaction, identity.customerId);
+    },
+    { isolationLevel: "Serializable" },
+  );
+}
+
+async function readOwnedRecentProductIds(
+  client: Pick<Prisma.TransactionClient, "$queryRaw">,
+  customerId: string,
+): Promise<string[]> {
+  const rows = await client.$queryRaw<RecentProductRow[]>`
+    SELECT recent.product_id::text AS product_id
+    FROM public.customer_recent_products AS recent
+    INNER JOIN public.products AS product ON product.id = recent.product_id
+    WHERE recent.customer_id = ${customerId}::uuid
+      AND product.lifecycle = 'active'::public.product_lifecycle
+      AND product.publication = 'published'::public.product_publication
+    ORDER BY recent.viewed_at DESC, recent.product_id ASC
+    LIMIT ${MAX_RECENT_PRODUCTS}
+  `;
+  return rows.map((row) => row.product_id);
 }
 
 function uniqueProductIds(productIds: readonly string[]): string[] {
-  return [...new Set(productIds.filter((productId) => productId.trim().length > 0))];
+  return [...new Set(productIds.map((productId) => productId.trim()).filter(Boolean))];
 }
