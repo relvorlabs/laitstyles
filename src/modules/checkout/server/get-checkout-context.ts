@@ -15,6 +15,8 @@ import type { CheckoutContext, CheckoutDraft } from "@/modules/checkout/types";
 import { getOwnedProfile } from "@/modules/customers/server/account-profile";
 import { listOwnedAddresses } from "@/modules/customers/server/addresses";
 
+const STOREFRONT_ORDER_SOURCES = ["storefront-checkout", "online-order"] as const;
+
 export async function getCheckoutContext(identity: ConsumerSession): Promise<CheckoutContext> {
   const [profile, addresses, activeOrder] = await Promise.all([
     getOwnedProfile(identity),
@@ -22,7 +24,9 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
     prisma.orders.findFirst({
       where: {
         customer_id: identity.customerId,
-        source: "storefront-checkout",
+        source: { in: [...STOREFRONT_ORDER_SOURCES] },
+        channel: "online",
+        payment_method: "paystack",
         payment_status: { in: [...resumableOrderPaymentStatuses] },
         fulfilment_status: "unfulfilled",
         payments: {
