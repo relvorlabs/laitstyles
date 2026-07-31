@@ -162,6 +162,60 @@ describe("handleApiRequest", () => {
     expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private socket detail");
   });
 
+  it("maps a nested PostgreSQL adapter timeout to database-unavailable", async () => {
+    const request = new Request("http://localhost/api/v1/admin/products", {
+      headers: { "x-request-id": "adapter-timeout-test" },
+    });
+    const response = await handleApiRequest(request, async () => {
+      throw Object.assign(new Error("private adapter timeout detail"), {
+        name: "DriverAdapterError",
+        cause: {
+          originalCode: "08006",
+          code: "08006",
+          kind: "postgres",
+          message: "private cause detail",
+        },
+      });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "DATABASE_UNAVAILABLE",
+        message: "Store data is temporarily unavailable. Please try again.",
+      },
+    });
+    expect(loggerError).toHaveBeenCalledWith(
+      {
+        requestId: "adapter-timeout-test",
+        method: "GET",
+        pathname: "/api/v1/admin/products",
+        errorName: "DriverAdapterError",
+        errorCode: "08006",
+        databaseCode: "08006",
+      },
+      "Database request failed",
+    );
+    const logged = JSON.stringify(loggerError.mock.calls);
+    expect(logged).not.toContain("private adapter timeout detail");
+    expect(logged).not.toContain("private cause detail");
+  });
+
+  it("maps nested EAUTHTIMEOUT to database-unavailable", async () => {
+    const response = await handleApiRequest(async () => {
+      throw Object.assign(new Error("private auth timeout"), {
+        name: "DriverAdapterError",
+        cause: { originalCode: "EAUTHTIMEOUT", kind: "postgres" },
+      });
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "DATABASE_UNAVAILABLE" },
+    });
+    expect(JSON.stringify(loggerError.mock.calls)).not.toContain("private auth timeout");
+  });
+
   it("sanitizes and correlates unexpected failures", async () => {
     const request = new Request("http://localhost/api/v1/products?page=2", {
       method: "POST",
