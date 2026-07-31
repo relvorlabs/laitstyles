@@ -4,6 +4,7 @@ import { ApiError } from "@/lib/errors/api-error";
 import { type Prisma, prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import { applyOperationalStockMutation } from "@/modules/inventory/server/operational-stock";
+import { closeCancelledCheckoutResources } from "@/modules/orders/server/cancel-checkout-payment";
 import type {
   AccountDeliveryAddress,
   AccountLineReviewState,
@@ -443,6 +444,11 @@ export async function requestOrderCancellation(
     await tx.orders.update({
       where: { id: order.id },
       data: { payment_status: "cancelled", fulfilment_status: "cancelled", attention: null },
+    });
+    await closeCancelledCheckoutResources(tx, {
+      orderId: order.id,
+      actorProfileId: identity.authUserId,
+      requestedBy: "customer",
     });
     await tx.order_timeline_events.create({
       data: {
