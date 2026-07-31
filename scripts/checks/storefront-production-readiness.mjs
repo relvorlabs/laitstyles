@@ -48,7 +48,7 @@ const apiReferences = [];
 
 for (const file of applicationFiles) {
   const normalized = normalizePath(file);
-  const source = await readFile(file, "utf8");
+  const source = await readUtf8(file, violations);
   const isClientModule = source.startsWith('"use client"') || source.startsWith("'use client'");
 
   if (normalized !== cloudImagePath) {
@@ -128,7 +128,7 @@ console.log(
 );
 
 async function checkButtonContract(target) {
-  const source = await readFile(buttonPath, "utf8");
+  const source = await readUtf8(buttonPath, target);
   const requiredPatterns = [
     [/outline:\s*[\s\S]*?text-foreground/, "outline variant must own a foreground color"],
     [/ghost:\s*[\s\S]*?text-foreground/, "ghost variant must own a foreground color"],
@@ -143,10 +143,10 @@ async function checkButtonContract(target) {
 
 async function checkStorefrontFailureContract(target) {
   const [loaderSource, diagnosticsSource, boundarySource, errorSource] = await Promise.all([
-    readFile(shellLoaderPath, "utf8"),
-    readFile(safeDiagnosticsPath, "utf8"),
-    readFile(shellBoundaryPath, "utf8"),
-    readFile(storefrontErrorPath, "utf8"),
+    readUtf8(shellLoaderPath, target),
+    readUtf8(safeDiagnosticsPath, target),
+    readUtf8(shellBoundaryPath, target),
+    readUtf8(storefrontErrorPath, target),
   ]);
 
   if (
@@ -180,9 +180,9 @@ async function checkStorefrontFailureContract(target) {
 
 async function checkCheckoutDeliveryContract(target) {
   const [schemaSource, commandSource, uiSource] = await Promise.all([
-    readFile(checkoutSchemaPath, "utf8"),
-    readFile(checkoutCommandPath, "utf8"),
-    readFile(checkoutUiPath, "utf8"),
+    readUtf8(checkoutSchemaPath, target),
+    readUtf8(checkoutCommandPath, target),
+    readUtf8(checkoutUiPath, target),
   ]);
 
   if (/deliveryZoneId/.test(schemaSource)) {
@@ -196,6 +196,16 @@ async function checkCheckoutDeliveryContract(target) {
   }
   if (!/deliveryQuotes/.test(uiSource) || !/selectedAddressId/.test(uiSource)) {
     target.push("checkout UI must select an owned address and render its server quote");
+  }
+}
+
+async function readUtf8(file, target) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(await readFile(file));
+  } catch (error) {
+    const detail = error instanceof Error ? ` (${error.name})` : "";
+    target.push(`${relative(file)} is not valid UTF-8${detail}`);
+    return "";
   }
 }
 
