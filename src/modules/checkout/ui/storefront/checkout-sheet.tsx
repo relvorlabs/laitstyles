@@ -18,6 +18,7 @@ import {
 import { checkoutKeys } from "@/modules/checkout/client/keys";
 import type {
   CheckoutContext,
+  CheckoutDeliveryQuote,
   CheckoutDraft,
   CheckoutStatus,
 } from "@/modules/checkout/types";
@@ -70,8 +71,7 @@ export function StorefrontCheckoutSheet({
   const updateProfile = useUpdateOwnedProfile();
   const normalizedLines = useMemo(() => mergeCheckoutLines(lines), [lines]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [showEveryAddress, setShowEveryAddress] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -91,26 +91,26 @@ export function StorefrontCheckoutSheet({
 
   const context = contextQuery.data;
   const addresses = useMemo(() => uniqueById(context?.addresses ?? []), [context?.addresses]);
-  const deliveryZones = useMemo(
-    () => uniqueById(context?.deliveryZones ?? []),
-    [context?.deliveryZones],
-  );
   const selectedAddress = useMemo(
     () => addresses.find((address) => address.id === selectedAddressId) ?? null,
     [addresses, selectedAddressId],
   );
-  const selectedZone = useMemo(
-    () => deliveryZones.find((zone) => zone.id === selectedZoneId) ?? null,
-    [deliveryZones, selectedZoneId],
+  const selectedQuote = useMemo(
+    () =>
+      context?.deliveryQuotes.find((quote) => quote.addressId === selectedAddressId) ??
+      context?.selectedDeliveryQuote ??
+      null,
+    [context, selectedAddressId],
   );
+  const visibleAddresses = showEveryAddress ? addresses : addresses.slice(0, 2);
   const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
   const displaySubtotalMinor = activeCheckout?.subtotalMinor ?? subtotalMinor;
-  const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedZone?.feeMinor ?? 0;
+  const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedQuote?.feeMinor ?? 0;
   const displayDiscountMinor = activeCheckout?.discountMinor ?? discountMinor;
   const totalMinor =
     activeCheckout?.totalMinor ??
-    Math.max(0, subtotalMinor + (selectedZone?.feeMinor ?? 0) - discountMinor);
+    Math.max(0, subtotalMinor + (selectedQuote?.feeMinor ?? 0) - discountMinor);
   const phoneReady = Boolean(context && !context.phoneRequired && context.profile.phone.trim());
   const couponReady =
     !couponCode.trim() ||
@@ -130,7 +130,7 @@ export function StorefrontCheckoutSheet({
       signedIn &&
       phoneReady &&
       selectedAddressId &&
-      selectedZoneId &&
+      selectedQuote &&
       normalizedLines.length > 0 &&
       couponReady &&
       paymentStage === "ready",
@@ -144,11 +144,11 @@ export function StorefrontCheckoutSheet({
         couponReady,
         couponFetching: couponQuery.isFetching,
         currentStatus,
+        hasDeliveryQuote: Boolean(selectedQuote),
         lineCount: normalizedLines.length,
         paymentStage,
         phoneReady,
         selectedAddressId,
-        selectedZoneId,
       });
 
   useEffect(() => {
@@ -169,20 +169,10 @@ export function StorefrontCheckoutSheet({
         ? current
         : (context.defaultAddressId ?? firstAddressId),
     );
-    setSelectedZoneId((current) =>
-      current && context.deliveryZones.some((zone) => zone.id === current)
-        ? current
-        : context.selectedDeliveryZoneId,
-    );
     setPhone(context.profile.phone);
     setPhoneConfirmation(context.profile.phone);
     setActiveCheckout((current) => current ?? context.activeCheckout);
   }, [context]);
-
-  useEffect(() => {
-    if (!context || !selectedAddress || activeCheckout) return;
-    selectZoneForAddress(selectedAddress, context, setSelectedZoneId);
-  }, [activeCheckout, context, selectedAddress]);
 
   useEffect(() => {
     const checkout = checkoutStatusQuery.data;
@@ -221,7 +211,7 @@ export function StorefrontCheckoutSheet({
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current ? { ...current, profile, profileComplete: true, phoneRequired: false } : current,
       );
-      toast.success("Phone number saved to your account.");
+      toast.success("Delivery number saved.");
     } catch (error: unknown) {
       toast.error(readErrorMessage(error, "Your phone number could not be saved."));
     }
@@ -233,34 +223,13 @@ export function StorefrontCheckoutSheet({
     setPaymentStage("creating");
     try {
       let checkout: CheckoutDraft;
-      const resumableStatus = currentStatus ?? activeCheckout?.status ?? null;
-      if (
-        activeCheckout?.accessCode &&
-        resumableStatus &&
-        isResumableCheckoutStatus(resumableStatus)
-      ) {
-        checkout = activeCheckout;
-      } else {
-        if (!selectedAddressId || !selectedZoneId || normalizedLines.length === 0) {
-          setPaymentStage("ready");
-          return;
-        }
-        checkout = await createCheckout.mutateAsync({
-          idempotencyKey: idempotencyKey.current,
-          addressId: selectedAddressId,
-          deliveryZoneId: selectedZoneId,
-          ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
-          lines: normalizedLines.map((line) => ({
-            productId: line.productId,
-            ...(line.variantId ? { variantId: line.variantId } : {}),
+      const resumableStatus = currentStatus ?? active variantId: line.variantId } : {}),
             quantity: line.quantity,
           })),
         });
       }
       setActiveCheckout(checkout);
-      if (!checkout.accessCode) {
-        throw new Error("payment-access-unavailable");
-      }
+      if (!checkout.accessCode) throw new Error("payment-access-unavailable");
 
       setPaymentStage("paying");
       const outcome = await resumePaystackTransaction(checkout.accessCode);
@@ -292,12 +261,19 @@ export function StorefrontCheckoutSheet({
 
   if (!signedIn) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-            Sign in to use your saved delivery details. Your bag will stay exactly as it is.
+      <CheckoutPanelShell onBack={onBack} title="Private checkout">
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
+            Your fitting room is saved
           </p>
+          <div>
+            <p className="font-serif text-3xl">Sign in to arrange delivery</p>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[var(--muted)]">
+              Your bag stays untouched while we bring in your saved contact and address details.
+            </p>
+          </div>
           <Button
+            className="min-w-48 rounded-full"
             onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("cartDrawer"))}
             type="button"
           >
@@ -310,9 +286,9 @@ export function StorefrontCheckoutSheet({
 
   if (contextQuery.isPending) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
+      <CheckoutPanelShell onBack={onBack} title="Private checkout">
         <div className="grid flex-1 place-items-center px-6 text-sm text-[var(--muted)]">
-          Loading your saved delivery details…
+          Preparing your delivery atelier…
         </div>
       </CheckoutPanelShell>
     );
@@ -320,9 +296,9 @@ export function StorefrontCheckoutSheet({
 
   if (contextQuery.isError || !context) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-sm text-[var(--muted)]">
+      <CheckoutPanelShell onBack={onBack} title="Private checkout">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+          <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
             {readErrorMessage(contextQuery.error, "Checkout details could not be loaded.")}
           </p>
           <Button onClick={() => void contextQuery.refetch()} type="button" variant="outline">
@@ -334,220 +310,228 @@ export function StorefrontCheckoutSheet({
   }
 
   return (
-    <CheckoutPanelShell onBack={onBack} title="Checkout">
-      <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-        {paymentNotice ? <PaymentStatusCard notice={paymentNotice} /> : null}
-        {activeCheckout && !paymentNotice ? (
-          <section className="rounded-xl border border-[var(--line)] bg-[var(--sage-light)] p-4 text-sm">
-            <p className="font-medium">Your checkout is saved</p>
-            <p className="mt-1 leading-5 text-[var(--muted)]">
-              Continue the existing payment for order {activeCheckout.orderNumber}. Your delivery
-              details and total are already locked in.
+    <CheckoutPanelShell onBack={onBack} title="Private checkout">
+      <div className="flex-1 overflow-y-auto">
+        <div className="space-y-8 px-5 py-6 sm:px-8 sm:py-8">
+          <div className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--ink)] px-5 py-5 text-[var(--bone)] sm:px-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--bone)]/60">
+                  Laitstyles delivery service
+                </p>
+                <h2 className="mt-2 font-serif text-2xl italic sm:text-3xl">
+                  Your edit, delivered nationwide.
+                </h2>
+              </div>
+              <span className="rounded-full border border-[var(--bone)]/20 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em]">
+                Nigeria-wide
+              </span>
+            </div>
+            <p className="mt-3 max-w-xl text-xs leading-5 text-[var(--bone)]/70">
+              Choose any saved Nigerian address. The applicable regional or nationwide rate is
+              quoted before the secure payment window opens.
             </p>
-          </section>
-        ) : null}
+          </div>
 
-        {!activeCheckout ? (
-          <>
-            {!phoneReady ? (
-              <section className="space-y-3">
-                <SectionHeading label="Contact number" />
-                <SummaryCard>
-                  <p className="font-medium text-[var(--ink)]">{profileDisplayName(context)}</p>
-                  <p className="mt-1">
-                    Add the phone number the delivery team should use for this order.
-                  </p>
-                  <div className="mt-4 grid gap-3">
-                    <Input
-                      aria-label="Delivery phone number"
-                      autoComplete="tel"
-                      onChange={(event) => setPhone(event.target.value)}
-                      placeholder="Phone number"
-                      type="tel"
-                      value={phone}
-                    />
-                    <Input
-                      aria-label="Confirm delivery phone number"
-                      autoComplete="tel"
-                      onChange={(event) => setPhoneConfirmation(event.target.value)}
-                      placeholder="Confirm phone number"
-                      type="tel"
-                      value={phoneConfirmation}
-                    />
+          {paymentNotice ? <PaymentStatusCard notice={paymentNotice} /> : null}
+          {activeCheckout && !paymentNotice ? (
+            <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--sage-light)] p-5 text-sm">
+              <Eyebrow>Saved order</Eyebrow>
+              <p className="mt-2 font-serif text-2xl">{activeCheckout.orderNumber}</p>
+              <p className="mt-2 leading-6 text-[var(--muted)]">
+                Delivery details and total are locked. Continue the existing payment below rather
+                than creating another order.
+              </p>
+            </section>
+          ) : null}
+
+          {!activeCheckout ? (
+            <>
+              <CheckoutSection number="01" title="Delivery contact">
+                {phoneReady ? (
+                  <EditorialCard>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="font-serif text-xl">{profileDisplayName(context)}</p>
+                        <p className="mt-1 text-sm text-[var(--muted)]">{context.profile.phone}</p>
+                      </div>
+                      <span className="rounded-full bg-[var(--sage-light)] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em]">
+                        Confirmed
+                      </span>
+                    </div>
+                  </EditorialCard>
+                ) : (
+                  <EditorialCard>
+                    <p className="text-sm leading-6 text-[var(--muted)]">
+                      Add the number our delivery partner should use for this order.
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Input
+                        aria-label="Delivery phone number"
+                        autoComplete="tel"
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="Phone number"
+                        type="tel"
+                        value={phone}
+                      />
+                      <Input
+                        aria-label="Confirm delivery phone number"
+                        autoComplete="tel"
+                        onChange={(event) => setPhoneConfirmation(event.target.value)}
+                        placeholder="Confirm number"
+                        type="tel"
+                        value={phoneConfirmation}
+                      />
+                    </div>
                     <Button
+                      className="mt-3 rounded-full"
                       disabled={updateProfile.isPending}
                       onClick={() => void savePhone()}
                       type="button"
                       variant="outline"
                     >
-                      {updateProfile.isPending ? "Saving number…" : "Save phone number"}
+                      {updateProfile.isPending ? "Saving number…" : "Save delivery number"}
                     </Button>
-                  </div>
-                </SummaryCard>
-              </section>
-            ) : null}
+                  </EditorialCard>
+                )}
+              </CheckoutSection>
 
-            <section className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <SectionHeading label="Delivery address" />
-                {addresses.length > 1 ? (
-                  <Button
-                    onClick={() => setShowAddressSelector((current) => !current)}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {showAddressSelector ? "Keep selected address" : "Change delivery address"}
-                  </Button>
-                ) : null}
-              </div>
-
-              {selectedAddress ? <AddressSummary address={selectedAddress} /> : null}
-
-              {showAddressSelector && addresses.length > 1 ? (
-                <label className="grid gap-2 text-sm">
-                  <span className="text-[var(--muted)]">Choose a saved address</span>
-                  <select
-                    className="h-10 rounded-lg border border-input bg-control px-3 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    onChange={(event) => setSelectedAddressId(event.target.value)}
-                    value={selectedAddressId ?? ""}
-                  >
+              <CheckoutSection number="02" title="Where should this edit arrive?">
+                {addresses.length > 0 ? (
+                  <div className="grid gap-3">
                     {addresses.map((address) => (
-                      <option key={`checkout-address:${address.id}`} value={address.id}>
-                        {address.label}
-                        {address.isDefault ? " · Default" : ""} · {address.city}
-                      </option>
+                      <AddressChoice
+                        address={address}
+                        key={`checkout-address:${address.id}`}
+                        onSelect={() => setSelectedAddressId(address.id)}
+                        selected={address.id === selectedAddressId}
+                      />
                     ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {addresses.length === 0 ? (
-                <SummaryCard>
-                  <p>No delivery address is saved yet.</p>
+                  </div>
+                ) : (
+                  <EditorialCard>
+                    <p className="text-sm text-[var(--muted)]">No delivery address is saved yet.</p>
+                  </EditorialCard>
+                )}
+                <div className="mt-3 flex flex-wrap gap-3">
                   <Button
-                    className="mt-3 px-0"
                     nativeButton={false}
                     render={<Link href="/account/addresses?returnTo=checkout" />}
                     size="sm"
-                    variant="link"
+                    variant="outline"
                   >
-                    Add an address in your account
+                    {addresses.length > 0 ? "Add or edit addresses" : "Add delivery address"}
                   </Button>
-                </SummaryCard>
-              ) : (
-                <Button
-                  className="px-0"
-                  nativeButton={false}
-                  render={<Link href="/account/addresses?returnTo=checkout" />}
-                  size="sm"
-                  variant="link"
-                >
-                  Manage saved addresses
-                </Button>
-              )}
-            </section>
+                  {selectedAddress && !selectedAddress.isDefault ? (
+                    <span className="self-center text-xs text-[var(--muted)]">
+                      This address applies to this checkout only unless you make it default in your
+                      account.
+                    </span>
+                  ) : null}
+                </div>
+              </CheckoutSection>
 
-            <section className="space-y-3">
-              <SectionHeading label="Delivery estimate" />
-              {selectedZone ? (
-                <SummaryCard>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-[var(--ink)]">{selectedZone.name}</p>
-                      <p className="mt-1">{selectedZone.city}</p>
-                      <p className="mt-1 text-xs">
-                        {selectedZone.estimatedDays || "We will confirm the timing after payment."}
-                      </p>
-                    </div>
-                    <p className="font-mono font-medium text-[var(--ink)] tabular-nums">
-                      {formatNaira(selectedZone.feeMinor)}
-                    </p>
-                  </div>
-                </SummaryCard>
-              ) : (
-                <SummaryCard>
-                  We do not have a delivery option for this address yet. Choose another saved
-                  address or update the city in your account before paying.
-                </SummaryCard>
-              )}
-            </section>
-
-            <section className="space-y-3">
-              <SectionHeading label="Coupon code" />
-              <div className="rounded-xl border border-[var(--line)] p-4">
-                <Input
-                  aria-label="Coupon code"
-                  autoComplete="off"
-                  onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                />
-                {couponCode.trim() ? (
-                  <p
-                    aria-live="polite"
-                    className={`mt-2 text-xs ${
-                      couponQuery.isFetching
-                        ? "text-[var(--muted)]"
-                        : couponValidation?.valid
-                          ? "text-emerald-700"
-                          : "text-red-700"
-                    }`}
-                  >
-                    {couponQuery.isFetching
-                      ? "Checking your code…"
-                      : couponValidation?.message || "Enter at least two characters."}
-                  </p>
+              <CheckoutSection number="03" title="Nationwide delivery">
+                {selectedAddress && selectedDeliveryQuote ? (
+                  <DeliveryQuoteCard address={selectedAddress} quote={selectedDeliveryQuote} />
                 ) : (
-                  <p className="mt-2 text-xs text-[var(--muted)]">
-                    Add a valid code to see your updated total.
-                  </p>
+                  <EditorialCard>
+                    <p className="text-sm leading-6 text-[var(--muted)]">
+                      Select an address to reveal the delivery rate. Every valid Nigerian address
+                      remains eligible.
+                    </p>
+                  </EditorialCard>
                 )}
-              </div>
-            </section>
-          </>
-        ) : null}
+              </CheckoutSection>
+
+              <CheckoutSection number="04" title="Private offer">
+                <EditorialCard>
+                  <label className="grid gap-2">
+                    <span className="text-xs text-[var(--muted)]">
+                      Enter a coupon code from a Laitstyles offer.
+                    </span>
+                    <Input
+                      aria-label="Coupon code"
+                      autoComplete="off"
+                      className="font-mono uppercase tracking-[0.12em]"
+                      onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                      placeholder="LAIT-STYLE"
+                      value={couponCode}
+                    />
+                  </label>
+                  {couponCode.trim() ? (
+                    <p
+                      aria-live="polite"
+                      className={`mt-2 text-xs ${
+                        couponQuery.isFetching
+                          ? "text-[var(--muted)]"
+                          : couponValidation?.valid
+                            ? "text-emerald-700"
+                            : "text-red-700"
+                      }`}
+                    >
+                      {couponQuery.isFetching
+                        ? "Checking your code…"
+                        : couponValidation?.message || "Enter at least two characters."}
+                    </p>
+                  ) : null}
+                </EditorialCard>
+              </CheckoutSection>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      <div className="border-t border-[var(--line)] bg-[var(--bone-2)] px-6 py-5">
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between gap-4 text-[var(--muted)]">
-            <span>Items</span>
-            <span>{formatNaira(displaySubtotalMinor)}</span>
+      <div className="border-t border-[var(--line)] bg-[var(--bone-2)] px-5 py-5 sm:px-8 sm:py-6">
+        <div className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--bone)] p-5 shadow-[0_18px_60px_rgba(24,23,20,0.06)]">
+          <div className="flex items-center justify-between gap-4">
+            <Eyebrow>Order summary</Eyebrow>
+            <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+              Secure Paystack payment
+            </span>
           </div>
-          <div className="flex justify-between gap-4 text-[var(--muted)]">
-            <span>{activeCheckout ? "Delivery" : "Estimated delivery"}</span>
-            <span>{displayDeliveryFeeMinor > 0 ? formatNaira(displayDeliveryFeeMinor) : "—"}</span>
+          <div className="mt-4 space-y-2 text-sm">
+            <SummaryRow label="The edit" value={formatNaira(displaySubtotalMinor)} />
+            <SummaryRow
+              label={activeCheckout ? "Delivery" : "Nationwide delivery"}
+              value={displayDeliveryFeeMinor > 0 ? formatNaira(displayDeliveryFeeMinor) : "Complimentary"}
+            />
+            {displayDiscountMinor > 0 ? (
+              <SummaryRow
+                accent
+                label={activeCheckout ? "Private offer" : `Offer ${couponValidation?.code ?? ""}`}
+                value={`−${formatNaira(displayDiscountMinor)}`}
+              />
+            ) : null}
           </div>
-          {displayDiscountMinor > 0 ? (
-            <div className="flex justify-between gap-4 text-emerald-700">
-              <span>{activeCheckout ? "Discount" : `Coupon ${couponValidation?.code ?? ""}`}</span>
-              <span>−{formatNaira(displayDiscountMinor)}</span>
+          <div className="mt-4 flex items-end justify-between gap-4 border-t border-[var(--line)] pt-4">
+            <div>
+              <p className="text-xs text-[var(--muted)]">Total to pay</p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                Confirmed only after verification
+              </p>
             </div>
-          ) : null}
-          <div className="flex items-end justify-between gap-4 border-t border-[var(--line)] pt-3">
-            <span className="font-medium">Total</span>
-            <span className="font-serif text-2xl">{formatNaira(totalMinor)}</span>
+            <span className="font-serif text-3xl sm:text-4xl">{formatNaira(totalMinor)}</span>
           </div>
+          <Button
+            aria-describedby="checkout-payment-help"
+            className="mt-5 h-12 w-full rounded-full text-sm uppercase tracking-[0.12em]"
+            disabled={!canPay}
+            onClick={() => void startPayment()}
+            type="button"
+          >
+            {paymentLabel(paymentStage, Boolean(activeCheckout))}
+          </Button>
+          <p
+            className={`mx-auto mt-3 max-w-md text-center text-[11px] leading-5 ${
+              checkoutBlocker?.tone === "danger" ? "text-red-700" : "text-[var(--muted)]"
+            }`}
+            id="checkout-payment-help"
+          >
+            {checkoutBlocker?.message ??
+              "A secure payment window will open. Your order is confirmed only after payment is verified."}
+          </p>
         </div>
-        <Button
-          aria-describedby="checkout-payment-help"
-          className="mt-4 w-full"
-          disabled={!canPay}
-          onClick={() => void startPayment()}
-          type="button"
-        >
-          {paymentLabel(paymentStage, Boolean(activeCheckout))}
-        </Button>
-        <p
-          className={`mt-3 text-center text-[11px] leading-4 ${
-            checkoutBlocker?.tone === "danger" ? "text-red-700" : "text-[var(--muted)]"
-          }`}
-          id="checkout-payment-help"
-        >
-          {checkoutBlocker?.message ??
-            "A secure payment window will open. Your order is confirmed only after payment is verified."}
-        </p>
       </div>
     </CheckoutPanelShell>
   );
@@ -564,22 +548,154 @@ function CheckoutPanelShell({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-3 border-b border-[var(--line)] px-6 py-5">
+      <div className="flex items-center gap-4 border-b border-[var(--line)] px-5 py-4 sm:px-8 sm:py-5">
         <Button
           aria-label="Back to bag"
+          className="rounded-full"
           onClick={onBack}
           size="icon-sm"
           type="button"
-          variant="ghost"
+          variant="outline"
         >
           ←
         </Button>
-        <div>
-          <p className="font-serif text-3xl font-normal italic">{title}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Delivery and secure payment</p>
+        <div className="min-w-0">
+          <p className="truncate font-serif text-2xl font-normal italic sm:text-3xl">{title}</p>
+          <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--muted)]">
+            Delivery · offer · verified payment
+          </p>
         </div>
       </div>
       {children}
+    </div>
+  );
+}
+
+function CheckoutSection({
+  children,
+  number,
+  title,
+}: {
+  children: ReactNode;
+  number: string;
+  title: string;
+}) {
+  return (
+    <section aria-labelledby={`checkout-section-${number}`}>
+      <div className="mb-3 flex items-baseline gap-3">
+        <span className="font-mono text-[9px] tracking-[0.18em] text-[var(--muted)]">{number}</span>
+        <h3 className="font-serif text-2xl" id={`checkout-section-${number}`}>
+          {title}
+        </h3>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function EditorialCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-[1.4rem] border border-[var(--line)] bg-[var(--bone)] p-4 sm:p-5">
+      {children}
+    </div>
+  );
+}
+
+function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--muted)]">
+      {children}
+    </p>
+  );
+}
+
+function AddressChoice({
+  address,
+  onSelect,
+  selected,
+}: {
+  address: OwnedAddress;
+  onSelect: () => void;
+  selected: boolean;
+}) {
+  return (
+    <button
+      aria-pressed={selected}
+      className={`w-full rounded-[1.4rem] border p-4 text-left transition sm:p-5 ${
+        selected
+          ? "border-[var(--ink)] bg-[var(--sage-light)] shadow-[0_12px_36px_rgba(24,23,20,0.08)]"
+          : "border-[var(--line)] bg-[var(--bone)] hover:border-[var(--ink)]/50"
+      }`}
+      onClick={onSelect}
+      type="button"
+    >
+      <span className="flex items-start justify-between gap-4">
+        <span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-serif text-lg">{address.label || "Delivery address"}</span>
+            {address.isDefault ? (
+              <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em]">
+                Default
+              </span>
+            ) : null}
+          </span>
+          <span className="mt-1 block text-sm leading-5 text-[var(--muted)]">
+            {[address.line1, address.line2, address.city, address.state].filter(Boolean).join(", ")}
+          </span>
+          {address.deliveryNotes ? (
+            <span className="mt-2 block text-xs italic text-[var(--muted)]">
+              “{address.deliveryNotes}”
+            </span>
+          ) : null}
+        </span>
+        <span
+          aria-hidden="true"
+          className={`mt-1 grid size-5 shrink-0 place-items-center rounded-full border ${
+            selected ? "border-[var(--ink)] bg-[var(--ink)]" : "border-[var(--line)]"
+          }`}
+        >
+          {selected ? <span className="size-1.5 rounded-full bg-[var(--bone)]" /> : null}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function DeliveryQuoteCard({
+  address,
+  quote,
+}: {
+  address: OwnedAddress;
+  quote: CheckoutDeliveryQuote;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[1.5rem] border border-[var(--line)] bg-[var(--bone)]">
+      <div className="grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-start sm:p-6">
+        <div>
+          <Eyebrow>{quote.coverageLabel}</Eyebrow>
+          <p className="mt-2 font-serif text-2xl">{quote.label}</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+            To {address.city}
+            {address.state ? `, ${address.state}` : ""}. This address is covered and will not be
+            blocked by its city.
+          </p>
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            {formatEstimatedDays(quote.estimatedDays)}
+          </p>
+        </div>
+        <div className="sm:text-right">
+          <p className="font-serif text-3xl">
+            {quote.feeMinor > 0 ? formatNaira(quote.feeMinor) : "Complimentary"}
+          </p>
+          <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.14em] text-[var(--muted)]">
+            Applied automatically
+          </p>
+        </div>
+      </div>
+      <div className="border-t border-[var(--line)] bg-[var(--sage-light)] px-5 py-3 text-[11px] leading-5 text-[var(--muted)] sm:px-6">
+        Regional rates are used when configured; every other Nigerian address receives the
+        nationwide rate.
+      </div>
     </div>
   );
 }
@@ -594,41 +710,27 @@ function PaymentStatusCard({ notice }: { notice: PaymentNotice }) {
   }[notice.tone];
 
   return (
-    <section aria-live="polite" className={`rounded-xl border p-4 text-sm ${toneClass}`}>
-      <p className="font-medium">{notice.title}</p>
-      <p className="mt-1 leading-5 opacity-80">{notice.detail}</p>
+    <section aria-live="polite" className={`rounded-[1.5rem] border p-5 text-sm ${toneClass}`}>
+      <p className="font-serif text-xl">{notice.title}</p>
+      <p className="mt-2 leading-6 opacity-80">{notice.detail}</p>
     </section>
   );
 }
 
-function SectionHeading({ label }: { label: string }) {
+function SummaryRow({
+  accent = false,
+  label,
+  value,
+}: {
+  accent?: boolean;
+  label: string;
+  value: string;
+}) {
   return (
-    <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
-      {label}
-    </h3>
-  );
-}
-
-function SummaryCard({ children }: { children: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-[var(--line)] p-4 text-sm leading-5 text-[var(--muted)]">
-      {children}
+    <div className={`flex justify-between gap-4 ${accent ? "text-emerald-700" : "text-[var(--muted)]"}`}>
+      <span>{label}</span>
+      <span className="font-medium text-current tabular-nums">{value}</span>
     </div>
-  );
-}
-
-function AddressSummary({ address }: { address: OwnedAddress }) {
-  return (
-    <SummaryCard>
-      <p className="font-medium text-[var(--ink)]">
-        {address.label}
-        {address.isDefault ? " · Default" : ""}
-      </p>
-      <p className="mt-1">
-        {[address.line1, address.line2, address.city, address.state].filter(Boolean).join(", ")}
-      </p>
-      {address.deliveryNotes ? <p className="mt-1 text-xs">{address.deliveryNotes}</p> : null}
-    </SummaryCard>
   );
 }
 
@@ -639,18 +741,6 @@ function profileDisplayName(context: CheckoutContext): string {
     context.profile.email?.split("@").at(0) ||
     "Your account"
   );
-}
-
-function selectZoneForAddress(
-  address: OwnedAddress,
-  context: CheckoutContext,
-  select: (zoneId: string | null) => void,
-): void {
-  const city = normalizeLocation(address.city);
-  const zone = uniqueById(context.deliveryZones).find(
-    (item) => normalizeLocation(item.city) === city,
-  );
-  select(zone?.id ?? null);
 }
 
 function mergeCheckoutLines(lines: readonly StorefrontCheckoutLine[]): StorefrontCheckoutLine[] {
@@ -674,16 +764,18 @@ function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
   return Array.from(byId.values());
 }
 
-function normalizeLocation(value: string): string {
-  return value.trim().toLocaleLowerCase("en-NG");
-}
-
 function formatNaira(amountMinor: number): string {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
     maximumFractionDigits: 0,
   }).format(amountMinor / 100);
+}
+
+function formatEstimatedDays(value: string | null): string {
+  if (!value) return "Timing is confirmed after payment.";
+  const range = value.includes("-") ? `${value} working days` : `${value} working day${value === "1" ? "" : "s"}`;
+  return `Estimated arrival: ${range}.`;
 }
 
 function paymentLabel(stage: PaymentStage, resuming: boolean): string {
@@ -695,7 +787,7 @@ function paymentLabel(stage: PaymentStage, resuming: boolean): string {
     case "verifying":
       return "Confirming payment…";
     case "ready":
-      return resuming ? "Continue payment" : "Pay securely";
+      return resuming ? "Continue secure payment" : "Pay securely";
   }
 }
 
@@ -709,7 +801,7 @@ function getCheckoutBlocker({
   paymentStage,
   phoneReady,
   selectedAddressId,
-  selectedZoneId,
+  selectedDeliveryQuote,
 }: {
   activeCheckout: CheckoutDraft | null;
   couponCode: string;
@@ -720,7 +812,7 @@ function getCheckoutBlocker({
   paymentStage: PaymentStage;
   phoneReady: boolean;
   selectedAddressId: string | null;
-  selectedZoneId: string | null;
+  selectedDeliveryQuote: CheckoutDeliveryQuote | null;
 }): CheckoutBlocker | null {
   if (paymentStage !== "ready") {
     return { message: "Keep this checkout open while payment is being prepared.", tone: "muted" };
@@ -755,9 +847,9 @@ function getCheckoutBlocker({
   if (!selectedAddressId) {
     return { message: "Add or select a delivery address to continue.", tone: "muted" };
   }
-  if (!selectedZoneId) {
+  if (!selectedDeliveryQuote) {
     return {
-      message: "Delivery is not configured for the selected address city.",
+      message: "Refresh checkout to load the nationwide delivery quote for this address.",
       tone: "danger",
     };
   }
@@ -777,13 +869,13 @@ function getPaymentNotice(status: CheckoutStatus | null): PaymentNotice | null {
     case "pending":
       return {
         title: "Payment is still in progress",
-        detail: "You can continue this payment without creating another order.",
+        detail: "Continue this payment without creating another order.",
         tone: "neutral",
       };
     case "failed":
       return {
         title: "Payment was not completed",
-        detail: "Your checkout and bag are saved. Use Continue payment below to try again safely.",
+        detail: "Your checkout and bag are saved. Continue payment below to try again safely.",
         tone: "danger",
       };
     case "abandoned":
