@@ -32,9 +32,9 @@ export function AuthPageShell({
   sideTitle,
   sideDescription,
   highlights = [
-    "Protected account and session handling",
-    "Clear recovery and confirmation paths",
-    "Your account data stays attached to you",
+    "Private access to your Laitstyle account",
+    "Clear password recovery and email confirmation",
+    "Your saved pieces, orders and details stay with you",
   ],
   children,
   footer,
@@ -67,7 +67,7 @@ export function AuthPageShell({
           <div className="relative max-w-[470px]">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-sidebar-border bg-sidebar-accent/55 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/75">
               {staff ? <ShieldCheck className="size-3.5" /> : <Sparkles className="size-3.5" />}
-              {staff ? "Authorised staff only" : "One account, every find"}
+              {staff ? "Approved team members" : "One account, every find"}
             </div>
             <h2 className="font-serif text-[48px] font-medium leading-[1.02] xl:text-[58px]">
               {sideTitle}
@@ -77,10 +77,10 @@ export function AuthPageShell({
             </p>
 
             <div className="mt-9 grid gap-4">
-              {highlights.map((highlight) => (
+              {highlights.map((highlight, index) => (
                 <div
                   className="flex items-center gap-3 text-sm text-sidebar-foreground/82"
-                  key={highlight}
+                  key={`auth-highlight:${index}:${highlight}`}
                 >
                   <span className="grid size-7 shrink-0 place-items-center rounded-full border border-sidebar-border bg-sidebar-accent/70">
                     <CheckCircle2 className="size-4" />
@@ -93,7 +93,7 @@ export function AuthPageShell({
 
           <div className="relative flex items-center gap-3 border-t border-sidebar-border/70 pt-6 text-xs leading-5 text-sidebar-foreground/58">
             <LockKeyhole className="size-4 shrink-0" />
-            Authentication is handled securely and account permissions are checked on the server.
+            Your account details and store access are protected throughout sign in.
           </div>
         </aside>
 
