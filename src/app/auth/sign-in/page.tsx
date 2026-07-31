@@ -9,8 +9,8 @@ import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
 import { SignInForm } from "@/modules/auth/ui/sign-in-form";
 
 export const metadata: Metadata = {
-  title: "Staff sign in | Laitstyle",
-  description: "Securely sign in to the Laitstyle store workspace.",
+  title: "Team sign in | Laitstyle",
+  description: "Sign in to manage the Laitstyle store.",
 };
 
 type SignInPageProps = {
@@ -40,8 +40,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
   return (
     <AuthPageShell
-      description="Use your approved staff account to continue. Your role is checked again on the server before any store operation is shown."
-      eyebrow="Staff access"
+      description="Use your approved Laitstyle team account to continue."
+      eyebrow="Team access"
       footer={
         <p className="text-center text-[13px] leading-5 text-muted-foreground">
           Shopping instead?{" "}
@@ -54,14 +54,14 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         </p>
       }
       highlights={[
-        "Role-based access for owners and managers",
-        "Protected inventory, order and customer operations",
-        "One secure session across the store workspace",
+        "Owner and manager access",
+        "Inventory, orders and customer care in one place",
+        "Protected access to your store workspace",
       ]}
-      sideDescription="Move between inventory, orders, customers and daily store decisions from one protected workspace—without exposing operational controls to storefront accounts."
-      sideTitle="Keep the whole store within reach."
+      sideDescription="Manage new pieces, orders, customers and the daily work behind the Laitstyle storefront."
+      sideTitle="Your store, ready when you are."
       staff
-      title="Welcome back to the workspace"
+      title="Welcome back"
     >
       <SignInForm
         action={signInWithPassword}

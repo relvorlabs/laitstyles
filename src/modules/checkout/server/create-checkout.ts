@@ -2,9 +2,9 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
-import type { Prisma } from "@/lib/prisma";
-import { prisma } from "@/lib/prisma";
+import { Prisma, prisma } from "@/lib/prisma";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
+import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
 import type {
   CheckoutDraft,
   CheckoutError,
@@ -30,6 +30,12 @@ class ExpectedCheckoutError extends Error {
   }
 }
 
+type CheckoutAccount = {
+  email: string;
+  displayName: string;
+  phone: string;
+};
+
 type DraftLine = {
   productId: string;
   variantId?: string;
@@ -39,14 +45,6 @@ type DraftLine = {
   sku?: string;
   quantity: number;
   unitPriceMinor: number;
-};
-
-type PendingDraft = CheckoutDraft & { idempotencyRecordId: string };
-
-type CheckoutAccount = {
-  email: string;
-  displayName: string;
-  phone: string;
 };
 
 export async function createCheckout(
@@ -66,16 +64,16 @@ export async function createCheckout(
   if (!account) {
     return err({
       code: "CHECKOUT_INVALID",
-      message: "Complete your first name, last name, email and phone number before checkout.",
-      field: "profile",
+      message: "Add and confirm a phone number on your account before checkout.",
+      field: "profile.phone",
     });
   }
 
   const requestHash = hashCheckoutRequest(identity.customerId, parsed.data);
-  const existing = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
-  if (existing) return existing;
+  const replay = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
+  if (replay) return replay;
 
-  let draft: PendingDraft | null = null;
+  let draft: CheckoutDraft | null = null;
   for (let attempt = 0; attempt < MAX_REFERENCE_ATTEMPTS; attempt += 1) {
     try {
       draft = await createPendingDraft(identity, account, parsed.data, requestHash);
@@ -85,8 +83,8 @@ export async function createCheckout(
       if (error instanceof OperationalStockError) return err(mapStockError(error));
       if (!isUniqueConstraintError(error)) throw error;
 
-      const replay = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
-      if (replay) return replay;
+      const existing = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
+      if (existing) return existing;
       if (attempt === MAX_REFERENCE_ATTEMPTS - 1) {
         return err({
           code: "CHECKOUT_IDEMPOTENCY_CONFLICT",
@@ -95,12 +93,13 @@ export async function createCheckout(
       }
     }
   }
+
   if (!draft) {
     return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is already being created." });
   }
 
   try {
-    const checkout = await initializeTransaction({
+    const initialized = await initializeTransaction({
       email: account.email,
       amountMinor: draft.totalMinor,
       reference: draft.reference,
@@ -113,36 +112,47 @@ export async function createCheckout(
         customerId: identity.customerId,
       },
     });
-    if (checkout.reference !== draft.reference) {
+    if (initialized.reference !== draft.reference) {
       throw new Error("Paystack returned a different transaction reference.");
     }
 
-    await prisma.payments.update({
-      where: { id: draft.paymentId },
-      data: {
-        access_code: checkout.accessCode,
+    await prisma.$transaction(async (tx) => {
+      await tx.payments.update({
+        where: { id: draft.paymentId },
+        data: {
+          access_code: initialized.accessCode,
+          status: "initialized",
+          raw_response: toPrismaJsonObject(initialized.rawResponse),
+        },
+      });
+      await tx.holds.updateMany({
+        where: { order_id: draft.checkoutId, status: "active" },
+        data: { stage: "payment", payment_progress: "initialized" },
+      });
+    });
+
+    return ok(
+      checkoutDraftSchema.parse({
+        ...draft,
+        accessCode: initialized.accessCode,
         status: "initialized",
-        raw_response: toPrismaJsonObject(checkout.rawResponse),
-      },
-    });
-    await prisma.holds.updateMany({
-      where: { order_id: draft.checkoutId, status: "active" },
-      data: { stage: "payment", payment_progress: "initialized" },
-    });
-    return ok({ ...draft, accessCode: checkout.accessCode, status: "initialized" });
+      }),
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Paystack initialization failed.";
-    await prisma.payments.update({
-      where: { id: draft.paymentId },
-      data: {
-        status: "failed",
-        failure_code: "PAYSTACK_INITIALIZATION_FAILED",
-        failure_reason: message,
-      },
-    });
-    await prisma.holds.updateMany({
-      where: { order_id: draft.checkoutId, status: "active" },
-      data: { payment_progress: "failed" },
+    await prisma.$transaction(async (tx) => {
+      await tx.payments.update({
+        where: { id: draft.paymentId },
+        data: {
+          status: "failed",
+          failure_code: "PAYSTACK_INITIALIZATION_FAILED",
+          failure_reason: message,
+        },
+      });
+      await tx.holds.updateMany({
+        where: { order_id: draft.checkoutId, status: "active" },
+        data: { payment_progress: "failed" },
+      });
     });
     return err({
       code: "PAYMENT_INITIALIZATION_FAILED",
@@ -158,7 +168,7 @@ async function createPendingDraft(
   account: CheckoutAccount,
   input: CreateCheckoutInput,
   requestHash: string,
-): Promise<PendingDraft> {
+): Promise<CheckoutDraft> {
   const now = new Date();
   const reference = `LS-CHECKOUT-${crypto.randomUUID().replaceAll("-", "")}`;
   const orderNumber = `LS-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
@@ -185,6 +195,7 @@ async function createPendingDraft(
           "addressId",
         );
       }
+
       const deliveryZone = await tx.delivery_zones.findFirst({
         where: { id: input.deliveryZoneId, enabled: true },
       });
@@ -219,6 +230,7 @@ async function createPendingDraft(
             `lines.${index}.productId`,
           );
         }
+
         const variant = line.variantId
           ? product.product_variants.find((candidate) => candidate.id === line.variantId)
           : undefined;
@@ -232,6 +244,7 @@ async function createPendingDraft(
             `lines.${index}.variantId`,
           );
         }
+
         return {
           productId: product.id,
           ...(variant ? { variantId: variant.id, variantLabel: variant.label } : {}),
@@ -249,8 +262,20 @@ async function createPendingDraft(
         (total, line) => total + line.unitPriceMinor * line.quantity,
         0,
       );
+      const coupon = input.couponCode
+        ? await validateCheckoutCoupon(tx, input.couponCode, subtotalMinor)
+        : null;
+      if (input.couponCode && (!coupon || !coupon.valid)) {
+        throw expected(
+          "CHECKOUT_INVALID",
+          coupon?.message ?? "The coupon code is not valid.",
+          "couponCode",
+        );
+      }
+
+      const discountMinor = coupon?.discountMinor ?? 0;
       const deliveryFeeMinor = decimalToMinor(deliveryZone.rate);
-      const totalMinor = subtotalMinor + deliveryFeeMinor;
+      const totalMinor = Math.max(0, subtotalMinor + deliveryFeeMinor - discountMinor);
       const order = await tx.orders.create({
         data: {
           order_number: orderNumber,
@@ -278,7 +303,7 @@ async function createPendingDraft(
           currency: "NGN",
           subtotal: minorToDecimal(subtotalMinor),
           delivery_fee: minorToDecimal(deliveryFeeMinor),
-          discount_amount: "0.00",
+          discount_amount: minorToDecimal(discountMinor),
           total: minorToDecimal(totalMinor),
           attention: "payment",
           created_by_profile_id: identity.authUserId,
@@ -301,6 +326,7 @@ async function createPendingDraft(
       for (const line of lines) {
         await attachCheckoutHold(tx, identity, order.id, orderNumber, line, now);
       }
+
       const payment = await tx.payments.create({
         data: {
           order_id: order.id,
@@ -311,6 +337,10 @@ async function createPendingDraft(
           status: "initializing",
         },
       });
+      const metadata = {
+        reference,
+        ...(coupon?.valid ? { couponCode: coupon.code, discountMinor } : {}),
+      };
       await tx.order_payment_events.create({
         data: {
           order_id: order.id,
@@ -322,7 +352,7 @@ async function createPendingDraft(
           method: "paystack",
           actor_profile_id: identity.authUserId,
           note: "Storefront checkout payment attempt created.",
-          metadata: { reference },
+          metadata,
         },
       });
       await tx.order_timeline_events.create({
@@ -331,11 +361,11 @@ async function createPendingDraft(
           status: "pending-payment",
           actor_profile_id: identity.authUserId,
           note: "Checkout created with stock reserved pending verified payment.",
-          metadata: { paymentId: payment.id, reference },
+          metadata: { paymentId: payment.id, ...metadata },
         },
       });
 
-      const snapshot: PendingDraft = {
+      const snapshot = checkoutDraftSchema.parse({
         checkoutId: order.id,
         paymentId: payment.id,
         orderNumber: order.order_number,
@@ -345,10 +375,9 @@ async function createPendingDraft(
         currency: "NGN",
         subtotalMinor,
         deliveryFeeMinor,
-        discountMinor: 0,
+        discountMinor,
         totalMinor,
-        idempotencyRecordId: idempotency.id,
-      };
+      });
       await tx.idempotency_records.update({
         where: { id: idempotency.id },
         data: {
@@ -359,7 +388,7 @@ async function createPendingDraft(
       });
       return snapshot;
     },
-    { isolationLevel: "Serializable" },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
 }
 
@@ -384,7 +413,7 @@ async function attachCheckoutHold(
       throw expected("RESOURCE_NOT_OWNED", "The selected hold does not match this checkout.");
     }
     if (hold.status !== "active" || hold.expires_at <= now) {
-      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold has expired. Refresh your cart.");
+      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold has expired. Refresh your bag.");
     }
     const claimed = await tx.holds.updateMany({
       where: { id: hold.id, status: "active", expires_at: { gt: now } },
@@ -396,10 +425,7 @@ async function attachCheckoutHold(
       },
     });
     if (claimed.count !== 1) {
-      throw expected(
-        "CHECKOUT_HOLD_EXPIRED",
-        "A checkout hold changed or expired. Refresh your cart.",
-      );
+      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold changed or expired.");
     }
     return;
   }
@@ -426,10 +452,7 @@ async function attachCheckoutHold(
       },
     });
     if (claimed.count !== 1) {
-      throw expected(
-        "CHECKOUT_HOLD_EXPIRED",
-        "A checkout hold changed or expired. Refresh your cart.",
-      );
+      throw expected("CHECKOUT_HOLD_EXPIRED", "A checkout hold changed or expired.");
     }
     return;
   }
@@ -486,16 +509,14 @@ async function findIdempotentCheckout(
 
 function normalizeCheckoutAccount(profile: OwnedProfile): CheckoutAccount | null {
   const email = profile.email?.trim() ?? "";
-  const firstName = profile.firstName.trim();
-  const lastName = profile.lastName.trim();
-  const preferredName = profile.preferredName.trim();
   const phone = profile.phone.trim();
-  if (!email || !firstName || !lastName || !phone) return null;
-  return {
-    email,
-    displayName: preferredName || `${firstName} ${lastName}`,
-    phone,
-  };
+  if (!email || !phone) return null;
+  const displayName =
+    profile.preferredName.trim() ||
+    [profile.firstName.trim(), profile.lastName.trim()].filter(Boolean).join(" ") ||
+    email.split("@")[0] ||
+    "Customer";
+  return { email, displayName, phone };
 }
 
 function expected(code: CheckoutError["code"], message: string, field?: string) {
@@ -519,10 +540,7 @@ function isUniqueConstraintError(error: unknown): boolean {
 }
 
 function mapStockError(error: OperationalStockError): CheckoutError {
-  return {
-    code: "STOCK_NOT_AVAILABLE",
-    message: error.message,
-  };
+  return { code: "STOCK_NOT_AVAILABLE", message: error.message };
 }
 
 function toPrismaJsonObject(value: object): Prisma.InputJsonObject {

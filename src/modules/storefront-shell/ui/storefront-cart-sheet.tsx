@@ -15,11 +15,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { subscribeToStorefrontCheckoutResume } from "@/modules/checkout/client/recovery-events";
 import {
   StorefrontCheckoutSheet,
   type StorefrontCheckoutLine,
 } from "@/modules/checkout/ui/storefront/checkout-sheet";
-import { money } from "@/modules/products/ui/storefront/catalogue-data";
+import { money, type Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
 import {
   useStorefrontCart,
   useStorefrontCatalogueData,
@@ -37,36 +39,39 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
   const overlay = useStorefrontOverlay();
   const [view, setView] = useState<CartSheetView>("bag");
 
-  const recommendations = useMemo(
-    () =>
-      products
-        .filter(
-          (product) =>
-            product.status === "available" &&
-            !cart.lines.some((line) => line.productId === product.id),
-        )
-        .slice(0, 2),
-    [cart.lines, products],
-  );
+  const cartViews = useMemo(() => {
+    const byLineKey = new Map<string, (typeof cart.views)[number]>();
+    for (const item of cart.views) {
+      if (!item?.lineKey || !item.product?.id) continue;
+      byLineKey.set(item.lineKey, item);
+    }
+    return Array.from(byLineKey.values());
+  }, [cart.views]);
+
+  const recommendations = useMemo(() => {
+    const cartProductIds = new Set(cartViews.map((item) => item.product.id));
+    return uniqueProducts(products)
+      .filter((product) => product.status === "available" && !cartProductIds.has(product.id))
+      .slice(0, 2);
+  }, [cartViews, products]);
 
   const checkoutLines = useMemo<StorefrontCheckoutLine[]>(
     () =>
-      cart.lines.map((line) => ({
-        productId: line.productId,
-        variantId: line.variantId,
-        quantity: line.qty,
+      cartViews.map((item) => ({
+        productId: item.product.id,
+        variantId: item.variantId,
+        quantity: item.lineQty,
       })),
-    [cart.lines],
+    [cartViews],
   );
 
   useEffect(() => {
-    if (overlay.openId !== "cartDrawer" || cart.views.length === 0) {
-      setView("bag");
-    }
-  }, [cart.views.length, overlay.openId]);
+    if (overlay.openId !== "cartDrawer" || cartViews.length === 0) setView("bag");
+  }, [cartViews.length, overlay.openId]);
+
+  useEffect(() => subscribeToStorefrontCheckoutResume(() => setView("checkout")), []);
 
   function completeCheckout(orderNumber: string): void {
-    cart.clear();
     setView("bag");
     overlay.close();
     router.push(`/order-confirmation?order=${encodeURIComponent(orderNumber)}`);
@@ -106,7 +111,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
         className="lst-storefront flex w-full flex-col border-l border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-w-[520px]"
         side="right"
       >
-        {view === "checkout" && cart.views.length > 0 ? (
+        {view === "checkout" && cartViews.length > 0 ? (
           <StorefrontCheckoutSheet
             active={overlay.openId === "cartDrawer"}
             lines={checkoutLines}
@@ -130,7 +135,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
               </SheetDescription>
             </SheetHeader>
 
-            {cart.views.length === 0 ? (
+            {cartViews.length === 0 ? (
               <EmptyBag
                 onShop={() => {
                   overlay.close();
@@ -140,93 +145,102 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
             ) : (
               <>
                 <div className="flex-1 overflow-y-auto px-6 py-2">
-                  {cart.views.map(
-                    ({ product, lineKey, lineQty, variantLabel, unitPriceNaira }) => (
-                      <article
-                        className="grid grid-cols-[88px_1fr] gap-4 border-b border-[var(--line)] py-5"
-                        key={lineKey}
-                      >
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[var(--linen)]">
-                          {product.images[0] ? (
-                            <CloudImage
-                              alt={product.name}
-                              className="object-cover"
-                              fill
-                              sizes="88px"
-                              src={product.images[0]}
-                            />
-                          ) : null}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                            Grade {product.condition} · {variantLabel ?? product.size}
-                          </p>
-                          <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
-                          <p className="mt-1 text-sm font-semibold">
-                            {money(unitPriceNaira * lineQty)}
-                          </p>
-                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                            {product.inventory === "one-of-one" ? (
-                              <span className="text-xs text-[var(--muted)]">One-of-one</span>
+                  {cartViews.map(
+                    ({ product, lineKey, lineQty, variantLabel, unitPriceNaira }) => {
+                      const defaultImage = getProductDefaultImage(product);
+                      return (
+                        <article
+                          className="grid grid-cols-[88px_1fr] gap-4 border-b border-[var(--line)] py-5"
+                          key={`cart-line:${lineKey}`}
+                        >
+                          <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-[var(--linen)]">
+                            {defaultImage ? (
+                              <CloudImage
+                                alt={product.name}
+                                className="object-cover"
+                                fill
+                                sizes="88px"
+                                src={defaultImage}
+                              />
                             ) : (
-                              <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
+                              <span
+                                aria-label={`${product.name} image unavailable`}
+                                className="grid size-full place-items-center px-2 text-center text-[10px] text-[var(--muted)]"
+                                role="img"
+                              >
+                                Image unavailable
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                              Grade {product.condition} · {variantLabel ?? product.size}
+                            </p>
+                            <h3 className="mt-1 truncate font-serif text-lg">{product.name}</h3>
+                            <p className="mt-1 text-sm font-semibold">
+                              {money(unitPriceNaira * lineQty)}
+                            </p>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                              {product.inventory === "one-of-one" ? (
+                                <span className="text-xs text-[var(--muted)]">One-of-one</span>
+                              ) : (
+                                <div className="inline-flex h-8 items-center rounded-full border border-[var(--line)]">
+                                  <Button
+                                    aria-label={`Decrease ${product.name} quantity`}
+                                    onClick={() => cart.changeQuantity(lineKey, -1)}
+                                    size="icon"
+                                    type="button"
+                                    variant="ghost"
+                                  >
+                                    −
+                                  </Button>
+                                  <span className="min-w-6 text-center font-mono text-xs">
+                                    {lineQty}
+                                  </span>
+                                  <Button
+                                    aria-label={`Increase ${product.name} quantity`}
+                                    onClick={() => cart.changeQuantity(lineKey, 1)}
+                                    size="icon"
+                                    type="button"
+                                    variant="ghost"
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-3 text-xs">
                                 <Button
-                                  aria-label={`Decrease ${product.name} quantity`}
-                                  onClick={() => cart.changeQuantity(lineKey, -1)}
-                                  size="icon"
+                                  className="gap-1.5"
+                                  onClick={() => {
+                                    if (!saved.idSet.has(product.id)) void saved.toggleProduct(product.id);
+                                    cart.removeLine(lineKey);
+                                  }}
+                                  size="lg"
                                   type="button"
-                                  variant="ghost"
+                                  variant="link"
                                 >
-                                  −
+                                  <HugeiconsIcon
+                                    aria-hidden="true"
+                                    icon={FavouriteIcon}
+                                    size={14}
+                                    strokeWidth={1.6}
+                                  />
+                                  Save
                                 </Button>
-                                <span className="min-w-6 text-center font-mono text-xs">
-                                  {lineQty}
-                                </span>
                                 <Button
-                                  aria-label={`Increase ${product.name} quantity`}
-                                  onClick={() => cart.changeQuantity(lineKey, 1)}
-                                  size="icon"
+                                  onClick={() => cart.removeLine(lineKey)}
+                                  size="lg"
                                   type="button"
-                                  variant="ghost"
+                                  variant="link"
                                 >
-                                  +
+                                  Remove
                                 </Button>
                               </div>
-                            )}
-                            <div className="flex items-center gap-3 text-xs">
-                              <Button
-                                className="gap-1.5"
-                                onClick={() => {
-                                  if (!saved.idSet.has(product.id)) {
-                                    void saved.toggleProduct(product.id);
-                                  }
-                                  cart.removeLine(lineKey);
-                                }}
-                                size="lg"
-                                type="button"
-                                variant="link"
-                              >
-                                <HugeiconsIcon
-                                  aria-hidden="true"
-                                  icon={FavouriteIcon}
-                                  size={14}
-                                  strokeWidth={1.6}
-                                />
-                                Save
-                              </Button>
-                              <Button
-                                onClick={() => cart.removeLine(lineKey)}
-                                size="lg"
-                                type="button"
-                                variant="link"
-                              >
-                                Remove
-                              </Button>
                             </div>
                           </div>
-                        </div>
-                      </article>
-                    ),
+                        </article>
+                      );
+                    },
                   )}
 
                   {recommendations.length > 0 ? (
@@ -235,35 +249,42 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                         Add to your order
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-3">
-                        {recommendations.map((product) => (
-                          <Button
-                            className="group h-auto min-w-0 justify-start p-0 text-left"
-                            key={product.id}
-                            onClick={() => cart.addProduct(product.id)}
-                            type="button"
-                            variant="ghost"
-                          >
-                            <span className="min-w-0">
-                              <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
-                                {product.images[0] ? (
-                                  <CloudImage
-                                    alt=""
-                                    className="object-cover transition-transform group-hover:scale-[1.03]"
-                                    fill
-                                    sizes="190px"
-                                    src={product.images[0]}
-                                  />
-                                ) : null}
+                        {recommendations.map((product) => {
+                          const defaultImage = getProductDefaultImage(product);
+                          return (
+                            <Button
+                              className="group h-auto min-w-0 justify-start p-0 text-left"
+                              key={`cart-recommendation:${product.id}`}
+                              onClick={() => cart.addProduct(product.id)}
+                              type="button"
+                              variant="ghost"
+                            >
+                              <span className="min-w-0">
+                                <span className="relative block aspect-[4/3] overflow-hidden rounded-sm bg-[var(--linen)]">
+                                  {defaultImage ? (
+                                    <CloudImage
+                                      alt={product.name}
+                                      className="object-cover transition-transform group-hover:scale-[1.03]"
+                                      fill
+                                      sizes="190px"
+                                      src={defaultImage}
+                                    />
+                                  ) : (
+                                    <span className="grid size-full place-items-center px-2 text-center text-[10px] text-[var(--muted)]">
+                                      Image unavailable
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="mt-2 block truncate text-xs font-medium">
+                                  {product.name}
+                                </span>
+                                <span className="block text-[11px] text-[var(--muted)]">
+                                  Add · {money(product.price)}
+                                </span>
                               </span>
-                              <span className="mt-2 block truncate text-xs font-medium">
-                                {product.name}
-                              </span>
-                              <span className="block text-[11px] text-[var(--muted)]">
-                                Add · {money(product.price)}
-                              </span>
-                            </span>
-                          </Button>
-                        ))}
+                            </Button>
+                          );
+                        })}
                       </div>
                     </section>
                   ) : null}
@@ -307,4 +328,13 @@ function EmptyBag({ onShop }: { onShop: () => void }) {
       </Button>
     </div>
   );
+}
+
+function uniqueProducts(products: readonly Product[]): Product[] {
+  const byId = new Map<string, Product>();
+  for (const product of products) {
+    if (!product?.id) continue;
+    byId.set(product.id, product);
+  }
+  return Array.from(byId.values());
 }

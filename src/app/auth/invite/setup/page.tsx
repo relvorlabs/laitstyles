@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ApiClientError } from "@/lib/http/client";
 import { createClient } from "@/lib/supabase/client";
+import { completeManagerSetupRequest } from "@/modules/auth/client/staff-invitation-api";
 import {
   AUTH_INPUT_CLASS_NAME,
   AUTH_PRIMARY_BUTTON_CLASS_NAME,
@@ -29,32 +31,34 @@ export default function ManagerInviteSetupPage() {
   useEffect(() => {
     let cancelled = false;
     async function initialize() {
-      const supabase = createClient();
+      const authClient = createClient();
       const hash = new URLSearchParams(window.location.hash.slice(1));
       const accessToken = hash.get("access_token");
       const refreshToken = hash.get("refresh_token");
 
       if (accessToken && refreshToken) {
-        const sessionResult = await supabase.auth.setSession({
+        const signInResult = await authClient.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        if (sessionResult.error) {
-          if (!cancelled)
+        if (signInResult.error) {
+          if (!cancelled) {
             setMessage(
-              "This invitation is invalid or has expired. Ask the store owner for a new invitation.",
+              "This invitation is no longer available. Ask the store owner for a new invitation.",
             );
+          }
           return;
         }
         window.history.replaceState(window.history.state, "", window.location.pathname);
       }
 
-      const userResult = await supabase.auth.getUser();
+      const userResult = await authClient.auth.getUser();
       if (userResult.error || !userResult.data.user) {
-        if (!cancelled)
+        if (!cancelled) {
           setMessage(
-            "This invitation session is missing or has expired. Ask the store owner for a new invitation.",
+            "This invitation is no longer available. Ask the store owner for a new invitation.",
           );
+        }
         return;
       }
 
@@ -79,21 +83,13 @@ export default function ManagerInviteSetupPage() {
     setPending(true);
     setMessage(null);
     try {
-      const response = await fetch("/auth/invite/finalize", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const result = (await response.json()) as { ok: boolean; message: string };
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
+      await completeManagerSetupRequest(form);
       router.replace("/admin");
-    } catch {
+    } catch (error: unknown) {
       setMessage(
-        "Your manager account could not be completed. Check your connection and try again.",
+        error instanceof ApiClientError || error instanceof Error
+          ? error.message
+          : "Your manager account could not be completed. Check your connection and try again.",
       );
     } finally {
       setPending(false);
@@ -102,14 +98,14 @@ export default function ManagerInviteSetupPage() {
 
   return (
     <AuthPageShell
-      description="Create your password and confirm your profile. This invitation gives you store-manager access, not owner permissions."
+      description="Create your password and confirm your name to join the Laitstyle store team."
       eyebrow="Store manager invitation"
       highlights={[
-        "Manager-level operational access",
-        "No store-owner or team-invitation permissions",
-        "Password and profile completed by you",
+        "Manage daily store operations",
+        "Work with inventory, orders and customers",
+        "Store ownership remains with the owner",
       ]}
-      sideDescription="The store owner invited this email through Supabase Auth. Your role was assigned on the server before this link was sent and cannot be changed from this form."
+      sideDescription="The store owner invited this email to join the team. Complete your details to open your workspace."
       sideTitle="Join the Laitstyle store team."
       staff
       title="Complete your manager account"
@@ -117,8 +113,8 @@ export default function ManagerInviteSetupPage() {
       <div className="grid gap-6">
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-          You will enter Admin as a store manager. Only the existing owner can invite staff or
-          change ownership-level access.
+          You will join as a store manager. Only the store owner can invite other team members or
+          change ownership access.
         </div>
 
         {message ? <AuthStatusNotice tone="error">{message}</AuthStatusNotice> : null}
@@ -128,7 +124,7 @@ export default function ManagerInviteSetupPage() {
             className="rounded-2xl border border-border bg-muted/30 px-5 py-8 text-center text-sm text-muted-foreground"
             role="status"
           >
-            Verifying your invitation…
+            Checking your invitation…
           </div>
         ) : null}
 
@@ -199,7 +195,7 @@ export default function ManagerInviteSetupPage() {
               size="lg"
               type="button"
             >
-              {pending ? "Completing account…" : "Join as store manager"}
+              {pending ? "Finishing your account…" : "Join the store team"}
               {!pending ? <ArrowRight className="size-4" /> : null}
             </Button>
           </div>

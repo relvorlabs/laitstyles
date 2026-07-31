@@ -13,6 +13,7 @@ import Link from "next/link";
 import { CloudImage } from "@/components/ui/cloud-image";
 import type { Product } from "./catalogue-data";
 import type { ProductDetailPresentation } from "./product-detail-presentation";
+import { getProductDefaultImage } from "./product-media";
 import { Reveal } from "./reveal";
 
 const SERVICE_ITEMS = [
@@ -109,7 +110,8 @@ function ProductTrustStrip({ product }: { product: Product }) {
 }
 
 function ProductWhySection({ product }: { product: Product }) {
-  const image = product.images[1] ?? product.images[0];
+  const defaultImage = getProductDefaultImage(product);
+  const image = product.images.find((candidate) => candidate !== defaultImage) ?? defaultImage;
   const points = [
     `${product.material} construction as described in the catalogue.`,
     `${product.fit} proportions with ${product.style.toLowerCase()} styling.`,
@@ -194,7 +196,9 @@ export function ProductSizeGuide({
         { label: "Shoulder", value: "—", position: 2 },
         { label: "Sleeve", value: "—", position: 3 },
       ];
-  const image = product.images[2] ?? product.images[0];
+  const defaultImage = getProductDefaultImage(product);
+  const alternateImages = product.images.filter((candidate) => candidate !== defaultImage);
+  const image = alternateImages.at(1) ?? alternateImages.at(0) ?? defaultImage;
 
   return (
     <Reveal

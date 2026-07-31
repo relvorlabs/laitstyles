@@ -1,5 +1,6 @@
 import type { ProductDetail, ProductVariantOption, ReviewSummary } from "@/lib/storefront/types";
 import type { Product } from "./catalogue-data";
+import { getProductDefaultImage } from "./product-media";
 
 export interface ProductOptionPresentation {
   label: string;
@@ -69,12 +70,17 @@ export function buildProductDetailPresentation(
   detail: ProductDetail,
 ): ProductDetailPresentation {
   const variants = detail.mode === "variant" ? detail.variants : [];
+  const defaultImage = getProductDefaultImage(product);
   const images = [
+    defaultImage,
     ...detail.media
       .toSorted((left, right) => left.position - right.position)
       .map((item) => item.url),
     ...product.images,
-  ].filter((image, index, allImages) => image.length > 0 && allImages.indexOf(image) === index);
+  ].filter(
+    (image, index, allImages): image is string =>
+      Boolean(image) && allImages.indexOf(image) === index,
+  );
   const discountPercent =
     product.referencePrice && product.referencePrice > product.price
       ? Math.round((1 - product.price / product.referencePrice) * 100)

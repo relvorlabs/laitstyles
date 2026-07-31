@@ -15,7 +15,7 @@ import { ResetPasswordForm } from "@/modules/auth/ui/reset-password-form";
 
 export const metadata: Metadata = {
   title: "Choose a new password | Laitstyle",
-  description: "Complete a secure Laitstyle password recovery.",
+  description: "Complete your Laitstyle password recovery.",
 };
 
 export default async function ResetPasswordPage() {
@@ -23,8 +23,8 @@ export default async function ResetPasswordPage() {
 
   return (
     <AuthPageShell
-      description="Choose a strong replacement password. After the update, other sessions are signed out so the recovered account starts cleanly."
-      eyebrow="Secure recovery"
+      description="Choose a strong new password. We will sign your account out on other devices after the change."
+      eyebrow="Account recovery"
       footer={
         <Link
           className="text-[13px] font-semibold text-foreground underline-offset-4 hover:underline"
@@ -34,12 +34,12 @@ export default async function ResetPasswordPage() {
         </Link>
       }
       highlights={[
-        "Recovery session verified before the form is shown",
-        "Password policy enforced by the app and Supabase",
-        "Other sessions closed after a successful update",
+        "Your reset link is checked before the form appears",
+        "A strong password protects your account",
+        "Other devices are signed out after the change",
       ]}
-      sideDescription="The recovery link establishes a temporary secure session. Once the password changes, that session is closed and your account returns to its normal protected state."
-      sideTitle="Replace the key, keep the account."
+      sideDescription="Choose a new password and return to your Laitstyle account with a clean sign-in."
+      sideTitle="A fresh password, the same account."
       title="Choose a new password"
     >
       {recoverySessionAvailable ? (

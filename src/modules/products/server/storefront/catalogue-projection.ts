@@ -35,10 +35,17 @@ function storefrontStatus(summary: ProductSummary): StorefrontCatalogueProduct["
   return "available";
 }
 
+function orderedMediaUrls(detail: ProductDetail): string[] {
+  const cover = detail.cover?.url ?? null;
+  const urls = detail.media.map((image) => image.url);
+  return cover ? [cover, ...urls.filter((url) => url !== cover)] : urls;
+}
+
 export function projectStorefrontProductSummary(
   summary: ProductSummary,
   index: number,
 ): StorefrontCatalogueProduct {
+  const defaultImage = summary.cover?.url ?? null;
   return {
     id: summary.id,
     databaseId: summary.id,
@@ -63,7 +70,8 @@ export function projectStorefrontProductSummary(
     flaw: "None",
     material: summary.material ?? "Material not specified",
     careInstructions: "Follow the garment care label.",
-    images: summary.cover ? [summary.cover.url] : [],
+    defaultImage,
+    images: defaultImage ? [defaultImage] : [],
   };
 }
 
@@ -108,7 +116,8 @@ export function projectStorefrontProduct(
     flaw: detail.flawNotes ?? "None",
     material: detail.material ?? "Material not specified",
     careInstructions: detail.careInstructions ?? "Follow the garment care label.",
-    images: detail.media.map((image) => image.url),
+    defaultImage: detail.cover?.url ?? null,
+    images: orderedMediaUrls(detail),
     ...(detail.mode === "variant"
       ? { variants: variants.map((variant) => variant.size ?? variant.label) }
       : {}),
@@ -120,7 +129,7 @@ export function projectShellProduct(
 ): StorefrontCatalogueProduct {
   return {
     ...product,
-    images: product.images.slice(0, 1),
+    images: product.defaultImage ? [product.defaultImage] : [],
     flaw: "",
     careInstructions: "",
     fit: product.size,

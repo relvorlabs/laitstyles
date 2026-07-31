@@ -7,6 +7,7 @@ import { CloudImage } from "@/components/ui/cloud-image";
 import { useReveal } from "@/hooks/use-reveal";
 import { IconHeart } from "@/modules/storefront-shell/ui/storefront-icons";
 import { addToBagLabel, money, type Product, productSlug } from "./catalogue-data";
+import { getProductDefaultImage } from "./product-media";
 
 type Props = {
   product: Product;
@@ -56,8 +57,8 @@ export function ProductCard({
   onHold,
   onRelease,
 }: Props) {
-  const primaryImage = product.images[0];
-  const secondaryImage = product.images[1];
+  const primaryImage = getProductDefaultImage(product);
+  const secondaryImage = product.images.find((image) => image !== primaryImage);
   const unavailable = product.status !== "available";
   const isVariant = product.inventory === "variant";
   const href = `/products/${productSlug(product)}`;

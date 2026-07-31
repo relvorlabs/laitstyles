@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { useReveal } from "@/hooks/use-reveal";
 import { money, type Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
 
 export function OneOfOneCard({
   product,
@@ -15,6 +16,7 @@ export function OneOfOneCard({
   onClick: () => void;
 }) {
   const { ref, visible } = useReveal<HTMLButtonElement>();
+  const image = getProductDefaultImage(product);
 
   return (
     <Button
@@ -27,13 +29,17 @@ export function OneOfOneCard({
       variant="ghost"
     >
       <span className="contents">
-        <CloudImage
-          src={product.images[0]}
-          alt={product.name}
-          width={1200}
-          height={1500}
-          sizes={featured ? "(min-width: 861px) 50vw, 100vw" : "(min-width: 861px) 25vw, 50vw"}
-        />
+        {image ? (
+          <CloudImage
+            src={image}
+            alt={product.name}
+            width={1200}
+            height={1500}
+            sizes={
+              featured ? "(min-width: 861px) 50vw, 100vw" : "(min-width: 861px) 25vw, 50vw"
+            }
+          />
+        ) : null}
         <span className="one-info">
           <span>
             <span className="eyebrow">1 of 1</span>

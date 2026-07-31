@@ -8,15 +8,19 @@ const CLOUDINARY_DELIVERY_URL =
 
 export type CloudImageProps = ImageProps;
 
+function isCloudinaryDeliverySource(src: ImageProps["src"]): src is string {
+  return typeof src === "string" && CLOUDINARY_DELIVERY_URL.test(src);
+}
+
 /**
- * Centralized image renderer for the whole app. Assets actually uploaded through the
- * Cloudinary pipeline (their secure_url always carries `/upload/v<version>/`) render through
- * `CldImage` for automatic format/quality delivery. Any other source — legacy seed URLs, local
- * `public/` paths — falls back to `next/image` unchanged so non-migrated imagery keeps working.
+ * The single application-level image boundary. Cloudinary delivery URLs use
+ * CldImage for optimized delivery; local, static and legacy sources retain
+ * Next Image behavior without requiring consumers to understand the provider.
  */
-export function CloudImage({ src, ...props }: CloudImageProps) {
-  if (typeof src === "string" && CLOUDINARY_DELIVERY_URL.test(src)) {
-    return <CldImage src={src} {...props} />;
+export function CloudImage({ src, alt, ...props }: CloudImageProps) {
+  if (isCloudinaryDeliverySource(src)) {
+    return <CldImage {...props} alt={alt} src={src} />;
   }
-  return <Image src={src} {...props} />;
+
+  return <Image {...props} alt={alt} src={src} />;
 }

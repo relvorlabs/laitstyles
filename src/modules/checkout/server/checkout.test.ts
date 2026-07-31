@@ -193,8 +193,10 @@ function settlementTransaction(options: { alreadyPaid?: boolean; claim?: () => n
     status: options.alreadyPaid ? "success" : "initialized",
     orders: {
       id: "order-1",
+      customer_id: identity.customerId,
       customer_email: "buyer@example.com",
       payment_status: options.alreadyPaid ? "paid" : "pending",
+      order_number: "LS-ORDER1",
       order_lines: [
         {
           id: "line-1",
@@ -204,10 +206,18 @@ function settlementTransaction(options: { alreadyPaid?: boolean; claim?: () => n
           stock_state: options.alreadyPaid ? "committed" : "reserved",
         },
       ],
-      holds: [{ id: "hold-1", status: options.alreadyPaid ? "converted" : "active" }],
+      holds: [
+        {
+          id: "hold-1",
+          status: options.alreadyPaid ? "converted" : "active",
+          product_id: "66666666-6666-4666-8666-666666666666",
+          variant_id: "77777777-7777-4777-8777-777777777777",
+        },
+      ],
     },
   };
   return {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     payments: {
       findUnique: vi.fn().mockResolvedValue(payment),
       updateMany: vi.fn().mockImplementation(async () => ({ count: options.claim?.() ?? 1 })),
@@ -295,7 +305,7 @@ describe("checkout draft", () => {
 
     await expect(api.createCheckout(identity, checkoutInput())).resolves.toMatchObject({
       ok: false,
-      error: { code: "CHECKOUT_INVALID", field: "profile" },
+      error: { code: "CHECKOUT_INVALID", field: "profile.phone" },
     });
     expect(mocks.transaction).not.toHaveBeenCalled();
     expect(mocks.initializeTransaction).not.toHaveBeenCalled();
@@ -392,20 +402,18 @@ describe("checkout draft", () => {
 });
 
 describe("payment settlement", () => {
-  it("allows only one stock transition across concurrent settlement attempts", async () => {
+  it("allows only one stock transition and preserves later cart additions", async () => {
     const api = await loadCheckout();
     let claimed = false;
+    const tx = settlementTransaction({
+      claim: () => {
+        if (claimed) return 0;
+        claimed = true;
+        return 1;
+      },
+    });
     mocks.transaction.mockImplementation(
-      async (work: (client: ReturnType<typeof settlementTransaction>) => unknown) =>
-        work(
-          settlementTransaction({
-            claim: () => {
-              if (claimed) return 0;
-              claimed = true;
-              return 1;
-            },
-          }),
-        ),
+      async (work: (client: ReturnType<typeof settlementTransaction>) => unknown) => work(tx),
     );
 
     const [first, replay] = await Promise.all([
@@ -420,6 +428,7 @@ describe("payment settlement", () => {
       ]),
     );
     expect(mocks.applyStockMutation).toHaveBeenCalledTimes(1);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(2);
   });
 
   it("treats a paid order replay as a no-op", async () => {
@@ -434,6 +443,7 @@ describe("payment settlement", () => {
       value: { paymentId: "payment-1", status: "success", replayed: true },
     });
     expect(tx.payments.updateMany).not.toHaveBeenCalled();
+    expect(tx.$executeRaw).not.toHaveBeenCalled();
     expect(mocks.applyStockMutation).not.toHaveBeenCalled();
   });
 
@@ -458,6 +468,7 @@ describe("payment settlement", () => {
     expect(first).toMatchObject({ ok: true, value: { status: "failed", replayed: false } });
     expect(duplicate).toMatchObject({ ok: true, value: { status: "failed", replayed: true } });
     expect(tx.order_payment_events.create).toHaveBeenCalledTimes(1);
+    expect(tx.$executeRaw).not.toHaveBeenCalled();
   });
 
   it("rejects verification when Paystack returns a different reference", async () => {

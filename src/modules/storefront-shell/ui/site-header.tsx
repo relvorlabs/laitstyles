@@ -37,6 +37,7 @@ export function SiteHeader({
   const overlay = useStorefrontOverlay();
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const mobileFeature = products[4] ?? products[0];
+  const mobileFeatureImage = mobileFeature?.defaultImage ?? "/brand/laitstyle-symbol.svg";
 
   useEffect(() => {
     const onScroll = () => setHeaderScrolled(window.scrollY > 10);
@@ -263,7 +264,7 @@ export function SiteHeader({
               alt={mobileFeature?.name ?? "Laitstyles featured product"}
               height={1125}
               sizes="320px"
-              src={mobileFeature?.images[0] ?? "/brand/laitstyle-symbol.svg"}
+              src={mobileFeatureImage}
               width={900}
             />
             <p>Vintage sportswear edit →</p>

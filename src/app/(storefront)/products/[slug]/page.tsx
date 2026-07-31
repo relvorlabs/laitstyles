@@ -11,6 +11,7 @@ import {
   productSlug,
 } from "@/modules/products/ui/storefront/catalogue-data";
 import { ProductDetail } from "@/modules/products/ui/storefront/product-detail";
+import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
 import { getPublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import ProductDetailLoading from "./loading";
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const title = `${product.name} — Laitstyles`;
   const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
   const canonical = `/products/${productSlug(product)}`;
-  const image = product.images[0];
+  const image = getProductDefaultImage(product);
   return {
     title,
     description,
@@ -61,6 +62,11 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   ]);
   if (!pageData) notFound();
   const { product, detail } = pageData;
+  const defaultImage = getProductDefaultImage(product);
+  const structuredImages = [defaultImage, ...product.images].filter(
+    (image, index, allImages): image is string =>
+      Boolean(image) && allImages.indexOf(image) === index,
+  );
 
   const availability =
     product.status === "available"
@@ -72,7 +78,7 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: product.images,
+    image: structuredImages,
     description: `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition}.`,
     sku: `LS-${product.id.toUpperCase()}`,
     brand: { "@type": "Brand", name: product.brand },

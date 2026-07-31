@@ -1,0 +1,22 @@
+/// Canonical signed-in storefront cart state.
+///
+/// Guest cart intent remains browser-owned until authentication. The customer id
+/// is always resolved from the server session; clients never choose an owner.
+/// Foreign keys and the product/variant consistency trigger are declared in the
+/// companion SQL migration because this model intentionally avoids adding reverse
+/// relation fields to the existing multi-file schema during the account cutover.
+model customer_cart_lines {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id String   @db.Uuid
+  product_id  String   @db.Uuid
+  variant_id  String?  @db.Uuid
+  quantity    Int
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@unique([customer_id, product_id], map: "customer_cart_lines_product_unique", where: raw("(variant_id IS NULL)"))
+  @@unique([customer_id, product_id, variant_id], map: "customer_cart_lines_variant_unique", where: raw("(variant_id IS NOT NULL)"))
+  @@index([customer_id, updated_at(sort: Desc)], map: "customer_cart_lines_customer_updated_idx")
+  @@index([product_id, variant_id], map: "customer_cart_lines_product_variant_idx")
+  @@schema("public")
+}

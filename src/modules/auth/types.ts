@@ -4,6 +4,9 @@ export const STAFF_ROLES = ["admin", "manager"] as const;
 export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
+const accountRoleSet: ReadonlySet<string> = new Set(ACCOUNT_ROLES);
+const staffRoleSet: ReadonlySet<string> = new Set(STAFF_ROLES);
+
 export type ManagerMember = {
   id: string;
   email: string;
@@ -20,11 +23,11 @@ export const ACCOUNT_ROLE_LABELS = {
 } satisfies Record<AccountRole, string>;
 
 export function isAccountRole(value: unknown): value is AccountRole {
-  return typeof value === "string" && (ACCOUNT_ROLES as readonly string[]).includes(value);
+  return typeof value === "string" && accountRoleSet.has(value);
 }
 
 export function isStaffRole(value: unknown): value is StaffRole {
-  return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
+  return typeof value === "string" && staffRoleSet.has(value);
 }
 
 // P7-T03: session.ts now lives in this module, so this is a same-module
@@ -39,13 +42,10 @@ export type {
 } from "@/modules/auth/server/session";
 
 // Account security (email/password/MFA/session management) domain contracts.
-// Locked against the installed Supabase Auth SDK surface — see
-// docs/architecture-migration/account-security-supabase-contract.md.
+// Locked against the installed auth SDK surface — see the account security
+// contract documentation for provider-specific implementation details.
 
-/** The minimal, freshly-resolved identity every account-security operation
- *  needs: who is calling, their current email (for re-proof and
- *  unchanged-value checks) and the current session id (there is no supported
- *  way to enumerate or name other sessions — see the contract doc §5). */
+/** The minimal, freshly-resolved identity every account-security operation needs. */
 export type AccountSecurityIdentity = {
   authUserId: string;
   email: string | null;
@@ -69,23 +69,23 @@ export const ACCOUNT_SECURITY_ERROR_CODES = [
 
 export type AccountSecurityErrorCode = (typeof ACCOUNT_SECURITY_ERROR_CODES)[number];
 
+const accountSecurityErrorCodeSet: ReadonlySet<string> = new Set(ACCOUNT_SECURITY_ERROR_CODES);
+
 const ACCOUNT_SECURITY_ERROR_MESSAGES: Record<AccountSecurityErrorCode, string> = {
   PASSWORD_UNCHANGED: "Choose a password different from your current one.",
   INVALID_CURRENT_PASSWORD: "Your current password is incorrect.",
   REAUTHENTICATION_REQUIRED: "Confirm your identity again before continuing.",
   EMAIL_UNCHANGED: "That is already your account email.",
-  SESSION_UNAVAILABLE: "We could not verify this session. Sign in again and retry.",
+  SESSION_UNAVAILABLE: "We could not confirm this sign-in. Sign in again and retry.",
   MFA_FACTOR_NOT_FOUND: "This authenticator could not be found on your account.",
-  MFA_CHALLENGE_REQUIRED: "Verify a second factor before continuing.",
+  MFA_CHALLENGE_REQUIRED: "Enter a current code from your authenticator app before continuing.",
   MFA_CHALLENGE_EXPIRED_OR_INVALID: "That verification code is invalid or has expired.",
-  RESOURCE_NOT_OWNED: "This account cannot access that resource.",
+  RESOURCE_NOT_OWNED: "This account cannot access that item.",
   PROVIDER_UNAVAILABLE: "We could not complete that request. Please try again.",
 };
 
 export function isAccountSecurityErrorCode(value: unknown): value is AccountSecurityErrorCode {
-  return (
-    typeof value === "string" && (ACCOUNT_SECURITY_ERROR_CODES as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && accountSecurityErrorCodeSet.has(value);
 }
 
 export class AccountSecurityError extends Error {

@@ -15,6 +15,7 @@ import type { StaffRole } from "@/modules/auth/types";
 
 export type AppSession = {
   signedIn: boolean;
+  identityKey: string | null;
   email: string | null;
   displayName: string | null;
   role: StaffRole | null;
@@ -22,6 +23,7 @@ export type AppSession = {
 
 export const ANONYMOUS_APP_SESSION: AppSession = {
   signedIn: false,
+  identityKey: null,
   email: null,
   displayName: null,
   role: null,

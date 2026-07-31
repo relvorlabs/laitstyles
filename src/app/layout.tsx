@@ -26,6 +26,7 @@ async function resolveAppSession(): Promise<AppSession> {
   if (session.kind === "consumer" || session.kind === "staff") {
     return {
       signedIn: true,
+      identityKey: session.authUserId,
       email: session.email,
       displayName: session.displayName,
       role: session.kind === "staff" ? session.role : null,
