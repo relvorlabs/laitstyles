@@ -28,7 +28,6 @@ import {
   resumePaystackTransaction,
 } from "@/modules/payments/client/paystack-popup";
 import { openStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
-import { logger } from "@/lib/logger";
 
 export type StorefrontCheckoutLine = {
   productId: string;
@@ -49,6 +48,10 @@ type PaymentNotice = {
   title: string;
   detail: string;
   tone: "neutral" | "warning" | "danger";
+};
+type CheckoutBlocker = {
+  message: string;
+  tone: "muted" | "danger";
 };
 
 export function StorefrontCheckoutSheet({
@@ -133,6 +136,20 @@ export function StorefrontCheckoutSheet({
       paymentStage === "ready",
   );
   const canPay = canResume || canCreate;
+  const checkoutBlocker = canPay
+    ? null
+    : getCheckoutBlocker({
+        activeCheckout,
+        couponCode,
+        couponReady,
+        couponFetching: couponQuery.isFetching,
+        currentStatus,
+        lineCount: normalizedLines.length,
+        paymentStage,
+        phoneReady,
+        selectedAddressId,
+        selectedZoneId,
+      });
 
   useEffect(() => {
     if (!active) return;
@@ -147,7 +164,6 @@ export function StorefrontCheckoutSheet({
   useEffect(() => {
     if (!context) return;
     const firstAddressId = uniqueById(context.addresses).at(0)?.id ?? null;
-    const firstZoneId = uniqueById(context.deliveryZones).at(0)?.id ?? null;
     setSelectedAddressId((current) =>
       current && context.addresses.some((address) => address.id === current)
         ? current
@@ -156,7 +172,7 @@ export function StorefrontCheckoutSheet({
     setSelectedZoneId((current) =>
       current && context.deliveryZones.some((zone) => zone.id === current)
         ? current
-        : (context.selectedDeliveryZoneId ?? firstZoneId),
+        : context.selectedDeliveryZoneId,
     );
     setPhone(context.profile.phone);
     setPhoneConfirmation(context.profile.phone);
@@ -200,6 +216,8 @@ export function StorefrontCheckoutSheet({
         preferredName: context.profile.preferredName || undefined,
         phone: normalizedPhone,
       });
+      setPhone(profile.phone);
+      setPhoneConfirmation(profile.phone);
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current ? { ...current, profile, profileComplete: true, phoneRequired: false } : current,
       );
@@ -215,7 +233,12 @@ export function StorefrontCheckoutSheet({
     setPaymentStage("creating");
     try {
       let checkout: CheckoutDraft;
-      if (activeCheckout?.accessCode && isResumableCheckoutStatus(activeCheckout.status)) {
+      const resumableStatus = currentStatus ?? activeCheckout?.status ?? null;
+      if (
+        activeCheckout?.accessCode &&
+        resumableStatus &&
+        isResumableCheckoutStatus(resumableStatus)
+      ) {
         checkout = activeCheckout;
       } else {
         if (!selectedAddressId || !selectedZoneId || normalizedLines.length === 0) {
@@ -236,7 +259,7 @@ export function StorefrontCheckoutSheet({
       }
       setActiveCheckout(checkout);
       if (!checkout.accessCode) {
-        throw new Error("This payment cannot be reopened. Open the order in your account for help.");
+        throw new Error("payment-access-unavailable");
       }
 
       setPaymentStage("paying");
@@ -246,7 +269,7 @@ export function StorefrontCheckoutSheet({
         toast.message("Payment was closed. Your checkout is saved and ready when you are.");
         return;
       }
-      if (outcome.kind === "error") throw new Error(outcome.message);
+      if (outcome.kind === "error") throw new Error("payment-window-failed");
 
       setPaymentStage("verifying");
       const settlement = await verifyPayment.mutateAsync(checkout.paymentId);
@@ -326,6 +349,44 @@ export function StorefrontCheckoutSheet({
 
         {!activeCheckout ? (
           <>
+            {!phoneReady ? (
+              <section className="space-y-3">
+                <SectionHeading label="Contact number" />
+                <SummaryCard>
+                  <p className="font-medium text-[var(--ink)]">{profileDisplayName(context)}</p>
+                  <p className="mt-1">
+                    Add the phone number the delivery team should use for this order.
+                  </p>
+                  <div className="mt-4 grid gap-3">
+                    <Input
+                      aria-label="Delivery phone number"
+                      autoComplete="tel"
+                      onChange={(event) => setPhone(event.target.value)}
+                      placeholder="Phone number"
+                      type="tel"
+                      value={phone}
+                    />
+                    <Input
+                      aria-label="Confirm delivery phone number"
+                      autoComplete="tel"
+                      onChange={(event) => setPhoneConfirmation(event.target.value)}
+                      placeholder="Confirm phone number"
+                      type="tel"
+                      value={phoneConfirmation}
+                    />
+                    <Button
+                      disabled={updateProfile.isPending}
+                      onClick={() => void savePhone()}
+                      type="button"
+                      variant="outline"
+                    >
+                      {updateProfile.isPending ? "Saving number…" : "Save phone number"}
+                    </Button>
+                  </div>
+                </SummaryCard>
+              </section>
+            ) : null}
+
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <SectionHeading label="Delivery address" />
@@ -407,7 +468,7 @@ export function StorefrontCheckoutSheet({
               ) : (
                 <SummaryCard>
                   We do not have a delivery option for this address yet. Choose another saved
-                  address or update your addresses in your account.
+                  address or update the city in your account before paying.
                 </SummaryCard>
               )}
             </section>
@@ -470,6 +531,7 @@ export function StorefrontCheckoutSheet({
           </div>
         </div>
         <Button
+          aria-describedby="checkout-payment-help"
           className="mt-4 w-full"
           disabled={!canPay}
           onClick={() => void startPayment()}
@@ -477,16 +539,15 @@ export function StorefrontCheckoutSheet({
         >
           {paymentLabel(paymentStage, Boolean(activeCheckout))}
         </Button>
-        {activeCheckout && !activeCheckout.accessCode ? (
-          <p className="mt-3 text-center text-[11px] leading-4 text-red-700">
-            This payment cannot be reopened here. Open the order in your account for help.
-          </p>
-        ) : (
-          <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">
-            A secure payment window will open. Your order is confirmed only after payment is
-            verified.
-          </p>
-        )}
+        <p
+          className={`mt-3 text-center text-[11px] leading-4 ${
+            checkoutBlocker?.tone === "danger" ? "text-red-700" : "text-[var(--muted)]"
+          }`}
+          id="checkout-payment-help"
+        >
+          {checkoutBlocker?.message ??
+            "A secure payment window will open. Your order is confirmed only after payment is verified."}
+        </p>
       </div>
     </CheckoutPanelShell>
   );
@@ -526,8 +587,10 @@ function CheckoutPanelShell({
 function PaymentStatusCard({ notice }: { notice: PaymentNotice }) {
   const toneClass = {
     neutral: "border-[var(--line)] bg-[var(--sage-light)]",
-    warning: "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100",
-    danger: "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100",
+    warning:
+      "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100",
+    danger:
+      "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100",
   }[notice.tone];
 
   return (
@@ -636,6 +699,77 @@ function paymentLabel(stage: PaymentStage, resuming: boolean): string {
   }
 }
 
+function getCheckoutBlocker({
+  activeCheckout,
+  couponCode,
+  couponFetching,
+  couponReady,
+  currentStatus,
+  lineCount,
+  paymentStage,
+  phoneReady,
+  selectedAddressId,
+  selectedZoneId,
+}: {
+  activeCheckout: CheckoutDraft | null;
+  couponCode: string;
+  couponFetching: boolean;
+  couponReady: boolean;
+  currentStatus: CheckoutStatus | null;
+  lineCount: number;
+  paymentStage: PaymentStage;
+  phoneReady: boolean;
+  selectedAddressId: string | null;
+  selectedZoneId: string | null;
+}): CheckoutBlocker | null {
+  if (paymentStage !== "ready") {
+    return { message: "Keep this checkout open while payment is being prepared.", tone: "muted" };
+  }
+  if (activeCheckout) {
+    if (!activeCheckout.accessCode) {
+      return {
+        message: "This payment cannot be reopened here. Open the order in your account for help.",
+        tone: "danger",
+      };
+    }
+    if (currentStatus === "reversed") {
+      return {
+        message: "This payment was reversed. Do not pay again from this checkout.",
+        tone: "danger",
+      };
+    }
+    if (currentStatus === "review_required") {
+      return {
+        message: "This payment is being reviewed. Please do not pay again yet.",
+        tone: "danger",
+      };
+    }
+    return null;
+  }
+  if (lineCount === 0) {
+    return { message: "Your bag has no purchasable items.", tone: "danger" };
+  }
+  if (!phoneReady) {
+    return { message: "Save a delivery phone number to continue.", tone: "muted" };
+  }
+  if (!selectedAddressId) {
+    return { message: "Add or select a delivery address to continue.", tone: "muted" };
+  }
+  if (!selectedZoneId) {
+    return {
+      message: "Delivery is not configured for the selected address city.",
+      tone: "danger",
+    };
+  }
+  if (couponCode.trim() && couponFetching) {
+    return { message: "Checking your coupon code…", tone: "muted" };
+  }
+  if (!couponReady) {
+    return { message: "Remove the coupon or enter a valid code to continue.", tone: "danger" };
+  }
+  return null;
+}
+
 function getPaymentNotice(status: CheckoutStatus | null): PaymentNotice | null {
   switch (status) {
     case "initializing":
@@ -681,7 +815,12 @@ function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
 }
 
 function isTerminalFailure(status: CheckoutStatus): boolean {
-  return status === "failed" || status === "abandoned" || status === "reversed" || status === "review_required";
+  return (
+    status === "failed" ||
+    status === "abandoned" ||
+    status === "reversed" ||
+    status === "review_required"
+  );
 }
 
 function paymentOutcomeMessage(status: CheckoutStatus): string {
@@ -700,6 +839,5 @@ function paymentOutcomeMessage(status: CheckoutStatus): string {
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiClientError || error instanceof Error) return error.message;
-  return fallback;
+  return error instanceof ApiClientError ? error.message : fallback;
 }
