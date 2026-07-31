@@ -1,0 +1,15 @@
+/// Canonical signed-in recently viewed product history.
+///
+/// Guest history remains browser-owned until authentication. Customer ownership
+/// is always resolved from the server session; clients never choose an owner.
+/// Foreign keys are declared in the companion SQL migration to avoid adding
+/// reverse relation fields across the existing multi-file schema.
+model customer_recent_products {
+  customer_id String   @db.Uuid
+  product_id  String   @db.Uuid
+  viewed_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([customer_id, product_id], map: "customer_recent_products_pkey")
+  @@index([customer_id, viewed_at(sort: Desc)], map: "customer_recent_products_customer_viewed_idx")
+  @@schema("public")
+}

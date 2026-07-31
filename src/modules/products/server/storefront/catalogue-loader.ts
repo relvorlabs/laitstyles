@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { logger } from "@/lib/logger";
 import {
   buildStorefrontCatalogue,
   buildStorefrontShellCatalogue,
@@ -28,6 +29,14 @@ export {
   projectStorefrontProductSummary,
 } from "@/modules/products/server/storefront/catalogue-projection";
 
+const unavailableShellCatalogue: StorefrontShellCataloguePayload = {
+  availability: "temporarily-unavailable",
+  products: [],
+  categories: [],
+  measurementsCm: {},
+  variantOptionsByProductId: {},
+};
+
 const getCatalogue = cache(async () => {
   const [details, categories] = await Promise.all([
     listPublishedProductDetails(),
@@ -44,7 +53,18 @@ export async function loadStorefrontCatalogue(): Promise<StorefrontCataloguePayl
 }
 
 export async function loadStorefrontShellCatalogue(): Promise<StorefrontShellCataloguePayload> {
-  return buildStorefrontShellCatalogue((await getCatalogue()).payload);
+  try {
+    return buildStorefrontShellCatalogue((await getCatalogue()).payload);
+  } catch (error: unknown) {
+    logger.error(
+      {
+        scope: "storefront-shell-catalogue",
+        errorName: error instanceof Error ? error.name : typeof error,
+      },
+      "Storefront shell catalogue load failed",
+    );
+    return unavailableShellCatalogue;
+  }
 }
 
 export async function loadStorefrontProductSlugs(): Promise<string[]> {

@@ -6,6 +6,16 @@ const root = process.cwd();
 const sourceRoot = path.join(root, "src");
 const routeRoot = path.join(sourceRoot, "app", "api", "v1");
 const buttonPath = path.join(sourceRoot, "components", "ui", "button.tsx");
+const shellLoaderPath = path.join(
+  sourceRoot,
+  "modules",
+  "products",
+  "server",
+  "storefront",
+  "catalogue-loader.ts",
+);
+const shellBoundaryPath = path.join(sourceRoot, "app", "storefront-client-boundary.tsx");
+const storefrontErrorPath = path.join(sourceRoot, "app", "(storefront)", "error.tsx");
 const cloudImagePath = normalizePath(path.join(sourceRoot, "components", "ui", "cloud-image.tsx"));
 const applicationExtensions = new Set([".ts", ".tsx"]);
 const ignoredFile = /\.(?:test|spec)\.[cm]?[jt]sx?$/;
@@ -22,6 +32,7 @@ const apiReferences = [];
 for (const file of applicationFiles) {
   const normalized = normalizePath(file);
   const source = await readFile(file, "utf8");
+  const isClientModule = source.startsWith('"use client"') || source.startsWith("'use client'");
 
   if (normalized !== cloudImagePath) {
     if (/from\s+["']next\/image["']/.test(source)) {
@@ -44,7 +55,16 @@ for (const file of applicationFiles) {
   }
 
   if (
-    source.startsWith('"use client"') &&
+    isClientModule &&
+    /from\s+["'](?:@\/lib\/prisma(?:\/|["'])|@\/modules\/[^"']+\/server(?:\/|["']))/.test(
+      source,
+    )
+  ) {
+    violations.push(`${relative(file)} imports a server-only data module from a client boundary`);
+  }
+
+  if (
+    isClientModule &&
     /fetch\(\s*["']\/auth\/(?:email|invite\/finalize)(?:["'?])/.test(source)
   ) {
     violations.push(`${relative(file)} bypasses the typed /api/v1 auth client boundary`);
@@ -68,6 +88,7 @@ for (const file of applicationFiles) {
 }
 
 await checkButtonContract(violations);
+await checkStorefrontFailureContract(violations);
 
 const routePatterns = await collectRoutePatterns(routeRoot);
 for (const reference of apiReferences) {
@@ -99,6 +120,27 @@ async function checkButtonContract(target) {
 
   for (const [pattern, message] of requiredPatterns) {
     if (!pattern.test(source)) target.push(`src/components/ui/button.tsx: ${message}`);
+  }
+}
+
+async function checkStorefrontFailureContract(target) {
+  const [loaderSource, boundarySource, errorSource] = await Promise.all([
+    readFile(shellLoaderPath, "utf8"),
+    readFile(shellBoundaryPath, "utf8"),
+    readFile(storefrontErrorPath, "utf8"),
+  ]);
+
+  if (
+    !/catch\s*\(/.test(loaderSource) ||
+    !/availability:\s*["']temporarily-unavailable["']/.test(loaderSource)
+  ) {
+    target.push("storefront shell loader must convert internal failures to a public unavailable state");
+  }
+  if (!/availability\s*===\s*["']temporarily-unavailable["']/.test(boundarySource)) {
+    target.push("storefront client boundary must render the public unavailable state");
+  }
+  if (/error\.message|error\.stack|error\.cause/.test(errorSource)) {
+    target.push("storefront route error boundary must not render internal error properties");
   }
 }
 

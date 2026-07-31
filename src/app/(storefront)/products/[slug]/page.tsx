@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { logger } from "@/lib/logger";
 import {
   loadStorefrontProductBySlug,
   loadStorefrontProductPageBySlug,
@@ -12,7 +13,9 @@ import {
 } from "@/modules/products/ui/storefront/catalogue-data";
 import { ProductDetail } from "@/modules/products/ui/storefront/product-detail";
 import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
+import { ProductRecentViewTracker } from "@/modules/products/ui/storefront/product-recent-view-tracker";
 import { getPublicProductReviews } from "@/modules/reviews/server/public-product-reviews";
+import { StorefrontDataUnavailable } from "@/modules/storefront-shell/ui/storefront-data-unavailable";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 import ProductDetailLoading from "./loading";
 
@@ -20,30 +23,35 @@ type Params = { slug: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await loadStorefrontProductBySlug(slug);
-  if (!product) return { title: "Not found — Laitstyles" };
-  const title = `${product.name} — Laitstyles`;
-  const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
-  const canonical = `/products/${productSlug(product)}`;
-  const image = getProductDefaultImage(product);
-  return {
-    title,
-    description,
-    alternates: { canonical },
-    openGraph: {
+  try {
+    const product = await loadStorefrontProductBySlug(slug);
+    if (!product) return { title: "Not found — Laitstyles" };
+    const title = `${product.name} — Laitstyles`;
+    const description = `${product.material}. ${inventoryLabel(product.inventory)} · Grade ${product.condition} · ${money(product.price)}.`;
+    const canonical = `/products/${productSlug(product)}`;
+    const image = getProductDefaultImage(product);
+    return {
       title,
       description,
-      url: canonical,
-      type: "website",
-      images: image ? [{ url: image, alt: product.name }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
-  };
+      alternates: { canonical },
+      openGraph: {
+        title,
+        description,
+        url: canonical,
+        type: "website",
+        images: image ? [{ url: image, alt: product.name }] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: image ? [image] : undefined,
+      },
+    };
+  } catch (error: unknown) {
+    reportProductPageFailure("metadata", error);
+    return { title: "Laitstyles" };
+  }
 }
 
 export default function ProductDetailPage({ params }: { params: Promise<Params> }) {
@@ -56,10 +64,19 @@ export default function ProductDetailPage({ params }: { params: Promise<Params> 
 
 async function ProductDetailContent({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const [pageData, reviews] = await Promise.all([
-    loadStorefrontProductPageBySlug(slug),
-    getPublicProductReviews(slug),
-  ]);
+  let pageData: Awaited<ReturnType<typeof loadStorefrontProductPageBySlug>>;
+  let reviews: Awaited<ReturnType<typeof getPublicProductReviews>>;
+
+  try {
+    [pageData, reviews] = await Promise.all([
+      loadStorefrontProductPageBySlug(slug),
+      getPublicProductReviews(slug),
+    ]);
+  } catch (error: unknown) {
+    reportProductPageFailure("content", error);
+    return <StorefrontDataUnavailable compact />;
+  }
+
   if (!pageData) notFound();
   const { product, detail } = pageData;
   const defaultImage = getProductDefaultImage(product);
@@ -109,6 +126,7 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
 
   return (
     <>
+      <ProductRecentViewTracker productId={product.id} />
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD script text; serializeJsonLd escapes `<` so the payload cannot break out of the tag.
@@ -126,6 +144,16 @@ async function ProductDetailContent({ params }: { params: Promise<Params> }) {
         fontClassName={storefrontFontClassName}
       />
     </>
+  );
+}
+
+function reportProductPageFailure(scope: "metadata" | "content", error: unknown): void {
+  logger.error(
+    {
+      scope: `storefront-product-${scope}`,
+      errorName: error instanceof Error ? error.name : typeof error,
+    },
+    "Storefront product read failed",
   );
 }
 

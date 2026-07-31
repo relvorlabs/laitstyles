@@ -146,10 +146,10 @@ describe("StorefrontCheckoutSheet", () => {
     expect(screen.getByText("1–2 business days")).toBeInTheDocument();
     expect(screen.getAllByText("₦15").length).toBeGreaterThan(0);
     expect(screen.getByText("₦2,515")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pay securely with Paystack" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Pay securely" })).toBeEnabled();
   });
 
-  it("sends address creation back to the account instead of rendering an inline form", async () => {
+  it("explains that an address is required instead of silently disabling payment", async () => {
     mocks.context = {
       ...defaultContext,
       addresses: [],
@@ -171,11 +171,11 @@ describe("StorefrontCheckoutSheet", () => {
     expect(
       screen.getByRole("link", { name: "Add an address in your account" }),
     ).toHaveAttribute("href", "/account/addresses?returnTo=checkout");
-    expect(screen.queryByLabelText("Street address")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pay securely with Paystack" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Pay securely" })).toBeDisabled();
+    expect(screen.getByText("Add or select a delivery address to continue.")).toBeInTheDocument();
   });
 
-  it("requires the missing phone number and confirmation to match before saving", async () => {
+  it("provides the missing phone form and validates confirmation before saving", async () => {
     mocks.context = {
       ...defaultContext,
       profile: { ...defaultContext.profile, phone: "" },
@@ -197,21 +197,22 @@ describe("StorefrontCheckoutSheet", () => {
       />,
     );
 
-    fireEvent.change(await screen.findByLabelText("Phone number"), {
+    expect(await screen.findByText("Save a delivery phone number to continue.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Delivery phone number"), {
       target: { value: "+2348012345678" },
     });
-    fireEvent.change(screen.getByLabelText("Confirm phone number"), {
+    fireEvent.change(screen.getByLabelText("Confirm delivery phone number"), {
       target: { value: "+2348099999999" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Confirm and save phone number" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save phone number" }));
 
     expect(mocks.updateProfile).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("The phone number confirmation does not match.");
+    expect(mocks.toastError).toHaveBeenCalledWith("The phone numbers do not match.");
 
-    fireEvent.change(screen.getByLabelText("Confirm phone number"), {
+    fireEvent.change(screen.getByLabelText("Confirm delivery phone number"), {
       target: { value: "+2348012345678" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Confirm and save phone number" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save phone number" }));
 
     await waitFor(() =>
       expect(mocks.updateProfile).toHaveBeenCalledWith(

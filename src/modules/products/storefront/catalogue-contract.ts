@@ -50,10 +50,13 @@ export interface StorefrontCataloguePayload {
 }
 
 /**
- * Global shell projection. It keeps card, search and cart compatibility while
- * withholding product-detail-only media and copy from the client boundary.
+ * Global shell projection. Internal database failures are converted on the
+ * server into an unavailable state; exceptions and provider details never
+ * cross the React Server Component boundary.
  */
-export type StorefrontShellCataloguePayload = StorefrontCataloguePayload;
+export interface StorefrontShellCataloguePayload extends StorefrontCataloguePayload {
+  availability: "ready" | "temporarily-unavailable";
+}
 
 export interface StorefrontProductPageData {
   product: StorefrontCatalogueProduct;

@@ -141,6 +141,7 @@ export function buildStorefrontShellCatalogue(
   payload: StorefrontCataloguePayload,
 ): StorefrontShellCataloguePayload {
   return {
+    availability: "ready",
     products: payload.products.map(projectShellProduct),
     categories: payload.categories,
     measurementsCm: payload.measurementsCm,
