@@ -3,5 +3,6 @@ export const accountCustomerKeys = {
   profile: () => [...accountCustomerKeys.all, "profile"] as const,
   addresses: () => [...accountCustomerKeys.all, "addresses"] as const,
   savedProducts: () => [...accountCustomerKeys.all, "saved-products"] as const,
-  recentProducts: () => [...accountCustomerKeys.all, "recent-products"] as const,
+  recentProducts: (identityKey: string) =>
+    [...accountCustomerKeys.all, "recent-products", identityKey] as const,
 };
