@@ -9,11 +9,16 @@ type PopupCallbacks = {
 };
 
 const mocks = vi.hoisted(() => ({
+  constructorCount: 0,
   resume: vi.fn(),
 }));
 
 vi.mock("@paystack/inline-js", () => ({
   default: class Paystack {
+    constructor() {
+      mocks.constructorCount += 1;
+    }
+
     resumeTransaction(accessCode: string, callbacks?: PopupCallbacks) {
       return mocks.resume(accessCode, callbacks);
     }
@@ -24,6 +29,7 @@ import { resumePaystackTransaction } from "@/modules/payments/client/paystack-po
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.constructorCount = 0;
 });
 
 describe("resumePaystackTransaction", () => {
@@ -33,6 +39,24 @@ describe("resumePaystackTransaction", () => {
       message: "Payment access code is missing.",
     });
     expect(mocks.resume).not.toHaveBeenCalled();
+    expect(mocks.constructorCount).toBe(0);
+  });
+
+  it("constructs a fresh Popup instance for every launch", async () => {
+    mocks.resume.mockImplementation(
+      (_accessCode: string, callbacks: PopupCallbacks) => callbacks.onCancel?.(),
+    );
+
+    await expect(resumePaystackTransaction("access-one")).resolves.toEqual({
+      kind: "cancelled",
+    });
+    await expect(resumePaystackTransaction("access-two")).resolves.toEqual({
+      kind: "cancelled",
+    });
+
+    expect(mocks.constructorCount).toBe(2);
+    expect(mocks.resume).toHaveBeenNthCalledWith(1, "access-one", expect.any(Object));
+    expect(mocks.resume).toHaveBeenNthCalledWith(2, "access-two", expect.any(Object));
   });
 
   it("normalizes Popup success", async () => {
