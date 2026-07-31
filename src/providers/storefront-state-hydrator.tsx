@@ -54,6 +54,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const ownedCartQuery = useQuery(ownedCartQueryOptions(session.signedIn, identityKey));
   const mergeOwnedCart = useMergeOwnedCart(identityKey);
   const replaceOwnedCart = useReplaceOwnedCart(identityKey);
+  const mergeOwnedCartAsync = mergeOwnedCart.mutateAsync;
+  const replaceOwnedCartAsync = replaceOwnedCart.mutateAsync;
   const [clientStateReady, setClientStateReady] = useState(false);
   const [ownedCartConfirmed, setOwnedCartConfirmed] = useState(false);
   const activeIdentity = useRef(identityKey);
@@ -143,7 +145,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
       try {
         const owned =
           browserIntent.lines.length > 0
-            ? await mergeOwnedCart.mutateAsync(browserIntent)
+            ? await mergeOwnedCartAsync(browserIntent)
             : ownedCartQuery.data;
         if (cancelled || activeIdentity.current !== identityKey) return;
 
@@ -160,9 +162,8 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
         lastSyncedSignature.current = cartSignature(nextLines);
         hydratedIdentity.current = identityKey;
         setOwnedCartConfirmed(true);
-        persistCartFallback([], loadedSavedIds(), loadedHolds());
       } catch {
-        // Retain browser intent and retry on the next successful owned-cart query.
+        // Retain browser intent and retry only after the query or identity changes.
         // The identity is deliberately left unconfirmed so it is never erased.
         if (!cancelled && activeIdentity.current === identityKey) {
           setOwnedCartConfirmed(false);
@@ -179,7 +180,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
     catalogue.data,
     clientStateReady,
     identityKey,
-    mergeOwnedCart,
+    mergeOwnedCartAsync,
     ownedCartQuery.data,
     ownedCartQuery.isPending,
     session.signedIn,
@@ -276,7 +277,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
             const input = queuedSync.current;
             queuedSync.current = null;
             try {
-              const snapshot = await replaceOwnedCart.mutateAsync(input);
+              const snapshot = await replaceOwnedCartAsync(input);
               if (activeIdentity.current !== identityKey) return;
               const snapshotValue = snapshotSignature(snapshot.lines);
               lastSyncedSignature.current = snapshotValue;
@@ -300,7 +301,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
     }, 180);
 
     return () => window.clearTimeout(syncTimer.current);
-  }, [cart, identityKey, ready, replaceOwnedCart, session.signedIn]);
+  }, [cart, identityKey, ready, replaceOwnedCartAsync, session.signedIn]);
 
   useEffect(() => {
     if (
@@ -405,27 +406,6 @@ function snapshotSignature(
     .map((line) => `${line.productId}:${line.variantId ?? "default"}:${line.quantity}`)
     .sort()
     .join("|");
-}
-
-function persistCartFallback(
-  cart: OwnedCartWriteInput["lines"],
-  saved: string[],
-  holds: ReturnType<typeof loadedHolds>,
-): void {
-  persistStorefrontClientState(window.sessionStorage, window.localStorage, {
-    version: STOREFRONT_CLIENT_STATE_VERSION,
-    cart,
-    saved,
-    holds,
-  });
-}
-
-function loadedSavedIds(): string[] {
-  return loadStorefrontClientState(window.sessionStorage, window.localStorage).snapshot.saved;
-}
-
-function loadedHolds() {
-  return loadStorefrontClientState(window.sessionStorage, window.localStorage).snapshot.holds;
 }
 
 function readStringArray(serialized: string | null): string[] {
