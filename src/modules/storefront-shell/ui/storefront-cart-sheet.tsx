@@ -68,7 +68,9 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
   useEffect(() => subscribeToStorefrontCheckoutResume(() => setView("checkout")), []);
 
   function completeCheckout(orderNumber: string): void {
-    cart.clear();
+    // Verified settlement updates the canonical cart transactionally. The
+    // hydrator consumes the invalidated server snapshot so additions made in
+    // another tab after checkout creation are preserved rather than wiped.
     setView("bag");
     overlay.close();
     router.push(`/order-confirmation?order=${encodeURIComponent(orderNumber)}`);
