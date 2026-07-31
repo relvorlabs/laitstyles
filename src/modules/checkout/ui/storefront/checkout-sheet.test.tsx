@@ -149,7 +149,7 @@ describe("StorefrontCheckoutSheet", () => {
     expect(screen.getByText("Estimated arrival: 1-2 working days.")).toBeInTheDocument();
     expect(screen.getAllByText("₦15").length).toBeGreaterThan(0);
     expect(screen.getByText("₦2,515")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pay securely" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Pay · ₦2,515" })).toBeEnabled();
   });
 
   it("keeps nationwide delivery available for an alternate saved address", async () => {
@@ -191,7 +191,7 @@ describe("StorefrontCheckoutSheet", () => {
     expect(screen.getByText("Nationwide delivery")).toBeInTheDocument();
     expect(screen.getByText(/This address is covered/i)).toBeInTheDocument();
     expect(screen.getAllByText("₦65").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "Pay securely" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Pay · ₦2,565" })).toBeEnabled();
   });
 
   it("explains that an address is required instead of silently disabling payment", async () => {
@@ -218,7 +218,7 @@ describe("StorefrontCheckoutSheet", () => {
       "href",
       "/account/addresses?returnTo=checkout",
     );
-    expect(screen.getByRole("button", { name: "Pay securely" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Pay · ₦2,500" })).toBeDisabled();
     expect(screen.getByText("Add or select a delivery address to continue.")).toBeInTheDocument();
   });
 
