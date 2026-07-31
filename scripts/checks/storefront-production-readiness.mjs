@@ -5,6 +5,7 @@ import process from "node:process";
 const root = process.cwd();
 const sourceRoot = path.join(root, "src");
 const routeRoot = path.join(sourceRoot, "app", "api", "v1");
+const buttonPath = path.join(sourceRoot, "components", "ui", "button.tsx");
 const cloudImagePath = normalizePath(path.join(sourceRoot, "components", "ui", "cloud-image.tsx"));
 const applicationExtensions = new Set([".ts", ".tsx"]);
 const ignoredFile = /\.(?:test|spec)\.[cm]?[jt]sx?$/;
@@ -34,6 +35,28 @@ for (const file of applicationFiles) {
     }
   }
 
+  if (/\bas\s+any\b|:\s*any\b|<any>/.test(source)) {
+    violations.push(`${relative(file)} contains an explicit any`);
+  }
+
+  if (/from\s+["']@\/features\/storefront\/account(?:\/|["'])/.test(source)) {
+    violations.push(`${relative(file)} imports the retired storefront account prototype`);
+  }
+
+  if (
+    source.startsWith('"use client"') &&
+    /fetch\(\s*["']\/auth\/(?:email|invite\/finalize)(?:["'?])/.test(source)
+  ) {
+    violations.push(`${relative(file)} bypasses the typed /api/v1 auth client boundary`);
+  }
+
+  if (
+    isActiveStorefrontOrAccountFile(normalized) &&
+    /\b(?:products|orders|images|lines|addresses|members)\s*\[\s*\d+\s*\]/.test(source)
+  ) {
+    violations.push(`${relative(file)} uses a fixed collection index in an active customer flow`);
+  }
+
   if (normalized.endsWith(".tsx") && isUserFacingAuthFile(normalized) && /\bSupabase\b/.test(source)) {
     violations.push(`${relative(file)} exposes provider language in a user-facing auth surface`);
   }
@@ -43,6 +66,8 @@ for (const file of applicationFiles) {
     if (apiPath) apiReferences.push({ file, apiPath });
   }
 }
+
+await checkButtonContract(violations);
 
 const routePatterns = await collectRoutePatterns(routeRoot);
 for (const reference of apiReferences) {
@@ -62,6 +87,20 @@ if (violations.length > 0) {
 console.log(
   `Storefront production-readiness check passed (${applicationFiles.length} source files, ${routePatterns.length} API routes, ${apiReferences.length} API references).`,
 );
+
+async function checkButtonContract(target) {
+  const source = await readFile(buttonPath, "utf8");
+  const requiredPatterns = [
+    [/outline:\s*[\s\S]*?text-foreground/, "outline variant must own a foreground color"],
+    [/ghost:\s*[\s\S]*?text-foreground/, "ghost variant must own a foreground color"],
+    [/link:\s*[\s\S]*?text-primary/, "link variant must own a foreground color"],
+    [/\[&_svg\]:text-current/, "button icons must inherit the button foreground"],
+  ];
+
+  for (const [pattern, message] of requiredPatterns) {
+    if (!pattern.test(source)) target.push(`src/components/ui/button.tsx: ${message}`);
+  }
+}
 
 async function walk(directory) {
   let entries;
@@ -127,11 +166,25 @@ function normalizeApiReference(value) {
   return normalized.startsWith("/api/v1") ? normalized : null;
 }
 
+function isActiveStorefrontOrAccountFile(file) {
+  return (
+    file.includes("/src/app/(storefront)/") ||
+    file.includes("/src/modules/storefront-shell/") ||
+    file.includes("/src/modules/customers/ui/account/") ||
+    file.includes("/src/modules/customers/ui/storefront/") ||
+    file.includes("/src/modules/checkout/ui/") ||
+    file.includes("/src/modules/orders/ui/storefront/") ||
+    file.includes("/src/modules/returns/ui/storefront/") ||
+    file.includes("/src/modules/auth/ui/")
+  );
+}
+
 function isUserFacingAuthFile(file) {
   return (
     file.includes("/src/app/auth/") ||
     file.includes("/src/modules/auth/ui/") ||
-    file.includes("/src/modules/customers/ui/account/")
+    file.includes("/src/modules/customers/ui/account/") ||
+    file.includes("/src/features/admin/team/")
   );
 }
 
