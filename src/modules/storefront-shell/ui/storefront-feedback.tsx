@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { CheckoutStatus } from "@/modules/checkout/types";
 
 export type StorefrontToastTone = "default" | "removed" | "notify" | "bag" | "sold";
 
@@ -13,6 +14,49 @@ export type StorefrontToastData = {
   title: string;
   message: string;
 };
+
+export function StorefrontCheckoutAlert({
+  onDismiss,
+  onResume,
+  orderNumber,
+  status,
+}: {
+  onDismiss: () => void;
+  onResume: () => void;
+  orderNumber: string;
+  status: CheckoutStatus;
+}) {
+  const copy =
+    status === "failed" || status === "abandoned" || status === "reversed"
+      ? "Your order is still waiting for payment. You can reopen it and try again safely."
+      : status === "review_required"
+        ? "Your payment is being reviewed. Reopen checkout to see the latest status."
+        : "You have an unfinished checkout. Reopen it without entering your details again.";
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[75] flex justify-center px-4 py-3">
+      <div className="flex w-full max-w-[760px] items-center gap-3.5 rounded-full bg-[#20261C] py-2.5 pl-5 pr-3 text-white shadow-[0_20px_50px_rgba(0,0,0,.28)]">
+        <span className="size-2 shrink-0 rounded-full bg-[#D4B26A] animate-[leemPulse_1.6s_ease-in-out_infinite]" />
+        <span aria-live="polite" className="min-w-0 flex-1 text-[13px] leading-[1.4]">
+          <strong>{orderNumber}</strong> · {copy}
+        </span>
+        <Button className="shrink-0" onClick={onResume} size="lg" type="button">
+          Resume checkout
+        </Button>
+        <Button
+          aria-label="Dismiss checkout reminder"
+          className="shrink-0"
+          onClick={onDismiss}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <X className="size-[18px]" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function StorefrontHoldAlert({
   count,
