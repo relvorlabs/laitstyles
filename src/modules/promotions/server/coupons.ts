@@ -22,7 +22,8 @@ const PROMOTION_LOCK = "laitstyles-promotion-coupons";
 
 export async function listPromotionCoupons(): Promise<PromotionCouponList> {
   return prisma.$transaction(async (tx) => {
-    const [coupons, usage] = await Promise.all([readCoupons(tx), readCouponUsage(tx)]);
+    const coupons = await readCoupons(tx);
+    const usage = await readCouponUsage(tx);
     return {
       coupons: coupons
         .map((coupon) => toPromotionCoupon(coupon, usage.get(normalizeCouponCode(coupon.code)) ?? 0))
@@ -41,7 +42,10 @@ export async function createPromotionCoupon(
     const coupons = parseCoupons(row.selling);
     const code = input.code
       ? normalizeCouponCode(input.code)
-      : generateUniqueCode(input.prefix, new Set(coupons.map((coupon) => normalizeCouponCode(coupon.code))));
+      : generateUniqueCode(
+          input.prefix,
+          new Set(coupons.map((coupon) => normalizeCouponCode(coupon.code))),
+        );
     if (coupons.some((coupon) => normalizeCouponCode(coupon.code) === code)) {
       throw new ApiError({
         code: "PROMOTION_CODE_EXISTS",
@@ -52,7 +56,14 @@ export async function createPromotionCoupon(
     }
 
     const coupon = normalizeConfiguredCoupon(code, input);
-    await persistCoupons(tx, row.selling, [...coupons, coupon], actor.authUserId, "promotion.created", code);
+    await persistCoupons(
+      tx,
+      row.selling,
+      [...coupons, coupon],
+      actor.authUserId,
+      "promotion.created",
+      code,
+    );
     return {
       coupon: toPromotionCoupon(coupon, 0),
       message: `${code} is ready to use.`,
@@ -80,20 +91,17 @@ export async function updatePromotionCoupon(
       });
     }
 
-    const nextCode = normalizeCouponCode(input.code ?? currentCode);
-    if (
-      nextCode !== currentCode &&
-      coupons.some((coupon) => normalizeCouponCode(coupon.code) === nextCode)
-    ) {
+    const requestedCode = normalizeCouponCode(input.code ?? currentCode);
+    if (requestedCode !== currentCode) {
       throw new ApiError({
-        code: "PROMOTION_CODE_EXISTS",
-        message: "A coupon with this code already exists.",
+        code: "PROMOTION_CODE_IMMUTABLE",
+        message: "Coupon codes cannot be renamed after creation.",
         status: 409,
-        fieldErrors: { code: "Choose a different coupon code." },
+        fieldErrors: { code: "Create a new coupon when you need a different code." },
       });
     }
 
-    const coupon = normalizeConfiguredCoupon(nextCode, input);
+    const coupon = normalizeConfiguredCoupon(currentCode, input);
     const nextCoupons = coupons.map((candidate, candidateIndex) =>
       candidateIndex === index ? coupon : candidate,
     );
@@ -103,12 +111,12 @@ export async function updatePromotionCoupon(
       nextCoupons,
       actor.authUserId,
       "promotion.updated",
-      nextCode,
+      currentCode,
     );
     const usage = await readCouponUsage(tx);
     return {
-      coupon: toPromotionCoupon(coupon, usage.get(nextCode) ?? 0),
-      message: `${nextCode} was updated.`,
+      coupon: toPromotionCoupon(coupon, usage.get(currentCode) ?? 0),
+      message: `${currentCode} was updated.`,
     };
   });
 }
