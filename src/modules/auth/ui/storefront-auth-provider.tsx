@@ -145,9 +145,11 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
           : await submitPasswordSignIn(formData);
 
       if (result.ok && result.value.status === "success") {
+        const normalizedEmail = result.value.email.trim().toLocaleLowerCase("en-NG");
         const signupName = [form.first.trim(), form.last.trim()].filter(Boolean).join(" ");
         setSession({
           signedIn: true,
+          identityKey: `email:${normalizedEmail}`,
           email: result.value.email,
           displayName: signupName || result.value.email.split("@")[0] || null,
           role: null,
@@ -178,6 +180,7 @@ export function StorefrontAuthProvider({ children }: { children: ReactNode }) {
       null;
     setSession({
       signedIn: true,
+      identityKey: user.id,
       email: user.email ?? null,
       displayName,
       role: null,
