@@ -51,18 +51,19 @@ export function StorefrontRecentPersistence() {
       : [];
     const transitioningGuestIds =
       signedIn && previousIdentity.current === "guest" ? recentIds : [];
+    const authenticatedServerIds = signedIn ? serverIds : [];
     const nextIds = uniqueIds([
       ...transitioningGuestIds,
       ...guestIds,
       ...localIds,
-      ...serverIds,
+      ...authenticatedServerIds,
       ...legacyIds,
     ]);
 
     replaceRecent(nextIds);
     initializedIdentity.current = identityKey;
     previousIdentity.current = identityKey;
-    lastServerSignature.current = signature(serverIds);
+    lastServerSignature.current = signature(authenticatedServerIds);
 
     try {
       window.sessionStorage.removeItem(LEGACY_RECENT_STORAGE_KEY);
