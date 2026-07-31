@@ -75,19 +75,28 @@ export async function recordOwnedRecentProductIds(
       orderBy: { occurred_at: "desc" },
       take: RECENT_EVENT_SCAN_LIMIT,
     });
-    const canonicalIds = uniqueProductIds(
-      rows.flatMap((row) => (row.product_id ? [row.product_id] : [])),
-    );
-    const retainedIds = new Set(canonicalIds.slice(0, MAX_RECENT_PRODUCTS));
-    const staleEventIds = rows
-      .filter((row) => !row.product_id || !retainedIds.has(row.product_id))
-      .map((row) => row.id);
+    const retainedProductIds: string[] = [];
+    const retainedSet = new Set<string>();
+    const staleEventIds: string[] = [];
+
+    for (const row of rows) {
+      if (
+        !row.product_id ||
+        retainedSet.has(row.product_id) ||
+        retainedProductIds.length >= MAX_RECENT_PRODUCTS
+      ) {
+        staleEventIds.push(row.id);
+        continue;
+      }
+      retainedSet.add(row.product_id);
+      retainedProductIds.push(row.product_id);
+    }
 
     if (staleEventIds.length > 0) {
       await transaction.activity_events.deleteMany({ where: { id: { in: staleEventIds } } });
     }
 
-    return canonicalIds.slice(0, MAX_RECENT_PRODUCTS);
+    return retainedProductIds;
   });
 }
 
