@@ -7,7 +7,7 @@ import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";
 
 export const metadata: Metadata = {
   title: "Reset password | Laitstyle",
-  description: "Request a secure Laitstyle password-reset link.",
+  description: "Request a Laitstyle password-reset link.",
 };
 
 type ForgotPasswordPageProps = {
@@ -20,7 +20,7 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
 
   return (
     <AuthPageShell
-      description="Enter the email attached to your account. We keep the response private, whether or not the address is registered."
+      description="Enter the email you use for Laitstyle and we will send you a link to choose a new password."
       eyebrow="Account recovery"
       footer={
         <div className="flex flex-wrap items-center justify-between gap-3 text-[13px]">
@@ -34,16 +34,16 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
             className="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             href="/auth/resend-confirmation"
           >
-            Resend confirmation
+            Resend confirmation email
           </Link>
         </div>
       }
       highlights={[
-        "Private, enumeration-safe recovery response",
-        "Single-use link through your configured Supabase email",
-        "Other sessions are closed after password replacement",
+        "A private response that protects your account",
+        "A secure link sent to your email",
+        "Other devices are signed out after your password changes",
       ]}
-      sideDescription="Recovery should feel calm, not confusing. We send a secure, single-use path back to your account without revealing whether an address is registered."
+      sideDescription="We will guide you back to your account without revealing private account details."
       sideTitle="A clear way back into your account."
       title="Forgot your password?"
     >
