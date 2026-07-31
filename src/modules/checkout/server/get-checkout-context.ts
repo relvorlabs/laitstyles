@@ -2,20 +2,18 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
+import {
+  deriveCheckoutStatus,
+  resumableOrderPaymentStatuses,
+  resumablePaymentAttemptStatuses,
+  type CheckoutOrderFulfilmentStatus,
+  type CheckoutOrderPaymentStatus,
+  type CheckoutPaymentAttemptStatus,
+} from "@/modules/checkout/lifecycle";
 import { listCheckoutDeliveryQuotes } from "@/modules/checkout/server/delivery-policy";
-import type { CheckoutContext, CheckoutDraft, CheckoutStatus } from "@/modules/checkout/types";
+import type { CheckoutContext, CheckoutDraft } from "@/modules/checkout/types";
 import { getOwnedProfile } from "@/modules/customers/server/account-profile";
 import { listOwnedAddresses } from "@/modules/customers/server/addresses";
-
-const recoverablePaymentStatuses = [
-  "initializing",
-  "initialized",
-  "pending",
-  "failed",
-  "abandoned",
-  "reversed",
-  "review_required",
-] as const;
 
 export async function getCheckoutContext(identity: ConsumerSession): Promise<CheckoutContext> {
   const [profile, addresses, activeOrder] = await Promise.all([
@@ -25,19 +23,31 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
       where: {
         customer_id: identity.customerId,
         source: "storefront-checkout",
-        payments: { some: { status: { in: [...recoverablePaymentStatuses] } } },
+        payment_status: { in: [...resumableOrderPaymentStatuses] },
+        fulfilment_status: "unfulfilled",
+        payments: {
+          some: {
+            access_code: { not: null },
+            status: { in: [...resumablePaymentAttemptStatuses] },
+          },
+        },
       },
       orderBy: { created_at: "desc" },
       select: {
         id: true,
         order_number: true,
+        payment_status: true,
+        fulfilment_status: true,
         currency: true,
         subtotal: true,
         delivery_fee: true,
         discount_amount: true,
         total: true,
         payments: {
-          where: { status: { in: [...recoverablePaymentStatuses] } },
+          where: {
+            access_code: { not: null },
+            status: { in: [...resumablePaymentAttemptStatuses] },
+          },
           orderBy: { created_at: "desc" },
           take: 1,
           select: {
@@ -83,6 +93,8 @@ function mapActiveCheckout(
     | {
         id: string;
         order_number: string;
+        payment_status: string;
+        fulfilment_status: string;
         currency: string;
         subtotal: { toString(): string };
         delivery_fee: { toString(): string };
@@ -98,14 +110,18 @@ function mapActiveCheckout(
     | null,
 ): CheckoutDraft | null {
   const payment = order?.payments.at(0);
-  if (!order || !payment) return null;
+  if (!order || !payment?.access_code) return null;
   return {
     checkoutId: order.id,
     paymentId: payment.id,
     orderNumber: order.order_number,
     reference: payment.reference,
     accessCode: payment.access_code,
-    status: payment.status as CheckoutStatus,
+    status: deriveCheckoutStatus({
+      orderPaymentStatus: order.payment_status as CheckoutOrderPaymentStatus,
+      orderFulfilmentStatus: order.fulfilment_status as CheckoutOrderFulfilmentStatus,
+      paymentAttemptStatus: payment.status as CheckoutPaymentAttemptStatus,
+    }),
     currency: order.currency,
     subtotalMinor: decimalToMinor(order.subtotal),
     deliveryFeeMinor: decimalToMinor(order.delivery_fee),
