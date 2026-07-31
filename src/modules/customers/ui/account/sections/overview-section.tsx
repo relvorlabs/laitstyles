@@ -40,10 +40,12 @@ export function OverviewSection({
 }: OverviewSectionProps) {
   const { navigate } = useAccountUi();
   const { saved } = useAccountProducts();
+  const visibleOrders = uniqueOrders(orders);
   const greetingName =
-    preferredName.trim() || firstName.trim() || email?.split("@")[0] || "there";
-  const currentOrder = orders.find((order) => !isTerminalOrder(order)) ?? orders.at(0) ?? null;
-  const recentOrders = orders.slice(0, 3);
+    preferredName.trim() || firstName.trim() || email?.split("@").at(0) || "there";
+  const currentOrder =
+    visibleOrders.find((order) => !isTerminalOrder(order)) ?? visibleOrders.at(0) ?? null;
+  const recentOrders = visibleOrders.slice(0, 3);
   const railProducts = saved.slice(0, 3);
 
   return (
@@ -80,7 +82,7 @@ export function OverviewSection({
         </section>
       ) : (
         <section className={cn("mt-7 grid gap-4 p-5 sm:grid-cols-3 sm:p-6", panelClass)}>
-          <OverviewMetric label="Orders" value={String(orders.length)} />
+          <OverviewMetric label="Orders" value={String(visibleOrders.length)} />
           <OverviewMetric label="Saved pieces" value={String(savedCount)} />
           <OverviewMetric label="Account email" value={email ?? "Not available"} compact />
         </section>
@@ -109,14 +111,14 @@ export function OverviewSection({
           </h2>
           <div className="mt-6 divide-y divide-[var(--acc-line)] border-y border-[var(--acc-line)]">
             {[
-              { label: "View all orders", action: () => navigate("orders") },
-              { label: "Start an eligible return", action: () => navigate("returns") },
-              { label: "Manage addresses", action: () => navigate("addresses") },
-              { label: "Contact support", action: () => navigate("support") },
+              { id: "orders", label: "View all orders", action: () => navigate("orders") },
+              { id: "returns", label: "Start an eligible return", action: () => navigate("returns") },
+              { id: "addresses", label: "Manage addresses", action: () => navigate("addresses") },
+              { id: "support", label: "Contact support", action: () => navigate("support") },
             ].map((item) => (
               <Button
                 className="w-full justify-between text-left"
-                key={item.label}
+                key={`account-quick-action:${item.id}`}
                 onClick={item.action}
                 type="button"
                 variant="ghost"
@@ -134,7 +136,7 @@ export function OverviewSection({
               <Eyebrow className="text-[var(--acc-muted)]">Purchase history</Eyebrow>
               <h2 className="mt-3 font-serif text-4xl font-normal">Recent orders</h2>
             </div>
-            {orders.length > 0 ? (
+            {visibleOrders.length > 0 ? (
               <Button onClick={() => navigate("orders")} size="lg" type="button" variant="link">
                 View all
               </Button>
@@ -142,7 +144,9 @@ export function OverviewSection({
           </div>
           <div className={cn("mt-5 divide-y divide-[var(--acc-line)] overflow-hidden", panelClass)}>
             {recentOrders.length > 0 ? (
-              recentOrders.map((order) => <RecentOrderRow key={order.orderNumber} order={order} />)
+              recentOrders.map((order) => (
+                <RecentOrderRow key={`account-recent-order:${order.orderNumber}`} order={order} />
+              ))
             ) : (
               <p className="p-6 text-sm leading-6 text-[var(--acc-muted)]">
                 No purchase history is available yet.
@@ -191,18 +195,19 @@ function CurrentOrderCard({ order }: { order: AccountOrderSummary }) {
         <StatusBadge variant={status.variant}>{status.label}</StatusBadge>
       </div>
       <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[170px_minmax(0,1fr)_auto] lg:items-center">
-        <OrderImageGrid images={order.images} />
+        <OrderImageGrid images={order.images} orderNumber={order.orderNumber} />
         <div>
           <p className="text-xl font-semibold">
             {order.itemCount} {order.itemCount === 1 ? "piece" : "pieces"} ·{" "}
             <span className={monoClass}>{formatMoney(order.totalKobo, order.currency)}</span>
           </p>
           <p className="mt-2 text-[var(--acc-muted)]">
-            Placed {formatDate(order.placedAt)} · {order.itemNames.slice(0, 2).join(", ")}
+            Placed {formatDate(order.placedAt)} ·{" "}
+            {order.itemNames.filter(Boolean).slice(0, 2).join(", ") || "Items unavailable"}
           </p>
           <div className="mt-6 grid grid-cols-4 gap-2" aria-label={`Order progress: ${status.label}`}>
             {["Placed", "Paid", "Processing", "Delivered"].map((label, index) => (
-              <div key={label}>
+              <div key={`order-progress:${label}`}>
                 <span
                   className={cn(
                     "block h-1.5 rounded-full",
@@ -236,7 +241,7 @@ function CurrentOrderCard({ order }: { order: AccountOrderSummary }) {
 }
 
 function RecentOrderRow({ order }: { order: AccountOrderSummary }) {
-  const image = order.images.at(0) ?? null;
+  const image = uniqueImages(order.images).at(0) ?? null;
   const status = primaryStatus(order);
   return (
     <article className="grid gap-4 p-5 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
@@ -263,15 +268,24 @@ function RecentOrderRow({ order }: { order: AccountOrderSummary }) {
   );
 }
 
-function OrderImageGrid({ images }: { images: readonly AccountOrderImage[] }) {
-  const visible = images.slice(0, 2);
+function OrderImageGrid({
+  images,
+  orderNumber,
+}: {
+  images: readonly AccountOrderImage[];
+  orderNumber: string;
+}) {
+  const visible = uniqueImages(images).slice(0, 2);
   if (visible.length === 0) {
     return <div className="aspect-[4/3] rounded-lg bg-[var(--acc-bone-2)]" aria-hidden="true" />;
   }
   return (
     <div className={cn("grid gap-2", visible.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
       {visible.map((image) => (
-        <OrderImage image={image} key={`${image.src}:${image.alt}`} />
+        <OrderImage
+          image={image}
+          key={`account-overview:${orderNumber}:image:${image.src}`}
+        />
       ))}
     </div>
   );
@@ -280,15 +294,23 @@ function OrderImageGrid({ images }: { images: readonly AccountOrderImage[] }) {
 function OrderImage({ image }: { image: AccountOrderImage | null }) {
   return (
     <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[var(--acc-bone-2)]">
-      {image ? (
+      {image?.src ? (
         <CloudImage
-          alt={image.alt}
+          alt={image.alt || "Order item"}
           className="object-cover"
           fill
           sizes="(min-width: 1024px) 88px, 25vw"
           src={image.src}
         />
-      ) : null}
+      ) : (
+        <span
+          aria-label="Order image unavailable"
+          className="grid size-full place-items-center px-2 text-center text-[9px] text-[var(--acc-muted)]"
+          role="img"
+        >
+          Image unavailable
+        </span>
+      )}
     </div>
   );
 }
@@ -372,6 +394,24 @@ function isTerminalOrder(order: AccountOrderSummary): boolean {
   );
 }
 
+function uniqueOrders(orders: readonly AccountOrderSummary[]): AccountOrderSummary[] {
+  const byNumber = new Map<string, AccountOrderSummary>();
+  for (const order of orders) {
+    if (!order?.orderNumber) continue;
+    byNumber.set(order.orderNumber, order);
+  }
+  return Array.from(byNumber.values());
+}
+
+function uniqueImages(images: readonly AccountOrderImage[]): AccountOrderImage[] {
+  const bySource = new Map<string, AccountOrderImage>();
+  for (const image of images) {
+    if (!image?.src) continue;
+    bySource.set(image.src, image);
+  }
+  return Array.from(bySource.values());
+}
+
 function formatMoney(amountKobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -381,9 +421,11 @@ function formatMoney(amountKobo: number, currency: string): string {
 }
 
 function formatDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
   return new Intl.DateTimeFormat("en-NG", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(date);
 }
