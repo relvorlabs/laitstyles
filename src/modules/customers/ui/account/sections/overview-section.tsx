@@ -42,7 +42,7 @@ export function OverviewSection({
   const { saved } = useAccountProducts();
   const greetingName =
     preferredName.trim() || firstName.trim() || email?.split("@")[0] || "there";
-  const currentOrder = orders.find((order) => !isTerminalOrder(order)) ?? orders[0] ?? null;
+  const currentOrder = orders.find((order) => !isTerminalOrder(order)) ?? orders.at(0) ?? null;
   const recentOrders = orders.slice(0, 3);
   const railProducts = saved.slice(0, 3);
 
@@ -236,7 +236,7 @@ function CurrentOrderCard({ order }: { order: AccountOrderSummary }) {
 }
 
 function RecentOrderRow({ order }: { order: AccountOrderSummary }) {
-  const image = order.images[0] ?? null;
+  const image = order.images.at(0) ?? null;
   const status = primaryStatus(order);
   return (
     <article className="grid gap-4 p-5 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
