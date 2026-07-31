@@ -135,7 +135,7 @@ function mapShellProduct(row: ShellProductRow, index: number): StorefrontCatalog
         : null,
     condition: mapCondition(row.condition),
     size: size || "One size",
-    fit: row.fit ?? size || "One size",
+    fit: row.fit ?? (size || "One size"),
     colour,
     inventory: mode,
     stock: availability.available,
