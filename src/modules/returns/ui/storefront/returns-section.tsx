@@ -32,6 +32,12 @@ function formatMoney(kobo: number, currency: string) {
   }).format(kobo / 100);
 }
 
+type EligibleReturnLine = {
+  key: string;
+  order: AccountEligibleReturnOrder;
+  line: AccountEligibleReturnOrder["lines"][number];
+};
+
 export function ReturnsSection({
   initialReturns,
   eligibleOrders,
@@ -41,21 +47,23 @@ export function ReturnsSection({
 }) {
   const mutation = useCreateAccountReturn();
   const router = useRouter();
-  const firstLine = eligibleOrders[0]?.lines[0];
+  const visibleReturns = useMemo(() => uniqueReturns(initialReturns), [initialReturns]);
+  const eligibleLines = useMemo(() => flattenEligibleLines(eligibleOrders), [eligibleOrders]);
+  const firstLine = eligibleLines.at(0) ?? null;
   const [open, setOpen] = useState(false);
-  const [selectedLineId, setSelectedLineId] = useState(firstLine?.id ?? "");
+  const [selectedLineKey, setSelectedLineKey] = useState(firstLine?.key ?? "");
   const [pending, setPending] = useState(false);
   const selected = useMemo(
-    () =>
-      eligibleOrders
-        .flatMap((order) => order.lines.map((line) => ({ order, line })))
-        .find(({ line }) => line.id === selectedLineId),
-    [eligibleOrders, selectedLineId],
+    () => eligibleLines.find((item) => item.key === selectedLineKey) ?? null,
+    [eligibleLines, selectedLineKey],
   );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selected) return;
+    if (!selected) {
+      toast.error("Choose an item to return.");
+      return;
+    }
     const data = new FormData(event.currentTarget);
     setPending(true);
     try {
@@ -68,7 +76,7 @@ export function ReturnsSection({
       toast.success("Return request submitted.");
       setOpen(false);
       router.refresh();
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "We could not submit this return.");
     } finally {
       setPending(false);
@@ -92,18 +100,20 @@ export function ReturnsSection({
         </Button>
       </header>
       <div className="mt-7 space-y-4">
-        {initialReturns.length ? (
-          initialReturns.map((record, index) => (
+        {visibleReturns.length ? (
+          visibleReturns.map((record, index) => (
             <article
               className={cn("overflow-hidden p-5", index === 0 ? panelElevatedClass : panelClass)}
-              key={record.id}
+              key={`account-return:${record.id}`}
             >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <Eyebrow className="text-[var(--acc-muted)]">
                     Return <span className={monoClass}>#{record.id.slice(0, 8)}</span>
                   </Eyebrow>
-                  <h2 className="mt-3 font-serif text-3xl font-normal">{record.reason}</h2>
+                  <h2 className="mt-3 font-serif text-3xl font-normal">
+                    {record.reason || "Return request"}
+                  </h2>
                   <p className="mt-2 text-[var(--acc-muted)]">
                     Order #{record.orderNumber} ·{" "}
                     {formatMoney(record.refundAmountKobo, record.currency)}
@@ -146,28 +156,48 @@ export function ReturnsSection({
               <select
                 aria-label="Return item"
                 className="h-11 rounded-lg border border-input bg-control px-3 font-normal"
-                onChange={(event) => setSelectedLineId(event.target.value)}
-                value={selectedLineId}
+                onChange={(event) => setSelectedLineKey(event.target.value)}
+                value={selectedLineKey}
               >
-                {eligibleOrders.flatMap((order) =>
-                  order.lines.map((line) => (
-                    <option key={line.id} value={line.id}>
-                      {order.orderNumber} · {line.productName}
-                    </option>
-                  )),
-                )}
+                {eligibleLines.map(({ key, order, line }) => (
+                  <option key={`eligible-return:${key}`} value={key}>
+                    {order.orderNumber} · {line.productName || "Item"}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="grid gap-2 text-sm font-semibold" htmlFor="return-reason">
               Reason for return
               <Input id="return-reason" name="reason" required />
             </label>
-            <Button disabled={pending} type="submit">
-              {pending ? "Submitting..." : "Submit return"}
+            <Button disabled={pending || !selected} type="submit">
+              {pending ? "Submitting…" : "Submit return"}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
     </>
   );
+}
+
+function uniqueReturns(returns: readonly AccountReturn[]): AccountReturn[] {
+  const byId = new Map<string, AccountReturn>();
+  for (const record of returns) {
+    if (!record?.id) continue;
+    byId.set(record.id, record);
+  }
+  return Array.from(byId.values());
+}
+
+function flattenEligibleLines(orders: readonly AccountEligibleReturnOrder[]): EligibleReturnLine[] {
+  const byKey = new Map<string, EligibleReturnLine>();
+  for (const order of orders) {
+    if (!order?.orderNumber) continue;
+    for (const line of order.lines ?? []) {
+      if (!line?.id) continue;
+      const key = `${order.orderNumber}:${line.id}`;
+      byKey.set(key, { key, order, line });
+    }
+  }
+  return Array.from(byKey.values());
 }
