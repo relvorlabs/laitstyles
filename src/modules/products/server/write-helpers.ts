@@ -48,13 +48,17 @@ export async function writeProductMedia(
   productId: string,
   media: ProductEditorValues["media"],
 ): Promise<void> {
+  const product = await tx.products.findUnique({
+    where: { id: productId },
+    select: { name: true },
+  });
   await tx.product_media.deleteMany({ where: { product_id: productId } });
   for (const [position, item] of media.entries()) {
     const kind = mediaKindToDb[item.kind];
     const assetData = {
       kind,
       secure_url: item.url,
-      alt: cleanProductText(item.alt) || inferProductMediaAlt(item, position),
+      alt: cleanProductText(item.alt) || inferProductMediaAlt(item, position, product?.name),
       width: item.width,
       height: item.height,
       format: item.format,
@@ -74,6 +78,7 @@ export async function writeProductMedia(
 export function inferProductMediaAlt(
   item: Pick<ProductEditorValues["media"][number], "kind" | "publicId">,
   position: number,
+  productName?: string | null,
 ): string {
   const role =
     item.kind === "cover"
@@ -81,13 +86,18 @@ export function inferProductMediaAlt(
       : item.kind === "defect"
         ? "Product condition detail"
         : "Product detail image";
+  const identity = cleanProductText(productName ?? "") || "Product";
   const sourceLabel =
     item.publicId
       .split("/")
       .at(-1)
       ?.replaceAll(/[-_]+/g, " ")
       .trim() ?? "";
-  return cleanProductText(`${role} ${position + 1}${sourceLabel ? ` · ${sourceLabel}` : ""}`);
+  return cleanProductText(
+    `${identity} · ${role.toLocaleLowerCase("en-NG")} ${position + 1}${
+      sourceLabel ? ` · ${sourceLabel}` : ""
+    }`,
+  );
 }
 
 export async function writeProductChannels(
