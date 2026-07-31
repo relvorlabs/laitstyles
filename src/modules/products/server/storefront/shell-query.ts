@@ -135,7 +135,7 @@ function mapShellProduct(row: ShellProductRow, index: number): StorefrontCatalog
         : null,
     condition: mapCondition(row.condition),
     size: size || "One size",
-    fit: row.fit ?? size ?? "One size",
+    fit: row.fit ?? size || "One size",
     colour,
     inventory: mode,
     stock: availability.available,
@@ -166,7 +166,7 @@ function mapVariantOptions(row: ShellProductRow): ProductVariantOption[] {
       colourHex: null,
       price: variant.price ? Math.round(variant.price.toNumber() * 100) : null,
       availability: {
-        state: availability.status === "sold" ? "sold_out" : availability.status,
+        state: availability.status,
         available: availability.available,
         isOneOfOne: false,
       },
