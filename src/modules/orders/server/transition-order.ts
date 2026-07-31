@@ -10,6 +10,7 @@ import {
   type OperationalStockMutationKind,
 } from "@/modules/inventory/server/operational-stock";
 import { canTransitionOrder, formatOrderStatus } from "@/modules/orders/rules";
+import { closeCancelledCheckoutResources } from "@/modules/orders/server/cancel-checkout-payment";
 import {
   type AdminOrderRow,
   adminOrderInclude,
@@ -88,6 +89,13 @@ export async function transitionOrder(
         where: { id: order.id },
         data: orderAggregateUpdate(order, nextStatus),
       });
+      if (nextStatus === "cancelled") {
+        await closeCancelledCheckoutResources(tx, {
+          orderId: order.id,
+          actorProfileId: actor.authUserId,
+          requestedBy: "staff",
+        });
+      }
       await tx.order_timeline_events.create({
         data: {
           order_id: order.id,
