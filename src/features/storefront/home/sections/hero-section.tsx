@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { money } from "@/modules/products/ui/storefront/catalogue-data";
+import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
 import { openQuickView } from "@/modules/storefront-shell/client/storefront-overlay-events";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
@@ -14,6 +15,8 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
   const heroDenim = products[1] ?? heroBlazer;
   const heroHarrington = products[15] ?? heroBlazer;
   if (!heroBlazer || !heroDenim || !heroHarrington) return null;
+  const heroBlazerImage = getProductDefaultImage(heroBlazer);
+  if (!heroBlazerImage) return null;
   const sideProducts = [
     [heroDenim, "One of one"],
     [heroHarrington, "Archive outerwear"],
@@ -28,7 +31,7 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
             height={2250}
             priority
             sizes="(min-width: 861px) 66vw, 100vw"
-            src={heroBlazer.images[0]}
+            src={heroBlazerImage}
             width={1800}
           />
           <div className="hero-copy">
@@ -48,37 +51,41 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
           </div>
         </article>
         <div className="hero-side">
-          {sideProducts.map(([product, eyebrow]) => (
-            <Button
-              className="hero-card h-auto w-full justify-start p-0 text-left"
-              key={product.id}
-              onClick={() => openQuickView(product.id)}
-              type="button"
-              variant="ghost"
-            >
-              <span className="contents">
-                <CloudImage
-                  alt={product.name}
-                  height={1125}
-                  sizes="(min-width: 861px) 34vw, 100vw"
-                  src={product.images[0]}
-                  width={900}
-                />
-                <span className="hero-card-info">
-                  <span>
-                    <span className="eyebrow">{eyebrow}</span>
-                    <span className="block text-[inherit]">{product.name}</span>
-                    <span className="block">
-                      Size {product.size} · Grade {product.condition} · {money(product.price)}
+          {sideProducts.map(([product, eyebrow]) => {
+            const image = getProductDefaultImage(product);
+            if (!image) return null;
+            return (
+              <Button
+                className="hero-card h-auto w-full justify-start p-0 text-left"
+                key={product.id}
+                onClick={() => openQuickView(product.id)}
+                type="button"
+                variant="ghost"
+              >
+                <span className="contents">
+                  <CloudImage
+                    alt={product.name}
+                    height={1125}
+                    sizes="(min-width: 861px) 34vw, 100vw"
+                    src={image}
+                    width={900}
+                  />
+                  <span className="hero-card-info">
+                    <span>
+                      <span className="eyebrow">{eyebrow}</span>
+                      <span className="block text-[inherit]">{product.name}</span>
+                      <span className="block">
+                        Size {product.size} · Grade {product.condition} · {money(product.price)}
+                      </span>
+                    </span>
+                    <span className="hero-card-arrow">
+                      <IconArrow />
                     </span>
                   </span>
-                  <span className="hero-card-arrow">
-                    <IconArrow />
-                  </span>
                 </span>
-              </span>
-            </Button>
-          ))}
+              </Button>
+            );
+          })}
         </div>
       </div>
     </section>
