@@ -1,8 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ApiClientError } from "@/lib/http/client";
+import { sendAuthEmailRequest } from "@/modules/auth/client/auth-email-api";
 import { getAuthFlowErrorMessage, isAuthFlowErrorCode } from "@/modules/auth/errors";
+import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 import { useStorefrontCatalogueData } from "@/modules/storefront-shell/client/storefront-runtime";
 import {
   StorefrontAuthDialog,
@@ -24,17 +27,6 @@ const blankAuthForm: StorefrontAuthForm = {
   confirmPassword: "",
 };
 
-type AuthEmailTransportResult =
-  | { ok: true; value: { status: "accepted"; email: string } }
-  | {
-      ok: false;
-      error: {
-        code: string;
-        message: string;
-        fieldErrors?: Record<string, string>;
-      };
-    };
-
 export function StorefrontAuthDialogHost() {
   const router = useRouter();
   const { products } = useStorefrontCatalogueData();
@@ -50,6 +42,7 @@ export function StorefrontAuthDialogHost() {
   const [supportState, setSupportState] = useState<StorefrontAuthSupportState>("idle");
   const [notice, setNotice] = useState<StorefrontAuthNotice | null>(null);
   const successRef = useRef<(() => void) | null>(null);
+  const authProduct = useMemo(() => selectAuthProduct(products), [products]);
 
   useEffect(() => {
     if (!open) return;
@@ -126,9 +119,9 @@ export function StorefrontAuthDialogHost() {
       return;
     }
 
-    const sessionResult = await actions.syncOAuthSession();
-    if (!sessionResult.ok) {
-      setErrors({ form: sessionResult.message });
+    const syncResult = await actions.syncOAuthSession();
+    if (!syncResult.ok) {
+      setErrors({ form: syncResult.message });
       setShowErrors(true);
       setState("default");
       return;
@@ -158,32 +151,24 @@ export function StorefrontAuthDialogHost() {
     const returnTo = `${current.pathname}${current.search}`;
 
     try {
-      const response = await fetch("/auth/email", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: supportMode,
-          email: form.email.trim(),
-          returnTo,
-        }),
+      await sendAuthEmailRequest({
+        kind: supportMode,
+        email: form.email.trim(),
+        returnTo,
       });
-      const result = (await response.json()) as AuthEmailTransportResult;
-
-      if (!result.ok) {
-        setErrors(result.error.fieldErrors ?? {});
-        setShowErrors(Boolean(result.error.fieldErrors));
-        setNotice({ tone: "error", message: result.error.message });
-        setSupportState("idle");
-        return;
-      }
-
       setSupportState("success");
-    } catch {
-      setNotice({
-        tone: "error",
-        message: "We could not send that email. Check your connection and try again.",
-      });
+    } catch (error: unknown) {
+      if (error instanceof ApiClientError) {
+        const fieldErrors = flattenFieldErrors(error.fieldErrors);
+        setErrors(fieldErrors);
+        setShowErrors(Object.keys(fieldErrors).length > 0);
+        setNotice({ tone: "error", message: error.message });
+      } else {
+        setNotice({
+          tone: "error",
+          message: "We could not send that email. Check your connection and try again.",
+        });
+      }
       setSupportState("idle");
     }
   }, [form.email, state, supportMode, supportState]);
@@ -259,7 +244,7 @@ export function StorefrontAuthDialogHost() {
       mode={mode}
       notice={notice}
       open={open}
-      product={products[13] ?? products[0]}
+      product={authProduct}
       revealPassword={revealPassword}
       showErrors={showErrors}
       state={state}
@@ -277,6 +262,22 @@ export function StorefrontAuthDialogHost() {
       onTermsAcceptedChange={setTermsAccepted}
       setForm={setForm}
     />
+  );
+}
+
+function selectAuthProduct(products: readonly Product[]): Product | undefined {
+  return (
+    products.find((product) => product?.status === "available" && Boolean(product.id)) ??
+    products.find((product) => Boolean(product?.id))
+  );
+}
+
+function flattenFieldErrors(fieldErrors: Record<string, string[]> | undefined): Record<string, string> {
+  if (!fieldErrors) return {};
+  return Object.fromEntries(
+    Object.entries(fieldErrors).flatMap(([field, messages]) =>
+      typeof messages?.[0] === "string" ? [[field, messages[0]]] : [],
+    ),
   );
 }
 
