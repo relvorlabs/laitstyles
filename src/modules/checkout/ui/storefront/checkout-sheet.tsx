@@ -71,7 +71,6 @@ export function StorefrontCheckoutSheet({
   const updateProfile = useUpdateOwnedProfile();
   const normalizedLines = useMemo(() => mergeCheckoutLines(lines), [lines]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [showEveryAddress, setShowEveryAddress] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -102,7 +101,6 @@ export function StorefrontCheckoutSheet({
       null,
     [context, selectedAddressId],
   );
-  const visibleAddresses = showEveryAddress ? addresses : addresses.slice(0, 2);
   const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
   const displaySubtotalMinor = activeCheckout?.subtotalMinor ?? subtotalMinor;
@@ -144,11 +142,11 @@ export function StorefrontCheckoutSheet({
         couponReady,
         couponFetching: couponQuery.isFetching,
         currentStatus,
-        hasDeliveryQuote: Boolean(selectedQuote),
         lineCount: normalizedLines.length,
         paymentStage,
         phoneReady,
         selectedAddressId,
+        selectedDeliveryQuote: selectedQuote,
       });
 
   useEffect(() => {
@@ -223,7 +221,25 @@ export function StorefrontCheckoutSheet({
     setPaymentStage("creating");
     try {
       let checkout: CheckoutDraft;
-      const resumableStatus = currentStatus ?? active variantId: line.variantId } : {}),
+      const resumableStatus = currentStatus ?? activeCheckout?.status ?? null;
+      if (
+        activeCheckout?.accessCode &&
+        resumableStatus &&
+        isResumableCheckoutStatus(resumableStatus)
+      ) {
+        checkout = activeCheckout;
+      } else {
+        if (!selectedAddressId || !selectedQuote || normalizedLines.length === 0) {
+          setPaymentStage("ready");
+          return;
+        }
+        checkout = await createCheckout.mutateAsync({
+          idempotencyKey: idempotencyKey.current,
+          addressId: selectedAddressId,
+          ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
+          lines: normalizedLines.map((line) => ({
+            productId: line.productId,
+            ...(line.variantId ? { variantId: line.variantId } : {}),
             quantity: line.quantity,
           })),
         });
@@ -263,9 +279,7 @@ export function StorefrontCheckoutSheet({
     return (
       <CheckoutPanelShell onBack={onBack} title="Private checkout">
         <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
-            Your fitting room is saved
-          </p>
+          <Eyebrow>Your fitting room is saved</Eyebrow>
           <div>
             <p className="font-serif text-3xl">Sign in to arrange delivery</p>
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[var(--muted)]">
@@ -432,8 +446,8 @@ export function StorefrontCheckoutSheet({
               </CheckoutSection>
 
               <CheckoutSection number="03" title="Nationwide delivery">
-                {selectedAddress && selectedDeliveryQuote ? (
-                  <DeliveryQuoteCard address={selectedAddress} quote={selectedDeliveryQuote} />
+                {selectedAddress && selectedQuote ? (
+                  <DeliveryQuoteCard address={selectedAddress} quote={selectedQuote} />
                 ) : (
                   <EditorialCard>
                     <p className="text-sm leading-6 text-[var(--muted)]">
@@ -774,7 +788,9 @@ function formatNaira(amountMinor: number): string {
 
 function formatEstimatedDays(value: string | null): string {
   if (!value) return "Timing is confirmed after payment.";
-  const range = value.includes("-") ? `${value} working days` : `${value} working day${value === "1" ? "" : "s"}`;
+  const range = value.includes("-")
+    ? `${value} working days`
+    : `${value} working day${value === "1" ? "" : "s"}`;
   return `Estimated arrival: ${range}.`;
 }
 
