@@ -8,13 +8,11 @@ export function SidebarLink({
   item,
   active,
   onSelect,
-  showMeta = true,
   className,
 }: {
   item: AccountNavItem;
   active: boolean;
   onSelect: (route: AccountRoute) => void;
-  showMeta?: boolean;
   className?: string;
 }) {
   return (
@@ -26,21 +24,17 @@ export function SidebarLink({
       variant={active ? "default" : "ghost"}
     >
       <span>{item.label}</span>
-      {showMeta && item.count ? (
-        <span className="ml-auto font-mono text-[10px] tabular-nums">{item.count}</span>
-      ) : null}
-      {showMeta && item.dot ? (
-        <span
-          aria-label="Unread notifications"
-          className="ml-auto size-2 rounded-full bg-[var(--acc-oxblood)]"
-          role="img"
-        />
-      ) : null}
     </Button>
   );
 }
 
-export function AccountSidebar() {
+export function AccountSidebar({
+  displayName,
+  email,
+}: {
+  displayName: string;
+  email: string | null;
+}) {
   const { currentRoute, navigate } = useAccountUi();
 
   return (
@@ -49,11 +43,13 @@ export function AccountSidebar() {
         <div className="border-b border-[var(--acc-line)] p-5">
           <div className="flex items-center gap-3">
             <span className="grid size-12 place-items-center rounded-full bg-[var(--acc-sage)] text-sm font-bold text-[var(--acc-sage-deep)]">
-              AO
+              {initials(displayName, email)}
             </span>
             <div className="min-w-0">
-              <p className="font-semibold">Ada Okafor</p>
-              <p className="mt-1 truncate text-sm text-[var(--acc-muted)]">Customer since 2024</p>
+              <p className="truncate font-semibold">{displayName}</p>
+              <p className="mt-1 truncate text-sm text-[var(--acc-muted)]">
+                {email ?? "Signed-in customer"}
+              </p>
             </div>
           </div>
         </div>
@@ -78,4 +74,15 @@ export function AccountSidebar() {
       </div>
     </aside>
   );
+}
+
+function initials(displayName: string, email: string | null): string {
+  const words = displayName.trim().split(/\s+/).filter(Boolean);
+  if (words.length > 0) {
+    return words
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? "")
+      .join("");
+  }
+  return email?.slice(0, 2).toUpperCase() || "LS";
 }
