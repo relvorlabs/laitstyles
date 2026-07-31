@@ -6,6 +6,8 @@ import type { AccountOrderDetail } from "@/modules/orders/storefront/account-ord
 
 export function OrderConfirmation({ order }: { order: AccountOrderDetail }) {
   const delivery = order.delivery;
+  const lines = uniqueById(order.lines);
+
   return (
     <main className="min-h-dvh bg-[#ECEBE6] px-5 pb-[50px] pt-[26px] text-[#1B1A17] max-sm:px-4">
       <div className="mx-auto w-full max-w-[640px]">
@@ -24,10 +26,10 @@ export function OrderConfirmation({ order }: { order: AccountOrderDetail }) {
               Order confirmed
             </div>
             <h1 className="mb-2.5 font-serif text-[34px] font-medium leading-[1.15]">
-              They&apos;re yours{delivery?.name ? `, ${delivery.name.split(" ")[0]}` : ""}.
+              They&apos;re yours{delivery?.name ? `, ${firstName(delivery.name)}` : ""}.
             </h1>
             <p className="mx-auto max-w-[430px] text-[14.5px] leading-[1.6] text-[#57554E]">
-              This confirmation is loaded from the settled server order, not browser receipt data.
+              Thank you for shopping Laitstyle. Your order details are saved below.
             </p>
           </header>
           <section className="flex flex-wrap gap-5 border-b border-[#F0EEE8] px-[34px] py-[26px] max-sm:px-5">
@@ -65,21 +67,29 @@ export function OrderConfirmation({ order }: { order: AccountOrderDetail }) {
             </section>
           ) : null}
           <section className="px-[34px] pb-1.5 pt-5 max-sm:px-5">
-            {order.lines.map((line) => (
+            {lines.map((line) => (
               <div
                 className="flex items-center gap-3.5 border-b border-[#F4F3EE] py-3"
-                key={line.id}
+                key={`order-confirmation:${order.orderNumber}:${line.id}`}
               >
                 <div className="relative h-[70px] w-[58px] shrink-0 overflow-hidden rounded-[9px] bg-[#E4E5DE]">
                   {line.image ? (
                     <CloudImage
-                      alt={line.image.alt}
+                      alt={line.image.alt || line.productName}
                       className="object-cover"
                       fill
                       sizes="58px"
                       src={line.image.src}
                     />
-                  ) : null}
+                  ) : (
+                    <span
+                      aria-label={`${line.productName} image unavailable`}
+                      className="grid size-full place-items-center px-1 text-center text-[9px] text-[#77756D]"
+                      role="img"
+                    >
+                      No image
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   {line.productSlug ? (
@@ -165,11 +175,9 @@ export function MissingOrderConfirmation() {
         <div className="mx-auto flex size-[78px] items-center justify-center rounded-full bg-[#F2F4EA] text-[#7C8C63]">
           <PackageCheck aria-hidden="true" className="size-8" />
         </div>
-        <h1 className="mt-6 font-serif text-[34px] font-medium">
-          Order confirmation unavailable
-        </h1>
+        <h1 className="mt-6 font-serif text-[34px] font-medium">Order details unavailable</h1>
         <p className="mx-auto mt-2 max-w-[440px] text-[14px] leading-[1.6] text-[#57554E]">
-          Open a paid order from your account or complete checkout again.
+          We could not find a paid order for this link. Open your orders or return to the shop.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button
@@ -205,6 +213,16 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span>{value}</span>
     </div>
   );
+}
+
+function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
+  const byId = new Map<string, T>();
+  for (const item of items) byId.set(item.id, item);
+  return Array.from(byId.values());
+}
+
+function firstName(name: string): string {
+  return name.trim().split(/\s+/).at(0) ?? "";
 }
 
 function money(amountMinor: number, currency: string) {
