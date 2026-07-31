@@ -23,14 +23,17 @@ export default defineConfig({
     // Prisma 7 does not automatically seed after migrate dev/reset. Keep
     // deterministic development seeding explicit through the repository script.
   },
-  // This table is created and constrained by the checked-in SQL migration. It is
-  // still available through Prisma Client, but Prisma Migrate must not infer away
-  // the SQL-owned foreign key to product_variants on a later schema diff.
+  // These tables are created and constrained by checked-in SQL migrations. They
+  // remain available to server code through safe raw Prisma queries, while Prisma
+  // Migrate must not infer away their SQL-owned foreign keys on later schema diffs.
   experimental: {
     externalTables: true,
   },
   tables: {
-    external: ["public.product_variant_measurements"],
+    external: [
+      "public.product_variant_measurements",
+      "public.customer_recent_products",
+    ],
   },
   // DB commands use the direct/session-pooler URL when configured. The runtime
   // Prisma client continues to use DATABASE_URL in src/lib/prisma/client.ts.
