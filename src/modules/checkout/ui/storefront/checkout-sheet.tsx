@@ -2,11 +2,12 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiClientError } from "@/lib/http/client";
+import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
 import {
   checkoutContextQueryOptions,
   checkoutCouponQueryOptions,
@@ -15,14 +16,17 @@ import {
   useVerifyCheckoutPayment,
 } from "@/modules/checkout/client/hooks";
 import { checkoutKeys } from "@/modules/checkout/client/keys";
-import type { CheckoutContext, CheckoutDraft } from "@/modules/checkout/types";
+import type {
+  CheckoutContext,
+  CheckoutDraft,
+  CheckoutStatus,
+} from "@/modules/checkout/types";
 import { useUpdateOwnedProfile } from "@/modules/customers/client/account-hooks";
 import type { OwnedAddress } from "@/modules/customers/types";
 import {
   preloadPaystackPopup,
   resumePaystackTransaction,
 } from "@/modules/payments/client/paystack-popup";
-import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
 import { openStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
 
 export type StorefrontCheckoutLine = {
@@ -40,6 +44,11 @@ type StorefrontCheckoutSheetProps = {
 };
 
 type PaymentStage = "ready" | "creating" | "paying" | "verifying";
+type PaymentNotice = {
+  title: string;
+  detail: string;
+  tone: "neutral" | "warning" | "danger";
+};
 
 export function StorefrontCheckoutSheet({
   active,
@@ -55,6 +64,7 @@ export function StorefrontCheckoutSheet({
   const createCheckout = useCreateCheckout();
   const verifyPayment = useVerifyCheckoutPayment();
   const updateProfile = useUpdateOwnedProfile();
+  const normalizedLines = useMemo(() => mergeCheckoutLines(lines), [lines]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [showAddressSelector, setShowAddressSelector] = useState(false);
@@ -71,21 +81,23 @@ export function StorefrontCheckoutSheet({
     checkoutCouponQueryOptions(
       debouncedCouponCode,
       subtotalMinor,
-      active &&
-        signedIn &&
-        !activeCheckout &&
-        debouncedCouponCode.trim().length >= 2,
+      active && signedIn && !activeCheckout && debouncedCouponCode.trim().length >= 2,
     ),
   );
 
   const context = contextQuery.data;
+  const addresses = useMemo(() => uniqueById(context?.addresses ?? []), [context?.addresses]);
+  const deliveryZones = useMemo(
+    () => uniqueById(context?.deliveryZones ?? []),
+    [context?.deliveryZones],
+  );
   const selectedAddress = useMemo(
-    () => context?.addresses.find((address) => address.id === selectedAddressId) ?? null,
-    [context?.addresses, selectedAddressId],
+    () => addresses.find((address) => address.id === selectedAddressId) ?? null,
+    [addresses, selectedAddressId],
   );
   const selectedZone = useMemo(
-    () => context?.deliveryZones.find((zone) => zone.id === selectedZoneId) ?? null,
-    [context?.deliveryZones, selectedZoneId],
+    () => deliveryZones.find((zone) => zone.id === selectedZoneId) ?? null,
+    [deliveryZones, selectedZoneId],
   );
   const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
@@ -101,14 +113,21 @@ export function StorefrontCheckoutSheet({
     (debouncedCouponCode.trim() === couponCode.trim() &&
       !couponQuery.isFetching &&
       couponValidation?.valid === true);
-  const canResume = Boolean(activeCheckout?.accessCode && paymentStage === "ready");
+  const currentStatus = checkoutStatusQuery.data?.status ?? activeCheckout?.status ?? null;
+  const paymentNotice = getPaymentNotice(currentStatus);
+  const canResume = Boolean(
+    activeCheckout?.accessCode &&
+      currentStatus &&
+      isResumableCheckoutStatus(currentStatus) &&
+      paymentStage === "ready",
+  );
   const canCreate = Boolean(
     !activeCheckout &&
       signedIn &&
       phoneReady &&
       selectedAddressId &&
       selectedZoneId &&
-      lines.length > 0 &&
+      normalizedLines.length > 0 &&
       couponReady &&
       paymentStage === "ready",
   );
@@ -126,8 +145,18 @@ export function StorefrontCheckoutSheet({
 
   useEffect(() => {
     if (!context) return;
-    setSelectedAddressId((current) => current ?? context.defaultAddressId);
-    setSelectedZoneId((current) => current ?? context.selectedDeliveryZoneId);
+    const firstAddressId = uniqueById(context.addresses).at(0)?.id ?? null;
+    const firstZoneId = uniqueById(context.deliveryZones).at(0)?.id ?? null;
+    setSelectedAddressId((current) =>
+      current && context.addresses.some((address) => address.id === current)
+        ? current
+        : (context.defaultAddressId ?? firstAddressId),
+    );
+    setSelectedZoneId((current) =>
+      current && context.deliveryZones.some((zone) => zone.id === current)
+        ? current
+        : (context.selectedDeliveryZoneId ?? firstZoneId),
+    );
     setPhone(context.profile.phone);
     setPhoneConfirmation(context.profile.phone);
     setActiveCheckout((current) => current ?? context.activeCheckout);
@@ -147,9 +176,7 @@ export function StorefrontCheckoutSheet({
       onPaid(checkout.orderNumber);
       return;
     }
-    if (isTerminalFailure(checkout.status)) {
-      setPaymentStage("ready");
-    }
+    if (isTerminalFailure(checkout.status)) setPaymentStage("ready");
   }, [checkoutStatusQuery.data, onPaid]);
 
   async function savePhone(): Promise<void> {
@@ -161,7 +188,7 @@ export function StorefrontCheckoutSheet({
       return;
     }
     if (normalizedPhone !== normalizedConfirmation) {
-      toast.error("The phone number confirmation does not match.");
+      toast.error("The phone numbers do not match.");
       return;
     }
 
@@ -173,11 +200,9 @@ export function StorefrontCheckoutSheet({
         phone: normalizedPhone,
       });
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
-        current
-          ? { ...current, profile, profileComplete: true, phoneRequired: false }
-          : current,
+        current ? { ...current, profile, profileComplete: true, phoneRequired: false } : current,
       );
-      toast.success("Phone number confirmed and saved to your account.");
+      toast.success("Phone number saved to your account.");
     } catch (error: unknown) {
       toast.error(readErrorMessage(error, "Your phone number could not be saved."));
     }
@@ -189,10 +214,10 @@ export function StorefrontCheckoutSheet({
     setPaymentStage("creating");
     try {
       let checkout: CheckoutDraft;
-      if (activeCheckout?.accessCode) {
+      if (activeCheckout?.accessCode && isResumableCheckoutStatus(activeCheckout.status)) {
         checkout = activeCheckout;
       } else {
-        if (!selectedAddressId || !selectedZoneId) {
+        if (!selectedAddressId || !selectedZoneId || normalizedLines.length === 0) {
           setPaymentStage("ready");
           return;
         }
@@ -201,7 +226,7 @@ export function StorefrontCheckoutSheet({
           addressId: selectedAddressId,
           deliveryZoneId: selectedZoneId,
           ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
-          lines: lines.map((line) => ({
+          lines: normalizedLines.map((line) => ({
             productId: line.productId,
             ...(line.variantId ? { variantId: line.variantId } : {}),
             quantity: line.quantity,
@@ -210,16 +235,14 @@ export function StorefrontCheckoutSheet({
       }
       setActiveCheckout(checkout);
       if (!checkout.accessCode) {
-        throw new Error(
-          "This checkout cannot reopen its payment window. Open the order in your account for support.",
-        );
+        throw new Error("This payment cannot be reopened. Open the order in your account for help.");
       }
 
       setPaymentStage("paying");
       const outcome = await resumePaystackTransaction(checkout.accessCode);
       if (outcome.kind === "cancelled") {
         setPaymentStage("ready");
-        toast.message("Payment was cancelled. Your checkout is saved and can be resumed.");
+        toast.message("Payment was closed. Your checkout is saved and ready when you are.");
         return;
       }
       if (outcome.kind === "error") throw new Error(outcome.message);
@@ -231,15 +254,15 @@ export function StorefrontCheckoutSheet({
         onPaid(settlement.orderNumber);
         return;
       }
+      setPaymentStage("ready");
       if (isTerminalFailure(settlement.status)) {
-        setPaymentStage("ready");
-        toast.error("Payment was not confirmed by Paystack. You can reopen this checkout safely.");
+        toast.error(paymentOutcomeMessage(settlement.status));
         return;
       }
-      toast.message("Paystack received the payment. We are waiting for final confirmation.");
+      toast.message("We received the payment update and are waiting for confirmation.");
     } catch (error: unknown) {
       setPaymentStage("ready");
-      toast.error(readErrorMessage(error, "Checkout could not be completed."));
+      toast.error(readErrorMessage(error, "Payment could not be completed."));
     }
   }
 
@@ -248,7 +271,7 @@ export function StorefrontCheckoutSheet({
       <CheckoutPanelShell onBack={onBack} title="Checkout">
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
           <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-            Sign in to use your saved account details and delivery address. Your bag stays here.
+            Sign in to use your saved delivery details. Your bag will stay exactly as it is.
           </p>
           <Button
             onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("cartDrawer"))}
@@ -265,7 +288,7 @@ export function StorefrontCheckoutSheet({
     return (
       <CheckoutPanelShell onBack={onBack} title="Checkout">
         <div className="grid flex-1 place-items-center px-6 text-sm text-[var(--muted)]">
-          Loading your account and saved delivery details…
+          Loading your saved delivery details…
         </div>
       </CheckoutPanelShell>
     );
@@ -289,12 +312,13 @@ export function StorefrontCheckoutSheet({
   return (
     <CheckoutPanelShell onBack={onBack} title="Checkout">
       <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-        {activeCheckout ? (
+        {paymentNotice ? <PaymentStatusCard notice={paymentNotice} /> : null}
+        {activeCheckout && !paymentNotice ? (
           <section className="rounded-xl border border-[var(--line)] bg-[var(--sage-light)] p-4 text-sm">
-            <p className="font-medium">Resuming {activeCheckout.orderNumber}</p>
+            <p className="font-medium">Your checkout is saved</p>
             <p className="mt-1 leading-5 text-[var(--muted)]">
-              Your order and delivery details are already saved. Continue its existing Paystack
-              payment instead of creating another checkout.
+              Continue the existing payment for order {activeCheckout.orderNumber}. Your delivery
+              details and total are already locked in.
             </p>
           </section>
         ) : null}
@@ -303,14 +327,14 @@ export function StorefrontCheckoutSheet({
           <SectionHeading label="Account details" />
           <SummaryCard>
             <p className="font-medium text-[var(--ink)]">{profileDisplayName(context)}</p>
-            <p>{context.profile.email}</p>
+            <p>{context.profile.email ?? "Email unavailable"}</p>
             {phoneReady ? <p>{context.profile.phone}</p> : null}
           </SummaryCard>
           {!activeCheckout && context.phoneRequired ? (
             <div className="grid gap-3 rounded-xl border border-[var(--line)] p-4">
               <p className="text-sm leading-5 text-[var(--muted)]">
-                Add and confirm a phone number for delivery updates. We will save it to your
-                account, so checkout will not ask again.
+                Add your phone number for delivery updates. We will save it to your account so you
+                only need to enter it once.
               </p>
               <Input
                 aria-label="Phone number"
@@ -332,7 +356,7 @@ export function StorefrontCheckoutSheet({
                 type="button"
                 variant="outline"
               >
-                {updateProfile.isPending ? "Saving…" : "Confirm and save phone number"}
+                {updateProfile.isPending ? "Saving…" : "Save phone number"}
               </Button>
             </div>
           ) : null}
@@ -343,7 +367,7 @@ export function StorefrontCheckoutSheet({
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <SectionHeading label="Delivery address" />
-                {context.addresses.length > 1 ? (
+                {addresses.length > 1 ? (
                   <Button
                     onClick={() => setShowAddressSelector((current) => !current)}
                     size="sm"
@@ -357,16 +381,16 @@ export function StorefrontCheckoutSheet({
 
               {selectedAddress ? <AddressSummary address={selectedAddress} /> : null}
 
-              {showAddressSelector && context.addresses.length > 1 ? (
+              {showAddressSelector && addresses.length > 1 ? (
                 <label className="grid gap-2 text-sm">
-                  <span className="text-[var(--muted)]">Choose an existing saved address</span>
+                  <span className="text-[var(--muted)]">Choose a saved address</span>
                   <select
                     className="h-10 rounded-lg border border-input bg-control px-3 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                     onChange={(event) => setSelectedAddressId(event.target.value)}
                     value={selectedAddressId ?? ""}
                   >
-                    {context.addresses.map((address) => (
-                      <option key={address.id} value={address.id}>
+                    {addresses.map((address) => (
+                      <option key={`checkout-address:${address.id}`} value={address.id}>
                         {address.label}
                         {address.isDefault ? " · Default" : ""} · {address.city}
                       </option>
@@ -375,7 +399,7 @@ export function StorefrontCheckoutSheet({
                 </label>
               ) : null}
 
-              {context.addresses.length === 0 ? (
+              {addresses.length === 0 ? (
                 <SummaryCard>
                   <p>No delivery address is saved yet.</p>
                   <Button
@@ -410,7 +434,7 @@ export function StorefrontCheckoutSheet({
                       <p className="font-medium text-[var(--ink)]">{selectedZone.name}</p>
                       <p className="mt-1">{selectedZone.city}</p>
                       <p className="mt-1 text-xs">
-                        {selectedZone.estimatedDays || "Timing will be confirmed after payment."}
+                        {selectedZone.estimatedDays || "We will confirm the timing after payment."}
                       </p>
                     </div>
                     <p className="font-mono font-medium text-[var(--ink)] tabular-nums">
@@ -420,8 +444,8 @@ export function StorefrontCheckoutSheet({
                 </SummaryCard>
               ) : (
                 <SummaryCard>
-                  This address is outside the configured delivery zones. Choose another saved
-                  address or update your addresses in the account area.
+                  We do not have a delivery option for this address yet. Choose another saved
+                  address or update your addresses in your account.
                 </SummaryCard>
               )}
             </section>
@@ -448,12 +472,12 @@ export function StorefrontCheckoutSheet({
                     }`}
                   >
                     {couponQuery.isFetching
-                      ? "Validating automatically…"
+                      ? "Checking your code…"
                       : couponValidation?.message || "Enter at least two characters."}
                   </p>
                 ) : (
                   <p className="mt-2 text-xs text-[var(--muted)]">
-                    Codes validate automatically; there is no Apply button.
+                    Add a valid code to see your updated total.
                   </p>
                 )}
               </div>
@@ -493,12 +517,12 @@ export function StorefrontCheckoutSheet({
         </Button>
         {activeCheckout && !activeCheckout.accessCode ? (
           <p className="mt-3 text-center text-[11px] leading-4 text-red-700">
-            This payment cannot be reopened automatically. Open the order in your account for
-            support.
+            This payment cannot be reopened here. Open the order in your account for help.
           </p>
         ) : (
           <p className="mt-3 text-center text-[11px] leading-4 text-[var(--muted)]">
-            Paystack opens securely. The order is marked paid only after server verification.
+            A secure payment window will open. Your order is confirmed only after payment is
+            verified.
           </p>
         )}
       </div>
@@ -511,7 +535,7 @@ function CheckoutPanelShell({
   onBack,
   title,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   onBack: () => void;
   title: string;
 }) {
@@ -529,11 +553,26 @@ function CheckoutPanelShell({
         </Button>
         <div>
           <p className="font-serif text-3xl font-normal italic">{title}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Account details, delivery and payment</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Delivery and secure payment</p>
         </div>
       </div>
       {children}
     </div>
+  );
+}
+
+function PaymentStatusCard({ notice }: { notice: PaymentNotice }) {
+  const toneClass = {
+    neutral: "border-[var(--line)] bg-[var(--sage-light)]",
+    warning: "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100",
+    danger: "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100",
+  }[notice.tone];
+
+  return (
+    <section aria-live="polite" className={`rounded-xl border p-4 text-sm ${toneClass}`}>
+      <p className="font-medium">{notice.title}</p>
+      <p className="mt-1 leading-5 opacity-80">{notice.detail}</p>
+    </section>
   );
 }
 
@@ -545,7 +584,7 @@ function SectionHeading({ label }: { label: string }) {
   );
 }
 
-function SummaryCard({ children }: { children: React.ReactNode }) {
+function SummaryCard({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-xl border border-[var(--line)] p-4 text-sm leading-5 text-[var(--muted)]">
       {children}
@@ -572,7 +611,7 @@ function profileDisplayName(context: CheckoutContext): string {
   return (
     context.profile.preferredName.trim() ||
     [context.profile.firstName, context.profile.lastName].filter(Boolean).join(" ") ||
-    context.profile.email?.split("@")[0] ||
+    context.profile.email?.split("@").at(0) ||
     "Your account"
   );
 }
@@ -583,8 +622,31 @@ function selectZoneForAddress(
   select: (zoneId: string | null) => void,
 ): void {
   const city = normalizeLocation(address.city);
-  const zone = context.deliveryZones.find((item) => normalizeLocation(item.city) === city);
+  const zone = uniqueById(context.deliveryZones).find(
+    (item) => normalizeLocation(item.city) === city,
+  );
   select(zone?.id ?? null);
+}
+
+function mergeCheckoutLines(lines: readonly StorefrontCheckoutLine[]): StorefrontCheckoutLine[] {
+  const merged = new Map<string, StorefrontCheckoutLine>();
+  for (const line of lines) {
+    if (!line.productId || !Number.isInteger(line.quantity) || line.quantity <= 0) continue;
+    const key = `${line.productId}:${line.variantId ?? "product"}`;
+    const current = merged.get(key);
+    merged.set(key, {
+      productId: line.productId,
+      variantId: line.variantId,
+      quantity: (current?.quantity ?? 0) + line.quantity,
+    });
+  }
+  return Array.from(merged.values());
+}
+
+function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
+  const byId = new Map<string, T>();
+  for (const item of items) byId.set(item.id, item);
+  return Array.from(byId.values());
 }
 
 function normalizeLocation(value: string): string {
@@ -602,18 +664,77 @@ function formatNaira(amountMinor: number): string {
 function paymentLabel(stage: PaymentStage, resuming: boolean): string {
   switch (stage) {
     case "creating":
-      return "Preparing secure payment…";
+      return "Preparing payment…";
     case "paying":
-      return "Paystack is open…";
+      return "Complete payment in the secure window…";
     case "verifying":
-      return "Verifying payment…";
+      return "Confirming payment…";
     case "ready":
-      return resuming ? "Resume secure payment" : "Pay securely with Paystack";
+      return resuming ? "Continue payment" : "Pay securely";
   }
 }
 
-function isTerminalFailure(status: CheckoutDraft["status"]): boolean {
-  return ["failed", "abandoned", "reversed", "review_required"].includes(status);
+function getPaymentNotice(status: CheckoutStatus | null): PaymentNotice | null {
+  switch (status) {
+    case "initializing":
+    case "initialized":
+    case "pending":
+      return {
+        title: "Payment is still in progress",
+        detail: "You can continue this payment without creating another order.",
+        tone: "neutral",
+      };
+    case "failed":
+      return {
+        title: "Payment was not completed",
+        detail: "Your checkout and bag are saved. Use Continue payment below to try again safely.",
+        tone: "danger",
+      };
+    case "abandoned":
+      return {
+        title: "The payment window was closed",
+        detail: "Nothing has been lost. Your checkout is saved and ready to continue.",
+        tone: "warning",
+      };
+    case "reversed":
+      return {
+        title: "Payment was reversed",
+        detail: "This order was not marked paid. Open the order in your account if you need help.",
+        tone: "danger",
+      };
+    case "review_required":
+      return {
+        title: "Payment is being reviewed",
+        detail: "Please do not pay again yet. We will update the order when the review is complete.",
+        tone: "warning",
+      };
+    case "success":
+    case null:
+      return null;
+  }
+}
+
+function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
+  return status !== "success" && status !== "reversed" && status !== "review_required";
+}
+
+function isTerminalFailure(status: CheckoutStatus): boolean {
+  return status === "failed" || status === "abandoned" || status === "reversed" || status === "review_required";
+}
+
+function paymentOutcomeMessage(status: CheckoutStatus): string {
+  switch (status) {
+    case "failed":
+      return "Payment was not completed. Your checkout is saved.";
+    case "abandoned":
+      return "The payment window was closed. Your checkout is saved.";
+    case "reversed":
+      return "Payment was reversed. Open the order in your account for help.";
+    case "review_required":
+      return "Payment is being reviewed. Please do not pay again yet.";
+    default:
+      return "Payment is still being confirmed.";
+  }
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {
