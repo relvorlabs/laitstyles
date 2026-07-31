@@ -3,12 +3,9 @@ import "server-only";
 type SafeDiagnosticContext = Readonly<Record<string, string | number | boolean | null>>;
 
 /**
- * Writes bounded server-only diagnostics without invoking wall-clock APIs.
- *
- * Pino adds a timestamp with Date.now(), which is not safe from a Cache
- * Components prerender path before request or uncached data is observed.
- * Keep this helper deliberately small: no Error objects, messages, stacks,
- * database/provider identifiers, or arbitrary metadata may be passed through.
+ * Writes bounded server-only diagnostics without reading the current time.
+ * Keep this helper deliberately small: do not pass Error objects, messages,
+ * stacks, database identifiers, provider details, or arbitrary metadata.
  */
 export function reportPrerenderSafeServerError(
   message: string,
