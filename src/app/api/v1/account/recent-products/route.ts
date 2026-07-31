@@ -9,7 +9,7 @@ import {
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 const recentProductsInputSchema = z.object({
-  productIds: z.array(z.string().uuid()).min(1).max(8),
+  productIds: z.array(z.string().trim().min(1).max(128)).min(1).max(8),
 });
 
 export async function GET(request: Request) {
