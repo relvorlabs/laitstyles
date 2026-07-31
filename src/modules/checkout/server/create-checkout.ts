@@ -5,6 +5,7 @@ import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
 import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
+import { resolveCheckoutDeliveryQuote } from "@/modules/checkout/server/delivery-policy";
 import type {
   CheckoutDraft,
   CheckoutError,
@@ -195,17 +196,12 @@ async function createPendingDraft(
           "addressId",
         );
       }
-
-      const deliveryZone = await tx.delivery_zones.findFirst({
-        where: { id: input.deliveryZoneId, enabled: true },
+      const deliveryQuote = await resolveCheckoutDeliveryQuote(tx, {
+        id: address.id,
+        city: address.city,
+        state: address.state,
+        country: address.country,
       });
-      if (!deliveryZone) {
-        throw expected(
-          "CHECKOUT_INVALID",
-          "The selected delivery zone is unavailable.",
-          "deliveryZoneId",
-        );
-      }
 
       const products = await tx.products.findMany({
         where: { id: { in: input.lines.map((line) => line.productId) } },
@@ -274,7 +270,7 @@ async function createPendingDraft(
       }
 
       const discountMinor = coupon?.discountMinor ?? 0;
-      const deliveryFeeMinor = decimalToMinor(deliveryZone.rate);
+      const deliveryFeeMinor = deliveryQuote.feeMinor;
       const totalMinor = Math.max(0, subtotalMinor + deliveryFeeMinor - discountMinor);
       const order = await tx.orders.create({
         data: {
@@ -286,7 +282,7 @@ async function createPendingDraft(
           payment_method: "paystack",
           fulfilment_method: "delivery",
           fulfilment_status: "unfulfilled",
-          delivery_zone_id: deliveryZone.id,
+          delivery_zone_id: deliveryQuote.deliveryZoneId,
           customer_name: account.displayName,
           customer_email: account.email,
           delivery_name: account.displayName,
@@ -299,6 +295,8 @@ async function createPendingDraft(
             state: address.state,
             country: address.country,
             notes: address.delivery_notes,
+            deliveryPolicy: deliveryQuote.source,
+            deliveryLabel: deliveryQuote.label,
           },
           currency: "NGN",
           subtotal: minorToDecimal(subtotalMinor),
@@ -339,6 +337,8 @@ async function createPendingDraft(
       });
       const metadata = {
         reference,
+        deliveryPolicy: deliveryQuote.source,
+        deliveryZoneId: deliveryQuote.deliveryZoneId,
         ...(coupon?.valid ? { couponCode: coupon.code, discountMinor } : {}),
       };
       await tx.order_payment_events.create({
