@@ -17,7 +17,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const session = useSession();
   const currentRoute = routeFromPathname(pathname);
-  const [_modal, setModal] = useState<AccountModalId | null>(null);
+  const [, setModal] = useState<AccountModalId | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const displayName =
