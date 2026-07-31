@@ -56,7 +56,7 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
   const hydratedIdentity = useRef<string | null>(null);
   const auxiliaryHydrated = useRef(false);
   const syncTimer = useRef<number | undefined>(undefined);
-  const lastSyncedSignature = useRef<string>("");
+  const lastSyncedSignature = useRef("");
   const cart = useCartStore(selectCartLines);
   const cartHydrated = useCartStore(selectCartHydrated);
   const saved = useSavedItemsStore(selectSavedIds);
@@ -178,9 +178,12 @@ export function StorefrontStateHydrator({ children }: { children: ReactNode }) {
     window.clearTimeout(syncTimer.current);
     syncTimer.current = window.setTimeout(() => {
       const input = cartWriteInput(cart);
-      void replaceOwnedCart.mutateAsync(input).then((snapshot) => {
-        lastSyncedSignature.current = snapshotSignature(snapshot.lines);
-      });
+      void replaceOwnedCart
+        .mutateAsync(input)
+        .then((snapshot) => {
+          lastSyncedSignature.current = snapshotSignature(snapshot.lines);
+        })
+        .catch(() => undefined);
     }, 180);
 
     return () => window.clearTimeout(syncTimer.current);
@@ -215,6 +218,8 @@ function StorefrontRecoveryAlertRuntime({ signedIn }: { signedIn: boolean }) {
   const [dismissedCheckoutId, setDismissedCheckoutId] = useState<string | null>(null);
   const activeCheckout = checkoutContext.data?.activeCheckout ?? null;
 
+  if (!signedIn) return <StorefrontHoldAlertRuntime />;
+
   if (activeCheckout && dismissedCheckoutId !== activeCheckout.checkoutId) {
     return (
       <StorefrontCheckoutAlert
@@ -245,13 +250,16 @@ function StorefrontHoldAlertRuntime() {
   return (
     <StorefrontHoldAlert
       count={seconds.length}
+      onCheckout={requestStorefrontCheckoutResume}
       onDismiss={dismiss}
       secondsLeft={Math.min(...seconds)}
     />
   );
 }
 
-function cartWriteInput(lines: readonly { productId: string; variantId: string | null; qty: number }[]): OwnedCartWriteInput {
+function cartWriteInput(
+  lines: readonly { productId: string; variantId: string | null; qty: number }[],
+): OwnedCartWriteInput {
   return {
     lines: lines.map((line) => ({
       productId: line.productId,
@@ -261,7 +269,9 @@ function cartWriteInput(lines: readonly { productId: string; variantId: string |
   };
 }
 
-function cartSignature(lines: readonly { productId: string; variantId: string | null; qty: number }[]): string {
+function cartSignature(
+  lines: readonly { productId: string; variantId: string | null; qty: number }[],
+): string {
   return lines
     .map((line) => `${line.productId}:${line.variantId ?? "default"}:${line.qty}`)
     .sort()
