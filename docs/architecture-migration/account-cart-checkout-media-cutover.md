@@ -2,109 +2,196 @@
 
 **Branch:** `agent/account-cart-checkout-media-cutover`  
 **Base:** `main` at `9b607376da1faa406bba1cf19d1b7ae6492d65cb`  
-**Agent workflow:** orchestrator → planner → data engineer → domain engineer → UI engineer → reviewer
+**Workflow:** specification → planner → data engineer → domain engineer → UI engineer → reviewer  
+**Status:** source implementation and connector-backed source review in progress; execution gates not passed
+
+## Authority and execution contract
+
+This work follows the fixed six-role roster introduced by commit
+`66433b46e164c60a5e1821de21ef964a4f6d7ba8` and the feature workflow in
+`.agents/workflows/feature.md`. The orchestrator verifies each handoff before the next role starts;
+the reviewer is never skipped.
+
+The relevant `relvorlabs/agent-controller` capabilities are part of the plan of record:
+
+| Role / concern | Controller skill or MCP guidance | Application in this PR |
+| --- | --- | --- |
+| Process | `using-superpowers` | Load applicable process/domain guidance before implementation and report unavailable tools rather than silently planning around them. |
+| Planner | `find-skills`, repository doctrine | Select only task-relevant skills, map files to owning roles, keep exclusions explicit. |
+| Data engineer | `supabase`, `supabase-postgres-best-practices`, `prisma-cli` | Keep Prisma public-schema ownership, apply constraints/indexes/RLS, prevent direct Data API access, and define migration verification commands. |
+| Domain engineer | `next-best-practices`, `vercel-react-best-practices` | Keep Route Handlers thin, enforce server ownership, use transactions, publish typed contracts and TanStack invalidation behavior. |
+| UI engineer | `ui-ux-pro-max`, shadcn MCP guidance | Preserve the current visual baseline, use existing shadcn/Base UI primitives, progressive disclosure, explicit states, accessible labels and responsive behavior. |
+| Reviewer | `react-doctor`, `playwright-cli`, `chrome-devtools` MCP guidance | Run changed-scope React analysis, browser storage/network/console checks, responsive viewports and accessibility inspection. |
+
+### Tool execution policy
+
+- The connected GitHub tool is used for repository inspection, branch edits and PR comments.
+- No GitHub Actions workflow is created, triggered or treated as evidence for this task.
+- Supabase MCP, shadcn MCP, Chrome DevTools MCP, Playwright CLI, Prisma CLI and React Doctor are
+  relevant reviewer tools, but they are not available through this connector-only execution. Their
+  checks remain explicit manual/local gates and must not be reported as passed.
 
 ## Problem statement
 
-The merged storefront still has four incomplete end-to-end boundaries:
+The merged storefront still had four incomplete end-to-end boundaries:
 
-1. `/account/**` route composition continues to consume legacy `src/features/storefront/account/**` files instead of domain-owned `src/modules/**` UI.
-2. The active cart is browser-only. Guest cart intent may be stored locally, but authenticated cart state is not server-owned, selected variants/quantities are not persisted as the customer’s canonical cart, and the browser can clear or diverge from the server-created checkout.
-3. Checkout still embeds profile and address creation forms. It should consume the signed-in customer’s account data, ask only for a missing phone number, default to the account’s default address, allow selection from existing addresses, and direct address creation/editing to `/account/addresses`.
-4. Product media handling is inconsistent. Admin upload asks users to author alt text manually, while storefront/account consumers often use `product.images[0]` rather than the selected default media and some account UI still bypasses `CloudImage`.
+1. `/account/**` route composition consumed legacy `src/features/storefront/account/**` files instead
+   of domain-owned `src/modules/**` UI.
+2. The active cart was browser-only. Authenticated selected variants and quantities were not stored
+   as the customer's canonical cart, and refresh/sign-in/checkout could diverge or erase intent.
+3. Checkout embedded profile and address creation forms. It should consume the signed-in customer's
+   account data, ask only for a missing phone number, default to the saved default address, allow
+   selection from existing addresses, and direct address management to `/account/addresses`.
+4. Product media handling was inconsistent. Admin upload required manual alt text while consumers
+   frequently indexed `product.images[0]` rather than using the selected cover/default media.
 
 ## Product contract
 
 ### Account
 
-- New production account UI ownership lives in the owning modules under `src/modules/**`.
-- Route files remain thin and must not import `@/features/storefront/account/**` after the migrated surface is complete.
-- Existing visual structure, copy intent, responsive behavior and accessibility contract are preserved.
+- Production account UI ownership lives under the owning modules in `src/modules/**`.
+- Route files remain thin and do not import `@/features/storefront/account/**` for migrated surfaces.
+- The existing visual structure, interaction intent, responsive behavior and accessibility contract
+  are preserved during the architecture cutover.
 
 ### Cart persistence
 
-- Prisma is authoritative for a signed-in customer’s active cart lines, selected variant and quantity.
-- Guest cart identity and minimal line intent remain browser-owned and persist across refresh, navigation and browser restart.
-- On authentication, guest lines merge into the customer cart using deterministic quantity/availability rules; the customer cart then hydrates the UI.
-- Cart mutations use typed API routes and TanStack Query. Zustand remains an interaction cache, not the signed-in source of truth.
-- Checkout success clears the cart only after server-confirmed settlement. Refresh/reopen restores the canonical cart or active checkout.
+- Prisma is authoritative for a signed-in customer's active cart lines, selected variant and
+  quantity.
+- Guest cart intent remains browser-owned and survives refresh, navigation and browser restart.
+- On authentication, guest intent merges into the server cart using idempotent maximum-quantity
+  semantics after product/variant/availability validation.
+- TanStack Query owns remote cache; Zustand remains the immediate browser interaction cache.
+- Query keys are scoped to the active session identity so one signed-in customer's cached cart is not
+  reused for another.
+- Unsynced browser intent is retained until the server confirms the merge/write. Same-tab snapshot
+  writes are serialized so a slower response cannot overwrite a newer cart.
+- `pagehide` performs a best-effort keepalive write only while there is unconfirmed intent.
+- Verified settlement subtracts only the purchased product/variant quantities. Items added after
+  checkout creation, including additions from another tab/session, are preserved.
+- The browser does not blanket-clear the cart after payment; it rehydrates the invalidated canonical
+  server snapshot.
+
+### Cart database security
+
+- `customer_cart_lines` has positive-quantity, owner/product/variant uniqueness and product-variant
+  consistency constraints.
+- The public-schema table has RLS enabled and direct `anon`/`authenticated` table grants revoked.
+- No browser-supplied customer id is accepted. Authenticated Route Handlers resolve ownership and use
+  the privileged Prisma connection.
 
 ### Checkout
 
-- Checkout reads the canonical account profile, saved addresses, default address and delivery zones.
-- Existing first/last/preferred names and email are display-only in checkout.
-- A missing phone number is the only account field that may be completed inline; the update is persisted to the account before payment creation.
+- Checkout reads the canonical profile, saved addresses, default address and delivery zones.
+- Existing name and email data are display-only.
+- When phone is missing, checkout asks for the phone twice and requires matching values before saving
+  it to the account. This is input confirmation, not a claim of SMS/OTP ownership verification; no
+  phone-verification provider exists in the current repository scope.
 - The default address is selected automatically.
-- A compact selector allows choosing another existing address only after the shopper activates “Change delivery address”.
-- New/edit address actions link to `/account/addresses`; checkout does not create addresses.
-- Coupon code remains the only general form in the cart/checkout sheet and validates automatically with debouncing and explicit valid/invalid/loading states.
-- An active recoverable checkout produces a persistent storefront alert/sheet entry, parallel to the hold alert, and survives refresh.
+- “Change delivery address” reveals a compact selector containing only existing owned addresses.
+- New/edit address actions link to `/account/addresses`; checkout creates no addresses.
+- Coupon code is the only general checkout form and validates automatically with loading, valid and
+  invalid states. The server recalculates and persists the discount.
+- A recoverable checkout produces a persistent storefront alert and reopens the existing Paystack
+  attempt instead of creating a duplicate order.
 
 ### Product media
 
-- Product upload is upload-first: no required alt input.
-- Alt text is inferred from product name plus media position/variant context, with a server fallback when client context is absent.
-- Admin can select one default image smoothly; persistence enforces one default per product.
-- Product projections expose a canonical `defaultImage`/primary-media helper.
-- Changed consumers stop indexing `images[0]` and use the canonical default media.
-- Account/storefront images use `CloudImage`; raw `<img>` and Next `<Image>` are removed from the migrated account surface.
+- Product upload is upload-first and no longer requires the operator to author alt text.
+- Accessibility text is inferred from product identity and media role, with a server fallback.
+- The existing cover media kind remains the single default-image invariant; no duplicate default
+  column is introduced.
+- Product projections expose a canonical `defaultImage`, order cover media first, and changed
+  consumers use `getProductDefaultImage` plus `CloudImage`.
+- Migrated account UI does not use raw `<img>` or Next `<Image>`.
 
 ## Acceptance criteria
 
-- No active `/account/**` route imports `@/features/storefront/account/**` for migrated surfaces.
+- No active `/account/**` route imports the legacy account feature tree.
 - Guest cart survives hard refresh and browser restart.
-- Signed-in cart survives hard refresh, sign-out/sign-in and a second session because it is DB-backed.
-- Variant selection and quantity round-trip through the API and database.
-- Guest-to-customer merge is idempotent and never trusts a client-supplied customer id.
-- Checkout does not ask for existing account details again and does not create addresses.
-- Default address is selected automatically; alternate existing address selection works.
-- Missing phone completion blocks checkout until saved and confirmed.
-- Recoverable checkout alert reopens the existing checkout after refresh.
-- Coupon validation is server-authoritative and does not require submit to show status.
-- Product upload does not require alt entry; default-image selection is persisted and used throughout changed consumers.
-- Scope-relevant unit, route, architecture, type, build, React Doctor, Playwright, responsive and accessibility gates are recorded honestly.
+- Signed-in cart survives hard refresh, sign-out/sign-in and another session because it is DB-backed.
+- Variant selection and quantity round-trip through authenticated API/database ownership.
+- A failed guest merge never erases local intent.
+- Rapid same-tab mutations cannot complete out of order and publish an older snapshot last.
+- Successful settlement preserves items added after checkout creation.
+- Checkout does not ask for already-known account details or create addresses.
+- Missing phone values must match before being persisted.
+- Default and alternate existing-address selection work as specified.
+- Coupon validation is server-authoritative and automatic.
+- Recoverable checkout alert/sheet survives refresh.
+- Product upload does not require manual alt entry and changed consumers use canonical cover media.
+- Required execution and browser gates are recorded honestly.
 
-## Phased implementation plan
+## Phased implementation and handoffs
 
-### Phase 1 — Data engineer: persistence and media invariants
+### Phase 1 — Planner
 
-1. Audit existing Prisma cart/checkout/media models and migrations.
-2. Add only missing cart-line/default-media fields or constraints.
-3. Add migrations for one active cart per owner and one default media item per product when not already enforced.
-4. Regenerate Prisma types and document merge/concurrency behavior.
+- Survey merged account/payment/cart/media code and establish scope/exclusions.
+- Publish the specification and file/role plan before implementation.
+- Record relevant controller skills/MCPs and unavailable-tool gates.
 
-### Phase 2 — Domain engineer: canonical cart and checkout context
+**Handoff:** approved scope, target files, role ownership and acceptance criteria.
 
-1. Add cart queries/commands for guest merge, list, add, quantity update, remove and clear.
-2. Publish authenticated cart routes plus typed browser client/hooks/query keys.
-3. Reconcile Zustand/local guest state with server state on session changes.
-4. Tighten checkout context so it exposes account completeness, default address, alternatives, active recoverable checkout and coupon validation.
-5. Remove address creation from the checkout contract; allow only missing-phone completion.
-6. Publish canonical product default-media projection/helper and inferred-alt normalization.
+### Phase 2 — Data engineer
 
-### Phase 3 — UI engineer: account, cart, checkout and media consumers
+- Add canonical customer cart persistence without conflating cart intent with stock-reserving holds.
+- Add constraints, indexes, variant consistency trigger, RLS and Data API grant removal.
+- Retain the existing product-cover media invariant rather than adding a second default flag.
 
-1. Mechanically move account shell/sections/components from legacy features into owning module UI folders and update thin routes.
-2. Connect signed-in cart interactions to mutations while retaining optimistic UX and guest persistence.
-3. Replace checkout profile/address forms with account summary, missing-phone completion, default-address summary and opt-in existing-address selector.
-4. Add persistent recoverable-checkout alert and reopening flow.
-5. Add debounced coupon validation state.
-6. Simplify product image upload/default selection and replace changed `images[0]`, `<img>` and Next `<Image>` usage with canonical default media and `CloudImage`.
-7. Delete only legacy account files with no remaining consumers.
+**Handoff:** schema/migration plus documented ownership, security and concurrency implications.
 
-### Phase 4 — Reviewer: end-to-end gate
+### Phase 3 — Domain engineer
 
-1. Run focused domain, route, client and UI tests.
-2. Run Prisma validation/migration status, architecture guards, Biome, TypeScript, build and React Doctor.
-3. Run Playwright at 375×812, 768×1024 and 1280×800 in light/dark themes for guest persistence, auth merge, signed-in persistence, alternate address selection, missing-phone completion, coupon validation, checkout recovery and default-image rendering.
-4. Inspect console, network and server logs; record skipped/unavailable gates as blocked rather than passed.
-5. Update the PR task comments phase by phase with exact commits and evidence.
+- Publish cart schema/types/server operations, thin authenticated route and typed client/hooks.
+- Validate product/variant/publication/availability on every canonical write.
+- Extend checkout context with active recovery and server-authoritative coupon validation.
+- Make successful payment consume only matching purchased cart quantities.
+- Publish canonical default-image projection and server alt fallback.
+
+**Handoff:** typed UI contracts, cache/invalidation behavior and transaction boundaries.
+
+### Phase 4 — UI engineer
+
+- Cut account route composition over to module-owned UI while preserving the visual baseline.
+- Reconcile guest/server carts without erasing pending intent and serialize browser writes.
+- Replace checkout account/address forms with summary, matching phone confirmation, default address,
+  opt-in alternate selector and account address links.
+- Add automatic coupon status and persistent checkout recovery alert.
+- Simplify image upload and migrate changed media consumers to canonical cover + `CloudImage`.
+
+**Handoff:** source-complete UI states awaiting reviewer execution gates.
+
+### Phase 5 — Reviewer
+
+Connector-backed source review must inspect ownership, SQL security, transaction behavior, cache
+identity, effect stability, source imports, media selection and scope drift.
+
+The following remain manual/local and **not passed** in this session:
+
+```bash
+pnpm prisma:validate
+pnpm prisma:migrate:status
+pnpm test src/modules/cart src/modules/checkout src/modules/products src/modules/customers
+pnpm check:architecture
+pnpm biome
+pnpm typecheck
+pnpm build
+pnpm react-doctor
+pnpm test:e2e
+```
+
+Browser review must cover 375×812, 768×1024 and 1280×800 in both themes, keyboard/focus behavior,
+guest refresh persistence, guest-to-account merge failure/success, second-session canonical refresh,
+alternate address, phone mismatch/match, coupon states, Paystack recovery, settlement with post-checkout
+cart additions, console/network errors and default-image rendering.
 
 ## Explicit exclusions
 
-- No redesign of the storefront, account or admin visual language.
-- No new generic `account` persistence domain.
-- No client-supplied prices, totals, customer ids or address ownership.
+- No visual redesign of storefront, account or admin.
+- No new generic account persistence domain.
+- No client-supplied price, total, customer id, address ownership or payment truth.
 - No broad deletion of unrelated legacy features.
-- No replacement of Cloudinary or Paystack infrastructure.
-- No claim of validation completion without executed evidence.
+- No replacement of Cloudinary, Supabase Auth or Paystack infrastructure.
+- No SMS/OTP phone-verification infrastructure in this scope.
+- No GitHub Actions execution or validation claim.
+- No completion claim until the reviewer gates are actually executed.
