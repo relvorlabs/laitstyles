@@ -1,6 +1,6 @@
 "use client";
 
-type PaystackOutcome =
+export type PaystackOutcome =
   | { kind: "success"; reference: string | null }
   | { kind: "cancelled" }
   | { kind: "error"; message: string };
@@ -17,19 +17,34 @@ type PaystackInstance = {
 
 type PaystackConstructor = new () => PaystackInstance;
 
-let popupPromise: Promise<PaystackInstance> | null = null;
+let constructorPromise: Promise<PaystackConstructor> | null = null;
 
-export function preloadPaystackPopup() {
-  popupPromise ??= import("@paystack/inline-js").then((module) => {
-    const Paystack = module.default as unknown as PaystackConstructor;
-    return new Paystack();
-  });
-  return popupPromise;
+export function preloadPaystackPopup(): Promise<PaystackConstructor> {
+  constructorPromise ??= import("@paystack/inline-js")
+    .then((module) => module.default as unknown as PaystackConstructor)
+    .catch((error: unknown) => {
+      constructorPromise = null;
+      throw error;
+    });
+  return constructorPromise;
 }
 
 export async function resumePaystackTransaction(accessCode: string): Promise<PaystackOutcome> {
   if (!accessCode.trim()) return { kind: "error", message: "Payment access code is missing." };
-  const popup = await preloadPaystackPopup();
+
+  let popup: PaystackInstance;
+  try {
+    const Paystack = await preloadPaystackPopup();
+    popup = new Paystack();
+  } catch (error: unknown) {
+    return {
+      kind: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Paystack could not load the secure payment window.",
+    };
+  }
 
   return new Promise((resolve) => {
     let completed = false;
@@ -46,13 +61,17 @@ export async function resumePaystackTransaction(accessCode: string): Promise<Pay
         onError: (error) =>
           finish({
             kind: "error",
-            message: error instanceof Error ? error.message : "Paystack could not open the payment window.",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Paystack could not open the payment window.",
           }),
       });
-    } catch (error) {
+    } catch (error: unknown) {
       finish({
         kind: "error",
-        message: error instanceof Error ? error.message : "Paystack could not open the payment window.",
+        message:
+          error instanceof Error ? error.message : "Paystack could not open the payment window.",
       });
     }
   });
