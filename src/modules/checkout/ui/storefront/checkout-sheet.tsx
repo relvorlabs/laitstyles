@@ -88,10 +88,6 @@ export function StorefrontCheckoutSheet({
 
   const context = contextQuery.data;
   const addresses = useMemo(() => uniqueById(context?.addresses ?? []), [context?.addresses]);
-  const selectedAddress = useMemo(
-    () => addresses.find((address) => address.id === selectedAddressId) ?? null,
-    [addresses, selectedAddressId],
-  );
   const selectedQuote = useMemo(
     () =>
       context?.deliveryQuotes.find((quote) => quote.addressId === selectedAddressId) ??
@@ -164,20 +160,32 @@ export function StorefrontCheckoutSheet({
     );
     setPhone(context.profile.phone);
     setPhoneConfirmation(context.profile.phone);
-    setActiveCheckout((current) => current ?? context.activeCheckout);
+    setActiveCheckout(context.activeCheckout);
   }, [context]);
 
   useEffect(() => {
     const checkout = checkoutStatusQuery.data;
     if (!checkout || completedOrder.current === checkout.orderNumber) return;
-    setActiveCheckout(checkout);
     if (checkout.status === "success") {
       completedOrder.current = checkout.orderNumber;
       onPaid(checkout.orderNumber);
       return;
     }
-    if (isTerminalFailure(checkout.status)) setPaymentStage("ready");
-  }, [checkoutStatusQuery.data, onPaid]);
+    if (isClosedCheckoutStatus(checkout.status)) {
+      setPaymentStage("ready");
+      setActiveCheckout(null);
+      idempotencyKey.current = crypto.randomUUID();
+      queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
+        current?.activeCheckout?.checkoutId === checkout.checkoutId
+          ? { ...current, activeCheckout: null }
+          : current,
+      );
+      void queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
+      toast.message(paymentOutcomeMessage(checkout.status));
+      return;
+    }
+    setActiveCheckout(checkout);
+  }, [checkoutStatusQuery.data, onPaid, queryClient]);
 
   async function savePhone(): Promise<void> {
     if (!context) return;
@@ -246,7 +254,7 @@ export function StorefrontCheckoutSheet({
       const outcome = await resumePaystackTransaction(checkout.accessCode);
       if (outcome.kind === "cancelled") {
         setPaymentStage("ready");
-        toast.message("Payment was closed. Your order is saved and ready to resume.");
+        toast.message("Payment was closed. This order is still ready to continue.");
         return;
       }
       if (outcome.kind === "error") {
@@ -264,11 +272,19 @@ export function StorefrontCheckoutSheet({
       }
 
       setPaymentStage("ready");
-      if (isTerminalFailure(settlement.status)) {
+      if (isClosedCheckoutStatus(settlement.status)) {
+        setActiveCheckout(null);
+        idempotencyKey.current = crypto.randomUUID();
+        queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
+          current?.activeCheckout?.checkoutId === settlement.checkoutId
+            ? { ...current, activeCheckout: null }
+            : current,
+        );
+        void queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
         toast.error(paymentOutcomeMessage(settlement.status));
         return;
       }
-      toast.message("Payment is still being confirmed. You can resume from this checkout.");
+      toast.message("Payment is still being confirmed. You can continue from this checkout.");
     } catch (error: unknown) {
       setPaymentStage("ready");
       toast.error(readErrorMessage(error, "Payment could not be completed."));
@@ -298,7 +314,10 @@ export function StorefrontCheckoutSheet({
   if (contextQuery.isPending) {
     return (
       <CheckoutShell onBack={onBack}>
-        <CenteredState detail="Loading your contact, addresses and payment status." title="Preparing checkout" />
+        <CenteredState
+          detail="Loading your contact, addresses and payment status."
+          title="Preparing checkout"
+        />
       </CheckoutShell>
     );
   }
@@ -322,7 +341,7 @@ export function StorefrontCheckoutSheet({
   return (
     <CheckoutShell onBack={onBack}>
       <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {activeCheckout ? (
             <StatusCard
               detail={paymentStatusDetail(currentStatus)}
@@ -393,7 +412,7 @@ export function StorefrontCheckoutSheet({
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-3">
                     {addresses.map((address) => (
                       <AddressOption
                         address={address}
@@ -467,7 +486,8 @@ export function StorefrontCheckoutSheet({
           </p>
         ) : (
           <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
-            Paystack opens in a secure payment window. Your order is confirmed only after server verification.
+            Paystack opens in a secure payment window. Your order is confirmed only after server
+            verification.
           </p>
         )}
         <Button
@@ -494,7 +514,13 @@ function CheckoutShell({
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[var(--bone)]">
       <div className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-4 pr-14 sm:px-7">
-        <Button aria-label="Back to cart" onClick={onBack} size="icon-sm" type="button" variant="ghost">
+        <Button
+          aria-label="Back to cart"
+          onClick={onBack}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
           ←
         </Button>
         <div>
@@ -535,12 +561,6 @@ function CenteredState({
     </div>
   );
 }
-
-function CheckoutSectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-sm font-semibold">{children}</h3>;
-}
-
-void CheckoutSectionTitle;
 
 function AddressOption({
   address,
@@ -639,7 +659,7 @@ function getCheckoutBlocker({
   if (paymentStage !== "ready") return "Payment is already in progress.";
   if (activeCheckout) {
     if (currentStatus === "success") return "This payment has already been confirmed.";
-    if (!activeCheckout.accessCode) return "The saved payment cannot be resumed yet. Retry shortly.";
+    if (!activeCheckout.accessCode) return "This checkout is no longer available to resume.";
     if (currentStatus && !isResumableCheckoutStatus(currentStatus)) {
       return paymentOutcomeMessage(currentStatus);
     }
@@ -663,36 +683,36 @@ function paymentLabel(stage: PaymentStage, resuming: boolean, totalMinor: number
     case "verifying":
       return "Confirming payment…";
     case "ready":
-      return `${resuming ? "Resume payment" : "Pay"} · ${formatMoney(totalMinor)}`;
+      return `${resuming ? "Continue payment" : "Pay"} · ${formatMoney(totalMinor)}`;
   }
 }
 
 function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
-  return [
-    "initializing",
-    "initialized",
-    "pending",
-    "failed",
-    "abandoned",
-    "reversed",
-    "review_required",
-  ].includes(status);
+  return status === "initialized" || status === "pending";
 }
 
-function isTerminalFailure(status: CheckoutStatus): boolean {
-  return status === "failed" || status === "abandoned" || status === "reversed";
+function isClosedCheckoutStatus(status: CheckoutStatus): boolean {
+  return (
+    status === "failed" ||
+    status === "abandoned" ||
+    status === "reversed" ||
+    status === "review_required" ||
+    status === "cancelled"
+  );
 }
 
 function paymentOutcomeMessage(status: CheckoutStatus): string {
   switch (status) {
     case "failed":
-      return "Payment failed. Check your details and try again.";
+      return "Payment failed. Start a new checkout to try again.";
     case "abandoned":
-      return "Payment was not completed. You can resume it.";
+      return "That payment attempt ended. Start a new checkout when you are ready.";
     case "reversed":
       return "Payment was reversed. No successful charge was recorded.";
     case "review_required":
-      return "Payment needs review. You can retry or contact support.";
+      return "Payment needs review. Check the order in your account or contact support.";
+    case "cancelled":
+      return "This order was cancelled. Your current cart can start a new checkout.";
     case "pending":
     case "initializing":
     case "initialized":
