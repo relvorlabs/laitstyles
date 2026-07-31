@@ -89,7 +89,7 @@ describe("transitionOrder stock invariants", () => {
     });
   });
 
-  it("releases reserved stock when a pending order is cancelled", async () => {
+  it("releases reserved stock and closes checkout recovery when a pending order is cancelled", async () => {
     const tx = createTx("pending-payment", "reserved");
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
       callback(tx),
@@ -107,6 +107,16 @@ describe("transitionOrder stock invariants", () => {
         relatedOrderId: orderId,
       }),
     );
+    expect(tx.holds.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { order_id: orderId, status: "active" },
+        data: expect.objectContaining({ status: "cancelled", payment_progress: "failed" }),
+      }),
+    );
+    expect(tx.payments.updateMany).toHaveBeenCalledWith({
+      where: { order_id: orderId, status: { not: "success" } },
+      data: expect.objectContaining({ access_code: null, failure_code: "ORDER_CANCELLED" }),
+    });
   });
 
   it("rejects a return before delivery without touching stock", async () => {
@@ -155,6 +165,8 @@ function createTx(currentStatus: string, stockState: string) {
       findUniqueOrThrow: vi.fn().mockResolvedValue(order),
     },
     order_lines: { update: vi.fn().mockResolvedValue({}) },
+    holds: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    payments: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
     order_timeline_events: { create: vi.fn().mockResolvedValue({}) },
     order_payment_events: { create: vi.fn().mockResolvedValue({}) },
     activity_events: { create: vi.fn().mockResolvedValue({}) },
