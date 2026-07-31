@@ -67,7 +67,6 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
         (zone) => normalizeLocation(zone.city) === normalizeLocation(defaultAddress.city),
       )
     : null;
-  const selectedZone = matchingZone ?? deliveryZones[0] ?? null;
   const phoneRequired = !profile.phone.trim();
 
   return {
@@ -83,7 +82,7 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
       feeMinor: Math.round(zone.rate.toNumber() * 100),
       estimatedDays: zone.estimated_days,
     })),
-    selectedDeliveryZoneId: selectedZone?.id ?? null,
+    selectedDeliveryZoneId: matchingZone?.id ?? null,
     deliveryAmountStatus: "estimated",
     activeCheckout: mapActiveCheckout(activeOrder),
   };
