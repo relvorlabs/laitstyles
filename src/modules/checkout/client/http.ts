@@ -1,6 +1,7 @@
 import { apiRequest } from "@/lib/http/client";
 import type {
   CheckoutContext,
+  CheckoutCouponValidation,
   CheckoutDetail,
   CheckoutDraft,
   CreateCheckoutRequestInput,
@@ -11,6 +12,19 @@ const CHECKOUT_URL = "/api/v1/payments/checkout";
 
 export async function getCheckoutContextRequest(signal?: AbortSignal): Promise<CheckoutContext> {
   const response = await apiRequest<CheckoutContext>(CHECKOUT_URL, { cache: "no-store", signal });
+  return response.data;
+}
+
+export async function validateCheckoutCouponRequest(
+  input: { code: string; subtotalMinor: number },
+  signal?: AbortSignal,
+): Promise<CheckoutCouponValidation> {
+  const response = await apiRequest<CheckoutCouponValidation>(`${CHECKOUT_URL}/coupon`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal,
+  });
   return response.data;
 }
 
