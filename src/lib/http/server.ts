@@ -33,6 +33,12 @@ type DatabaseFailure = {
   databaseCode: string | null;
 };
 
+type SafeDatabaseCodes = {
+  errorCode: string | null;
+  databaseCode: string | null;
+  allCodes: readonly string[];
+};
+
 const schemaPrismaCodes = new Set(["P2021", "P2022"]);
 const connectionPrismaCodes = new Set([
   "P1000",
@@ -57,6 +63,7 @@ const connectionDatabaseCodes = new Set([
   "57P01",
   "57P02",
   "57P03",
+  "EAUTHTIMEOUT",
   "ECONNREFUSED",
   "ECONNRESET",
   "ETIMEDOUT",
@@ -201,24 +208,12 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
 }
 
 function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
-  const record = asRecord(error);
-  if (!record) return null;
-
-  const meta = asRecord(record.meta);
-  const errorCode = readString(record.code) ?? readString(record.errorCode);
-  const nestedDatabaseCode =
-    readString(meta?.code) ?? readString(meta?.databaseCode) ?? readString(record.errno);
-  const databaseCode =
-    nestedDatabaseCode ??
-    (errorCode !== null &&
-    (schemaDatabaseCodes.has(errorCode) || connectionDatabaseCodes.has(errorCode))
-      ? errorCode
-      : null);
+  const { errorCode, databaseCode, allCodes } = collectSafeDatabaseCodes(error);
+  if (allCodes.length === 0) return null;
 
   const schemaNotReady =
-    (errorCode !== null && schemaPrismaCodes.has(errorCode)) ||
-    (errorCode !== null && schemaDatabaseCodes.has(errorCode)) ||
-    (errorCode === "P2010" && databaseCode !== null && schemaDatabaseCodes.has(databaseCode));
+    allCodes.some((code) => schemaPrismaCodes.has(code) || schemaDatabaseCodes.has(code)) ||
+    (allCodes.includes("P2010") && allCodes.some((code) => schemaDatabaseCodes.has(code)));
   if (schemaNotReady) {
     return {
       code: "DATABASE_SCHEMA_NOT_READY",
@@ -228,10 +223,12 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
     };
   }
 
-  const databaseUnavailable =
-    (errorCode !== null && connectionPrismaCodes.has(errorCode)) ||
-    (errorCode !== null && connectionDatabaseCodes.has(errorCode)) ||
-    (databaseCode !== null && connectionDatabaseCodes.has(databaseCode));
+  const databaseUnavailable = allCodes.some(
+    (code) =>
+      connectionPrismaCodes.has(code) ||
+      connectionDatabaseCodes.has(code) ||
+      code.startsWith("08"),
+  );
   if (databaseUnavailable) {
     return {
       code: "DATABASE_UNAVAILABLE",
@@ -242,6 +239,44 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
   }
 
   return null;
+}
+
+function collectSafeDatabaseCodes(error: unknown, maxDepth = 3): SafeDatabaseCodes {
+  const codes: string[] = [];
+  let current: unknown = error;
+
+  for (let depth = 0; depth <= maxDepth; depth += 1) {
+    const record = asRecord(current);
+    if (!record) break;
+    const meta = asRecord(record.meta);
+
+    pushCode(codes, record.code);
+    pushCode(codes, record.errorCode);
+    pushCode(codes, record.originalCode);
+    pushCode(codes, record.errno);
+    pushCode(codes, meta?.code);
+    pushCode(codes, meta?.databaseCode);
+    pushCode(codes, meta?.originalCode);
+
+    current = record.cause;
+  }
+
+  const uniqueCodes = [...new Set(codes)];
+  const errorCode = uniqueCodes.find((code) => /^P\d{4}$/.test(code)) ?? uniqueCodes[0] ?? null;
+  const databaseCode =
+    uniqueCodes.find(
+      (code) =>
+        schemaDatabaseCodes.has(code) ||
+        connectionDatabaseCodes.has(code) ||
+        code.startsWith("08"),
+    ) ?? null;
+
+  return { errorCode, databaseCode, allCodes: uniqueCodes };
+}
+
+function pushCode(target: string[], value: unknown): void {
+  const code = readString(value);
+  if (code) target.push(code);
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
