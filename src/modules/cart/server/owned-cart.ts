@@ -62,7 +62,8 @@ async function writeOwnedCart(
 ): Promise<OwnedCartSnapshot> {
   return prisma.$transaction(
     async (tx) => {
-      const current = mode === "merge" ? await readOwnedCart(tx, identity.customerId) : emptySnapshot();
+      const current =
+        mode === "merge" ? await readOwnedCart(tx, identity.customerId) : emptySnapshot();
       const desired =
         mode === "merge"
           ? mergeCartIntents(
@@ -74,7 +75,7 @@ async function writeOwnedCart(
               incoming,
             )
           : mergeCartIntents([], incoming);
-      const canonical = await canonicalizeCartLines(tx, desired);
+      const canonical = await canonicalizeCartLines(tx, desired, identity.customerId);
 
       await tx.$executeRaw`
         DELETE FROM public.customer_cart_lines
@@ -132,21 +133,39 @@ async function readOwnedCart(
 async function canonicalizeCartLines(
   tx: Prisma.TransactionClient,
   requested: readonly OwnedCartIntent[],
+  customerId: string,
 ): Promise<CanonicalCartLine[]> {
   if (requested.length === 0) return [];
 
-  const products = await tx.products.findMany({
-    where: { id: { in: requested.map((line) => line.productId) } },
-    select: {
-      id: true,
-      inventory_mode: true,
-      lifecycle: true,
-      publication: true,
-      product_variants: { select: { id: true } },
-      stock_levels: { select: { variant_id: true, available: true } },
-    },
-  });
+  const productIds = requested.map((line) => line.productId);
+  const [products, activeOwnedHolds] = await Promise.all([
+    tx.products.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        inventory_mode: true,
+        lifecycle: true,
+        publication: true,
+        product_variants: { select: { id: true } },
+        stock_levels: { select: { variant_id: true, available: true } },
+      },
+    }),
+    tx.holds.findMany({
+      where: {
+        customer_id: customerId,
+        product_id: { in: productIds },
+        status: "active",
+        expires_at: { gt: new Date() },
+      },
+      select: { product_id: true, variant_id: true, quantity: true },
+    }),
+  ]);
   const productById = new Map(products.map((product) => [product.id, product]));
+  const reservedBySelection = new Map<string, number>();
+  for (const hold of activeOwnedHolds) {
+    const key = selectionKey(hold.product_id, hold.variant_id);
+    reservedBySelection.set(key, (reservedBySelection.get(key) ?? 0) + hold.quantity);
+  }
   const canonical: CanonicalCartLine[] = [];
 
   for (const line of requested) {
@@ -161,7 +180,11 @@ async function canonicalizeCartLines(
     }
 
     const stock = product.stock_levels.find((entry) => entry.variant_id === variantId);
-    const maximum = product.inventory_mode === "unique" ? Math.min(1, stock?.available ?? 0) : (stock?.available ?? 0);
+    const maximum = cartMaximumForOwner(
+      product.inventory_mode,
+      stock?.available ?? 0,
+      reservedBySelection.get(selectionKey(product.id, variantId)) ?? 0,
+    );
     const quantity = Math.min(maximum, Math.max(1, Math.floor(line.quantity)));
     if (quantity < 1) continue;
 
@@ -180,7 +203,7 @@ export function mergeCartIntents(
     const productId = candidate.productId.trim();
     const variantId = candidate.variantId?.trim() || null;
     if (!productId) continue;
-    const key = `${productId}:${variantId ?? "default"}`;
+    const key = selectionKey(productId, variantId);
     const quantity = Math.max(1, Math.floor(candidate.quantity));
     const existing = bySelection.get(key);
     bySelection.set(key, {
@@ -190,6 +213,19 @@ export function mergeCartIntents(
     });
   }
   return [...bySelection.values()];
+}
+
+export function cartMaximumForOwner(
+  inventoryMode: "unique" | "stocked" | "variant",
+  available: number,
+  reservedByOwner: number,
+): number {
+  const usable = Math.max(0, available) + Math.max(0, reservedByOwner);
+  return inventoryMode === "unique" ? Math.min(1, usable) : usable;
+}
+
+function selectionKey(productId: string, variantId: string | null): string {
+  return `${productId}:${variantId ?? "default"}`;
 }
 
 function mapCartRow(row: CartRow): OwnedCartLine {
