@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-labelledby="title description">
+  <title id="title">Product image pending</title>
+  <desc id="description">A neutral Laitstyles placeholder used when a product has no image preview.</desc>
+  <rect width="800" height="1000" fill="#e2e0d8"/>
+  <path d="M180 720 330 480l94 132 74-92 122 200H180Z" fill="#c7c6bc"/>
+  <circle cx="520" cy="330" r="74" fill="#c7c6bc"/>
+  <text x="400" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" letter-spacing="5" fill="#55564f">IMAGE PENDING</text>
+</svg>
