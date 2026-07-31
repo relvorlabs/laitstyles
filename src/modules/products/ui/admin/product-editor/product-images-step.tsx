@@ -8,13 +8,12 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
 import { CldUploadButton } from "next-cloudinary";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
 import {
   finishCloudinaryUploadQueue,
@@ -45,6 +44,7 @@ export function ProductImagesStep() {
     setValue,
     formState: { errors },
   } = useFormContext<ProductEditorValues>();
+  const productName = useWatch({ control, name: "name" }) ?? "";
   const watchedMedia = useWatch({ control, name: "media" }) ?? [];
   const { fields, append, move, replace } = useFieldArray({
     control,
@@ -54,6 +54,18 @@ export function ProductImagesStep() {
   const mediaError = getProductEditorFieldError(errors, "media");
   const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
   const uploadActive = uploadStatus === "opening" || uploadStatus === "uploading";
+
+  useEffect(() => {
+    const current = getValues("media");
+    const next = current.map((item, index) =>
+      item.alt.trim()
+        ? item
+        : { ...item, alt: inferEditorMediaAlt(productName, item.kind, index) },
+    );
+    if (next.some((item, index) => item.alt !== current[index]?.alt)) {
+      setValue("media", next, { shouldDirty: true, shouldValidate: false });
+    }
+  }, [getValues, productName, setValue, watchedMedia.length]);
 
   function handleUploadSuccess(result: CloudinaryUploadWidgetResults) {
     const normalized = normalizeCloudinaryUploadResult(result);
@@ -76,6 +88,7 @@ export function ProductImagesStep() {
       return false;
     }
 
+    const kind = existing.some((item) => item.kind === "cover") ? "detail" : "cover";
     append({
       id: `media-${crypto.randomUUID()}`,
       publicId: image.publicId,
@@ -84,13 +97,17 @@ export function ProductImagesStep() {
       height: image.height,
       format: image.format,
       bytes: image.bytes,
-      alt: "",
-      kind: existing.some((item) => item.kind === "cover") ? "detail" : "cover",
+      alt: inferEditorMediaAlt(productName, kind, existing.length),
+      kind,
       position: existing.length,
       source: "upload",
     });
     uploadAppended.current = true;
-    setFeedback("Image added. Add a description and choose the featured cover.");
+    setFeedback(
+      kind === "cover"
+        ? "Image added and selected as the featured cover."
+        : "Image added. Its accessibility description was generated automatically.",
+    );
     return true;
   }
 
@@ -103,9 +120,14 @@ export function ProductImagesStep() {
           : item.kind === "cover"
             ? ("detail" as const)
             : item.kind,
+      alt: inferEditorMediaAlt(
+        productName,
+        itemIndex === index ? "cover" : item.kind === "cover" ? "detail" : item.kind,
+        itemIndex,
+      ),
     }));
     replace(next);
-    setFeedback("Featured cover updated.");
+    setFeedback("Featured cover updated. Storefront cards will use this image.");
   }
 
   function removePreview(index: number) {
@@ -114,7 +136,13 @@ export function ProductImagesStep() {
     if (next.length && !next.some((item) => item.kind === "cover")) {
       next[0] = { ...next[0], kind: "cover" };
     }
-    replace(next.map((item, position) => ({ ...item, position })));
+    replace(
+      next.map((item, position) => ({
+        ...item,
+        position,
+        alt: inferEditorMediaAlt(productName, item.kind, position),
+      })),
+    );
     setFeedback("Image removed. The first remaining image becomes cover when needed.");
   }
 
@@ -123,6 +151,7 @@ export function ProductImagesStep() {
     const reordered = getValues("media").map((item, position) => ({
       ...item,
       position,
+      alt: inferEditorMediaAlt(productName, item.kind, position),
     }));
     setValue("media", reordered, { shouldDirty: true });
   }
@@ -141,7 +170,8 @@ export function ProductImagesStep() {
         </h2>
         <p className="mt-3 max-w-[700px] text-[13px] leading-6 text-muted-foreground">
           Upload up to {MAX_IMAGES} images, reorder them, mark defects and choose one featured
-          cover. Every image uploads directly to Cloudinary.
+          cover. Accessibility descriptions are inferred automatically from the product and image
+          role.
         </p>
       </div>
 
@@ -149,7 +179,7 @@ export function ProductImagesStep() {
         <div>
           <p className="text-[12.5px] font-semibold">Upload product images</p>
           <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-            Select one or more images. They upload straight to Cloudinary and preview here.
+            Select one or more images. The first image becomes the cover until you choose another.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -191,7 +221,7 @@ export function ProductImagesStep() {
               signatureEndpoint="/api/v1/admin/assets/sign"
             >
               <AdminIcon icon={ImageAdd01Icon} size={17} />
-              {uploadActive ? "Uploading images" : "Upload images"}
+              Upload images
             </CldUploadButton>
           ) : (
             <span
@@ -220,8 +250,7 @@ export function ProductImagesStep() {
       <Field data-invalid={Boolean(mediaError)}>
         <FieldLabel>Product images</FieldLabel>
         <FieldDescription>
-          The featured cover leads grid cards and the storefront. Every image needs a useful
-          description.
+          The featured cover leads grid cards and the storefront. Select another image at any time.
         </FieldDescription>
         <FieldError>{mediaError}</FieldError>
       </Field>
@@ -231,8 +260,6 @@ export function ProductImagesStep() {
           {fields.map((field, index) => {
             const media = watchedMedia[index] ?? field;
             const kind = media.kind;
-            const altError = getProductEditorFieldError(errors, `media.${index}.alt`);
-
             return (
               <article
                 className="overflow-hidden rounded-[18px] border border-border bg-card"
@@ -240,7 +267,7 @@ export function ProductImagesStep() {
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-surface-sunken">
                   <CloudImage
-                    alt={media.alt || "Product preview"}
+                    alt={media.alt || inferEditorMediaAlt(productName, kind, index)}
                     className="object-cover"
                     fill
                     sizes="(min-width: 768px) 50vw, 100vw"
@@ -263,22 +290,9 @@ export function ProductImagesStep() {
                 </div>
 
                 <div className="space-y-4 p-4">
-                  <Field data-invalid={Boolean(altError)}>
-                    <FieldLabel htmlFor={`media.${index}.alt`}>Image description</FieldLabel>
-                    <Input
-                      aria-invalid={Boolean(altError)}
-                      id={`media.${index}.alt`}
-                      inputSize="lg"
-                      isValid={!altError && media.alt.trim().length > 0}
-                      onChange={(event) =>
-                        setValue(`media.${index}.alt`, event.target.value, { shouldDirty: true })
-                      }
-                      placeholder="Front view showing the denim wash and relaxed fit"
-                      value={media.alt}
-                    />
-                    <FieldError>{altError}</FieldError>
-                  </Field>
-
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Accessibility: {media.alt || inferEditorMediaAlt(productName, kind, index)}
+                  </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
                       disabled={kind === "cover"}
@@ -291,11 +305,15 @@ export function ProductImagesStep() {
                     </Button>
                     <Button
                       disabled={kind === "cover"}
-                      onClick={() =>
-                        setValue(`media.${index}.kind`, kind === "defect" ? "detail" : "defect", {
-                          shouldDirty: true,
-                        })
-                      }
+                      onClick={() => {
+                        const nextKind = kind === "defect" ? "detail" : "defect";
+                        setValue(`media.${index}.kind`, nextKind, { shouldDirty: true });
+                        setValue(
+                          `media.${index}.alt`,
+                          inferEditorMediaAlt(productName, nextKind, index),
+                          { shouldDirty: true },
+                        );
+                      }}
                       size="sm"
                       type="button"
                       variant="ghost"
@@ -338,12 +356,21 @@ export function ProductImagesStep() {
             </span>
             <p className="mt-4 font-serif text-[22px] font-medium">No product images yet</p>
             <p className="mt-2 max-w-[420px] text-[12.5px] leading-5 text-muted-foreground">
-              Drafts can be saved without images. Publishing requires one featured cover and useful
-              descriptions.
+              Drafts can be saved without images. Publishing requires one featured cover.
             </p>
           </div>
         </div>
       )}
     </section>
   );
+}
+
+function inferEditorMediaAlt(
+  productName: string,
+  kind: ProductEditorValues["media"][number]["kind"],
+  position: number,
+): string {
+  const name = productName.trim() || "Product";
+  const view = kind === "cover" ? "featured view" : kind === "defect" ? "condition detail" : "detail view";
+  return `${name} — ${view} ${position + 1}`;
 }
