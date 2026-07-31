@@ -31,6 +31,7 @@ type StorefrontUiStore = {
   open: (id: StorefrontOverlayId) => void;
   close: () => void;
   addRecent: (productId: string) => void;
+  replaceRecent: (productIds: readonly string[]) => void;
   clearRecent: () => void;
   dismissUtility: () => void;
   hold: (productId: string, expiresAt: number) => void;
@@ -50,11 +51,15 @@ const initialState = {
   hydrated: false,
 };
 
+function normalizeRecentIds(productIds: readonly string[]): string[] {
+  return [...new Set(productIds.filter((productId) => productId.trim().length > 0))].slice(0, 8);
+}
+
 export const useStorefrontUiStore = create<StorefrontUiStore>()((set) => ({
   ...initialState,
   hydrate: ({ recentIds, utilityDismissed, holds }) =>
     set({
-      recentIds: [...new Set(recentIds)].slice(0, 8),
+      recentIds: normalizeRecentIds(recentIds),
       utilityDismissed,
       holds: [...holds],
       hydrated: true,
@@ -63,8 +68,9 @@ export const useStorefrontUiStore = create<StorefrontUiStore>()((set) => ({
   close: () => set({ openId: null }),
   addRecent: (productId) =>
     set((state) => ({
-      recentIds: [productId, ...state.recentIds.filter((id) => id !== productId)].slice(0, 8),
+      recentIds: normalizeRecentIds([productId, ...state.recentIds]),
     })),
+  replaceRecent: (productIds) => set({ recentIds: normalizeRecentIds(productIds) }),
   clearRecent: () => set({ recentIds: [] }),
   dismissUtility: () => set({ utilityDismissed: true }),
   hold: (productId, expiresAt) =>
