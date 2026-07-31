@@ -35,7 +35,7 @@ export async function closeCancelledCheckoutResources(
     data: {
       order_id: input.orderId,
       kind: "note",
-      actor_profile_id: input.actorProfileId,
+      ...(input.actorProfileId ? { actor_profile_id: input.actorProfileId } : {}),
       note: "Checkout recovery and provider access were closed because the order was cancelled.",
       metadata: { requestedBy: input.requestedBy },
     },
