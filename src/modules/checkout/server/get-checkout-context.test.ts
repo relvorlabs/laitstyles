@@ -98,4 +98,25 @@ describe("getCheckoutContext", () => {
     );
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
+
+  it("only recovers an unpaid unfulfilled order with a usable active attempt", async () => {
+    await getCheckoutContext(identity);
+
+    expect(mocks.findActiveOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          customer_id: identity.customerId,
+          source: "storefront-checkout",
+          payment_status: { in: ["pending", "processing"] },
+          fulfilment_status: "unfulfilled",
+          payments: {
+            some: {
+              access_code: { not: null },
+              status: { in: ["initialized", "pending"] },
+            },
+          },
+        }),
+      }),
+    );
+  });
 });
