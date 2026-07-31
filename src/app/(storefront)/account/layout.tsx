@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AccountShell } from "@/features/storefront/account/account-shell";
+import { AccountShell } from "@/modules/customers/ui/account/account-shell";
 
 export const metadata: Metadata = {
   title: "Account",
