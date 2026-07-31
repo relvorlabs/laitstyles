@@ -28,6 +28,7 @@ export interface StorefrontCatalogueProduct {
   flaw: string;
   material: string;
   careInstructions: string;
+  defaultImage: string | null;
   images: string[];
   variants?: string[];
 }
