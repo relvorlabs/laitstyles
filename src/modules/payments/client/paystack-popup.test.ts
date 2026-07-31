@@ -3,6 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type PopupCallbacks = {
+  onLoad?: (value: { accessCode?: string; id?: number }) => void;
   onSuccess?: (value: { reference?: string }) => void;
   onCancel?: () => void;
   onError?: (error: unknown) => void;
@@ -25,7 +26,10 @@ vi.mock("@paystack/inline-js", () => ({
   },
 }));
 
-import { resumePaystackTransaction } from "@/modules/payments/client/paystack-popup";
+import {
+  resumePaystackTransaction,
+  subscribePaystackWindowHandoff,
+} from "@/modules/payments/client/paystack-popup";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -59,9 +63,29 @@ describe("resumePaystackTransaction", () => {
     expect(mocks.resume).toHaveBeenNthCalledWith(2, "access-two", expect.any(Object));
   });
 
+  it("closes the internal checkout only after Paystack reports that it loaded", async () => {
+    const handoffs: string[] = [];
+    const unsubscribe = subscribePaystackWindowHandoff((handoff) => handoffs.push(handoff.stage));
+    mocks.resume.mockImplementationOnce(
+      (_accessCode: string, callbacks: PopupCallbacks) => {
+        expect(handoffs).toEqual([]);
+        callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
+        expect(handoffs).toEqual(["opening"]);
+        callbacks.onCancel?.();
+      },
+    );
+
+    await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
+      kind: "cancelled",
+    });
+    expect(handoffs).toEqual(["opening", "closed"]);
+    unsubscribe();
+  });
+
   it("normalizes Popup success", async () => {
     mocks.resume.mockImplementationOnce(
       (_accessCode: string, callbacks: PopupCallbacks) => {
+        callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
         callbacks.onSuccess?.({ reference: "LS-CHECKOUT-reference" });
       },
     );
@@ -82,7 +106,9 @@ describe("resumePaystackTransaction", () => {
     });
   });
 
-  it("normalizes Popup errors", async () => {
+  it("normalizes Popup errors without closing a checkout that Paystack never loaded", async () => {
+    const handoffs: string[] = [];
+    const unsubscribe = subscribePaystackWindowHandoff((handoff) => handoffs.push(handoff.stage));
     mocks.resume.mockImplementationOnce(
       (_accessCode: string, callbacks: PopupCallbacks) =>
         callbacks.onError?.(new Error("Popup failed")),
@@ -92,6 +118,8 @@ describe("resumePaystackTransaction", () => {
       kind: "error",
       message: "Popup failed",
     });
+    expect(handoffs).toEqual([]);
+    unsubscribe();
   });
 
   it("normalizes synchronous SDK failures", async () => {
