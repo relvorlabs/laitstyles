@@ -15,12 +15,14 @@ export type CreateCheckoutInput = z.infer<typeof createCheckoutSchema>;
 export type PaystackSettlementEvent = z.infer<typeof paystackSettlementEventSchema>;
 export type CheckoutStatus = z.infer<typeof checkoutStatusSchema>;
 
-export type CheckoutDeliveryZone = {
-  id: string;
-  name: string;
-  city: string;
+export type CheckoutDeliveryQuote = {
+  addressId: string;
+  deliveryZoneId: string | null;
+  label: string;
+  coverageLabel: string;
   feeMinor: number;
   estimatedDays: string | null;
+  source: "regional-override" | "nationwide-fallback" | "free-fallback";
 };
 
 export type CheckoutCouponValidation = {
@@ -38,8 +40,8 @@ export type CheckoutContext = {
   phoneRequired: boolean;
   addresses: OwnedAddress[];
   defaultAddressId: string | null;
-  deliveryZones: CheckoutDeliveryZone[];
-  selectedDeliveryZoneId: string | null;
+  deliveryQuotes: CheckoutDeliveryQuote[];
+  selectedDeliveryQuote: CheckoutDeliveryQuote | null;
   deliveryAmountStatus: "estimated";
   activeCheckout: CheckoutDraft | null;
 };
