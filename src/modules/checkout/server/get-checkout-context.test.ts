@@ -99,14 +99,16 @@ describe("getCheckoutContext", () => {
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
-  it("only recovers an unpaid unfulfilled order with a usable active attempt", async () => {
+  it("recovers both current and legacy unpaid storefront orders with a usable attempt", async () => {
     await getCheckoutContext(identity);
 
     expect(mocks.findActiveOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           customer_id: identity.customerId,
-          source: "storefront-checkout",
+          source: { in: ["storefront-checkout", "online-order"] },
+          channel: "online",
+          payment_method: "paystack",
           payment_status: { in: ["pending", "processing"] },
           fulfilment_status: "unfulfilled",
           payments: {
