@@ -27,6 +27,7 @@ export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
         estimatedMinDays: 1,
         estimatedMaxDays: 2,
         enabled: true,
+        isNationwideFallback: false,
       },
       {
         id: "delivery-lagos-island",
@@ -35,14 +36,16 @@ export const defaultStoreSettingsInput: SaveStoreSettingsInput = {
         estimatedMinDays: 1,
         estimatedMaxDays: 2,
         enabled: true,
+        isNationwideFallback: false,
       },
       {
         id: "delivery-outside-lagos",
-        name: "Outside Lagos",
+        name: "Nationwide delivery",
         rate: 6500,
         estimatedMinDays: 2,
         estimatedMaxDays: 5,
         enabled: true,
+        isNationwideFallback: true,
       },
     ],
     pickupLocations: [
