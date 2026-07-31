@@ -20,6 +20,11 @@ type DeliveryZoneRow = {
   position: number;
 };
 
+type DeliveryPolicyClient = Pick<
+  Prisma.TransactionClient,
+  "delivery_zones" | "store_settings"
+>;
+
 const LAGOS_ISLAND_LOCATIONS = [
   "ajah",
   "epe",
@@ -32,26 +37,26 @@ const LAGOS_ISLAND_LOCATIONS = [
 ];
 
 export async function listCheckoutDeliveryQuotes(
-  tx: Prisma.TransactionClient,
+  client: DeliveryPolicyClient,
   addresses: readonly DeliveryAddress[],
 ): Promise<CheckoutDeliveryQuote[]> {
-  const policy = await loadDeliveryPolicy(tx);
+  const policy = await loadDeliveryPolicy(client);
   return addresses.map((address) => resolveFromPolicy(address, policy));
 }
 
 export async function resolveCheckoutDeliveryQuote(
-  tx: Prisma.TransactionClient,
+  client: DeliveryPolicyClient,
   address: DeliveryAddress,
 ): Promise<CheckoutDeliveryQuote> {
-  return resolveFromPolicy(address, await loadDeliveryPolicy(tx));
+  return resolveFromPolicy(address, await loadDeliveryPolicy(client));
 }
 
-async function loadDeliveryPolicy(tx: Prisma.TransactionClient): Promise<{
+async function loadDeliveryPolicy(client: DeliveryPolicyClient): Promise<{
   zones: DeliveryZoneRow[];
   fallbackZoneId: string | null;
 }> {
   const [zones, settings] = await Promise.all([
-    tx.delivery_zones.findMany({
+    client.delivery_zones.findMany({
       where: { enabled: true, position: { gte: 0 } },
       orderBy: [{ position: "asc" }, { name: "asc" }],
       select: {
@@ -64,7 +69,7 @@ async function loadDeliveryPolicy(tx: Prisma.TransactionClient): Promise<{
         position: true,
       },
     }),
-    tx.store_settings.findUnique({ where: { id: 1 }, select: { selling: true } }),
+    client.store_settings.findUnique({ where: { id: 1 }, select: { selling: true } }),
   ]);
   return {
     zones,
