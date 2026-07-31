@@ -3,7 +3,7 @@
 **Branch:** `agent/account-cart-checkout-media-cutover`  
 **Base:** `main` at `9b607376da1faa406bba1cf19d1b7ae6492d65cb`  
 **Workflow:** specification → planner → data engineer → domain engineer → UI engineer → reviewer  
-**Status:** source implementation and connector-backed source review in progress; execution gates not passed
+**Status:** source implementation and connector-backed source review complete; execution gates not passed
 
 ## Authority and execution contract
 
@@ -36,7 +36,8 @@ The relevant `relvorlabs/agent-controller` capabilities are part of the plan of 
 The merged storefront still had four incomplete end-to-end boundaries:
 
 1. `/account/**` route composition consumed legacy `src/features/storefront/account/**` files instead
-   of domain-owned `src/modules/**` UI.
+   of domain-owned `src/modules/**` UI, and its overview/chrome still displayed prototype identity,
+   counts, order numbers and simulated actions.
 2. The active cart was browser-only. Authenticated selected variants and quantities were not stored
    as the customer's canonical cart, and refresh/sign-in/checkout could diverge or erase intent.
 3. Checkout embedded profile and address creation forms. It should consume the signed-in customer's
@@ -51,6 +52,11 @@ The merged storefront still had four incomplete end-to-end boundaries:
 
 - Production account UI ownership lives under the owning modules in `src/modules/**`.
 - Route files remain thin and do not import `@/features/storefront/account/**` for migrated surfaces.
+- The overview loads the owned profile, real commerce orders and saved-product count from existing
+  server domain boundaries; it contains no sample customer, order, status or monetary data.
+- Desktop/mobile chrome uses the real session identity and the real POST-only sign-out flow.
+- Simulated verification/modal actions are not retained. Real security actions remain owned by
+  `AccountSecuritySection` and its provider-backed modals.
 - The existing visual structure, interaction intent, responsive behavior and accessibility contract
   are preserved during the architecture cutover.
 
@@ -61,14 +67,17 @@ The merged storefront still had four incomplete end-to-end boundaries:
 - Guest cart intent remains browser-owned and survives refresh, navigation and browser restart.
 - On authentication, guest intent merges into the server cart using idempotent maximum-quantity
   semantics after product/variant/availability validation.
+- The customer's own active checkout reservations count as usable quantity during cart
+  canonicalization, so checkout cannot make its own cart lines disappear.
 - TanStack Query owns remote cache; Zustand remains the immediate browser interaction cache.
-- Query keys are scoped to the active session identity so one signed-in customer's cached cart is not
-  reused for another.
+- Query keys are scoped to a stable authenticated identity propagated by the server/auth flow, so one
+  signed-in customer's cached cart is not reused for another even when email is absent.
 - Unsynced browser intent is retained until the server confirms the merge/write. Same-tab snapshot
   writes are serialized so a slower response cannot overwrite a newer cart.
 - `pagehide` performs a best-effort keepalive write only while there is unconfirmed intent.
-- Verified settlement subtracts only the purchased product/variant quantities. Items added after
-  checkout creation, including additions from another tab/session, are preserved.
+- Verified settlement subtracts only the purchased product/variant quantities. Exact or smaller
+  selections are deleted before larger selections are decremented, preserving the precise remainder.
+- Items added after checkout creation, including additions from another tab/session, are preserved.
 - The browser does not blanket-clear the cart after payment; it rehydrates the invalidated canonical
   server snapshot.
 
@@ -98,7 +107,8 @@ The merged storefront still had four incomplete end-to-end boundaries:
 ### Product media
 
 - Product upload is upload-first and no longer requires the operator to author alt text.
-- Accessibility text is inferred from product identity and media role, with a server fallback.
+- Accessibility text is inferred from product identity and media role, with a server fallback that
+  includes the actual product name for imported or legacy empty-alt media.
 - The existing cover media kind remains the single default-image invariant; no duplicate default
   column is introduced.
 - Product projections expose a canonical `defaultImage`, order cover media first, and changed
@@ -108,12 +118,13 @@ The merged storefront still had four incomplete end-to-end boundaries:
 ## Acceptance criteria
 
 - No active `/account/**` route imports the legacy account feature tree.
+- Account overview/chrome shows owned/session data rather than placeholders or simulated actions.
 - Guest cart survives hard refresh and browser restart.
 - Signed-in cart survives hard refresh, sign-out/sign-in and another session because it is DB-backed.
 - Variant selection and quantity round-trip through authenticated API/database ownership.
 - A failed guest merge never erases local intent.
 - Rapid same-tab mutations cannot complete out of order and publish an older snapshot last.
-- Successful settlement preserves items added after checkout creation.
+- Successful settlement preserves the exact unpurchased remainder and later additions.
 - Checkout does not ask for already-known account details or create addresses.
 - Missing phone values must match before being persisted.
 - Default and alternate existing-address selection work as specified.
@@ -143,16 +154,19 @@ The merged storefront still had four incomplete end-to-end boundaries:
 ### Phase 3 — Domain engineer
 
 - Publish cart schema/types/server operations, thin authenticated route and typed client/hooks.
-- Validate product/variant/publication/availability on every canonical write.
+- Validate product/variant/publication/availability on every canonical write, including customer-owned
+  active reservations.
 - Extend checkout context with active recovery and server-authoritative coupon validation.
-- Make successful payment consume only matching purchased cart quantities.
-- Publish canonical default-image projection and server alt fallback.
+- Make successful payment consume only matching purchased cart quantities in remainder-safe order.
+- Publish canonical default-image projection and product-aware server alt fallback.
+- Propagate a stable authenticated identity for remote cart cache isolation.
 
 **Handoff:** typed UI contracts, cache/invalidation behavior and transaction boundaries.
 
 ### Phase 4 — UI engineer
 
 - Cut account route composition over to module-owned UI while preserving the visual baseline.
+- Replace prototype account overview/chrome values with real profile, orders, saved data and sign-out.
 - Reconcile guest/server carts without erasing pending intent and serialize browser writes.
 - Replace checkout account/address forms with summary, matching phone confirmation, default address,
   opt-in alternate selector and account address links.
@@ -163,15 +177,16 @@ The merged storefront still had four incomplete end-to-end boundaries:
 
 ### Phase 5 — Reviewer
 
-Connector-backed source review must inspect ownership, SQL security, transaction behavior, cache
-identity, effect stability, source imports, media selection and scope drift.
+Connector-backed source review inspected ownership, SQL security, transaction behavior, cache identity,
+effect stability, source imports, account placeholder/simulation drift, media selection, test fixtures
+and scope drift. Source findings were corrected on the branch before this record was finalized.
 
 The following remain manual/local and **not passed** in this session:
 
 ```bash
 pnpm prisma:validate
 pnpm prisma:migrate:status
-pnpm test src/modules/cart src/modules/checkout src/modules/products src/modules/customers
+pnpm test src/modules/cart src/modules/checkout src/modules/products src/modules/customers src/providers
 pnpm check:architecture
 pnpm biome
 pnpm typecheck
@@ -181,9 +196,25 @@ pnpm test:e2e
 ```
 
 Browser review must cover 375×812, 768×1024 and 1280×800 in both themes, keyboard/focus behavior,
-guest refresh persistence, guest-to-account merge failure/success, second-session canonical refresh,
-alternate address, phone mismatch/match, coupon states, Paystack recovery, settlement with post-checkout
-cart additions, console/network errors and default-image rendering.
+real account overview and sign-out, guest refresh persistence, guest-to-account merge failure/success,
+second-session canonical refresh, alternate address, phone mismatch/match, coupon states, Paystack
+recovery, settlement with exact quantity remainder and post-checkout cart additions, console/network
+errors and default-image rendering.
+
+## Reviewer source corrections
+
+- Added RLS/direct-grant protection for the customer cart table.
+- Retained failed guest intent and stabilized reconciliation effects.
+- Scoped remote cart caches to stable session identity.
+- Serialized same-tab full-snapshot writes.
+- Counted customer-owned reservations during cart validation.
+- Removed blanket server/client cart clearing after payment.
+- Corrected settlement ordering so valid quantity remainder is not deleted.
+- Added matching phone confirmation instead of making a false verification claim.
+- Updated checkout/cart/session tests for the new contracts.
+- Replaced account overview/chrome placeholders and simulated sign-out/verification actions with real
+  domain/session behavior.
+- Removed direct default-image indexing and strengthened server media-alt fallback.
 
 ## Explicit exclusions
 
