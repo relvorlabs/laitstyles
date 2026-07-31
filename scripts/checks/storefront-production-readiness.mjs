@@ -14,6 +14,23 @@ const shellLoaderPath = path.join(
   "storefront",
   "catalogue-loader.ts",
 );
+const safeDiagnosticsPath = path.join(sourceRoot, "lib", "server-diagnostics.ts");
+const checkoutSchemaPath = path.join(sourceRoot, "modules", "checkout", "schema.ts");
+const checkoutCommandPath = path.join(
+  sourceRoot,
+  "modules",
+  "checkout",
+  "server",
+  "create-checkout.ts",
+);
+const checkoutUiPath = path.join(
+  sourceRoot,
+  "modules",
+  "checkout",
+  "ui",
+  "storefront",
+  "checkout-sheet.tsx",
+);
 const shellBoundaryPath = path.join(sourceRoot, "app", "storefront-client-boundary.tsx");
 const storefrontErrorPath = path.join(sourceRoot, "app", "(storefront)", "error.tsx");
 const cloudImagePath = normalizePath(path.join(sourceRoot, "components", "ui", "cloud-image.tsx"));
@@ -89,6 +106,7 @@ for (const file of applicationFiles) {
 
 await checkButtonContract(violations);
 await checkStorefrontFailureContract(violations);
+await checkCheckoutDeliveryContract(violations);
 
 const routePatterns = await collectRoutePatterns(routeRoot);
 for (const reference of apiReferences) {
@@ -124,8 +142,9 @@ async function checkButtonContract(target) {
 }
 
 async function checkStorefrontFailureContract(target) {
-  const [loaderSource, boundarySource, errorSource] = await Promise.all([
+  const [loaderSource, diagnosticsSource, boundarySource, errorSource] = await Promise.all([
     readFile(shellLoaderPath, "utf8"),
+    readFile(safeDiagnosticsPath, "utf8"),
     readFile(shellBoundaryPath, "utf8"),
     readFile(storefrontErrorPath, "utf8"),
   ]);
@@ -136,11 +155,47 @@ async function checkStorefrontFailureContract(target) {
   ) {
     target.push("storefront shell loader must convert internal failures to a public unavailable state");
   }
+  if (!/reportPrerenderSafeServerError/.test(loaderSource)) {
+    target.push("storefront shell loader must use the bounded prerender-safe diagnostic helper");
+  }
+  if (/from\s+["']@\/lib\/logger["']|\blogger\./.test(loaderSource)) {
+    target.push("storefront shell loader must not invoke timestamped Pino logging during prerender");
+  }
+  if (/\bDate\.now\s*\(|\bnew\s+Date\s*\(/.test(loaderSource)) {
+    target.push("storefront shell loader must not read wall-clock time during prerender recovery");
+  }
+  if (/\bDate\.now\s*\(|\bnew\s+Date\s*\(/.test(diagnosticsSource)) {
+    target.push("bounded prerender diagnostics must not read wall-clock time");
+  }
+  if (/error\.message|error\.stack|error\.cause/.test(diagnosticsSource)) {
+    target.push("bounded prerender diagnostics must not serialize internal Error properties");
+  }
   if (!/availability\s*===\s*["']temporarily-unavailable["']/.test(boundarySource)) {
     target.push("storefront client boundary must render the public unavailable state");
   }
   if (/error\.message|error\.stack|error\.cause/.test(errorSource)) {
     target.push("storefront route error boundary must not render internal error properties");
+  }
+}
+
+async function checkCheckoutDeliveryContract(target) {
+  const [schemaSource, commandSource, uiSource] = await Promise.all([
+    readFile(checkoutSchemaPath, "utf8"),
+    readFile(checkoutCommandPath, "utf8"),
+    readFile(checkoutUiPath, "utf8"),
+  ]);
+
+  if (/deliveryZoneId/.test(schemaSource)) {
+    target.push("checkout request schema must not accept a client-selected delivery zone");
+  }
+  if (!/resolveCheckoutDeliveryQuote\s*\(/.test(commandSource)) {
+    target.push("checkout creation must resolve delivery from the owned address on the server");
+  }
+  if (/Delivery is not configured for the selected address city/i.test(uiSource)) {
+    target.push("checkout must not block nationwide delivery by address city");
+  }
+  if (!/deliveryQuotes/.test(uiSource) || !/selectedAddressId/.test(uiSource)) {
+    target.push("checkout UI must select an owned address and render its server quote");
   }
 }
 
