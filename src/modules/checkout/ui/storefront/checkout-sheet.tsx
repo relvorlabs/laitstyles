@@ -28,6 +28,7 @@ import {
   resumePaystackTransaction,
 } from "@/modules/payments/client/paystack-popup";
 import { openStorefrontOverlay } from "@/modules/storefront-shell/client/storefront-runtime";
+import { logger } from "@/lib/logger";
 
 export type StorefrontCheckoutLine = {
   productId: string;
@@ -322,45 +323,6 @@ export function StorefrontCheckoutSheet({
             </p>
           </section>
         ) : null}
-
-        <section className="space-y-3">
-          <SectionHeading label="Account details" />
-          <SummaryCard>
-            <p className="font-medium text-[var(--ink)]">{profileDisplayName(context)}</p>
-            <p>{context.profile.email ?? "Email unavailable"}</p>
-            {phoneReady ? <p>{context.profile.phone}</p> : null}
-          </SummaryCard>
-          {!activeCheckout && context.phoneRequired ? (
-            <div className="grid gap-3 rounded-xl border border-[var(--line)] p-4">
-              <p className="text-sm leading-5 text-[var(--muted)]">
-                Add your phone number for delivery updates. We will save it to your account so you
-                only need to enter it once.
-              </p>
-              <Input
-                aria-label="Phone number"
-                inputMode="tel"
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="Phone number"
-                value={phone}
-              />
-              <Input
-                aria-label="Confirm phone number"
-                inputMode="tel"
-                onChange={(event) => setPhoneConfirmation(event.target.value)}
-                placeholder="Confirm phone number"
-                value={phoneConfirmation}
-              />
-              <Button
-                disabled={updateProfile.isPending}
-                onClick={() => void savePhone()}
-                type="button"
-                variant="outline"
-              >
-                {updateProfile.isPending ? "Saving…" : "Save phone number"}
-              </Button>
-            </div>
-          ) : null}
-        </section>
 
         {!activeCheckout ? (
           <>
