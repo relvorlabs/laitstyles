@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   useAccountSecurityFactors,
@@ -24,7 +24,7 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
   const [selectedFactor, setSelectedFactor] = useState<MfaFactorSummary | null>(null);
   const [notice, setNotice] = useState<string>();
 
-  const factors = factorsQuery.data?.factors ?? [];
+  const factors = useMemo(() => uniqueFactors(factorsQuery.data?.factors ?? []), [factorsQuery.data]);
   const verifiedFactors = factors.filter((factor) => factor.status === "verified");
 
   function notify(message: string) {
@@ -45,12 +45,12 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
   return (
     <>
       <header>
-        <Eyebrow>Authentication and sessions</Eyebrow>
+        <Eyebrow>Account protection</Eyebrow>
         <h1 className="mt-4 font-serif text-[clamp(3rem,6vw,5rem)] font-normal leading-[.93]">
           Security.
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--acc-muted)]">
-          Protect your credentials, verify authenticator factors and end access from other sessions.
+          Keep your sign-in details protected and remove access from devices you no longer use.
         </p>
       </header>
 
@@ -68,9 +68,9 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <Eyebrow tone="muted">Email address</Eyebrow>
-              <h2 className="mt-3 font-serif text-3xl font-normal">Protected email change.</h2>
+              <h2 className="mt-3 font-serif text-3xl font-normal">Change your sign-in email.</h2>
               <p className="mt-2 text-[var(--acc-muted)]">
-                Start the provider confirmation flow from this verified account session.
+                We will send a confirmation link before your new email becomes active.
               </p>
             </div>
             <Button variant="outline" onClick={() => setModal("email")}>
@@ -83,9 +83,9 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <Eyebrow tone="muted">Password</Eyebrow>
-              <h2 className="mt-3 font-serif text-3xl font-normal">Password protection.</h2>
+              <h2 className="mt-3 font-serif text-3xl font-normal">Choose a new password.</h2>
               <p className="mt-2 text-[var(--acc-muted)]">
-                Confirm your current password before choosing a new one.
+                Enter your current password before choosing a new one.
               </p>
             </div>
             <Button variant="outline" onClick={() => setModal("password")}>
@@ -97,33 +97,33 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
         <section className={`${panelClass} overflow-hidden`}>
           <div className="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--acc-line)] p-5 sm:p-6">
             <div>
-              <Eyebrow tone="muted">Two-factor authentication</Eyebrow>
+              <Eyebrow tone="muted">Two-step verification</Eyebrow>
               <h2 className="mt-3 font-serif text-3xl font-normal">
                 {verifiedFactors.length > 0 ? "Enabled." : "Not enabled."}
               </h2>
               <p className="mt-2 text-[var(--acc-muted)]">
-                Supabase TOTP factors remain pending until a six-digit challenge verifies.
+                Add a six-digit code from an authenticator app when you sign in.
               </p>
             </div>
-            <Button onClick={() => setModal("mfa-enroll")}>Enable 2FA</Button>
+            <Button onClick={() => setModal("mfa-enroll")}>Add authenticator</Button>
           </div>
 
           {factorsQuery.isPending ? (
-            <p className="p-5 text-sm text-[var(--acc-muted)] sm:p-6">Loading authenticators...</p>
+            <p className="p-5 text-sm text-[var(--acc-muted)] sm:p-6">Loading authenticators…</p>
           ) : factorsQuery.isError ? (
             <p className="p-5 text-sm text-destructive sm:p-6" role="alert">
-              Authenticators could not be loaded. Retry this page before changing MFA.
+              Your authenticators could not be loaded. Refresh the page and try again.
             </p>
           ) : factors.length === 0 ? (
             <p className="p-5 text-sm text-[var(--acc-muted)] sm:p-6">
-              No authenticator factors are enrolled.
+              No authenticator app has been added yet.
             </p>
           ) : (
             <div className="divide-y divide-[var(--acc-line)]">
               {factors.map((factor) => (
                 <article
                   className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6"
-                  key={factor.id}
+                  key={`account-authenticator:${factor.id}`}
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -131,7 +131,7 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
                       <StatusBadge status={factor.status} />
                     </div>
                     <p className="mt-2 text-sm text-[var(--acc-muted)]">
-                      {factor.factorType.toUpperCase()} factor
+                      {factor.status === "verified" ? "Ready to use" : "Setup not completed"}
                     </p>
                   </div>
                   <Button
@@ -151,43 +151,39 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
         <section className={`${panelClass} overflow-hidden`}>
           <div className="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--acc-line)] p-5 sm:p-6">
             <div>
-              <Eyebrow tone="muted">Sessions</Eyebrow>
-              <h2 className="mt-3 font-serif text-3xl font-normal">Current sign-in.</h2>
+              <Eyebrow tone="muted">Signed-in devices</Eyebrow>
+              <h2 className="mt-3 font-serif text-3xl font-normal">This device.</h2>
             </div>
             <Button variant="outline" onClick={() => setModal("signout-all")}>
-              Sign out others
+              Sign out other devices
             </Button>
           </div>
 
           {sessionsQuery.isPending ? (
-            <p className="p-5 text-sm text-[var(--acc-muted)] sm:p-6">Loading this session...</p>
+            <p className="p-5 text-sm text-[var(--acc-muted)] sm:p-6">Checking this device…</p>
           ) : sessionsQuery.isError || !sessionsQuery.data ? (
             <p className="p-5 text-sm text-destructive sm:p-6" role="alert">
-              This session could not be verified. Sign in again before changing session access.
+              We could not confirm this sign-in. Sign in again before changing device access.
             </p>
           ) : (
             <div>
               <article className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <p className="font-semibold">Current session</p>
+                    <p className="font-semibold">Current device</p>
                     <span className="inline-flex min-h-7 items-center rounded-full bg-[var(--acc-sage)] px-[.7rem] py-[.3rem] font-mono text-[.67rem] font-semibold uppercase tracking-[.08em] text-[var(--acc-sage-deep)]">
-                      Current
+                      Active
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-[var(--acc-muted)]">
-                    Authenticated{" "}
-                    {formatAuthenticationTime(sessionsQuery.data.current.authenticatedAt)}
-                    {sessionsQuery.data.current.assuranceLevel
-                      ? ` · ${sessionsQuery.data.current.assuranceLevel.toUpperCase()}`
-                      : ""}
+                    Signed in {formatAuthenticationTime(sessionsQuery.data.current.authenticatedAt)}
                   </p>
                 </div>
-                <span className="text-sm text-[var(--acc-muted)]">This browser remains active</span>
+                <span className="text-sm text-[var(--acc-muted)]">This device stays signed in</span>
               </article>
               <p className="border-t border-[var(--acc-line)] p-5 text-sm leading-6 text-[var(--acc-muted)] sm:p-6">
-                Supabase Auth cannot list or name your other active sessions. “Sign out others”
-                revokes every other supported session without inventing device rows or counts.
+                For your privacy, other devices are not named here. You can still sign your account
+                out everywhere else in one step.
               </p>
             </div>
           )}
@@ -217,17 +213,24 @@ function Eyebrow({ children, tone = "sage" }: { children: string; tone?: "sage" 
 }
 
 function StatusBadge({ status }: { status: MfaFactorSummary["status"] }) {
+  const verified = status === "verified";
   return (
     <span
       className={`inline-flex min-h-7 items-center rounded-full px-[.7rem] py-[.3rem] font-mono text-[.67rem] font-semibold uppercase tracking-[.08em] ${
-        status === "verified"
+        verified
           ? "bg-[var(--acc-sage)] text-[var(--acc-sage-deep)]"
           : "bg-[var(--acc-warning-surface)] text-[var(--acc-warning)]"
       }`}
     >
-      {status}
+      {verified ? "Ready" : "Pending"}
     </span>
   );
+}
+
+function uniqueFactors(factors: readonly MfaFactorSummary[]): MfaFactorSummary[] {
+  const byId = new Map<string, MfaFactorSummary>();
+  for (const factor of factors) byId.set(factor.id, factor);
+  return Array.from(byId.values());
 }
 
 function formatAuthenticationTime(value: string | null): string {
