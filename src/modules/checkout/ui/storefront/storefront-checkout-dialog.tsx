@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
+import { checkoutContextQueryOptions } from "@/modules/checkout/client/hooks";
 import type { StorefrontCheckoutLine } from "@/modules/checkout/ui/storefront/checkout-sheet";
 import { StorefrontCheckoutSheet } from "@/modules/checkout/ui/storefront/checkout-sheet";
 import { subscribePaystackWindowHandoff } from "@/modules/payments/client/paystack-popup";
@@ -21,10 +24,26 @@ export function StorefrontCheckoutDialog({
   subtotalMinor: number;
   onPaid: (orderNumber: string) => void;
 }) {
+  const auth = useStorefrontAuth();
   const { openId, open: openOverlay, close: closeOverlay } = useStorefrontOverlay();
   const open = openId === "checkoutDialog";
+  const checkoutContext = useQuery(
+    checkoutContextQueryOptions(open && auth.state.signedIn),
+  );
   const reopenAfterPayment = useRef(false);
   const checkoutOpen = useRef(open);
+  const cartFingerprint = useMemo(
+    () =>
+      lines
+        .map(
+          (line) =>
+            `${line.productId}:${line.variantId ?? "product"}:${line.quantity}`,
+        )
+        .sort()
+        .join("|"),
+    [lines],
+  );
+  const checkoutSessionKey = `${checkoutContext.data?.activeCheckout?.checkoutId ?? "new"}:${cartFingerprint}:${subtotalMinor}`;
 
   useEffect(() => {
     checkoutOpen.current = open;
@@ -70,6 +89,7 @@ export function StorefrontCheckoutDialog({
         </DialogDescription>
         <StorefrontCheckoutSheet
           active={open}
+          key={checkoutSessionKey}
           lines={lines}
           onBack={returnToCart}
           onPaid={onPaid}
