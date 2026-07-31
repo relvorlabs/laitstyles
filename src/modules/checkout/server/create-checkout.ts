@@ -5,6 +5,7 @@ import { err, ok, type Result } from "@/lib/errors";
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
+import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
 import type {
   CheckoutDraft,
   CheckoutError,
@@ -66,8 +67,8 @@ export async function createCheckout(
   if (!account) {
     return err({
       code: "CHECKOUT_INVALID",
-      message: "Complete your first name, last name, email and phone number before checkout.",
-      field: "profile",
+      message: "Add and confirm a phone number on your account before checkout.",
+      field: "profile.phone",
     });
   }
 
@@ -249,8 +250,19 @@ async function createPendingDraft(
         (total, line) => total + line.unitPriceMinor * line.quantity,
         0,
       );
+      const coupon = input.couponCode
+        ? await validateCheckoutCoupon(tx, input.couponCode, subtotalMinor)
+        : null;
+      if (input.couponCode && (!coupon || !coupon.valid)) {
+        throw expected(
+          "CHECKOUT_INVALID",
+          coupon?.message ?? "The coupon code is not valid.",
+          "couponCode",
+        );
+      }
+      const discountMinor = coupon?.discountMinor ?? 0;
       const deliveryFeeMinor = decimalToMinor(deliveryZone.rate);
-      const totalMinor = subtotalMinor + deliveryFeeMinor;
+      const totalMinor = Math.max(0, subtotalMinor + deliveryFeeMinor - discountMinor);
       const order = await tx.orders.create({
         data: {
           order_number: orderNumber,
@@ -278,7 +290,7 @@ async function createPendingDraft(
           currency: "NGN",
           subtotal: minorToDecimal(subtotalMinor),
           delivery_fee: minorToDecimal(deliveryFeeMinor),
-          discount_amount: "0.00",
+          discount_amount: minorToDecimal(discountMinor),
           total: minorToDecimal(totalMinor),
           attention: "payment",
           created_by_profile_id: identity.authUserId,
@@ -322,7 +334,10 @@ async function createPendingDraft(
           method: "paystack",
           actor_profile_id: identity.authUserId,
           note: "Storefront checkout payment attempt created.",
-          metadata: { reference },
+          metadata: {
+            reference,
+            ...(coupon?.valid ? { couponCode: coupon.code, discountMinor } : {}),
+          },
         },
       });
       await tx.order_timeline_events.create({
@@ -331,7 +346,11 @@ async function createPendingDraft(
           status: "pending-payment",
           actor_profile_id: identity.authUserId,
           note: "Checkout created with stock reserved pending verified payment.",
-          metadata: { paymentId: payment.id, reference },
+          metadata: {
+            paymentId: payment.id,
+            reference,
+            ...(coupon?.valid ? { couponCode: coupon.code, discountMinor } : {}),
+          },
         },
       });
 
@@ -345,7 +364,7 @@ async function createPendingDraft(
         currency: "NGN",
         subtotalMinor,
         deliveryFeeMinor,
-        discountMinor: 0,
+        discountMinor,
         totalMinor,
         idempotencyRecordId: idempotency.id,
       };
@@ -490,16 +509,17 @@ function normalizeCheckoutAccount(profile: OwnedProfile): CheckoutAccount | null
   const lastName = profile.lastName.trim();
   const preferredName = profile.preferredName.trim();
   const phone = profile.phone.trim();
-  if (!email || !firstName || !lastName || !phone) return null;
+  if (!email || !phone) return null;
   return {
     email,
-    displayName: preferredName || `${firstName} ${lastName}`,
+    displayName:
+      preferredName || [firstName, lastName].filter(Boolean).join(" ") || email.split("@")[0] || "Customer",
     phone,
   };
 }
 
 function expected(code: CheckoutError["code"], message: string, field?: string) {
-  return new ExpectedCheckoutError({ code, message, ...(field ? { field } : {}) });
+  return new ExpectedCheckoutError({ code, message, ...(field ? { field }) : {} });
 }
 
 function hashCheckoutRequest(customerId: string, input: CreateCheckoutInput): string {
