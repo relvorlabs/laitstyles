@@ -1,116 +1,129 @@
 # Storefront account, checkout, delivery, and promotions redesign
 
-Status: active implementation; source and reviewer gates remain open.
+Status: source implementation complete; executable, browser, migration, and real-payment gates remain open.
 
-Predecessors: PR #63 was merged into `main` before this follow-up. This specification governs branch `agent/storefront-checkout-delivery-promotions-redesign`.
+Predecessors: PR #63 was merged into `main` before this follow-up. This specification governs branch `agent/storefront-checkout-delivery-promotions-redesign` and draft PR #64.
 
 ## Problem statement
 
-The merged storefront hardening introduced a new Cache Components prerender failure because the Pino logger reads wall-clock time inside a Server Component catch path before request or uncached data has been accessed. The account route therefore returns 200 only after a long fallback path and logs the Next.js `next-prerender-current-time` exception as if it were a catalogue outage.
+The merged storefront hardening introduced a Cache Components prerender failure because the timestamped application logger read wall-clock time inside a Server Component recovery path before request or uncached data had been accessed. The account route therefore completed only after a long fallback path and reported the Next.js `next-prerender-current-time` exception as if it were a catalogue outage.
 
-Checkout also treats delivery as city-zone restricted even though the business contract is nationwide delivery. Customers can be blocked by an unsupported-city message, cannot clearly choose another saved address or confirm the default address, and the cart/checkout presentation does not meet the intended modern fashion-house experience. The admin navigation is missing an operational coupon-code generator and management page.
+Checkout also treated delivery as city-zone restricted even though the business contract is nationwide delivery. Customers could be blocked by an unsupported-city message, could not clearly choose another saved address or confirm the default address, and the cart/checkout presentation did not meet the intended modern fashion-house experience. The admin navigation also lacked an operational coupon-code generator and management page.
 
 ## Non-negotiable contracts
 
 ### Server and Cache Components safety
 
-- Server diagnostics must never invoke request-time wall-clock APIs during prerenderable Server Component execution.
-- Logging must not convert a handled catalogue/database failure into a new rendering failure.
+- Server diagnostics do not read wall-clock time during prerenderable Server Component recovery.
+- Logging cannot replace a handled catalogue/database failure with a second rendering failure.
 - Prisma, database provider details, hostnames, SQL/query text, and internal stacks remain server-only.
-- Account and storefront routes return public typed states and usable UI when catalogue enrichment is unavailable.
-- Client modules never import Prisma, server repositories, or server-only logging helpers.
+- Account and storefront routes receive public typed states and usable fallback UI when catalogue enrichment is unavailable.
+- Client modules do not import Prisma, server repositories, or server-only logging helpers.
 
 ### Nationwide delivery
 
 - Delivery is available nationwide; an address city is not an eligibility blocker.
-- Delivery pricing follows an explicit configured nationwide policy: a store-level fixed delivery fee, a matching regional override when one exists, or a clearly defined zero/free-delivery fallback.
-- The checkout UI must never silently charge an arbitrary first zone.
-- Customers can view the current/default address, select another saved address, add an address, and understand the applied delivery fee before payment.
-- Server order creation and payment initialization must derive the same delivery policy as the UI.
+- Pricing uses an explicit store-selected nationwide fallback, an optional matching regional override, or a zero-fee nationwide emergency fallback when no enabled rates exist.
+- Checkout never silently charges an arbitrary first zone.
+- Customers can see the default address, select another saved address, add or edit addresses, and review the applied fee before payment.
+- The browser submits the owned address ID, not a delivery-zone ID.
+- Checkout preview and transactional order creation derive delivery from the same server-owned policy.
 
 ### Checkout and cart experience
 
-- Preserve real cart, coupon, address, payment initialization, verification, pending, failed, abandoned, reversed, and review-required behavior.
+- Real cart, coupon, address, payment initialization, verification, pending, failed, abandoned, reversed, and review-required behavior is preserved.
 - Every disabled payment state remains visible and actionable.
-- Redesign the cart sheet and checkout as an elegant fashion-house purchase flow rather than a generic form stack.
-- Use existing Laitstyles tokens, `CloudImage`, shadcn/Base UI primitives, responsive layouts, keyboard focus, and accessible labels.
-- Mobile, tablet, and desktop surfaces must preserve information hierarchy and payment trust cues.
+- Cart and checkout use an editorial fashion-house hierarchy rather than a generic form stack.
+- Existing Laitstyles tokens, `CloudImage`, shadcn/Base UI primitives, responsive classes, accessible labels, and stable identities are retained.
 
 ### Promotions administration
 
-- Admin users with the correct authorization can list, create/generate, activate/deactivate, and inspect coupon codes.
-- Coupon generation uses server-owned validation and uniqueness, not client-only random strings.
-- The generator supports percentage or fixed-value discounts, optional minimum spend, usage limits, start/end dates, and a human-editable or generated code.
-- Customer validation continues through the existing public coupon contract; internal promotion fields are never exposed unnecessarily.
+- Authorized staff can list, create/generate, activate/deactivate, edit, and inspect coupon codes.
+- Generation, uniqueness, validation, and audit records are server-owned.
+- The generator supports percentage and fixed-value discounts, optional minimum spend, optional maximum discount, verified-order usage limits, start/end dates, and custom or generated codes.
+- Coupon identity is immutable after creation so verified-use history is not reset by renaming.
+- Customer validation continues through the existing checkout coupon contract.
+- General store-settings saves preserve promotion JSON rather than deleting it.
 
 ## Fixed six-role execution model
 
-The roster introduced by commit `66433b46e164c60a5e1821de21ef964a4f6d7ba8` is authoritative and must remain exactly six roles:
+The roster introduced by commit `66433b46e164c60a5e1821de21ef964a4f6d7ba8` is authoritative and remained exactly six roles:
 
-1. **Orchestrator** — classifies the cross-layer work, enforces ordered handoffs, and prevents GitHub Actions from being used as evidence.
-2. **Planner** — maps the real files, dependencies, phases, explicit exclusions, and acceptance checks before source edits.
-3. **Data engineer** — owns any Prisma schema/migration or durable store-level delivery/promotion configuration changes.
-4. **Domain engineer** — owns server error containment, delivery policy, coupon authorization/validation, APIs, and transactional order/payment consistency.
-5. **UI engineer** — owns account recovery UI, address selection, cart/checkout redesign, and admin coupon screens using existing primitives.
-6. **Reviewer** — reviews source, runs available gates, records unavailable local/browser gates as blocked, and keeps the PR draft until evidence exists.
+1. **Orchestrator** — classified the cross-layer release, created the PR-first workflow, enforced ordered handoffs, and prohibited GitHub Actions as evidence.
+2. **Planner** — traced account recovery, settings, delivery, checkout, payment, coupon, navigation, and UI dependencies before source edits.
+3. **Data engineer** — defined the durable nationwide-fallback setting and ensured store-settings persistence preserves promotion data.
+4. **Domain engineer** — implemented bounded diagnostics, server-owned delivery quotes, transactional checkout consistency, authorized coupon APIs, generation, validation, usage counts, and audits.
+5. **UI engineer** — implemented address choice, nationwide delivery presentation, fashion-house cart/checkout surfaces, and the admin Promotions workspace.
+6. **Reviewer** — reconciled tests and fixtures, extended architecture checks, corrected source-level edge cases, and kept the PR draft because executable/browser evidence is unavailable.
 
 ## Relevant agent-controller skills and MCP guidance
 
 - `using-superpowers` and `find-skills` for workflow selection and explicit role handoffs.
 - `next-best-practices`, `next-cache-components`, and `vercel-react-best-practices` for prerender-safe diagnostics, Server Component boundaries, Suspense, stable data ownership, and rendering performance.
-- `prisma-cli`, `supabase`, and `supabase-postgres-best-practices` for migration replay, pooled database behavior, constraints, indexes, authorization, and transaction design.
-- `ui-ux-pro-max`, `shadcn`, and shadcn MCP guidance for an elegant commerce hierarchy, accessible form controls, dialogs/sheets, cards, tabs, badges, and responsive composition.
-- Playwright CLI, Chrome DevTools MCP, and `react-doctor` define browser, console, interaction, and React-quality reviewer gates; they are not replaced by GitHub Actions.
+- `prisma-cli`, `supabase`, and `supabase-postgres-best-practices` for migration replay, pooled database behavior, transactional consistency, constraints, indexes, and authorization.
+- `ui-ux-pro-max`, `shadcn`, and shadcn MCP guidance for commerce hierarchy, accessible controls, sheets, cards, selection states, responsive composition, and visual polish.
+- Playwright CLI, Chrome DevTools MCP, and `react-doctor` remain the required browser, console, interaction, and React-quality reviewer gates; they are not replaced by GitHub Actions.
 
-## Phased implementation
+## Phased implementation record
 
 ### Phase 0 — PR and planning
 
 - [x] Create a dedicated branch.
 - [x] Commit this specification before implementation.
-- [ ] Open a draft PR.
-- [ ] Add the task-by-task plan as a PR comment.
+- [x] Open draft PR #64 before implementation.
+- [x] Add the task-by-task six-agent plan as a PR comment.
 
 ### Phase 1 — account and logger correction
 
-- [ ] Remove prerender-unsafe logger behavior from the shell catalogue catch path.
-- [ ] Preserve bounded server diagnostics without wall-clock reads.
-- [ ] Add source-level regression coverage for the handled failure state.
-- [ ] Confirm account rendering does not depend on catalogue availability.
+- [x] Replace timestamped Pino logging in prerenderable storefront recovery paths.
+- [x] Add bounded server-only diagnostics that exclude error messages, stacks, database hosts, and provider details.
+- [x] Preserve the public `temporarily-unavailable` catalogue state.
+- [x] Update source regression coverage and the production-readiness architecture gate.
+- [ ] Run `/account` with the database available and unavailable in a real Next.js runtime.
 
 ### Phase 2 — nationwide delivery policy
 
-- [ ] Inspect current delivery-zone schema, APIs, admin configuration, checkout calculation, order creation, and payment initialization.
-- [ ] Define one server-authoritative nationwide delivery resolver.
-- [ ] Remove unsupported-city eligibility blocking from customer UI and server commands.
-- [ ] Preserve optional regional overrides without arbitrary-zone fallback.
-- [ ] Expose the applied fee and policy label in the public checkout DTO.
+- [x] Audit delivery settings, checkout context, order creation, and payment initialization.
+- [x] Add exactly one enabled nationwide fallback selection to store delivery settings.
+- [x] Migrate existing settings semantically from names such as `Outside Lagos` or `Nationwide` without a schema migration.
+- [x] Add one server-authoritative delivery resolver with optional regional overrides and a zero-fee emergency fallback.
+- [x] Remove client delivery-zone selection and unsupported-city eligibility blocking.
+- [x] Return address-bound public delivery quotes.
+- [x] Re-resolve delivery inside the serializable checkout transaction.
+- [x] Add direct delivery-policy and settings-validation tests.
+- [ ] Verify real store settings and multiple Nigerian states/cities against the development database.
 
 ### Phase 3 — address selection and checkout domain flow
 
-- [ ] Make the default address explicit.
-- [ ] Allow selecting another saved address without leaving checkout.
-- [ ] Preserve add/edit-address recovery paths.
-- [ ] Ensure cart, checkout preview, order creation, and payment initialization use the same selected address and delivery quote.
+- [x] Expose the default address explicitly.
+- [x] Allow selection of another saved address inside checkout.
+- [x] Preserve add/edit-address navigation without clearing the persisted bag.
+- [x] Keep delivery contact completion inside checkout.
+- [x] Reconcile checkout server and UI tests with the address-owned contract.
+- [ ] Verify default, alternate, new, and edited address flows in the browser.
 
 ### Phase 4 — fashion-house cart and checkout redesign
 
-- [ ] Redesign cart sheet information architecture and line-item presentation.
-- [ ] Redesign checkout sections for delivery, promotion, payment, trust, and order summary.
-- [ ] Retain all loading, empty, unavailable, payment, and error states.
-- [ ] Meet 375×812, 768×1024, and 1280×800 responsive requirements.
+- [x] Redesign the cart sheet as an editorial private edit with product media, quantity, save/remove, recommendations, and a delivery/payment CTA.
+- [x] Redesign checkout around delivery contact, address selection, nationwide quote, private offer, payment trust, and order summary.
+- [x] Preserve loading, empty, unavailable, payment, recovery, and disabled states in source.
+- [x] Retain real Paystack initialization and verification; no simulated success path was added.
+- [ ] Complete responsive visual QA at 375×812, 768×1024, and 1280×800 in light and dark appearance.
 
 ### Phase 5 — admin coupon generator and management
 
-- [ ] Audit the existing coupon schema and customer validation path.
-- [ ] Add typed, authorized admin list/create/update operations.
-- [ ] Add an admin promotions route and navigation entry.
-- [ ] Add code generation, validation, status, dates, limits, and discount configuration.
-- [ ] Keep customer-facing validation backward compatible.
+- [x] Audit the existing JSON-backed customer coupon contract.
+- [x] Add typed, authorized admin list/create/update endpoints.
+- [x] Add server-generated unique codes, custom codes, schedule, discount, spend, cap, status, and verified-order usage-limit validation.
+- [x] Add audit records and immutable coupon identity.
+- [x] Add `/admin/promotions`, navigation, generator, list, edit, activation, and usage presentation.
+- [x] Preserve promotion data during general settings saves.
+- [x] Add promotion schema tests.
+- [ ] Verify the full coupon lifecycle against the development database and customer checkout.
 
 ### Phase 6 — reviewer gates
 
-GitHub Actions must not be run or used as evidence.
+No GitHub Actions were run, modified, or used as evidence.
 
 Required local commands before review readiness:
 
@@ -135,12 +148,12 @@ Required manual checks:
 - No `next-prerender-current-time` error and no internal exception details in browser output.
 - Nationwide address examples across multiple Nigerian states and cities.
 - Default address, alternate saved address, new address, and edited address flows.
-- Fixed fee, regional override, and free-delivery fallback behavior.
-- Coupon creation, activation, expiry, usage limit, percentage, fixed amount, and customer validation.
+- Regional override, nationwide fixed fee, and zero-fee fallback behavior.
+- Coupon creation, generation, activation, expiry, usage limit, percentage, fixed amount, and customer validation.
 - Cart and checkout at mobile, tablet, and desktop sizes in light and dark appearance.
 - Keyboard navigation, focus visibility, labels, contrast, duplicate-key warnings, and uncaught console errors.
 - Real Paystack initialization, close, failure, pending verification, success, reversal, and recovery.
 
-## Current verdict
+## Current reviewer verdict
 
-**Blocked from merge.** This document establishes scope only. Implementation, local command evidence, browser verification, and real payment verification are not yet complete.
+**Blocked from merge.** Source implementation and connector review are complete, but no local command, Next.js runtime, browser, database migration/status, or real Paystack gate has been executed in this GitHub-only session.
