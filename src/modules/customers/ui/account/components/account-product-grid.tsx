@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/modules/products/ui/storefront/catalogue-data";
 import { ProductCard } from "@/modules/products/ui/storefront/product-card";
@@ -17,6 +18,12 @@ const layouts = {
   rail: "grid auto-cols-[78%] grid-flow-col gap-4 overflow-x-auto pb-3 sm:auto-cols-[44%] lg:grid-flow-row lg:grid-cols-3 lg:overflow-visible",
 } as const;
 
+function uniqueProducts(products: readonly Product[]): Product[] {
+  const byId = new Map<string, Product>();
+  for (const product of products) byId.set(product.id, product);
+  return Array.from(byId.values());
+}
+
 export function AccountProductGrid({
   products,
   layout = "grid",
@@ -30,16 +37,20 @@ export function AccountProductGrid({
   const cart = useStorefrontCart();
   const saved = useStorefrontSavedItems();
   const holds = useStorefrontHolds();
-  const lookup = new Map(catalogue.products.map((product) => [product.id, product]));
+  const visibleProducts = useMemo(() => uniqueProducts(products), [products]);
+  const lookup = useMemo(
+    () => new Map(uniqueProducts(catalogue.products).map((product) => [product.id, product])),
+    [catalogue.products],
+  );
 
   return (
     <div className={cn(layouts[layout], className)}>
-      {products.map((product) => (
+      {visibleProducts.map((product) => (
         <ProductCard
           holdSeconds={holds.secondsByProduct[product.id] ?? null}
           isHeld={product.id in holds.secondsByProduct}
           isSaved={saved.idSet.has(product.id)}
-          key={product.id}
+          key={`account-product:${product.id}`}
           onAdd={(id) => {
             holds.releaseProduct(id);
             cart.addProduct(id);
