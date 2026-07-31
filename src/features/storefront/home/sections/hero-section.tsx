@@ -34,7 +34,7 @@ export function HeroSection({ openShop }: { openShop: OpenHomeShop }) {
           <CloudImage
             alt={heroProduct.name}
             height={2250}
-            priority
+            loading="eager"
             sizes="(min-width: 861px) 66vw, 100vw"
             src={heroImage}
             width={1800}
