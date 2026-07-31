@@ -112,11 +112,11 @@ function findRegionalOverride(
 ): DeliveryZoneRow | null {
   const city = normalizeLocation(address.city);
   const state = normalizeLocation(address.state ?? "");
-  const location = `${city} ${state}`.trim();
+  const location = [city, state].filter(Boolean).join(" ");
 
   const exact = zones.find((zone) => {
     const labels = [normalizeLocation(zone.city), normalizeLocation(zone.name)].filter(Boolean);
-    return labels.some((label) => label === city || label === state);
+    return labels.some((label) => label === city || (Boolean(state) && label === state));
   });
   if (exact) return exact;
 
@@ -133,7 +133,9 @@ function findRegionalOverride(
     zones.find((zone) => {
       const label = normalizeLocation(`${zone.name} ${zone.city}`);
       if (!label || label.length < 3) return false;
-      return city.includes(label) || state.includes(label) || label.includes(city) || label.includes(state);
+      const cityMatches = Boolean(city) && (city.includes(label) || label.includes(city));
+      const stateMatches = Boolean(state) && (state.includes(label) || label.includes(state));
+      return cityMatches || stateMatches;
     }) ?? null
   );
 }
