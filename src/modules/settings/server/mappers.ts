@@ -26,6 +26,7 @@ type PickupRow = {
 };
 
 type PickupContext = Record<string, { city?: string; instructions?: string }>;
+type DeliveryContext = { nationwideFallbackZoneId?: string };
 
 export function mapStoreSettings(
   row: SettingsRow,
@@ -35,6 +36,11 @@ export function mapStoreSettings(
 ): StoreSettings {
   const sellingRecord = asRecord(row.selling);
   const pickupContext = parsePickupContext(sellingRecord?._pickupContext);
+  const deliveryContext = parseDeliveryContext(sellingRecord?._deliveryContext);
+  const nationwideFallbackZoneId = selectNationwideFallbackZoneId(
+    zones,
+    deliveryContext.nationwideFallbackZoneId,
+  );
   const delivery = {
     zones: zones.map((zone) => {
       const [estimatedMinDays, estimatedMaxDays] = parseEstimatedDays(zone.estimated_days);
@@ -45,6 +51,7 @@ export function mapStoreSettings(
         estimatedMinDays,
         estimatedMaxDays,
         enabled: zone.enabled,
+        isNationwideFallback: zone.id === nationwideFallbackZoneId,
       };
     }),
     pickupLocations: pickups.map((pickup) => ({
@@ -77,6 +84,8 @@ export function settingsJsonInput(settings: StoreSettings | Omit<StoreSettings, 
   notifications: Prisma.InputJsonValue;
 } {
   const { logo: _logo, ...identityWithoutLogo } = structuredClone(settings.identity);
+  const nationwideFallbackZoneId =
+    settings.delivery.zones.find((zone) => zone.enabled && zone.isNationwideFallback)?.id ?? null;
   return {
     identity: identityWithoutLogo as Prisma.InputJsonValue,
     selling: {
@@ -87,6 +96,7 @@ export function settingsJsonInput(settings: StoreSettings | Omit<StoreSettings, 
           { city: pickup.city, instructions: pickup.instructions },
         ]),
       ),
+      _deliveryContext: { nationwideFallbackZoneId },
     } as Prisma.InputJsonValue,
     payments: structuredClone(settings.payments) as Prisma.InputJsonValue,
     notifications: structuredClone(settings.notifications) as Prisma.InputJsonValue,
@@ -149,6 +159,31 @@ function parsePickupContext(value: Prisma.JsonValue | undefined): PickupContext 
       ];
     }),
   );
+}
+
+function parseDeliveryContext(value: Prisma.JsonValue | undefined): DeliveryContext {
+  const record = asRecord(value);
+  return {
+    nationwideFallbackZoneId:
+      typeof record?.nationwideFallbackZoneId === "string"
+        ? record.nationwideFallbackZoneId
+        : undefined,
+  };
+}
+
+function selectNationwideFallbackZoneId(
+  zones: DeliveryZoneRow[],
+  configuredId: string | undefined,
+): string | null {
+  if (configuredId && zones.some((zone) => zone.id === configuredId && zone.enabled)) {
+    return configuredId;
+  }
+  const semanticFallback = zones.find(
+    (zone) =>
+      zone.enabled &&
+      /nationwide|outside\s+lagos|rest\s+of\s+nigeria|national/i.test(zone.name),
+  );
+  return semanticFallback?.id ?? zones.findLast((zone) => zone.enabled)?.id ?? null;
 }
 
 function asRecord(value: Prisma.JsonValue | undefined): Record<string, Prisma.JsonValue> | null {
