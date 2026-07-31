@@ -137,6 +137,12 @@ export async function settlePaystackEvent(
             currency: parsed.data.currency,
             event: parsed.data,
           });
+          if (order.customer_id) {
+            await tx.$executeRaw`
+              DELETE FROM public.customer_cart_lines
+              WHERE customer_id = ${order.customer_id}::uuid
+            `;
+          }
           return ok({
             checkoutId: order.id,
             paymentId: payment.id,
