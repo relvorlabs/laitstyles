@@ -11,14 +11,13 @@ import { AccountBreadcrumb } from "./components/account-breadcrumb";
 import { AccountMobileMenu } from "./components/account-mobile-menu";
 import { IconButton, monoClass } from "./components/account-primitives";
 import { AccountSidebar } from "./components/account-sidebar";
-import { AccountModals } from "./modals/account-modals";
 
 export function AccountShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const session = useSession();
   const currentRoute = routeFromPathname(pathname);
-  const [modal, setModal] = useState<AccountModalId | null>(null);
+  const [_modal, setModal] = useState<AccountModalId | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const displayName =
@@ -77,7 +76,6 @@ export function AccountShell({ children }: { children: ReactNode }) {
           onOpenChange={setMenuOpen}
           open={menuOpen}
         />
-        <AccountModals modal={modal} onClose={() => setModal(null)} />
         {toastMessage ? (
           <div
             aria-live="polite"
