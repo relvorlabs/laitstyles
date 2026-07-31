@@ -34,7 +34,16 @@ type DatabaseFailure = {
 };
 
 const schemaPrismaCodes = new Set(["P2021", "P2022"]);
-const connectionPrismaCodes = new Set(["P1000", "P1001", "P1002", "P1003", "P1008", "P1017"]);
+const connectionPrismaCodes = new Set([
+  "P1000",
+  "P1001",
+  "P1002",
+  "P1003",
+  "P1008",
+  "P1011",
+  "P1017",
+  "P2024",
+]);
 const schemaDatabaseCodes = new Set(["42P01", "42703"]);
 const connectionDatabaseCodes = new Set([
   "08000",
@@ -197,11 +206,18 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
 
   const meta = asRecord(record.meta);
   const errorCode = readString(record.code) ?? readString(record.errorCode);
-  const databaseCode =
+  const nestedDatabaseCode =
     readString(meta?.code) ?? readString(meta?.databaseCode) ?? readString(record.errno);
+  const databaseCode =
+    nestedDatabaseCode ??
+    (errorCode !== null &&
+    (schemaDatabaseCodes.has(errorCode) || connectionDatabaseCodes.has(errorCode))
+      ? errorCode
+      : null);
 
   const schemaNotReady =
     (errorCode !== null && schemaPrismaCodes.has(errorCode)) ||
+    (errorCode !== null && schemaDatabaseCodes.has(errorCode)) ||
     (errorCode === "P2010" && databaseCode !== null && schemaDatabaseCodes.has(databaseCode));
   if (schemaNotReady) {
     return {
@@ -214,6 +230,7 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
 
   const databaseUnavailable =
     (errorCode !== null && connectionPrismaCodes.has(errorCode)) ||
+    (errorCode !== null && connectionDatabaseCodes.has(errorCode)) ||
     (databaseCode !== null && connectionDatabaseCodes.has(databaseCode));
   if (databaseUnavailable) {
     return {
