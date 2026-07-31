@@ -49,11 +49,14 @@ export function StorefrontRecentPersistence() {
     const guestIds = signedIn
       ? readStoredIds(window.localStorage, storageKey("guest"))
       : [];
-    const transitioningGuestIds =
-      signedIn && previousIdentity.current === "guest" ? recentIds : [];
+    const shouldMergeMemory =
+      previousIdentity.current === null ||
+      previousIdentity.current === identityKey ||
+      (signedIn && previousIdentity.current === "guest");
+    const memoryIds = shouldMergeMemory ? recentIds : [];
     const authenticatedServerIds = signedIn ? serverIds : [];
     const nextIds = uniqueIds([
-      ...transitioningGuestIds,
+      ...memoryIds,
       ...guestIds,
       ...localIds,
       ...authenticatedServerIds,
