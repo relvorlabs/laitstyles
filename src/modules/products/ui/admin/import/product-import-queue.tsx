@@ -49,7 +49,7 @@ export function ProductImportQueue({
     <aside className="contents" aria-label="Imported product queue">
       <div className="border-b border-border bg-muted/20 px-5 py-4 lg:hidden">
         <QueueToolbar selectedCount={selectedImportIds.length} total={items.length} onAddFile={onAddFile} onSelectAll={onSelectAll} onClearSelection={onClearSelection} onDelete={() => onDelete(selectedImportIds)} />
-        {appendIssue ? <p className="mt-2 text-xs text-destructive">{appendIssue}</p> : null}{appendNotice ? <p className="mt-2 text-xs text-muted-foreground">{appendNotice}</p> : null}
+        {appendIssue ? <p aria-live="assertive" className="mt-2 text-xs text-destructive">{appendIssue}</p> : null}{appendNotice ? <p aria-live="polite" className="mt-2 text-xs text-muted-foreground">{appendNotice}</p> : null}
         <label className="grid gap-1.5 text-xs font-medium" htmlFor="import-product-picker">
           Imported product
           <select
@@ -63,8 +63,20 @@ export function ProductImportQueue({
                 {index + 1}. {child.values.name || "Untitled product"} ({queueStatusLabel(child)})
               </option>
             ))}
-          </select>
-        </label>
+        </select>
+      </label>
+
+        <div className="mt-3 grid gap-1 lg:hidden">
+          {items.map((child) => (
+            <div key={child.importId} className="flex min-h-11 items-center gap-2 rounded-md border border-border/60 px-2">
+              <Checkbox aria-label={`Select ${child.values.name || "Untitled product"}`} checked={selectedImportIds.includes(child.importId)} onCheckedChange={() => onToggleSelection(child.importId)} />
+              <button className="min-w-0 flex-1 truncate py-2 text-left text-sm font-medium" onClick={() => onSelect(child.importId)} type="button">
+                {child.values.name || "Untitled product"}
+              </button>
+              <button aria-label={`Delete ${child.values.name || "Untitled product"}`} className="flex min-h-11 min-w-11 items-center justify-center text-muted-foreground" onClick={() => onDelete([child.importId])} type="button"><AdminIcon icon={Delete02Icon} size={16} /></button>
+            </div>
+          ))}
+        </div>
 
         <p className="mt-3 text-xs leading-5 text-muted-foreground">
           Nothing has been uploaded or saved yet. Imported values stay in this browser until you
@@ -94,7 +106,12 @@ export function ProductImportQueue({
             value={search}
           />
           <QueueToolbar selectedCount={selectedImportIds.length} total={items.length} onAddFile={onAddFile} onSelectAll={onSelectAll} onClearSelection={onClearSelection} onDelete={() => onDelete(selectedImportIds)} />
-          {appendIssue ? <p className="mt-2 text-xs text-destructive">{appendIssue}</p> : null}{appendNotice ? <p className="mt-2 text-xs text-muted-foreground">{appendNotice}</p> : null}
+          {appendIssue ? <p aria-live="assertive" className="mt-2 text-xs text-destructive">{appendIssue}</p> : null}{appendNotice ? <p aria-live="polite" className="mt-2 text-xs text-muted-foreground">{appendNotice}</p> : null}
+          {ignoredAssetCount ? (
+            <p aria-live="polite" className="mt-2 text-xs leading-5 text-muted-foreground">
+              {ignoredAssetCount} media asset{ignoredAssetCount === 1 ? " was" : "s were"} ignored; product media is not imported.
+            </p>
+          ) : null}
         </div>
         <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto p-2">
           {visibleChildren.map((child) => (
