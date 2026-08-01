@@ -1,7 +1,8 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { Prisma, prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import type { StaffSession } from "@/modules/auth/server/session";
 import { validateCommittedStockEdit } from "@/modules/inventory/server/committed-stock-guard";
 import {
@@ -149,106 +150,103 @@ export async function saveProduct(
       : ("active" as const);
 
   try {
-    const productId = await prisma.$transaction(
-      async (tx) => {
-        const currentRow = values.productId
-          ? await tx.products.findUnique({
-              where: { id: values.productId },
-              include: adminProductInclude,
-            })
-          : null;
-        if (values.productId && !currentRow) {
-          throw new ProductRuleViolation({
-            code: "product-not-found",
-            message: "This product could not be found.",
-          });
-        }
-
-        await assertProductInventoryModeCanChange(
-          tx,
-          values.productId ?? "",
-          currentRow,
-          values.inventoryMode,
-        );
-
-        const categoryId = await resolveProductTaxonomyId(tx, "category", values.category);
-        const collectionId = await resolveProductTaxonomyId(tx, "collection", values.collection);
-        const productData = {
-          category_id: categoryId,
-          collection_id: collectionId,
-          slug,
-          name: cleanProductText(values.name) || `Untitled ${values.inventoryMode} product`,
-          description:
-            cleanProductText(values.description) || "Draft product awaiting complete details.",
-          inventory_mode: values.inventoryMode,
-          brand: cleanProductText(values.brand) || "Unlabelled",
-          price: (values.sellingPrice ?? 0).toFixed(2),
-          reference_price: values.referencePrice?.toFixed(2) ?? null,
-          cost: values.cost?.toFixed(2) ?? null,
-          lifecycle,
-          publication,
-          low_stock_threshold: values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
-          archive_number:
-            values.inventoryMode === "unique"
-              ? cleanProductText(values.internalReference) || null
-              : null,
-          sku:
-            values.inventoryMode === "stocked"
-              ? cleanProductText(values.internalReference) || null
-              : null,
-          condition:
-            values.inventoryMode === "unique"
-              ? cleanProductText(values.unique.condition) || null
-              : null,
-          size_label:
-            values.inventoryMode === "unique"
-              ? cleanProductText(values.unique.size) || null
-              : values.inventoryMode === "stocked"
-                ? cleanProductText(values.stocked.sizeLabel) || null
-                : null,
-          colour:
-            values.inventoryMode === "unique"
-              ? cleanProductText(values.unique.colour) || null
-              : values.inventoryMode === "stocked"
-                ? cleanProductText(values.stocked.colour) || null
-                : null,
-          material: cleanProductText(values.material) || null,
-          fit: cleanProductText(values.fit) || null,
-          style: cleanProductText(values.style) || null,
-          care_instructions: cleanProductText(values.careInstructions) || null,
-          flaw_notes: cleanProductText(values.flawNotes) || null,
-          weight_grams:
-            values.fulfilment.weightKg === null
-              ? null
-              : Math.round(values.fulfilment.weightKg * 1000),
-          pickup_available: values.fulfilment.pickupAvailable,
-          delivery_restrictions: cleanProductText(values.fulfilment.deliveryRestrictions),
-          packaging_notes: cleanProductText(values.fulfilment.packagingNotes),
-          scheduled_at: intent === "schedule" ? new Date(values.scheduledAt) : null,
-          published_at: intent === "publish" ? new Date() : null,
-        };
-
-        const product = currentRow
-          ? await tx.products.update({ where: { id: currentRow.id }, data: productData })
-          : await tx.products.create({ data: productData });
-
-        await writeProductMedia(tx, product.id, values.media);
-        await writeProductChannels(tx, product.id, values.channels);
-        await writeProductMeasurements(tx, product.id, values);
-        await writeProductStockAndVariants(tx, actor, product.id, values, currentRow);
-        await tx.audit_events.create({
-          data: {
-            actor_profile_id: actor.authUserId,
-            action: currentRow ? "inventory:update" : "inventory:create",
-            target_table: "products",
-            target_id: product.id,
-            metadata: { intent, previous_slug: previousSlug, next_slug: slug },
-          },
+    const productId = await runSerializable(async (tx) => {
+      const currentRow = values.productId
+        ? await tx.products.findUnique({
+            where: { id: values.productId },
+            include: adminProductInclude,
+          })
+        : null;
+      if (values.productId && !currentRow) {
+        throw new ProductRuleViolation({
+          code: "product-not-found",
+          message: "This product could not be found.",
         });
-        return product.id;
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    );
+      }
+
+      await assertProductInventoryModeCanChange(
+        tx,
+        values.productId ?? "",
+        currentRow,
+        values.inventoryMode,
+      );
+
+      const categoryId = await resolveProductTaxonomyId(tx, "category", values.category);
+      const collectionId = await resolveProductTaxonomyId(tx, "collection", values.collection);
+      const productData = {
+        category_id: categoryId,
+        collection_id: collectionId,
+        slug,
+        name: cleanProductText(values.name) || `Untitled ${values.inventoryMode} product`,
+        description:
+          cleanProductText(values.description) || "Draft product awaiting complete details.",
+        inventory_mode: values.inventoryMode,
+        brand: cleanProductText(values.brand) || "Unlabelled",
+        price: (values.sellingPrice ?? 0).toFixed(2),
+        reference_price: values.referencePrice?.toFixed(2) ?? null,
+        cost: values.cost?.toFixed(2) ?? null,
+        lifecycle,
+        publication,
+        low_stock_threshold: values.inventoryMode === "unique" ? 1 : values.lowStockThreshold,
+        archive_number:
+          values.inventoryMode === "unique"
+            ? cleanProductText(values.internalReference) || null
+            : null,
+        sku:
+          values.inventoryMode === "stocked"
+            ? cleanProductText(values.internalReference) || null
+            : null,
+        condition:
+          values.inventoryMode === "unique"
+            ? cleanProductText(values.unique.condition) || null
+            : null,
+        size_label:
+          values.inventoryMode === "unique"
+            ? cleanProductText(values.unique.size) || null
+            : values.inventoryMode === "stocked"
+              ? cleanProductText(values.stocked.sizeLabel) || null
+              : null,
+        colour:
+          values.inventoryMode === "unique"
+            ? cleanProductText(values.unique.colour) || null
+            : values.inventoryMode === "stocked"
+              ? cleanProductText(values.stocked.colour) || null
+              : null,
+        material: cleanProductText(values.material) || null,
+        fit: cleanProductText(values.fit) || null,
+        style: cleanProductText(values.style) || null,
+        care_instructions: cleanProductText(values.careInstructions) || null,
+        flaw_notes: cleanProductText(values.flawNotes) || null,
+        weight_grams:
+          values.fulfilment.weightKg === null
+            ? null
+            : Math.round(values.fulfilment.weightKg * 1000),
+        pickup_available: values.fulfilment.pickupAvailable,
+        delivery_restrictions: cleanProductText(values.fulfilment.deliveryRestrictions),
+        packaging_notes: cleanProductText(values.fulfilment.packagingNotes),
+        scheduled_at: intent === "schedule" ? new Date(values.scheduledAt) : null,
+        published_at: intent === "publish" ? new Date() : null,
+      };
+
+      const product = currentRow
+        ? await tx.products.update({ where: { id: currentRow.id }, data: productData })
+        : await tx.products.create({ data: productData });
+
+      await writeProductMedia(tx, product.id, values.media);
+      await writeProductChannels(tx, product.id, values.channels);
+      await writeProductMeasurements(tx, product.id, values);
+      await writeProductStockAndVariants(tx, actor, product.id, values, currentRow);
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: currentRow ? "inventory:update" : "inventory:create",
+          target_table: "products",
+          target_id: product.id,
+          metadata: { intent, previous_slug: previousSlug, next_slug: slug },
+        },
+      });
+      return product.id;
+    });
 
     const saved = await getAdminProduct(productId);
     if (!saved) throw new Error("The saved product could not be reloaded.");

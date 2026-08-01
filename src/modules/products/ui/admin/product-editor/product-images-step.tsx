@@ -45,8 +45,6 @@ export function ProductImagesStep() {
     name: "media",
     keyName: "fieldKey",
   });
-  const mediaError = getProductEditorFieldError(errors, "media");
-  const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
 
   useEffect(() => {
     const current = getValues("media");
@@ -57,6 +55,10 @@ export function ProductImagesStep() {
       setValue("media", next, { shouldDirty: true, shouldValidate: false });
     }
   }, [getValues, productName, setValue, watchedMedia.length]);
+
+  const mediaError = getProductEditorFieldError(errors, "media");
+  const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
+
 
   function addUploadedImage(image: UploadedCloudinaryAsset) {
     const existing = getValues("media");

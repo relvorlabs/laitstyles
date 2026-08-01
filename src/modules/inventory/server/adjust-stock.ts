@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type {
@@ -38,7 +38,7 @@ export async function adjustInventoryStock(
     });
   }
 
-  return prisma.$transaction(
+  return runSerializable(
     async (tx) => {
       const product = await tx.products.findUnique({
         where: { id: input.productId },
@@ -167,6 +167,5 @@ export async function adjustInventoryStock(
         },
       });
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
 }

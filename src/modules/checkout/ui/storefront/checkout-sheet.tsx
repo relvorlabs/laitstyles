@@ -45,6 +45,7 @@ type StorefrontCheckoutSheetProps = {
 };
 
 type PaymentStage = "ready" | "creating" | "paying" | "verifying";
+type CheckoutStep = "details" | "review";
 
 const currencyFormatter = new Intl.NumberFormat("en-NG", {
   style: "currency",
@@ -74,6 +75,7 @@ export function StorefrontCheckoutSheet({
   const [debouncedCouponCode, setDebouncedCouponCode] = useState("");
   const [paymentStage, setPaymentStage] = useState<PaymentStage>("ready");
   const [activeCheckout, setActiveCheckout] = useState<CheckoutDraft | null>(null);
+  const [step, setStep] = useState<CheckoutStep>("details");
   const idempotencyKey = useRef<string>(crypto.randomUUID());
   const completedOrder = useRef<string | null>(null);
 
@@ -174,6 +176,7 @@ export function StorefrontCheckoutSheet({
     if (isClosedCheckoutStatus(checkout.status)) {
       setPaymentStage("ready");
       setActiveCheckout(null);
+      setStep("details");
       idempotencyKey.current = crypto.randomUUID();
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current?.activeCheckout?.checkoutId === checkout.checkoutId
@@ -338,9 +341,16 @@ export function StorefrontCheckoutSheet({
     );
   }
 
+  const detailsReady = phoneReady && Boolean(selectedAddressId) && Boolean(selectedQuote);
+  const showDetailsStep = !activeCheckout && step === "details";
+  const showReviewStep = Boolean(activeCheckout) || step === "review";
+
   return (
     <CheckoutShell onBack={onBack}>
-      <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+      {!activeCheckout ? (
+        <StepIndicator active={step} />
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-6">
           {activeCheckout ? (
             <StatusCard
@@ -349,7 +359,7 @@ export function StorefrontCheckoutSheet({
             />
           ) : null}
 
-          {!activeCheckout ? (
+          {showDetailsStep ? (
             <>
               <CheckoutSection title="Contact">
                 {phoneReady ? (
@@ -458,47 +468,88 @@ export function StorefrontCheckoutSheet({
             </>
           ) : null}
 
-          <CheckoutSection title="Order summary">
-            <div className="rounded-lg border border-[var(--line)] p-4">
-              <SummaryRow label="Items" value={formatMoney(displaySubtotalMinor)} />
-              <SummaryRow label="Delivery" value={formatMoney(displayDeliveryFeeMinor)} />
-              {displayDiscountMinor > 0 ? (
-                <SummaryRow label="Discount" value={`−${formatMoney(displayDiscountMinor)}`} />
+          {showReviewStep ? (
+            <>
+              {!activeCheckout ? (
+                <CheckoutSection title="Delivering to">
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] p-4">
+                    <div>
+                      <p className="font-medium">{profileDisplayName(context)}</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                        {addresses.find((address) => address.id === selectedAddressId)?.line1}
+                      </p>
+                    </div>
+                    <Button
+                      className="shrink-0"
+                      onClick={() => setStep("details")}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </CheckoutSection>
               ) : null}
-              <div className="mt-4 flex items-end justify-between border-t border-[var(--line)] pt-4">
-                <span className="font-medium">Total</span>
-                <span className="font-serif text-2xl tabular-nums">{formatMoney(totalMinor)}</span>
-              </div>
-              {selectedQuote && !activeCheckout ? (
-                <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-                  {selectedQuote.label} · {deliveryEstimate(selectedQuote)}
-                </p>
-              ) : null}
-            </div>
-          </CheckoutSection>
+
+              <CheckoutSection title="Order summary">
+                <div className="rounded-lg border border-[var(--line)] p-4">
+                  <SummaryRow label="Items" value={formatMoney(displaySubtotalMinor)} />
+                  <SummaryRow label="Delivery" value={formatMoney(displayDeliveryFeeMinor)} />
+                  {displayDiscountMinor > 0 ? (
+                    <SummaryRow label="Discount" value={`−${formatMoney(displayDiscountMinor)}`} />
+                  ) : null}
+                  <div className="mt-4 flex items-end justify-between border-t border-[var(--line)] pt-4">
+                    <span className="font-medium">Total</span>
+                    <span className="font-serif text-2xl tabular-nums">
+                      {formatMoney(totalMinor)}
+                    </span>
+                  </div>
+                  {selectedQuote && !activeCheckout ? (
+                    <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
+                      {selectedQuote.label} · {deliveryEstimate(selectedQuote)}
+                    </p>
+                  ) : null}
+                </div>
+              </CheckoutSection>
+            </>
+          ) : null}
         </div>
       </div>
 
       <div className="border-t border-[var(--line)] bg-[var(--bone)] px-5 py-4 sm:px-7">
-        {blocker ? (
-          <p className="mb-3 text-sm text-[var(--muted)]" id="checkout-payment-help">
-            {blocker}
-          </p>
+        {showDetailsStep ? (
+          <Button
+            className="min-h-12 w-full text-sm"
+            disabled={!detailsReady || couponFetchingBlocked(couponCode, couponReady, couponQuery.isFetching)}
+            onClick={() => setStep("review")}
+            type="button"
+          >
+            Continue to review
+          </Button>
         ) : (
-          <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
-            Paystack opens in a secure payment window. Your order is confirmed only after server
-            verification.
-          </p>
+          <>
+            {blocker ? (
+              <p className="mb-3 text-sm text-[var(--muted)]" id="checkout-payment-help">
+                {blocker}
+              </p>
+            ) : (
+              <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
+                Paystack opens in a secure payment window. Your order is confirmed only after
+                server verification.
+              </p>
+            )}
+            <Button
+              aria-describedby="checkout-payment-help"
+              className="min-h-12 w-full text-sm"
+              disabled={!canPay}
+              onClick={() => void startPayment()}
+              type="button"
+            >
+              {paymentLabel(paymentStage, Boolean(activeCheckout), totalMinor)}
+            </Button>
+          </>
         )}
-        <Button
-          aria-describedby="checkout-payment-help"
-          className="min-h-12 w-full text-sm"
-          disabled={!canPay}
-          onClick={() => void startPayment()}
-          type="button"
-        >
-          {paymentLabel(paymentStage, Boolean(activeCheckout), totalMinor)}
-        </Button>
       </div>
     </CheckoutShell>
   );
@@ -531,6 +582,40 @@ function CheckoutShell({
       {children}
     </div>
   );
+}
+
+function StepIndicator({ active }: { active: CheckoutStep }) {
+  const steps: { key: CheckoutStep; label: string }[] = [
+    { key: "details", label: "Details" },
+    { key: "review", label: "Review & pay" },
+  ];
+  return (
+    <div className="flex items-center gap-2 border-b border-[var(--line)] px-5 py-3 text-xs sm:px-7">
+      {steps.map((entry, index) => (
+        <div className="flex items-center gap-2" key={entry.key}>
+          {index > 0 ? <span className="text-[var(--muted)]">—</span> : null}
+          <span
+            className={
+              entry.key === active
+                ? "font-medium text-[var(--ink)]"
+                : "text-[var(--muted)]"
+            }
+          >
+            {index + 1}. {entry.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function couponFetchingBlocked(
+  couponCode: string,
+  couponReady: boolean,
+  couponFetching: boolean,
+): boolean {
+  if (couponFetching) return true;
+  return Boolean(couponCode.trim()) && !couponReady;
 }
 
 function CheckoutSection({ title, children }: { title: string; children: React.ReactNode }) {

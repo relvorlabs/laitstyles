@@ -84,7 +84,7 @@ export function StorefrontCheckoutDialog({
       open={open}
     >
       <DialogContent
-        className="lst-storefront max-h-[calc(100dvh-1rem)] w-[min(760px,calc(100%-1rem))] max-w-none overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-h-[calc(100dvh-2rem)]"
+        className="lst-storefront flex max-h-[calc(100dvh-1rem)] w-[min(760px,calc(100%-1rem))] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--bone)] p-0 text-[var(--ink)] sm:max-h-[calc(100dvh-2rem)]"
         showCloseButton
       >
         <DialogTitle className="sr-only">Checkout</DialogTitle>

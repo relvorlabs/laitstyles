@@ -24,6 +24,7 @@ import {
   TimelineDot,
 } from "@/modules/storefront-shell/ui/account-primitives";
 import { OrderCancellationControl } from "./order-cancellation-control";
+import { OrderResumePaymentControl } from "./order-resume-payment-control";
 
 function formatMoney(kobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
@@ -378,7 +379,12 @@ export function OrderDetailSection({
           </p>
           {order.paymentStatus.code === "pending" &&
           order.fulfilmentStatus.code === "unfulfilled" ? (
-            <OrderCancellationControl orderNumber={order.orderNumber} />
+            <>
+              <div className="mt-5 border-t border-[var(--acc-line)] pt-5">
+                <OrderResumePaymentControl />
+              </div>
+              <OrderCancellationControl orderNumber={order.orderNumber} />
+            </>
           ) : null}
         </section>
       </div>

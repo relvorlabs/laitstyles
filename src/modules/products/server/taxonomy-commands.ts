@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import type { StaffSession } from "@/modules/auth/server/session";
 import {
   categoryTaxonomyInclude,
@@ -62,7 +63,7 @@ export async function createProductTaxonomy(
   const slug = slugifyProductName(name);
 
   try {
-    const outcome = await prisma.$transaction(
+    const outcome = await runSerializable(
       async (tx) => {
         if (input.kind === "category") {
           const row = await tx.catalogue_categories.create({
@@ -124,7 +125,6 @@ export async function createProductTaxonomy(
           affectedProductSlugs: selectedProducts.map(({ slug: productSlug }) => productSlug),
         };
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
     return ok({
       item: mapProductTaxonomyRow(outcome.row, input.kind),
@@ -177,7 +177,7 @@ export async function updateProductTaxonomy(
   }
 
   try {
-    const outcome = await prisma.$transaction(
+    const outcome = await runSerializable(
       async (tx) => {
         if (input.kind === "category") {
           const affected = await tx.products.findMany({
@@ -258,7 +258,6 @@ export async function updateProductTaxonomy(
           ],
         };
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
     return ok({
       item: mapProductTaxonomyRow(outcome.row, decoded.kind),
@@ -304,7 +303,7 @@ export async function reorderProductTaxonomy(
   }
 
   try {
-    await prisma.$transaction(
+    await runSerializable(
       async (tx) => {
         const currentRows =
           input.kind === "category"
@@ -337,7 +336,6 @@ export async function reorderProductTaxonomy(
           },
         });
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
     return ok({
       message: `${input.kind === "category" ? "Category" : "Collection"} order updated.`,
@@ -453,7 +451,7 @@ export async function deleteProductTaxonomy(
   }
 
   try {
-    const outcome = await prisma.$transaction(
+    const outcome = await runSerializable(
       async (tx) => {
         const usageCount = await tx.products.count({
           where:
@@ -479,7 +477,6 @@ export async function deleteProductTaxonomy(
         });
         return { kind: "deleted" as const };
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
 
     if (outcome.kind === "in-use") {

@@ -245,4 +245,47 @@ describe("handleApiRequest", () => {
       "Unhandled API route failure",
     );
   });
+
+  it("logs safe Prisma diagnostics while preserving the generic client failure", async () => {
+    const request = new Request("http://localhost/api/v1/admin/products/product-id", {
+      method: "PATCH",
+      headers: { "x-request-id": "product-mutation-failure" },
+    });
+    const response = await handleApiRequest(request, async () => {
+      throw Object.assign(new Error("private transaction and query detail"), {
+        name: "PrismaClientKnownRequestError",
+        code: "P2028",
+        meta: {
+          modelName: "products",
+          target: ["slug"],
+          query: "UPDATE products SET private_value = $1",
+          parameters: ["private-value"],
+          credential: "database-secret",
+        },
+      });
+    });
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The request could not be completed.",
+      },
+    });
+    expect(loggerError).toHaveBeenCalledWith(
+      {
+        requestId: "product-mutation-failure",
+        method: "PATCH",
+        pathname: "/api/v1/admin/products/product-id",
+        errorName: "PrismaClientKnownRequestError",
+        errorCode: "P2028",
+        prismaMeta: { modelName: "products", target: ["slug"] },
+      },
+      "Unhandled API route failure",
+    );
+    const logged = JSON.stringify(loggerError.mock.calls);
+    expect(logged).not.toContain("private transaction and query detail");
+    expect(logged).not.toContain("private-value");
+    expect(logged).not.toContain("database-secret");
+  });
 });

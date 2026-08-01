@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type {
@@ -288,7 +289,7 @@ export async function applyDisputeProviderState(input: {
   provider: PaystackDispute;
   actorProfileId?: string | null;
 }): Promise<Result<DisputeProjection, DisputeError>> {
-  const result = await prisma.$transaction(
+  const result = await runSerializable(
     async (tx): Promise<Result<DisputeRow, DisputeError>> => {
       const existing = await tx.payment_disputes.findUnique({
         where: {
@@ -399,7 +400,6 @@ export async function applyDisputeProviderState(input: {
       });
       return ok(row);
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
   return result.ok ? ok(toDisputeProjection(result.value)) : result;
 }

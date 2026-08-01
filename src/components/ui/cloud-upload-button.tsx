@@ -72,11 +72,15 @@ function CloudUploadButton({
       data-slot="button"
       disabled={disabled || busy}
       onError={() =>
-        reportError({ code: "upload-failed", message: "Image upload failed. Try again." })
+       { reportError({ code: "upload-failed", message: "Image upload failed. Try again." });
+         setStatus("failed");}
       }
       onOpen={() => {
         accepted.current = false;
         setLifecycle("opening");
+      }}
+      onClose={() => {
+        setLifecycle("cancelled");
       }}
       onQueuesEnd={() => {
         const completed = accepted.current;
@@ -100,7 +104,7 @@ function CloudUploadButton({
         folder,
         multiple,
         maxFiles,
-        sources: ["local", "camera"],
+        sources: ["local", "camera", "google_drive", "unsplash"],
         clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "avif"],
       }}
       signatureEndpoint="/api/v1/admin/assets/sign"
@@ -109,6 +113,17 @@ function CloudUploadButton({
       <span aria-live="polite" className="sr-only">
         {status === "idle" ? "" : accessibleLabel}
       </span>
+      {busy ? (
+        <span
+          aria-hidden
+          className="fixed inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm"
+        >
+          <span className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 text-sm text-card-foreground shadow-lg">
+            <span className="size-4 rounded-full border-2 border-current/30 border-t-current animate-spin" />
+            {accessibleLabel}
+          </span>
+        </span>
+      ) : null}
     </CldUploadButton>
   );
 }

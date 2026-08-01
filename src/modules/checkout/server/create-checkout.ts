@@ -89,6 +89,10 @@ export async function createCheckout(
     } catch (error: unknown) {
       if (error instanceof ExpectedCheckoutError) return err(error.detail);
       if (error instanceof OperationalStockError) return err(mapStockError(error));
+      if (isSerializableConflict(error)) {
+        if (attempt === MAX_REFERENCE_ATTEMPTS - 1) throw error;
+        continue;
+      }
       if (!isUniqueConstraintError(error)) throw error;
 
       const existing = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
@@ -587,6 +591,10 @@ function minorToDecimal(amountMinor: number): string {
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && Reflect.get(error, "code") === "P2002");
+}
+
+function isSerializableConflict(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && Reflect.get(error, "code") === "P2034");
 }
 
 function mapStockError(error: OperationalStockError): CheckoutError {

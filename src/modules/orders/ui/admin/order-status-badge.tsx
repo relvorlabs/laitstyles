@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { OrderStatus, PaymentStatus } from "@/modules/orders/types";
 import {
   getOrderStatusTone,
   getPaymentTone,
   orderStatusLabels,
   paymentStatusLabels,
 } from "@/modules/orders/ui/admin/order-labels";
-import type { OrderStatus, PaymentStatus } from "@/modules/orders/types";
-import { cn } from "@/lib/utils";
 
 const toneClasses = {
   active: "border-brand-sage/40 bg-accent text-accent-foreground",

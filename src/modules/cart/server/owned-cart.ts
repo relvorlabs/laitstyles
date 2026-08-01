@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import type {
   OwnedCartIntent,
@@ -43,16 +44,13 @@ export async function mergeOwnedCart(
 }
 
 export async function clearOwnedCart(identity: ConsumerSession): Promise<OwnedCartSnapshot> {
-  return prisma.$transaction(
-    async (tx) => {
-      await tx.$executeRaw`
+  return runSerializable(async (tx) => {
+    await tx.$executeRaw`
         DELETE FROM public.customer_cart_lines
         WHERE customer_id = ${identity.customerId}::uuid
       `;
-      return emptySnapshot();
-    },
-    { isolationLevel: "Serializable" },
-  );
+    return emptySnapshot();
+  });
 }
 
 async function writeOwnedCart(
@@ -60,8 +58,7 @@ async function writeOwnedCart(
   incoming: readonly OwnedCartIntent[],
   mode: "replace" | "merge",
 ): Promise<OwnedCartSnapshot> {
-  return prisma.$transaction(
-    async (tx) => {
+  return runSerializable(async (tx) => {
       const current =
         mode === "merge" ? await readOwnedCart(tx, identity.customerId) : emptySnapshot();
       const desired =
@@ -105,9 +102,7 @@ async function writeOwnedCart(
       }
 
       return readOwnedCart(tx, identity.customerId);
-    },
-    { isolationLevel: "Serializable" },
-  );
+  });
 }
 
 async function readOwnedCart(

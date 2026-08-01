@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import {
@@ -61,10 +62,7 @@ export async function requestRefund(
 
   let command: Result<RefundRow, RefundError>;
   try {
-    command = await prisma.$transaction(
-      (tx) => createRefundCommand(tx, actor, normalized.value),
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    );
+    command = await runSerializable((tx) => createRefundCommand(tx, actor, normalized.value));
   } catch (error: unknown) {
     if (!isUniqueConstraintError(error)) throw error;
     const raced = await findRefundReplay(
@@ -168,7 +166,7 @@ export async function applyRefundProviderState(input: {
   provider: PaystackRefund;
   actorProfileId?: string | null;
 }): Promise<Result<RefundProjection, RefundError>> {
-  const result = await prisma.$transaction(
+  const result = await runSerializable(
     async (tx): Promise<Result<RefundRow, RefundError>> => {
       const refund = await tx.payment_refunds.findFirst({
         where: input.refundId
@@ -293,7 +291,6 @@ export async function applyRefundProviderState(input: {
       });
       return ok(updated);
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
   return result.ok ? ok(toRefundProjection(result.value)) : result;
 }

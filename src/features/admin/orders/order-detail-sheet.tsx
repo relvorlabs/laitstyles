@@ -10,17 +10,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
+import { OrderTimeline } from "@/features/admin/orders/order-timeline";
+import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
+import { formatNaira } from "@/lib/admin/shared/formatters";
+import type { ControlRoomOrder, OrderStatus } from "@/modules/orders/types";
 import {
   channelLabels,
   formatOrderDate,
   paymentStatusLabels,
 } from "@/modules/orders/ui/admin/order-labels";
-import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/modules/orders/ui/admin/order-status-badge";
-import { OrderTimeline } from "@/features/admin/orders/order-timeline";
-import { OrderTransitionControls } from "@/features/admin/orders/order-transition-controls";
-import { formatNaira } from "@/lib/admin/shared/formatters";
-import type { ControlRoomOrder, OrderStatus } from "@/modules/orders/types";
 
 export function OrderDetailSheet({
   order,

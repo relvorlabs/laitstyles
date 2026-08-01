@@ -4,12 +4,12 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { channelLabels, formatOrderDate } from "@/modules/orders/ui/admin/order-labels";
 import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
-import { OrderStatusBadge, PaymentStatusBadge } from "@/modules/orders/ui/admin/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 import type { ControlRoomOrder } from "@/modules/orders/types";
+import { channelLabels, formatOrderDate } from "@/modules/orders/ui/admin/order-labels";
+import { OrderStatusBadge, PaymentStatusBadge } from "@/modules/orders/ui/admin/order-status-badge";
 
 export function OrdersMobileList({
   orders,

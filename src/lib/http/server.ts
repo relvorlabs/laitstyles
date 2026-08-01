@@ -197,7 +197,14 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
     });
   }
 
-  logger.error(diagnosticContext, "Unhandled API route failure");
+  const prismaDiagnostics = readPrismaKnownRequestDiagnostics(error);
+  logger.error(
+    {
+      ...diagnosticContext,
+      ...(prismaDiagnostics ?? {}),
+    },
+    "Unhandled API route failure",
+  );
 
   return new ApiError({
     code: "INTERNAL_ERROR",
@@ -205,6 +212,40 @@ export function mapApiError(error: unknown, context?: ApiRequestContext): ApiErr
     status: 500,
     cause: error,
   });
+}
+
+function readPrismaKnownRequestDiagnostics(error: unknown): {
+  errorCode: string;
+  prismaMeta?: { modelName?: string; target?: string | string[] };
+} | null {
+  const record = asRecord(error);
+  if (record?.name !== "PrismaClientKnownRequestError") return null;
+  const errorCode = readString(record.code);
+  if (!errorCode || !/^P\d{4}$/.test(errorCode)) return null;
+
+  const meta = asRecord(record.meta);
+  const modelName = readSafeDiagnosticString(meta?.modelName);
+  const target = readSafeDiagnosticTarget(meta?.target);
+  const prismaMeta = {
+    ...(modelName ? { modelName } : {}),
+    ...(target ? { target } : {}),
+  };
+
+  return {
+    errorCode,
+    ...(Object.keys(prismaMeta).length ? { prismaMeta } : {}),
+  };
+}
+
+function readSafeDiagnosticString(value: unknown): string | null {
+  return typeof value === "string" && /^[A-Za-z][A-Za-z0-9_]{0,127}$/.test(value) ? value : null;
+}
+
+function readSafeDiagnosticTarget(value: unknown): string | string[] | null {
+  if (typeof value === "string") return readSafeDiagnosticString(value);
+  if (!Array.isArray(value) || value.length > 16) return null;
+  const entries = value.map(readSafeDiagnosticString);
+  return entries.every((entry): entry is string => entry !== null) ? entries : null;
 }
 
 function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
@@ -225,9 +266,7 @@ function classifyDatabaseFailure(error: unknown): DatabaseFailure | null {
 
   const databaseUnavailable = allCodes.some(
     (code) =>
-      connectionPrismaCodes.has(code) ||
-      connectionDatabaseCodes.has(code) ||
-      code.startsWith("08"),
+      connectionPrismaCodes.has(code) || connectionDatabaseCodes.has(code) || code.startsWith("08"),
   );
   if (databaseUnavailable) {
     return {
@@ -266,9 +305,7 @@ function collectSafeDatabaseCodes(error: unknown, maxDepth = 3): SafeDatabaseCod
   const databaseCode =
     uniqueCodes.find(
       (code) =>
-        schemaDatabaseCodes.has(code) ||
-        connectionDatabaseCodes.has(code) ||
-        code.startsWith("08"),
+        schemaDatabaseCodes.has(code) || connectionDatabaseCodes.has(code) || code.startsWith("08"),
     ) ?? null;
 
   return { errorCode, databaseCode, allCodes: uniqueCodes };

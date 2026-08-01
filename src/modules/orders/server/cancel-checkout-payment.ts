@@ -7,7 +7,7 @@ export async function closeCancelledCheckoutResources(
   input: {
     orderId: string;
     actorProfileId?: string;
-    requestedBy: "customer" | "staff";
+    requestedBy: "customer" | "staff" | "system";
   },
 ): Promise<void> {
   const now = new Date();
