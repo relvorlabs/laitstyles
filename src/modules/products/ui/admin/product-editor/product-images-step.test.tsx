@@ -15,6 +15,7 @@ type CapturedUploadProps = {
   maxFiles?: number;
   multiple?: boolean;
   onAsset: (asset: UploadedCloudinaryAsset) => boolean | undefined;
+  onStatusChange?: (status: "idle" | "opening" | "uploading" | "completed" | "cancelled" | "failed") => void;
   size?: string;
   variant?: string;
 };
@@ -24,7 +25,11 @@ let capturedUploadProps: CapturedUploadProps | undefined;
 vi.mock("@/components/ui/cloud-upload-button", () => ({
   CloudUploadButton: (props: CapturedUploadProps) => {
     capturedUploadProps = props;
-    return <button type="button">{props.label}</button>;
+    return (
+      <button onClick={() => props.onStatusChange?.("opening")} type="button">
+        {props.label}
+      </button>
+    );
   },
 }));
 
@@ -34,6 +39,16 @@ describe("ProductImagesStep", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Upload images" }));
 
+    expect(screen.getByRole("button", { name: "Upload images" })).toBeTruthy();
+  });
+
+  test("keeps the shared upload trigger mounted through opening and uploading", () => {
+    render(<ProductImagesStepHarness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Upload images" }));
+    expect(screen.getByRole("button", { name: "Upload images" })).toBeTruthy();
+
+    act(() => capturedUploadProps?.onStatusChange?.("uploading"));
     expect(screen.getByRole("button", { name: "Upload images" })).toBeTruthy();
   });
 
@@ -63,6 +78,32 @@ describe("ProductImagesStep", () => {
 
     expect(screen.getByText("Featured cover")).toBeTruthy();
     expect(screen.getByText(/Image added and selected as the featured cover/i)).toBeTruthy();
+  });
+
+  test("reports duplicate and capacity rejection feedback", () => {
+    render(<ProductImagesStepHarness />);
+
+    const upload = capturedUploadProps;
+    const asset = (index: number): UploadedCloudinaryAsset => ({
+      publicId: `laitstyles/products/coat-${index}`,
+      url: `https://res.cloudinary.com/store/image/upload/v1/coat-${index}.jpg`,
+      width: 1200,
+      height: 1500,
+      format: "jpg",
+      bytes: 2048,
+    });
+
+    act(() => {
+      upload?.onAsset(asset(0));
+      upload?.onAsset(asset(0));
+    });
+    expect(screen.getByText("That image is already in this product record.")).toBeTruthy();
+
+    act(() => {
+      for (let index = 1; index < 12; index += 1) upload?.onAsset(asset(index));
+      upload?.onAsset(asset(12));
+    });
+    expect(screen.getByText("A product can have up to 12 images.")).toBeTruthy();
   });
 });
 

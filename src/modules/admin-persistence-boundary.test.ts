@@ -121,10 +121,9 @@ const manualPaymentControlTokens = [
 describe("Phase 5 admin persistence boundary", () => {
   it("allows the shared Cloudinary upload boundary and rejects direct SDK imports", () => {
     const sharedBoundary = {
-      "src/components/ui/cloud-upload-button.tsx":
-        'import { CldUploadButton } from "next-cloudinary"; export { CldUploadButton };',
+      "src/components/ui/cloud-upload-button.tsx": "export function CloudUploadButton() {}",
       "src/modules/products/ui/editor.tsx":
-        'import { CldUploadButton } from "@/components/ui/cloud-upload-button";',
+        'import { CloudUploadButton } from "@/components/ui/cloud-upload-button";',
     };
     const directConsumer = {
       "src/modules/products/ui/editor.tsx": 'import { CldUploadButton } from "next-cloudinary";',
