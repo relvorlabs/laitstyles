@@ -1,7 +1,7 @@
 # Phase 9 Admin Team UI Ownership Cutover Design
 
 **Date:** 2026-08-01  
-**Status:** Approved by the user; implementation and executable acceptance remain open.  
+**Status:** Implementation recorded; executable acceptance remains incomplete because Node 25 was unavailable and focused coverage has two unchanged Route Handler contract failures.
 **Migration scope:** Phase 9, one independently reviewable `src/features/**` retirement slice.
 
 ## Context and decision
@@ -14,8 +14,9 @@ Leaving the presentation under legacy admin composition obscures that single-dom
 
 This slice makes one decision: Auth owns the Store Team invitation UI and the contracts it
 consumes. The existing file moves exactly to
-`src/modules/auth/ui/admin/team-workspace.tsx`; `src/app/admin/team/page.tsx` changes only the
-`TeamWorkspace` import path. The component is not redesigned or decomposed.
+`src/modules/auth/ui/admin/team-workspace.tsx`; `src/app/admin/team/page.tsx` changes the
+`TeamWorkspace` import path while preserving its logic. The recorded override permits only
+Biome's final ordering of its four existing imports. The component is not redesigned or decomposed.
 
 The source file is currently 12,287 bytes and 286 lines, with SHA-256
 `82906C5C036134842AE79D3B7C782DDDE2FCDE12FDA397E9624A734440E62CED`. Its size is acknowledged,
@@ -96,14 +97,16 @@ exposed through a barrel.
 - call `listStoreManagers()`;
 - pass the resulting array as `initialMembers` to `TeamWorkspace`.
 
-Only this import changes:
+The cutover changes this import path:
 
 ```text
 @/features/admin/team/team-workspace
   -> @/modules/auth/ui/admin/team-workspace
 ```
 
-No other import, statement, redirect, prop or JSX in the route changes.
+No route statement, redirect, prop or JSX changes. The sole documented execution override permits
+Biome's required final ordering of the route's four existing imports; it does not permit adding,
+removing or semantically changing any import or any other route code.
 
 ### `TeamWorkspace`
 
@@ -133,12 +136,14 @@ path. Consumers must import the concrete Auth UI file.
      -> src/modules/auth/ui/admin/team-workspace.tsx
    ```
 
-3. In `src/app/admin/team/page.tsx`, replace only the legacy `TeamWorkspace` import path with
-   `@/modules/auth/ui/admin/team-workspace`.
+3. In `src/app/admin/team/page.tsx`, replace the legacy `TeamWorkspace` import path with
+   `@/modules/auth/ui/admin/team-workspace`; preserve all route logic. If Biome requires it, order
+   the four existing imports and record that formatter-only deviation.
 4. Search the repository for the legacy path and confirm no importer, check, test or documentation
    contract requires a compatibility edge.
 5. Confirm the old file is absent, the destination hash matches the pre-move hash and the focused
-   diff contains one pure rename plus one import-path replacement.
+   diff contains one pure rename, one import-path replacement and, only under the recorded
+   formatter override, a reorder of the four existing route imports.
 6. Run the acceptance gates below on the exact implementation head and report failures, skipped
    checks and pre-existing debt precisely.
 
@@ -194,7 +199,8 @@ split components, deduplicate types or otherwise refactor the 286-line file.
 - `src/features/admin/team/team-workspace.tsx` no longer exists.
 - Repository search finds no import of `@/features/admin/team/team-workspace` and no compatibility
   file, re-export, alias or duplicate workspace.
-- `src/app/admin/team/page.tsx` differs only by the one import path.
+- `src/app/admin/team/page.tsx` differs only by the import-path replacement and the recorded
+  formatter-only ordering of its four existing imports.
 - The moved component has no content diff and remains a Client Component with no server-only import.
 - The final diff preserves all unrelated dirty work and contains no package, lockfile, generated,
   schema or migration change attributable to this slice.
@@ -293,5 +299,16 @@ server operations, HTTP transport and persistence remain unchanged.
 
 ## Recorded overrides
 
-None. This design applies the target architecture and Phase 9 legacy-removal goal without changing
-the product, behaviour or validation doctrine.
+The user explicitly approved a narrowly scoped formatter-only deviation from the route
+import-only preservation constraint. Implementation commit `e428b45`
+(`refactor(auth): move admin team workspace`) performed the 100%-similarity R100 move and route
+import-path cutover. Biome then required the route imports to be ordered; follow-up commit
+`c55f7739` (`style(auth): order admin team imports`) reordered only the four existing imports and
+normalized line endings. Its final Git diff is one insertion and one deletion in
+`src/app/admin/team/page.tsx`, with no behaviour change. This override permits only that four-line
+import ordering in this route; every other exclusion, including byte preservation of
+`TeamWorkspace`, remains in force.
+
+Focused Auth coverage was run with 10 of 12 tests passing; the two failures are unchanged
+invitation Route Handler contract failures. Node 25 was unavailable, so Node-25-required gates
+remain unexecuted rather than passing.
