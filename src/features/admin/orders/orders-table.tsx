@@ -11,9 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { channelLabels } from "@/features/admin/orders/order-labels";
+import { channelLabels } from "@/modules/orders/ui/admin/order-labels";
 import { toOrderWorkspaceItem } from "@/features/admin/orders/order-selectors";
-import { OrderStatusBadge, PaymentStatusBadge } from "@/features/admin/orders/order-status-badge";
+import { OrderStatusBadge, PaymentStatusBadge } from "@/modules/orders/ui/admin/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira } from "@/lib/admin/shared/formatters";
 import type { ControlRoomOrder } from "@/modules/orders/types";

@@ -1,5 +1,5 @@
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
-import { formatOrderDate, orderStatusLabels } from "@/features/admin/orders/order-labels";
+import { formatOrderDate, orderStatusLabels } from "@/modules/orders/ui/admin/order-labels";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import type { ControlRoomOrder } from "@/modules/orders/types";
 

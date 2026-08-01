@@ -4,8 +4,8 @@ import {
   getPaymentTone,
   orderStatusLabels,
   paymentStatusLabels,
-} from "@/features/admin/orders/order-labels";
-import type { OrderStatus, PaymentStatus } from "@/lib/admin/shared/types";
+} from "@/modules/orders/ui/admin/order-labels";
+import type { OrderStatus, PaymentStatus } from "@/modules/orders/types";
 import { cn } from "@/lib/utils";
 
 const toneClasses = {

@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { orderStatusLabels } from "@/features/admin/orders/order-labels";
+import { orderStatusLabels } from "@/modules/orders/ui/admin/order-labels";
 import { getPermittedOrderTransitions } from "@/modules/orders/rules";
 import type { ControlRoomOrder, OrderStatus } from "@/modules/orders/types";
 
