@@ -8,26 +8,12 @@ const nextConfig: NextConfig = {
   // (quick view, hover, etc.) with no console error. Re-enable once
   // confirmed fixed upstream or the boundary is reworked to avoid it.
   cacheComponents: true,
-  async redirects() {
-    return [
-      {
-        source: "/p/:slug",
-        destination: "/products/:slug",
-        permanent: true,
-      },
-    ];
-  },
   images: {
     // The current prototype catalog uses externally optimized Pexels delivery URLs.
     // Serving them directly avoids blocking Next's image optimizer on that upstream host.
     unoptimized: true,
     remotePatterns: [
       ...getConfiguredAssetRemotePatterns(),
-      {
-        protocol: "https",
-        hostname: "images.pexels.com",
-        pathname: "/photos/**",
-      },
     ],
   },
   compiler: {

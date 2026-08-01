@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.13.0",
   "engines": {
-    "node": "25.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "portless run next dev",

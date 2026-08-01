@@ -24,6 +24,11 @@ export function getConfiguredAssetRemotePatterns(): AssetRemotePattern[] {
       hostname: "*.r2.dev",
       pathname: "/**",
     },
+    {
+      protocol: "https",
+      hostname: "images.pexels.com",
+      pathname: "/photos/**",
+    },
     ...(configuredCloudflareHost
       ? [
           {
