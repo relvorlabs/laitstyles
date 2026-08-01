@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { useReveal } from "@/features/storefront/shared/reveal";
+import { useReveal } from "@/hooks/use-reveal";
 import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
 
 export function CategoryCard({

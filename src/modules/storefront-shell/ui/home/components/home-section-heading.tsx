@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { RevealDiv } from "@/features/storefront/shared/reveal";
 import { IconArrow } from "@/modules/storefront-shell/ui/storefront-icons";
+import { RevealDiv } from "./reveal-div";
 
 export function HomeSectionHeading({
   eyebrow,

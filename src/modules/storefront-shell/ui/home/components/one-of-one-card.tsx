@@ -35,9 +35,7 @@ export function OneOfOneCard({
             alt={product.name}
             width={1200}
             height={1500}
-            sizes={
-              featured ? "(min-width: 861px) 50vw, 100vw" : "(min-width: 861px) 25vw, 50vw"
-            }
+            sizes={featured ? "(min-width: 861px) 50vw, 100vw" : "(min-width: 861px) 25vw, 50vw"}
           />
         ) : null}
         <span className="one-info">
