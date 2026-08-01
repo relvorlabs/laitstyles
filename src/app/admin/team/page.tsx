@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { TeamWorkspace } from "@/features/admin/team/team-workspace";
+import { TeamWorkspace } from "@/modules/auth/ui/admin/team-workspace";
 import { getCurrentSession } from "@/modules/auth/server/session";
 import { listStoreManagers } from "@/modules/auth/server/staff-invitations";
 
