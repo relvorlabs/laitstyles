@@ -1,8 +1,8 @@
 # Phase 9 Admin Orders Presentation Primitives Cutover Design
 
-**Date:** 2026-08-01  
-**Status:** Approved migration-only design; implementation and exact-head acceptance are unexecuted.  
-**Baseline:** `d1ba9821` on `agent/storefront-checkout-delivery-promotions-redesign`.  
+**Date:** 2026-08-01
+**Status:** Approved migration-only design; implementation and exact-head acceptance are unexecuted.
+**Baseline:** `d1ba9821` on `agent/storefront-checkout-delivery-promotions-redesign`.
 **Scope:** One Phase 9 ownership cutover for two legacy Orders presentation primitives and their seven live consumers.
 
 ## Context and decision
