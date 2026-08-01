@@ -1,14 +1,14 @@
 # Phase 1 Legacy Architecture Exceptions
 
-**Status:** Active temporary exceptions  
+**Status:** Complete — zero active exceptions  
 **Owner:** Architecture migration  
 **Rule:** This list may only shrink. Removing an edge and its machine entry happens in one commit.
 
-Phase 1 establishes the target rules without pretending Phase 7 authentication or Phase 8
-checkout settlement has already migrated. The machine-readable authority is
-`scripts/checks/architecture-legacy-exceptions.mjs`; every entry names one exact importer and
-one exact imported specifier, an owner, a reason, and a removal phase. The architecture guard
-checks both observed-to-declared and declared-to-observed directions.
+Phase 7 authentication and Phase 8 checkout compatibility are complete. The machine-readable
+authority is `scripts/checks/architecture-legacy-exceptions.mjs`; its exception array is empty.
+When an exception exists, every entry names one exact importer and one exact imported specifier,
+an owner, a reason, and a removal phase. The architecture guard checks both
+observed-to-declared and declared-to-observed directions.
 
 ## Phase 7 authentication compatibility — complete, zero edges remain
 
@@ -34,19 +34,17 @@ deleted outright — the moved `auth-dialog.tsx` now imports `Product` directly 
 re-exported. See `docs/superpowers/specs/2026-07-27-phase-7-auth-consolidation-design.md`.
 
 No legacy top-level auth file remains declared. `src/server/auth/**` no longer exists.
-`src/features/storefront/shared/storefront-runtime.ts` remains a Phase 8 checkout edge, untouched.
+`src/features/storefront/shared/storefront-runtime.ts` was deleted after every consumer moved to
+`@/modules/storefront-shell/client/storefront-runtime`; no shared runtime compatibility shim
+remains.
 
-## Phase 8 checkout compatibility
+## Phase 8 checkout compatibility — complete, zero edges remain
 
-These route-level presentation edges are owned by the UI engineer and are removed in Phase 8.
-
-| Importer | Imported specifier |
-| --- | --- |
-| `src/app/(storefront)/checkout/page.tsx` | `@/features/storefront/checkout/checkout-flow-v2` |
-| `src/app/(storefront)/order-confirmation/page.tsx` | `@/features/storefront/checkout/order-receipt` |
-
-No checkout directory, nested checkout-to-checkout import, settlement operation, wildcard, or
-second route consumer is covered by these entries.
+Phase 8 checkout compatibility is complete. The standalone checkout page is gone, and
+`src/app/(storefront)/order-confirmation/page.tsx` now authenticates the consumer and reads the
+canonical persisted order before rendering `@/modules/checkout/ui/order-confirmation`. The two
+stale route-level exception entries were retired. No checkout directory or shared runtime
+compatibility shim remains under `src/features/storefront/**`.
 
 ## Explicitly not excepted
 
@@ -98,3 +96,13 @@ removed from `architecture-legacy-exceptions.mjs`, and the test that asserted it
 (`src/modules/products/product-module-boundaries.test.ts`, "keeps every phase exception exact and
 type-only") is removed with it — there is no longer an exception to verify. Phase 7's section of
 this document is now empty of active edges.
+
+On 2026-08-01, Phase 8 checkout compatibility closed with four dead legacy files deleted:
+`src/features/storefront/checkout/checkout-helpers.test.ts`,
+`src/features/storefront/checkout/order-receipt.test.ts`,
+`src/features/storefront/checkout/components/confirm-metric.tsx`, and
+`src/features/storefront/shared/storefront-runtime.ts`. The corresponding stale exceptions were
+retired for `src/app/(storefront)/checkout/page.tsx` →
+`@/features/storefront/checkout/checkout-flow-v2` and
+`src/app/(storefront)/order-confirmation/page.tsx` →
+`@/features/storefront/checkout/order-receipt`. The machine-readable exception array is now empty.
