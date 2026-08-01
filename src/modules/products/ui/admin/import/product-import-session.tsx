@@ -142,6 +142,7 @@ export function ProductImportSession({
         onPersistenceStatusChange={setSelectedStatus}
         onRequestClose={requestClose}
         onValuesChange={updateSelectedValues}
+        navigationMode="unrestricted"
         queueNavigation={
           <ProductImportQueue
             ignoredAssetCount={state.ignoredAssetCount}

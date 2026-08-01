@@ -47,6 +47,8 @@ import { ProductEditorFooter } from "@/modules/products/ui/admin/product-editor/
 import { ProductEditorStepContent } from "@/modules/products/ui/admin/product-editor/product-editor-step-content";
 import { ProductEditorStepper } from "@/modules/products/ui/admin/product-editor/product-editor-stepper";
 
+export type ProductEditorNavigationMode = "sequential" | "unrestricted";
+
 export function ProductEditorDialog({
   open,
   productId = null,
@@ -92,6 +94,7 @@ export type ProductEditorSurfaceProps = {
   queueNavigation?: ReactNode;
   manageDiscardConfirmation?: boolean;
   closeAfterSave?: boolean;
+  navigationMode?: ProductEditorNavigationMode;
 };
 
 type ProductEditorExperienceProps = ProductEditorSurfaceProps & {
@@ -111,6 +114,7 @@ function ProductEditorExperience({
   queueNavigation,
   manageDiscardConfirmation = true,
   closeAfterSave = true,
+  navigationMode = "sequential",
   registerCloseRequest,
 }: ProductEditorExperienceProps) {
   const saveProductMutation = useSaveProduct();
@@ -131,6 +135,10 @@ function ProductEditorExperience({
     if (methods.formState.isDirty) onValuesChange?.(watchedValues);
   }, [methods.formState.isDirty, onValuesChange, watchedValues]);
   const publishIssues = useMemo(() => validateProductForPublish(watchedValues), [watchedValues]);
+  const stepCompletion = useMemo(
+    () => Object.fromEntries(productEditorSteps.map((step) => [step, validateProductEditorStep(watchedValues, step).length === 0])) as Record<ProductEditorStep, boolean>,
+    [watchedValues],
+  );
   const activeIndex = productEditorSteps.indexOf(activeStep);
   const editing = Boolean(initialValues.productId);
 
@@ -146,7 +154,7 @@ function ProductEditorExperience({
 
   function goToStep(step: ProductEditorStep) {
     const index = productEditorSteps.indexOf(step);
-    if (index <= highestVisited) setActiveStep(step);
+    if (navigationMode === "unrestricted" || index <= highestVisited) setActiveStep(step);
   }
 
   function goBack() {
@@ -273,6 +281,8 @@ function ProductEditorExperience({
               <ProductEditorStepper
                 activeStep={activeStep}
                 highestVisited={highestVisited}
+                navigationMode={navigationMode}
+                stepCompletion={stepCompletion}
                 onStepChange={goToStep}
               />
               {queueNavigation}
