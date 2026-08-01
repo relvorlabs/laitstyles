@@ -181,6 +181,10 @@ git add -- docs/superpowers/plans/2026-08-01-phase-9-admin-promotions-ui-cutover
 
 Expected: cached whitespace check is clean; summary reports a 100% rename; cached source paths are exactly the old workspace, new workspace, and route, plus the plan only when an actual formatter deviation was recorded. The route diff contains the import replacement and only the approved formatting order if applicable. Commit the independently reviewable cutover, record its SHA, and leave all unrelated dirty/untracked work uncommitted and unchanged.
 
+#### Execution deviation — Biome route import ordering
+
+Scoped Biome required ordering of the five pre-existing imports in `src/app/admin/promotions/page.tsx`. The user pre-authorized that formatter-only change; no imports were added, removed, or semantically altered, and no other source scope changed.
+
 ### Task 2: Apply exact-head reviewer gates, causality, and browser parity review
 
 **Owner:** Reviewer

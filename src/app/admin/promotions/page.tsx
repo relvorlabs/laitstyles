@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { PromotionsWorkspace } from "@/features/admin/promotions/promotions-workspace";
 import { hasCapability } from "@/modules/auth/permissions";
 import { getCurrentSession } from "@/modules/auth/server/session";
 import { listPromotionCoupons } from "@/modules/promotions/server/coupons";
+import { PromotionsWorkspace } from "@/modules/promotions/ui/admin/promotions-workspace";
 
 export default async function PromotionsPage() {
   const session = await getCurrentSession();
