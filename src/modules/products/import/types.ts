@@ -115,5 +115,6 @@ export type ProductImportSessionState = {
   source: ProductImportSource;
   children: ProductImportChild[];
   selectedImportId: string | null;
+  selectedImportIds: string[];
   ignoredAssetCount: number;
 };
