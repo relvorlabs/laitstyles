@@ -26,6 +26,14 @@ const imgBase =
 const imgHover =
   "[@media(hover:hover)]:group-hover:scale-[1.025] [@media(hover:hover)]:group-hover:[filter:saturate(0.86)_contrast(1)]";
 
+/**
+ * Hold/Reserve is designed for scheduled drops, which don't exist in the
+ * product catalogue yet. Until drops ship, holding is disabled for regular
+ * products so a single browsing customer can't lock stock away from others;
+ * this flag is the single place to re-enable it once drops land.
+ */
+const DROPS_ENABLED = false;
+
 function formatHold(seconds: number) {
   const value = Math.max(0, seconds);
   return `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
@@ -76,11 +84,17 @@ export function ProductCard({
           action: () => onQuickView(product.id),
           variant: "default" as const,
         }
-      : {
-          label: "Hold piece",
-          action: () => onHold(product.id),
-          variant: "default" as const,
-        };
+      : DROPS_ENABLED
+        ? {
+            label: "Hold piece",
+            action: () => onHold(product.id),
+            variant: "default" as const,
+          }
+        : {
+            label: "View details",
+            action: () => onQuickView(product.id),
+            variant: "default" as const,
+          };
 
   const bagAction = unavailable
     ? undefined

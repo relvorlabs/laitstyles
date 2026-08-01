@@ -2,13 +2,14 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
+import {
+  deriveCheckoutStatus,
+  type CheckoutOrderFulfilmentStatus,
+  type CheckoutOrderPaymentStatus,
+  type CheckoutPaymentAttemptStatus,
+} from "@/modules/checkout/lifecycle";
 import { checkoutIdentifierSchema } from "@/modules/checkout/schema";
-import type {
-  CheckoutDetail,
-  CheckoutError,
-  CheckoutIdentity,
-  CheckoutStatus,
-} from "@/modules/checkout/types";
+import type { CheckoutDetail, CheckoutError, CheckoutIdentity } from "@/modules/checkout/types";
 
 export async function getCheckout(
   identity: CheckoutIdentity,
@@ -37,8 +38,12 @@ export async function getCheckout(
     paymentId: payment.id,
     orderNumber: order.order_number,
     reference: payment.reference,
-    accessCode: payment.access_code,
-    status: payment.status as CheckoutStatus,
+    accessCode: order.payment_status === "cancelled" ? null : payment.access_code,
+    status: deriveCheckoutStatus({
+      orderPaymentStatus: order.payment_status as CheckoutOrderPaymentStatus,
+      orderFulfilmentStatus: order.fulfilment_status as CheckoutOrderFulfilmentStatus,
+      paymentAttemptStatus: payment.status as CheckoutPaymentAttemptStatus,
+    }),
     currency: order.currency,
     subtotalMinor: decimalToMinor(order.subtotal),
     deliveryFeeMinor: decimalToMinor(order.delivery_fee),

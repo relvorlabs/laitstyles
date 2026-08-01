@@ -4,7 +4,7 @@ const RESUME_CHECKOUT_EVENT = "laitstyles:resume-checkout";
 
 export function requestStorefrontCheckoutResume(): void {
   if (typeof window === "undefined") return;
-  openStorefrontOverlay("cartDrawer");
+  openStorefrontOverlay("checkoutDialog");
   window.dispatchEvent(new Event(RESUME_CHECKOUT_EVENT));
 }
 

@@ -1,26 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const queries = vi.hoisted(() => ({
-  getPublishedProductBySlug: vi.fn(),
-  listPublishedProductDetails: vi.fn(),
-  listPublishedProductSlugs: vi.fn(),
-  listStorefrontCategories: vi.fn(),
-}));
-const log = vi.hoisted(() => ({ error: vi.fn() }));
+const shellQuery = vi.hoisted(() => ({ getStorefrontShellCatalogue: vi.fn() }));
+const diagnostics = vi.hoisted(() => ({ report: vi.fn() }));
 
-vi.mock("@/modules/products/server/storefront/queries", () => queries);
-vi.mock("@/lib/logger", () => ({ logger: log }));
+vi.mock("@/modules/products/server/storefront/shell-query", () => shellQuery);
+vi.mock("@/lib/server-diagnostics", () => ({
+  reportPrerenderSafeServerError: diagnostics.report,
+}));
 
 import { loadStorefrontShellCatalogue } from "./catalogue-loader";
 
 describe("storefront shell failure containment", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queries.listStorefrontCategories.mockResolvedValue([]);
   });
 
-  it("returns a generic public state instead of rejecting with database details", async () => {
-    queries.listPublishedProductDetails.mockRejectedValue(
+  it("returns a generic public state and emits bounded prerender-safe diagnostics", async () => {
+    shellQuery.getStorefrontShellCatalogue.mockRejectedValue(
       new Error("Can't reach database server at private-database.example"),
     );
 
@@ -31,10 +27,10 @@ describe("storefront shell failure containment", () => {
       measurementsCm: {},
       variantOptionsByProductId: {},
     });
-    expect(log.error).toHaveBeenCalledWith(
-      { scope: "storefront-shell-catalogue", errorName: "Error" },
-      "Storefront shell catalogue load failed",
-    );
-    expect(JSON.stringify(log.error.mock.calls)).not.toContain("private-database.example");
+    expect(diagnostics.report).toHaveBeenCalledWith("Storefront shell catalogue load failed", {
+      scope: "storefront-shell-catalogue",
+      errorName: "Error",
+    });
+    expect(JSON.stringify(diagnostics.report.mock.calls)).not.toContain("private-database.example");
   });
 });

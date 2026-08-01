@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { OrderStatusBadge } from "@/features/admin/orders/order-status-badge";
 import { AdminIcon } from "@/features/admin/shared/admin-icon";
 import { formatNaira, formatRelativeTime } from "@/lib/admin/shared/formatters";
+import { OrderStatusBadge } from "@/modules/orders/ui/admin/order-status-badge";
 import type { OverviewOpenOrder } from "@/modules/overview/types";
 
 export function OpenOrdersPreview({ orders, asOf }: { orders: OverviewOpenOrder[]; asOf: string }) {

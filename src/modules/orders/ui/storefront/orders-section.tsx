@@ -21,6 +21,7 @@ import {
   StatusBadge,
   type StatusVariant,
 } from "@/modules/storefront-shell/ui/account-primitives";
+import { OrderResumePaymentControl } from "./order-resume-payment-control";
 
 function formatMoney(kobo: number, currency: string): string {
   return new Intl.NumberFormat("en-NG", {
@@ -58,7 +59,11 @@ function fulfilmentVariant(code: AccountOrderSummary["fulfilmentStatus"]["code"]
 }
 
 function OrderImages({ order }: { order: AccountOrderSummary }) {
-  const images = [...new Map(order.images.filter((image) => image?.src).map((image) => [image.src, image])).values()];
+  const images = [
+    ...new Map(
+      order.images.filter((image) => image?.src).map((image) => [image.src, image]),
+    ).values(),
+  ];
 
   if (images.length === 0) {
     return (
@@ -166,6 +171,10 @@ export function OrdersSection({ orders }: { orders: AccountOrderSummary[] }) {
                     </p>
                   </div>
                   <div className="grid gap-3 sm:col-start-2 sm:grid-cols-2 lg:col-start-auto lg:grid-cols-1">
+                    {order.paymentStatus.code === "pending" &&
+                    order.fulfilmentStatus.code === "unfulfilled" ? (
+                      <OrderResumePaymentControl />
+                    ) : null}
                     {order.reviewableItemCount > 0 ? (
                       <Link
                         href={`${detailsHref}#review-items`}

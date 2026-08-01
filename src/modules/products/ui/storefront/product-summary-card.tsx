@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { formatNaira } from "@/lib/money";
@@ -27,34 +27,55 @@ export function ProductCard({ product }: { product: ProductSummary }) {
         size="sm"
       >
         <CardContent className="flex min-h-0 flex-col p-0">
-          <Link
-            aria-label={`View ${product.name}`}
-            className="relative block aspect-[1/1.08] overflow-hidden bg-surface-raised outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-            href={productHref}
-          >
-            {product.cover ? (
-              <CloudImage
-                alt={product.cover.alt || product.name}
-                className={cn(
-                  "object-cover transition-[transform,opacity] duration-300 group-hover/card:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100",
-                  isSold && "opacity-55 grayscale",
-                )}
-                fill
-                sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                src={product.cover.url}
-              />
-            ) : (
-              <span className="grid size-full place-items-center bg-surface-sunken px-4 text-center font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                Image unavailable
-              </span>
-            )}
+          <div className="relative aspect-[1/1.08] overflow-hidden bg-surface-raised">
+            <Link
+              aria-label={`View ${product.name}`}
+              className="absolute inset-0 block outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              href={productHref}
+            >
+              {product.cover ? (
+                <CloudImage
+                  alt={product.cover.alt || product.name}
+                  className={cn(
+                    "object-cover transition-[transform,opacity] duration-300 group-hover/card:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100",
+                    isSold && "opacity-55 grayscale",
+                  )}
+                  fill
+                  sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                  src={product.cover.url}
+                />
+              ) : (
+                <span className="grid size-full place-items-center bg-surface-sunken px-4 text-center font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  Image unavailable
+                </span>
+              )}
 
-            {isSold || isReserved ? (
-              <span className="absolute inset-x-2 bottom-2 bg-surface-inverse px-2.5 py-2 text-center font-mono text-[10px] uppercase tracking-[0.08em] text-surface-inverse-foreground">
-                {isSold ? "Sold — details remain available" : "Reserved — release time may apply"}
-              </span>
-            ) : null}
-          </Link>
+              {isSold || isReserved ? (
+                <span className="absolute inset-x-2 bottom-2 bg-surface-inverse px-2.5 py-2 text-center font-mono text-[10px] uppercase tracking-[0.08em] text-surface-inverse-foreground">
+                  {isSold ? "Sold — details remain available" : "Reserved — release time may apply"}
+                </span>
+              ) : null}
+            </Link>
+
+            <div className="pointer-events-none absolute inset-x-2 bottom-2 z-[2] flex flex-col gap-1.5 opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/card:opacity-100 max-[600px]:hidden">
+              <Link
+                className={cn(buttonVariants({ size: "sm" }), "pointer-events-auto w-full")}
+                href={productHref}
+              >
+                View details
+              </Link>
+              <Button
+                className="pointer-events-auto w-full"
+                disabled
+                size="sm"
+                title="Hold/Reserve is reserved for upcoming drops."
+                type="button"
+                variant="secondary"
+              >
+                Hold
+              </Button>
+            </div>
+          </div>
 
           <div className="grid gap-2 px-3 pb-0 pt-[11px]">
             <CardTitle className="line-clamp-2 min-h-[34px] text-[15px]/[1.15] font-medium">

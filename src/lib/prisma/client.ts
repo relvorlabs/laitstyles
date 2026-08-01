@@ -17,13 +17,20 @@ export type { PrismaClient };
 export { Prisma };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  // Interactive transactions ($transaction(async (tx) => ...)) send several
+  // statements across one BEGIN/COMMIT and require the same backend connection
+  // throughout. Supabase's transaction-mode pooler (DATABASE_URL, port 6543)
+  // can hand different statements to different backends mid-transaction,
+  // which surfaces as Prisma error P2028. The session-mode pooler (DIRECT_URL,
+  // port 5432) pins one backend connection per client connection, so runtime
+  // queries use it instead; DATABASE_URL remains available for tooling that
+  // wants transaction-mode pooling explicitly.
+  const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not set — cannot create the Prisma client.");
+    throw new Error("DIRECT_URL (or DATABASE_URL) is not set — cannot create the Prisma client.");
   }
 
-  // Prisma 7 requires a driver adapter. Runtime connects via the pg pooler
-  // (DATABASE_URL, transaction pooler). Pool options are set explicitly because
+  // Prisma 7 requires a driver adapter. Pool options are set explicitly because
   // the pg driver has no default connection timeout.
   const adapter = new PrismaPg({
     connectionString,

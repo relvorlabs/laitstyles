@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 
 const MAX_RECENT_PRODUCTS = 8;
@@ -38,8 +39,7 @@ export async function recordOwnedRecentProductIds(
   const acceptedIds = requestedIds.filter((productId) => publishedIds.has(productId));
   if (acceptedIds.length === 0) return listOwnedRecentProductIds(identity);
 
-  return prisma.$transaction(
-    async (transaction) => {
+  return runSerializable(async (transaction) => {
       const now = Date.now();
       for (const [index, productId] of acceptedIds.entries()) {
         await transaction.$executeRaw`
@@ -82,9 +82,7 @@ export async function recordOwnedRecentProductIds(
       `;
 
       return readOwnedRecentProductIds(transaction, identity.customerId);
-    },
-    { isolationLevel: "Serializable" },
-  );
+  });
 }
 
 async function readOwnedRecentProductIds(

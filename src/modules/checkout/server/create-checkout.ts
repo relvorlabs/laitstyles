@@ -3,8 +3,16 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import {
+  deriveCheckoutStatus,
+  isCheckoutResumable,
+  type CheckoutOrderFulfilmentStatus,
+  type CheckoutOrderPaymentStatus,
+  type CheckoutPaymentAttemptStatus,
+} from "@/modules/checkout/lifecycle";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
 import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
+import { resolveCheckoutDeliveryQuote } from "@/modules/checkout/server/delivery-policy";
 import type {
   CheckoutDraft,
   CheckoutError,
@@ -81,6 +89,10 @@ export async function createCheckout(
     } catch (error: unknown) {
       if (error instanceof ExpectedCheckoutError) return err(error.detail);
       if (error instanceof OperationalStockError) return err(mapStockError(error));
+      if (isSerializableConflict(error)) {
+        if (attempt === MAX_REFERENCE_ATTEMPTS - 1) throw error;
+        continue;
+      }
       if (!isUniqueConstraintError(error)) throw error;
 
       const existing = await findIdempotentCheckout(parsed.data.idempotencyKey, requestHash);
@@ -195,17 +207,12 @@ async function createPendingDraft(
           "addressId",
         );
       }
-
-      const deliveryZone = await tx.delivery_zones.findFirst({
-        where: { id: input.deliveryZoneId, enabled: true },
+      const deliveryQuote = await resolveCheckoutDeliveryQuote(tx, {
+        id: address.id,
+        city: address.city,
+        state: address.state,
+        country: address.country,
       });
-      if (!deliveryZone) {
-        throw expected(
-          "CHECKOUT_INVALID",
-          "The selected delivery zone is unavailable.",
-          "deliveryZoneId",
-        );
-      }
 
       const products = await tx.products.findMany({
         where: { id: { in: input.lines.map((line) => line.productId) } },
@@ -274,7 +281,7 @@ async function createPendingDraft(
       }
 
       const discountMinor = coupon?.discountMinor ?? 0;
-      const deliveryFeeMinor = decimalToMinor(deliveryZone.rate);
+      const deliveryFeeMinor = deliveryQuote.feeMinor;
       const totalMinor = Math.max(0, subtotalMinor + deliveryFeeMinor - discountMinor);
       const order = await tx.orders.create({
         data: {
@@ -286,7 +293,7 @@ async function createPendingDraft(
           payment_method: "paystack",
           fulfilment_method: "delivery",
           fulfilment_status: "unfulfilled",
-          delivery_zone_id: deliveryZone.id,
+          delivery_zone_id: deliveryQuote.deliveryZoneId,
           customer_name: account.displayName,
           customer_email: account.email,
           delivery_name: account.displayName,
@@ -299,6 +306,8 @@ async function createPendingDraft(
             state: address.state,
             country: address.country,
             notes: address.delivery_notes,
+            deliveryPolicy: deliveryQuote.source,
+            deliveryLabel: deliveryQuote.label,
           },
           currency: "NGN",
           subtotal: minorToDecimal(subtotalMinor),
@@ -339,6 +348,8 @@ async function createPendingDraft(
       });
       const metadata = {
         reference,
+        deliveryPolicy: deliveryQuote.source,
+        deliveryZoneId: deliveryQuote.deliveryZoneId,
         ...(coupon?.valid ? { couponCode: coupon.code, discountMinor } : {}),
       };
       await tx.order_payment_events.create({
@@ -504,7 +515,50 @@ async function findIdempotentCheckout(
   if (record.status !== "completed" || !record.response_snapshot) {
     return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is already being created." });
   }
-  return ok(checkoutDraftSchema.parse(record.response_snapshot));
+
+  const snapshot = checkoutDraftSchema.parse(record.response_snapshot);
+  const order = await prisma.orders.findUnique({
+    where: { id: snapshot.checkoutId },
+    select: {
+      payment_status: true,
+      fulfilment_status: true,
+      payments: {
+        where: { id: snapshot.paymentId },
+        take: 1,
+        select: { status: true, access_code: true },
+      },
+    },
+  });
+  const payment = order?.payments.at(0);
+  if (!order || !payment) {
+    return err({
+      code: "CHECKOUT_IDEMPOTENCY_CONFLICT",
+      message: "The previous checkout session no longer exists. Start a new checkout.",
+    });
+  }
+
+  const lifecycle = {
+    orderPaymentStatus: order.payment_status as CheckoutOrderPaymentStatus,
+    orderFulfilmentStatus: order.fulfilment_status as CheckoutOrderFulfilmentStatus,
+    paymentAttemptStatus: payment.status as CheckoutPaymentAttemptStatus,
+    accessCode: payment.access_code,
+  };
+  const currentStatus = deriveCheckoutStatus(lifecycle);
+  if (currentStatus === "initializing") {
+    return err({ code: "CHECKOUT_IN_PROGRESS", message: "Checkout is still being initialized." });
+  }
+  if (currentStatus === "success") {
+    return ok({ ...snapshot, accessCode: null, status: "success" });
+  }
+  if (!isCheckoutResumable(lifecycle)) {
+    return err({
+      code: "CHECKOUT_IDEMPOTENCY_CONFLICT",
+      message: "The previous checkout session is closed. Start a new checkout.",
+      checkoutId: snapshot.checkoutId,
+      paymentId: snapshot.paymentId,
+    });
+  }
+  return ok({ ...snapshot, accessCode: payment.access_code, status: currentStatus });
 }
 
 function normalizeCheckoutAccount(profile: OwnedProfile): CheckoutAccount | null {
@@ -537,6 +591,10 @@ function minorToDecimal(amountMinor: number): string {
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && Reflect.get(error, "code") === "P2002");
+}
+
+function isSerializableConflict(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && Reflect.get(error, "code") === "P2034");
 }
 
 function mapStockError(error: OperationalStockError): CheckoutError {

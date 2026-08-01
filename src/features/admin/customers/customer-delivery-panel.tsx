@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatCustomerDateTime } from "@/features/admin/customers/customer-labels";
-import { orderStatusLabels } from "@/features/admin/orders/order-labels";
 import type { CustomerRelationshipProfile } from "@/lib/admin/customers/customer-types";
+import { orderStatusLabels } from "@/modules/orders/ui/admin/order-labels";
 
 export function CustomerDeliveryPanel({ profile }: { profile: CustomerRelationshipProfile }) {
   const addresses = profile.customer.addresses ?? [];

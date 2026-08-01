@@ -1,0 +1,54 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { CloudImage } from "@/components/ui/cloud-image";
+import { useReveal } from "@/hooks/use-reveal";
+import { money, type Product } from "@/modules/products/ui/storefront/catalogue-data";
+import { getProductDefaultImage } from "@/modules/products/ui/storefront/product-media";
+
+export function OneOfOneCard({
+  product,
+  featured,
+  onClick,
+}: {
+  product: Product;
+  featured: boolean;
+  onClick: () => void;
+}) {
+  const { ref, visible } = useReveal<HTMLButtonElement>();
+  const image = getProductDefaultImage(product);
+
+  return (
+    <Button
+      ref={ref}
+      className={`one-card h-auto w-full justify-start rounded-none p-0 text-left ${
+        featured ? "featured" : ""
+      }reveal${visible ? "visible" : ""}`}
+      type="button"
+      onClick={onClick}
+      variant="ghost"
+    >
+      <span className="contents">
+        {image ? (
+          <CloudImage
+            src={image}
+            alt={product.name}
+            width={1200}
+            height={1500}
+            sizes={featured ? "(min-width: 861px) 50vw, 100vw" : "(min-width: 861px) 25vw, 50vw"}
+          />
+        ) : null}
+        <span className="one-info">
+          <span>
+            <span className="eyebrow">1 of 1</span>
+            <span className="block text-[inherit]">{product.name}</span>
+            <span className="block">
+              Size {product.size} · Grade {product.condition}
+            </span>
+          </span>
+          <span className="one-price price">{money(product.price)}</span>
+        </span>
+      </span>
+    </Button>
+  );
+}

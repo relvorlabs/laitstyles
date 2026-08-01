@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
 import { checkoutKeys } from "@/modules/checkout/client/keys";
 import type {
   CheckoutContext,
+  CheckoutDeliveryQuote,
   CheckoutDraft,
   CheckoutStatus,
 } from "@/modules/checkout/types";
@@ -44,15 +45,13 @@ type StorefrontCheckoutSheetProps = {
 };
 
 type PaymentStage = "ready" | "creating" | "paying" | "verifying";
-type PaymentNotice = {
-  title: string;
-  detail: string;
-  tone: "neutral" | "warning" | "danger";
-};
-type CheckoutBlocker = {
-  message: string;
-  tone: "muted" | "danger";
-};
+type CheckoutStep = "details" | "review";
+
+const currencyFormatter = new Intl.NumberFormat("en-NG", {
+  style: "currency",
+  currency: "NGN",
+  maximumFractionDigits: 0,
+});
 
 export function StorefrontCheckoutSheet({
   active,
@@ -70,16 +69,16 @@ export function StorefrontCheckoutSheet({
   const updateProfile = useUpdateOwnedProfile();
   const normalizedLines = useMemo(() => mergeCheckoutLines(lines), [lines]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-  const [showAddressSelector, setShowAddressSelector] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [debouncedCouponCode, setDebouncedCouponCode] = useState("");
   const [paymentStage, setPaymentStage] = useState<PaymentStage>("ready");
   const [activeCheckout, setActiveCheckout] = useState<CheckoutDraft | null>(null);
+  const [step, setStep] = useState<CheckoutStep>("details");
   const idempotencyKey = useRef<string>(crypto.randomUUID());
   const completedOrder = useRef<string | null>(null);
+
   const checkoutStatusQuery = useQuery(checkoutQueryOptions(activeCheckout?.checkoutId ?? ""));
   const couponQuery = useQuery(
     checkoutCouponQueryOptions(
@@ -91,26 +90,21 @@ export function StorefrontCheckoutSheet({
 
   const context = contextQuery.data;
   const addresses = useMemo(() => uniqueById(context?.addresses ?? []), [context?.addresses]);
-  const deliveryZones = useMemo(
-    () => uniqueById(context?.deliveryZones ?? []),
-    [context?.deliveryZones],
-  );
-  const selectedAddress = useMemo(
-    () => addresses.find((address) => address.id === selectedAddressId) ?? null,
-    [addresses, selectedAddressId],
-  );
-  const selectedZone = useMemo(
-    () => deliveryZones.find((zone) => zone.id === selectedZoneId) ?? null,
-    [deliveryZones, selectedZoneId],
+  const selectedQuote = useMemo(
+    () =>
+      context?.deliveryQuotes.find((quote) => quote.addressId === selectedAddressId) ??
+      context?.selectedDeliveryQuote ??
+      null,
+    [context, selectedAddressId],
   );
   const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
   const displaySubtotalMinor = activeCheckout?.subtotalMinor ?? subtotalMinor;
-  const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedZone?.feeMinor ?? 0;
+  const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedQuote?.feeMinor ?? 0;
   const displayDiscountMinor = activeCheckout?.discountMinor ?? discountMinor;
   const totalMinor =
     activeCheckout?.totalMinor ??
-    Math.max(0, subtotalMinor + (selectedZone?.feeMinor ?? 0) - discountMinor);
+    Math.max(0, subtotalMinor + (selectedQuote?.feeMinor ?? 0) - discountMinor);
   const phoneReady = Boolean(context && !context.phoneRequired && context.profile.phone.trim());
   const couponReady =
     !couponCode.trim() ||
@@ -118,7 +112,6 @@ export function StorefrontCheckoutSheet({
       !couponQuery.isFetching &&
       couponValidation?.valid === true);
   const currentStatus = checkoutStatusQuery.data?.status ?? activeCheckout?.status ?? null;
-  const paymentNotice = getPaymentNotice(currentStatus);
   const canResume = Boolean(
     activeCheckout?.accessCode &&
       currentStatus &&
@@ -130,26 +123,24 @@ export function StorefrontCheckoutSheet({
       signedIn &&
       phoneReady &&
       selectedAddressId &&
-      selectedZoneId &&
+      selectedQuote &&
       normalizedLines.length > 0 &&
       couponReady &&
       paymentStage === "ready",
   );
   const canPay = canResume || canCreate;
-  const checkoutBlocker = canPay
-    ? null
-    : getCheckoutBlocker({
-        activeCheckout,
-        couponCode,
-        couponReady,
-        couponFetching: couponQuery.isFetching,
-        currentStatus,
-        lineCount: normalizedLines.length,
-        paymentStage,
-        phoneReady,
-        selectedAddressId,
-        selectedZoneId,
-      });
+  const blocker = getCheckoutBlocker({
+    activeCheckout,
+    couponCode,
+    couponReady,
+    couponFetching: couponQuery.isFetching,
+    currentStatus,
+    lineCount: normalizedLines.length,
+    paymentStage,
+    phoneReady,
+    selectedAddressId,
+    selectedQuote,
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -169,42 +160,44 @@ export function StorefrontCheckoutSheet({
         ? current
         : (context.defaultAddressId ?? firstAddressId),
     );
-    setSelectedZoneId((current) =>
-      current && context.deliveryZones.some((zone) => zone.id === current)
-        ? current
-        : context.selectedDeliveryZoneId,
-    );
     setPhone(context.profile.phone);
     setPhoneConfirmation(context.profile.phone);
-    setActiveCheckout((current) => current ?? context.activeCheckout);
+    setActiveCheckout(context.activeCheckout);
   }, [context]);
-
-  useEffect(() => {
-    if (!context || !selectedAddress || activeCheckout) return;
-    selectZoneForAddress(selectedAddress, context, setSelectedZoneId);
-  }, [activeCheckout, context, selectedAddress]);
 
   useEffect(() => {
     const checkout = checkoutStatusQuery.data;
     if (!checkout || completedOrder.current === checkout.orderNumber) return;
-    setActiveCheckout(checkout);
     if (checkout.status === "success") {
       completedOrder.current = checkout.orderNumber;
       onPaid(checkout.orderNumber);
       return;
     }
-    if (isTerminalFailure(checkout.status)) setPaymentStage("ready");
-  }, [checkoutStatusQuery.data, onPaid]);
+    if (isClosedCheckoutStatus(checkout.status)) {
+      setPaymentStage("ready");
+      setActiveCheckout(null);
+      setStep("details");
+      idempotencyKey.current = crypto.randomUUID();
+      queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
+        current?.activeCheckout?.checkoutId === checkout.checkoutId
+          ? { ...current, activeCheckout: null }
+          : current,
+      );
+      void queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
+      toast.message(paymentOutcomeMessage(checkout.status));
+      return;
+    }
+    setActiveCheckout(checkout);
+  }, [checkoutStatusQuery.data, onPaid, queryClient]);
 
   async function savePhone(): Promise<void> {
     if (!context) return;
     const normalizedPhone = phone.trim();
-    const normalizedConfirmation = phoneConfirmation.trim();
     if (normalizedPhone.replaceAll(/\D/g, "").length < 7) {
       toast.error("Enter a valid phone number.");
       return;
     }
-    if (normalizedPhone !== normalizedConfirmation) {
+    if (normalizedPhone !== phoneConfirmation.trim()) {
       toast.error("The phone numbers do not match.");
       return;
     }
@@ -216,12 +209,12 @@ export function StorefrontCheckoutSheet({
         preferredName: context.profile.preferredName || undefined,
         phone: normalizedPhone,
       });
-      setPhone(profile.phone);
-      setPhoneConfirmation(profile.phone);
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current ? { ...current, profile, profileComplete: true, phoneRequired: false } : current,
       );
-      toast.success("Phone number saved to your account.");
+      setPhone(profile.phone);
+      setPhoneConfirmation(profile.phone);
+      toast.success("Delivery number saved.");
     } catch (error: unknown) {
       toast.error(readErrorMessage(error, "Your phone number could not be saved."));
     }
@@ -241,14 +234,13 @@ export function StorefrontCheckoutSheet({
       ) {
         checkout = activeCheckout;
       } else {
-        if (!selectedAddressId || !selectedZoneId || normalizedLines.length === 0) {
+        if (!selectedAddressId || !selectedQuote || normalizedLines.length === 0) {
           setPaymentStage("ready");
           return;
         }
         checkout = await createCheckout.mutateAsync({
           idempotencyKey: idempotencyKey.current,
           addressId: selectedAddressId,
-          deliveryZoneId: selectedZoneId,
           ...(couponValidation?.valid ? { couponCode: couponValidation.code } : {}),
           lines: normalizedLines.map((line) => ({
             productId: line.productId,
@@ -257,19 +249,22 @@ export function StorefrontCheckoutSheet({
           })),
         });
       }
+
       setActiveCheckout(checkout);
-      if (!checkout.accessCode) {
-        throw new Error("payment-access-unavailable");
-      }
+      if (!checkout.accessCode) throw new Error("payment-access-unavailable");
 
       setPaymentStage("paying");
       const outcome = await resumePaystackTransaction(checkout.accessCode);
       if (outcome.kind === "cancelled") {
         setPaymentStage("ready");
-        toast.message("Payment was closed. Your checkout is saved and ready when you are.");
+        toast.message("Payment was closed. This order is still ready to continue.");
         return;
       }
-      if (outcome.kind === "error") throw new Error("payment-window-failed");
+      if (outcome.kind === "error") {
+        setPaymentStage("ready");
+        toast.error("Paystack could not open. Please try again.");
+        return;
+      }
 
       setPaymentStage("verifying");
       const settlement = await verifyPayment.mutateAsync(checkout.paymentId);
@@ -278,12 +273,21 @@ export function StorefrontCheckoutSheet({
         onPaid(settlement.orderNumber);
         return;
       }
+
       setPaymentStage("ready");
-      if (isTerminalFailure(settlement.status)) {
+      if (isClosedCheckoutStatus(settlement.status)) {
+        setActiveCheckout(null);
+        idempotencyKey.current = crypto.randomUUID();
+        queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
+          current?.activeCheckout?.checkoutId === settlement.checkoutId
+            ? { ...current, activeCheckout: null }
+            : current,
+        );
+        void queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
         toast.error(paymentOutcomeMessage(settlement.status));
         return;
       }
-      toast.message("We received the payment update and are waiting for confirmation.");
+      toast.message("Payment is still being confirmed. You can continue from this checkout.");
     } catch (error: unknown) {
       setPaymentStage("ready");
       toast.error(readErrorMessage(error, "Payment could not be completed."));
@@ -292,281 +296,277 @@ export function StorefrontCheckoutSheet({
 
   if (!signedIn) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-            Sign in to use your saved delivery details. Your bag will stay exactly as it is.
-          </p>
-          <Button
-            onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("cartDrawer"))}
-            type="button"
-          >
-            Sign in to continue
-          </Button>
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState
+          action={
+            <Button
+              className="min-h-11 min-w-48"
+              onClick={() => auth.actions.openSignin(() => openStorefrontOverlay("checkoutDialog"))}
+              type="button"
+            >
+              Sign in to continue
+            </Button>
+          }
+          detail="Your cart stays saved while we load your contact and delivery details."
+          title="Sign in to checkout"
+        />
+      </CheckoutShell>
     );
   }
 
   if (contextQuery.isPending) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
-        <div className="grid flex-1 place-items-center px-6 text-sm text-[var(--muted)]">
-          Loading your saved delivery details…
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState
+          detail="Loading your contact, addresses and payment status."
+          title="Preparing checkout"
+        />
+      </CheckoutShell>
     );
   }
 
   if (contextQuery.isError || !context) {
     return (
-      <CheckoutPanelShell onBack={onBack} title="Checkout">
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-sm text-[var(--muted)]">
-            {readErrorMessage(contextQuery.error, "Checkout details could not be loaded.")}
-          </p>
-          <Button onClick={() => void contextQuery.refetch()} type="button" variant="outline">
-            Try again
-          </Button>
-        </div>
-      </CheckoutPanelShell>
+      <CheckoutShell onBack={onBack}>
+        <CenteredState
+          action={
+            <Button onClick={() => void contextQuery.refetch()} type="button" variant="outline">
+              Retry
+            </Button>
+          }
+          detail={readErrorMessage(contextQuery.error, "Checkout details could not be loaded.")}
+          title="Checkout unavailable"
+        />
+      </CheckoutShell>
     );
   }
 
-  return (
-    <CheckoutPanelShell onBack={onBack} title="Checkout">
-      <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-        {paymentNotice ? <PaymentStatusCard notice={paymentNotice} /> : null}
-        {activeCheckout && !paymentNotice ? (
-          <section className="rounded-xl border border-[var(--line)] bg-[var(--sage-light)] p-4 text-sm">
-            <p className="font-medium">Your checkout is saved</p>
-            <p className="mt-1 leading-5 text-[var(--muted)]">
-              Continue the existing payment for order {activeCheckout.orderNumber}. Your delivery
-              details and total are already locked in.
-            </p>
-          </section>
-        ) : null}
+  const detailsReady = phoneReady && Boolean(selectedAddressId) && Boolean(selectedQuote);
+  const showDetailsStep = !activeCheckout && step === "details";
+  const showReviewStep = Boolean(activeCheckout) || step === "review";
 
-        {!activeCheckout ? (
-          <>
-            {!phoneReady ? (
-              <section className="space-y-3">
-                <SectionHeading label="Contact number" />
-                <SummaryCard>
-                  <p className="font-medium text-[var(--ink)]">{profileDisplayName(context)}</p>
-                  <p className="mt-1">
-                    Add the phone number the delivery team should use for this order.
-                  </p>
-                  <div className="mt-4 grid gap-3">
-                    <Input
-                      aria-label="Delivery phone number"
-                      autoComplete="tel"
-                      onChange={(event) => setPhone(event.target.value)}
-                      placeholder="Phone number"
-                      type="tel"
-                      value={phone}
-                    />
-                    <Input
-                      aria-label="Confirm delivery phone number"
-                      autoComplete="tel"
-                      onChange={(event) => setPhoneConfirmation(event.target.value)}
-                      placeholder="Confirm phone number"
-                      type="tel"
-                      value={phoneConfirmation}
-                    />
+  return (
+    <CheckoutShell onBack={onBack}>
+      {!activeCheckout ? (
+        <StepIndicator active={step} />
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+        <div className="flex flex-col gap-6">
+          {activeCheckout ? (
+            <StatusCard
+              detail={paymentStatusDetail(currentStatus)}
+              title={`Order ${activeCheckout.orderNumber}`}
+            />
+          ) : null}
+
+          {showDetailsStep ? (
+            <>
+              <CheckoutSection title="Contact">
+                {phoneReady ? (
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] p-4">
+                    <div>
+                      <p className="font-medium">{profileDisplayName(context)}</p>
+                      <p className="mt-1 text-sm text-[var(--muted)]">{context.profile.phone}</p>
+                    </div>
+                    <span className="text-xs font-medium text-[var(--sage)]">Confirmed</span>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-[var(--line)] p-4">
+                    <p className="text-sm text-[var(--muted)]">
+                      Add the number the delivery team should use for this order.
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Input
+                        aria-label="Delivery phone number"
+                        autoComplete="tel"
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="Phone number"
+                        type="tel"
+                        value={phone}
+                      />
+                      <Input
+                        aria-label="Confirm delivery phone number"
+                        autoComplete="tel"
+                        onChange={(event) => setPhoneConfirmation(event.target.value)}
+                        placeholder="Confirm number"
+                        type="tel"
+                        value={phoneConfirmation}
+                      />
+                    </div>
                     <Button
+                      className="mt-3 min-h-11"
                       disabled={updateProfile.isPending}
                       onClick={() => void savePhone()}
                       type="button"
                       variant="outline"
                     >
-                      {updateProfile.isPending ? "Saving number…" : "Save phone number"}
+                      {updateProfile.isPending ? "Saving…" : "Save delivery number"}
                     </Button>
                   </div>
-                </SummaryCard>
-              </section>
-            ) : null}
+                )}
+              </CheckoutSection>
 
-            <section className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <SectionHeading label="Delivery address" />
-                {addresses.length > 1 ? (
-                  <Button
-                    onClick={() => setShowAddressSelector((current) => !current)}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {showAddressSelector ? "Keep selected address" : "Change delivery address"}
-                  </Button>
-                ) : null}
-              </div>
-
-              {selectedAddress ? <AddressSummary address={selectedAddress} /> : null}
-
-              {showAddressSelector && addresses.length > 1 ? (
-                <label className="grid gap-2 text-sm">
-                  <span className="text-[var(--muted)]">Choose a saved address</span>
-                  <select
-                    className="h-10 rounded-lg border border-input bg-control px-3 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    onChange={(event) => setSelectedAddressId(event.target.value)}
-                    value={selectedAddressId ?? ""}
-                  >
-                    {addresses.map((address) => (
-                      <option key={`checkout-address:${address.id}`} value={address.id}>
-                        {address.label}
-                        {address.isDefault ? " · Default" : ""} · {address.city}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {addresses.length === 0 ? (
-                <SummaryCard>
-                  <p>No delivery address is saved yet.</p>
-                  <Button
-                    className="mt-3 px-0"
-                    nativeButton={false}
-                    render={<Link href="/account/addresses?returnTo=checkout" />}
-                    size="sm"
-                    variant="link"
-                  >
-                    Add an address in your account
-                  </Button>
-                </SummaryCard>
-              ) : (
-                <Button
-                  className="px-0"
-                  nativeButton={false}
-                  render={<Link href="/account/addresses?returnTo=checkout" />}
-                  size="sm"
-                  variant="link"
-                >
-                  Manage saved addresses
-                </Button>
-              )}
-            </section>
-
-            <section className="space-y-3">
-              <SectionHeading label="Delivery estimate" />
-              {selectedZone ? (
-                <SummaryCard>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-[var(--ink)]">{selectedZone.name}</p>
-                      <p className="mt-1">{selectedZone.city}</p>
-                      <p className="mt-1 text-xs">
-                        {selectedZone.estimatedDays || "We will confirm the timing after payment."}
-                      </p>
-                    </div>
-                    <p className="font-mono font-medium text-[var(--ink)] tabular-nums">
-                      {formatNaira(selectedZone.feeMinor)}
+              <CheckoutSection title="Delivery address">
+                {addresses.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-[var(--line)] p-4">
+                    <p className="text-sm font-medium">No delivery address is saved yet.</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      Add an address, then return here to continue.
                     </p>
+                    <Button
+                      className="mt-4 min-h-11"
+                      render={<Link href="/account/addresses?returnTo=checkout" />}
+                      variant="outline"
+                    >
+                      Add delivery address
+                    </Button>
                   </div>
-                </SummaryCard>
-              ) : (
-                <SummaryCard>
-                  We do not have a delivery option for this address yet. Choose another saved
-                  address or update the city in your account before paying.
-                </SummaryCard>
-              )}
-            </section>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {addresses.map((address) => (
+                      <AddressOption
+                        address={address}
+                        key={address.id}
+                        onSelect={() => setSelectedAddressId(address.id)}
+                        quote={context.deliveryQuotes.find(
+                          (candidate) => candidate.addressId === address.id,
+                        )}
+                        selected={address.id === selectedAddressId}
+                      />
+                    ))}
+                    <Button
+                      render={<Link href="/account/addresses?returnTo=checkout" />}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      Add or edit addresses
+                    </Button>
+                  </div>
+                )}
+              </CheckoutSection>
 
-            <section className="space-y-3">
-              <SectionHeading label="Coupon code" />
-              <div className="rounded-xl border border-[var(--line)] p-4">
+              <CheckoutSection title="Promo code">
                 <Input
-                  aria-label="Coupon code"
-                  autoComplete="off"
+                  aria-label="Promo code"
+                  autoCapitalize="characters"
                   onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
+                  placeholder="Enter code"
                   value={couponCode}
                 />
                 {couponCode.trim() ? (
                   <p
-                    aria-live="polite"
                     className={`mt-2 text-xs ${
-                      couponQuery.isFetching
-                        ? "text-[var(--muted)]"
-                        : couponValidation?.valid
-                          ? "text-emerald-700"
-                          : "text-red-700"
+                      couponValidation?.valid ? "text-[var(--sage)]" : "text-[var(--muted)]"
                     }`}
                   >
                     {couponQuery.isFetching
-                      ? "Checking your code…"
-                      : couponValidation?.message || "Enter at least two characters."}
+                      ? "Checking code…"
+                      : (couponValidation?.message ?? "Enter a valid promo code.")}
                   </p>
-                ) : (
-                  <p className="mt-2 text-xs text-[var(--muted)]">
-                    Add a valid code to see your updated total.
-                  </p>
-                )}
-              </div>
-            </section>
-          </>
-        ) : null}
+                ) : null}
+              </CheckoutSection>
+            </>
+          ) : null}
+
+          {showReviewStep ? (
+            <>
+              {!activeCheckout ? (
+                <CheckoutSection title="Delivering to">
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] p-4">
+                    <div>
+                      <p className="font-medium">{profileDisplayName(context)}</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                        {addresses.find((address) => address.id === selectedAddressId)?.line1}
+                      </p>
+                    </div>
+                    <Button
+                      className="shrink-0"
+                      onClick={() => setStep("details")}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </CheckoutSection>
+              ) : null}
+
+              <CheckoutSection title="Order summary">
+                <div className="rounded-lg border border-[var(--line)] p-4">
+                  <SummaryRow label="Items" value={formatMoney(displaySubtotalMinor)} />
+                  <SummaryRow label="Delivery" value={formatMoney(displayDeliveryFeeMinor)} />
+                  {displayDiscountMinor > 0 ? (
+                    <SummaryRow label="Discount" value={`−${formatMoney(displayDiscountMinor)}`} />
+                  ) : null}
+                  <div className="mt-4 flex items-end justify-between border-t border-[var(--line)] pt-4">
+                    <span className="font-medium">Total</span>
+                    <span className="font-serif text-2xl tabular-nums">
+                      {formatMoney(totalMinor)}
+                    </span>
+                  </div>
+                  {selectedQuote && !activeCheckout ? (
+                    <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
+                      {selectedQuote.label} · {deliveryEstimate(selectedQuote)}
+                    </p>
+                  ) : null}
+                </div>
+              </CheckoutSection>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      <div className="border-t border-[var(--line)] bg-[var(--bone-2)] px-6 py-5">
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between gap-4 text-[var(--muted)]">
-            <span>Items</span>
-            <span>{formatNaira(displaySubtotalMinor)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-[var(--muted)]">
-            <span>{activeCheckout ? "Delivery" : "Estimated delivery"}</span>
-            <span>{displayDeliveryFeeMinor > 0 ? formatNaira(displayDeliveryFeeMinor) : "—"}</span>
-          </div>
-          {displayDiscountMinor > 0 ? (
-            <div className="flex justify-between gap-4 text-emerald-700">
-              <span>{activeCheckout ? "Discount" : `Coupon ${couponValidation?.code ?? ""}`}</span>
-              <span>−{formatNaira(displayDiscountMinor)}</span>
-            </div>
-          ) : null}
-          <div className="flex items-end justify-between gap-4 border-t border-[var(--line)] pt-3">
-            <span className="font-medium">Total</span>
-            <span className="font-serif text-2xl">{formatNaira(totalMinor)}</span>
-          </div>
-        </div>
-        <Button
-          aria-describedby="checkout-payment-help"
-          className="mt-4 w-full"
-          disabled={!canPay}
-          onClick={() => void startPayment()}
-          type="button"
-        >
-          {paymentLabel(paymentStage, Boolean(activeCheckout))}
-        </Button>
-        <p
-          className={`mt-3 text-center text-[11px] leading-4 ${
-            checkoutBlocker?.tone === "danger" ? "text-red-700" : "text-[var(--muted)]"
-          }`}
-          id="checkout-payment-help"
-        >
-          {checkoutBlocker?.message ??
-            "A secure payment window will open. Your order is confirmed only after payment is verified."}
-        </p>
+      <div className="border-t border-[var(--line)] bg-[var(--bone)] px-5 py-4 sm:px-7">
+        {showDetailsStep ? (
+          <Button
+            className="min-h-12 w-full text-sm"
+            disabled={!detailsReady || couponFetchingBlocked(couponCode, couponReady, couponQuery.isFetching)}
+            onClick={() => setStep("review")}
+            type="button"
+          >
+            Continue to review
+          </Button>
+        ) : (
+          <>
+            {blocker ? (
+              <p className="mb-3 text-sm text-[var(--muted)]" id="checkout-payment-help">
+                {blocker}
+              </p>
+            ) : (
+              <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
+                Paystack opens in a secure payment window. Your order is confirmed only after
+                server verification.
+              </p>
+            )}
+            <Button
+              aria-describedby="checkout-payment-help"
+              className="min-h-12 w-full text-sm"
+              disabled={!canPay}
+              onClick={() => void startPayment()}
+              type="button"
+            >
+              {paymentLabel(paymentStage, Boolean(activeCheckout), totalMinor)}
+            </Button>
+          </>
+        )}
       </div>
-    </CheckoutPanelShell>
+    </CheckoutShell>
   );
 }
 
-function CheckoutPanelShell({
+function CheckoutShell({
   children,
   onBack,
-  title,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   onBack: () => void;
-  title: string;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-3 border-b border-[var(--line)] px-6 py-5">
+    <div className="flex min-h-0 flex-1 flex-col bg-[var(--bone)]">
+      <div className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-4 pr-14 sm:px-7">
         <Button
-          aria-label="Back to bag"
+          aria-label="Back to cart"
           onClick={onBack}
           size="icon-sm"
           type="button"
@@ -575,8 +575,8 @@ function CheckoutPanelShell({
           ←
         </Button>
         <div>
-          <p className="font-serif text-3xl font-normal italic">{title}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Delivery and secure payment</p>
+          <h2 className="font-serif text-2xl">Checkout</h2>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">Delivery and secure payment</p>
         </div>
       </div>
       {children}
@@ -584,73 +584,248 @@ function CheckoutPanelShell({
   );
 }
 
-function PaymentStatusCard({ notice }: { notice: PaymentNotice }) {
-  const toneClass = {
-    neutral: "border-[var(--line)] bg-[var(--sage-light)]",
-    warning:
-      "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100",
-    danger:
-      "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100",
-  }[notice.tone];
-
+function StepIndicator({ active }: { active: CheckoutStep }) {
+  const steps: { key: CheckoutStep; label: string }[] = [
+    { key: "details", label: "Details" },
+    { key: "review", label: "Review & pay" },
+  ];
   return (
-    <section aria-live="polite" className={`rounded-xl border p-4 text-sm ${toneClass}`}>
-      <p className="font-medium">{notice.title}</p>
-      <p className="mt-1 leading-5 opacity-80">{notice.detail}</p>
-    </section>
-  );
-}
-
-function SectionHeading({ label }: { label: string }) {
-  return (
-    <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
-      {label}
-    </h3>
-  );
-}
-
-function SummaryCard({ children }: { children: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-[var(--line)] p-4 text-sm leading-5 text-[var(--muted)]">
-      {children}
+    <div className="flex items-center gap-2 border-b border-[var(--line)] px-5 py-3 text-xs sm:px-7">
+      {steps.map((entry, index) => (
+        <div className="flex items-center gap-2" key={entry.key}>
+          {index > 0 ? <span className="text-[var(--muted)]">—</span> : null}
+          <span
+            className={
+              entry.key === active
+                ? "font-medium text-[var(--ink)]"
+                : "text-[var(--muted)]"
+            }
+          >
+            {index + 1}. {entry.label}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function AddressSummary({ address }: { address: OwnedAddress }) {
+function couponFetchingBlocked(
+  couponCode: string,
+  couponReady: boolean,
+  couponFetching: boolean,
+): boolean {
+  if (couponFetching) return true;
+  return Boolean(couponCode.trim()) && !couponReady;
+}
+
+function CheckoutSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <SummaryCard>
-      <p className="font-medium text-[var(--ink)]">
-        {address.label}
-        {address.isDefault ? " · Default" : ""}
-      </p>
-      <p className="mt-1">
-        {[address.line1, address.line2, address.city, address.state].filter(Boolean).join(", ")}
-      </p>
-      {address.deliveryNotes ? <p className="mt-1 text-xs">{address.deliveryNotes}</p> : null}
-    </SummaryCard>
+    <section>
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
+      {children}
+    </section>
   );
+}
+
+function CenteredState({
+  title,
+  detail,
+  action,
+}: {
+  title: string;
+  detail: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 py-12 text-center">
+      <div>
+        <p className="font-serif text-2xl">{title}</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[var(--muted)]">{detail}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function AddressOption({
+  address,
+  quote,
+  selected,
+  onSelect,
+}: {
+  address: OwnedAddress;
+  quote?: CheckoutDeliveryQuote;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const addressText = [address.line1, address.line2, address.city, address.state]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <Button
+      aria-label={`${address.label}${address.isDefault ? ", default" : ""}`}
+      className={`h-auto min-h-11 w-full items-start justify-start rounded-lg border p-4 text-left ${
+        selected
+          ? "border-[var(--ink)] bg-[var(--bone-2)]"
+          : "border-[var(--line)] bg-transparent"
+      }`}
+      onClick={onSelect}
+      type="button"
+      variant="ghost"
+    >
+      <span className="w-full min-w-0">
+        <span className="flex items-start justify-between gap-3">
+          <span className="font-medium">{address.label}</span>
+          {address.isDefault ? <span className="text-xs text-[var(--muted)]">Default</span> : null}
+        </span>
+        <span className="mt-1 block whitespace-normal text-sm leading-5 text-[var(--muted)]">
+          {addressText}
+        </span>
+        {quote ? (
+          <span className="mt-3 flex items-center justify-between gap-3 text-xs">
+            <span>{quote.label}</span>
+            <span className="tabular-nums">{formatMoney(quote.feeMinor)}</span>
+          </span>
+        ) : (
+          <span className="mt-3 block text-xs text-[var(--muted)]">Delivery quote unavailable</span>
+        )}
+        {quote ? (
+          <span className="mt-1 block text-xs text-[var(--muted)]">
+            This address is covered · {deliveryEstimate(quote)}
+          </span>
+        ) : null}
+      </span>
+    </Button>
+  );
+}
+
+function StatusCard({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--sage-light)] p-4">
+      <p className="font-medium">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{detail}</p>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
+      <span className="text-[var(--muted)]">{label}</span>
+      <span className="tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function getCheckoutBlocker({
+  activeCheckout,
+  couponCode,
+  couponReady,
+  couponFetching,
+  currentStatus,
+  lineCount,
+  paymentStage,
+  phoneReady,
+  selectedAddressId,
+  selectedQuote,
+}: {
+  activeCheckout: CheckoutDraft | null;
+  couponCode: string;
+  couponReady: boolean;
+  couponFetching: boolean;
+  currentStatus: CheckoutStatus | null;
+  lineCount: number;
+  paymentStage: PaymentStage;
+  phoneReady: boolean;
+  selectedAddressId: string | null;
+  selectedQuote: CheckoutDeliveryQuote | null;
+}): string | null {
+  if (paymentStage !== "ready") return "Payment is already in progress.";
+  if (activeCheckout) {
+    if (currentStatus === "success") return "This payment has already been confirmed.";
+    if (!activeCheckout.accessCode) return "This checkout is no longer available to resume.";
+    if (currentStatus && !isResumableCheckoutStatus(currentStatus)) {
+      return paymentOutcomeMessage(currentStatus);
+    }
+    return null;
+  }
+  if (lineCount < 1) return "Your cart is empty. Add an item before checkout.";
+  if (!phoneReady) return "Save a delivery phone number to continue.";
+  if (!selectedAddressId) return "Add or select a delivery address to continue.";
+  if (!selectedQuote) return "A delivery quote is required before payment.";
+  if (couponFetching) return "Checking your promo code…";
+  if (couponCode.trim() && !couponReady) return "Enter a valid promo code or remove it.";
+  return null;
+}
+
+function paymentLabel(stage: PaymentStage, resuming: boolean, totalMinor: number): string {
+  switch (stage) {
+    case "creating":
+      return "Preparing payment…";
+    case "paying":
+      return "Opening Paystack…";
+    case "verifying":
+      return "Confirming payment…";
+    case "ready":
+      return `${resuming ? "Continue payment" : "Pay"} · ${formatMoney(totalMinor)}`;
+  }
+}
+
+function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
+  return status === "initialized" || status === "pending";
+}
+
+function isClosedCheckoutStatus(status: CheckoutStatus): boolean {
+  return (
+    status === "failed" ||
+    status === "abandoned" ||
+    status === "reversed" ||
+    status === "review_required" ||
+    status === "cancelled"
+  );
+}
+
+function paymentOutcomeMessage(status: CheckoutStatus): string {
+  switch (status) {
+    case "failed":
+      return "Payment failed. Start a new checkout to try again.";
+    case "abandoned":
+      return "That payment attempt ended. Start a new checkout when you are ready.";
+    case "reversed":
+      return "Payment was reversed. No successful charge was recorded.";
+    case "review_required":
+      return "Payment needs review. Check the order in your account or contact support.";
+    case "cancelled":
+      return "This order was cancelled. Your current cart can start a new checkout.";
+    case "pending":
+    case "initializing":
+    case "initialized":
+      return "Payment is still being confirmed.";
+    case "success":
+      return "Payment confirmed.";
+  }
+}
+
+function paymentStatusDetail(status: CheckoutStatus | null): string {
+  if (!status) return "Your order is saved. Continue payment when you are ready.";
+  return paymentOutcomeMessage(status);
+}
+
+function deliveryEstimate(quote: CheckoutDeliveryQuote): string {
+  const value = quote.estimatedDays?.trim();
+  if (!value) return "Delivery timing will be confirmed";
+  const range = value.includes("day") ? value : `${value} working days`;
+  return `Estimated arrival: ${range}.`;
 }
 
 function profileDisplayName(context: CheckoutContext): string {
   return (
-    context.profile.preferredName.trim() ||
+    context.profile.preferredName ||
     [context.profile.firstName, context.profile.lastName].filter(Boolean).join(" ") ||
     context.profile.email?.split("@").at(0) ||
     "Your account"
   );
-}
-
-function selectZoneForAddress(
-  address: OwnedAddress,
-  context: CheckoutContext,
-  select: (zoneId: string | null) => void,
-): void {
-  const city = normalizeLocation(address.city);
-  const zone = uniqueById(context.deliveryZones).find(
-    (item) => normalizeLocation(item.city) === city,
-  );
-  select(zone?.id ?? null);
 }
 
 function mergeCheckoutLines(lines: readonly StorefrontCheckoutLine[]): StorefrontCheckoutLine[] {
@@ -665,177 +840,15 @@ function mergeCheckoutLines(lines: readonly StorefrontCheckoutLine[]): Storefron
       quantity: (current?.quantity ?? 0) + line.quantity,
     });
   }
-  return Array.from(merged.values());
+  return [...merged.values()];
 }
 
 function uniqueById<T extends { id: string }>(items: readonly T[]): T[] {
-  const byId = new Map<string, T>();
-  for (const item of items) byId.set(item.id, item);
-  return Array.from(byId.values());
+  return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
-function normalizeLocation(value: string): string {
-  return value.trim().toLocaleLowerCase("en-NG");
-}
-
-function formatNaira(amountMinor: number): string {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(amountMinor / 100);
-}
-
-function paymentLabel(stage: PaymentStage, resuming: boolean): string {
-  switch (stage) {
-    case "creating":
-      return "Preparing payment…";
-    case "paying":
-      return "Complete payment in the secure window…";
-    case "verifying":
-      return "Confirming payment…";
-    case "ready":
-      return resuming ? "Continue payment" : "Pay securely";
-  }
-}
-
-function getCheckoutBlocker({
-  activeCheckout,
-  couponCode,
-  couponFetching,
-  couponReady,
-  currentStatus,
-  lineCount,
-  paymentStage,
-  phoneReady,
-  selectedAddressId,
-  selectedZoneId,
-}: {
-  activeCheckout: CheckoutDraft | null;
-  couponCode: string;
-  couponFetching: boolean;
-  couponReady: boolean;
-  currentStatus: CheckoutStatus | null;
-  lineCount: number;
-  paymentStage: PaymentStage;
-  phoneReady: boolean;
-  selectedAddressId: string | null;
-  selectedZoneId: string | null;
-}): CheckoutBlocker | null {
-  if (paymentStage !== "ready") {
-    return { message: "Keep this checkout open while payment is being prepared.", tone: "muted" };
-  }
-  if (activeCheckout) {
-    if (!activeCheckout.accessCode) {
-      return {
-        message: "This payment cannot be reopened here. Open the order in your account for help.",
-        tone: "danger",
-      };
-    }
-    if (currentStatus === "reversed") {
-      return {
-        message: "This payment was reversed. Do not pay again from this checkout.",
-        tone: "danger",
-      };
-    }
-    if (currentStatus === "review_required") {
-      return {
-        message: "This payment is being reviewed. Please do not pay again yet.",
-        tone: "danger",
-      };
-    }
-    return null;
-  }
-  if (lineCount === 0) {
-    return { message: "Your bag has no purchasable items.", tone: "danger" };
-  }
-  if (!phoneReady) {
-    return { message: "Save a delivery phone number to continue.", tone: "muted" };
-  }
-  if (!selectedAddressId) {
-    return { message: "Add or select a delivery address to continue.", tone: "muted" };
-  }
-  if (!selectedZoneId) {
-    return {
-      message: "Delivery is not configured for the selected address city.",
-      tone: "danger",
-    };
-  }
-  if (couponCode.trim() && couponFetching) {
-    return { message: "Checking your coupon code…", tone: "muted" };
-  }
-  if (!couponReady) {
-    return { message: "Remove the coupon or enter a valid code to continue.", tone: "danger" };
-  }
-  return null;
-}
-
-function getPaymentNotice(status: CheckoutStatus | null): PaymentNotice | null {
-  switch (status) {
-    case "initializing":
-    case "initialized":
-    case "pending":
-      return {
-        title: "Payment is still in progress",
-        detail: "You can continue this payment without creating another order.",
-        tone: "neutral",
-      };
-    case "failed":
-      return {
-        title: "Payment was not completed",
-        detail: "Your checkout and bag are saved. Use Continue payment below to try again safely.",
-        tone: "danger",
-      };
-    case "abandoned":
-      return {
-        title: "The payment window was closed",
-        detail: "Nothing has been lost. Your checkout is saved and ready to continue.",
-        tone: "warning",
-      };
-    case "reversed":
-      return {
-        title: "Payment was reversed",
-        detail: "This order was not marked paid. Open the order in your account if you need help.",
-        tone: "danger",
-      };
-    case "review_required":
-      return {
-        title: "Payment is being reviewed",
-        detail: "Please do not pay again yet. We will update the order when the review is complete.",
-        tone: "warning",
-      };
-    case "success":
-    case null:
-      return null;
-  }
-}
-
-function isResumableCheckoutStatus(status: CheckoutStatus): boolean {
-  return status !== "success" && status !== "reversed" && status !== "review_required";
-}
-
-function isTerminalFailure(status: CheckoutStatus): boolean {
-  return (
-    status === "failed" ||
-    status === "abandoned" ||
-    status === "reversed" ||
-    status === "review_required"
-  );
-}
-
-function paymentOutcomeMessage(status: CheckoutStatus): string {
-  switch (status) {
-    case "failed":
-      return "Payment was not completed. Your checkout is saved.";
-    case "abandoned":
-      return "The payment window was closed. Your checkout is saved.";
-    case "reversed":
-      return "Payment was reversed. Open the order in your account for help.";
-    case "review_required":
-      return "Payment is being reviewed. Please do not pay again yet.";
-    default:
-      return "Payment is still being confirmed.";
-  }
+function formatMoney(minor: number): string {
+  return currencyFormatter.format(minor / 100).replace("NGN", "₦");
 }
 
 function readErrorMessage(error: unknown, fallback: string): string {

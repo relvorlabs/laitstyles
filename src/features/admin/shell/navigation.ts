@@ -55,6 +55,14 @@ const returnsItem: AdminNavigationItem = {
   description: "Requests, inspection, refund state and stock disposition.",
 };
 
+const promotionsItem: AdminNavigationItem = {
+  label: "Promotions",
+  href: "/admin/promotions",
+  icon: Store01Icon,
+  description: "Generate coupon codes, schedule offers and review verified usage.",
+  requiredCapability: "settings:read",
+};
+
 const paymentsItem: AdminNavigationItem = {
   label: "Payments",
   href: "/admin/payments",
@@ -106,7 +114,15 @@ export const adminNavigationGroups: AdminNavigationGroup[] = [
   { label: "Catalogue", items: [inventoryItem] },
   {
     label: "Sales",
-    items: [ordersItem, holdsItem, returnsItem, paymentsItem, disputesItem, financeItem],
+    items: [
+      ordersItem,
+      holdsItem,
+      returnsItem,
+      promotionsItem,
+      paymentsItem,
+      disputesItem,
+      financeItem,
+    ],
   },
   { label: "People", items: [customersItem, teamItem] },
   { label: "Store", items: [settingsItem] },

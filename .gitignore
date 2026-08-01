@@ -16,6 +16,7 @@
 /output/
 /test-results/
 /playwright-report/
+/playwright-artifacts/
 
 # next.js
 /.next/

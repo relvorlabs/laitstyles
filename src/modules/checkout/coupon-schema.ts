@@ -14,8 +14,11 @@ export const configuredCheckoutCouponSchema = z.object({
   maximumDiscountMinor: z.number().int().positive().optional(),
   startsAt: z.string().datetime().optional(),
   expiresAt: z.string().datetime().optional(),
+  usageLimit: z.number().int().positive().max(100000).optional(),
 });
 
 export const checkoutCouponSettingsSchema = z.object({
   coupons: z.array(configuredCheckoutCouponSchema).default([]),
 });
+
+export type ConfiguredCheckoutCoupon = z.infer<typeof configuredCheckoutCouponSchema>;

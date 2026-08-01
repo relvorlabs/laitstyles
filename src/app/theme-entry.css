@@ -4,4 +4,4 @@
  * the large prototype layout/animation port rather than a second theme foundation.
  */
 @import "./globals.css";
-@import "../features/storefront/shared/storefront.css";
+@import "../modules/storefront-shell/ui/storefront.css";

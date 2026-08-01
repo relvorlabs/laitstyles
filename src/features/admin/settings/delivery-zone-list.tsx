@@ -15,7 +15,7 @@ import { SettingsNumberField, SettingsTextField } from "@/features/admin/setting
 import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
 
 export function DeliveryZoneList() {
-  const { control } = useFormContext<SaveStoreSettingsInput>();
+  const { control, setValue } = useFormContext<SaveStoreSettingsInput>();
   const zones = useFieldArray({
     control,
     name: "delivery.zones",
@@ -26,13 +26,29 @@ export function DeliveryZoneList() {
     name: "delivery",
   }) as SaveStoreSettingsInput["delivery"];
 
+  function selectNationwideFallback(index: number): void {
+    for (const [zoneIndex] of (delivery?.zones ?? []).entries()) {
+      setValue(`delivery.zones.${zoneIndex}.isNationwideFallback`, zoneIndex === index, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      if (zoneIndex === index) {
+        setValue(`delivery.zones.${zoneIndex}.enabled`, true, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold">Delivery zones</h3>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Group destinations that share a rate and expected delivery time.
+          <h3 className="text-base font-semibold">Delivery pricing</h3>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+            Delivery is available nationwide. Regional options can override the price, while one
+            enabled option must remain the fallback for every other Nigerian address.
           </p>
         </div>
         <Button
@@ -44,12 +60,13 @@ export function DeliveryZoneList() {
               estimatedMinDays: 1,
               estimatedMaxDays: 3,
               enabled: true,
+              isNationwideFallback: false,
             })
           }
           type="button"
           variant="outline"
         >
-          Add delivery zone
+          Add regional price
         </Button>
       </div>
 
@@ -57,16 +74,23 @@ export function DeliveryZoneList() {
         {zones.fields.map((zone, index) => {
           const base = `delivery.zones.${index}` as const;
           const current = delivery?.zones?.[index];
-          const canRemove = zones.fields.length > 1 || Boolean(delivery?.pickupLocations?.length);
+          const canRemove = zones.fields.length > 1 && !current?.isNationwideFallback;
           return (
             <Card className="gap-5 p-4 sm:p-5" key={zone.fieldKey}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">
-                    {current?.name || `Delivery zone ${index + 1}`}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">
+                      {current?.name || `Delivery option ${index + 1}`}
+                    </p>
+                    {current?.isNationwideFallback ? (
+                      <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-primary">
+                        Nationwide fallback
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-                    Customers see the zone name, price and estimated timing.
+                    Customers see this name, price, and expected arrival window.
                   </p>
                 </div>
                 <Button
@@ -81,9 +105,9 @@ export function DeliveryZoneList() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <SettingsTextField
-                  label="Zone name"
+                  label="Option name"
                   name={`${base}.name` as FieldPath<SaveStoreSettingsInput>}
-                  placeholder="Lagos mainland"
+                  placeholder="Nationwide delivery"
                 />
                 <SettingsNumberField
                   label="Delivery rate"
@@ -107,25 +131,43 @@ export function DeliveryZoneList() {
                   suffix="days"
                 />
               </div>
-              <Controller
-                control={control}
-                name={`${base}.enabled` as FieldPath<SaveStoreSettingsInput>}
-                render={({ field }) => (
-                  <Field orientation="horizontal">
-                    <Checkbox
-                      aria-label={`Offer ${current?.name || `delivery zone ${index + 1}`}`}
-                      checked={Boolean(field.value)}
-                      onCheckedChange={(checked) => field.onChange(Boolean(checked))}
-                    />
-                    <div>
-                      <FieldLabel>Offer this delivery option</FieldLabel>
-                      <FieldDescription>
-                        Disabled zones remain in the form but are not presented as available.
-                      </FieldDescription>
-                    </div>
-                  </Field>
-                )}
-              />
+              <div className="grid gap-3 lg:grid-cols-2">
+                <Controller
+                  control={control}
+                  name={`${base}.enabled` as FieldPath<SaveStoreSettingsInput>}
+                  render={({ field }) => (
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        aria-label={`Offer ${current?.name || `delivery option ${index + 1}`}`}
+                        checked={Boolean(field.value)}
+                        disabled={Boolean(current?.isNationwideFallback)}
+                        onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                      />
+                      <div>
+                        <FieldLabel>Offer this delivery price</FieldLabel>
+                        <FieldDescription>
+                          Disabled regional prices are ignored during checkout.
+                        </FieldDescription>
+                      </div>
+                    </Field>
+                  )}
+                />
+                <Field orientation="horizontal">
+                  <Checkbox
+                    aria-label={`Use ${current?.name || `delivery option ${index + 1}`} nationwide`}
+                    checked={Boolean(current?.isNationwideFallback)}
+                    onCheckedChange={(checked) => {
+                      if (checked) selectNationwideFallback(index);
+                    }}
+                  />
+                  <div>
+                    <FieldLabel>Use for the rest of Nigeria</FieldLabel>
+                    <FieldDescription>
+                      This keeps every valid Nigerian delivery address eligible to pay.
+                    </FieldDescription>
+                  </div>
+                </Field>
+              </div>
             </Card>
           );
         })}

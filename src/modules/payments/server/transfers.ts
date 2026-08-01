@@ -3,6 +3,7 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type {
@@ -106,7 +107,7 @@ export async function initiatePayoutTransfer(
   const reference = createTransferReference();
   let intent: PayoutTransferRow;
   try {
-    const command = await prisma.$transaction(
+    const command = await runSerializable(
       async (tx): Promise<Result<PayoutTransferRow, FinanceError>> => {
         const outstanding = await tx.payout_transfers.aggregate({
           where: { currency: input.currency, status: { in: [...unresolvedStatuses] } },
@@ -164,7 +165,6 @@ export async function initiatePayoutTransfer(
         });
         return ok(created);
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
     if (!command.ok) return command;
     intent = command.value;

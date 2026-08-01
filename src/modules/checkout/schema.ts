@@ -12,7 +12,6 @@ const checkoutLineSchema = z
 const createCheckoutFields = {
   idempotencyKey: z.string().uuid(),
   addressId: z.string().uuid(),
-  deliveryZoneId: z.string().uuid(),
   couponCode: z.string().trim().min(2).max(48).optional(),
   lines: z.array(checkoutLineSchema).min(1).max(50),
 };
@@ -41,13 +40,15 @@ export const createCheckoutRequestSchema = z
   .superRefine(rejectDuplicateLines);
 
 export const createCheckoutSchema = z
-  .object({ ...createCheckoutFields, callbackUrl: z.string().url() })
+  .object({ ...createCheckoutFields, callbackUrl: z.string().url().optional() })
   .strict()
   .superRefine(rejectDuplicateLines);
 
 export const checkoutIdentifierSchema = z.string().uuid();
 export const paymentIdentifierSchema = z.string().uuid();
 
+// `cancelled` is a derived public checkout state from the aggregate order.
+// It is intentionally not part of the provider payment-attempt enum.
 export const checkoutStatusSchema = z.enum([
   "initializing",
   "initialized",
@@ -57,6 +58,7 @@ export const checkoutStatusSchema = z.enum([
   "abandoned",
   "reversed",
   "review_required",
+  "cancelled",
 ]);
 
 const checkoutAmountSchema = z.number().int().nonnegative().safe();

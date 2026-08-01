@@ -10,16 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { parseProductImportText } from "@/modules/products/import/csv";
-import {
-  isBoundedProductImportRelationalSnapshot,
-  mapProductImport,
-} from "@/modules/products/import/mapper";
+import { prepareProductImport } from "@/modules/products/import/prepare";
 import type {
   ProductImportFileIssue,
   ProductImportSessionState,
 } from "@/modules/products/import/types";
-import { PRODUCT_IMPORT_MAX_ROWS } from "@/modules/products/import/types";
 import { ProductImportSession } from "@/modules/products/ui/admin/import/product-import-session";
 
 export function ProductImportDialog({
@@ -42,46 +37,12 @@ export function ProductImportDialog({
   async function handleFileChange(file: File | undefined) {
     if (!file) return;
     const text = await file.text();
-    const parsed = parseProductImportText({ fileName: file.name, size: file.size, text });
-    if (!parsed.ok) {
-      if (file.name.toLocaleLowerCase("en-NG").endsWith(".json")) {
-        try {
-          const snapshot: unknown = JSON.parse(text);
-          if (
-            snapshot &&
-            typeof snapshot === "object" &&
-            !Array.isArray(snapshot) &&
-            Array.isArray((snapshot as { products?: unknown }).products) &&
-            (snapshot as { products: unknown[] }).products.length > PRODUCT_IMPORT_MAX_ROWS
-          ) {
-            setIssue({
-              code: "too-many-products",
-              message: "Import files may contain at most 1,000 products.",
-            });
-            return;
-          }
-          if (isBoundedProductImportRelationalSnapshot(snapshot, file.size)) {
-            const mapped = mapProductImport(snapshot);
-            if (mapped.children.length) {
-              setIssue(null);
-              setSession({
-                source: "json",
-                children: mapped.children,
-                selectedImportId: mapped.children[0]?.importId ?? null,
-                ignoredAssetCount: mapped.ignoredAssetCount,
-              });
-              return;
-            }
-          }
-        } catch {
-          // The direct parser's safe issue is shown below.
-        }
-      }
-      setIssue(parsed.error);
+    const prepared = prepareProductImport({ fileName: file.name, size: file.size, text });
+    if (!prepared.ok) {
+      setIssue(prepared.error);
       return;
     }
-    const mapped = mapProductImport(parsed.value.rows, parsed.value.ignoredAssetCount);
-    if (!mapped.children.length) {
+    if (!prepared.value.children.length) {
       setIssue({
         code: "invalid-import",
         message: "The import file does not contain any products.",
@@ -90,10 +51,11 @@ export function ProductImportDialog({
     }
     setIssue(null);
     setSession({
-      source: parsed.value.source,
-      children: mapped.children,
-      selectedImportId: mapped.children[0]?.importId ?? null,
-      ignoredAssetCount: mapped.ignoredAssetCount,
+      source: file.name.toLocaleLowerCase("en-NG").endsWith(".csv") ? "csv" : "json",
+      children: prepared.value.children,
+      selectedImportId: prepared.value.children[0]?.importId ?? null,
+      selectedImportIds: [],
+      ignoredAssetCount: prepared.value.ignoredAssetCount,
     });
   }
 
@@ -116,6 +78,7 @@ export function ProductImportDialog({
             registerCloseRequest={(handler) => {
               closeRequest.current = handler;
             }}
+            onSessionEmpty={() => { setSession(null); setIssue(null); }}
           />
         ) : (
           <div className="p-6 sm:p-8">

@@ -8,6 +8,7 @@ export type StorefrontOverlayId =
   | "searchModal"
   | "savedDrawer"
   | "cartDrawer"
+  | "checkoutDialog"
   | "filterDrawer"
   | "sortSheet"
   | "conditionModal"

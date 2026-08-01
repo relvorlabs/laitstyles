@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyProductEditorValues } from "@/lib/admin/product-editor/product-editor-defaults";
 import {
+  editedProductImportCount,
   hasUnsavedProductImportChanges,
   productImportSessionReducer,
 } from "@/modules/products/import/session";
@@ -14,6 +15,7 @@ function twoChildState(): ProductImportSessionState {
     source: "json",
     ignoredAssetCount: 0,
     selectedImportId: "child-1",
+    selectedImportIds: [],
     children: [
       {
         importId: "child-1",
@@ -35,7 +37,109 @@ function twoChildState(): ProductImportSessionState {
   };
 }
 
+function childAt(state: ProductImportSessionState, index: number) {
+  const child = state.children[index];
+  if (!child) throw new Error(`Expected imported child at index ${index}.`);
+  return child;
+}
+
 describe("productImportSessionReducer", () => {
+  it("appends accepted children, retains the active selection, and adds ignored assets", () => {
+    const state = twoChildState();
+    const appendedChild = { ...childAt(state, 0), importId: "child-3" };
+
+    const next = productImportSessionReducer(state, {
+      type: "append",
+      children: [appendedChild],
+      ignoredAssetCount: 2,
+    });
+
+    expect(next.children.map((child) => child.importId)).toEqual(["child-1", "child-2", "child-3"]);
+    expect(next.selectedImportId).toBe("child-1");
+    expect(next.selectedImportIds).toEqual([]);
+    expect(next.ignoredAssetCount).toBe(2);
+  });
+
+  it("selects every queued child and clears only the selection", () => {
+    const state = { ...twoChildState(), selectedImportIds: ["child-1"] };
+    const selected = productImportSessionReducer(state, { type: "select-all" });
+    const cleared = productImportSessionReducer(selected, { type: "clear-selection" });
+
+    expect(selected.selectedImportIds).toEqual(["child-1", "child-2"]);
+    expect(cleared.selectedImportIds).toEqual([]);
+    expect(cleared.selectedImportId).toBe("child-1");
+  });
+
+  it("ignores unknown selection toggles and keeps selected IDs in queue order", () => {
+    const state = twoChildState();
+    const toggled = productImportSessionReducer(state, {
+      type: "toggle-selection",
+      importId: "child-2",
+    });
+
+    expect(
+      productImportSessionReducer(toggled, { type: "toggle-selection", importId: "missing" }),
+    ).toBe(toggled);
+    expect(
+      productImportSessionReducer(toggled, { type: "toggle-selection", importId: "child-1" })
+        .selectedImportIds,
+    ).toEqual(["child-1", "child-2"]);
+  });
+
+  it("selects the next surviving row when removing the active middle row", () => {
+    const state = twoChildState();
+    const middleState = {
+      ...state,
+      selectedImportId: "child-2",
+      selectedImportIds: ["child-1", "child-2"],
+      children: [...state.children, { ...childAt(state, 0), importId: "child-3" }],
+    };
+
+    const next = productImportSessionReducer(middleState, {
+      type: "remove",
+      importIds: ["child-2"],
+    });
+
+    expect(next.children.map((child) => child.importId)).toEqual(["child-1", "child-3"]);
+    expect(next.selectedImportId).toBe("child-3");
+    expect(next.selectedImportIds).toEqual(["child-1"]);
+  });
+
+  it("selects the previous final row and clears state when removal empties the queue", () => {
+    const state = {
+      ...twoChildState(),
+      selectedImportId: "child-2",
+      selectedImportIds: ["child-2"],
+    };
+    const afterFinalRemoval = productImportSessionReducer(state, {
+      type: "remove",
+      importIds: ["child-2"],
+    });
+    const empty = productImportSessionReducer(afterFinalRemoval, {
+      type: "remove",
+      importIds: ["child-1"],
+    });
+
+    expect(afterFinalRemoval.selectedImportId).toBe("child-1");
+    expect(afterFinalRemoval.selectedImportIds).toEqual([]);
+    expect(empty.children).toEqual([]);
+    expect(empty.selectedImportId).toBeNull();
+    expect(empty.selectedImportIds).toEqual([]);
+  });
+
+  it("counts only dirty children among the requested import IDs", () => {
+    const state = {
+      ...twoChildState(),
+      children: [
+        { ...childAt(twoChildState(), 0), isDirty: true },
+        { ...childAt(twoChildState(), 1), isDirty: false },
+      ],
+    };
+
+    expect(editedProductImportCount(state, ["child-1", "child-2", "missing"])).toBe(1);
+    expect(editedProductImportCount(state, ["child-2"])).toBe(0);
+  });
+
   it("does not warn when parsed children remain untouched", () => {
     expect(hasUnsavedProductImportChanges(twoChildState())).toBe(false);
   });

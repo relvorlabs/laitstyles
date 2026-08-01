@@ -52,6 +52,9 @@ function createTx() {
   return {
     orders: { findFirst: mocks.findFirst, update: vi.fn() },
     order_lines: { update: vi.fn() },
+    holds: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    payments: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    order_payment_events: { create: vi.fn().mockResolvedValue({}) },
     order_timeline_events: { create: vi.fn() },
     activity_events: { create: vi.fn() },
   };
@@ -87,7 +90,7 @@ describe("requestOrderCancellation", () => {
     expect(tx.orders.update).not.toHaveBeenCalled();
   });
 
-  it("releases reserved stock and cancels an eligible order", async () => {
+  it("releases reserved stock and closes checkout recovery for an eligible order", async () => {
     const tx = createTx();
     mocks.findFirst.mockResolvedValue(orderRow());
     mocks.transaction.mockImplementationOnce(async (callback: (client: typeof tx) => unknown) =>
@@ -109,6 +112,19 @@ describe("requestOrderCancellation", () => {
     expect(tx.orders.update).toHaveBeenCalledWith({
       where: { id: "order-db-1" },
       data: { payment_status: "cancelled", fulfilment_status: "cancelled", attention: null },
+    });
+    expect(tx.holds.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { order_id: "order-db-1", status: "active" },
+        data: expect.objectContaining({ status: "cancelled", payment_progress: "failed" }),
+      }),
+    );
+    expect(tx.payments.updateMany).toHaveBeenCalledWith({
+      where: { order_id: "order-db-1", status: { not: "success" } },
+      data: expect.objectContaining({
+        access_code: null,
+        failure_code: "ORDER_CANCELLED",
+      }),
     });
     expect(tx.order_timeline_events.create).toHaveBeenCalledWith({
       data: expect.objectContaining({

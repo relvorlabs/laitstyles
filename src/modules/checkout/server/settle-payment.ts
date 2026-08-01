@@ -74,6 +74,20 @@ export async function settlePaystackEvent(
             });
           }
 
+          if (
+            order.payment_status === "cancelled" ||
+            order.fulfilment_status === "cancelled"
+          ) {
+            return ok(
+              await recordCancelledOrderSettlement(tx, {
+                orderId: order.id,
+                orderNumber: order.order_number,
+                paymentId: payment.id,
+                event: parsed.data,
+              }),
+            );
+          }
+
           const claimed = await tx.payments.updateMany({
             where: { id: payment.id, status: { not: parsed.data.status } },
             data: {
@@ -155,6 +169,124 @@ export async function settlePaystackEvent(
     }
   }
   return err({ code: "CHECKOUT_IN_PROGRESS", message: "Payment settlement is still in progress." });
+}
+
+async function recordCancelledOrderSettlement(
+  tx: Prisma.TransactionClient,
+  input: {
+    orderId: string;
+    orderNumber: string;
+    paymentId: string;
+    event: PaystackSettlementEvent;
+  },
+): Promise<PaymentSettlement> {
+  if (input.event.status !== "success") {
+    await tx.payments.updateMany({
+      where: { id: input.paymentId, status: { not: "success" } },
+      data: {
+        access_code: null,
+        status: input.event.status,
+        provider_transaction_id: input.event.providerTransactionId,
+        channel: input.event.channel,
+        gateway_response: input.event.gatewayResponse,
+        verified_at: new Date(),
+        verification_source: input.event.source,
+        failure_code: "ORDER_CANCELLED",
+        failure_reason: "The order was cancelled before this payment result arrived.",
+        paid_at: null,
+      },
+    });
+    await tx.order_payment_events.create({
+      data: {
+        order_id: input.orderId,
+        payment_id: input.paymentId,
+        kind: eventKind(input.event.status),
+        status: input.event.status,
+        amount: (input.event.amountMinor / 100).toFixed(2),
+        currency: input.event.currency,
+        method: "paystack",
+        note: "Provider result recorded after cancellation; order lifecycle remained cancelled.",
+        metadata: { reference: input.event.reference, source: input.event.source },
+      },
+    });
+    return {
+      checkoutId: input.orderId,
+      paymentId: input.paymentId,
+      orderNumber: input.orderNumber,
+      status: "cancelled",
+      replayed: false,
+    };
+  }
+
+  const paidAt = input.event.paidAt ? new Date(input.event.paidAt) : new Date();
+  await tx.payments.update({
+    where: { id: input.paymentId },
+    data: {
+      access_code: null,
+      status: "review_required",
+      provider_transaction_id: input.event.providerTransactionId,
+      channel: input.event.channel,
+      gateway_response: input.event.gatewayResponse,
+      verified_at: new Date(),
+      verification_source: input.event.source,
+      failure_code: "PAID_AFTER_ORDER_CANCELLED",
+      failure_reason: "Paystack reported success after the order had been cancelled.",
+      paid_at: paidAt,
+    },
+  });
+  await tx.orders.update({
+    where: { id: input.orderId },
+    data: { payment_status: "review_required", attention: "payment-review" },
+  });
+  await tx.order_payment_events.create({
+    data: {
+      order_id: input.orderId,
+      payment_id: input.paymentId,
+      kind: "review_required",
+      status: "review_required",
+      amount: (input.event.amountMinor / 100).toFixed(2),
+      currency: input.event.currency,
+      method: "paystack",
+      note: "Paystack reported success after cancellation. Refund or reconciliation is required.",
+      metadata: {
+        reference: input.event.reference,
+        providerTransactionId: input.event.providerTransactionId,
+        source: input.event.source,
+        incident: "paid-after-order-cancelled",
+      },
+    },
+  });
+  await tx.order_timeline_events.create({
+    data: {
+      order_id: input.orderId,
+      status: "payment-review-after-cancellation",
+      note: "A successful provider payment arrived after the order was cancelled.",
+      metadata: {
+        paymentId: input.paymentId,
+        reference: input.event.reference,
+        source: input.event.source,
+      },
+    },
+  });
+  await tx.outbox_messages.create({
+    data: {
+      topic: "checkout.payment-review-required",
+      payload: {
+        orderId: input.orderId,
+        paymentId: input.paymentId,
+        reference: input.event.reference,
+        reason: "paid-after-order-cancelled",
+      },
+    },
+  });
+
+  return {
+    checkoutId: input.orderId,
+    paymentId: input.paymentId,
+    orderNumber: input.orderNumber,
+    status: "review_required",
+    replayed: false,
+  };
 }
 
 async function consumeSettledCartLines(

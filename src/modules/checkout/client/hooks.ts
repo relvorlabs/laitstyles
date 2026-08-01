@@ -1,6 +1,7 @@
 "use client";
 
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ApiClientError } from "@/lib/http/client";
 import { ownedCartKeys } from "@/modules/cart/client/keys";
 import {
   createCheckoutRequest,
@@ -10,6 +11,7 @@ import {
   verifyCheckoutPaymentRequest,
 } from "@/modules/checkout/client/http";
 import { checkoutKeys } from "@/modules/checkout/client/keys";
+import { requestCheckoutSessionReset } from "@/modules/checkout/client/session-events";
 import type { CheckoutContext, CheckoutDraft } from "@/modules/checkout/types";
 import { accountCustomerKeys } from "@/modules/customers/client/account-keys";
 import { accountOrderKeys } from "@/modules/orders/client/keys";
@@ -21,7 +23,9 @@ export function checkoutContextQueryOptions(enabled = true) {
     queryKey: checkoutKeys.context(),
     queryFn: ({ signal }) => getCheckoutContextRequest(signal),
     enabled,
-    staleTime: 15_000,
+    staleTime: 5_000,
+    refetchInterval: (query) => (query.state.data?.activeCheckout ? 3_000 : false),
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -65,6 +69,17 @@ export function useCreateCheckout() {
       queryClient.setQueryData<CheckoutContext>(checkoutKeys.context(), (current) =>
         current ? { ...current, activeCheckout: checkout } : current,
       );
+    },
+    onError: (error) => {
+      if (!(error instanceof ApiClientError)) return;
+      if (error.code === "PAYMENT_INITIALIZATION_FAILED") {
+        queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
+        requestCheckoutSessionReset("payment-initialization-failed");
+      }
+      if (error.code === "CHECKOUT_IDEMPOTENCY_CONFLICT") {
+        queryClient.invalidateQueries({ queryKey: checkoutKeys.context() });
+        requestCheckoutSessionReset("closed-idempotency-session");
+      }
     },
   });
 }

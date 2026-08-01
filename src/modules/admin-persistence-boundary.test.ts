@@ -119,6 +119,28 @@ const manualPaymentControlTokens = [
 ] as const;
 
 describe("Phase 5 admin persistence boundary", () => {
+  it("allows the shared Cloudinary upload boundary and rejects direct SDK imports", () => {
+    const sharedBoundary = {
+      "src/components/ui/cloud-upload-button.tsx": "export function CloudUploadButton() {}",
+      "src/modules/products/ui/editor.tsx":
+        'import { CloudUploadButton } from "@/components/ui/cloud-upload-button";',
+    };
+    const directConsumer = {
+      "src/modules/products/ui/editor.tsx": 'import { CldUploadButton } from "next-cloudinary";',
+    };
+
+    expect(classifyArchitectureGraph({ files: sharedBoundary })).toEqual([]);
+    expect(classifyArchitectureGraph({ files: directConsumer })).toEqual([
+      {
+        rule: "direct-cloudinary-upload-import",
+        importer: "src/modules/products/ui/editor.tsx",
+        imported: "next-cloudinary",
+        detail:
+          "Production modules must use @/components/ui/cloud-upload-button instead of CldUploadButton.",
+      },
+    ]);
+  });
+
   it("detects alias and relative production fixture imports", () => {
     const files = {
       "src/alias.ts": 'import { order } from "@/tests/fixtures/order";',

@@ -18,7 +18,7 @@ const initializeTransactionInputSchema = z.object({
   email: z.string().trim().email(),
   amountMinor: amountMinorSchema,
   reference: referenceSchema,
-  callbackUrl: z.string().url(),
+  callbackUrl: z.string().url().optional(),
   currency: currencySchema.default("NGN"),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
@@ -154,7 +154,7 @@ export async function initializeTransaction(
       amount: parsed.amountMinor,
       currency: parsed.currency,
       reference: parsed.reference,
-      callback_url: parsed.callbackUrl,
+      ...(parsed.callbackUrl === undefined ? {} : { callback_url: parsed.callbackUrl }),
       ...(parsed.metadata === undefined ? {} : { metadata: JSON.stringify(parsed.metadata) }),
     },
   });

@@ -119,6 +119,19 @@ describe("saveProduct", () => {
     });
   });
 
+  it("bounds hosted-pooler connection wait and product transaction execution", async () => {
+    const values = validStockedValues();
+    harness.getAdminProduct.mockResolvedValueOnce(savedStockedProduct());
+
+    await saveProduct(actor, values, "draft");
+
+    expect(harness.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable",
+      maxWait: 15_000,
+      timeout: 15_000,
+    });
+  });
+
   it("rejects media that was never uploaded before opening a transaction", async () => {
     const values = validStockedValues();
     values.media = [

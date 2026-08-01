@@ -1,6 +1,6 @@
 "use client";
 
-import "@/features/storefront/shared/storefront.css";
+import "@/modules/storefront-shell/ui/storefront.css";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";

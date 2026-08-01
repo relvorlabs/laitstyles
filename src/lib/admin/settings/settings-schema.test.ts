@@ -85,6 +85,34 @@ describe("Store settings validation", () => {
     );
   });
 
+  it("requires exactly one enabled nationwide delivery fallback", () => {
+    const missingFallback = cloneDefaults();
+    missingFallback.delivery.zones.forEach((zone) => {
+      zone.isNationwideFallback = false;
+    });
+
+    expect(validateSettingsSection(missingFallback, "delivery")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "delivery.zones",
+          section: "delivery",
+        }),
+      ]),
+    );
+
+    const duplicateFallback = cloneDefaults();
+    duplicateFallback.delivery.zones[0]!.isNationwideFallback = true;
+
+    expect(validateSettingsSection(duplicateFallback, "delivery")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "delivery.zones",
+          section: "delivery",
+        }),
+      ]),
+    );
+  });
+
   it("requires pay on delivery to agree across selling and payment settings", () => {
     const input = cloneDefaults();
     input.selling.payOnDeliveryEnabled = true;

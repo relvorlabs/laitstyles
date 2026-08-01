@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import "@/features/storefront/shared/storefront.css";
+import "@/modules/storefront-shell/ui/storefront.css";
 import { storefrontFontClassName } from "@/modules/storefront-shell/ui/storefront-fonts";
 
 const SKELETON_ITEMS = ["one", "two", "three", "four"] as const;

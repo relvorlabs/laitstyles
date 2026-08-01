@@ -29,6 +29,12 @@ export async function validateCheckoutCoupon(
   if (coupon.expiresAt && Date.parse(coupon.expiresAt) <= now) {
     return invalid(normalizedCode, "This coupon has expired.");
   }
+  if (coupon.usageLimit) {
+    const usedCount = await countVerifiedCouponUses(tx, normalizedCode);
+    if (usedCount >= coupon.usageLimit) {
+      return invalid(normalizedCode, "This coupon has reached its usage limit.");
+    }
+  }
   if (subtotalMinor < (coupon.minimumSubtotalMinor ?? 0)) {
     return invalid(normalizedCode, "Your bag has not reached this coupon’s minimum spend.");
   }
@@ -53,6 +59,21 @@ export async function validateCheckoutCoupon(
     message: `${normalizedCode} applied.`,
     discountMinor: cappedDiscount,
   };
+}
+
+export async function countVerifiedCouponUses(
+  tx: Prisma.TransactionClient,
+  normalizedCode: string,
+): Promise<number> {
+  const rows = await tx.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(DISTINCT o.id)::bigint AS count
+    FROM public.orders AS o
+    INNER JOIN public.order_payment_events AS e ON e.order_id = o.id
+    WHERE o.payment_status::text = 'paid'
+      AND e.kind::text = 'attempt_created'
+      AND UPPER(COALESCE(e.metadata ->> 'couponCode', '')) = ${normalizedCode}
+  `;
+  return Number(rows.at(0)?.count ?? 0n);
 }
 
 export function normalizeCouponCode(code: string): string {

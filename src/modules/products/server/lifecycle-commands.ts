@@ -2,6 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
+import { runSerializable } from "@/lib/prisma/serializable";
 import type { StaffSession } from "@/modules/auth/server/session";
 import { canManageProduct, isProductId } from "@/modules/products/server/rules";
 import type { ProductLifecycleError, ProductLifecycleOutcome } from "@/modules/products/types";
@@ -45,24 +46,21 @@ export async function archiveProduct(
   const product = await getTarget(productId);
   if (!product) return productNotFound(productId);
 
-  await prisma.$transaction(
-    async (tx) => {
-      await tx.products.update({
-        where: { id: product.id },
-        data: { lifecycle: "archived", publication: "unpublished", scheduled_at: null },
-      });
-      await tx.product_channels.deleteMany({ where: { product_id: product.id } });
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: actor.authUserId,
-          action: "inventory:archive",
-          target_table: "products",
-          target_id: product.id,
-        },
-      });
-    },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-  );
+  await runSerializable(async (tx) => {
+    await tx.products.update({
+      where: { id: product.id },
+      data: { lifecycle: "archived", publication: "unpublished", scheduled_at: null },
+    });
+    await tx.product_channels.deleteMany({ where: { product_id: product.id } });
+    await tx.audit_events.create({
+      data: {
+        actor_profile_id: actor.authUserId,
+        action: "inventory:archive",
+        target_table: "products",
+        target_id: product.id,
+      },
+    });
+  });
 
   return ok({
     productId,
@@ -86,23 +84,20 @@ export async function restoreProduct(
   const product = await getTarget(productId);
   if (!product) return productNotFound(productId);
 
-  await prisma.$transaction(
-    async (tx) => {
-      await tx.products.update({
-        where: { id: product.id },
-        data: { lifecycle: "active", publication: "unpublished", scheduled_at: null },
-      });
-      await tx.audit_events.create({
-        data: {
-          actor_profile_id: actor.authUserId,
-          action: "inventory:restore",
-          target_table: "products",
-          target_id: product.id,
-        },
-      });
-    },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-  );
+  await runSerializable(async (tx) => {
+    await tx.products.update({
+      where: { id: product.id },
+      data: { lifecycle: "active", publication: "unpublished", scheduled_at: null },
+    });
+    await tx.audit_events.create({
+      data: {
+        actor_profile_id: actor.authUserId,
+        action: "inventory:restore",
+        target_table: "products",
+        target_id: product.id,
+      },
+    });
+  });
 
   return ok({
     productId,
@@ -126,7 +121,7 @@ export async function deleteProduct(
   if (!isProductId(productId)) return productNotFound(productId);
 
   try {
-    const outcome = await prisma.$transaction(
+    const outcome = await runSerializable(
       async (tx) => {
         const product = await findTarget(tx, productId);
         if (!product) return { kind: "missing" as const };
@@ -153,7 +148,6 @@ export async function deleteProduct(
         });
         return { kind: "deleted" as const, product };
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
 
     if (outcome.kind === "missing") return productNotFound(productId);
