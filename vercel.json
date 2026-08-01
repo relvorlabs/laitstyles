@@ -3,10 +3,10 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm build",
-  "crons": [
-    {
-      "path": "/api/v1/system/checkout-expiry",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  // "crons": [
+  //   {
+  //     "path": "/api/v1/system/checkout-expiry",
+  //     "schedule": "*/5 * * * *"
+  //   }
+  // ]
 }
