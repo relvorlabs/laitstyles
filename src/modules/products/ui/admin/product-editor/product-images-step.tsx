@@ -6,20 +6,15 @@ import {
   Delete02Icon,
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
-import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
-import { CldUploadButton } from "next-cloudinary";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { CloudUploadButton } from "@/components/ui/cloud-upload-button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
-import {
-  finishCloudinaryUploadQueue,
-  normalizeCloudinaryUploadResult,
-  type UploadedCloudinaryAsset,
-} from "@/lib/assets/client/cloudinary-upload";
+import type { UploadedCloudinaryAsset } from "@/lib/assets/client/cloudinary-upload";
 import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
 
@@ -37,7 +32,6 @@ const uploadStatusMessage: Record<UploadStatus, string> = {
 export function ProductImagesStep() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
-  const uploadAppended = useRef(false);
   const {
     control,
     getValues,
@@ -53,29 +47,16 @@ export function ProductImagesStep() {
   });
   const mediaError = getProductEditorFieldError(errors, "media");
   const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
-  const uploadActive = uploadStatus === "opening" || uploadStatus === "uploading";
 
   useEffect(() => {
     const current = getValues("media");
     const next = current.map((item, index) =>
-      item.alt.trim()
-        ? item
-        : { ...item, alt: inferEditorMediaAlt(productName, item.kind, index) },
+      item.alt.trim() ? item : { ...item, alt: inferEditorMediaAlt(productName, item.kind, index) },
     );
     if (next.some((item, index) => item.alt !== current[index]?.alt)) {
       setValue("media", next, { shouldDirty: true, shouldValidate: false });
     }
   }, [getValues, productName, setValue, watchedMedia.length]);
-
-  function handleUploadSuccess(result: CloudinaryUploadWidgetResults) {
-    const normalized = normalizeCloudinaryUploadResult(result);
-    if (!normalized.ok) {
-      setUploadStatus("failed");
-      setFeedback(normalized.error.message);
-      return;
-    }
-    if (!addUploadedImage(normalized.value)) setUploadStatus("failed");
-  }
 
   function addUploadedImage(image: UploadedCloudinaryAsset) {
     const existing = getValues("media");
@@ -102,7 +83,6 @@ export function ProductImagesStep() {
       position: existing.length,
       source: "upload",
     });
-    uploadAppended.current = true;
     setFeedback(
       kind === "cover"
         ? "Image added and selected as the featured cover."
@@ -186,55 +166,24 @@ export function ProductImagesStep() {
           <span className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground md:block">
             {fields.length}/{MAX_IMAGES} images
           </span>
-          {remainingSlots > 0 && !uploadActive ? (
-            <CldUploadButton
-              className={buttonVariants({ size: "lg", variant: "outline" })}
-              data-slot="button"
-              onClose={() =>
-                setUploadStatus((current) =>
-                  current === "opening" || current === "uploading" ? "cancelled" : current,
-                )
-              }
-              onError={() => {
-                setUploadStatus("failed");
-                setFeedback("That upload failed. Try again.");
-              }}
-              onOpen={() => {
-                uploadAppended.current = false;
-                setFeedback(null);
-                setUploadStatus("opening");
-              }}
-              onQueuesEnd={() =>
-                setUploadStatus((current) =>
-                  current ? finishCloudinaryUploadQueue(current, uploadAppended.current) : current,
-                )
-              }
-              onQueuesStart={() => setUploadStatus("uploading")}
-              onSuccess={handleUploadSuccess}
-              options={{
-                multiple: true,
-                maxFiles: remainingSlots,
-                sources: ["local", "camera"],
-                clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "avif"],
-                folder: "laitstyles/products",
-              }}
-              signatureEndpoint="/api/v1/admin/assets/sign"
-            >
-              <AdminIcon icon={ImageAdd01Icon} size={17} />
-              Upload images
-            </CldUploadButton>
-          ) : (
-            <span
-              className={buttonVariants({
-                size: "lg",
-                variant: "outline",
-                className: "pointer-events-none opacity-50",
-              })}
-            >
-              <AdminIcon icon={ImageAdd01Icon} size={17} />
-              Upload images
-            </span>
-          )}
+          <CloudUploadButton
+            disabled={remainingSlots === 0}
+            folder="laitstyles/products"
+            label="Upload images"
+            maxFiles={remainingSlots}
+            multiple
+            onAsset={(image) => {
+              const accepted = addUploadedImage(image);
+              if (!accepted) setUploadStatus("failed");
+              return accepted;
+            }}
+            onError={(issue) => setFeedback(issue.message)}
+            onStatusChange={(status) => {
+              if (status !== "idle") setUploadStatus(status);
+            }}
+            size="lg"
+            variant="outline"
+          />
         </div>
       </div>
 
@@ -371,6 +320,7 @@ function inferEditorMediaAlt(
   position: number,
 ): string {
   const name = productName.trim() || "Product";
-  const view = kind === "cover" ? "featured view" : kind === "defect" ? "condition detail" : "detail view";
+  const view =
+    kind === "cover" ? "featured view" : kind === "defect" ? "condition detail" : "detail view";
   return `${name} — ${view} ${position + 1}`;
 }

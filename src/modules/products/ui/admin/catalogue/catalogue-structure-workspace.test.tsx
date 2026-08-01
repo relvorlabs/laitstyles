@@ -1,19 +1,33 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { UploadedCloudinaryAsset } from "@/lib/assets/client/cloudinary-upload";
 import { productKeys } from "@/modules/products/client/keys";
 import type { AdminProduct, ProductTaxonomyItem } from "@/modules/products/types";
 import { CatalogueStructureWorkspace } from "./catalogue-structure-workspace";
 
-vi.mock("next-cloudinary", () => ({
-  CldUploadButton: ({ children, onOpen }: { children: ReactNode; onOpen?: () => void }) => (
-    <button onClick={onOpen} type="button">
-      {children}
-    </button>
-  ),
+type CapturedUploadProps = {
+  folder: string;
+  label: string;
+  maxFiles?: number;
+  multiple?: boolean;
+  onAsset: (asset: UploadedCloudinaryAsset) => boolean | undefined;
+  onStatusChange?: (status: "opening" | "uploading" | "completed" | "cancelled" | "failed") => void;
+};
+
+let capturedUploadProps: CapturedUploadProps | undefined;
+
+vi.mock("@/components/ui/cloud-upload-button", () => ({
+  CloudUploadButton: (props: CapturedUploadProps) => {
+    capturedUploadProps = props;
+    return (
+      <button onClick={() => props.onStatusChange?.("opening")} type="button">
+        {props.label}
+      </button>
+    );
+  },
 }));
 
 afterEach(() => {
@@ -70,14 +84,38 @@ describe("CatalogueStructureWorkspace", () => {
     expect(screen.getByText(/preview remains local until/i)).toBeTruthy();
   });
 
-  it("reports category upload opening and locks duplicate upload starts", () => {
+  it("keeps the shared category uploader mounted while it opens", () => {
     renderWorkspace();
     fireEvent.click(screen.getByRole("button", { name: "New category" }));
     fireEvent.click(screen.getByRole("button", { name: "Upload image" }));
 
     expect(screen.getByText("Opening category image uploader.")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Upload image" })).toBeNull();
-    expect(screen.getByText("Uploading image")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Upload image" })).toBeTruthy();
+  });
+
+  it("uses the shared uploader to update the category image preview", () => {
+    renderWorkspace();
+    fireEvent.click(screen.getByRole("button", { name: "New category" }));
+
+    expect(capturedUploadProps).toMatchObject({
+      folder: "laitstyles/categories",
+      label: "Upload image",
+      multiple: false,
+    });
+    expect(capturedUploadProps?.maxFiles).toBeUndefined();
+
+    act(() =>
+      capturedUploadProps?.onAsset({
+        publicId: "laitstyles/categories/archive-coats",
+        url: "https://res.cloudinary.com/store/image/upload/v1/archive-coats.jpg",
+        width: 1200,
+        height: 800,
+        format: "jpg",
+        bytes: 2048,
+      }),
+    );
+
+    expect(screen.getByRole("button", { name: "Replace image" })).toBeTruthy();
   });
 
   it("renders full collection stories without a collection upload control", () => {

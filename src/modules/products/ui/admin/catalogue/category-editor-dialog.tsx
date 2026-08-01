@@ -1,11 +1,10 @@
 "use client";
 
 import { Delete02Icon, ImageAdd01Icon } from "@hugeicons/core-free-icons";
-import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
-import { CldUploadButton } from "next-cloudinary";
-import { useEffect, useRef, useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { CloudUploadButton } from "@/components/ui/cloud-upload-button";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  type CloudinaryUploadStatus,
-  finishCloudinaryUploadQueue,
-  normalizeCloudinaryUploadResult,
-} from "@/lib/assets/client/cloudinary-upload";
+import type { UploadedCloudinaryAsset } from "@/lib/assets/client/cloudinary-upload";
 import {
   useCreateProductTaxonomy,
   useUpdateProductTaxonomy,
@@ -29,7 +24,9 @@ import type { ProductTaxonomyItem } from "@/modules/products/types";
 import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { TaxonomyDeleteDialog } from "@/modules/products/ui/admin/catalogue/taxonomy-delete-dialog";
 
-const uploadStatusMessage: Record<CloudinaryUploadStatus, string> = {
+type UploadStatus = "opening" | "uploading" | "completed" | "cancelled" | "failed";
+
+const uploadStatusMessage: Record<UploadStatus, string> = {
   opening: "Opening category image uploader.",
   uploading: "Uploading category image.",
   completed: "Category image upload completed. Save the category to keep it.",
@@ -51,8 +48,7 @@ export function CategoryEditorDialog({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<CloudinaryUploadStatus | null>(null);
-  const uploadAppended = useRef(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const create = useCreateProductTaxonomy();
   const update = useUpdateProductTaxonomy();
@@ -63,16 +59,10 @@ export function CategoryEditorDialog({
     setSubmitted(false);
     setUploadStatus(null);
   }, [editing]);
-  function uploaded(result: CloudinaryUploadWidgetResults) {
-    const normalized = normalizeCloudinaryUploadResult(result);
-    if (!normalized.ok) {
-      setUploadStatus("failed");
-      setFeedback(normalized.error.message);
-      return;
-    }
-    uploadAppended.current = true;
-    setImageUrl(normalized.value.url);
+  function uploaded(image: UploadedCloudinaryAsset) {
+    setImageUrl(image.url);
     setFeedback(null);
+    return true;
   }
   async function save() {
     setSubmitted(true);
@@ -143,54 +133,17 @@ export function CategoryEditorDialog({
                 The preview remains local until you choose Save category.
               </FieldDescription>
               <div className="flex flex-wrap gap-2">
-                {!uploadActive ? (
-                  <CldUploadButton
-                    className={buttonVariants({ variant: "outline" })}
-                    data-slot="button"
-                    onClose={() =>
-                      setUploadStatus((current) =>
-                        current === "opening" || current === "uploading" ? "cancelled" : current,
-                      )
-                    }
-                    onError={() => {
-                      setUploadStatus("failed");
-                      setFeedback(null);
-                    }}
-                    onOpen={() => {
-                      uploadAppended.current = false;
-                      setFeedback(null);
-                      setUploadStatus("opening");
-                    }}
-                    onQueuesEnd={() =>
-                      setUploadStatus((current) =>
-                        current
-                          ? finishCloudinaryUploadQueue(current, uploadAppended.current)
-                          : current,
-                      )
-                    }
-                    onQueuesStart={() => setUploadStatus("uploading")}
-                    onSuccess={uploaded}
-                    options={{
-                      multiple: false,
-                      sources: ["local", "camera"],
-                      folder: "laitstyles/categories",
-                    }}
-                    signatureEndpoint="/api/v1/admin/assets/sign"
-                  >
-                    <AdminIcon icon={ImageAdd01Icon} size={16} />
-                    {imageUrl ? "Replace image" : "Upload image"}
-                  </CldUploadButton>
-                ) : (
-                  <span
-                    className={buttonVariants({
-                      variant: "outline",
-                      className: "pointer-events-none opacity-50",
-                    })}
-                  >
-                    <AdminIcon icon={ImageAdd01Icon} size={16} />
-                    Uploading image
-                  </span>
-                )}
+                <CloudUploadButton
+                  folder="laitstyles/categories"
+                  label={imageUrl ? "Replace image" : "Upload image"}
+                  multiple={false}
+                  onAsset={uploaded}
+                  onError={(issue) => setFeedback(issue.message)}
+                  onStatusChange={(status) => {
+                    if (status !== "idle") setUploadStatus(status);
+                  }}
+                  variant="outline"
+                />
                 {imageUrl ? (
                   <Button
                     onClick={() => {

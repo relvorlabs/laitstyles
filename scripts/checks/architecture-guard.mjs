@@ -110,6 +110,20 @@ export function classifyArchitectureGraph({ files, previousFiles = {} }) {
     const specifiers = new Set(imports.map(({ specifier }) => specifier));
     for (const entry of imports) {
       const resolvedPath = resolveModule(fileMap, file, entry.specifier);
+      if (
+        isProductionSource(file) &&
+        file !== "src/components/ui/cloud-upload-button.tsx" &&
+        entry.specifier === "next-cloudinary" &&
+        entry.names.includes("CldUploadButton")
+      ) {
+        violations.push({
+          rule: "direct-cloudinary-upload-import",
+          importer: file,
+          imported: entry.specifier,
+          detail:
+            "Production modules must use @/components/ui/cloud-upload-button instead of CldUploadButton.",
+        });
+      }
       if (isProductionSource(file) && hasFixturePath(entry.specifier, resolvedPath)) {
         violations.push({ rule: "production-fixture-import", importer: file, imported: entry.specifier, detail: "Production source imports a test or development fixture." });
       }

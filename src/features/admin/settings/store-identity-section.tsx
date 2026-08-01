@@ -1,13 +1,12 @@
 "use client";
 
-import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
-import { CldUploadButton } from "next-cloudinary";
 import { useFormContext, useWatch } from "react-hook-form";
 import { LaitstyleSymbol } from "@/components/brand/laitstyle-symbol";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { CloudUploadButton } from "@/components/ui/cloud-upload-button";
 import { FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   SettingsTextareaField,
@@ -15,6 +14,7 @@ import {
 } from "@/features/admin/settings/settings-fields";
 import { SettingsSectionFrame } from "@/features/admin/settings/settings-section-frame";
 import type { SaveStoreSettingsInput } from "@/lib/admin/shared/types";
+import type { UploadedCloudinaryAsset } from "@/lib/assets/client/cloudinary-upload";
 
 export function StoreIdentitySection() {
   const { control, setValue } = useFormContext<SaveStoreSettingsInput>();
@@ -23,18 +23,16 @@ export function StoreIdentitySection() {
     name: "identity",
   }) as SaveStoreSettingsInput["identity"];
 
-  function handleLogoUpload(result: CloudinaryUploadWidgetResults) {
-    const info = result.info;
-    if (!info || typeof info === "string") return;
+  function handleLogoUpload(image: UploadedCloudinaryAsset) {
     setValue(
       "identity.logo",
       {
-        publicId: info.public_id,
-        url: info.secure_url,
-        width: info.width ?? null,
-        height: info.height ?? null,
-        format: info.format ?? null,
-        bytes: info.bytes ?? null,
+        publicId: image.publicId,
+        url: image.url,
+        width: image.width,
+        height: image.height,
+        format: image.format,
+        bytes: image.bytes,
       },
       { shouldDirty: true },
     );
@@ -124,20 +122,13 @@ export function StoreIdentitySection() {
               </Button>
             </div>
           ) : (
-            <CldUploadButton
-              className={buttonVariants({ variant: "outline" })}
-              data-slot="button"
-              onSuccess={handleLogoUpload}
-              options={{
-                multiple: false,
-                sources: ["local", "camera"],
-                clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "svg"],
-                folder: "laitstyles/brand",
-              }}
-              signatureEndpoint="/api/v1/admin/assets/sign"
-            >
-              Upload logo
-            </CldUploadButton>
+            <CloudUploadButton
+              folder="laitstyles/brand"
+              label="Upload logo"
+              multiple={false}
+              onAsset={handleLogoUpload}
+              variant="outline"
+            />
           )}
         </div>
       </div>

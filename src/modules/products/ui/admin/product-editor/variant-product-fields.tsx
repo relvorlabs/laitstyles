@@ -2,19 +2,15 @@
 
 import { Add01Icon, AiMagicIcon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
-import type { CloudinaryUploadWidgetResults } from "next-cloudinary";
-import { CldUploadButton } from "next-cloudinary";
 import { useMemo, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { CloudUploadButton } from "@/components/ui/cloud-upload-button";
 import { FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { generateVariantSku } from "@/lib/admin/inventory/sku";
 import type { ProductEditorValues } from "@/lib/admin/shared/types";
-import {
-  finishCloudinaryUploadQueue,
-  normalizeCloudinaryUploadResult,
-} from "@/lib/assets/client/cloudinary-upload";
+import type { UploadedCloudinaryAsset } from "@/lib/assets/client/cloudinary-upload";
 import { adminProductsQueryOptions } from "@/modules/products/client/hooks";
 import { AdminIcon } from "@/modules/products/ui/admin/admin-icon";
 import { getProductEditorFieldError } from "@/modules/products/ui/admin/product-editor/product-editor-errors";
@@ -112,22 +108,16 @@ export function VariantProductFields() {
     });
   }
 
-  function setVariantImage(index: number, fieldKey: string, result: CloudinaryUploadWidgetResults) {
-    const normalized = normalizeCloudinaryUploadResult(result);
-    if (!normalized.ok) {
-      setVariantUploadStatus(fieldKey, "failed");
-      setUploadFeedback((current) => ({ ...current, [fieldKey]: normalized.error.message }));
-      return;
-    }
+  function setVariantImage(index: number, fieldKey: string, image: UploadedCloudinaryAsset) {
     setValue(
       `variant.variants.${index}.image`,
       {
-        publicId: normalized.value.publicId,
-        url: normalized.value.url,
-        width: normalized.value.width,
-        height: normalized.value.height,
-        format: normalized.value.format,
-        bytes: normalized.value.bytes,
+        publicId: image.publicId,
+        url: image.url,
+        width: image.width,
+        height: image.height,
+        format: image.format,
+        bytes: image.bytes,
       },
       { shouldDirty: true },
     );
@@ -309,65 +299,31 @@ export function VariantProductFields() {
                           <AdminIcon icon={Delete02Icon} size={14} />
                         </Button>
                       </div>
-                    ) : uploadStatus === "opening" || uploadStatus === "uploading" ? (
-                      <span
-                        aria-disabled="true"
-                        className={buttonVariants({
-                          size: "sm",
-                          variant: "outline",
-                          className: "pointer-events-none opacity-60",
-                        })}
-                      >
-                        Uploading image
-                      </span>
                     ) : (
-                      <CldUploadButton
-                        className={buttonVariants({ size: "sm", variant: "outline" })}
-                        data-slot="button"
-                        onClose={() => {
-                          setUploadStatuses((current) => {
-                            const status = current[field.fieldKey];
-                            return status === "opening" || status === "uploading"
-                              ? { ...current, [field.fieldKey]: "cancelled" }
-                              : current;
-                          });
+                      <CloudUploadButton
+                        folder="laitstyles/products/variants"
+                        label="Upload image"
+                        multiple={false}
+                        onAsset={(image) => {
+                          setVariantImage(index, field.fieldKey, image);
+                          return true;
                         }}
-                        onError={() => {
+                        onError={(issue) => {
                           setVariantUploadStatus(field.fieldKey, "failed");
                           setUploadFeedback((current) => ({
                             ...current,
-                            [field.fieldKey]: "That upload failed. Try again.",
+                            [field.fieldKey]: issue.message,
                           }));
                         }}
-                        onOpen={() => {
-                          clearVariantUploadFeedback(field.fieldKey);
-                          setVariantUploadStatus(field.fieldKey, "opening");
+                        onStatusChange={(status) => {
+                          if (status !== "idle") {
+                            if (status === "opening") clearVariantUploadFeedback(field.fieldKey);
+                            setVariantUploadStatus(field.fieldKey, status);
+                          }
                         }}
-                        onQueuesEnd={() =>
-                          setUploadStatuses((current) =>
-                            current[field.fieldKey]
-                              ? {
-                                  ...current,
-                                  [field.fieldKey]: finishCloudinaryUploadQueue(
-                                    current[field.fieldKey],
-                                    true,
-                                  ),
-                                }
-                              : current,
-                          )
-                        }
-                        onQueuesStart={() => setVariantUploadStatus(field.fieldKey, "uploading")}
-                        onSuccess={(result) => setVariantImage(index, field.fieldKey, result)}
-                        options={{
-                          multiple: false,
-                          sources: ["local", "camera"],
-                          clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "avif"],
-                          folder: "laitstyles/products/variants",
-                        }}
-                        signatureEndpoint="/api/v1/admin/assets/sign"
-                      >
-                        Upload image
-                      </CldUploadButton>
+                        size="sm"
+                        variant="outline"
+                      />
                     )}
                     {uploadStatus ? (
                       <p aria-live="polite" className="text-xs text-muted-foreground">
