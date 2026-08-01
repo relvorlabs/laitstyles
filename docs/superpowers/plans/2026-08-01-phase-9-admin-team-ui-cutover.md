@@ -240,7 +240,7 @@ Expected: no content, accessibility-tree, interaction, computed-style, responsiv
 
 - [ ] **Step 6: Deliver the reviewer handoff**
 
-Report the exact implementation SHA; the pure-rename hash and sole-consumer evidence; files changed and why; every command actually run with result; blocked/skipped checks and prerequisites; required failures/advisories with baseline comparison; browser viewports/themes/states and screenshot review; unrelated dirty-work preservation; known validation debt; and confirmation that no doctrine/spec override, behavior change, shim, test edit, dependency change, or later-phase work occurred.
+Report the exact implementation SHA; the pure-rename hash and sole-consumer evidence; files changed and why; every command actually run with result; blocked/skipped checks and prerequisites; required failures/advisories with baseline comparison; browser viewports/themes/states and screenshot review; unrelated dirty-work preservation; known validation debt; confirmation of the single user-approved, documented formatter-only import-order override; and confirmation that no additional or unrecorded doctrine/spec override, behavior change, shim, test edit, dependency change, or later-phase work occurred.
 
 Expected: completion is approved only if no new failure exists and all available required evidence passes. Otherwise return a precise blocker without modifying source.
 
