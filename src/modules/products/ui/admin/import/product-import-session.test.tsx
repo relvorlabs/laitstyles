@@ -51,6 +51,7 @@ const initialState: ProductImportSessionState = {
   source: "json",
   ignoredAssetCount: 2,
   selectedImportId: "child-1",
+  selectedImportIds: [],
   children: [
     {
       importId: "child-1",

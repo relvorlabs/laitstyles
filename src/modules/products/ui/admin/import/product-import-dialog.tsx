@@ -68,6 +68,7 @@ export function ProductImportDialog({
                 source: "json",
                 children: mapped.children,
                 selectedImportId: mapped.children[0]?.importId ?? null,
+                selectedImportIds: [],
                 ignoredAssetCount: mapped.ignoredAssetCount,
               });
               return;
@@ -93,6 +94,7 @@ export function ProductImportDialog({
       source: parsed.value.source,
       children: mapped.children,
       selectedImportId: mapped.children[0]?.importId ?? null,
+      selectedImportIds: [],
       ignoredAssetCount: mapped.ignoredAssetCount,
     });
   }
