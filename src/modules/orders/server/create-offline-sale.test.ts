@@ -192,7 +192,12 @@ describe("verifyOfflineSalePayment", () => {
         id: draft.paymentId,
         reference: draft.reference,
         status: "success",
-        orders: { ...mappedOrder, paymentStatus: "paid", order_number: draft.orderNumber, payment_status: "paid" },
+        orders: {
+          ...mappedOrder,
+          paymentStatus: "paid",
+          order_number: draft.orderNumber,
+          payment_status: "paid",
+        },
       });
     mocks.mapAdminOrderRow.mockReturnValueOnce({ ...mappedOrder, paymentStatus: "paid" });
 

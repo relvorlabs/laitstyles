@@ -2,10 +2,6 @@ import "server-only";
 
 import { ApiError } from "@/lib/errors/api-error";
 import type { ConsumerSession } from "@/modules/auth/server/session";
-import type {
-  AccountOrderDetail,
-  AccountOrderSummary,
-} from "@/modules/orders/storefront/account-order-contract";
 import {
   getAccountOrder,
   getAccountOrders,
@@ -13,12 +9,14 @@ import {
   type OrderCancellationResult,
   requestOrderCancellation,
 } from "@/modules/orders/server/account-orders";
+import type {
+  AccountOrderDetail,
+  AccountOrderSummary,
+} from "@/modules/orders/storefront/account-order-contract";
 
 const PAYMENT_METHOD_SETUP_ORDER_PREFIX = "LS-METHOD-";
 
-export async function getCommerceAccountOrders(
-  customerId: string,
-): Promise<AccountOrderSummary[]> {
+export async function getCommerceAccountOrders(customerId: string): Promise<AccountOrderSummary[]> {
   const orders = await getAccountOrders(customerId);
   return orders.filter((order) => !isPaymentMethodSetupOrder(order.orderNumber));
 }

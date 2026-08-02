@@ -1,7 +1,10 @@
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { financeTransactionIdentifierSchema } from "@/modules/payments/finance-schema";
-import { getFinanceTransaction, throwFinanceApiError } from "@/modules/payments/server/finance/index";
+import {
+  getFinanceTransaction,
+  throwFinanceApiError,
+} from "@/modules/payments/server/finance/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ transactionId: string }> };

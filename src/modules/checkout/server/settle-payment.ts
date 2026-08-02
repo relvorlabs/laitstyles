@@ -74,10 +74,7 @@ export async function settlePaystackEvent(
             });
           }
 
-          if (
-            order.payment_status === "cancelled" ||
-            order.fulfilment_status === "cancelled"
-          ) {
+          if (order.payment_status === "cancelled" || order.fulfilment_status === "cancelled") {
             return ok(
               await recordCancelledOrderSettlement(tx, {
                 orderId: order.id,
@@ -387,7 +384,9 @@ async function recordUnsuccessfulPayment(
       amount: (event.amountMinor / 100).toFixed(2),
       currency: event.currency,
       method: "paystack",
-      note: terminal ? "Paystack payment did not settle successfully." : "Paystack payment is pending.",
+      note: terminal
+        ? "Paystack payment did not settle successfully."
+        : "Paystack payment is pending.",
       metadata: { reference: event.reference, source: event.source },
     },
   });

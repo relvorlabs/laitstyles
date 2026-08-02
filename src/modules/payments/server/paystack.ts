@@ -2,39 +2,43 @@ import "server-only";
 
 /** Paystack provider facade. Provider HTTP calls and normalization live under `server/paystack/**`. */
 export {
-  chargeAuthorization,
-  deactivateAuthorization,
   type ChargeAuthorizationInput,
   type ChargeAuthorizationResult,
+  chargeAuthorization,
+  deactivateAuthorization,
 } from "@/modules/payments/server/paystack/authorizations";
 export { fetchBalance, type PaystackBalance } from "@/modules/payments/server/paystack/balance";
-export { listBanks, type ListBanksInput, resolveAccount } from "@/modules/payments/server/paystack/banks";
+export {
+  type ListBanksInput,
+  listBanks,
+  resolveAccount,
+} from "@/modules/payments/server/paystack/banks";
 export {
   isPaystackConfigured,
   PaystackConfigurationError,
   PaystackProviderError,
-  paystackRequest,
   type PaystackRequestOptions,
+  paystackRequest,
 } from "@/modules/payments/server/paystack/client";
 export {
+  type AddDisputeEvidenceInput,
   acceptDispute,
   addDisputeEvidence,
-  type AddDisputeEvidenceInput,
-  declineDispute,
   DISPUTE_EVIDENCE_CONTENT_TYPES,
   DISPUTE_EVIDENCE_MAX_BYTES,
+  declineDispute,
   fetchDispute,
   getDisputeUploadUrl,
-  listDisputes,
   type ListDisputesInput,
+  listDisputes,
   mapPaystackDispute,
   type PaystackDispute,
   type PaystackDisputePagination,
   type PaystackDisputeStatus,
-  resolveDispute,
   type ResolveDisputeInput,
-  updateDispute,
+  resolveDispute,
   type UpdateDisputeInput,
+  updateDispute,
   uploadDisputeEvidenceFile,
 } from "@/modules/payments/server/paystack/disputes";
 export {
@@ -43,15 +47,26 @@ export {
   type PaystackBalanceLedgerEntry,
 } from "@/modules/payments/server/paystack/ledger";
 export {
-  createRecipient,
   type CreateRecipientInput,
+  createRecipient,
   deleteRecipient,
-  listRecipients,
   type ListRecipientsInput,
+  listRecipients,
   type PaystackTransferRecipient,
-  updateRecipient,
   type UpdateRecipientInput,
+  updateRecipient,
 } from "@/modules/payments/server/paystack/recipients";
+export {
+  type CreateRefundInput,
+  createRefund,
+  fetchRefund,
+  type ListRefundsInput,
+  listRefunds,
+  mapPaystackRefund,
+  type PaystackRefund,
+  type PaystackRefundPagination,
+  type PaystackRefundStatus,
+} from "@/modules/payments/server/paystack/refunds";
 export {
   paystackAuthorizationSchema,
   paystackCustomerSchema,
@@ -73,32 +88,21 @@ export {
   paystackTransactionSchema,
 } from "@/modules/payments/server/paystack/schemas";
 export {
-  listSettlements,
   type ListSettlementsInput,
-  listSettlementTransactions,
   type ListSettlementTransactionsInput,
+  listSettlements,
+  listSettlementTransactions,
   type PaystackSettlement,
   type PaystackSettlementStatus,
 } from "@/modules/payments/server/paystack/settlements";
 export {
-  createRefund,
-  type CreateRefundInput,
-  fetchRefund,
-  listRefunds,
-  type ListRefundsInput,
-  mapPaystackRefund,
-  type PaystackRefund,
-  type PaystackRefundPagination,
-  type PaystackRefundStatus,
-} from "@/modules/payments/server/paystack/refunds";
-export {
   fetchTransaction,
   fetchTransactionTimeline,
   fetchTransactionTotals,
-  initializeTransaction,
   type InitializeTransactionInput,
-  listTransactions,
+  initializeTransaction,
   type ListTransactionsInput,
+  listTransactions,
   mapPaystackTransaction,
   type PaystackAuthorization,
   type PaystackCustomer,
@@ -109,13 +113,13 @@ export {
   verifyTransaction,
 } from "@/modules/payments/server/paystack/transactions";
 export {
+  type FinalizeTransferOtpInput,
   fetchTransfer,
   finalizeTransferOtp,
-  type FinalizeTransferOtpInput,
-  initiateTransfer,
   type InitiateTransferInput,
-  listTransfers,
+  initiateTransfer,
   type ListTransfersInput,
+  listTransfers,
   normalizeTransferEvent,
   type PaystackTransfer,
   type PaystackTransferStatus,
@@ -128,11 +132,11 @@ export {
   isSupportedPaystackFinancialEvent,
   isSupportedPaystackRefundEvent,
   isSupportedPaystackTransferEvent,
+  PaystackWebhookSignatureError,
   parsePaystackChargeEvent,
   parsePaystackDisputeEvent,
   parsePaystackEventEnvelope,
   parsePaystackRefundEvent,
   parsePaystackTransferEvent,
-  PaystackWebhookSignatureError,
   verifyWebhookSignature,
 } from "@/modules/payments/server/paystack/webhooks";

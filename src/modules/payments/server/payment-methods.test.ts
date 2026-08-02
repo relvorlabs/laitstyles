@@ -263,8 +263,8 @@ describe("payment method setup", () => {
       ...providerTransaction,
       status: "failed",
     });
-    mocks.transaction.mockImplementationOnce(
-      async (work: (client: typeof cleanupTx) => unknown) => work(cleanupTx),
+    mocks.transaction.mockImplementationOnce(async (work: (client: typeof cleanupTx) => unknown) =>
+      work(cleanupTx),
     );
 
     const result = await verifyPaymentMethodSetup(identity, attemptId);
@@ -370,8 +370,8 @@ describe("payment method setup", () => {
         }),
       },
     };
-    mocks.transaction.mockImplementationOnce(
-      async (work: (client: typeof tx) => unknown) => work(tx),
+    mocks.transaction.mockImplementationOnce(async (work: (client: typeof tx) => unknown) =>
+      work(tx),
     );
 
     const result = await verifyPaymentMethodSetup(identity, attemptId);
@@ -420,8 +420,8 @@ describe("saved method ownership and defaults", () => {
         update: vi.fn().mockResolvedValue({ ...active, is_default: true }),
       },
     };
-    mocks.transaction.mockImplementationOnce(
-      async (work: (client: typeof tx) => unknown) => work(tx),
+    mocks.transaction.mockImplementationOnce(async (work: (client: typeof tx) => unknown) =>
+      work(tx),
     );
 
     const result = await setDefaultPaymentMethod(identity, attemptId);

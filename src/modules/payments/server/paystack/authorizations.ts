@@ -16,7 +16,11 @@ const chargeAuthorizationInputSchema = z.object({
   authorizationCode: z.string().trim().min(1),
   email: z.string().trim().email(),
   amountMinor: z.number().int().positive().safe(),
-  reference: z.string().trim().min(1).regex(/^[A-Za-z0-9.=_-]+$/),
+  reference: z
+    .string()
+    .trim()
+    .min(1)
+    .regex(/^[A-Za-z0-9.=_-]+$/),
   currency: z.string().trim().length(3).toUpperCase().default("NGN"),
   callbackUrl: z.string().url().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),

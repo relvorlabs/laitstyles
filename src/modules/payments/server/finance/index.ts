@@ -1,4 +1,3 @@
-export { throwFinanceApiError } from "@/modules/payments/server/finance-api-errors";
 export {
   getFinanceOverview,
   getFinanceSettlement,
@@ -7,6 +6,7 @@ export {
   listFinanceSettlements,
   listFinanceSettlementTransactions,
 } from "@/modules/payments/server/finance";
+export { throwFinanceApiError } from "@/modules/payments/server/finance-api-errors";
 export type {
   FinanceError,
   ReconciliationRecord,

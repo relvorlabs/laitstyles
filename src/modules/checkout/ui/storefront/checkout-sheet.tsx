@@ -97,7 +97,7 @@ export function StorefrontCheckoutSheet({
       null,
     [context, selectedAddressId],
   );
-  const couponValidation = couponCode.trim() ? couponQuery.data ?? null : null;
+  const couponValidation = couponCode.trim() ? (couponQuery.data ?? null) : null;
   const discountMinor = couponValidation?.valid ? couponValidation.discountMinor : 0;
   const displaySubtotalMinor = activeCheckout?.subtotalMinor ?? subtotalMinor;
   const displayDeliveryFeeMinor = activeCheckout?.deliveryFeeMinor ?? selectedQuote?.feeMinor ?? 0;
@@ -347,9 +347,7 @@ export function StorefrontCheckoutSheet({
 
   return (
     <CheckoutShell onBack={onBack}>
-      {!activeCheckout ? (
-        <StepIndicator active={step} />
-      ) : null}
+      {!activeCheckout ? <StepIndicator active={step} /> : null}
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-6">
           {activeCheckout ? (
@@ -521,7 +519,10 @@ export function StorefrontCheckoutSheet({
         {showDetailsStep ? (
           <Button
             className="min-h-12 w-full text-sm"
-            disabled={!detailsReady || couponFetchingBlocked(couponCode, couponReady, couponQuery.isFetching)}
+            disabled={
+              !detailsReady ||
+              couponFetchingBlocked(couponCode, couponReady, couponQuery.isFetching)
+            }
             onClick={() => setStep("review")}
             type="button"
           >
@@ -535,8 +536,8 @@ export function StorefrontCheckoutSheet({
               </p>
             ) : (
               <p className="mb-3 text-xs text-[var(--muted)]" id="checkout-payment-help">
-                Paystack opens in a secure payment window. Your order is confirmed only after
-                server verification.
+                Paystack opens in a secure payment window. Your order is confirmed only after server
+                verification.
               </p>
             )}
             <Button
@@ -555,13 +556,7 @@ export function StorefrontCheckoutSheet({
   );
 }
 
-function CheckoutShell({
-  children,
-  onBack,
-}: {
-  children: React.ReactNode;
-  onBack: () => void;
-}) {
+function CheckoutShell({ children, onBack }: { children: React.ReactNode; onBack: () => void }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[var(--bone)]">
       <div className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-4 pr-14 sm:px-7">
@@ -596,9 +591,7 @@ function StepIndicator({ active }: { active: CheckoutStep }) {
           {index > 0 ? <span className="text-[var(--muted)]">—</span> : null}
           <span
             className={
-              entry.key === active
-                ? "font-medium text-[var(--ink)]"
-                : "text-[var(--muted)]"
+              entry.key === active ? "font-medium text-[var(--ink)]" : "text-[var(--muted)]"
             }
           >
             {index + 1}. {entry.label}
@@ -666,9 +659,7 @@ function AddressOption({
     <Button
       aria-label={`${address.label}${address.isDefault ? ", default" : ""}`}
       className={`h-auto min-h-11 w-full items-start justify-start rounded-lg border p-4 text-left ${
-        selected
-          ? "border-[var(--ink)] bg-[var(--bone-2)]"
-          : "border-[var(--line)] bg-transparent"
+        selected ? "border-[var(--ink)] bg-[var(--bone-2)]" : "border-[var(--line)] bg-transparent"
       }`}
       onClick={onSelect}
       type="button"

@@ -249,7 +249,9 @@ describe("processPaystackWebhook", () => {
       throw new Error("invalid signature");
     });
 
-    await expect(processPaystackWebhook({ rawBody: chargePayload, signature })).rejects.toMatchObject({
+    await expect(
+      processPaystackWebhook({ rawBody: chargePayload, signature }),
+    ).rejects.toMatchObject({
       code: "PAYSTACK_SIGNATURE_INVALID",
       status: 401,
     });

@@ -62,10 +62,7 @@ export function OverviewSection({
 
       {!phone.trim() ? (
         <section
-          className={cn(
-            "mt-7 border-l-[5px] border-[var(--acc-oxblood)] p-5 sm:p-6",
-            panelClass,
-          )}
+          className={cn("mt-7 border-l-[5px] border-[var(--acc-oxblood)] p-5 sm:p-6", panelClass)}
         >
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
@@ -112,7 +109,11 @@ export function OverviewSection({
           <div className="mt-6 divide-y divide-[var(--acc-line)] border-y border-[var(--acc-line)]">
             {[
               { id: "orders", label: "View all orders", action: () => navigate("orders") },
-              { id: "returns", label: "Start an eligible return", action: () => navigate("returns") },
+              {
+                id: "returns",
+                label: "Start an eligible return",
+                action: () => navigate("returns"),
+              },
               { id: "addresses", label: "Manage addresses", action: () => navigate("addresses") },
               { id: "support", label: "Contact support", action: () => navigate("support") },
             ].map((item) => (
@@ -205,15 +206,16 @@ function CurrentOrderCard({ order }: { order: AccountOrderSummary }) {
             Placed {formatDate(order.placedAt)} ·{" "}
             {order.itemNames.filter(Boolean).slice(0, 2).join(", ") || "Items unavailable"}
           </p>
-          <div className="mt-6 grid grid-cols-4 gap-2" aria-label={`Order progress: ${status.label}`}>
+          <div
+            className="mt-6 grid grid-cols-4 gap-2"
+            aria-label={`Order progress: ${status.label}`}
+          >
             {["Placed", "Paid", "Processing", "Delivered"].map((label, index) => (
               <div key={`order-progress:${label}`}>
                 <span
                   className={cn(
                     "block h-1.5 rounded-full",
-                    index <= progress
-                      ? "bg-[var(--acc-sage-deep)]"
-                      : "bg-[var(--acc-line-strong)]",
+                    index <= progress ? "bg-[var(--acc-sage-deep)]" : "bg-[var(--acc-line-strong)]",
                   )}
                 />
                 <p
@@ -282,10 +284,7 @@ function OrderImageGrid({
   return (
     <div className={cn("grid gap-2", visible.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
       {visible.map((image) => (
-        <OrderImage
-          image={image}
-          key={`account-overview:${orderNumber}:image:${image.src}`}
-        />
+        <OrderImage image={image} key={`account-overview:${orderNumber}:image:${image.src}`} />
       ))}
     </div>
   );

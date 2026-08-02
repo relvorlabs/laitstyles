@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { Prisma, prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/modules/auth/server/session";
 import { parseStoreSettingsInput } from "@/modules/settings/schema";
 import {
@@ -173,9 +173,8 @@ export async function saveStoreSettings(
         metadata: {
           deliveryZoneCount: persistedZones.length,
           nationwideFallbackZoneId:
-            normalized.delivery.zones.find(
-              (zone) => zone.enabled && zone.isNationwideFallback,
-            )?.id ?? null,
+            normalized.delivery.zones.find((zone) => zone.enabled && zone.isNationwideFallback)
+              ?.id ?? null,
           pickupLocationCount: persistedPickups.length,
         },
       },

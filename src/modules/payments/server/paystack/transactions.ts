@@ -3,14 +3,22 @@ import "server-only";
 import { z } from "zod";
 import { paystackRequest } from "@/modules/payments/server/paystack/client";
 import {
+  type PaystackRawTransaction,
   paystackInitializeResponseSchema,
   paystackListTransactionsResponseSchema,
-  type PaystackRawTransaction,
   paystackTransactionResponseSchema,
 } from "@/modules/payments/server/paystack/schemas";
 
-const referenceSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9.=_-]+$/);
-const transactionIdentifierSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9.=_-]+$/);
+const referenceSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[A-Za-z0-9.=_-]+$/);
+const transactionIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[A-Za-z0-9.=_-]+$/);
 const currencySchema = z.string().trim().length(3).toUpperCase();
 const amountMinorSchema = z.number().int().positive().safe();
 

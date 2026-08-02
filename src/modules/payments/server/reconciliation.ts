@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { prisma, type Prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type { FinanceListQuery } from "@/modules/payments/finance-schema";
@@ -28,7 +28,10 @@ export async function reconcileFinanceTransactions(
   >
 > {
   if (!hasCapability(actor.role, "finance:read")) {
-    return err({ code: "FORBIDDEN", message: "You do not have permission to reconcile finance data." });
+    return err({
+      code: "FORBIDDEN",
+      message: "You do not have permission to reconcile finance data.",
+    });
   }
 
   try {
@@ -57,13 +60,17 @@ export async function reconcileFinanceTransactions(
     const localByReference = new Map(local.map((payment) => [payment.reference, payment]));
     const localByProviderId = new Map(
       local.flatMap((payment) =>
-        payment.provider_transaction_id ? [[payment.provider_transaction_id, payment] as const] : [],
+        payment.provider_transaction_id
+          ? [[payment.provider_transaction_id, payment] as const]
+          : [],
       ),
     );
     const matchedLocalIds = new Set<string>();
     const items: ReconciliationRecord[] = provider.transactions.map((transaction) => {
       const payment =
-        localByProviderId.get(transaction.id) ?? localByReference.get(transaction.reference) ?? null;
+        localByProviderId.get(transaction.id) ??
+        localByReference.get(transaction.reference) ??
+        null;
       if (!payment || matchedLocalIds.has(payment.id)) return providerOnly(transaction);
       matchedLocalIds.add(payment.id);
       const localAmountMinor = decimalToMinor(payment.amount);

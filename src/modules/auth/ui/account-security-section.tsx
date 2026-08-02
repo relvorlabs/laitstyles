@@ -24,7 +24,10 @@ export function AccountSecuritySection({ onNotice }: { onNotice?: (message: stri
   const [selectedFactor, setSelectedFactor] = useState<MfaFactorSummary | null>(null);
   const [notice, setNotice] = useState<string>();
 
-  const factors = useMemo(() => uniqueFactors(factorsQuery.data?.factors ?? []), [factorsQuery.data]);
+  const factors = useMemo(
+    () => uniqueFactors(factorsQuery.data?.factors ?? []),
+    [factorsQuery.data],
+  );
   const verifiedFactors = factors.filter((factor) => factor.status === "verified");
 
   function notify(message: string) {

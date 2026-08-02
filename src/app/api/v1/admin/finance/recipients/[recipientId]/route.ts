@@ -4,12 +4,12 @@ import {
   payoutRecipientIdentifierSchema,
   updateRecipientBodySchema,
 } from "@/modules/payments/finance-schema";
+import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
 import {
   deletePayoutRecipient,
   throwFinanceApiError,
   updatePayoutRecipient,
 } from "@/modules/payments/server/transfers/index";
-import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ recipientId: string }> };

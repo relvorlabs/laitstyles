@@ -136,7 +136,13 @@ function ProductEditorExperience({
   }, [methods.formState.isDirty, onValuesChange, watchedValues]);
   const publishIssues = useMemo(() => validateProductForPublish(watchedValues), [watchedValues]);
   const stepCompletion = useMemo(
-    () => Object.fromEntries(productEditorSteps.map((step) => [step, validateProductEditorStep(watchedValues, step).length === 0])) as Record<ProductEditorStep, boolean>,
+    () =>
+      Object.fromEntries(
+        productEditorSteps.map((step) => [
+          step,
+          validateProductEditorStep(watchedValues, step).length === 0,
+        ]),
+      ) as Record<ProductEditorStep, boolean>,
     [watchedValues],
   );
   const activeIndex = productEditorSteps.indexOf(activeStep);

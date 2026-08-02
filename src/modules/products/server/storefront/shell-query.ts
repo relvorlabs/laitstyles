@@ -106,7 +106,11 @@ export async function getStorefrontShellCatalogue(): Promise<StorefrontShellCata
 function mapShellProduct(row: ShellProductRow, index: number): StorefrontCatalogueProduct {
   const mode = mapInventory(row.inventory_mode);
   const variants = mapVariantOptions(row);
-  const availability = productAvailability(row.inventory_mode, row.stock_levels, row.product_variants);
+  const availability = productAvailability(
+    row.inventory_mode,
+    row.stock_levels,
+    row.product_variants,
+  );
   const cover = row.product_media[0]?.cloudinary_assets;
   const defaultImage = cover?.delivery_url ?? cover?.secure_url ?? null;
   const size =
@@ -185,9 +189,10 @@ function productAvailability(
   return combineStock(stockLevels.filter((stock) => stock.variant_id === null));
 }
 
-function variantAvailability(
-  variant: ShellVariantRow,
-): { available: number; status: "available" | "reserved_by_others" | "sold_out" } {
+function variantAvailability(variant: ShellVariantRow): {
+  available: number;
+  status: "available" | "reserved_by_others" | "sold_out";
+} {
   const result = combineStock(variant.stock_levels);
   return {
     available: result.available,
@@ -200,9 +205,10 @@ function variantAvailability(
   };
 }
 
-function combineStock(
-  stockLevels: readonly { available: number; reserved: number }[],
-): { available: number; status: StorefrontStatus } {
+function combineStock(stockLevels: readonly { available: number; reserved: number }[]): {
+  available: number;
+  status: StorefrontStatus;
+} {
   const available = stockLevels.reduce((total, stock) => total + stock.available, 0);
   const reserved = stockLevels.reduce((total, stock) => total + stock.reserved, 0);
   return {

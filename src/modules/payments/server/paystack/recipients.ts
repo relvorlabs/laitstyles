@@ -11,7 +11,11 @@ import {
 
 const recipientTypeSchema = z.enum(["basa", "ghipss", "mobile_money", "nuban"]);
 const currencySchema = z.string().trim().length(3).toUpperCase();
-const recipientIdentifierSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9_-]+$/);
+const recipientIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[A-Za-z0-9_-]+$/);
 
 const createRecipientInputSchema = z.object({
   type: recipientTypeSchema.default("nuban"),
@@ -139,10 +143,7 @@ export async function updateRecipient(
   return mapRecipient(response.data);
 }
 
-export async function deleteRecipient(
-  idOrCode: string,
-  fetchImplementation?: typeof fetch,
-) {
+export async function deleteRecipient(idOrCode: string, fetchImplementation?: typeof fetch) {
   const parsedIdentifier = recipientIdentifierSchema.parse(idOrCode);
   const response = await paystackRequest({
     operation: "delete-transfer-recipient",

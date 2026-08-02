@@ -1,14 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 
-export function StorefrontDataUnavailable({
-  compact = false,
-}: {
-  compact?: boolean;
-}) {
+export function StorefrontDataUnavailable({ compact = false }: { compact?: boolean }) {
   const navigation = useRouter();
 
   return (
@@ -23,15 +19,12 @@ export function StorefrontDataUnavailable({
         <p className="font-mono text-[10px] uppercase tracking-[0.16em]">
           Storefront temporarily unavailable
         </p>
-        <h1 className="mt-3 font-serif text-4xl font-normal italic">
-          We could not load the shop.
-        </h1>
+        <h1 className="mt-3 font-serif text-4xl font-normal italic">We could not load the shop.</h1>
         <p className="mt-4 text-sm leading-6">
           Your bag and saved items are still safe. Please try again in a moment.
         </p>
 
         <Button onClick={() => navigation.refresh()}>Try again</Button>
-
       </section>
     </main>
   );

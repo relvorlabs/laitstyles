@@ -78,7 +78,10 @@ export function ProductImportDialog({
             registerCloseRequest={(handler) => {
               closeRequest.current = handler;
             }}
-            onSessionEmpty={() => { setSession(null); setIssue(null); }}
+            onSessionEmpty={() => {
+              setSession(null);
+              setIssue(null);
+            }}
           />
         ) : (
           <div className="p-6 sm:p-8">

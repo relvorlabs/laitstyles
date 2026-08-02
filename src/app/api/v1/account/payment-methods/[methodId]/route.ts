@@ -1,7 +1,10 @@
 import { requireApiConsumer } from "@/lib/http/auth";
 import { parseJsonBody } from "@/lib/http/request";
 import { handleApiRequest } from "@/lib/http/server";
-import { paymentMethodIdentifierSchema, updatePaymentMethodSchema } from "@/modules/payments/schema";
+import {
+  paymentMethodIdentifierSchema,
+  updatePaymentMethodSchema,
+} from "@/modules/payments/schema";
 import {
   deletePaymentMethod,
   setDefaultPaymentMethod,

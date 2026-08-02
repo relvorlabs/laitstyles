@@ -16,7 +16,9 @@ export async function validateCheckoutCoupon(
   });
   const parsed = checkoutCouponSettingsSchema.safeParse(settings?.selling ?? {});
   const coupons = parsed.success ? parsed.data.coupons : [];
-  const coupon = coupons.find((candidate) => normalizeCouponCode(candidate.code) === normalizedCode);
+  const coupon = coupons.find(
+    (candidate) => normalizeCouponCode(candidate.code) === normalizedCode,
+  );
 
   if (!coupon || !coupon.enabled) {
     return invalid(normalizedCode, "This coupon code is not active.");

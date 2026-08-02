@@ -75,11 +75,7 @@ export function FinanceStatus({ status }: { status: string }) {
   );
 }
 
-export function FinanceFeedbackBanner({
-  feedback,
-}: {
-  feedback: Exclude<FinanceFeedback, null>;
-}) {
+export function FinanceFeedbackBanner({ feedback }: { feedback: Exclude<FinanceFeedback, null> }) {
   return (
     <div
       className={`mt-4 flex items-start gap-2 rounded-2xl border p-4 text-sm ${

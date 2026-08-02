@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  keepPreviousData,
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/http/client";
 
 const DISPUTES_URL = "/api/v1/admin/disputes";

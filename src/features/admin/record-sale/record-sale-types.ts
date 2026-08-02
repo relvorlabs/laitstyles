@@ -1,5 +1,5 @@
-import type { InPersonSalesChannel, OfflineSaleInput } from "@/modules/orders/types";
 import type { CheckoutStatus } from "@/modules/checkout/types";
+import type { InPersonSalesChannel, OfflineSaleInput } from "@/modules/orders/types";
 
 export const recordSaleSteps = ["item", "customer", "payment", "review"] as const;
 export type RecordSaleStep = (typeof recordSaleSteps)[number];

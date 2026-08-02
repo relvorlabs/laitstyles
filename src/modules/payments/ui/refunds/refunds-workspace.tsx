@@ -39,7 +39,10 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
   async function submitRefund() {
     if (!canRefund) return;
     if (!selectedPayment || amountMinor === null || amountMinor < 1 || exceedsRemaining) {
-      setMessage({ tone: "error", text: "Choose a captured payment and enter a refundable amount." });
+      setMessage({
+        tone: "error",
+        text: "Choose a captured payment and enter a refundable amount.",
+      });
       return;
     }
     setMessage(null);
@@ -61,7 +64,10 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
             : "Refund submitted. Financial totals will change only after Paystack confirms processing.",
       });
     } catch (error) {
-      setMessage({ tone: "error", text: readableError(error, "The refund could not be submitted.") });
+      setMessage({
+        tone: "error",
+        text: readableError(error, "The refund could not be submitted."),
+      });
     }
   }
 
@@ -74,7 +80,10 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
         text: "Paystack truth was checked. The refund remains pending until provider confirmation.",
       });
     } catch (error) {
-      setMessage({ tone: "error", text: readableError(error, "The refund could not be reconciled.") });
+      setMessage({
+        tone: "error",
+        text: readableError(error, "The refund could not be reconciled."),
+      });
     }
   }
 
@@ -117,7 +126,8 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
             <option value="">Select a payment</option>
             {payments.map((payment) => (
               <option key={payment.id} value={payment.id}>
-                {payment.orderNumber} · {formatMoney(payment.refundableAmountMinor, payment.currency)} available
+                {payment.orderNumber} ·{" "}
+                {formatMoney(payment.refundableAmountMinor, payment.currency)} available
               </option>
             ))}
           </select>
@@ -126,11 +136,15 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
             <div className="mt-3 rounded-2xl border border-border bg-muted/25 p-4 text-sm">
               <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Captured</span>
-                <strong>{formatMoney(selectedPayment.amountMinor, selectedPayment.currency)}</strong>
+                <strong>
+                  {formatMoney(selectedPayment.amountMinor, selectedPayment.currency)}
+                </strong>
               </div>
               <div className="mt-2 flex justify-between gap-4">
                 <span className="text-muted-foreground">Remaining refundable</span>
-                <strong>{formatMoney(selectedPayment.refundableAmountMinor, selectedPayment.currency)}</strong>
+                <strong>
+                  {formatMoney(selectedPayment.refundableAmountMinor, selectedPayment.currency)}
+                </strong>
               </div>
             </div>
           ) : null}
@@ -156,7 +170,8 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
             <Button
               disabled={!canRefund || !selectedPayment || selectedPayment.refundableAmountMinor < 1}
               onClick={() =>
-                selectedPayment && setAmountNaira((selectedPayment.refundableAmountMinor / 100).toFixed(2))
+                selectedPayment &&
+                setAmountNaira((selectedPayment.refundableAmountMinor / 100).toFixed(2))
               }
               type="button"
               variant="outline"
@@ -240,7 +255,13 @@ export function RefundsWorkspace({ canRefund }: { canRefund: boolean }) {
   );
 }
 
-function SummaryCards({ payments, refunds }: { payments: AdminPaymentRecord[]; refunds: RefundRecord[] }) {
+function SummaryCards({
+  payments,
+  refunds,
+}: {
+  payments: AdminPaymentRecord[];
+  refunds: RefundRecord[];
+}) {
   const pending = refunds.filter((refund) =>
     ["pending", "processing", "needs_attention"].includes(refund.status),
   ).length;
@@ -340,7 +361,9 @@ function EmptyState({ text, tone = "normal" }: { text: string; tone?: "normal" |
   return (
     <div
       className={`rounded-2xl border border-dashed px-5 py-10 text-center text-sm ${
-        tone === "error" ? "border-destructive/30 text-destructive" : "border-border text-muted-foreground"
+        tone === "error"
+          ? "border-destructive/30 text-destructive"
+          : "border-border text-muted-foreground"
       }`}
       role={tone === "error" ? "alert" : undefined}
     >

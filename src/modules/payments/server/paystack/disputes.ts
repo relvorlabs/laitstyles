@@ -3,12 +3,12 @@ import "server-only";
 import { z } from "zod";
 import { PaystackProviderError, paystackRequest } from "@/modules/payments/server/paystack/client";
 import {
+  type PaystackRawDispute,
   paystackDisputeEvidenceResponseSchema,
   paystackDisputeMutationResponseSchema,
   paystackDisputeResponseSchema,
   paystackDisputeUploadResponseSchema,
   paystackListDisputesResponseSchema,
-  type PaystackRawDispute,
 } from "@/modules/payments/server/paystack/schemas";
 
 const providerIdSchema = z.string().trim().regex(/^\d+$/);
@@ -19,7 +19,10 @@ const fileNameSchema = z
   .max(180)
   .regex(/^[A-Za-z0-9._ -]+$/);
 const amountMinorSchema = z.number().int().nonnegative().safe();
-const isoDateSchema = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/);
+const isoDateSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/);
 
 const listDisputesInputSchema = z.object({
   page: z.number().int().positive().default(1),
@@ -231,7 +234,11 @@ export async function uploadDisputeEvidenceFile(input: {
   fetchImplementation?: typeof fetch;
 }) {
   assertTrustedUploadUrl(input.signedUrl);
-  if (!allowedEvidenceTypes.has(input.contentType) || input.file.size < 1 || input.file.size > MAX_EVIDENCE_BYTES) {
+  if (
+    !allowedEvidenceTypes.has(input.contentType) ||
+    input.file.size < 1 ||
+    input.file.size > MAX_EVIDENCE_BYTES
+  ) {
     throw new TypeError("Dispute evidence must be a PDF, PNG or JPEG no larger than 5 MB.");
   }
 
@@ -306,15 +313,19 @@ export function declineDispute(
 
 export function mapPaystackDispute(dispute: PaystackRawDispute): PaystackDispute {
   const transaction = dispute.transaction;
-  const transactionId = typeof transaction === "object" ? String(transaction.id) : String(transaction);
+  const transactionId =
+    typeof transaction === "object" ? String(transaction.id) : String(transaction);
   const transactionReference =
     typeof transaction === "object"
-      ? transaction.reference ?? dispute.transaction_reference ?? dispute.merchant_transaction_reference ?? null
-      : dispute.transaction_reference ?? dispute.merchant_transaction_reference ?? null;
+      ? (transaction.reference ??
+        dispute.transaction_reference ??
+        dispute.merchant_transaction_reference ??
+        null)
+      : (dispute.transaction_reference ?? dispute.merchant_transaction_reference ?? null);
   const amountMinor =
     dispute.refund_amount ??
     dispute.amount ??
-    (typeof transaction === "object" ? transaction.amount ?? 0 : 0);
+    (typeof transaction === "object" ? (transaction.amount ?? 0) : 0);
   const providerStatus = dispute.status;
   return {
     id: String(dispute.id),
@@ -327,7 +338,9 @@ export function mapPaystackDispute(dispute: PaystackRawDispute): PaystackDispute
     resolution: dispute.resolution ?? null,
     category: dispute.category ?? null,
     amountMinor,
-    currency: dispute.currency ?? (typeof transaction === "object" ? transaction.currency ?? "NGN" : "NGN"),
+    currency:
+      dispute.currency ??
+      (typeof transaction === "object" ? (transaction.currency ?? "NGN") : "NGN"),
     reason: dispute.reason ?? dispute.note ?? null,
     dueAt: dispute.dueAt ?? dispute.due_at ?? null,
     resolvedAt: dispute.resolvedAt ?? dispute.resolved_at ?? null,
@@ -341,7 +354,10 @@ export function mapPaystackDispute(dispute: PaystackRawDispute): PaystackDispute
 function assertTrustedUploadUrl(value: string) {
   const url = new URL(value);
   const host = url.hostname.toLowerCase();
-  if (url.protocol !== "https:" || !(host === "files.paystack.co" || host.endsWith(".amazonaws.com"))) {
+  if (
+    url.protocol !== "https:" ||
+    !(host === "files.paystack.co" || host.endsWith(".amazonaws.com"))
+  ) {
     throw new PaystackProviderError(
       "Paystack returned an invalid evidence upload destination.",
       "get-dispute-upload-url",

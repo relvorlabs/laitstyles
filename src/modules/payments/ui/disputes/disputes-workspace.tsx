@@ -57,7 +57,10 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
       ) ||
       evidence.file.size > DISPUTE_EVIDENCE_MAX_BYTES
     ) {
-      setMessage({ tone: "error", text: "Evidence must be a PDF, PNG or JPEG no larger than 5 MB." });
+      setMessage({
+        tone: "error",
+        text: "Evidence must be a PDF, PNG or JPEG no larger than 5 MB.",
+      });
       return;
     }
     setMessage(null);
@@ -124,8 +127,8 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
           </div>
           <h1 className="font-serif text-4xl font-medium tracking-tight">Payment disputes</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Review Paystack chargebacks, meet evidence deadlines and submit explicit owner decisions.
-            Signed provider events remain authoritative for final resolution.
+            Review Paystack chargebacks, meet evidence deadlines and submit explicit owner
+            decisions. Signed provider events remain authoritative for final resolution.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -140,7 +143,9 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="font-serif text-2xl font-medium">Dispute queue</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Earliest evidence deadlines first.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Earliest evidence deadlines first.
+              </p>
             </div>
             {disputesQuery.isFetching ? (
               <span className="text-xs text-muted-foreground">Refreshing…</span>
@@ -199,7 +204,10 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
               <DisputeSummary dispute={selected} />
               {message ? <Feedback message={message} /> : null}
 
-              <section aria-labelledby="evidence-heading" className="rounded-2xl border border-border p-5">
+              <section
+                aria-labelledby="evidence-heading"
+                className="rounded-2xl border border-border p-5"
+              >
                 <div className="flex items-start gap-3">
                   <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
                     <FileUp className="size-5" />
@@ -209,7 +217,8 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                       Submit fulfilment evidence
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      PDF, PNG or JPEG, maximum 5 MB. The file is uploaded through Paystack’s signed URL.
+                      PDF, PNG or JPEG, maximum 5 MB. The file is uploaded through Paystack’s signed
+                      URL.
                     </p>
                   </div>
                 </div>
@@ -275,7 +284,10 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                   disabled={!canDecide}
                   id="evidence-file"
                   onChange={(event) =>
-                    setEvidence((current) => ({ ...current, file: event.target.files?.[0] ?? null }))
+                    setEvidence((current) => ({
+                      ...current,
+                      file: event.target.files?.[0] ?? null,
+                    }))
                   }
                   type="file"
                 />
@@ -289,12 +301,16 @@ export function DisputesWorkspace({ canDecide }: { canDecide: boolean }) {
                 </Button>
               </section>
 
-              <section aria-labelledby="decision-heading" className="rounded-2xl border border-border p-5">
+              <section
+                aria-labelledby="decision-heading"
+                className="rounded-2xl border border-border p-5"
+              >
                 <h3 className="font-serif text-xl font-medium" id="decision-heading">
                   Owner decision
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Review the selected dispute carefully. Decisions are auditable and sent directly to Paystack.
+                  Review the selected dispute carefully. Decisions are auditable and sent directly
+                  to Paystack.
                 </p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
                   <TextField
@@ -358,7 +374,8 @@ function DisputeSummary({ dispute }: { dispute: DisputeRecord }) {
             <DisputeStatus status={dispute.status} />
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Paystack dispute {dispute.providerDisputeId} · {dispute.providerStatus ?? "status unavailable"}
+            Paystack dispute {dispute.providerDisputeId} ·{" "}
+            {dispute.providerStatus ?? "status unavailable"}
           </p>
         </div>
         <strong className="text-xl">{formatMoney(dispute.amountMinor, dispute.currency)}</strong>
@@ -447,7 +464,9 @@ function EmptyState({ text, tone = "normal" }: { text: string; tone?: "normal" |
   return (
     <div
       className={`rounded-2xl border border-dashed px-5 py-10 text-center text-sm ${
-        tone === "error" ? "border-destructive/30 text-destructive" : "border-border text-muted-foreground"
+        tone === "error"
+          ? "border-destructive/30 text-destructive"
+          : "border-border text-muted-foreground"
       }`}
       role={tone === "error" ? "alert" : undefined}
     >

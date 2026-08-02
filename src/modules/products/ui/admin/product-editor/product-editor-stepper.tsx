@@ -2,11 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ProductEditorStep } from "@/lib/admin/shared/types";
-import type { ProductEditorNavigationMode } from "@/modules/products/ui/admin/product-editor/product-editor-dialog";
 import { cn } from "@/lib/utils";
 import { productEditorSteps } from "@/modules/products/types";
+import type { ProductEditorNavigationMode } from "@/modules/products/ui/admin/product-editor/product-editor-dialog";
 import { productEditorStepLabels } from "@/modules/products/ui/admin/product-editor/product-editor-step-labels";
 
 export function ProductEditorStepper({
@@ -29,18 +35,29 @@ export function ProductEditorStepper({
     <div className="border-b border-border bg-secondary/45 px-5 py-4 sm:px-6 lg:h-full lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
       <div className="lg:hidden">
         {navigationMode === "unrestricted" ? (
-          <Select value={activeStep} onValueChange={(value) => onStepChange(value as ProductEditorStep)}>
-            <SelectTrigger aria-label="Product editor step" className="w-full"><SelectValue /></SelectTrigger>
+          <Select
+            value={activeStep}
+            onValueChange={(value) => onStepChange(value as ProductEditorStep)}
+          >
+            <SelectTrigger aria-label="Product editor step" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {productEditorSteps.map((step) => <SelectItem key={step} value={step}>{productEditorStepLabels[step]}</SelectItem>)}
+              {productEditorSteps.map((step) => (
+                <SelectItem key={step} value={step}>
+                  {productEditorStepLabels[step]}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        ) : <div className="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          <span>
-            Step {activeIndex + 1} of {productEditorSteps.length}
-          </span>
-          <span>{productEditorStepLabels[activeStep]}</span>
-        </div>}
+        ) : (
+          <div className="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <span>
+              Step {activeIndex + 1} of {productEditorSteps.length}
+            </span>
+            <span>{productEditorStepLabels[activeStep]}</span>
+          </div>
+        )}
         <Progress className="mt-3" value={progress} />
       </div>
 

@@ -2,13 +2,13 @@ import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { payoutTransferIdentifierSchema } from "@/modules/payments/finance-schema";
 import {
-  resendPayoutTransferOtp,
-  throwFinanceApiError,
-} from "@/modules/payments/server/transfers/index";
-import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
 } from "@/modules/payments/server/request-security";
+import {
+  resendPayoutTransferOtp,
+  throwFinanceApiError,
+} from "@/modules/payments/server/transfers/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ transferId: string }> };

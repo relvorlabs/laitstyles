@@ -4,9 +4,13 @@ import { err, ok, type Result } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/modules/auth/server/session";
 import { settlePaystackEvent } from "@/modules/checkout/server/settle-payment";
-import type { CheckoutError, CheckoutStatus, PaystackSettlementEvent } from "@/modules/checkout/types";
-import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
+import type {
+  CheckoutError,
+  CheckoutStatus,
+  PaystackSettlementEvent,
+} from "@/modules/checkout/types";
 import type { OfflineSalePaymentState } from "@/modules/orders/offline-sale-contract";
+import { adminOrderInclude, mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import type { SalesActionError } from "@/modules/orders/types";
 import { PaystackProviderError, verifyTransaction } from "@/modules/payments/server/paystack";
 

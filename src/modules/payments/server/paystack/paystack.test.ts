@@ -164,9 +164,9 @@ describe("Paystack provider adapter", () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_must_not_escape");
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>().mockResolvedValue(
-        successResponse({ secret_debug: "provider-payload-must-not-escape" }),
-      ),
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(successResponse({ secret_debug: "provider-payload-must-not-escape" })),
     );
 
     const failure = await provider
@@ -185,9 +185,9 @@ describe("Paystack provider adapter", () => {
 
   it("verifies a transaction by its encoded reference and normalizes settlement fields", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse(transactionData, "Verification successful"),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(successResponse(transactionData, "Verification successful"));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(provider.verifyTransaction("pay=1")).resolves.toMatchObject({
@@ -204,9 +204,9 @@ describe("Paystack provider adapter", () => {
 
   it("lists transactions with bounded pagination filters", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse([transactionData], "Transactions retrieved"),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(successResponse([transactionData], "Transactions retrieved"));
     fetchMock.mockResolvedValueOnce(
       new Response(
         JSON.stringify({
@@ -233,9 +233,9 @@ describe("Paystack provider adapter", () => {
 
   it("fetches a transaction by provider id", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse(transactionData, "Transaction retrieved"),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(successResponse(transactionData, "Transaction retrieved"));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(provider.fetchTransaction("4099260516")).resolves.toMatchObject({
@@ -247,9 +247,9 @@ describe("Paystack provider adapter", () => {
 
   it("charges only a reusable authorization using minor units", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse(transactionData, "Charge attempted"),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(successResponse(transactionData, "Charge attempted"));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
@@ -275,12 +275,14 @@ describe("Paystack provider adapter", () => {
 
   it("deactivates an authorization through the current customer endpoint", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(
-        JSON.stringify({ status: true, message: "Authorization has been deactivated" }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ status: true, message: "Authorization has been deactivated" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(provider.deactivateAuthorization("AUTH_reusable")).resolves.toEqual({

@@ -1,8 +1,8 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import type { StaffSession } from "@/modules/auth/server/session";
 import { getConfiguredAuthOrigin } from "@/modules/auth/server/redirects";
+import type { StaffSession } from "@/modules/auth/server/session";
 import { mapAdminOrderRow } from "@/modules/orders/server/mappers";
 import {
   cancelFailedOfflineSaleDraft,

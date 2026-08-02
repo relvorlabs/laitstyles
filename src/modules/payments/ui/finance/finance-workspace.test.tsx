@@ -82,12 +82,22 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryKey: readonly unknown[] }) => {
     const resource = options.queryKey[2];
-    if (resource === "overview") return { data: fixtures.overview, isPending: false, isError: false };
-    if (resource === "ledger") return { data: { items: [], meta: {} }, isPending: false, isError: false };
-    if (resource === "settlements") return { data: { items: [], meta: {} }, isPending: false, isError: false };
-    if (resource === "recipients") return { data: { items: [fixtures.recipient], meta: {} }, isPending: false, isError: false };
-    if (resource === "transfers") return { data: { items: [fixtures.otpTransfer], meta: {} }, isPending: false, isError: false };
-    if (resource === "banks") return { data: [{ code: "001", name: "Test Bank" }], isPending: false, isError: false };
+    if (resource === "overview")
+      return { data: fixtures.overview, isPending: false, isError: false };
+    if (resource === "ledger")
+      return { data: { items: [], meta: {} }, isPending: false, isError: false };
+    if (resource === "settlements")
+      return { data: { items: [], meta: {} }, isPending: false, isError: false };
+    if (resource === "recipients")
+      return { data: { items: [fixtures.recipient], meta: {} }, isPending: false, isError: false };
+    if (resource === "transfers")
+      return {
+        data: { items: [fixtures.otpTransfer], meta: {} },
+        isPending: false,
+        isError: false,
+      };
+    if (resource === "banks")
+      return { data: [{ code: "001", name: "Test Bank" }], isPending: false, isError: false };
     return { data: undefined, isPending: false, isError: false };
   },
 }));

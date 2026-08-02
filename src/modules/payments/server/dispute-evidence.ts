@@ -1,10 +1,10 @@
 import "server-only";
 
-import { Prisma, prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import {
   appendLocalEvidenceMetadata,
-  disputeInclude,
   type DisputeRow,
+  disputeInclude,
   type LocalEvidenceDescriptor,
 } from "@/modules/payments/server/dispute-projection";
 

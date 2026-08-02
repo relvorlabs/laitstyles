@@ -12,9 +12,7 @@ type RecentProductRow = {
   product_id: string;
 };
 
-export async function listOwnedRecentProductIds(
-  identity: ConsumerSession,
-): Promise<string[]> {
+export async function listOwnedRecentProductIds(identity: ConsumerSession): Promise<string[]> {
   return readOwnedRecentProductIds(prisma, identity.customerId);
 }
 
@@ -40,9 +38,9 @@ export async function recordOwnedRecentProductIds(
   if (acceptedIds.length === 0) return listOwnedRecentProductIds(identity);
 
   return runSerializable(async (transaction) => {
-      const now = Date.now();
-      for (const [index, productId] of acceptedIds.entries()) {
-        await transaction.$executeRaw`
+    const now = Date.now();
+    for (const [index, productId] of acceptedIds.entries()) {
+      await transaction.$executeRaw`
           INSERT INTO public.customer_recent_products (
             customer_id,
             product_id,
@@ -55,9 +53,9 @@ export async function recordOwnedRecentProductIds(
           ON CONFLICT (customer_id, product_id)
           DO UPDATE SET viewed_at = EXCLUDED.viewed_at
         `;
-      }
+    }
 
-      await transaction.$executeRaw`
+    await transaction.$executeRaw`
         DELETE FROM public.customer_recent_products AS recent
         WHERE recent.customer_id = ${identity.customerId}::uuid
           AND NOT EXISTS (
@@ -69,7 +67,7 @@ export async function recordOwnedRecentProductIds(
           )
       `;
 
-      await transaction.$executeRaw`
+    await transaction.$executeRaw`
         DELETE FROM public.customer_recent_products
         WHERE customer_id = ${identity.customerId}::uuid
           AND product_id NOT IN (
@@ -81,7 +79,7 @@ export async function recordOwnedRecentProductIds(
           )
       `;
 
-      return readOwnedRecentProductIds(transaction, identity.customerId);
+    return readOwnedRecentProductIds(transaction, identity.customerId);
   });
 }
 

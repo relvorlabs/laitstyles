@@ -3,10 +3,10 @@ import "server-only";
 import { err, ok, type Result } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import {
-  deriveCheckoutStatus,
   type CheckoutOrderFulfilmentStatus,
   type CheckoutOrderPaymentStatus,
   type CheckoutPaymentAttemptStatus,
+  deriveCheckoutStatus,
 } from "@/modules/checkout/lifecycle";
 import { checkoutIdentifierSchema } from "@/modules/checkout/schema";
 import type { CheckoutDetail, CheckoutError, CheckoutIdentity } from "@/modules/checkout/types";

@@ -27,7 +27,10 @@ describe("promotion coupon input", () => {
     if (result.success) return;
     expect(result.error.issues).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: ["value"], message: "Percentage discounts cannot exceed 100%." }),
+        expect.objectContaining({
+          path: ["value"],
+          message: "Percentage discounts cannot exceed 100%.",
+        }),
       ]),
     );
   });

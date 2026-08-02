@@ -106,8 +106,12 @@ export function refundsQueryOptions(filters: RefundListFilters = {}) {
   return queryOptions({
     queryKey: refundKeys.list(filters),
     queryFn: async ({ signal }) =>
-      (await apiRequest<RefundRecord[]>(withQuery(REFUNDS_URL, filters), { cache: "no-store", signal }))
-        .data,
+      (
+        await apiRequest<RefundRecord[]>(withQuery(REFUNDS_URL, filters), {
+          cache: "no-store",
+          signal,
+        })
+      ).data,
     staleTime: 5_000,
   });
 }
@@ -168,7 +172,8 @@ export function useCreateRefund() {
       queryClient.invalidateQueries({ queryKey: adminPaymentKeys.detail(refund.paymentId) });
       queryClient.invalidateQueries({ queryKey: adminPaymentKeys.all });
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
-      if (refund.returnId) queryClient.invalidateQueries({ queryKey: ["admin", "returns", refund.returnId] });
+      if (refund.returnId)
+        queryClient.invalidateQueries({ queryKey: ["admin", "returns", refund.returnId] });
     },
   });
 }

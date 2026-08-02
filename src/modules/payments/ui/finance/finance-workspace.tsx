@@ -22,10 +22,10 @@ import {
 import { FinanceRecipientsPanel } from "@/modules/payments/ui/finance/finance-recipients-panel";
 import { FinanceTransfersPanel } from "@/modules/payments/ui/finance/finance-transfers-panel";
 import {
+  type FinanceFeedback,
   FinanceFeedbackBanner,
   humanFinanceStatus,
   readableFinanceError,
-  type FinanceFeedback,
 } from "@/modules/payments/ui/finance/finance-ui";
 
 type Section = "ledger" | "overview" | "recipients" | "settlements" | "transfers";
@@ -95,20 +95,18 @@ export function FinanceWorkspace({ canTransfer }: { canTransfer: boolean }) {
       </header>
 
       <nav aria-label="Finance sections" className="flex gap-2 overflow-x-auto pb-1">
-        {(["overview", "ledger", "settlements", "recipients", "transfers"] as const).map(
-          (item) => (
-            <Button
-              aria-current={section === item ? "page" : undefined}
-              key={item}
-              onClick={() => setSection(item)}
-              size="sm"
-              type="button"
-              variant={section === item ? "default" : "outline"}
-            >
-              {humanFinanceStatus(item)}
-            </Button>
-          ),
-        )}
+        {(["overview", "ledger", "settlements", "recipients", "transfers"] as const).map((item) => (
+          <Button
+            aria-current={section === item ? "page" : undefined}
+            key={item}
+            onClick={() => setSection(item)}
+            size="sm"
+            type="button"
+            variant={section === item ? "default" : "outline"}
+          >
+            {humanFinanceStatus(item)}
+          </Button>
+        ))}
       </nav>
 
       {feedback ? <FinanceFeedbackBanner feedback={feedback} /> : null}

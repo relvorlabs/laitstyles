@@ -2,10 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import type {
-  PaymentMethodError,
-  PaymentMethodSetup,
-} from "@/modules/payments/types";
+import type { PaymentMethodError, PaymentMethodSetup } from "@/modules/payments/types";
 
 export const PAYMENT_METHOD_SETUP_SCOPE = "payment-method.setup";
 
@@ -65,12 +62,7 @@ export function paymentMethodSetupReplayResult(
 }
 
 export function isPrismaUniqueConstraintError(error: unknown) {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002",
-  );
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "P2002");
 }
 
 export function isAuthorizationSignatureConflict(error: unknown) {

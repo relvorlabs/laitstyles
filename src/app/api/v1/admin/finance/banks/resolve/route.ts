@@ -1,8 +1,11 @@
 import { requireApiStaff } from "@/lib/http/auth";
 import { handleApiRequest } from "@/lib/http/server";
 import { resolveBankAccountBodySchema } from "@/modules/payments/finance-schema";
-import { resolvePayoutAccount, throwFinanceApiError } from "@/modules/payments/server/transfers/index";
 import { requireFinancialMutationOrigin } from "@/modules/payments/server/request-security";
+import {
+  resolvePayoutAccount,
+  throwFinanceApiError,
+} from "@/modules/payments/server/transfers/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 

@@ -109,7 +109,9 @@ export function PromotionsWorkspace({
       toast.success(result.message);
       resetForm();
     } catch (error: unknown) {
-      toast.error(error instanceof ApiClientError ? error.message : "The coupon could not be saved.");
+      toast.error(
+        error instanceof ApiClientError ? error.message : "The coupon could not be saved.",
+      );
     }
   }
 
@@ -134,7 +136,9 @@ export function PromotionsWorkspace({
       });
       toast.success(result.message);
     } catch (error: unknown) {
-      toast.error(error instanceof ApiClientError ? error.message : "The coupon could not be updated.");
+      toast.error(
+        error instanceof ApiClientError ? error.message : "The coupon could not be updated.",
+      );
     }
   }
 
@@ -389,7 +393,9 @@ function CouponCard({
             <code className="rounded-lg bg-muted px-2.5 py-1 text-sm font-semibold tracking-[0.08em]">
               {coupon.code}
             </code>
-            <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${status.className}`}>
+            <span
+              className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${status.className}`}
+            >
               {status.label}
             </span>
           </div>
@@ -426,7 +432,10 @@ function CouponCard({
               : `${coupon.usedCount} of ${coupon.usageLimit}`
           }
         />
-        <Meta label="Checkout" value={coupon.enabled ? "Available when rules pass" : "Not available"} />
+        <Meta
+          label="Checkout"
+          value={coupon.enabled ? "Available when rules pass" : "Not available"}
+        />
       </div>
     </Card>
   );
@@ -456,7 +465,9 @@ function Field({
     <label className="grid gap-2 text-sm font-medium">
       <span className="flex items-center justify-between gap-2">
         <span>{label}</span>
-        {hint ? <span className="text-[11px] font-normal text-muted-foreground">{hint}</span> : null}
+        {hint ? (
+          <span className="text-[11px] font-normal text-muted-foreground">{hint}</span>
+        ) : null}
       </span>
       {children}
     </label>
@@ -538,7 +549,9 @@ function couponWindow(coupon: PromotionCoupon): string {
   if (coupon.startsAt && coupon.expiresAt) {
     return `${formatDate(coupon.startsAt)} – ${formatDate(coupon.expiresAt)}`;
   }
-  return coupon.startsAt ? `From ${formatDate(coupon.startsAt)}` : `Until ${formatDate(coupon.expiresAt!)}`;
+  return coupon.startsAt
+    ? `From ${formatDate(coupon.startsAt)}`
+    : `Until ${formatDate(coupon.expiresAt!)}`;
 }
 
 function formatDate(value: string): string {

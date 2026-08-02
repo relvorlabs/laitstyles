@@ -39,8 +39,14 @@ export const bankListQuerySchema = z.object({
 });
 
 export const resolveBankAccountBodySchema = z.object({
-  accountNumber: z.string().trim().regex(/^\d{6,20}$/),
-  bankCode: z.string().trim().regex(/^[A-Za-z0-9_-]+$/),
+  accountNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{6,20}$/),
+  bankCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]+$/),
 });
 
 export const recipientListQuerySchema = z.object({
@@ -55,8 +61,14 @@ export const recipientListQuerySchema = z.object({
 export const createRecipientBodySchema = z.object({
   type: z.enum(["basa", "ghipss", "mobile_money", "nuban"]).default("nuban"),
   name: z.string().trim().min(2).max(120),
-  accountNumber: z.string().trim().regex(/^\d{6,20}$/),
-  bankCode: z.string().trim().regex(/^[A-Za-z0-9_-]+$/),
+  accountNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{6,20}$/),
+  bankCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]+$/),
   currency: z.literal("NGN"),
   description: z.string().trim().min(1).max(240).optional(),
 });
@@ -91,7 +103,10 @@ export const initiateTransferBodySchema = z.object({
 });
 
 export const finalizeTransferBodySchema = z.object({
-  otp: z.string().trim().regex(/^\d{6}$/),
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
 });
 
 export const reconcileFinanceBodySchema = z

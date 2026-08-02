@@ -72,7 +72,11 @@ export const checkoutDraftSchema = z.object({
   reference: z.string().trim().min(1),
   accessCode: z.string().trim().min(1).nullable(),
   status: checkoutStatusSchema,
-  currency: z.string().trim().length(3).transform((value) => value.toUpperCase()),
+  currency: z
+    .string()
+    .trim()
+    .length(3)
+    .transform((value) => value.toUpperCase()),
   subtotalMinor: checkoutAmountSchema,
   deliveryFeeMinor: checkoutAmountSchema,
   discountMinor: checkoutAmountSchema,
@@ -86,7 +90,10 @@ export const paystackSettlementEventSchema = z
     reference: z.string().min(1),
     status: z.enum(["success", "failed", "abandoned", "reversed", "pending"]),
     amountMinor: z.number().int().nonnegative().safe(),
-    currency: z.string().length(3).transform((value) => value.toUpperCase()),
+    currency: z
+      .string()
+      .length(3)
+      .transform((value) => value.toUpperCase()),
     customerEmail: z.string().email().optional().nullable(),
     paidAt: z.string().optional().nullable(),
     channel: z.string().optional().nullable(),

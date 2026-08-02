@@ -3,12 +3,12 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ConsumerSession } from "@/modules/auth/server/session";
 import {
-  deriveCheckoutStatus,
-  resumableOrderPaymentStatuses,
-  resumablePaymentAttemptStatuses,
   type CheckoutOrderFulfilmentStatus,
   type CheckoutOrderPaymentStatus,
   type CheckoutPaymentAttemptStatus,
+  deriveCheckoutStatus,
+  resumableOrderPaymentStatuses,
+  resumablePaymentAttemptStatuses,
 } from "@/modules/checkout/lifecycle";
 import { listCheckoutDeliveryQuotes } from "@/modules/checkout/server/delivery-policy";
 import type { CheckoutContext, CheckoutDraft } from "@/modules/checkout/types";
@@ -93,25 +93,23 @@ export async function getCheckoutContext(identity: ConsumerSession): Promise<Che
 }
 
 function mapActiveCheckout(
-  order:
-    | {
-        id: string;
-        order_number: string;
-        payment_status: string;
-        fulfilment_status: string;
-        currency: string;
-        subtotal: { toString(): string };
-        delivery_fee: { toString(): string };
-        discount_amount: { toString(): string };
-        total: { toString(): string };
-        payments: Array<{
-          id: string;
-          reference: string;
-          access_code: string | null;
-          status: string;
-        }>;
-      }
-    | null,
+  order: {
+    id: string;
+    order_number: string;
+    payment_status: string;
+    fulfilment_status: string;
+    currency: string;
+    subtotal: { toString(): string };
+    delivery_fee: { toString(): string };
+    discount_amount: { toString(): string };
+    total: { toString(): string };
+    payments: Array<{
+      id: string;
+      reference: string;
+      access_code: string | null;
+      status: string;
+    }>;
+  } | null,
 ): CheckoutDraft | null {
   const payment = order?.payments.at(0);
   if (!order || !payment?.access_code) return null;

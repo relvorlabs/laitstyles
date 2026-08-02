@@ -46,9 +46,7 @@ export function StorefrontRecentPersistence() {
 
     const localIds = readStoredIds(window.localStorage, storageKey(identityKey));
     const legacyIds = readLegacyIds();
-    const guestIds = signedIn
-      ? readStoredIds(window.localStorage, storageKey("guest"))
-      : [];
+    const guestIds = signedIn ? readStoredIds(window.localStorage, storageKey("guest")) : [];
     const shouldMergeMemory =
       previousIdentity.current === null ||
       previousIdentity.current === identityKey ||

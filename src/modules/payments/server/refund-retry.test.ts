@@ -87,9 +87,10 @@ beforeEach(() => {
 
 describe("retryRefundCommand", () => {
   it("claims provider execution once before creating a second Paystack request", async () => {
-    await expect(
-      retryRefundCommand(actor, refund.id, "retry-key-123"),
-    ).resolves.toEqual({ ok: true, value: projection });
+    await expect(retryRefundCommand(actor, refund.id, "retry-key-123")).resolves.toEqual({
+      ok: true,
+      value: projection,
+    });
 
     expect(mocks.claimRefund).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -114,9 +115,7 @@ describe("retryRefundCommand", () => {
   it("does not call Paystack when another retry already holds the claim", async () => {
     mocks.claimRefund.mockResolvedValueOnce({ count: 0 });
 
-    await expect(
-      retryRefundCommand(actor, refund.id, "retry-key-456"),
-    ).resolves.toEqual({
+    await expect(retryRefundCommand(actor, refund.id, "retry-key-456")).resolves.toEqual({
       ok: false,
       error: expect.objectContaining({ code: "REFUND_RECONCILIATION_REQUIRED" }),
     });

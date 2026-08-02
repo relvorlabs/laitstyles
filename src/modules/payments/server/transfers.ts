@@ -6,14 +6,11 @@ import { Prisma, prisma } from "@/lib/prisma";
 import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
-import type {
-  InitiateTransferBody,
-  TransferListQuery,
-} from "@/modules/payments/finance-schema";
+import type { InitiateTransferBody, TransferListQuery } from "@/modules/payments/finance-schema";
 import {
+  type PayoutTransferRow,
   payoutTransferInclude,
   toTransferProjection,
-  type PayoutTransferRow,
 } from "@/modules/payments/server/finance-projection";
 import type {
   FinanceError,
@@ -24,9 +21,9 @@ import {
   fetchBalance,
   finalizeTransferOtp as finalizePaystackTransferOtp,
   initiateTransfer as initiatePaystackTransfer,
-  type PaystackTransfer,
   PaystackConfigurationError,
   PaystackProviderError,
+  type PaystackTransfer,
   resendTransferOtp as resendPaystackTransferOtp,
   verifyTransfer,
 } from "@/modules/payments/server/paystack";
@@ -506,7 +503,8 @@ export async function applyTransferProviderState(input: {
         status: appliedStatus,
         otp_required: appliedStatus === "otp_required",
         reconciliation_required: false,
-        failure_reason: appliedStatus === "failed" ? "Paystack marked the transfer as failed." : null,
+        failure_reason:
+          appliedStatus === "failed" ? "Paystack marked the transfer as failed." : null,
         provider_response: safeProviderSnapshot(input.provider),
         last_provider_sync_at: new Date(),
         completed_at: completedAt,

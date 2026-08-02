@@ -128,7 +128,7 @@ body.lst-locked {
     text-decoration: none;
   }
   & [hidden] {
-    display: none !important;
+    display: none;
   }
   & ::selection {
     background: var(--sage-light);

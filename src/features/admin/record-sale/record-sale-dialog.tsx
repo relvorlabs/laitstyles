@@ -44,19 +44,13 @@ import {
   recordSaleSteps,
   toOfflineSaleInput,
 } from "@/features/admin/record-sale/record-sale-types";
+import { saleCustomersQueryOptions, useRecordOfflineSale } from "@/modules/orders/client/hooks";
 import {
   offlineSalePaymentQueryOptions,
   useVerifyOfflineSalePayment,
 } from "@/modules/orders/client/offline-sale-payment";
-import {
-  saleCustomersQueryOptions,
-  useRecordOfflineSale,
-} from "@/modules/orders/client/hooks";
 import type { OfflineSalePaymentState } from "@/modules/orders/offline-sale-contract";
-import type {
-  AdminOrderCustomer,
-  OfflineSaleSuccess,
-} from "@/modules/orders/types";
+import type { AdminOrderCustomer, OfflineSaleSuccess } from "@/modules/orders/types";
 import {
   preloadPaystackPopup,
   resumePaystackTransaction,
@@ -123,9 +117,7 @@ function RecordSaleForm({
     resolver: zodResolver(recordSaleSchema) as Resolver<RecordSaleValues>,
   });
   const activeIndex = recordSaleSteps.indexOf(activeStep);
-  const paymentStatus = useQuery(
-    offlineSalePaymentQueryOptions(pendingSale?.order.id ?? ""),
-  );
+  const paymentStatus = useQuery(offlineSalePaymentQueryOptions(pendingSale?.order.id ?? ""));
 
   useEffect(() => {
     void preloadPaystackPopup();
@@ -385,8 +377,8 @@ function RecordSaleForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Discard this unrecorded sale?</AlertDialogTitle>
             <AlertDialogDescription>
-              The selected product and customer details will be lost. No order, Paystack attempt
-              or stock reservation has been created yet.
+              The selected product and customer details will be lost. No order, Paystack attempt or
+              stock reservation has been created yet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

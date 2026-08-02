@@ -29,11 +29,7 @@ export function checkoutContextQueryOptions(enabled = true) {
   });
 }
 
-export function checkoutCouponQueryOptions(
-  code: string,
-  subtotalMinor: number,
-  enabled = true,
-) {
+export function checkoutCouponQueryOptions(code: string, subtotalMinor: number, enabled = true) {
   return queryOptions({
     queryKey: checkoutKeys.coupon(code, subtotalMinor),
     queryFn: ({ signal }) =>
