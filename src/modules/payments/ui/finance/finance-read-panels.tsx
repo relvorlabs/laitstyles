@@ -71,7 +71,8 @@ export function FinanceOverviewPanel({
                     {record.providerReference ?? record.localReference ?? "Unknown reference"}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Provider {record.providerStatus ?? "missing"} · Local {record.localStatus ?? "missing"}
+                    Provider {record.providerStatus ?? "missing"} · Local{" "}
+                    {record.localStatus ?? "missing"}
                   </p>
                 </div>
                 <FinanceStatus status={record.outcome} />
@@ -165,14 +166,23 @@ export function FinanceLedgerPanel({
                   )}
                 />
                 <DetailRow label="Provider status" value={detail.data.provider.status} />
-                <DetailRow label="Order" value={detail.data.local?.orderNumber ?? "No local order"} />
-                <DetailRow label="Local status" value={detail.data.local?.localStatus ?? "Missing"} />
+                <DetailRow
+                  label="Order"
+                  value={detail.data.local?.orderNumber ?? "No local order"}
+                />
+                <DetailRow
+                  label="Local status"
+                  value={detail.data.local?.localStatus ?? "Missing"}
+                />
               </dl>
               <div>
                 <p className="text-sm font-semibold">Provider timeline</p>
                 <div className="mt-3 grid gap-2">
                   {detail.data.timeline.history.map((entry, index) => (
-                    <div className="rounded-xl border border-border p-3 text-sm" key={`${entry.type}-${index}`}>
+                    <div
+                      className="rounded-xl border border-border p-3 text-sm"
+                      key={`${entry.type}-${index}`}
+                    >
                       <p className="font-medium">{entry.message}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {entry.type} · {entry.elapsedSeconds}s
@@ -248,7 +258,9 @@ export function FinanceSettlementsPanel({
       </FinanceCard>
       {settlementId ? (
         <FinanceCard title={`Settlement ${settlementId} transactions`}>
-          {transactions.isPending ? <FinanceEmptyState text="Loading settlement transactions…" /> : null}
+          {transactions.isPending ? (
+            <FinanceEmptyState text="Loading settlement transactions…" />
+          ) : null}
           {transactions.isError ? (
             <FinanceEmptyState text="Settlement transactions could not be loaded." tone="error" />
           ) : null}

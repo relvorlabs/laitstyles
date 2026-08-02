@@ -65,17 +65,24 @@ function CloudUploadButton({
     onError?.(issue);
   }
 
+  const isDisabled = disabled || busy;
+
   return (
     <CldUploadButton
+      aria-disabled={isDisabled}
       aria-label={accessibleLabel}
-      className={buttonVariants({ size, variant })}
+      className={buttonVariants({
+        size,
+        variant,
+        className: isDisabled ? "pointer-events-none opacity-50" : undefined,
+      })}
       data-slot="button"
-      disabled={disabled || busy}
-      onError={() =>
-       { reportError({ code: "upload-failed", message: "Image upload failed. Try again." });
-         setStatus("failed");}
-      }
+      onError={() => {
+        reportError({ code: "upload-failed", message: "Image upload failed. Try again." });
+        setStatus("failed");
+      }}
       onOpen={() => {
+        if (isDisabled) return;
         accepted.current = false;
         setLifecycle("opening");
       }}

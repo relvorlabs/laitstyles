@@ -38,14 +38,12 @@ export const financeKeys = {
   ledger: (filters: ListFilters = {}) => [...financeKeys.all, "ledger", filters] as const,
   transaction: (identifier: string | null) =>
     [...financeKeys.all, "transaction", identifier] as const,
-  settlements: (filters: ListFilters = {}) =>
-    [...financeKeys.all, "settlements", filters] as const,
+  settlements: (filters: ListFilters = {}) => [...financeKeys.all, "settlements", filters] as const,
   settlementTransactions: (settlementId: string | null) =>
     [...financeKeys.all, "settlement-transactions", settlementId] as const,
   recipients: (filters: RecipientFilters = {}) =>
     [...financeKeys.all, "recipients", filters] as const,
-  transfers: (filters: TransferFilters = {}) =>
-    [...financeKeys.all, "transfers", filters] as const,
+  transfers: (filters: TransferFilters = {}) => [...financeKeys.all, "transfers", filters] as const,
   banks: () => [...financeKeys.all, "banks"] as const,
 };
 
@@ -151,9 +149,7 @@ export function payoutTransfersQueryOptions(filters: TransferFilters = {}) {
     staleTime: 3_000,
     refetchInterval: (query) =>
       query.state.data?.items.some((transfer) =>
-        ["needs_reconciliation", "otp_required", "pending", "processing"].includes(
-          transfer.status,
-        ),
+        ["needs_reconciliation", "otp_required", "pending", "processing"].includes(transfer.status),
       )
         ? 5_000
         : false,

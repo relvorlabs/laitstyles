@@ -16,7 +16,9 @@ export async function GET(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("finance:read");
     const { settlementId } = await context.params;
-    const query = financeListQuerySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
+    const query = financeListQuerySchema.parse(
+      Object.fromEntries(new URL(request.url).searchParams),
+    );
     const result = await listFinanceSettlementTransactions(
       actor,
       settlementIdentifierSchema.parse(settlementId),

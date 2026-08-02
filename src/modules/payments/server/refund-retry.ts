@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, type Result } from "@/lib/errors";
-import { Prisma, prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  type CheckoutLifecycleState,
   deriveCheckoutStatus,
   isCheckoutResumable,
-  type CheckoutLifecycleState,
 } from "@/modules/checkout/lifecycle";
 
 const resumable = {
@@ -32,9 +32,7 @@ describe("checkout lifecycle", () => {
   it("never resumes cancelled, paid or fulfilled orders", () => {
     expect(isCheckoutResumable({ ...resumable, orderPaymentStatus: "cancelled" })).toBe(false);
     expect(isCheckoutResumable({ ...resumable, orderPaymentStatus: "paid" })).toBe(false);
-    expect(
-      isCheckoutResumable({ ...resumable, orderFulfilmentStatus: "processing" }),
-    ).toBe(false);
+    expect(isCheckoutResumable({ ...resumable, orderFulfilmentStatus: "processing" })).toBe(false);
   });
 
   it("derives public status from the aggregate order before the payment attempt", () => {

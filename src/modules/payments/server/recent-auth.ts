@@ -18,7 +18,12 @@ export async function requireRecentFinancialAuthentication(
   const subject = claims && typeof claims.sub === "string" ? claims.sub : null;
   const nowSeconds = Math.floor(Date.now() / 1_000);
 
-  if (!subject || issuedAt === null || issuedAt > nowSeconds || nowSeconds - issuedAt > maxAgeSeconds) {
+  if (
+    !subject ||
+    issuedAt === null ||
+    issuedAt > nowSeconds ||
+    nowSeconds - issuedAt > maxAgeSeconds
+  ) {
     throw new ApiError({
       code: "MFA_CHALLENGE_REQUIRED",
       message: "Confirm your identity again before moving money.",

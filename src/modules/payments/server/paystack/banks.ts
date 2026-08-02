@@ -40,8 +40,14 @@ const listBanksResponseSchema = z.object({
 });
 
 const resolveAccountInputSchema = z.object({
-  accountNumber: z.string().trim().regex(/^\d{6,20}$/),
-  bankCode: z.string().trim().regex(/^[A-Za-z0-9_-]+$/),
+  accountNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{6,20}$/),
+  bankCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]+$/),
 });
 
 const resolveAccountResponseSchema = z.object({
@@ -56,10 +62,7 @@ const resolveAccountResponseSchema = z.object({
 
 export type ListBanksInput = z.input<typeof listBanksInputSchema>;
 
-export async function listBanks(
-  input: ListBanksInput = {},
-  fetchImplementation?: typeof fetch,
-) {
+export async function listBanks(input: ListBanksInput = {}, fetchImplementation?: typeof fetch) {
   const parsed = listBanksInputSchema.parse(input);
   const response = await paystackRequest({
     operation: "list-banks",

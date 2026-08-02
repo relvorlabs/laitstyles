@@ -17,7 +17,12 @@ export function encryptAuthorizationCode(value: string): string {
   const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return [VERSION, iv.toString("base64url"), tag.toString("base64url"), encrypted.toString("base64url")].join(".");
+  return [
+    VERSION,
+    iv.toString("base64url"),
+    tag.toString("base64url"),
+    encrypted.toString("base64url"),
+  ].join(".");
 }
 
 export function decryptAuthorizationCode(value: string): string {
@@ -34,7 +39,8 @@ export function decryptAuthorizationCode(value: string): string {
 }
 
 function getKey() {
-  const secret = process.env.PAYMENT_AUTHORIZATION_SECRET?.trim() ?? process.env.AUTH_SECRET?.trim();
+  const secret =
+    process.env.PAYMENT_AUTHORIZATION_SECRET?.trim() ?? process.env.AUTH_SECRET?.trim();
   if (!secret || secret.length < 32) throw new PaymentAuthorizationSecretError();
   return createHash("sha256").update(secret).digest();
 }

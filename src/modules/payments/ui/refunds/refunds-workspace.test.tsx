@@ -117,7 +117,9 @@ describe("RefundsWorkspace", () => {
       }),
     );
     expect(
-      screen.getByText(/Refund submitted\. Financial totals will change only after Paystack confirms/i),
+      screen.getByText(
+        /Refund submitted\. Financial totals will change only after Paystack confirms/i,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("payment-timeline")).toHaveTextContent(payment.id);
   });

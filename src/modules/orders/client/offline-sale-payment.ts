@@ -54,9 +54,7 @@ async function getOfflineSalePaymentRequest(
   return response.data;
 }
 
-async function verifyOfflineSalePaymentRequest(
-  orderId: string,
-): Promise<OfflineSalePaymentState> {
+async function verifyOfflineSalePaymentRequest(orderId: string): Promise<OfflineSalePaymentState> {
   const response = await apiRequest<OfflineSalePaymentState>(
     `/api/v1/admin/orders/offline-sales/${encodeURIComponent(orderId)}/verify`,
     { method: "POST" },

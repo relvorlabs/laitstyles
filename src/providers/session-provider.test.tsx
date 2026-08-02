@@ -60,9 +60,7 @@ describe("SessionProvider", () => {
       </SessionProvider>,
     );
 
-    expect(screen.getByTestId("session").textContent).toBe(
-      "signed-in:consumer-1:Ada:admin",
-    );
+    expect(screen.getByTestId("session").textContent).toBe("signed-in:consumer-1:Ada:admin");
   });
 
   it("updates sign-in and sign-out state without remounting the provider", async () => {
@@ -82,19 +80,13 @@ describe("SessionProvider", () => {
       </SessionProvider>,
     );
 
-    expect(screen.getByTestId("session").textContent).toBe(
-      "signed-out:no-identity:none:no-role",
-    );
+    expect(screen.getByTestId("session").textContent).toBe("signed-out:no-identity:none:no-role");
 
     await user.click(screen.getByRole("button", { name: "Sign in locally" }));
-    expect(screen.getByTestId("session").textContent).toBe(
-      "signed-in:consumer-1:Shopper:no-role",
-    );
+    expect(screen.getByTestId("session").textContent).toBe("signed-in:consumer-1:Shopper:no-role");
 
     await user.click(screen.getByRole("button", { name: "Sign out locally" }));
-    expect(screen.getByTestId("session").textContent).toBe(
-      "signed-out:no-identity:none:no-role",
-    );
+    expect(screen.getByTestId("session").textContent).toBe("signed-out:no-identity:none:no-role");
   });
 
   it("synchronizes a new server session prop", () => {
@@ -126,9 +118,7 @@ describe("SessionProvider", () => {
       </SessionProvider>,
     );
 
-    expect(screen.getByTestId("session").textContent).toBe(
-      "signed-in:consumer-1:Ada:admin",
-    );
+    expect(screen.getByTestId("session").textContent).toBe("signed-in:consumer-1:Ada:admin");
   });
 
   it("throws when useSession is called outside the provider", () => {

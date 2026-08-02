@@ -1,11 +1,15 @@
 name: Playwright UI Contract
 
+# Runs only after Implementation Quality finishes on the same commit, instead
+# of triggering independently on the same push/PR event. The two workflows
+# used to fire in parallel and both spin up Postgres plus a full production
+# build/browser session on the same self-hosted EC2 runner at once — that
+# combined load is what was crashing the instance. Chaining them means at
+# most one of the two heavy workflows is ever running.
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [Implementation Quality]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -13,15 +17,19 @@ permissions:
   checks: read
   contents: read
 
+# Shares its group with Implementation Quality so a new push cancels
+# whichever of the two is currently queued or running for the same ref/PR,
+# leaving only the latest commit's validation active.
 concurrency:
-  group: playwright-ui-${{ github.event.pull_request.number || github.ref }}
+  group: self-hosted-ci-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 env:
   CI: "1"
   STOREFRONT_STYLE_SMOKE: "1"
-  CI_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
-  PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+  CI_BASE_REF: main
+  PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
+  HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/laitstyles
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
@@ -31,10 +39,14 @@ env:
 jobs:
   browser:
     name: Browser runtime / ${{ matrix.project }}
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 65
     strategy:
       fail-fast: false
+      # One browser project at a time — three concurrent full production
+      # builds plus Chromium instances is what was overwhelming the runner.
+      max-parallel: 1
       matrix:
         project: [desktop-chromium, tablet-chromium, mobile-chromium]
     services:
@@ -61,6 +73,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.HEAD_SHA }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -196,7 +209,7 @@ jobs:
 
       - name: Merge manifests and detect missing viewport jobs
         env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: >-
           node scripts/ci/merge-evidence.mjs
           --input ci-artifacts

@@ -8,7 +8,10 @@ export function PaymentTimeline({ paymentId }: { paymentId: string | null }) {
   const timeline = useQuery(paymentTimelineQueryOptions(paymentId ?? ""));
 
   return (
-    <section aria-labelledby="payment-timeline-heading" className="rounded-2xl border border-border p-5">
+    <section
+      aria-labelledby="payment-timeline-heading"
+      className="rounded-2xl border border-border p-5"
+    >
       <div className="flex items-start gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-muted text-muted-foreground">
           <History className="size-5" />
@@ -34,7 +37,10 @@ export function PaymentTimeline({ paymentId }: { paymentId: string | null }) {
           <TimelineEmpty text="No payment events have been recorded." />
         ) : (
           timeline.data.slice(0, 12).map((event) => (
-            <article className="rounded-xl border border-border bg-muted/20 px-4 py-3" key={event.id}>
+            <article
+              className="rounded-xl border border-border bg-muted/20 px-4 py-3"
+              key={event.id}
+            >
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <strong className="text-sm">{humanize(event.kind)}</strong>
                 <time className="text-xs text-muted-foreground" dateTime={event.occurredAt}>

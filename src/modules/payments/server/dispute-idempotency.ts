@@ -4,11 +4,8 @@ import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/modules/auth/server/session";
+import type { DisputeProjection, DisputeRow } from "@/modules/payments/server/dispute-projection";
 import type { DisputeError } from "@/modules/payments/server/disputes";
-import type {
-  DisputeProjection,
-  DisputeRow,
-} from "@/modules/payments/server/dispute-projection";
 
 export async function beginDisputeCommand(input: {
   scope: string;
@@ -89,7 +86,9 @@ export async function finishDisputeCommand(
     data: {
       status: succeeded ? "completed" : "failed",
       completed_at: new Date(),
-      response_snapshot: response ? (response as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+      response_snapshot: response
+        ? (response as unknown as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
     },
   });
 }

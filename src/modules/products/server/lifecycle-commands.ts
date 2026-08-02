@@ -121,34 +121,32 @@ export async function deleteProduct(
   if (!isProductId(productId)) return productNotFound(productId);
 
   try {
-    const outcome = await runSerializable(
-      async (tx) => {
-        const product = await findTarget(tx, productId);
-        if (!product) return { kind: "missing" as const };
+    const outcome = await runSerializable(async (tx) => {
+      const product = await findTarget(tx, productId);
+      if (!product) return { kind: "missing" as const };
 
-        const dependencies = await Promise.all([
-          tx.order_lines.count({ where: { product_id: productId } }),
-          tx.holds.count({ where: { product_id: productId } }),
-          tx.stock_movements.count({ where: { product_id: productId } }),
-          tx.customer_saved_products.count({ where: { product_id: productId } }),
-        ]);
-        if (dependencies.some((count) => count > 0)) {
-          return { kind: "in-use" as const, product };
-        }
+      const dependencies = await Promise.all([
+        tx.order_lines.count({ where: { product_id: productId } }),
+        tx.holds.count({ where: { product_id: productId } }),
+        tx.stock_movements.count({ where: { product_id: productId } }),
+        tx.customer_saved_products.count({ where: { product_id: productId } }),
+      ]);
+      if (dependencies.some((count) => count > 0)) {
+        return { kind: "in-use" as const, product };
+      }
 
-        await tx.products.delete({ where: { id: productId } });
-        await tx.audit_events.create({
-          data: {
-            actor_profile_id: actor.authUserId,
-            action: "inventory:delete",
-            target_table: "products",
-            target_id: productId,
-            metadata: { slug: product.slug, name: product.name },
-          },
-        });
-        return { kind: "deleted" as const, product };
-      },
-    );
+      await tx.products.delete({ where: { id: productId } });
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: "inventory:delete",
+          target_table: "products",
+          target_id: productId,
+          metadata: { slug: product.slug, name: product.name },
+        },
+      });
+      return { kind: "deleted" as const, product };
+    });
 
     if (outcome.kind === "missing") return productNotFound(productId);
     if (outcome.kind === "in-use") {

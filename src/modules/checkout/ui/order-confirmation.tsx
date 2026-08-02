@@ -93,7 +93,10 @@ export function OrderConfirmation({ order }: { order: AccountOrderDetail }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   {line.productSlug ? (
-                    <Link className="text-[14px] font-medium" href={`/products/${line.productSlug}`}>
+                    <Link
+                      className="text-[14px] font-medium"
+                      href={`/products/${line.productSlug}`}
+                    >
                       {line.productName}
                     </Link>
                   ) : (

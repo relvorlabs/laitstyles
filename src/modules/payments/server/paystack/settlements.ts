@@ -3,10 +3,10 @@ import "server-only";
 import { z } from "zod";
 import { paystackRequest } from "@/modules/payments/server/paystack/client";
 import {
+  type PaystackRawTransaction,
   paystackPaginationSchema,
   paystackProviderIdSchema,
   paystackTransactionSchema,
-  type PaystackRawTransaction,
 } from "@/modules/payments/server/paystack/schemas";
 import { mapPaystackTransaction } from "@/modules/payments/server/paystack/transactions";
 
@@ -62,9 +62,7 @@ const settlementTransactionsResponseSchema = z.object({
 
 export type PaystackSettlementStatus = z.infer<typeof settlementStatusSchema>;
 export type ListSettlementsInput = z.input<typeof settlementListInputSchema>;
-export type ListSettlementTransactionsInput = z.input<
-  typeof settlementTransactionsInputSchema
->;
+export type ListSettlementTransactionsInput = z.input<typeof settlementTransactionsInputSchema>;
 export type PaystackSettlement = ReturnType<typeof mapSettlement>;
 
 export async function listSettlements(

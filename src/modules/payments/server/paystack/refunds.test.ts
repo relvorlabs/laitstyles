@@ -223,9 +223,9 @@ describe("Paystack refund adapter", () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>().mockResolvedValue(
-        successResponse({ ...refundData, status: "processor-review" }),
-      ),
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(successResponse({ ...refundData, status: "processor-review" })),
     );
 
     await expect(provider.fetchRefund("3018284")).resolves.toMatchObject({

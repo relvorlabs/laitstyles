@@ -9,9 +9,7 @@ export type PendingPaymentMethodSetup = {
   paymentId: string;
 };
 
-export async function failInitializedPaymentMethodSetup(
-  pending: PendingPaymentMethodSetup,
-) {
+export async function failInitializedPaymentMethodSetup(pending: PendingPaymentMethodSetup) {
   const failedAt = new Date();
   await prisma.$transaction(async (tx) => {
     await tx.payments.update({
@@ -90,9 +88,6 @@ export async function failVerifiedPaymentMethodSetup(input: {
   });
 }
 
-export function tombstonePaymentAuthorizationSignature(
-  id: string,
-  signature: string,
-) {
+export function tombstonePaymentAuthorizationSignature(id: string, signature: string) {
   return `inactive:${id}:${signature}`;
 }

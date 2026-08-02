@@ -39,10 +39,7 @@ export async function resolvePayoutAccount(
   actor: StaffSession,
   input: { accountNumber: string; bankCode: string },
 ): Promise<
-  Result<
-    { accountName: string; bankCode: string; maskedAccountNumber: string },
-    FinanceError
-  >
+  Result<{ accountName: string; bankCode: string; maskedAccountNumber: string }, FinanceError>
 > {
   const denied = requireTransferCapability(actor);
   if (denied) return denied;
@@ -68,7 +65,10 @@ export async function listPayoutRecipients(
   >
 > {
   if (!hasCapability(actor.role, "finance:read")) {
-    return err({ code: "FORBIDDEN", message: "You do not have permission to view payout recipients." });
+    return err({
+      code: "FORBIDDEN",
+      message: "You do not have permission to view payout recipients.",
+    });
   }
   const where: Prisma.payout_recipientsWhereInput = {
     deleted_at: null,
@@ -193,7 +193,10 @@ export async function updatePayoutRecipient(
     where: { id: recipientId, deleted_at: null },
   });
   if (!current) {
-    return err({ code: "RECIPIENT_NOT_FOUND", message: "The payout recipient could not be found." });
+    return err({
+      code: "RECIPIENT_NOT_FOUND",
+      message: "The payout recipient could not be found.",
+    });
   }
 
   try {
@@ -239,7 +242,10 @@ export async function deletePayoutRecipient(
     where: { id: recipientId, deleted_at: null },
   });
   if (!current) {
-    return err({ code: "RECIPIENT_NOT_FOUND", message: "The payout recipient could not be found." });
+    return err({
+      code: "RECIPIENT_NOT_FOUND",
+      message: "The payout recipient could not be found.",
+    });
   }
   const unresolved = await prisma.payout_transfers.count({
     where: { recipient_id: current.id, status: { in: [...unresolvedTransferStatuses] } },

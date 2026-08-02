@@ -22,11 +22,11 @@ vi.mock("@/modules/payments/server/paystack", () => {
   return { PaystackProviderError, PaystackConfigurationError };
 });
 
-import { PaystackProviderError } from "@/modules/payments/server/paystack";
 import {
   deletePaymentMethod,
   verifyPaymentMethodSetup,
 } from "@/modules/payments/server/payment-methods/index";
+import { PaystackProviderError } from "@/modules/payments/server/paystack";
 
 const identity = {
   kind: "consumer" as const,

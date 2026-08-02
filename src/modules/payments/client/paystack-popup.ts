@@ -40,8 +40,7 @@ export function subscribePaystackWindowHandoff(
   listener: (handoff: PaystackWindowHandoff) => void,
 ): () => void {
   if (typeof window === "undefined") return () => undefined;
-  const handler = (event: Event) =>
-    listener((event as CustomEvent<PaystackWindowHandoff>).detail);
+  const handler = (event: Event) => listener((event as CustomEvent<PaystackWindowHandoff>).detail);
   window.addEventListener(PAYSTACK_WINDOW_HANDOFF_EVENT, handler);
   return () => window.removeEventListener(PAYSTACK_WINDOW_HANDOFF_EVENT, handler);
 }

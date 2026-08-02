@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  cartMaximumForOwner,
-  mergeCartIntents,
-} from "@/modules/cart/server/owned-cart";
+import { cartMaximumForOwner, mergeCartIntents } from "@/modules/cart/server/owned-cart";
 
 describe("mergeCartIntents", () => {
   it("keeps the largest quantity for the same product selection", () => {

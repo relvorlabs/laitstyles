@@ -5,8 +5,8 @@ import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
 import type { FinanceError } from "@/modules/payments/server/finance-types";
 import {
-  listBanks,
   type ListBanksInput,
+  listBanks,
   PaystackConfigurationError,
   PaystackProviderError,
 } from "@/modules/payments/server/paystack";

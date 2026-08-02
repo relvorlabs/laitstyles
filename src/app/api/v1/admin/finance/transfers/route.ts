@@ -5,21 +5,23 @@ import {
   transferListQuerySchema,
 } from "@/modules/payments/finance-schema";
 import {
+  requireFinancialMutationOrigin,
+  requireIdempotencyKey,
+} from "@/modules/payments/server/request-security";
+import {
   initiatePayoutTransfer,
   listPayoutTransfers,
   throwFinanceApiError,
 } from "@/modules/payments/server/transfers/index";
-import {
-  requireFinancialMutationOrigin,
-  requireIdempotencyKey,
-} from "@/modules/payments/server/request-security";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
 export async function GET(request: Request) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("finance:read");
-    const query = transferListQuerySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
+    const query = transferListQuerySchema.parse(
+      Object.fromEntries(new URL(request.url).searchParams),
+    );
     const result = await listPayoutTransfers(actor, query);
     if (!result.ok) throwFinanceApiError(result.error);
     return {

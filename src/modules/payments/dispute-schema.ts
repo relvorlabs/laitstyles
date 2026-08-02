@@ -25,7 +25,10 @@ export const disputeEvidenceBodySchema = z.object({
   customerPhone: z.string().trim().min(5).max(40),
   serviceDetails: z.string().trim().min(3).max(2_000),
   deliveryAddress: z.string().trim().min(3).max(500).optional(),
-  deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  deliveryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   uploadedFilename: z.string().trim().min(1).max(180).optional(),
 });
 

@@ -22,8 +22,8 @@ vi.mock("@/modules/payments/server/transfers/index", () => ({
 }));
 
 import { GET as getBalance } from "./balance/route";
-import { POST as createTransfer } from "./transfers/route";
 import { POST as finalizeTransfer } from "./transfers/[transferId]/finalize/route";
+import { POST as createTransfer } from "./transfers/route";
 
 const actor = {
   kind: "staff" as const,

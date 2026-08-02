@@ -15,6 +15,7 @@ import type {
 import {
   FinanceCard,
   FinanceEmptyState,
+  type FinanceFeedback,
   FinanceFeedbackBanner,
   FinanceField,
   FinanceReviewRow,
@@ -24,7 +25,6 @@ import {
   humanFinanceStatus,
   readableFinanceError,
   toFinanceMinorUnits,
-  type FinanceFeedback,
 } from "@/modules/payments/ui/finance/finance-ui";
 
 export function FinanceTransfersPanel({
@@ -53,7 +53,7 @@ export function FinanceTransfersPanel({
   const otpTransfer = transfers.find((transfer) => transfer.status === "otp_required") ?? null;
   const matchingUnresolved =
     recipient && amountMinor
-      ? transfers.find(
+      ? (transfers.find(
           (transfer) =>
             transfer.recipient.id === recipient.id &&
             transfer.amountMinor === amountMinor &&
@@ -61,7 +61,7 @@ export function FinanceTransfersPanel({
             ["needs_reconciliation", "otp_required", "pending", "processing"].includes(
               transfer.status,
             ),
-        ) ?? null
+        ) ?? null)
       : null;
 
   async function confirmTransfer() {
@@ -168,8 +168,8 @@ export function FinanceTransfersPanel({
         </FinanceField>
         {matchingUnresolved ? (
           <p className="mt-4 rounded-xl border border-amber-300/50 bg-amber-50/40 p-3 text-sm dark:bg-amber-950/10">
-            An unresolved transfer already matches this recipient, amount and reason. Resolve it before
-            submitting the same intent again.
+            An unresolved transfer already matches this recipient, amount and reason. Resolve it
+            before submitting the same intent again.
           </p>
         ) : null}
         <Button

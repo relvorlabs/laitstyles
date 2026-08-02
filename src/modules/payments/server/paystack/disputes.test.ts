@@ -169,9 +169,11 @@ describe("Paystack dispute adapter", () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>().mockResolvedValue(
-        success({ signedUrl: "https://evil.example/upload", fileName: "proof.pdf" }),
-      ),
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(
+          success({ signedUrl: "https://evil.example/upload", fileName: "proof.pdf" }),
+        ),
     );
 
     await expect(getDisputeUploadUrl("42", "proof.pdf")).rejects.toMatchObject({

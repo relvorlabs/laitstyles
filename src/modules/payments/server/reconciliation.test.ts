@@ -25,7 +25,11 @@ describe("classifyFinanceTransaction", () => {
       }),
     ).toBe("amount_mismatch");
     expect(
-      classifyFinanceTransaction({ ...baseline, providerCurrency: "USD", providerStatus: "failed" }),
+      classifyFinanceTransaction({
+        ...baseline,
+        providerCurrency: "USD",
+        providerStatus: "failed",
+      }),
     ).toBe("currency_mismatch");
   });
 

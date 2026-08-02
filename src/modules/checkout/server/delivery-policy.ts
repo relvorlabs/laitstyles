@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/prisma";
 import type { CheckoutDeliveryQuote } from "@/modules/checkout/types";
 
 type DeliveryAddress = {
@@ -20,10 +20,7 @@ type DeliveryZoneRow = {
   position: number;
 };
 
-type DeliveryPolicyClient = Pick<
-  Prisma.TransactionClient,
-  "delivery_zones" | "store_settings"
->;
+type DeliveryPolicyClient = Pick<Prisma.TransactionClient, "delivery_zones" | "store_settings">;
 
 const LAGOS_ISLAND_LOCATIONS = [
   "ajah",
@@ -164,7 +161,9 @@ function readConfiguredFallbackId(value: Prisma.JsonValue | undefined): string |
     : null;
 }
 
-function asJsonRecord(value: Prisma.JsonValue | undefined): Record<string, Prisma.JsonValue> | null {
+function asJsonRecord(
+  value: Prisma.JsonValue | undefined,
+): Record<string, Prisma.JsonValue> | null {
   return value !== undefined && value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, Prisma.JsonValue>)
     : null;

@@ -2,12 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useStorefrontAuth } from "@/modules/auth/ui/storefront-auth-provider";
 import { checkoutContextQueryOptions } from "@/modules/checkout/client/hooks";
 import { subscribeCheckoutSessionReset } from "@/modules/checkout/client/session-events";
@@ -28,9 +23,7 @@ export function StorefrontCheckoutDialog({
   const auth = useStorefrontAuth();
   const { openId, open: openOverlay, close: closeOverlay } = useStorefrontOverlay();
   const open = openId === "checkoutDialog";
-  const checkoutContext = useQuery(
-    checkoutContextQueryOptions(open && auth.state.signedIn),
-  );
+  const checkoutContext = useQuery(checkoutContextQueryOptions(open && auth.state.signedIn));
   const [sessionRevision, setSessionRevision] = useState(0);
   const reopenAfterPayment = useRef(false);
   const checkoutOpen = useRef(open);

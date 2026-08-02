@@ -44,7 +44,11 @@ function refineCouponInput(
       message: "Percentage discounts cannot exceed 100%.",
     });
   }
-  if (input.startsAt && input.expiresAt && Date.parse(input.expiresAt) <= Date.parse(input.startsAt)) {
+  if (
+    input.startsAt &&
+    input.expiresAt &&
+    Date.parse(input.expiresAt) <= Date.parse(input.startsAt)
+  ) {
     context.addIssue({
       code: "custom",
       path: ["expiresAt"],

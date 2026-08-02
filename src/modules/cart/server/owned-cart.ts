@@ -59,28 +59,28 @@ async function writeOwnedCart(
   mode: "replace" | "merge",
 ): Promise<OwnedCartSnapshot> {
   return runSerializable(async (tx) => {
-      const current =
-        mode === "merge" ? await readOwnedCart(tx, identity.customerId) : emptySnapshot();
-      const desired =
-        mode === "merge"
-          ? mergeCartIntents(
-              current.lines.map((line) => ({
-                productId: line.productId,
-                variantId: line.variantId,
-                quantity: line.quantity,
-              })),
-              incoming,
-            )
-          : mergeCartIntents([], incoming);
-      const canonical = await canonicalizeCartLines(tx, desired, identity.customerId);
+    const current =
+      mode === "merge" ? await readOwnedCart(tx, identity.customerId) : emptySnapshot();
+    const desired =
+      mode === "merge"
+        ? mergeCartIntents(
+            current.lines.map((line) => ({
+              productId: line.productId,
+              variantId: line.variantId,
+              quantity: line.quantity,
+            })),
+            incoming,
+          )
+        : mergeCartIntents([], incoming);
+    const canonical = await canonicalizeCartLines(tx, desired, identity.customerId);
 
-      await tx.$executeRaw`
+    await tx.$executeRaw`
         DELETE FROM public.customer_cart_lines
         WHERE customer_id = ${identity.customerId}::uuid
       `;
 
-      for (const line of canonical) {
-        await tx.$executeRaw`
+    for (const line of canonical) {
+      await tx.$executeRaw`
           INSERT INTO public.customer_cart_lines (
             id,
             customer_id,
@@ -99,9 +99,9 @@ async function writeOwnedCart(
             now()
           )
         `;
-      }
+    }
 
-      return readOwnedCart(tx, identity.customerId);
+    return readOwnedCart(tx, identity.customerId);
   });
 }
 
@@ -169,7 +169,8 @@ async function canonicalizeCartLines(
 
     const variantId = line.variantId ?? null;
     if (product.inventory_mode === "variant") {
-      if (!variantId || !product.product_variants.some((variant) => variant.id === variantId)) continue;
+      if (!variantId || !product.product_variants.some((variant) => variant.id === variantId))
+        continue;
     } else if (variantId) {
       continue;
     }

@@ -87,12 +87,7 @@ export function inferProductMediaAlt(
         ? "Product condition detail"
         : "Product detail image";
   const identity = cleanProductText(productName ?? "") || "Product";
-  const sourceLabel =
-    item.publicId
-      .split("/")
-      .at(-1)
-      ?.replaceAll(/[-_]+/g, " ")
-      .trim() ?? "";
+  const sourceLabel = item.publicId.split("/").at(-1)?.replaceAll(/[-_]+/g, " ").trim() ?? "";
   return cleanProductText(
     `${identity} · ${role.toLocaleLowerCase("en-NG")} ${position + 1}${
       sourceLabel ? ` · ${sourceLabel}` : ""

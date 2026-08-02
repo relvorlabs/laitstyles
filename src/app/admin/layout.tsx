@@ -27,7 +27,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       {/* Preloaded here, ahead of any upload button mounting, so the widget
           modal doesn't wait on a fresh script fetch when a staff member
           first opens the image uploader. */}
-      <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="afterInteractive" />
+      <Script
+        src="https://upload-widget.cloudinary.com/global/all.js"
+        strategy="afterInteractive"
+      />
       <AdminShell role={access.role}>{children}</AdminShell>
     </>
   );

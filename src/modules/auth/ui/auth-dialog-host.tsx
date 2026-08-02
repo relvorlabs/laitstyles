@@ -272,7 +272,9 @@ function selectAuthProduct(products: readonly Product[]): Product | undefined {
   );
 }
 
-function flattenFieldErrors(fieldErrors: Record<string, string> | undefined): Record<string, string> {
+function flattenFieldErrors(
+  fieldErrors: Record<string, string> | undefined,
+): Record<string, string> {
   return fieldErrors ? { ...fieldErrors } : {};
 }
 

@@ -90,7 +90,10 @@ export const paystackRefundSchema = z.object({
   deducted_amount: z.number().int().nonnegative().safe().optional().nullable(),
   currency: z.literal("NGN"),
   channel: z.string().optional().nullable(),
-  fully_deducted: z.union([z.boolean(), z.literal(0), z.literal(1)]).optional().nullable(),
+  fully_deducted: z
+    .union([z.boolean(), z.literal(0), z.literal(1)])
+    .optional()
+    .nullable(),
   refunded_by: z.string().optional().nullable(),
   refunded_at: z.string().optional().nullable(),
   expected_at: z.string().optional().nullable(),
@@ -178,9 +181,7 @@ export const paystackInitializeResponseSchema = paystackSuccessEnvelope(
   }),
 );
 
-export const paystackTransactionResponseSchema = paystackSuccessEnvelope(
-  paystackTransactionSchema,
-);
+export const paystackTransactionResponseSchema = paystackSuccessEnvelope(paystackTransactionSchema);
 
 export const paystackListTransactionsResponseSchema = z.object({
   status: z.literal(true),

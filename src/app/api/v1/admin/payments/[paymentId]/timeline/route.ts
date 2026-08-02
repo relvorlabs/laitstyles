@@ -13,10 +13,7 @@ export async function GET(request: Request, context: RouteContext) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("finance:read");
     const { paymentId } = await context.params;
-    const result = await getAdminPaymentTimeline(
-      actor,
-      paymentIdentifierSchema.parse(paymentId),
-    );
+    const result = await getAdminPaymentTimeline(actor, paymentIdentifierSchema.parse(paymentId));
     if (!result.ok) throwAdminPaymentApiError(result.error);
     return { data: result.value, headers: privateNoStore };
   });

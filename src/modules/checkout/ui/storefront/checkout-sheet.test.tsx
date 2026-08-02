@@ -244,7 +244,9 @@ describe("StorefrontCheckoutSheet", () => {
       />,
     );
 
-    expect(await screen.findByText("Save a delivery phone number to continue.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Save a delivery phone number to continue."),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Delivery phone number"), {
       target: { value: "+2348012345678" },
     });

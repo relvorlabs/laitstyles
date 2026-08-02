@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { Prisma, prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import { runSerializable } from "@/lib/prisma/serializable";
 import { hasCapability } from "@/modules/auth/permissions";
 import type { StaffSession } from "@/modules/auth/server/session";
@@ -17,10 +17,10 @@ import {
   finishDisputeCommand,
 } from "@/modules/payments/server/dispute-idempotency";
 import {
-  decimalToMinor,
-  disputeInclude,
   type DisputeProjection,
   type DisputeRow,
+  decimalToMinor,
+  disputeInclude,
   mergeDisputeMetadata,
   minorToDecimal,
   normalizeProviderEvidence,
@@ -289,118 +289,113 @@ export async function applyDisputeProviderState(input: {
   provider: PaystackDispute;
   actorProfileId?: string | null;
 }): Promise<Result<DisputeProjection, DisputeError>> {
-  const result = await runSerializable(
-    async (tx): Promise<Result<DisputeRow, DisputeError>> => {
-      const existing = await tx.payment_disputes.findUnique({
-        where: {
-          provider_provider_dispute_id: {
-            provider: "paystack",
-            provider_dispute_id: input.provider.id,
-          },
-        },
-        include: disputeInclude,
-      });
-      const payment = existing?.payments ?? (await findProviderPayment(tx, input.provider));
-      if (!payment) {
-        return err({
-          code: "DISPUTE_PAYMENT_NOT_FOUND",
-          message: "The disputed Paystack transaction is not linked to a local payment.",
-        });
-      }
-
-      const status = mapProviderDisputeStatus(input.provider);
-      const amount = minorToDecimal(input.provider.amountMinor);
-      const evidenceDueAt = parseProviderDate(input.provider.dueAt);
-      const resolvedAt = parseProviderDate(input.provider.resolvedAt);
-      const evidence = normalizeProviderEvidence(
-        input.provider.evidence,
-        input.provider.attachments,
-      );
-      const metadata = mergeDisputeMetadata(existing?.metadata, input.provider);
-      if (
-        existing &&
-        existing.provider_status === input.provider.providerStatus &&
-        existing.status === status &&
-        existing.amount.equals(amount) &&
-        sameTimestamp(existing.evidence_due_at, evidenceDueAt) &&
-        sameTimestamp(existing.resolved_at, resolvedAt) &&
-        existing.resolution_note === input.provider.resolution &&
-        sameJson(existing.evidence, evidence) &&
-        sameJson(existing.metadata, metadata)
-      ) {
-        return ok(existing);
-      }
-
-      const row = await tx.payment_disputes.upsert({
-        where: {
-          provider_provider_dispute_id: {
-            provider: "paystack",
-            provider_dispute_id: input.provider.id,
-          },
-        },
-        update: {
-          payment_id: payment.id,
-          provider_status: input.provider.providerStatus,
-          status,
-          category: input.provider.category,
-          amount,
-          currency: input.provider.currency,
-          reason: input.provider.reason,
-          evidence: evidence as Prisma.InputJsonValue,
-          evidence_due_at: evidenceDueAt,
-          resolved_at: resolvedAt,
-          resolution_note: input.provider.resolution,
-          last_provider_sync_at: new Date(),
-          metadata,
-        },
-        create: {
-          payment_id: payment.id,
+  const result = await runSerializable(async (tx): Promise<Result<DisputeRow, DisputeError>> => {
+    const existing = await tx.payment_disputes.findUnique({
+      where: {
+        provider_provider_dispute_id: {
           provider: "paystack",
           provider_dispute_id: input.provider.id,
-          provider_status: input.provider.providerStatus,
-          status,
-          category: input.provider.category,
-          amount,
-          currency: input.provider.currency,
-          reason: input.provider.reason,
-          evidence: evidence as Prisma.InputJsonValue,
-          evidence_due_at: evidenceDueAt,
-          resolved_at: resolvedAt,
-          resolution_note: input.provider.resolution,
-          last_provider_sync_at: new Date(),
-          metadata,
         },
-        include: disputeInclude,
+      },
+      include: disputeInclude,
+    });
+    const payment = existing?.payments ?? (await findProviderPayment(tx, input.provider));
+    if (!payment) {
+      return err({
+        code: "DISPUTE_PAYMENT_NOT_FOUND",
+        message: "The disputed Paystack transaction is not linked to a local payment.",
       });
+    }
 
-      if (status === "awaiting_evidence" || status === "pending") {
-        await tx.orders.update({
-          where: { id: payment.order_id },
-          data: {
-            payment_status: "review_required",
-            attention: `Paystack dispute ${input.provider.id} requires review.`,
-          },
-        });
-      }
+    const status = mapProviderDisputeStatus(input.provider);
+    const amount = minorToDecimal(input.provider.amountMinor);
+    const evidenceDueAt = parseProviderDate(input.provider.dueAt);
+    const resolvedAt = parseProviderDate(input.provider.resolvedAt);
+    const evidence = normalizeProviderEvidence(input.provider.evidence, input.provider.attachments);
+    const metadata = mergeDisputeMetadata(existing?.metadata, input.provider);
+    if (
+      existing &&
+      existing.provider_status === input.provider.providerStatus &&
+      existing.status === status &&
+      existing.amount.equals(amount) &&
+      sameTimestamp(existing.evidence_due_at, evidenceDueAt) &&
+      sameTimestamp(existing.resolved_at, resolvedAt) &&
+      existing.resolution_note === input.provider.resolution &&
+      sameJson(existing.evidence, evidence as Prisma.InputJsonValue) &&
+      sameJson(existing.metadata, metadata)
+    ) {
+      return ok(existing);
+    }
 
-      await tx.audit_events.create({
+    const row = await tx.payment_disputes.upsert({
+      where: {
+        provider_provider_dispute_id: {
+          provider: "paystack",
+          provider_dispute_id: input.provider.id,
+        },
+      },
+      update: {
+        payment_id: payment.id,
+        provider_status: input.provider.providerStatus,
+        status,
+        category: input.provider.category,
+        amount,
+        currency: input.provider.currency,
+        reason: input.provider.reason,
+        evidence: evidence as Prisma.InputJsonValue,
+        evidence_due_at: evidenceDueAt,
+        resolved_at: resolvedAt,
+        resolution_note: input.provider.resolution,
+        last_provider_sync_at: new Date(),
+        metadata,
+      },
+      create: {
+        payment_id: payment.id,
+        provider: "paystack",
+        provider_dispute_id: input.provider.id,
+        provider_status: input.provider.providerStatus,
+        status,
+        category: input.provider.category,
+        amount,
+        currency: input.provider.currency,
+        reason: input.provider.reason,
+        evidence: evidence as Prisma.InputJsonValue,
+        evidence_due_at: evidenceDueAt,
+        resolved_at: resolvedAt,
+        resolution_note: input.provider.resolution,
+        last_provider_sync_at: new Date(),
+        metadata,
+      },
+      include: disputeInclude,
+    });
+
+    if (status === "awaiting_evidence" || status === "pending") {
+      await tx.orders.update({
+        where: { id: payment.order_id },
         data: {
-          actor_profile_id: input.actorProfileId ?? null,
-          action: `payments:dispute:${status}`,
-          target_table: "payment_disputes",
-          target_id: row.id,
-          metadata: {
-            payment_id: payment.id,
-            order_id: payment.order_id,
-            provider_dispute_id: input.provider.id,
-            provider_status: input.provider.providerStatus,
-            resolution: input.provider.resolution,
-          },
+          payment_status: "review_required",
+          attention: `Paystack dispute ${input.provider.id} requires review.`,
         },
       });
-      return ok(row);
-    },
-  );
+    }
+
+    await tx.audit_events.create({
+      data: {
+        actor_profile_id: input.actorProfileId ?? null,
+        action: `payments:dispute:${status}`,
+        target_table: "payment_disputes",
+        target_id: row.id,
+        metadata: {
+          payment_id: payment.id,
+          order_id: payment.order_id,
+          provider_dispute_id: input.provider.id,
+          provider_status: input.provider.providerStatus,
+          resolution: input.provider.resolution,
+        },
+      },
+    });
+    return ok(row);
+  });
   return result.ok ? ok(toDisputeProjection(result.value)) : result;
 }
 
@@ -435,7 +430,9 @@ function mapProviderDisputeStatus(provider: PaystackDispute): DisputeProjection[
 }
 
 function isTerminal(row: DisputeRow) {
-  return row.status === "resolved" || row.status === "declined" || row.provider_status === "archived";
+  return (
+    row.status === "resolved" || row.status === "declined" || row.provider_status === "archived"
+  );
 }
 
 function fileFingerprint(file: DisputeEvidenceFile) {

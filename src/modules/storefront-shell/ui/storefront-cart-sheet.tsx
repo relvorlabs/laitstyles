@@ -139,15 +139,7 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
             <>
               <div className="flex-1 overflow-y-auto px-5 sm:px-6">
                 {cartViews.map(
-                  ({
-                    product,
-                    lineKey,
-                    lineQty,
-                    variantLabel,
-                    colour,
-                    size,
-                    unitPriceNaira,
-                  }) => {
+                  ({ product, lineKey, lineQty, variantLabel, colour, size, unitPriceNaira }) => {
                     const image = getProductDefaultImage(product);
                     const optionLabel = [variantLabel ?? size ?? product.size, colour]
                       .filter(Boolean)
@@ -228,7 +220,8 @@ export function StorefrontCartSheet({ className }: { className?: string }) {
                               <Button
                                 className="gap-1.5"
                                 onClick={() => {
-                                  if (!saved.idSet.has(product.id)) void saved.toggleProduct(product.id);
+                                  if (!saved.idSet.has(product.id))
+                                    void saved.toggleProduct(product.id);
                                   cart.removeLine(lineKey);
                                 }}
                                 size="sm"

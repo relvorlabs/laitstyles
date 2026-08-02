@@ -73,7 +73,11 @@ export function SortOverlay() {
                   variant={selected ? "secondary" : "outline"}
                 >
                   <strong className="min-w-0 flex-1 leading-5">{label}</strong>
-                  {selected ? <span className="shrink-0" aria-hidden="true">✓</span> : null}
+                  {selected ? (
+                    <span className="shrink-0" aria-hidden="true">
+                      ✓
+                    </span>
+                  ) : null}
                 </Button>
               );
             })}

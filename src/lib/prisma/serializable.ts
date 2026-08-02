@@ -5,10 +5,7 @@ import { Prisma, prisma } from "@/lib/prisma";
 const MAX_SERIALIZABLE_ATTEMPTS = 3;
 
 export function isSerializableConflict(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2034"
-  );
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
 }
 
 /**

@@ -50,7 +50,11 @@ export function StorefrontCheckoutAlert({
           </Button>
         </div>
         <div className="mt-3 flex items-center gap-2 sm:mt-0">
-          <Button className="min-h-11 flex-1 shrink-0 sm:flex-none" onClick={onResume} type="button">
+          <Button
+            className="min-h-11 flex-1 shrink-0 sm:flex-none"
+            onClick={onResume}
+            type="button"
+          >
             Continue payment
           </Button>
           <Button

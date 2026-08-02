@@ -180,8 +180,7 @@ function selectNationwideFallbackZoneId(
   }
   const semanticFallback = zones.find(
     (zone) =>
-      zone.enabled &&
-      /nationwide|outside\s+lagos|rest\s+of\s+nigeria|national/i.test(zone.name),
+      zone.enabled && /nationwide|outside\s+lagos|rest\s+of\s+nigeria|national/i.test(zone.name),
   );
   if (semanticFallback) return semanticFallback.id;
   return [...zones].reverse().find((zone) => zone.enabled)?.id ?? null;

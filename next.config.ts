@@ -12,9 +12,7 @@ const nextConfig: NextConfig = {
     // The current prototype catalog uses externally optimized Pexels delivery URLs.
     // Serving them directly avoids blocking Next's image optimizer on that upstream host.
     unoptimized: true,
-    remotePatterns: [
-      ...getConfiguredAssetRemotePatterns(),
-    ],
+    remotePatterns: [...getConfiguredAssetRemotePatterns()],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
@@ -23,7 +21,7 @@ const nextConfig: NextConfig = {
     "https://laitstyle.localhost",
     "https://www.laitstyles.com",
     "http://localhost:3000",
-    "http://localhost:4267"
+    "http://localhost:4267",
   ],
 };
 

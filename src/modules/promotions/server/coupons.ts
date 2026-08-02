@@ -2,11 +2,11 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 import { ApiError } from "@/lib/errors/api-error";
-import { Prisma, prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import type { StaffSession } from "@/modules/auth/server/session";
 import {
-  checkoutCouponSettingsSchema,
   type ConfiguredCheckoutCoupon,
+  checkoutCouponSettingsSchema,
 } from "@/modules/checkout/coupon-schema";
 import { normalizeCouponCode } from "@/modules/checkout/server/coupons";
 import type {
@@ -26,7 +26,9 @@ export async function listPromotionCoupons(): Promise<PromotionCouponList> {
     const usage = await readCouponUsage(tx);
     return {
       coupons: coupons
-        .map((coupon) => toPromotionCoupon(coupon, usage.get(normalizeCouponCode(coupon.code)) ?? 0))
+        .map((coupon) =>
+          toPromotionCoupon(coupon, usage.get(normalizeCouponCode(coupon.code)) ?? 0),
+        )
         .sort((left, right) => left.code.localeCompare(right.code)),
     };
   });
@@ -80,9 +82,7 @@ export async function updatePromotionCoupon(
     const row = await requireSettings(tx);
     const coupons = parseCoupons(row.selling);
     const currentCode = normalizeCouponCode(input.currentCode);
-    const index = coupons.findIndex(
-      (coupon) => normalizeCouponCode(coupon.code) === currentCode,
-    );
+    const index = coupons.findIndex((coupon) => normalizeCouponCode(coupon.code) === currentCode);
     if (index < 0) {
       throw new ApiError({
         code: "PROMOTION_NOT_FOUND",

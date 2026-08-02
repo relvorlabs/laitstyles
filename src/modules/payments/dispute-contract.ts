@@ -5,5 +5,4 @@ export const DISPUTE_EVIDENCE_CONTENT_TYPES = [
   "image/png",
 ] as const;
 
-export type DisputeEvidenceContentType =
-  (typeof DISPUTE_EVIDENCE_CONTENT_TYPES)[number];
+export type DisputeEvidenceContentType = (typeof DISPUTE_EVIDENCE_CONTENT_TYPES)[number];

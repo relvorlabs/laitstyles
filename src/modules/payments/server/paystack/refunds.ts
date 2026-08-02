@@ -3,8 +3,8 @@ import "server-only";
 import { z } from "zod";
 import { paystackRequest } from "@/modules/payments/server/paystack/client";
 import {
-  paystackListRefundsResponseSchema,
   type PaystackRawRefund,
+  paystackListRefundsResponseSchema,
   paystackRefundResponseSchema,
 } from "@/modules/payments/server/paystack/schemas";
 
@@ -153,8 +153,7 @@ export function mapPaystackRefund(refund: PaystackRawRefund): PaystackRefund {
   return {
     id: String(refund.id),
     transactionId: String(typeof transaction === "object" ? transaction.id : transaction),
-    transactionReference:
-      typeof transaction === "object" ? (transaction.reference ?? null) : null,
+    transactionReference: typeof transaction === "object" ? (transaction.reference ?? null) : null,
     amountMinor: refund.amount,
     deductedAmountMinor: refund.deducted_amount ?? null,
     currency: refund.currency,

@@ -80,9 +80,7 @@ export function PaymentMethodsSection() {
       toast("Payment method verified. The NGN 50 setup refund is being reconciled.");
     } catch (cause) {
       setError(
-        cause instanceof Error
-          ? cause.message
-          : "Payment method setup could not be completed.",
+        cause instanceof Error ? cause.message : "Payment method setup could not be completed.",
       );
     }
   }
@@ -93,9 +91,7 @@ export function PaymentMethodsSection() {
       await setDefault.mutateAsync(methodId);
       toast("Default payment method updated");
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Default method could not be updated.",
-      );
+      setError(cause instanceof Error ? cause.message : "Default method could not be updated.");
     }
   }
 
@@ -107,9 +103,7 @@ export function PaymentMethodsSection() {
       setRemovingId(null);
       toast("Payment method removed");
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Payment method could not be removed.",
-      );
+      setError(cause instanceof Error ? cause.message : "Payment method could not be removed.");
     }
   }
 
@@ -122,8 +116,8 @@ export function PaymentMethodsSection() {
             Payment methods.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--acc-muted)]">
-            Paystack owns card collection. Laitstyles stores encrypted reusable authorization
-            codes and masked descriptors only.
+            Paystack owns card collection. Laitstyles stores encrypted reusable authorization codes
+            and masked descriptors only.
           </p>
         </div>
         <AcctButton
@@ -220,8 +214,8 @@ export function PaymentMethodsSection() {
           <DialogHeader>
             <DialogTitle>Add payment method</DialogTitle>
             <DialogDescription>
-              A fixed NGN 50 server-created setup charge verifies a reusable Paystack
-              authorization, then an equal refund is requested automatically.
+              A fixed NGN 50 server-created setup charge verifies a reusable Paystack authorization,
+              then an equal refund is requested automatically.
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border bg-muted/40 p-4">
@@ -277,16 +271,13 @@ export function PaymentMethodsSection() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={Boolean(removingId)}
-        onOpenChange={(open) => !open && setRemovingId(null)}
-      >
+      <Dialog open={Boolean(removingId)} onOpenChange={(open) => !open && setRemovingId(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Remove this payment method?</DialogTitle>
             <DialogDescription>
-              Paystack authorization will be deactivated where supported, then the local method
-              will be tombstoned.
+              Paystack authorization will be deactivated where supported, then the local method will
+              be tombstoned.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

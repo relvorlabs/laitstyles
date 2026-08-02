@@ -63,69 +63,67 @@ export async function createProductTaxonomy(
   const slug = slugifyProductName(name);
 
   try {
-    const outcome = await runSerializable(
-      async (tx) => {
-        if (input.kind === "category") {
-          const row = await tx.catalogue_categories.create({
-            data: {
-              name,
-              slug,
-              image_url: input.imageUrl?.trim() || null,
-              position: input.position,
-            },
-            include: categoryTaxonomyInclude,
-          });
-          await tx.audit_events.create({
-            data: {
-              actor_profile_id: actor.authUserId,
-              action: "inventory:category:create",
-              target_table: "catalogue_categories",
-              target_id: row.id,
-            },
-          });
-          return { row, affectedProductSlugs: [] };
-        }
-
-        const selectedProducts = input.productIds.length
-          ? await tx.products.findMany({
-              where: { id: { in: input.productIds } },
-              select: { id: true, slug: true, collection_id: true },
-            })
-          : [];
-        if (selectedProducts.length !== input.productIds.length) {
-          throw new TaxonomyRuleViolation(
-            taxonomyNotFound(undefined, "One or more selected products could not be found."),
-          );
-        }
-        const created = await tx.catalogue_collections.create({
-          data: { name, slug, position: input.position },
-          select: { id: true },
+    const outcome = await runSerializable(async (tx) => {
+      if (input.kind === "category") {
+        const row = await tx.catalogue_categories.create({
+          data: {
+            name,
+            slug,
+            image_url: input.imageUrl?.trim() || null,
+            position: input.position,
+          },
+          include: categoryTaxonomyInclude,
         });
-        if (input.productIds.length) {
-          await tx.products.updateMany({
-            where: { id: { in: input.productIds } },
-            data: { collection_id: created.id },
-          });
-        }
-        const row = await tx.catalogue_collections.findUnique({
-          where: { id: created.id },
-          include: collectionTaxonomyInclude,
-        });
-        if (!row) throw new TaxonomyRuleViolation(taxonomyNotFound());
         await tx.audit_events.create({
           data: {
             actor_profile_id: actor.authUserId,
-            action: "inventory:collection:create",
-            target_table: "catalogue_collections",
-            target_id: created.id,
+            action: "inventory:category:create",
+            target_table: "catalogue_categories",
+            target_id: row.id,
           },
         });
-        return {
-          row,
-          affectedProductSlugs: selectedProducts.map(({ slug: productSlug }) => productSlug),
-        };
-      },
-    );
+        return { row, affectedProductSlugs: [] };
+      }
+
+      const selectedProducts = input.productIds.length
+        ? await tx.products.findMany({
+            where: { id: { in: input.productIds } },
+            select: { id: true, slug: true, collection_id: true },
+          })
+        : [];
+      if (selectedProducts.length !== input.productIds.length) {
+        throw new TaxonomyRuleViolation(
+          taxonomyNotFound(undefined, "One or more selected products could not be found."),
+        );
+      }
+      const created = await tx.catalogue_collections.create({
+        data: { name, slug, position: input.position },
+        select: { id: true },
+      });
+      if (input.productIds.length) {
+        await tx.products.updateMany({
+          where: { id: { in: input.productIds } },
+          data: { collection_id: created.id },
+        });
+      }
+      const row = await tx.catalogue_collections.findUnique({
+        where: { id: created.id },
+        include: collectionTaxonomyInclude,
+      });
+      if (!row) throw new TaxonomyRuleViolation(taxonomyNotFound());
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: "inventory:collection:create",
+          target_table: "catalogue_collections",
+          target_id: created.id,
+        },
+      });
+      return {
+        row,
+        affectedProductSlugs: selectedProducts.map(({ slug: productSlug }) => productSlug),
+      };
+    });
     return ok({
       item: mapProductTaxonomyRow(outcome.row, input.kind),
       message: `${input.kind === "category" ? "Category" : "Collection"} “${name}” created.`,
@@ -177,88 +175,86 @@ export async function updateProductTaxonomy(
   }
 
   try {
-    const outcome = await runSerializable(
-      async (tx) => {
-        if (input.kind === "category") {
-          const affected = await tx.products.findMany({
-            where: { category_id: decoded.id },
-            select: { slug: true },
-          });
-          const row = await tx.catalogue_categories.update({
-            where: { id: decoded.id },
-            data: {
-              name,
-              slug: slugifyProductName(name),
-              image_url: input.imageUrl?.trim() || null,
-              position: input.position,
-            },
-            include: categoryTaxonomyInclude,
-          });
-          await tx.audit_events.create({
-            data: {
-              actor_profile_id: actor.authUserId,
-              action: "inventory:category:update",
-              target_table: "catalogue_categories",
-              target_id: decoded.id,
-            },
-          });
-          return { row, affectedProductSlugs: affected.map(({ slug }) => slug) };
-        }
-
-        const targetCollection = await tx.catalogue_collections.findUnique({
+    const outcome = await runSerializable(async (tx) => {
+      if (input.kind === "category") {
+        const affected = await tx.products.findMany({
+          where: { category_id: decoded.id },
+          select: { slug: true },
+        });
+        const row = await tx.catalogue_categories.update({
           where: { id: decoded.id },
-          select: { id: true },
-        });
-        if (!targetCollection) {
-          throw new TaxonomyRuleViolation(taxonomyNotFound(taxonomyId));
-        }
-        const currentProducts = await tx.products.findMany({
-          where: { collection_id: decoded.id },
-          select: { id: true, slug: true, collection_id: true },
-        });
-        const selectedProducts = input.productIds.length
-          ? await tx.products.findMany({
-              where: { id: { in: input.productIds } },
-              select: { id: true, slug: true, collection_id: true },
-            })
-          : [];
-        if (selectedProducts.length !== input.productIds.length) {
-          throw new TaxonomyRuleViolation(
-            taxonomyNotFound(taxonomyId, "One or more selected products could not be found."),
-          );
-        }
-
-        await tx.products.updateMany({
-          where: { collection_id: decoded.id, id: { notIn: input.productIds } },
-          data: { collection_id: null },
-        });
-        if (input.productIds.length) {
-          await tx.products.updateMany({
-            where: { id: { in: input.productIds } },
-            data: { collection_id: decoded.id },
-          });
-        }
-        const row = await tx.catalogue_collections.update({
-          where: { id: decoded.id },
-          data: { name, slug: slugifyProductName(name), position: input.position },
-          include: collectionTaxonomyInclude,
+          data: {
+            name,
+            slug: slugifyProductName(name),
+            image_url: input.imageUrl?.trim() || null,
+            position: input.position,
+          },
+          include: categoryTaxonomyInclude,
         });
         await tx.audit_events.create({
           data: {
             actor_profile_id: actor.authUserId,
-            action: "inventory:collection:update",
-            target_table: "catalogue_collections",
+            action: "inventory:category:update",
+            target_table: "catalogue_categories",
             target_id: decoded.id,
           },
         });
-        return {
-          row,
-          affectedProductSlugs: [
-            ...new Set([...currentProducts, ...selectedProducts].map(({ slug }) => slug)),
-          ],
-        };
-      },
-    );
+        return { row, affectedProductSlugs: affected.map(({ slug }) => slug) };
+      }
+
+      const targetCollection = await tx.catalogue_collections.findUnique({
+        where: { id: decoded.id },
+        select: { id: true },
+      });
+      if (!targetCollection) {
+        throw new TaxonomyRuleViolation(taxonomyNotFound(taxonomyId));
+      }
+      const currentProducts = await tx.products.findMany({
+        where: { collection_id: decoded.id },
+        select: { id: true, slug: true, collection_id: true },
+      });
+      const selectedProducts = input.productIds.length
+        ? await tx.products.findMany({
+            where: { id: { in: input.productIds } },
+            select: { id: true, slug: true, collection_id: true },
+          })
+        : [];
+      if (selectedProducts.length !== input.productIds.length) {
+        throw new TaxonomyRuleViolation(
+          taxonomyNotFound(taxonomyId, "One or more selected products could not be found."),
+        );
+      }
+
+      await tx.products.updateMany({
+        where: { collection_id: decoded.id, id: { notIn: input.productIds } },
+        data: { collection_id: null },
+      });
+      if (input.productIds.length) {
+        await tx.products.updateMany({
+          where: { id: { in: input.productIds } },
+          data: { collection_id: decoded.id },
+        });
+      }
+      const row = await tx.catalogue_collections.update({
+        where: { id: decoded.id },
+        data: { name, slug: slugifyProductName(name), position: input.position },
+        include: collectionTaxonomyInclude,
+      });
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: "inventory:collection:update",
+          target_table: "catalogue_collections",
+          target_id: decoded.id,
+        },
+      });
+      return {
+        row,
+        affectedProductSlugs: [
+          ...new Set([...currentProducts, ...selectedProducts].map(({ slug }) => slug)),
+        ],
+      };
+    });
     return ok({
       item: mapProductTaxonomyRow(outcome.row, decoded.kind),
       message: `${decoded.kind === "category" ? "Category" : "Collection"} “${name}” updated.`,
@@ -303,40 +299,38 @@ export async function reorderProductTaxonomy(
   }
 
   try {
-    await runSerializable(
-      async (tx) => {
-        const currentRows =
-          input.kind === "category"
-            ? await tx.catalogue_categories.findMany({ select: { id: true } })
-            : await tx.catalogue_collections.findMany({ select: { id: true } });
-        const submitted = new Set(databaseIds);
-        if (
-          currentRows.length !== databaseIds.length ||
-          currentRows.some(({ id }) => !submitted.has(id))
-        ) {
-          throw new TaxonomyRuleViolation(
-            taxonomyNotFound(undefined, "The catalogue group order is out of date."),
-          );
-        }
+    await runSerializable(async (tx) => {
+      const currentRows =
+        input.kind === "category"
+          ? await tx.catalogue_categories.findMany({ select: { id: true } })
+          : await tx.catalogue_collections.findMany({ select: { id: true } });
+      const submitted = new Set(databaseIds);
+      if (
+        currentRows.length !== databaseIds.length ||
+        currentRows.some(({ id }) => !submitted.has(id))
+      ) {
+        throw new TaxonomyRuleViolation(
+          taxonomyNotFound(undefined, "The catalogue group order is out of date."),
+        );
+      }
 
-        for (const [position, id] of databaseIds.entries()) {
-          if (input.kind === "category") {
-            await tx.catalogue_categories.update({ where: { id }, data: { position } });
-          } else {
-            await tx.catalogue_collections.update({ where: { id }, data: { position } });
-          }
+      for (const [position, id] of databaseIds.entries()) {
+        if (input.kind === "category") {
+          await tx.catalogue_categories.update({ where: { id }, data: { position } });
+        } else {
+          await tx.catalogue_collections.update({ where: { id }, data: { position } });
         }
-        await tx.audit_events.create({
-          data: {
-            actor_profile_id: actor.authUserId,
-            action: `inventory:${input.kind}:reorder`,
-            target_table:
-              input.kind === "category" ? "catalogue_categories" : "catalogue_collections",
-            metadata: { orderedIds: databaseIds },
-          },
-        });
-      },
-    );
+      }
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: `inventory:${input.kind}:reorder`,
+          target_table:
+            input.kind === "category" ? "catalogue_categories" : "catalogue_collections",
+          metadata: { orderedIds: databaseIds },
+        },
+      });
+    });
     return ok({
       message: `${input.kind === "category" ? "Category" : "Collection"} order updated.`,
       affectedProductSlugs: [],
@@ -451,33 +445,29 @@ export async function deleteProductTaxonomy(
   }
 
   try {
-    const outcome = await runSerializable(
-      async (tx) => {
-        const usageCount = await tx.products.count({
-          where:
-            decoded.kind === "category"
-              ? { category_id: decoded.id }
-              : { collection_id: decoded.id },
-        });
-        if (usageCount > 0) return { kind: "in-use" as const, usageCount };
+    const outcome = await runSerializable(async (tx) => {
+      const usageCount = await tx.products.count({
+        where:
+          decoded.kind === "category" ? { category_id: decoded.id } : { collection_id: decoded.id },
+      });
+      if (usageCount > 0) return { kind: "in-use" as const, usageCount };
 
-        if (decoded.kind === "category") {
-          await tx.catalogue_categories.delete({ where: { id: decoded.id } });
-        } else {
-          await tx.catalogue_collections.delete({ where: { id: decoded.id } });
-        }
-        await tx.audit_events.create({
-          data: {
-            actor_profile_id: actor.authUserId,
-            action: `inventory:${decoded.kind}:delete`,
-            target_table:
-              decoded.kind === "category" ? "catalogue_categories" : "catalogue_collections",
-            target_id: decoded.id,
-          },
-        });
-        return { kind: "deleted" as const };
-      },
-    );
+      if (decoded.kind === "category") {
+        await tx.catalogue_categories.delete({ where: { id: decoded.id } });
+      } else {
+        await tx.catalogue_collections.delete({ where: { id: decoded.id } });
+      }
+      await tx.audit_events.create({
+        data: {
+          actor_profile_id: actor.authUserId,
+          action: `inventory:${decoded.kind}:delete`,
+          target_table:
+            decoded.kind === "category" ? "catalogue_categories" : "catalogue_collections",
+          target_id: decoded.id,
+        },
+      });
+      return { kind: "deleted" as const };
+    });
 
     if (outcome.kind === "in-use") {
       return err({

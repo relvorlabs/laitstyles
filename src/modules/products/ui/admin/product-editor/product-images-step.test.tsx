@@ -15,7 +15,9 @@ type CapturedUploadProps = {
   maxFiles?: number;
   multiple?: boolean;
   onAsset: (asset: UploadedCloudinaryAsset) => boolean | undefined;
-  onStatusChange?: (status: "idle" | "opening" | "uploading" | "completed" | "cancelled" | "failed") => void;
+  onStatusChange?: (
+    status: "idle" | "opening" | "uploading" | "completed" | "cancelled" | "failed",
+  ) => void;
   size?: string;
   variant?: string;
 };

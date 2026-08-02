@@ -5,13 +5,13 @@ import {
   payoutTransferIdentifierSchema,
 } from "@/modules/payments/finance-schema";
 import {
-  finalizePayoutTransferOtp,
-  throwFinanceApiError,
-} from "@/modules/payments/server/transfers/index";
-import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
 } from "@/modules/payments/server/request-security";
+import {
+  finalizePayoutTransferOtp,
+  throwFinanceApiError,
+} from "@/modules/payments/server/transfers/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 type RouteContext = { params: Promise<{ transferId: string }> };

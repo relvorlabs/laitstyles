@@ -93,10 +93,7 @@ describe("Paystack bank adapters", () => {
 
     const { listBanks } = await import("@/modules/payments/server/paystack/banks");
     await expect(
-      listBanks(
-        { country: "nigeria", currency: "NGN", type: "nuban", perPage: 25 },
-        fetchMock,
-      ),
+      listBanks({ country: "nigeria", currency: "NGN", type: "nuban", perPage: 25 }, fetchMock),
     ).resolves.toEqual({
       banks: [
         {
@@ -154,9 +151,7 @@ describe("Paystack transfer recipient adapters", () => {
       .fn<typeof fetch>()
       .mockResolvedValue(successResponse(recipientData, "Transfer recipient created successfully"));
 
-    const { createRecipient } = await import(
-      "@/modules/payments/server/paystack/recipients"
-    );
+    const { createRecipient } = await import("@/modules/payments/server/paystack/recipients");
     const recipient = await createRecipient(
       {
         name: "Tolu Robert",
@@ -209,9 +204,7 @@ describe("Paystack transfer recipient adapters", () => {
       ),
     );
 
-    const { listRecipients } = await import(
-      "@/modules/payments/server/paystack/recipients"
-    );
+    const { listRecipients } = await import("@/modules/payments/server/paystack/recipients");
     const result = await listRecipients({ page: 2, perPage: 20 }, fetchMock);
 
     expect(result.recipients).toHaveLength(2);
@@ -233,13 +226,13 @@ describe("Paystack transfer recipient adapters", () => {
 
   it("updates a recipient with Paystack's PUT contract", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse({ ...recipientData, name: "Tolu R. Robert" }, "Recipient updated"),
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        successResponse({ ...recipientData, name: "Tolu R. Robert" }, "Recipient updated"),
+      );
 
-    const { updateRecipient } = await import(
-      "@/modules/payments/server/paystack/recipients"
-    );
+    const { updateRecipient } = await import("@/modules/payments/server/paystack/recipients");
     await expect(
       updateRecipient(
         "RCP_m7ljkv8leesep7p",
@@ -268,9 +261,7 @@ describe("Paystack transfer recipient adapters", () => {
       ),
     );
 
-    const { deleteRecipient } = await import(
-      "@/modules/payments/server/paystack/recipients"
-    );
+    const { deleteRecipient } = await import("@/modules/payments/server/paystack/recipients");
     await expect(deleteRecipient("RCP_m7ljkv8leesep7p", fetchMock)).resolves.toEqual({
       deleted: true,
       message: "Transfer recipient set as inactive",
@@ -288,9 +279,7 @@ describe("Paystack transfer adapters", () => {
       .fn<typeof fetch>()
       .mockResolvedValue(successResponse(transferData, "Transfer has been queued"));
 
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
     await expect(
       initiateTransfer(
         {
@@ -331,9 +320,7 @@ describe("Paystack transfer adapters", () => {
   it("rejects references that cannot be unique Paystack identifiers", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
     const fetchMock = vi.fn<typeof fetch>();
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
       initiateTransfer(
@@ -351,15 +338,12 @@ describe("Paystack transfer adapters", () => {
 
   it("returns an explicit OTP-required continuation", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse(
-        { ...transferData, status: "otp" },
-        "Transfer requires OTP to continue",
-      ),
-    );
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        successResponse({ ...transferData, status: "otp" }, "Transfer requires OTP to continue"),
+      );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
       initiateTransfer(
@@ -379,18 +363,15 @@ describe("Paystack transfer adapters", () => {
 
   it("finalizes only the existing transfer code with the supplied OTP", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      successResponse({ ...transferData, status: "success" }, "Transfer has been queued"),
-    );
-    const { finalizeTransferOtp } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        successResponse({ ...transferData, status: "success" }, "Transfer has been queued"),
+      );
+    const { finalizeTransferOtp } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
-      finalizeTransferOtp(
-        { transferCode: "TRF_vsyqdmlzble3uii", otp: "928783" },
-        fetchMock,
-      ),
+      finalizeTransferOtp({ transferCode: "TRF_vsyqdmlzble3uii", otp: "928783" }, fetchMock),
     ).resolves.toMatchObject({ status: "success", reference: "owner-transfer-0001" });
     const [url, request] = fetchMock.mock.calls[0] ?? [];
     expect(url).toBe("https://api.paystack.co/transfer/finalize_transfer");
@@ -408,9 +389,7 @@ describe("Paystack transfer adapters", () => {
         headers: { "Content-Type": "application/json" },
       }),
     );
-    const { resendTransferOtp } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { resendTransferOtp } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(resendTransferOtp("TRF_vsyqdmlzble3uii", fetchMock)).resolves.toEqual({
       resent: true,
@@ -466,9 +445,7 @@ describe("Paystack transfer adapters", () => {
       .fn<typeof fetch>()
       .mockRejectedValueOnce(new TypeError("socket closed"))
       .mockResolvedValueOnce(successResponse(transferData, "Transfer retrieved"));
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
       initiateTransfer(
@@ -494,9 +471,7 @@ describe("Paystack transfer adapters", () => {
   it("returns needs-reconciliation when provider truth remains uncertain", async () => {
     vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_test_private");
     const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("network unavailable"));
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
       initiateTransfer(
@@ -524,9 +499,7 @@ describe("Paystack transfer adapters", () => {
         headers: { "Content-Type": "application/json" },
       }),
     );
-    const { initiateTransfer } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { initiateTransfer } = await import("@/modules/payments/server/paystack/transfers");
 
     await expect(
       initiateTransfer(
@@ -547,9 +520,7 @@ describe("Paystack transfer adapters", () => {
     ["transfer.failed", "failed"],
     ["transfer.reversed", "reversed"],
   ] as const)("normalizes %s as the terminal %s state", async (event, status) => {
-    const { normalizeTransferEvent } = await import(
-      "@/modules/payments/server/paystack/transfers"
-    );
+    const { normalizeTransferEvent } = await import("@/modules/payments/server/paystack/transfers");
 
     expect(normalizeTransferEvent({ event, data: { ...transferData, status } })).toMatchObject({
       event,

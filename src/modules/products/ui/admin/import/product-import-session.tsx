@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { ProductEditorActionSuccess } from "@/lib/admin/shared/types";
 import { createProductEditorValues } from "@/modules/products/editor-defaults";
-import { filterDuplicateProductImportChildren, prepareProductImport } from "@/modules/products/import/prepare";
+import {
+  filterDuplicateProductImportChildren,
+  prepareProductImport,
+} from "@/modules/products/import/prepare";
 import {
   editedProductImportCount,
   hasUnsavedProductImportChanges,
@@ -91,35 +94,74 @@ export function ProductImportSession({
     [selectedChild],
   );
 
-  const handleAddFile = useCallback(async (file: File) => {
-    const prepared = prepareProductImport({ fileName: file.name, size: file.size, text: await file.text() });
-    if (!prepared.ok) { setAppendIssue(prepared.error.message); setAppendNotice(null); return; }
-    if (!prepared.value.children.length) { setAppendIssue("The import file does not contain any products."); setAppendNotice(null); return; }
-    const result = filterDuplicateProductImportChildren(state.children, prepared.value.children);
-    if (!result.accepted.length) {
+  const handleAddFile = useCallback(
+    async (file: File) => {
+      const prepared = prepareProductImport({
+        fileName: file.name,
+        size: file.size,
+        text: await file.text(),
+      });
+      if (!prepared.ok) {
+        setAppendIssue(prepared.error.message);
+        setAppendNotice(null);
+        return;
+      }
+      if (!prepared.value.children.length) {
+        setAppendIssue("The import file does not contain any products.");
+        setAppendNotice(null);
+        return;
+      }
+      const result = filterDuplicateProductImportChildren(state.children, prepared.value.children);
+      if (!result.accepted.length) {
+        setAppendIssue(null);
+        setAppendNotice(
+          `${result.skippedCount} duplicate${result.skippedCount === 1 ? "" : "s"} skipped.`,
+        );
+        return;
+      }
+      dispatch({
+        type: "append",
+        children: result.accepted,
+        ignoredAssetCount: prepared.value.ignoredAssetCount,
+      });
       setAppendIssue(null);
-      setAppendNotice(`${result.skippedCount} duplicate${result.skippedCount === 1 ? "" : "s"} skipped.`);
-      return;
-    }
-    dispatch({ type: "append", children: result.accepted, ignoredAssetCount: prepared.value.ignoredAssetCount });
-    setAppendIssue(null);
-    setAppendNotice(`${result.accepted.length} product${result.accepted.length === 1 ? "" : "s"} appended${result.skippedCount ? `; ${result.skippedCount} duplicate${result.skippedCount === 1 ? "" : "s"} skipped` : ""}.`);
-  }, [state.children]);
+      setAppendNotice(
+        `${result.accepted.length} product${result.accepted.length === 1 ? "" : "s"} appended${result.skippedCount ? `; ${result.skippedCount} duplicate${result.skippedCount === 1 ? "" : "s"} skipped` : ""}.`,
+      );
+    },
+    [state.children],
+  );
 
-  const handleDelete = useCallback((ids: string[]) => {
-    if (!ids.length) return;
-    setAppendIssue(null); setAppendNotice(null);
-    const count = editedProductImportCount(state, ids);
-    if (count) { setDeleteIds(ids); return; }
-    dispatch({ type: "remove", importIds: ids });
-    if (state.children.length === ids.filter((id) => state.children.some((c) => c.importId === id)).length) onSessionEmpty?.();
-  }, [onSessionEmpty, state]);
+  const handleDelete = useCallback(
+    (ids: string[]) => {
+      if (!ids.length) return;
+      setAppendIssue(null);
+      setAppendNotice(null);
+      const count = editedProductImportCount(state, ids);
+      if (count) {
+        setDeleteIds(ids);
+        return;
+      }
+      dispatch({ type: "remove", importIds: ids });
+      if (
+        state.children.length ===
+        ids.filter((id) => state.children.some((c) => c.importId === id)).length
+      )
+        onSessionEmpty?.();
+    },
+    [onSessionEmpty, state],
+  );
 
   const confirmDelete = useCallback(() => {
     if (!deleteIds) return;
     dispatch({ type: "remove", importIds: deleteIds });
-    setAppendIssue(null); setAppendNotice(null);
-    if (state.children.length === deleteIds.filter((id) => state.children.some((c) => c.importId === id)).length) onSessionEmpty?.();
+    setAppendIssue(null);
+    setAppendNotice(null);
+    if (
+      state.children.length ===
+      deleteIds.filter((id) => state.children.some((c) => c.importId === id)).length
+    )
+      onSessionEmpty?.();
     setDeleteIds(null);
   }, [deleteIds, onSessionEmpty, state]);
 
@@ -184,8 +226,28 @@ export function ProductImportSession({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <AlertDialog open={Boolean(deleteIds)} onOpenChange={(open) => { if (!open) setDeleteIds(null); }}>
-        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Discard edited import drafts?</AlertDialogTitle><AlertDialogDescription>{editedProductImportCount(state, deleteIds ?? []) === 1 ? "1 edited draft will be lost. Saved catalogue products will remain." : `${editedProductImportCount(state, deleteIds ?? [])} edited drafts will be lost. Saved catalogue products will remain.`}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep reviewing</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={confirmDelete}>Delete imports</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+      <AlertDialog
+        open={Boolean(deleteIds)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteIds(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard edited import drafts?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {editedProductImportCount(state, deleteIds ?? []) === 1
+                ? "1 edited draft will be lost. Saved catalogue products will remain."
+                : `${editedProductImportCount(state, deleteIds ?? [])} edited drafts will be lost. Saved catalogue products will remain.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep reviewing</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
+              Delete imports
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );

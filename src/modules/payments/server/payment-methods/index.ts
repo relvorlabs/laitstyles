@@ -15,13 +15,13 @@ import {
 } from "@/modules/payments/server/paystack";
 import type { PaymentMethodError } from "@/modules/payments/types";
 
+export { throwPaymentMethodApiError } from "@/modules/payments/server/api-errors";
 export {
   createPaymentMethodSetup,
   getPaymentMethodSetup,
   listPaymentMethods,
   setDefaultPaymentMethod,
 };
-export { throwPaymentMethodApiError } from "@/modules/payments/server/api-errors";
 
 export async function verifyPaymentMethodSetup(
   ...args: Parameters<typeof verifyPaymentMethodSetupImplementation>

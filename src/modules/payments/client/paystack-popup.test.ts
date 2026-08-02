@@ -47,8 +47,8 @@ describe("resumePaystackTransaction", () => {
   });
 
   it("constructs a fresh Popup instance for every launch", async () => {
-    mocks.resume.mockImplementation(
-      (_accessCode: string, callbacks: PopupCallbacks) => callbacks.onCancel?.(),
+    mocks.resume.mockImplementation((_accessCode: string, callbacks: PopupCallbacks) =>
+      callbacks.onCancel?.(),
     );
 
     await expect(resumePaystackTransaction("access-one")).resolves.toEqual({
@@ -66,14 +66,12 @@ describe("resumePaystackTransaction", () => {
   it("closes the internal checkout only after Paystack reports that it loaded", async () => {
     const handoffs: string[] = [];
     const unsubscribe = subscribePaystackWindowHandoff((handoff) => handoffs.push(handoff.stage));
-    mocks.resume.mockImplementationOnce(
-      (_accessCode: string, callbacks: PopupCallbacks) => {
-        expect(handoffs).toEqual([]);
-        callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
-        expect(handoffs).toEqual(["opening"]);
-        callbacks.onCancel?.();
-      },
-    );
+    mocks.resume.mockImplementationOnce((_accessCode: string, callbacks: PopupCallbacks) => {
+      expect(handoffs).toEqual([]);
+      callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
+      expect(handoffs).toEqual(["opening"]);
+      callbacks.onCancel?.();
+    });
 
     await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
       kind: "cancelled",
@@ -83,12 +81,10 @@ describe("resumePaystackTransaction", () => {
   });
 
   it("normalizes Popup success", async () => {
-    mocks.resume.mockImplementationOnce(
-      (_accessCode: string, callbacks: PopupCallbacks) => {
-        callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
-        callbacks.onSuccess?.({ reference: "LS-CHECKOUT-reference" });
-      },
-    );
+    mocks.resume.mockImplementationOnce((_accessCode: string, callbacks: PopupCallbacks) => {
+      callbacks.onLoad?.({ accessCode: "access-code", id: 42 });
+      callbacks.onSuccess?.({ reference: "LS-CHECKOUT-reference" });
+    });
 
     await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
       kind: "success",
@@ -97,8 +93,8 @@ describe("resumePaystackTransaction", () => {
   });
 
   it("normalizes Popup cancellation", async () => {
-    mocks.resume.mockImplementationOnce(
-      (_accessCode: string, callbacks: PopupCallbacks) => callbacks.onCancel?.(),
+    mocks.resume.mockImplementationOnce((_accessCode: string, callbacks: PopupCallbacks) =>
+      callbacks.onCancel?.(),
     );
 
     await expect(resumePaystackTransaction("access-code")).resolves.toEqual({
@@ -109,9 +105,8 @@ describe("resumePaystackTransaction", () => {
   it("normalizes Popup errors without closing a checkout that Paystack never loaded", async () => {
     const handoffs: string[] = [];
     const unsubscribe = subscribePaystackWindowHandoff((handoff) => handoffs.push(handoff.stage));
-    mocks.resume.mockImplementationOnce(
-      (_accessCode: string, callbacks: PopupCallbacks) =>
-        callbacks.onError?.(new Error("Popup failed")),
+    mocks.resume.mockImplementationOnce((_accessCode: string, callbacks: PopupCallbacks) =>
+      callbacks.onError?.(new Error("Popup failed")),
     );
 
     await expect(resumePaystackTransaction("access-code")).resolves.toEqual({

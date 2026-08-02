@@ -1,9 +1,6 @@
 import "server-only";
 
-import type {
-  PaymentMethod,
-  PaymentMethodSetup,
-} from "@/modules/payments/types";
+import type { PaymentMethod, PaymentMethodSetup } from "@/modules/payments/types";
 
 export type PaymentMethodProjectionRow = {
   id: string;
@@ -28,9 +25,7 @@ type PaymentMethodSetupPaymentRow = {
   payment_refunds?: Array<{ status: string }>;
 };
 
-export function toPaymentMethod(
-  method: PaymentMethodProjectionRow,
-): PaymentMethod {
+export function toPaymentMethod(method: PaymentMethodProjectionRow): PaymentMethod {
   return {
     id: method.id,
     brand: method.card_type,
@@ -59,8 +54,7 @@ export function toPaymentMethodSetup(
     accessCode: payment.access_code,
     status: payment.status,
     refundStatus:
-      (refund?.status as PaymentMethodSetup["refundStatus"] | undefined) ??
-      "not_requested",
+      (refund?.status as PaymentMethodSetup["refundStatus"] | undefined) ?? "not_requested",
     method: authorization.status === "active" ? toPaymentMethod(authorization) : null,
   };
 }

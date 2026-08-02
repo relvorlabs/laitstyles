@@ -7,19 +7,35 @@ import {
   reconcileFinanceTransactions,
   throwFinanceApiError,
 } from "@/modules/payments/server/finance/index";
-import {
-  listPayoutTransfers,
-  reconcilePayoutTransfer,
-} from "@/modules/payments/server/transfers/index";
+import type {
+  PayoutTransferProjection,
+  ReconciliationRecord,
+  SettlementProjection,
+} from "@/modules/payments/server/finance-types";
 import {
   requireFinancialMutationOrigin,
   requireIdempotencyKey,
 } from "@/modules/payments/server/request-security";
+import {
+  listPayoutTransfers,
+  reconcilePayoutTransfer,
+} from "@/modules/payments/server/transfers/index";
 
 const privateNoStore = { "Cache-Control": "private, no-store" };
 
+type ReconcileResponseData = {
+  transfers?: PayoutTransferProjection[];
+  settlements?: SettlementProjection[];
+  transactions?: {
+    items: ReconciliationRecord[];
+    page: number;
+    perPage: number;
+    providerTotal: number;
+  };
+};
+
 export async function POST(request: Request) {
-  return handleApiRequest(request, async () => {
+  return handleApiRequest<ReconcileResponseData>(request, async () => {
     requireFinancialMutationOrigin(request);
     requireIdempotencyKey(request);
     const actor = await requireApiStaff("finance:transfer");

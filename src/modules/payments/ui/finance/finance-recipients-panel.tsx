@@ -8,17 +8,14 @@ import {
   useDeletePayoutRecipient,
   useResolvePayoutAccount,
 } from "@/modules/payments/client/finance";
-import type {
-  PayoutBankRecord,
-  PayoutRecipientRecord,
-} from "@/modules/payments/finance-contract";
+import type { PayoutBankRecord, PayoutRecipientRecord } from "@/modules/payments/finance-contract";
 import {
   FinanceCard,
   FinanceEmptyState,
+  type FinanceFeedback,
   FinanceFeedbackBanner,
   FinanceField,
   readableFinanceError,
-  type FinanceFeedback,
 } from "@/modules/payments/ui/finance/finance-ui";
 
 export function FinanceRecipientsPanel({
@@ -116,7 +113,9 @@ export function FinanceRecipientsPanel({
         </FinanceField>
         <Button
           className="mt-4 w-full"
-          disabled={!canTransfer || !bankCode || accountNumber.length < 6 || resolveAccount.isPending}
+          disabled={
+            !canTransfer || !bankCode || accountNumber.length < 6 || resolveAccount.isPending
+          }
           onClick={resolve}
           type="button"
           variant="outline"

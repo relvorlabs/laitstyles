@@ -30,10 +30,7 @@ export default defineConfig({
     externalTables: true,
   },
   tables: {
-    external: [
-      "public.product_variant_measurements",
-      "public.customer_recent_products",
-    ],
+    external: ["public.product_variant_measurements", "public.customer_recent_products"],
   },
   // DB commands use the direct/session-pooler URL when configured. The runtime
   // Prisma client continues to use DATABASE_URL in src/lib/prisma/client.ts.

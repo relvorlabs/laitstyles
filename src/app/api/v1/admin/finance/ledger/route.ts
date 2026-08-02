@@ -8,7 +8,9 @@ const privateNoStore = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request) {
   return handleApiRequest(request, async () => {
     const actor = await requireApiStaff("finance:read");
-    const query = financeLedgerQuerySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
+    const query = financeLedgerQuerySchema.parse(
+      Object.fromEntries(new URL(request.url).searchParams),
+    );
     const result = await listFinanceLedger(actor, query);
     if (!result.ok) throwFinanceApiError(result.error);
     return {

@@ -54,11 +54,10 @@ export function ProductImagesStep() {
     if (next.some((item, index) => item.alt !== current[index]?.alt)) {
       setValue("media", next, { shouldDirty: true, shouldValidate: false });
     }
-  }, [getValues, productName, setValue, watchedMedia.length]);
+  }, [getValues, productName, setValue]);
 
   const mediaError = getProductEditorFieldError(errors, "media");
   const remainingSlots = Math.max(0, MAX_IMAGES - fields.length);
-
 
   function addUploadedImage(image: UploadedCloudinaryAsset) {
     const existing = getValues("media");

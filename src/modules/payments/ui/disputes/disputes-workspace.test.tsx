@@ -100,7 +100,6 @@ describe("DisputesWorkspace", () => {
     await user.upload(
       screen.getByLabelText("Evidence file"),
       new File(["bad"], "proof.txt", { type: "text/plain" }),
-      { applyAccept: false },
     );
     await user.click(screen.getByRole("button", { name: "Submit evidence" }));
 

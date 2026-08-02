@@ -287,7 +287,12 @@ function MfaEnrollModal({ open, onClose, onNotice }: NoticeModalProps) {
   }
 
   return (
-    <ModalShell open={open} onClose={close} eyebrow="Authenticator app" title="Add extra protection">
+    <ModalShell
+      open={open}
+      onClose={close}
+      eyebrow="Authenticator app"
+      title="Add extra protection"
+    >
       {enrollment ? (
         <form className="mt-6 space-y-5" onSubmit={complete}>
           <div className="rounded-[10px] bg-[var(--acc-bone-2)] p-5">

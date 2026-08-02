@@ -9,12 +9,8 @@ function zIndex(value: string): number {
 
 describe("overlayLayer", () => {
   it("renders dialogs and alert dialogs above side sheets", () => {
-    expect(zIndex(overlayLayer.dialogBackdrop)).toBeGreaterThan(
-      zIndex(overlayLayer.sheetContent),
-    );
-    expect(zIndex(overlayLayer.dialogContent)).toBeGreaterThan(
-      zIndex(overlayLayer.dialogBackdrop),
-    );
+    expect(zIndex(overlayLayer.dialogBackdrop)).toBeGreaterThan(zIndex(overlayLayer.sheetContent));
+    expect(zIndex(overlayLayer.dialogContent)).toBeGreaterThan(zIndex(overlayLayer.dialogBackdrop));
   });
 
   it("keeps floating controls and toast feedback above modal content", () => {

@@ -36,6 +36,7 @@ export function StoreIdentitySection() {
       },
       { shouldDirty: true },
     );
+    return undefined;
   }
 
   function removeLogo() {

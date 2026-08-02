@@ -50,9 +50,7 @@ export async function getCheckoutRequest(
   return response.data;
 }
 
-export async function verifyCheckoutPaymentRequest(
-  paymentId: string,
-): Promise<PaymentSettlement> {
+export async function verifyCheckoutPaymentRequest(paymentId: string): Promise<PaymentSettlement> {
   const response = await apiRequest<PaymentSettlement>(
     `/api/v1/payments/${encodeURIComponent(paymentId)}/verify`,
     { method: "POST" },

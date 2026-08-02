@@ -8,7 +8,9 @@ import type {
 
 const COUPONS_URL = "/api/v1/admin/promotions/coupons";
 
-export async function getPromotionCouponsRequest(signal?: AbortSignal): Promise<PromotionCouponList> {
+export async function getPromotionCouponsRequest(
+  signal?: AbortSignal,
+): Promise<PromotionCouponList> {
   const response = await apiRequest<PromotionCouponList>(COUPONS_URL, {
     cache: "no-store",
     signal,

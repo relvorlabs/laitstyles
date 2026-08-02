@@ -34,10 +34,7 @@ export type CheckoutLifecycleState = {
 export function deriveCheckoutStatus(
   state: Omit<CheckoutLifecycleState, "accessCode">,
 ): CheckoutStatus {
-  if (
-    state.orderPaymentStatus === "cancelled" ||
-    state.orderFulfilmentStatus === "cancelled"
-  ) {
+  if (state.orderPaymentStatus === "cancelled" || state.orderFulfilmentStatus === "cancelled") {
     return "cancelled";
   }
   if (state.orderPaymentStatus === "paid") return "success";

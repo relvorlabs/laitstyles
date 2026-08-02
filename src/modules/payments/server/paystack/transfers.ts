@@ -1,18 +1,22 @@
 import "server-only";
 
 import { z } from "zod";
-import {
-  PaystackProviderError,
-  paystackRequest,
-} from "@/modules/payments/server/paystack/client";
+import { PaystackProviderError, paystackRequest } from "@/modules/payments/server/paystack/client";
 import {
   paystackPaginationSchema,
   paystackProviderIdSchema,
   paystackSuccessEnvelope,
 } from "@/modules/payments/server/paystack/schemas";
 
-const referenceSchema = z.string().trim().regex(/^[a-z0-9_-]{16,50}$/);
-const providerIdentifierSchema = z.string().trim().min(1).regex(/^[A-Za-z0-9_-]+$/);
+const referenceSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9_-]{16,50}$/);
+const providerIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[A-Za-z0-9_-]+$/);
 const currencySchema = z.string().trim().length(3).toUpperCase();
 const transferStatusSchema = z.enum([
   "abandoned",
@@ -36,7 +40,10 @@ const initiateTransferInputSchema = z.object({
 
 const finalizeTransferOtpInputSchema = z.object({
   transferCode: providerIdentifierSchema,
-  otp: z.string().trim().regex(/^\d{6}$/),
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
 });
 
 const listTransfersInputSchema = z.object({
@@ -148,10 +155,7 @@ export async function finalizeTransferOtp(
   return mapTransfer(response.data);
 }
 
-export async function resendTransferOtp(
-  transferCode: string,
-  fetchImplementation?: typeof fetch,
-) {
+export async function resendTransferOtp(transferCode: string, fetchImplementation?: typeof fetch) {
   const parsedCode = providerIdentifierSchema.parse(transferCode);
   const response = await paystackRequest({
     operation: "resend-transfer-otp",
@@ -188,10 +192,7 @@ export async function listTransfers(
   };
 }
 
-export async function fetchTransfer(
-  idOrCode: string,
-  fetchImplementation?: typeof fetch,
-) {
+export async function fetchTransfer(idOrCode: string, fetchImplementation?: typeof fetch) {
   const parsedIdentifier = providerIdentifierSchema.parse(idOrCode);
   const response = await paystackRequest({
     operation: "fetch-transfer",
@@ -202,10 +203,7 @@ export async function fetchTransfer(
   return mapTransfer(response.data);
 }
 
-export async function verifyTransfer(
-  reference: string,
-  fetchImplementation?: typeof fetch,
-) {
+export async function verifyTransfer(reference: string, fetchImplementation?: typeof fetch) {
   const parsedReference = referenceSchema.parse(reference);
   const response = await paystackRequest({
     operation: "verify-transfer",
@@ -229,9 +227,7 @@ export function normalizeTransferEvent(payload: unknown) {
 function isAmbiguousInitiationError(error: unknown) {
   return (
     error instanceof PaystackProviderError &&
-    (error.status === null ||
-      error.status >= 500 ||
-      error.code === "PAYSTACK_INVALID_RESPONSE")
+    (error.status === null || error.status >= 500 || error.code === "PAYSTACK_INVALID_RESPONSE")
   );
 }
 

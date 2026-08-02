@@ -9,13 +9,8 @@ import type {
   FinanceListQuery,
   SettlementListQuery,
 } from "@/modules/payments/finance-schema";
-import {
-  type FinanceError,
-  type SettlementProjection,
-} from "@/modules/payments/server/finance-types";
-import {
-  toSettlementProjection,
-} from "@/modules/payments/server/finance-projection";
+import { toSettlementProjection } from "@/modules/payments/server/finance-projection";
+import type { FinanceError, SettlementProjection } from "@/modules/payments/server/finance-types";
 import {
   fetchBalance,
   fetchBalanceLedger,
@@ -24,16 +19,14 @@ import {
   fetchTransactionTotals,
   listSettlements as listPaystackSettlements,
   listSettlementTransactions as listPaystackSettlementTransactions,
-  type PaystackTransaction,
   PaystackConfigurationError,
   PaystackProviderError,
+  type PaystackTransaction,
   verifyTransaction,
 } from "@/modules/payments/server/paystack";
 import { decimalToMinor, minorToDecimal } from "@/modules/payments/server/refund-projection";
 
-export async function getFinanceOverview(
-  actor: StaffSession,
-): Promise<
+export async function getFinanceOverview(actor: StaffSession): Promise<
   Result<
     {
       balances: Array<{ currency: string; availableAmountMinor: number }>;
@@ -126,10 +119,7 @@ export async function getFinanceTransaction(
       prisma.payments.findFirst({
         where: {
           provider: "paystack",
-          OR: [
-            { provider_transaction_id: provider.id },
-            { reference: provider.reference },
-          ],
+          OR: [{ provider_transaction_id: provider.id }, { reference: provider.reference }],
         },
         include: { orders: { select: { id: true, order_number: true } } },
       }),
@@ -222,11 +212,13 @@ export async function listFinanceSettlementTransactions(
 ): Promise<
   Result<
     {
-      items: Array<ReturnType<typeof toSafeTransactionProjection> & {
-        localPaymentId: string | null;
-        orderId: string | null;
-        orderNumber: string | null;
-      }>;
+      items: Array<
+        ReturnType<typeof toSafeTransactionProjection> & {
+          localPaymentId: string | null;
+          orderId: string | null;
+          orderNumber: string | null;
+        }
+      >;
       page: number;
       perPage: number;
       total: number;
@@ -244,23 +236,23 @@ export async function listFinanceSettlementTransactions(
     const localRows = await prisma.payments.findMany({
       where: {
         provider: "paystack",
-        OR: [
-          { reference: { in: references } },
-          { provider_transaction_id: { in: providerIds } },
-        ],
+        OR: [{ reference: { in: references } }, { provider_transaction_id: { in: providerIds } }],
       },
       include: { orders: { select: { id: true, order_number: true } } },
     });
     const localByReference = new Map(localRows.map((payment) => [payment.reference, payment]));
     const localByProviderId = new Map(
       localRows.flatMap((payment) =>
-        payment.provider_transaction_id ? [[payment.provider_transaction_id, payment] as const] : [],
+        payment.provider_transaction_id
+          ? [[payment.provider_transaction_id, payment] as const]
+          : [],
       ),
     );
 
     return ok({
       items: provider.transactions.map((transaction) => {
-        const local = localByProviderId.get(transaction.id) ?? localByReference.get(transaction.reference);
+        const local =
+          localByProviderId.get(transaction.id) ?? localByReference.get(transaction.reference);
         return {
           ...toSafeTransactionProjection(transaction),
           localPaymentId: local?.id ?? null,

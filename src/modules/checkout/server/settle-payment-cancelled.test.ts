@@ -78,9 +78,7 @@ describe("settlement after cancellation", () => {
       outbox_messages: { create: vi.fn().mockResolvedValue({}) },
       $executeRaw: vi.fn(),
     };
-    mocks.transaction.mockImplementation(
-      async (work: (client: typeof tx) => unknown) => work(tx),
-    );
+    mocks.transaction.mockImplementation(async (work: (client: typeof tx) => unknown) => work(tx));
 
     await expect(settlePaystackEvent(event)).resolves.toMatchObject({
       ok: true,

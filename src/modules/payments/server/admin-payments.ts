@@ -120,9 +120,18 @@ export type AdminPaymentError = {
 
 export async function listAdminPayments(
   actor: StaffSession,
-  query: { page?: number; perPage?: number; status?: string; orderId?: string; reference?: string } = {},
+  query: {
+    page?: number;
+    perPage?: number;
+    status?: string;
+    orderId?: string;
+    reference?: string;
+  } = {},
 ): Promise<
-  Result<{ items: AdminPaymentProjection[]; page: number; perPage: number; total: number }, AdminPaymentError>
+  Result<
+    { items: AdminPaymentProjection[]; page: number; perPage: number; total: number },
+    AdminPaymentError
+  >
 > {
   if (!hasCapability(actor.role, "finance:read")) {
     return err({ code: "FORBIDDEN", message: "You do not have permission to view payments." });
@@ -133,7 +142,9 @@ export async function listAdminPayments(
       ? Math.min(query.perPage!, 100)
       : 25;
   const where: Prisma.paymentsWhereInput = {
-    ...(query.status ? { status: query.status as Prisma.EnumPayment_attempt_statusFilter["equals"] } : {}),
+    ...(query.status
+      ? { status: query.status as Prisma.Enumpayment_attempt_statusFilter["equals"] }
+      : {}),
     ...(query.orderId ? { order_id: query.orderId } : {}),
     ...(query.reference
       ? { reference: { contains: query.reference.trim(), mode: "insensitive" } }
@@ -159,7 +170,10 @@ export async function getAdminPayment(
   if (!hasCapability(actor.role, "finance:read")) {
     return err({ code: "FORBIDDEN", message: "You do not have permission to view payments." });
   }
-  const row = await prisma.payments.findUnique({ where: { id: paymentId }, include: paymentInclude });
+  const row = await prisma.payments.findUnique({
+    where: { id: paymentId },
+    include: paymentInclude,
+  });
   return row
     ? ok(toAdminPayment(row))
     : err({ code: "PAYMENT_NOT_FOUND", message: "The payment could not be found." });
@@ -348,7 +362,9 @@ export async function getAdminPaymentTimeline(
 
 function toAdminPayment(row: PaymentRow): AdminPaymentProjection {
   const reserved = row.payment_refunds.reduce((total, refund) => {
-    return total.add(refund.status === "processed" ? refund.processed_amount : refund.requested_amount);
+    return total.add(
+      refund.status === "processed" ? refund.processed_amount : refund.requested_amount,
+    );
   }, new Prisma.Decimal(0));
   return {
     id: row.id,
