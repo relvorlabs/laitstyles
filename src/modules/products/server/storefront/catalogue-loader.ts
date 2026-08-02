@@ -4,7 +4,6 @@ import { cache } from "react";
 import { reportPrerenderSafeServerError } from "@/lib/server-diagnostics";
 import {
   buildStorefrontCatalogue,
-  buildStorefrontShellCatalogue,
   projectStorefrontProduct,
 } from "@/modules/products/server/storefront/catalogue-projection";
 import {

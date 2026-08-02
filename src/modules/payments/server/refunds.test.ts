@@ -102,23 +102,23 @@ function refundRow(input: {
   return {
     id: input.id,
     payment_id: paymentId,
-    return_id: null,
+    return_id: null as string | null,
     provider: "paystack",
-    provider_reference: null,
-    provider_status: null,
+    provider_reference: null as string | null,
+    provider_status: null as string | null,
     idempotency_key: input.key,
     requested_amount: requested,
     processed_amount: new Prisma.Decimal(0),
     currency: "NGN",
     status: input.status ?? "pending",
     reason: "Customer return",
-    failure_reason: null,
+    failure_reason: null as string | null,
     retry_count: 0,
     requested_by_profile_id: actor.authUserId,
     requested_at: new Date("2026-07-30T10:00:00.000Z"),
-    processed_at: null,
-    failed_at: null,
-    last_provider_sync_at: null,
+    processed_at: null as Date | null,
+    failed_at: null as Date | null,
+    last_provider_sync_at: null as Date | null,
     metadata: {
       source: "admin",
       lineAllocations: [{ orderLineId: orderLine.id, amountMinor: input.amountMinor }],
@@ -143,7 +143,10 @@ const tx = {
     findFirst: vi.fn(async ({ where }: { where: Record<string, any> }) => {
       if (where.id) return state.refunds.find((refund) => refund.id === where.id) ?? null;
       if (where.provider_reference) {
-        return state.refunds.find((refund) => refund.provider_reference === where.provider_reference) ?? null;
+        return (
+          state.refunds.find((refund) => refund.provider_reference === where.provider_reference) ??
+          null
+        );
       }
       return null;
     }),
@@ -204,19 +207,21 @@ vi.mock("@/lib/prisma", async () => {
     ...actual,
     prisma: {
       payment_refunds: {
-        findFirst: vi.fn(async ({ where }: { where: Record<string, any> }) =>
-          state.refunds.find(
-            (refund) =>
-              (where.id ? refund.id === where.id : true) &&
-              (where.payment_id ? refund.payment_id === where.payment_id : true) &&
-              (where.idempotency_key ? refund.idempotency_key === where.idempotency_key : true) &&
-              (where.provider_reference
-                ? refund.provider_reference === where.provider_reference
-                : true),
-          ) ?? null,
+        findFirst: vi.fn(
+          async ({ where }: { where: Record<string, any> }) =>
+            state.refunds.find(
+              (refund) =>
+                (where.id ? refund.id === where.id : true) &&
+                (where.payment_id ? refund.payment_id === where.payment_id : true) &&
+                (where.idempotency_key ? refund.idempotency_key === where.idempotency_key : true) &&
+                (where.provider_reference
+                  ? refund.provider_reference === where.provider_reference
+                  : true),
+            ) ?? null,
         ),
-        findUnique: vi.fn(async ({ where }: { where: { id: string } }) =>
-          state.refunds.find((refund) => refund.id === where.id) ?? null,
+        findUnique: vi.fn(
+          async ({ where }: { where: { id: string } }) =>
+            state.refunds.find((refund) => refund.id === where.id) ?? null,
         ),
         findMany: vi.fn(async () => state.refunds),
         count: vi.fn(async () => state.refunds.length),
@@ -233,10 +238,7 @@ vi.mock("@/lib/prisma", async () => {
   };
 });
 
-import {
-  applyRefundProviderState,
-  requestRefund,
-} from "@/modules/payments/server/refunds";
+import { applyRefundProviderState, requestRefund } from "@/modules/payments/server/refunds";
 
 beforeEach(() => {
   vi.clearAllMocks();

@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "@/providers/session-provider";
-import { AccountUiProvider } from "./account-context";
-import { type AccountModalId, type AccountRoute, routeFromPathname, routePaths } from "./account-nav";
+import { type AccountModalId, AccountUiProvider } from "./account-context";
+import { type AccountRoute, routeFromPathname, routePaths } from "./account-nav";
 import { AccountBreadcrumb } from "./components/account-breadcrumb";
 import { AccountMobileMenu } from "./components/account-mobile-menu";
 import { IconButton, monoClass } from "./components/account-primitives";
@@ -71,11 +71,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        <AccountMobileMenu
-          displayName={displayName}
-          onOpenChange={setMenuOpen}
-          open={menuOpen}
-        />
+        <AccountMobileMenu displayName={displayName} onOpenChange={setMenuOpen} open={menuOpen} />
         {toastMessage ? (
           <div
             aria-live="polite"

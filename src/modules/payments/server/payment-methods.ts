@@ -1,7 +1,7 @@
 import "server-only";
 
 import { err, ok, type Result } from "@/lib/errors";
-import { prisma, type Prisma } from "@/lib/prisma";
+import { type Prisma, prisma } from "@/lib/prisma";
 import { paymentMethodIdentifierSchema } from "@/modules/payments/schema";
 import {
   decryptAuthorizationCode,
@@ -11,8 +11,8 @@ import {
   findPaymentMethodSetupReplay,
   isAuthorizationSignatureConflict,
   isPrismaUniqueConstraintError,
-  paymentMethodSetupReplayResult,
   PAYMENT_METHOD_SETUP_SCOPE,
+  paymentMethodSetupReplayResult,
 } from "@/modules/payments/server/payment-method-idempotency";
 import {
   failInitializedPaymentMethodSetup,
@@ -43,7 +43,9 @@ import type {
 const SETUP_AMOUNT_MINOR = 5_000;
 const SETUP_AMOUNT_DECIMAL = "50.00";
 
-export async function listPaymentMethods(identity: PaymentMethodIdentity): Promise<PaymentMethod[]> {
+export async function listPaymentMethods(
+  identity: PaymentMethodIdentity,
+): Promise<PaymentMethod[]> {
   const methods = await prisma.payment_authorizations.findMany({
     where: { customer_id: identity.customerId, status: "active" },
     orderBy: [{ is_default: "desc" }, { created_at: "desc" }],
@@ -227,10 +229,7 @@ export async function verifyPaymentMethodSetup(
 ): Promise<Result<PaymentMethodSetup, PaymentMethodError>> {
   const current = await getPaymentMethodSetup(identity, attemptId);
   if (!current.ok) return current;
-  if (
-    current.value.method?.status === "active" &&
-    current.value.refundStatus !== "not_requested"
-  ) {
+  if (current.value.method?.status === "active" && current.value.refundStatus !== "not_requested") {
     return current;
   }
 
@@ -380,10 +379,8 @@ export async function verifyPaymentMethodSetup(
       const method = await tx.payment_authorizations.update({
         where: { id: authorization.id },
         data: {
-          authorization_code: encryptAuthorizationCode(
-            providerAuthorization.authorizationCode,
-          ),
-          signature: providerAuthorization.signature,
+          authorization_code: encryptAuthorizationCode(providerAuthorization.authorizationCode),
+          signature: providerAuthorization.signature as string,
           provider_customer_code: providerCustomer.customerCode,
           status: "active",
           reusable: true,
@@ -578,7 +575,7 @@ export async function deletePaymentMethod(
 }
 
 function toPrismaJsonObject(value: object): Prisma.InputJsonObject {
-  const output: Prisma.InputJsonObject = {};
+  const output: Record<string, Prisma.InputJsonValue | null> = {};
   for (const [key, nestedValue] of Object.entries(value)) {
     if (nestedValue !== undefined) output[key] = toPrismaJsonValue(nestedValue);
   }

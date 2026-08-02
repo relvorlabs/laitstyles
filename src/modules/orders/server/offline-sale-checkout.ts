@@ -7,13 +7,13 @@ import { applyOperationalStockMutation } from "@/modules/inventory/server/operat
 import { adminOrderInclude } from "@/modules/orders/server/mappers";
 import type { OfflineSaleDraft } from "@/modules/orders/server/offline-sale-draft";
 import type { OfflineSaleInput } from "@/modules/orders/types";
-import type { PaystackCheckout } from "@/modules/payments/server/paystack";
+import type { PaystackInitializedTransaction } from "@/modules/payments/server/paystack";
 
 export async function finalizeInitializedCheckout(
   actor: StaffSession,
   input: OfflineSaleInput,
   draft: OfflineSaleDraft,
-  checkout: PaystackCheckout,
+  checkout: PaystackInitializedTransaction,
 ) {
   return prisma.$transaction(async (tx) => {
     await tx.payments.update({

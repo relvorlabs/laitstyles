@@ -6,9 +6,9 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { CloudUploadButton } from "./cloud-upload-button";
 
 type CapturedUploadProps = {
+  "aria-disabled"?: boolean;
   "aria-label"?: string;
   children: ReactNode;
-  disabled?: boolean;
   folder?: string;
   onError?: () => void;
   onOpen?: () => void;
@@ -27,8 +27,8 @@ vi.mock("next-cloudinary", () => ({
 
     return (
       <button
+        aria-disabled={props["aria-disabled"]}
         aria-label={props["aria-label"]}
-        disabled={props.disabled}
         onClick={props.onOpen}
         type="button"
       >
@@ -46,7 +46,10 @@ describe("CloudUploadButton", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Upload image" }));
 
-    expect(screen.getByRole("button", { name: "Opening image uploader" }).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Opening image uploader" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     expect(
       screen
         .getAllByText("Opening image uploader")
@@ -55,7 +58,10 @@ describe("CloudUploadButton", () => {
 
     act(() => capturedProps?.onQueuesStart?.());
 
-    expect(screen.getByRole("button", { name: "Uploading images" }).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Uploading images" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     expect(
       screen
         .getAllByText("Uploading images")
@@ -151,6 +157,9 @@ describe("CloudUploadButton", () => {
     act(() => capturedProps?.onQueuesEnd?.());
 
     expect(onComplete).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Upload image" }).disabled).toBe(false);
+    expect(screen.getByRole("button", { name: "Upload image" })).not.toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
   });
 });

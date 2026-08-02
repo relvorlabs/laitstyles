@@ -4,11 +4,11 @@ import { createHash } from "node:crypto";
 import { err, ok, type Result } from "@/lib/errors";
 import { Prisma, prisma } from "@/lib/prisma";
 import {
-  deriveCheckoutStatus,
-  isCheckoutResumable,
   type CheckoutOrderFulfilmentStatus,
   type CheckoutOrderPaymentStatus,
   type CheckoutPaymentAttemptStatus,
+  deriveCheckoutStatus,
+  isCheckoutResumable,
 } from "@/modules/checkout/lifecycle";
 import { checkoutDraftSchema, createCheckoutSchema } from "@/modules/checkout/schema";
 import { validateCheckoutCoupon } from "@/modules/checkout/server/coupons";
@@ -257,7 +257,7 @@ async function createPendingDraft(
           ...(variant ? { variantId: variant.id, variantLabel: variant.label } : {}),
           ...(line.holdId ? { holdId: line.holdId } : {}),
           productName: product.name,
-          ...(variant?.sku ?? product.sku
+          ...((variant?.sku ?? product.sku)
             ? { sku: variant?.sku ?? product.sku ?? undefined }
             : {}),
           quantity: line.quantity,
@@ -602,7 +602,7 @@ function mapStockError(error: OperationalStockError): CheckoutError {
 }
 
 function toPrismaJsonObject(value: object): Prisma.InputJsonObject {
-  const output: Prisma.InputJsonObject = {};
+  const output: Record<string, Prisma.InputJsonValue | null> = {};
   for (const [key, nestedValue] of Object.entries(value)) {
     if (nestedValue !== undefined) output[key] = toPrismaJsonValue(nestedValue);
   }
