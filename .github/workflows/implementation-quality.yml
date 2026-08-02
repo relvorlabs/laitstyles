@@ -10,8 +10,12 @@ on:
 permissions:
   contents: read
 
+# A single shared group across every heavy workflow (this one and Playwright)
+# means only one of them can ever be running on the self-hosted runner at a
+# time, and any new push/PR update cancels whatever else is queued or running
+# for the same ref/PR instead of piling up jobs that overload the runner.
 concurrency:
-  group: implementation-quality-${{ github.event.pull_request.number || github.ref }}
+  group: self-hosted-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -23,6 +27,11 @@ env:
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
 
 jobs:
+  # These four jobs used to run concurrently, each spinning up its own
+  # Postgres service plus a full pnpm install/build on the same runner at the
+  # same time — that combined load is what was crashing the EC2 instance.
+  # They now run one at a time via `needs`, so at most one Postgres container
+  # and one Node/build process is ever active.
   static:
     name: Static analysis
     runs-on: [self-hosted, linux, x64]
@@ -49,6 +58,8 @@ jobs:
 
   tests:
     name: Unit and component tests
+    needs: static
+    if: always() && needs.static.result != 'cancelled'
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 35
     steps:
@@ -74,6 +85,8 @@ jobs:
 
   database:
     name: Database integrity
+    needs: tests
+    if: always() && needs.tests.result != 'cancelled'
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
     services:
@@ -111,6 +124,8 @@ jobs:
 
   build:
     name: Production build and React Doctor
+    needs: database
+    if: always() && needs.database.result != 'cancelled'
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 50
     services:

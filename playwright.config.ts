@@ -10,10 +10,14 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
   expect: { timeout: 12_000 },
+  // A single worker in CI trades speed for a much smaller memory/CPU
+  // footprint — the self-hosted runner also runs a full `next start`
+  // production server alongside these browser workers, and it has crashed
+  // under the combined load of multiple concurrent Chromium instances.
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI
     ? [
         ["line"],
@@ -29,7 +33,9 @@ export default defineConfig({
     navigationTimeout: 30_000,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    // Video capture is memory/disk-hungry per worker; traces + screenshots
+    // already cover failure debugging without that overhead.
+    video: "off",
   },
   projects: [
     {
