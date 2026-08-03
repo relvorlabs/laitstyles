@@ -1,23 +1,45 @@
-# Workflow: Feature (new or changed capability)
+# Workflow: Feature
 
-Chained by the [orchestrator](../roles/orchestrator.md). Skip stages a small change does not
-need, but never skip the reviewer gate.
+Use for a new or changed capability.
 
+## Current architecture sequence
+
+```text
+orchestrator
+→ planner when scope is non-trivial
+→ server-side engineer when contracts, data, auth, API or provider behavior changes
+→ frontend engineer when route, client, UI or browser state changes
+→ reviewer
 ```
-spec → planner → data-engineer → domain-engineer → ui-engineer → reviewer
+
+Skip a role only when its owned surface is unaffected.
+
+## Procedure
+
+1. Orchestrator identifies the user operation and ownership surfaces.
+2. Planner, when useful, defines acceptance, contract/data/auth impact, UI states, evidence and
+   exclusions.
+3. Server-side engineer produces the Zod contract and complete current Next.js server behavior,
+   including Prisma/Supabase/security/tests, before dependent frontend integration.
+4. Frontend engineer consumes the exact contract, implements API/Query/UI/auth behavior and
+   verifies against the real server.
+5. Reviewer verifies each surface and the seam.
+
+## Explicit NestJS migration
+
+When and only when the user requests NestJS migration:
+
+```text
+planner → server-side engineer behavior/contract audit → backend engineer migration
+→ frontend engineer consumer changes if required → reviewer
 ```
 
-1. **planner** — read the spec + affected code, produce the step plan and explicit
-   exclusions, name the layers/roles touched. ([planner](../roles/planner.md))
-2. **data-engineer** — *only if* the schema or auth model changes: migrate, regenerate types,
-   document concurrency implications. ([data-engineer](../roles/data-engineer.md))
-3. **domain-engineer** — implement domain logic, transports (Server Actions / route handlers),
-   authorization, and tests; publish the data contract. ([domain-engineer](../roles/domain-engineer.md))
-4. **ui-engineer** — build the screens/components against that contract, with explicit
-   loading/empty/error states and the state ladder respected. ([ui-engineer](../roles/ui-engineer.md))
-5. **reviewer** — run gates, review diff, verify a11y/responsive, write the completion report
-   and PR body. ([reviewer](../roles/reviewer.md))
+The backend engineer does not pre-empt ordinary server-side work.
 
-**Barriers.** The orchestrator verifies each stage's declared handoff exists before starting
-the next. A data-model change lands and types regenerate before domain code depends on it.
-The UI does not start until the domain data contract is stated.
+## Completion
+
+The same runtime contract is used by producer and consumer; relevant migrations/auth paths are
+exercised; the real server response is parsed by the browser client; every modeled outcome has UI
+behavior; applicable static, test, build, browser and database gates pass; reviewer returns Pass.
+
+Do not replace persistence with fixtures or server capability with client workarounds.

@@ -1,60 +1,95 @@
 # Laitstyles agent system
 
-This directory is the single source of truth for how agents work in this repository.
-`AGENTS.md` is the thin entry point; `.claude/agents/**` contains stubs that point back to the
-roles here.
+This directory is the single source of truth for how engineering agents work in Laitstyles.
+`AGENTS.md`, `.claude/agents/**`, and `.codex/agents/**` are thin entry points only.
 
-## Structure
+## Principles
+
+1. **One owner per concern.** Current server behavior belongs to the server-side engineer;
+   browser/product experience belongs to the frontend engineer.
+2. **Current architecture is executable truth.** NestJS is not assumed or scaffolded until the
+   user explicitly requests migration.
+3. **Doctrine owns standards; roles own work; workflows own sequencing.** Do not duplicate rules
+   across callers and roles.
+4. **Runtime evidence outranks confidence.** Implementation includes tests and real behavior
+   verification.
+5. **Professional judgment over pattern accumulation.** Add a layer, store, queue, abstraction, or
+   client boundary only when the current requirement justifies it.
+
+## Current data and auth seam
 
 ```text
-AGENTS.md ──routes to──▶ .agents/doctrine/**   stable rules
-                         .agents/roles/**       operators and owned surfaces
-                         .agents/workflows/**   role sequencing
-.claude/agents/** ─────▶ .agents/roles/**      spawnable stubs
+Server-rendered read
+Next.js Server Component
+  → src/modules/<domain>/server query
+  → Prisma
+  → Supabase-hosted PostgreSQL public schema
+
+Interactive browser read or mutation
+Client Component
+  → TanStack Query hook
+  → typed domain API function
+  → /api/v1 Route Handler
+  → authenticated/authorized domain operation
+  → Prisma transaction/query
+
+Authentication
+Browser auth UI
+  → src/lib/supabase/client.ts
+  → Supabase Auth
+
+Server identity
+Server Component / Route Handler / Server Action
+  → src/lib/supabase/server.ts
+  → modules/auth/server/session.ts
+  → Prisma profile/customer/staff authorization data
+
+Session refresh
+Next.js proxy
+  → src/lib/supabase/proxy.ts
+  → refreshes an existing Supabase cookie session with a bounded timeout
 ```
 
-Two rules keep the system maintainable:
-
-1. **One owner per concern.** Put each rule in one doctrine file and link to it.
-2. **Doctrine is not a role.** Doctrine defines ownership; roles operate the real current and
-   target repository surfaces.
+The Supabase browser client is not the ordinary application CRUD client. Application data flows
+through Server Components or `/api/v1/**` and Prisma.
 
 ## Doctrine
 
 | File | Owns |
 | --- | --- |
-| [00-authority](doctrine/00-authority.md) | Instruction precedence, overrides, honesty. |
-| [product](doctrine/product.md) | Inventory models, prototype boundaries, scope. |
-| [architecture](doctrine/architecture.md) | Target folder map, legacy boundaries, domain language, dependency direction. |
-| [conventions](doctrine/conventions.md) | Naming, files, imports, TypeScript, focus, commits/PRs. |
-| [state-and-data](doctrine/state-and-data.md) | State ownership. |
-| [server-and-actions](doctrine/server-and-actions.md) | Server reads, API, actions, Prisma/Supabase, cache, TanStack. |
-| [ui-and-design-system](doctrine/ui-and-design-system.md) | UI primitives, tokens, forms, accessibility, responsive behaviour. |
-| [toolchain-and-skills](doctrine/toolchain-and-skills.md) | Skill resolution, browser tools, pnpm. |
-| [validation-and-reporting](doctrine/validation-and-reporting.md) | Gates and completion reporting. |
+| [00-authority](doctrine/00-authority.md) | Precedence, evidence, overrides, truthful status. |
+| [product](doctrine/product.md) | Commerce truth, inventory modes, domain language and scope. |
+| [architecture](doctrine/architecture.md) | Repository surfaces, role ownership and dependency direction. |
+| [engineering-discipline](doctrine/engineering-discipline.md) | Evidence-driven implementation and engineering judgment. |
+| [conventions](doctrine/conventions.md) | Naming, imports, TypeScript, files and change hygiene. |
+| [server-side-architecture](doctrine/server-side-architecture.md) | Next.js server operations, rendering/transport choice, errors, caching and integrations. |
+| [contracts-and-api](doctrine/contracts-and-api.md) | Zod wire contracts, API envelope, compatibility and OpenAPI. |
+| [persistence](doctrine/persistence.md) | Prisma, PostgreSQL, migrations, transactions, idempotency and concurrency. |
+| [authentication-and-security](doctrine/authentication-and-security.md) | Supabase Auth, sessions, authorization and browser/server security. |
+| [frontend-architecture](doctrine/frontend-architecture.md) | Next.js RSC/client boundaries, API consumption, composition and runtime safety. |
+| [state-and-data](doctrine/state-and-data.md) | URL, TanStack Query, form, local, Zustand and storage ownership. |
+| [ui-and-design-system](doctrine/ui-and-design-system.md) | shadcn/Base UI, Tailwind tokens, themes, responsive UI and accessibility. |
+| [toolchain-and-skills](doctrine/toolchain-and-skills.md) | Mandatory skills, package manager and version-aware tool use. |
+| [validation-and-reporting](doctrine/validation-and-reporting.md) | Commands, behavioral proof, gates and completion reporting. |
 
 ## Roles
 
-| Role | Owns |
+| Role | Source ownership |
 | --- | --- |
-| [orchestrator](roles/orchestrator.md) | Dispatch and phase/gate enforcement; no source edits. |
-| [planner](roles/planner.md) | Planning artefacts in `docs/**`. |
-| [ui-engineer](roles/ui-engineer.md) | Domain UI, shared UI, browser stores/hooks, client route segments; legacy features during migration only. |
-| [domain-engineer](roles/domain-engineer.md) | Domain server/client contracts and transport adapters; legacy server paths during migration only. |
-| [data-engineer](roles/data-engineer.md) | Prisma, Supabase, schema, migrations, database infrastructure. |
-| [reviewer](roles/reviewer.md) | No source edits; gates, review, and PR evidence. |
+| [orchestrator](roles/orchestrator.md) | No product source. |
+| [planner](roles/planner.md) | Planning artifacts only when requested or useful. |
+| [server-side engineer](roles/server-side-engineer.md) | `src/modules/**/server`, module schemas/contracts, `src/app/api/**`, thin actions, server infrastructure, `prisma/**`, `supabase/**`. |
+| [frontend engineer](roles/frontend-engineer.md) | Domain UI/client modules, routes, providers, stores, design system and extension/browser surfaces. |
+| [backend engineer](roles/backend-engineer.md) | Explicit NestJS migration surface only. |
+| [reviewer](roles/reviewer.md) | No implementation source. |
 
-## Migration authority
-
-The controlling architecture documents are in `docs/architecture-migration/**`.
-
-`src/features/**` and top-level `src/server/**` are current legacy paths, not templates for new
-business modules. New domain work belongs under `src/modules/<domain>/**` according to the active
-phase.
+Tests are owned by the engineer changing the behavior. The reviewer runs and evaluates them but
+does not own their implementation.
 
 ## Editing this system
 
-- Add a rule to the one doctrine file that owns it.
-- Update role maps when the target architecture changes.
-- Keep `.claude/agents/**` as thin links rather than duplicated instructions.
-- Do not start later-phase implementation while an earlier acceptance gate is open.
+- Put stable standards in the doctrine file that owns the concern.
+- Put professional behavior and source ownership in a role file.
+- Put ordering and handoff barriers in a workflow file.
+- Keep Claude and Codex callers thin.
+- Do not add current-debt inventories, phase roadmaps, or unbuilt architecture claims to doctrine.

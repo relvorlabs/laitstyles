@@ -1,23 +1,25 @@
-# Workflow: UI change (visual or interaction only)
+# Workflow: UI change
 
-Chained by the [orchestrator](../roles/orchestrator.md). Use when no domain logic, schema, or
-authorization changes — purely presentational or interaction work.
+Use when presentation, component composition, interaction, theme, responsive behavior or
+accessibility changes without changing server data, authorization or wire contracts.
 
+## Sequence
+
+```text
+orchestrator → frontend engineer → reviewer
 ```
-(design) → ui-engineer → reviewer
-```
 
-1. **Design intent** — for new or reshaped visuals, load `frontend-design` /
-   `ui-ux-pro-max` and set the aesthetic direction within the
-   [ui-and-design-system](../doctrine/ui-and-design-system.md) bar (premium, editorial,
-   fashion-specific; no generic-SaaS defaults).
-2. **ui-engineer** — implement by composing existing shadcn / Base UI primitives; keep
-   interactivity to the smallest segment; apply the state ladder from
-   [state-and-data](../doctrine/state-and-data.md); no new business data or domain rules.
-   ([ui-engineer](../roles/ui-engineer.md))
-3. **reviewer** — verify the 375×812 / 768×1024 / 1280×800 gates, a11y, light/dark parity,
-   reduced-motion, and generate/review screenshots as evidence.
-   ([reviewer](../roles/reviewer.md))
+## Procedure
 
-**Guardrail.** If the change turns out to need server data or a new domain contract, stop and
-escalate to the [feature](feature.md) workflow — do not smuggle domain work into a UI change.
+1. Observe the real surface, user task, themes, states and viewports.
+2. Confirm the existing server contract supports the intended behavior.
+3. Define hierarchy, primary action, component responsibilities, responsive transformation and
+   accessibility before coding.
+4. Keep Server Components default and add the smallest Client Component boundary.
+5. Use existing shadcn/Base UI primitives and semantic Tailwind tokens; no component CSS or inline
+   styles.
+6. Implement all relevant states and correct touched raw primitive reimplementations.
+7. Run static/test/build/React Doctor/browser/theme/responsive/accessibility checks.
+8. Reviewer evaluates against the user task and design system, not personal taste.
+
+If new data, mutation, auth or contract behavior is required, switch to the feature workflow.

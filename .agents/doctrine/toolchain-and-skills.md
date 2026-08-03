@@ -1,41 +1,68 @@
-# Doctrine: Toolchain & skills
+# Doctrine: Toolchain and mandatory skills
 
-Owner of: skill resolution, MCP/browser tooling, package runner.
+Owner of: repository commands, skill selection, dependency-version awareness and tool honesty.
 Cited by: every role.
 
-## Skills
+## Repository authority
 
-Use skills deliberately — do not load every available skill for every task.
+Inspect `package.json`, `pnpm-lock.yaml`, TypeScript/Biome/Playwright/Vitest configuration,
+`components.json`, Prisma configuration and current framework versions before acting.
 
-Resolution order:
+Use pnpm and repository scripts. Do not substitute remembered commands when an authoritative
+script exists.
 
-1. Prefer the current repository-local skill when one exists (`.agents/skills/**`).
-2. If not available locally, load the current version from `relvorlabs/agent-controller`.
-3. Use `find-skills` only when the capability cannot be found under its expected name.
-4. Load `create-pr` only when creating/updating a pull request.
-5. Load design, database, testing, or framework skills only when the task requires them.
-6. When the runtime supports skills and `using-superpowers` is available, load it before
-   other implementation skills; use `brainstorming` before creative work and
-   `systematic-debugging` before fixing a bug.
+Current major stack includes Next.js 16, React 19, TypeScript, Zod 4, Prisma 7 with PostgreSQL
+adapter, Supabase SSR/Auth, TanStack Query 5, shadcn/Base UI, Tailwind CSS 4, Biome, Vitest and
+Playwright. `package.json` remains the source of truth as versions change.
 
-Do not load both local and remote copies of the same skill unless comparing; the local copy
-wins. Never claim a skill was used unless it was actually loaded.
+## Server-side skills
 
-Repo-local skills present: `.agents/skills/supabase`, `.agents/skills/supabase-postgres-best-practices`.
+For current Next.js server-side implementation, load and apply as relevant:
 
-## Toolchain
+- `next-best-practices`;
+- `error-handling-patterns`;
+- repository-local `.agents/skills/supabase` for Supabase Auth/client behavior;
+- repository-local `.agents/skills/supabase-postgres-best-practices` for PostgreSQL/Supabase
+  operational work;
+- `typescript-advanced-types` for complex contract/state modeling;
+- `tanstack` when browser cache/transport behavior is affected;
+- `systematic-debugging` for defects.
 
-- Package manager: `pnpm` (see [conventions](conventions.md)).
-- MCP config: `.ai/mcp/mcp.json`. Report unavailable MCPs honestly rather than pretending.
-- Read local Next.js docs in `node_modules/next/dist/docs/` before using unfamiliar or
-  recently changed Next.js APIs. Use current official docs for dependencies whose APIs may
-  have changed.
+Do not load every skill for every task. Local skill copies win over remote copies of the same
+skill.
 
-## Browser validation tooling
+## Frontend skills
 
-- Chrome DevTools MCP is preferred for runtime inspection, performance profiling, and network
-  analysis when available. Its absence does not block all browser validation.
-- Playwright acceptance scripts and screenshot review may satisfy functional and responsive
-  checks. If no approved browser-validation path is available, mark that validation blocked.
+For every frontend implementation or frontend review, load and actively apply:
 
-See [validation-and-reporting](validation-and-reporting.md) for how these feed the gates.
+- `next-best-practices`;
+- `vercel-react-best-practices`;
+- `vercel-composition-patterns`;
+- `shadcn`.
+
+Use the repository's `react-doctor` command for material component work, risky refactors and
+bugfix/final self-review.
+
+Skills refine the Laitstyles visual system; they do not replace it.
+
+## NestJS backend skills
+
+Only when the backend engineer is legitimately active, load:
+
+- `nestjs-patterns`;
+- `nestjs-best-practices`;
+- `nestjs-code-review` for final self-review.
+
+Translate generic guidance to the selected Laitstyles runtime contracts, Prisma and Supabase Auth
+rather than importing class-validator, hand-written JWT or repository-for-every-model patterns.
+
+## Version-aware use
+
+Check installed versions before applying examples, especially for Next.js App Router/async request
+APIs, React 19, shadcn Base UI, Tailwind 4, Supabase SSR, Prisma 7 and TanStack Query 5.
+Use current official documentation when behavior is uncertain.
+
+## Tool honesty
+
+Do not claim a skill, browser, database, migration, auth, payment, extension or provider check was
+used when it was not executed.
