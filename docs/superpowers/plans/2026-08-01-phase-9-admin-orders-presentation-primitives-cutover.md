@@ -1,6 +1,6 @@
 # Phase 9 Admin Orders Presentation Primitives Cutover Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. `order-labels.ts` and `order-status-badge.tsx` live under `src/modules/orders/ui/admin/**`, and all live consumers import them from that canonical path. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Move two legacy Orders presentation primitives into Orders-owned admin UI and repoint exactly their seven live consumers without changing any observable presentation or interaction contract.
 

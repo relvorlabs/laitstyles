@@ -65,4 +65,4 @@ Cart, saved-item and hold state are owned by `StorefrontStateHydrator` and the s
 
 Authentication email and OAuth callback URLs prefer the current request's forwarded host/origin, then `AUTH_SITE_URL`, then `NEXT_PUBLIC_APP_URL`, then `NEXT_PUBLIC_SITE_URL` as a fallback for header-less contexts. Every configured origin must allow `/auth/callback`; manager invitations additionally require `/auth/invite/setup` in the Supabase Auth redirect allow-list.
 
-The authoritative implementation ledger remains `docs/architecture-migration/phase-7-closure-status.md`.
+Outstanding live-auth and browser acceptance work is tracked in `docs/architecture-migration/migration-tracker.md`.

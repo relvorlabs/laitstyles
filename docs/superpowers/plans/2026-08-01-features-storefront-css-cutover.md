@@ -1,6 +1,6 @@
 # Storefront CSS Ownership Cutover Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. `src/modules/storefront-shell/ui/storefront.css` is canonical and all current imports use that path. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Move the shared storefront stylesheet out of legacy `src/features/**` ownership and into `src/modules/storefront-shell/ui/**` without changing its bytes, cascade, consumers, or rendered behaviour.
 

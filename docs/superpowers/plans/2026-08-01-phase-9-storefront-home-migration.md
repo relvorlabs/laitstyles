@@ -1,6 +1,6 @@
 # Phase 9 Storefront Home Migration Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. The home route imports `@/modules/storefront-shell/ui/home/storefront-home`, and `src/features/storefront/**` is absent. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Retire the final production files under `src/features/storefront/**` by moving the active homepage composition into the canonical Storefront Shell UI module, reusing the canonical reveal hook, and cutting the home route to the new owner without changing rendered behaviour.
 

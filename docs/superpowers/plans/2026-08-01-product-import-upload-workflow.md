@@ -1,6 +1,6 @@
 # Product Import Upload Workflow Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. `src/components/ui/cloud-upload-button.tsx` is the only production importer of `CldUploadButton`, `src/modules/products/import/{prepare,session,types}.ts` own parsing/duplicate filtering/selection, and the editor exposes `navigationMode`. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Centralize production Cloudinary uploads, make the browser-owned product import queue editable and appendable, and enable unrestricted editor-step navigation only for imported products.
 

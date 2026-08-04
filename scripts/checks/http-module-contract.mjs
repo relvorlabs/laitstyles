@@ -29,7 +29,6 @@ const requiredFiles = [
   "src/lib/http/pagination.test.ts",
   "src/lib/query/app-query-client.test.ts",
   "src/app/api/v1/health/route.test.ts",
-  "docs/architecture-migration/phase-3-cache-invalidation-contract.md",
 ];
 
 for (const path of requiredFiles) {

@@ -1,6 +1,6 @@
 # Phase 9 Storefront Shared Residue Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. The legacy storefront tree is absent and its retained tests now live with canonical modules. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Retire the bounded non-runtime residue under `src/features/storefront/shared/**` by colocating six canonical-import tests with their owning modules and deleting two proven redundant compatibility files.
 
