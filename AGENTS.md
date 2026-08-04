@@ -1,70 +1,61 @@
 # Laitstyles — agent entry point
 
-This file is the entry point every agent loads. It is deliberately thin: it sets the
-authority order, maps the fleet, and routes into the doctrine and roles that own the actual
-rules. The full system lives in [`.agents/`](.agents/README.md).
+This file is the thin entry point for engineering agents. The authoritative system lives in
+[`.agents/`](.agents/README.md). Do not duplicate detailed standards here.
 
-> Do not add detailed rules here. A rule belongs in the one `.agents/doctrine/*` file that owns
-> its concern. This router only points.
+## Authority
 
-## Authority order
+Apply [`.agents/doctrine/00-authority.md`](.agents/doctrine/00-authority.md). In order:
 
-Obey the highest applicable source; a lower source may refine a higher one but never silently
-contradict it. Record any user-instructed override. Full rule:
-[`.agents/doctrine/00-authority.md`](.agents/doctrine/00-authority.md).
+1. platform, safety, and tool constraints;
+2. the user's explicit request for the current task;
+3. this file and `.agents/**`;
+4. active product acceptance criteria and current architecture decisions;
+5. verified repository code, configuration, tests, and dependency versions;
+6. loaded skills and current official framework documentation;
+7. general framework knowledge.
 
-1. Platform, safety, tool constraints → 2. Explicit user instruction → 3. This file +
-`.agents/**` doctrine → 4. Active feature spec → 5. Active plan / progress / decisions →
-6. Skills and tool guidance → 7. General model knowledge.
+Repository evidence outranks stale plans. `docs/architecture-migration/**` may explain earlier
+choices, but it does not authorize agents to execute a migration or block current work unless the
+user explicitly makes that document authoritative for the task.
 
-## Before you change code
+## Current architecture
 
-1. Identify the task, branch, active migration phase, requested scope, and expected output.
-2. Read the relevant doctrine and the controlling documents in
-   `docs/architecture-migration/**`.
-3. Inspect affected code, `package.json`, lockfile, configuration, and existing contracts.
-4. Confirm the package manager — this repository uses `pnpm`.
-5. Report unavailable tools and unexecuted validation honestly.
-6. Do not implement work assigned to a later migration phase.
+Laitstyles is currently a Next.js application with server-side business logic:
 
-## Doctrine — the law (`.agents/doctrine/`)
+- Server Components call domain server queries directly.
+- Interactive browser reads and mutations use TanStack Query → typed browser API client →
+  `src/app/api/v1/**` Route Handler → domain server operation → Prisma.
+- Supabase owns authentication and session transport.
+- Prisma owns ordinary application data in PostgreSQL's `public` schema.
+- Thin Server Actions are optional form/redirect adapters; they are not a parallel business layer.
+- NestJS is not the active runtime. The backend engineer is dispatched only for an explicitly
+  requested NestJS migration or for an existing `apps/api/**` surface.
 
-| Concern | File |
+Full boundaries: [architecture](.agents/doctrine/architecture.md) and
+[server-side architecture](.agents/doctrine/server-side-architecture.md).
+
+## Roles
+
+Dispatch through the [orchestrator](.agents/roles/orchestrator.md).
+
+| Role | Current responsibility |
 | --- | --- |
-| Authority, overrides, honesty | [00-authority](.agents/doctrine/00-authority.md) |
-| Product truth, inventory models, prototype boundaries, scope | [product](.agents/doctrine/product.md) |
-| Target structure, legacy boundaries, domain language | [architecture](.agents/doctrine/architecture.md) |
-| Naming, files, TypeScript, focus, commits/PRs | [conventions](.agents/doctrine/conventions.md) |
-| State ownership | [state-and-data](.agents/doctrine/state-and-data.md) |
-| Server Components, API, actions, Prisma, cache, TanStack | [server-and-actions](.agents/doctrine/server-and-actions.md) |
-| UI primitives, tokens, forms, a11y, responsive | [ui-and-design-system](.agents/doctrine/ui-and-design-system.md) |
-| Skill resolution, browser tools, pnpm | [toolchain-and-skills](.agents/doctrine/toolchain-and-skills.md) |
-| Validation gates and completion reporting | [validation-and-reporting](.agents/doctrine/validation-and-reporting.md) |
+| [orchestrator](.agents/roles/orchestrator.md) | Routing, sequencing, handoff and gate control; no product source edits. |
+| [planner](.agents/roles/planner.md) | Scope and executable delivery plans when planning is useful. |
+| [server-side engineer](.agents/roles/server-side-engineer.md) | Current Next.js server logic, contracts, Route Handlers, Server Actions, Supabase Auth, Prisma, persistence and integrations. |
+| [frontend engineer](.agents/roles/frontend-engineer.md) | Next.js UI, client boundaries, API consumers, TanStack Query, shadcn, Tailwind, themes, responsive and accessible UX. |
+| [backend engineer](.agents/roles/backend-engineer.md) | NestJS API migration only when explicitly requested; inactive for ordinary current features. |
+| [reviewer](.agents/roles/reviewer.md) | Independent review and validation verdict; no implementation edits. |
 
-## The fleet — who owns what (`.agents/roles/`)
-
-Dispatch through the [orchestrator](.agents/roles/orchestrator.md). Each role owns a distinct
-surface; legacy ownership is temporary and follows the migration tracker.
-
-| Role | Owns |
-| --- | --- |
-| [orchestrator](.agents/roles/orchestrator.md) | Dispatch, sequencing, phase/gate enforcement; no source edits. |
-| [planner](.agents/roles/planner.md) | Scope and plans under `docs/**`. |
-| [ui-engineer](.agents/roles/ui-engineer.md) | `src/modules/*/ui/**`, `src/components/**`, `src/stores/**`, browser hooks, client route segments; legacy `features/**` only while migrating/fixing existing code. |
-| [domain-engineer](.agents/roles/domain-engineer.md) | `src/modules/*/{server,client}/**`, domain schemas/types, HTTP adapters, thin actions/handlers; legacy `server/**` only while migrating/fixing existing code. |
-| [data-engineer](.agents/roles/data-engineer.md) | `prisma/**`, `supabase/**`, Prisma/Supabase infrastructure. |
-| [reviewer](.agents/roles/reviewer.md) | Gates, diff review, a11y/responsive, PR evidence; no source edits. |
-
-Spawnable Claude Code subagents mirror these roles through `.claude/agents/**` stubs.
+There is no separate contracts engineer, domain engineer, data engineer, or UI engineer. Their
+responsibilities are owned by the active server-side and frontend engineers.
 
 ## Workflows
 
-- [feature](.agents/workflows/feature.md) — spec → planner → data → domain → UI → reviewer.
-- [bugfix](.agents/workflows/bugfix.md) — systematic debugging → owner → reviewer.
-- [ui-change](.agents/workflows/ui-change.md) — design → UI engineer → reviewer.
+- [feature](.agents/workflows/feature.md)
+- [bugfix](.agents/workflows/bugfix.md)
+- [UI change](.agents/workflows/ui-change.md)
 
-## Completion
-
-Nothing is complete until the reviewer applies
-[validation-and-reporting](.agents/doctrine/validation-and-reporting.md). Never present planned,
-mocked, billing-blocked, or unexecuted behaviour as done.
+A source change is not complete until the reviewer applies
+[validation and reporting](.agents/doctrine/validation-and-reporting.md).

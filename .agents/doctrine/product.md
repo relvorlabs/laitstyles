@@ -1,38 +1,54 @@
-# Doctrine: Product truth & scope
+# Doctrine: Product truth and commerce language
 
-Owner of: what Laitstyles is, inventory models, prototype boundaries, scope guardrails.
-Cited by: planner, domain-engineer, data-engineer.
+Owner of: Laitstyles product boundaries, inventory models, commerce invariants and authoritative
+language.
+Cited by: planner, server-side engineer, frontend engineer and reviewer.
 
-## Inventory models
+## Product purpose
 
-Laitstyles supports three, and every catalogue-touching decision must hold all three:
+Laitstyles is a fashion commerce product with a customer storefront and staff administration
+surface. It manages published products, inventory, carts, holds, checkout, orders, payments,
+fulfilment, returns, reviews, customer accounts and operational reporting.
 
-- `unique` — one-of-one pieces.
-- `stocked` — multiple identical units.
-- `variant` — one product with size / colour / other stock-bearing variants.
+## Inventory modes
 
-Never restore the legacy assumption that every item has quantity one. Model these three as
-discriminated unions in domain code (see [conventions](conventions.md)).
+Every catalogue, cart, hold, checkout, order and stock decision must support:
 
-## Prototype boundaries
+- `unique`: one-of-one inventory;
+- `stocked`: multiple identical units;
+- `variant`: stock-bearing size, colour or other variants.
 
-Until a real integration exists for a given capability:
+Do not restore a quantity-one assumption. Model mode-specific states with discriminated unions and
+enforce inventory invariants in both application logic and the database.
 
-- Use typed, deterministic data behind explicit adapters.
-- Keep prototype boundaries visible — do not disguise local data as a live backend.
-- Do not claim production persistence, payment processing, courier updates, uploads,
-  authentication, stock locking, or background processing that does not exist.
-- Do not add random timers, fake network delays, random failures, random status changes, or
-  simulated background jobs as normal behaviour.
-- Do not create dead buttons or actions that imply unavailable capabilities.
+## Authoritative language
 
-Where real integrations already exist (Prisma-backed catalogue, orders, reviews; Supabase
-auth), treat them as production and hold their guarantees — see
-[server-and-actions](server-and-actions.md).
+- **Product**: canonical sellable definition—identity, description, media, pricing,
+  merchandising, publication and available inventory modes.
+- **Inventory**: stock, unique pieces, variants, reservations, movements and availability.
+- **Catalogue**: public read model for browsing, searching, filtering and merchandising published
+  products. Use British spelling.
+- **Storefront**: customer-facing shell, catalogue, product detail, cart, checkout, account and
+  saved-product experience.
+- **Admin**: staff-facing operational surface; not a duplicate persistence domain.
+- **Cart**: customer intent before an order exists.
+- **Hold**: time-bounded reservation of inventory.
+- **Order**: persisted commercial transaction and lifecycle.
+- **Payment**: authorization, settlement, refund and dispute state; not merely UI state.
+- **Customer**: commerce record; an authenticated Supabase user may be associated through a
+  profile, while guest/CRM records may exist without one.
 
-## Scope guardrails
+## Commerce safety
 
-Do not expand into supplier management, accounting, warehouse management, marketing
-automation, or platform administration unless an active specification or a direct user
-instruction adds that scope. Do not implement speculative infrastructure or drive-by
-refactors; see [conventions](conventions.md) for the focus rule.
+- Never mark stock sold, payment successful, refund complete or delivery complete based only on a
+  browser callback.
+- Payment and webhook operations are idempotent and verified server-side.
+- Inventory, holds, checkout and order transitions are concurrency-sensitive.
+- Prices, totals, discounts and delivery charges are recalculated or verified server-side.
+- Client-supplied roles, totals, ownership IDs and status transitions are untrusted.
+
+## Scope
+
+Do not add supplier ERP, accounting, warehouse-management or marketplace-platform scope unless the
+user explicitly requests it. Do not invent unavailable integrations or simulate live operations as
+normal production behavior.

@@ -1,64 +1,112 @@
-# Doctrine: UI & design system
+# Doctrine: UI, component system and visual quality
 
-Owner of: shadcn/Base UI usage, tokens, forms, accessibility, responsive gates, visual bar.
-Cited by: ui-engineer, reviewer.
+Owner of: shadcn/Base UI, Tailwind CSS, themes, component intent, responsive design, forms and
+accessibility.
+Cited by: frontend engineer and reviewer.
 
-## Configuration (from `components.json`)
+## Product visual standard
 
-- shadcn style: `base-mira`
-- primitive base: **Base UI**
-- icon library: **HugeIcons**
-- Tailwind CSS 4
-- aliases defined by `components.json`
+Laitstyles should feel premium, editorial and fashion-specific on the storefront, while remaining
+clear, dense and operational in admin. Visual decisions support product discovery, garment detail,
+trust, checkout completion and staff accuracy. Do not produce a generic SaaS dashboard or a grid of
+indistinguishable cards.
 
-## Before adding or modifying a design-system component
+Before building a material component, define the user task, content hierarchy, primary action,
+states, mobile transformation, accessibility contract and backend data it represents.
 
-1. Inspect `components.json`.
-2. Inspect installed components and existing variants.
-3. Run component tooling through `pnpm`.
-4. Read current component documentation and examples.
-5. Confirm whether the component uses Base UI or Radix APIs.
-6. Prefer composition of existing components over new custom primitives.
+## Local component system
 
-Load the `shadcn` skill for registry/component work (see [toolchain-and-skills](toolchain-and-skills.md)).
+The repository configuration is authoritative:
 
-## UI rules
+- shadcn style: `base-mira`;
+- primitive base: Base UI;
+- Tailwind CSS 4 with CSS variables;
+- HugeIcons;
+- aliases from `components.json`.
 
-- Use HugeIcons for new UI; no other icon library without approval.
-- Keep Base UI labels, items, radio items, and grouped elements inside their required
-  contexts. Dialogs, Sheets, Drawers, and equivalent overlays require accessible titles.
-- Use `Field`, `FieldGroup`, and semantic validation patterns for forms.
-- Prefer existing primitives (Alert, Empty, Skeleton, Badge, Separator, Tooltip, Dialog,
-  Sheet, Drawer, Menu) over styled `div` recreations.
-- Use semantic role tokens for surfaces, foregrounds, borders, focus, and functional colours.
-  No raw colours or one-off dark-mode patches when a token applies.
-- Design Light and Dark as paired systems; do not mechanically invert one theme.
-- One clear primary action per context.
-- Avoid generic purple gradients, excessive glass, decorative charts, uniform card grids, and
-  empty visual filler. The interface should feel premium, editorial, fashion-specific, and
-  operational — not a generic SaaS template. Never sacrifice clarity, hierarchy, or
-  accessibility for novelty.
-- Link/button anchors need `data-slot="button"` — the unlayered anchor reset erases
-  `buttonVariants` text colour on `<a>`/`<Link>` without it.
+Inspect `components.json` and `src/components/ui/**` before adding/updating a component. Use pnpm
+and preview shadcn registry changes before overwriting locally modified source.
 
-## Forms
+## shadcn-first rule
 
-- React Hook Form + Zod for multi-step, consequential, or validation-heavy forms.
-- Show errors beside the relevant field/action in plain business language.
-- Preserve entered values when navigating backward in a stepper.
-- Disable duplicate submissions; show progress for async work.
-- Confirm before discarding dirty work or performing destructive actions.
-- State ownership for form/interaction values follows [state-and-data](state-and-data.md).
+Feature code uses local primitives for established concepts:
 
-## Responsive & accessibility gates
+- `Button` for actions;
+- `Input`, `Textarea`, `InputGroup` for text entry;
+- `Select`, `Combobox`, `Checkbox`, `RadioGroup`, `Switch`, `ToggleGroup` for choices;
+- `Field`, `FieldGroup`, labels/descriptions/errors for forms;
+- `Dialog`, `AlertDialog`, `Sheet`, `Drawer` for overlays;
+- `DropdownMenu`, `Tabs`, `Breadcrumb`, `Pagination`, `Sidebar` for navigation/action structure;
+- `Alert`, `Badge`, `Empty`, `Skeleton`, `Spinner`, `Progress`, `Separator`, `Table`, `ScrollArea`,
+  `Tooltip` and `sonner` for their established concepts.
 
-Review every completed UI workflow at 375×812, 768×1024, 1280×800, plus any workflow-specific
-wide or short-height target.
+Do not recreate an available primitive with raw interactive elements or clickable divs/spans. When
+touched code contains such a reimplementation, correct it within the changed scope.
 
-- Mobile adapts task structure, not just shrinks desktop tables. No horizontal page overflow.
-- Sidebars, sheets, dialogs, and nested regions stay usable at short viewport heights.
-- Comfortable touch targets on primary controls. Keyboard order matches visual flow.
-- Icon-only controls have accessible names. Status is never colour-only.
-- Text and controls meet WCAG AA contrast. Respect reduced-motion.
-- Overlays have predictable focus, Escape, and close behaviour.
-- Loading, empty, error, disabled, and unavailable states are explicit.
+Semantic structural HTML remains required: `main`, `nav`, `header`, `footer`, `section`, `article`,
+headings, paragraphs and lists express document meaning. A plain `div`/`span` is acceptable only as
+a non-interactive layout/text wrapper when no semantic element or primitive fits.
+
+Custom product components compose shadcn primitives and represent Laitstyles concepts such as
+`ProductCard`, `VariantPicker`, `HoldCountdown`, `OrderStatus`, `CheckoutSummary` or
+`InventoryTable`. Do not fork primitive behavior or create generic visual wrappers.
+
+## Tailwind and tokens
+
+Feature styling uses Tailwind utilities and semantic tokens only.
+
+Do not create:
+
+- CSS Modules or component `.css` files;
+- styled-jsx/CSS-in-JS;
+- inline `style` props or hand-authored `<style>` tags;
+- raw hex/RGB/HSL values;
+- raw palette classes for product semantics;
+- one-off dark-mode colour repairs when a semantic token should exist.
+
+The existing global Tailwind/theme file may define reusable semantic tokens and approved global
+keyframes. Do not create a new stylesheet for a feature.
+
+Use `cn()` for conditional classes, `gap-*` instead of `space-*`, `size-*` for equal dimensions and
+semantic variants through the repository's variant mechanism.
+
+## Theme and contrast
+
+Light and dark themes are independently designed states. Verify text, muted content, surfaces,
+borders, focus, selected/pressed/destructive/disabled states, product imagery framing and data
+visualizations in both themes.
+
+Meet WCAG AA at minimum: 4.5:1 normal text, 3:1 large text and 3:1 meaningful non-text boundaries
+and focus indicators. Status is never color-only.
+
+## Responsive behavior
+
+Verify at least:
+
+- 320×568;
+- 375×812;
+- 768×1024;
+- 1280×800;
+- a short desktop viewport for overlays.
+
+No page-level horizontal overflow. Product media preserves intentional aspect ratios. Tables scroll
+inside named containers. Mobile reorganizes the task instead of shrinking desktop. Primary actions
+remain reachable and touch targets are usable.
+
+## Forms and interaction
+
+Use React Hook Form + Zod for consequential/multi-step forms and local shadcn field composition.
+Every field has an accessible label/error relationship. Prevent duplicate submission, preserve
+intentional drafts, confirm destructive operations and focus the first invalid field where useful.
+
+Every control is keyboard reachable with visible focus. Overlays have correct title/description,
+focus trap/restoration and Escape behavior. Async/error/success state is announced appropriately.
+Respect reduced motion. Hover is never the only access path.
+
+## Required states
+
+Implement every relevant loading, slow-loading, empty, partial, success, validation, conflict,
+unauthorized, forbidden, offline/unavailable, mutation-pending, recovery, long-text, large-value and
+missing-optional-data state.
+
+A screenshot of one happy path is not completion.

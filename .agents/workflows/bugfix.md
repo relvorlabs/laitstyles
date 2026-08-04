@@ -1,22 +1,38 @@
-# Workflow: Bugfix (defect or unexpected behaviour)
+# Workflow: Bugfix
 
-Chained by the [orchestrator](../roles/orchestrator.md).
+Use for a defect, regression, hydration/type/runtime failure, visual inconsistency, auth issue or
+unexpected behavior.
 
+## Sequence
+
+```text
+orchestrator → owning engineer(s) → reviewer
 ```
-systematic-debugging → (owning engineer) → reviewer
-```
 
-1. **Diagnose first.** Load the `systematic-debugging` skill and find the root cause before
-   proposing a fix — no fix-by-guessing. Identify which layer owns the defect using
-   [architecture](../doctrine/architecture.md).
-2. **Route to the owning engineer** by layer:
-   - UI / component / interaction-state defect → [ui-engineer](../roles/ui-engineer.md).
-   - Domain / action / authorization / transport defect → [domain-engineer](../roles/domain-engineer.md).
-   - Schema / migration / auth-model defect → [data-engineer](../roles/data-engineer.md).
-3. **Reproduce, then fix.** Prefer a failing test that reproduces the bug first (TDD), then the
-   minimal fix. Keep scope to the defect (see [conventions](../doctrine/conventions.md)).
-4. **reviewer** — run scope-relevant gates, confirm the reproduction now passes, check for
-   regressions and scope drift. ([reviewer](../roles/reviewer.md))
+Use the planner only for a multi-system defect or migration/deployment strategy.
 
-**Guardrail.** Do not expand a bugfix into a refactor. If the root cause is structural, report
-it and let the orchestrator decide whether to open separate work.
+## Diagnostic order
+
+For a browser-visible issue, inspect:
+
+1. current server/domain operation and database/auth availability;
+2. Route Handler status and runtime contract;
+3. browser request, credentials and parser;
+4. TanStack Query key/cache/mutation behavior;
+5. Server/Client boundary and hydration;
+6. view-model/component state;
+7. shadcn primitive, Tailwind token, theme, responsive and accessibility behavior.
+
+Route the root cause to the server-side or frontend engineer. Use the backend engineer only when the
+defect is in an explicitly active NestJS surface.
+
+## Procedure
+
+1. Reproduce with the smallest reliable evidence.
+2. Add or identify a failing regression check where practical.
+3. Implement the smallest complete root-cause fix.
+4. Do not weaken schemas, auth, types, lint, styling or accessibility to hide the defect.
+5. Run targeted and affected integration/build/browser gates.
+6. Reviewer confirms the original reproduction passes and no boundary was bypassed.
+
+Do not expand the bugfix into an unrelated redesign or migration.

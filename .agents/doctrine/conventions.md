@@ -1,83 +1,71 @@
 # Doctrine: Conventions
 
-Owner of: naming, file discipline, TypeScript style, imports, focus, commits/PRs.
-Cited by: every engineering role, reviewer.
+Owner of: naming, files, imports, TypeScript, package management and change hygiene.
+Cited by: implementing roles and reviewer.
 
-## Focus
+## Files and naming
 
-Change only what the active task requires. No unrelated formatting, dependency, visual, or
-architectural changes. No speculative infrastructure or drive-by refactors unless the active
-phase requires them or the task cannot be completed safely without them.
+- Files and directories use `kebab-case` unless a framework convention requires another name.
+- React components and classes use `PascalCase`.
+- One cohesive responsibility per file.
+- Public barrels expose only stable module capabilities.
+- Do not create generic `helpers`, `utils`, `services` or component names that hide ownership.
 
-During the architecture migration, obey the active phase boundary. A later-phase improvement is
-not permission to implement it early.
+### Module naming
 
-## Files and ownership
+```text
+src/modules/<domain>/
+├── schema.ts or contracts.ts
+├── types.ts                  only for non-duplicated domain/frontend types
+├── server/
+│   ├── queries.ts
+│   ├── commands.ts
+│   ├── policy.ts
+│   ├── mappers.ts
+│   └── <provider>.adapter.ts
+├── client/
+│   ├── api.ts
+│   ├── query-keys.ts
+│   ├── queries.ts
+│   └── mutations.ts
+├── ui/
+└── index.ts
+```
 
-- One purpose per file; split when a file mixes responsibilities.
-- Match the naming, comment density, and idioms of the surrounding code.
-- Colocate tests as `*.test.ts` or `*.test.tsx` beside the unit under test.
-- New business code belongs under `src/modules/<domain>/**`.
-- `src/features/**` is legacy for new production code. Existing files may be repaired or moved,
-  but do not create a new business feature there.
-- Top-level `src/server/**` is legacy for new business modules. New domain queries, commands,
-  policies, and mappers belong under the owning module's `server/**`.
-- Keep server-only modules out of every Client Component dependency chain.
-- Do not create broad barrels that expose a module's internal server, client, and UI files
-  through one ambiguous entry point.
-
-## Naming
-
-Use the domain language contract in
-[`architecture.md`](architecture.md):
-
-- `product` — canonical sellable-item domain;
-- `inventory` — stock and availability;
-- `catalogue` — public read model or UI term;
-- `storefront` — customer-facing surface;
-- `admin` — staff-facing surface;
-- `commerce` — conceptual umbrella, not a permanent folder layer.
-
-Use British spelling `catalogue`. Do not add new `catalog` filenames, imports, identifiers, or
-domain names. Existing American-spelled identifiers are legacy debt and must not increase when a
-file changes.
-
-Do not create product CRUD names under catalogue, for example
-`createCatalogueProduct` or `deleteCatalogueProduct`. Those are product commands.
-
-Use `repository` only for a real replaceable persistence/integration boundary. Prefer
-`queries`, `commands`, `api`, `policy`, or `mappers` for direct responsibilities.
+Create a repository only for a real persistence boundary or substantial query responsibility.
+A thin wrapper over Prisma or `fetch` is not automatically a repository.
 
 ## Imports
 
-- Prefer the `@/` alias for cross-folder imports.
-- Client code must not import `@/server/**`, `@/modules/*/server/**`, Prisma, server-only
-  Supabase clients, or `"use server"` modules.
-- Route Handlers must not import Server Actions.
-- Production `src/**` code must not import from test fixtures, factories, stories fixtures,
-  development fixtures, or seed scripts.
-- Domain UI may import the owning domain's client API/hooks and shared UI primitives, but not
-  server internals.
-- Domain server code must not import app routes, providers, stores, or domain UI.
+- Client code must not import `server-only`, Prisma, Node-only modules, Supabase admin code or
+  `modules/**/server`.
+- Server code must not import UI, browser stores or Client Component hooks.
+- Route files import public module server operations and shared HTTP infrastructure.
+- Avoid broad barrels that conceal server/client boundary mistakes or inflate bundles.
+- Keep generated Prisma imports behind `src/lib/prisma`.
 
 ## TypeScript
 
-- Model `unique` / `stocked` / `variant` as discriminated unions.
-- Use structured validation errors or typed `Result` values for expected failures.
-- Use advanced types only where they improve domain safety, readability, or refactor
-  confidence.
-- Keep domain invariants in domain logic, not only in UI conditions.
+- Keep strict TypeScript enabled.
+- Public API functions, hooks, server operations and route wrappers have explicit return types.
+- Prefer `satisfies` when validating configuration without losing inference.
+- Exhaustively switch discriminated unions.
+- Do not duplicate Zod-derived transport types as interfaces.
+- Do not make fields optional to silence incomplete state handling.
+- Do not throw strings.
 
-## Package manager
+## Frontend files
 
-This repository uses `pnpm@11.13.0`. Confirm the repository scripts before running commands or
-installing packages.
+Use product-responsibility names such as `product-editor.tsx`, `cart-summary.tsx` and
+`use-checkout.ts`. Avoid `DataCard`, `InfoBox`, `GenericModal`, `ReusableComponent` and universal
+page-builder APIs.
 
-## Commits and pull requests
+Do not create component CSS files or CSS Modules. Styling rules live in the UI doctrine.
 
-- Use conventional commit and PR titles that describe the actual phase scope.
-- Keep a PR in draft while required checks, browser evidence, visual review, or merge
-  integration remain incomplete.
-- The PR body states implemented scope, explicit exclusions, architecture decisions,
-  verification evidence, known blockers, and follow-up work deliberately left to later phases.
-- Never report a planned, billing-blocked, or unexecuted check as passing.
+## Tooling and commits
+
+The root `packageManager`, lockfile and scripts are authoritative. Use pnpm. Do not introduce a
+second formatter, linter, styling system, ORM, auth system or component library.
+
+Keep dependency changes deliberate. Do not commit secrets, local environment files, browser
+profiles, logs or database dumps.
