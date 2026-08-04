@@ -19,8 +19,8 @@ Choose by **who owns the value**, not by convenience. Prefer the lowest rung tha
    state, use TanStack Query (rules in [server-and-actions](server-and-actions.md)).
 4. **Shared client state.** Genuinely shared, client-owned, cross-tree ephemeral UI state —
    cart-drawer visibility, guest cart, comparison selections, command-palette state. Zustand
-   is the sanctioned store for this (not yet present in the tree; add it only when a real
-   cross-tree need appears). Never put server-owned data here as the source of truth.
+   is the sanctioned store for this. Existing storefront stores own guest cart, saved-item, hold,
+   and shared overlay state. Never put server-owned data here as the source of truth.
 5. **Local interaction state** (the lowest rung — most state belongs here):
    - `useState` for simple, independent values.
    - `useReducer` for a local workflow with related transitions or invariants.

@@ -126,8 +126,18 @@ TanStack Query owns remote browser cache only.
 - Query functions call typed browser API clients.
 - Query keys include every result-affecting identifier, filter, sort, and pagination value.
 - Configure stale time, retries, refetch, garbage collection, and cancellation intentionally.
+- Query functions consume the supplied `AbortSignal` and pass it through the typed API client.
 - Do not copy query results into Context, AdminStore, reducers, or Zustand.
 - Mutations prefer authoritative cache replacement, then targeted invalidation; optimistic
   updates require deterministic rollback and are not used casually for payments, stock,
   reservations, fulfilment, refunds, or unique-item ownership.
 - Do not use TanStack Query around local arrays or Promise-wrapped client stores.
+
+After a successful mutation, replace the exact authoritative resource returned by the server when
+possible, invalidate only affected lists or projections, and await invalidation when the visible UI
+depends on the refreshed result. A domain command that changes server-cached reads owns its
+`revalidateTag` or `revalidatePath` decision; transport adapters do not duplicate that policy.
+
+Polling is limited to genuinely asynchronous remote state with a documented interval, stop
+condition, visibility behaviour, and error strategy. Static catalogue, product, category, settings,
+and completed-order reads do not poll by default.

@@ -1,6 +1,6 @@
 # Phase 9 Admin Promotions UI Cutover Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. `src/app/admin/promotions/page.tsx` imports `@/modules/promotions/ui/admin/promotions-workspace`, and no legacy admin promotions tree remains. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Move the admin coupon workspace to Promotions-owned UI without changing its bytes, behaviour, presentation, contracts, or route semantics.
 

@@ -52,8 +52,7 @@ describe("auth ownership boundaries", () => {
   it("never exposes the trusted Supabase admin client from account security Route Handlers", () => {
     // Account security (email/password/MFA/session-management) never needs the
     // secret-key-backed admin client: every operation runs against the caller's
-    // own authenticated server session. See
-    // docs/architecture-migration/account-security-supabase-contract.md §5.
+    // own authenticated server session.
     const securityRoot = join(root, "src/app/api/v1/account/security");
     const violations = existsSync(securityRoot)
       ? sourceFiles(securityRoot)

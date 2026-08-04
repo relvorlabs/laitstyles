@@ -1,6 +1,6 @@
 # Phase 8 Checkout Residue Closure Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented and merged; retained as a historical execution record. The four legacy files are absent and `legacyArchitectureExceptions` is empty. Do not execute the unchecked planning steps against the current tree.
 
 **Goal:** Remove the final dead Phase 8 checkout compatibility residue and make the architecture exception registry and migration status match the already-canonical cart-drawer checkout flow.
 
