@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "portless run next dev",
+    "dev": "next dev",
     "postinstall": "pnpm prisma:generate",
     "prebuild": "pnpm prisma:generate",
     "build": "next build",

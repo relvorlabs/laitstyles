@@ -1,0 +1,32 @@
+[
+    {
+        "ProcessId":  47776,
+        "ParentProcessId":  33588,
+        "CommandLine":  "\"node\"   \"C:\\Users\\olaitan\\AppData\\Roaming\\npm\\\\node_modules\\portless\\dist\\cli.js\" run next dev"
+    },
+    {
+        "ProcessId":  55724,
+        "ParentProcessId":  25288,
+        "CommandLine":  "node   \"C:\\Users\\olaitan\\Dev\\verilo\\apps\\web\\node_modules\\.bin\\\\..\\next\\dist\\bin\\next\" dev"
+    },
+    {
+        "ProcessId":  48564,
+        "ParentProcessId":  55724,
+        "CommandLine":  "C:\\Users\\olaitan\\AppData\\Local\\fnm_multishells\\39692_1785678908534\\node.exe C:\\Users\\olaitan\\Dev\\verilo\\node_modules\\.pnpm\\next@16.2.9_@playwright+tes_7146846370e86d5ed17fe21d038ae4f6\\node_modules\\next\\dist\\server\\lib\\start-server.js"
+    },
+    {
+        "ProcessId":  50940,
+        "ParentProcessId":  48564,
+        "CommandLine":  "\"node\" C:\\Users\\olaitan\\Dev\\verilo\\apps\\web\\.next\\dev\\build\\031494c8e9dcd9cd.js 52669"
+    },
+    {
+        "ProcessId":  11088,
+        "ParentProcessId":  57944,
+        "CommandLine":  "node c:\\Users\\olaitan\\Dev\\laitstyles\\node_modules\\next\\dist\\bin\\next dev --webpack --hostname 127.0.0.1 --port 3000"
+    },
+    {
+        "ProcessId":  7292,
+        "ParentProcessId":  11088,
+        "CommandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\olaitan\\Dev\\laitstyles\\node_modules\\.pnpm\\next@16.2.10_@babel+core@7._9c8a4c1244403c1262c0b6dc80971b90\\node_modules\\next\\dist\\server\\lib\\start-server.js"
+    }
+]

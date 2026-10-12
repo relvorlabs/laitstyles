@@ -1,19 +1,21 @@
-[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
-$ node scripts/checks/module-export-guard.mjs && node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs
+$ node scripts/checks/module-export-guard.mjs && node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs && pnpm check:storefront-production
 ## Module export guard
 
-- Source files scanned: 796
+- Source files scanned: 1176
 - Errors: 0
 ## Architecture guard
 
-- Source files scanned: 796
+- Source files scanned: 1176
 - Server Action modules indexed: 3
 - Errors: 1
-- Warnings: 1
+- Warnings: 4
 
 ### Warnings
-- src/modules/auth/ui/auth-dialog.tsx has 642 lines and needs a responsibility review.
+- src/modules/auth/ui/account-security-modals.tsx has 614 lines and needs a responsibility review.
+- src/modules/auth/ui/auth-dialog.tsx has 640 lines and needs a responsibility review.
+- src/modules/checkout/server/create-checkout.ts has 623 lines and needs a responsibility review.
+- src/modules/payments/server/transfers.ts has 649 lines and needs a responsibility review.
 
 ### Failures
-- [god-module] src/features/storefront/account/modals/account-modals.tsx: src/features/storefront/account/modals/account-modals.tsx has 963 lines; split the god module.
+- [god-module] src/modules/checkout/ui/storefront/checkout-sheet.tsx: src/modules/checkout/ui/storefront/checkout-sheet.tsx has 848 lines; split the god module.
 [ELIFECYCLE] Command failed with exit code 1.

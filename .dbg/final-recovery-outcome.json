@@ -1,0 +1,13 @@
+{
+    "CapturedAt":  "2026-08-05T13:21:15.4098121+01:00",
+    "AppUrl":  "http://127.0.0.1:3000",
+    "AdminUrl":  "http://127.0.0.1:3000/admin",
+    "AppPid":  58784,
+    "CollectorUrl":  "http://127.0.0.1:7777",
+    "CollectorEventUrl":  "http://127.0.0.1:7777/event",
+    "CollectorPid":  57252,
+    "CollectorStatus":  "ok",
+    "CollectorSession":  "overview-loader-stuck",
+    "CollectorLogCount":  1,
+    "AdminOutcome":  "No terminal HTTP response; Next trace remains at Compiling /admin"
+}

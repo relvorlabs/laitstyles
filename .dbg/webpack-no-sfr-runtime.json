@@ -1,0 +1,5 @@
+{
+    "Port":  3000,
+    "Pid":  44916,
+    "Command":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\olaitan\\Dev\\laitstyles\\node_modules\\.pnpm\\next@16.2.10_@babel+core@7._9c8a4c1244403c1262c0b6dc80971b90\\node_modules\\next\\dist\\server\\lib\\start-server.js"
+}

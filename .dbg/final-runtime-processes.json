@@ -1,0 +1,14 @@
+[
+    {
+        "Port":  3000,
+        "Pid":  7292,
+        "Name":  "node.exe",
+        "CommandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\olaitan\\Dev\\laitstyles\\node_modules\\.pnpm\\next@16.2.10_@babel+core@7._9c8a4c1244403c1262c0b6dc80971b90\\node_modules\\next\\dist\\server\\lib\\start-server.js"
+    },
+    {
+        "Port":  7777,
+        "Pid":  57252,
+        "Name":  "python.exe",
+        "CommandLine":  "\"C:\\Users\\olaitan\\AppData\\Local\\Python\\bin\\python.exe\" -u c:\\Users\\olaitan\\.trae\\builtin_skills\\TRAE-debugger\\tools\\debug-server\\python\\debug-server.py --session overview-loader-stuck --outdir .dbg --idle 0 "
+    }
+]

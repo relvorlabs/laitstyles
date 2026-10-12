@@ -1,4 +1,4 @@
-import { OverviewPage } from "@/features/admin/overview/overview-page";
+import { OverviewPage } from "@/modules/overview/ui/admin/overview-page";
 
 export default function AdminOverviewPage() {
   return <OverviewPage />;

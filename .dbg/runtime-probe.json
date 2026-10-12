@@ -1,0 +1,10 @@
+{
+  "http://127.0.0.1:3001/admin": {
+    "error": "URLError(ConnectionRefusedError(10061, 'No connection could be made because the target machine actively refused it', None, 10061, None))"
+  },
+  "http://127.0.0.1:7779/health": {
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:7779/health",
+    "location": null
+  }
+}

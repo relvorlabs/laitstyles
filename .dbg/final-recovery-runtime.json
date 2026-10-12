@@ -1,0 +1,9 @@
+{
+    "AppPort":  3000,
+    "AppPid":  58784,
+    "CollectorPort":  7777,
+    "CollectorPid":  57252,
+    "CollectorStatus":  "ok",
+    "CollectorSession":  "overview-loader-stuck",
+    "CollectorLogCount":  1
+}

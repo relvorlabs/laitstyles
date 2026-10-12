@@ -4,58 +4,37 @@
 
 | Gate | Required | Result | Duration |
 | --- | --- | --- | ---: |
-| architecture | yes | failed | 57.3s |
-| button-audit | yes | failed | 12.8s |
-| biome | yes | failed | 19.0s |
-| typescript | yes | passed | 154.3s |
-| dependency-audit | advisory | warning | 10.6s |
+| architecture | yes | failed | 82.0s |
+| button-audit | yes | passed | 34.2s |
+| biome | yes | failed | 29.2s |
+| typescript | yes | passed | 651.7s |
+| dependency-audit | advisory | warning | 19.8s |
 
 ### Diagnostics
 
 <details><summary>❌ architecture</summary>
 
 ```text
-[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
-$ node scripts/checks/module-export-guard.mjs && node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs
+$ node scripts/checks/module-export-guard.mjs && node scripts/checks/architecture-guard.mjs && node scripts/checks/error-validation-contract.mjs && node scripts/checks/layout-provider-contract.mjs && node scripts/checks/http-module-contract.mjs && pnpm check:storefront-production
 ## Module export guard
 
-- Source files scanned: 796
+- Source files scanned: 1176
 - Errors: 0
 ## Architecture guard
 
-- Source files scanned: 796
+- Source files scanned: 1176
 - Server Action modules indexed: 3
 - Errors: 1
-- Warnings: 1
+- Warnings: 4
 
 ### Warnings
-- src/modules/auth/ui/auth-dialog.tsx has 642 lines and needs a responsibility review.
+- src/modules/auth/ui/account-security-modals.tsx has 614 lines and needs a responsibility review.
+- src/modules/auth/ui/auth-dialog.tsx has 640 lines and needs a responsibility review.
+- src/modules/checkout/server/create-checkout.ts has 623 lines and needs a responsibility review.
+- src/modules/payments/server/transfers.ts has 649 lines and needs a responsibility review.
 
 ### Failures
-- [god-module] src/features/storefront/account/modals/account-modals.tsx: src/features/storefront/account/modals/account-modals.tsx has 963 lines; split the god module.
-[ELIFECYCLE] Command failed with exit code 1.
-
-```
-</details>
-
-<details><summary>❌ button-audit</summary>
-
-```text
-[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
-$ node scripts/audit-buttons.mjs
-Application raw-button audit
-Mode: no-regression baseline
-- src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx: 1 raw button(s); main baseline 0; violation
-- src/modules/products/ui/admin/import/product-import-queue.tsx: 1 raw button(s); main baseline 0; violation
-- src/modules/products/ui/admin/import/product-import-session.test.tsx: 1 raw button(s); main baseline 0; violation
-- src/modules/products/ui/storefront/product-campaign.tsx: 2 raw button(s); main baseline 2; legacy-baseline
-- src/modules/products/ui/storefront/product-purchase-panel.tsx: 1 raw button(s); main baseline 1; legacy-baseline
-- src/providers/session-provider.test.tsx: 2 raw button(s); main baseline 2; legacy-baseline
-
-Raw application buttons require shadcn <Button> migration:
-  src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx: current=1, allowed=0
-  src/modules/products/ui/admin/import/product-import-queue.tsx: current=1, allowed=0
-  src/modules/products/ui/admin/import/product-import-session.test.tsx: current=1, allowed=0
+- [god-module] src/modules/checkout/ui/storefront/checkout-sheet.tsx: src/modules/checkout/ui/storefront/checkout-sheet.tsx has 848 lines; split the god module.
 [ELIFECYCLE] Command failed with exit code 1.
 
 ```
@@ -64,119 +43,119 @@ Raw application buttons require shadcn <Button> migration:
 <details><summary>❌ biome</summary>
 
 ```text
-    32 │             ))}
+    <fieldset>
   
-  i The order of the items may change, and this also affects performances and component state.
+    32 │     <div
+    33 │       data-slot="input-group"
+  > 34 │       role="group"
+       │       ^^^^^^^^^^^^
+    35 │       className={cn(inputGroupVariants({ groupSize }), className)}
+    36 │       {...props}
   
-  i Check the React documentation. 
+  i For examples and more information, see WAI-ARIA Roles
   
-
-src\app\api\v1\auth\invitations\route.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  × Formatter would have printed the following content:
+  i Replace with one of these elements:
   
-     7  7 │       payload = await request.json();␍
-     8  8 │     } catch {␍
-     9    │ - ····return·NextResponse.json({·ok:·false,·message:·"Enter·the·manager·invitation·details."·},·{·status:·400·});␍
-        9 │ + ····return·NextResponse.json(␍
-       10 │ + ······{·ok:·false,·message:·"Enter·the·manager·invitation·details."·},␍
-       11 │ + ······{·status:·400·},␍
-       12 │ + ····);␍
-    10 13 │     }␍
-    11 14 │   ␍
-    12 15 │     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {␍
-    13    │ - ····return·NextResponse.json({·ok:·false,·message:·"Enter·the·manager·invitation·details."·},·{·status:·400·});␍
-       16 │ + ····return·NextResponse.json(␍
-       17 │ + ······{·ok:·false,·message:·"Enter·the·manager·invitation·details."·},␍
-       18 │ + ······{·status:·400·},␍
-       19 │ + ····);␍
-    14 20 │     }␍
-    15 21 │   ␍
+  - <fieldset>
   
 
-src\app\auth\actions.test.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+src\components\ui\input-group.tsx:66:5 lint/a11y/useKeyWithClickEvents ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  × Formatter would have printed the following content:
+  ! Enforce to have the onClick mouse event with the onKeyUp, the onKeyDown, or the onKeyPress keyboard event.
   
-    324 324 │     it("returns email workflow success in place instead of navigating", async () => {␍
-    325 325 │       await expect(␍
-    326     │ - ······requestPasswordResetWithRedirect(␍
-    327     │ - ········idleState,␍
-    328     │ - ········formData({·email:·"shopper@example.com"·}),␍
-    329     │ - ······),␍
-        326 │ + ······requestPasswordResetWithRedirect(idleState,·formData({·email:·"shopper@example.com"·})),␍
-    330 327 │       ).resolves.toEqual({␍
-    331 328 │         status: "success",␍
-    ······· │ 
-    349 346 │     it("keeps confirmation-required signup success on the same page", async () => {␍
-    350 347 │       await expect(␍
-    351     │ - ······signUpWithPassword(␍
-    352     │ - ········idleState,␍
-    353     │ - ········signupData({·next:·"/account",·returnTo:·"/auth/sign-up"·}),␍
-    354     │ - ······),␍
-        348 │ + ······signUpWithPassword(idleState,·signupData({·next:·"/account",·returnTo:·"/auth/sign-up"·})),␍
-    355 349 │       ).resolves.toEqual({␍
-    356 350 │         status: "success",␍
+    64 │ }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
+    65 │   return (
+  > 66 │     <div
+       │     ^^^^
+  > 67 │       role="group"
+        ...
+  > 77 │       {...props}
+  > 78 │     />
+       │     ^^
+    79 │   );
+    80 │ }
+  
+  i Actions triggered using mouse events should have corresponding keyboard events to account for keyboard-only navigation.
   
 
-src\app\auth\actions.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+src\components\ui\input-group.tsx:67:7 lint/a11y/useSemanticElements ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  × Formatter would have printed the following content:
+  ! The elements with this role can be changed to the following elements:
+    <fieldset>
   
-    211 211 │   }␍
-    212 212 │   ␍
-    213     │ - function·pageActionError(␍
-    214     │ - ··error:·PasswordAuthActionError,␍
-    215     │ - ··formData:·FormData,␍
-    216     │ - ):·AuthPageActionState·{␍
-        213 │ + function·pageActionError(error:·PasswordAuthActionError,·formData:·FormData):·AuthPageActionState·{␍
-    217 214 │     return {␍
-    218 215 │       status: "error",␍
+    65 │   return (
+    66 │     <div
+  > 67 │       role="group"
+       │       ^^^^^^^^^^^^
+    68 │       data-slot="input-group-addon"
+    69 │       data-align={align}
   
-
-src\app\auth\forgot-password\page.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  × Formatter would have printed the following content:
+  i For examples and more information, see WAI-ARIA Roles
   
-     2  2 │   import Link from "next/link";␍
-     3  3 │   import { requestPasswordResetWithRedirect } from "@/app/auth/actions";␍
-     4    │ - import·{␍
-     5    │ - ··getAuthFlowErrorMessage,␍
-     6    │ - ··isAuthFlowErrorCode,␍
-     7    │ - }·from·"@/modules/auth/server/diagnostics";␍
-        4 │ + import·{·getAuthFlowErrorMessage,·isAuthFlowErrorCode·}·from·"@/modules/auth/server/diagnostics";␍
-     8  5 │   import { AuthEmailForm } from "@/modules/auth/ui/auth-email-form";␍
-     9  6 │   import { AuthPageShell } from "@/modules/auth/ui/auth-page-shell";␍
+  i Replace with one of these elements:
+  
+  - <fieldset>
   
 
-src\app\auth\invite\finalize\route.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+src\app\admin\inventory\page.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━
 
-  × Formatter would have printed the following content:
+  × Sort these imports.
   
-     7  7 │       payload = await request.json();␍
-     8  8 │     } catch {␍
-     9    │ - ····return·NextResponse.json({·ok:·false,·message:·"Enter·your·account·setup·details."·},·{·status:·400·});␍
-        9 │ + ····return·NextResponse.json(␍
-       10 │ + ······{·ok:·false,·message:·"Enter·your·account·setup·details."·},␍
-       11 │ + ······{·status:·400·},␍
-       12 │ + ····);␍
-    10 13 │     }␍
-    11 14 │   ␍
-    12 15 │     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {␍
-    13    │ - ····return·NextResponse.json({·ok:·false,·message:·"Enter·your·account·setup·details."·},·{·status:·400·});␍
-       16 │ + ····return·NextResponse.json(␍
-       17 │ + ······{·ok:·false,·message:·"Enter·your·account·setup·details."·},␍
-       18 │ + ······{·status:·400·},␍
-       19 │ + ····);␍
-    14 20 │     }␍
-    15 21 │   ␍
+   > 1 │ import { defaultInventoryPageSize } from "@/modules/inventory/ui/admin/inventory-url";
+       │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   > 2 │ import { InventoryWorkspace } from "@/modules/inventory/ui/admin/inventory-workspace";
+   > 3 │ import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
+   > 4 │ import {
+        ...
+  > 15 │ } from "@/lib/admin/shared/types";
+  > 16 │ import { getStaffAccess } from "@/modules/auth/server/session";
+       │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    17 │ import { productIdSchema } from "@/modules/products/schema";
+    18 │ 
+  
+  i Safe fix: Organize imports and exports (Biome)
+  
+      1     │ - import·{·defaultInventoryPageSize·}·from·"@/modules/inventory/ui/admin/inventory-url";␍
+      2     │ - import·{·InventoryWorkspace·}·from·"@/modules/inventory/ui/admin/inventory-workspace";␍
+      3     │ - import·{·AdminAccessDenied·}·from·"@/features/admin/shell/admin-access-denied";␍
+      4     │ - import·{␍
+      5     │ - ··defaultInventoryQuery,␍
+      6     │ - ··inventorySavedViews,␍
+      7     │ - ··inventorySortOptions,␍
+      8     │ - }·from·"@/lib/admin/inventory/inventory-selectors";␍
+      9     │ - import·type·{␍
+     10     │ - ··CatalogueChannel,␍
+     11     │ - ··InventoryModeFilter,␍
+     12     │ - ··InventorySavedView,␍
+     13     │ - ··InventorySortKey,␍
+     14     │ - ··InventoryStockFilter,␍
+     15     │ - }·from·"@/lib/admin/shared/types";␍
+     16     │ - import·{·getStaffAccess·}·from·"@/modules/auth/server/session";␍
+          1 │ + import·{·AdminAccessDenied·}·from·"@/features/admin/shell/admin-access-denied";␍
+          2 │ + import·{␍
+          3 │ + ··defaultInventoryQuery,␍
+          4 │ + ··inventorThe number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 84.
+Checked 1191 files in 9s. No fixes applied.
+Found 16 errors.
+Found 88 warnings.
+ySavedViews,␍
+          5 │ + ··inventorySortOptions,␍
+          6 │ + }·from·"@/lib/admin/inventory/inventory-selectors";␍
+          7 │ + import·type·{␍
+          8 │ + ··CatalogueChannel,␍
+          9 │ + ··InventoryModeFilter,␍
+         10 │ + ··InventorySavedView,␍
+         11 │ + ··InventorySortKey,␍
+         12 │ + ··InventoryStockFilter,␍
+         13 │ + }·from·"@/lib/admin/shared/types";␍
+         14 │ + import·{·getStaffAccess·}·from·"@/modules/auth/server/session";
+         15 │ + import·{·defaultInventoryPageSize·}·from·"@/modules/inventory/ui/admin/inventory-url";␍
+         16 │ + import·{·InventoryWorkspace·}·from·"@/modules/inventory/ui/admin/inventory-workspace";␍
+     17  17 │   import { productIdSchema } from "@/modules/products/schema";␍
+     18  18 │   ␍
   
 
-The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
-Diagnostics not shown: 77.
-Checked 811 files in 6s. No fixes applied.
-Found 34 errors.
-Found 63 warnings.
 check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   × Some errors were emitted while running checks.
@@ -190,77 +169,6 @@ check ━━━━━━━━━━━━━━━━━━━━━━━━�
 <details><summary>⚠️ dependency-audit</summary>
 
 ```text
-│                     │                                                        │
-│                     │ .>next                                                 │
-│                     │                                                        │
-│                     │ .>next-cloudinary>next                                 │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ More info           │ https://github.com/advisories/GHSA-6gpp-xcg3-4w24      │
-└─────────────────────┴────────────────────────────────────────────────────────┘
-┌─────────────────────┬────────────────────────────────────────────────────────┐
-│ high                │ Next.js: Denial of Service in App Router using Server  │
-│                     │ Actions                                                │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Package             │ next                                                   │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Vulnerable versions │ >=16.0.0 <16.2.11                                      │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Patched versions    │ >=16.2.11                                              │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Paths               │ .>@vercel/analytics>next                               │
-│                     │                                                        │
-│                     │ .>next                                                 │
-│                     │                                                        │
-│                     │ .>next-cloudinary>next                                 │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ More info           │ https://github.com/advisories/GHSA-m99w-x7hq-7vfj      │
-└─────────────────────┴────────────────────────────────────────────────────────┘
-┌─────────────────────┬────────────────────────────────────────────────────────┐
-│ high                │ Next.js: Server-Side Request Forgery in Server Actions │
-│                     │ on custom servers                                      │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Package             │ next                                                   │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Vulnerable versions │ >=16.0.0 <16.2.11                                      │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Patched versions    │ >=16.2.11                                              │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Paths               │ .>@vercel/analytics>next                               │
-│                     │                                                        │
-│                     │ .>next                                                 │
-│                     │                                                        │
-│                     │ .>next-cloudinary>next                                 │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ More info           │ https://github.com/advisories/GHSA-89xv-2m56-2m9x      │
-└─────────────────────┴────────────────────────────────────────────────────────┘
-┌─────────────────────┬────────────────────────────────────────────────────────┐
-│ high                │ Next.js: Server-Side Request Forgery in rewrites via   │
-│                     │ attacker-controlled destination hostname               │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Package             │ next                                                   │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Vulnerable versions │ >=16.0.0 <16.2.11                                      │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Patched versions    │ >=16.2.11                                              │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Paths               │ .>@vercel/analytics>next                               │
-│                     │                                                        │
-│                     │ .>next                                                 │
-│                     │                                                        │
-│                     │ .>next-cloudinary>next                                 │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ More info           │ https://github.com/advisories/GHSA-p9j2-gv94-2wf4      │
-└─────────────────────┴────────────────────────────────────────────────────────┘
-┌─────────────────────┬────────────────────────────────────────────────────────┐
-│ high                │ PostCSS: Arbitrary file read and information           │
-│                     │ disclosure via attacker-controlled sourceMappingURL in │
-│                     │ CSS comments                                           │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Package             │ postcss                                                │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Vulnerable versions │ <=8.5.11                                               │
-├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Patched versions    │ >=8.5.12                                               │
 ├─────────────────────┼────────────────────────────────────────────────────────┤
 │ Paths               │ .>@vercel/analytics>next>postcss                       │
 │                     │                                                        │
@@ -298,7 +206,7 @@ check ━━━━━━━━━━━━━━━━━━━━━━━━�
 ├─────────────────────┼────────────────────────────────────────────────────────┤
 │ Package             │ brace-expansion                                        │
 ├─────────────────────┼────────────────────────────────────────────────────────┤
-│ Vulnerable versions │ <=5.0.7                                                │
+│ Vulnerable versions │ >=4.0.0 <5.0.8                                         │
 ├─────────────────────┼────────────────────────────────────────────────────────┤
 │ Patched versions    │ >=5.0.8                                                │
 ├─────────────────────┼────────────────────────────────────────────────────────┤
@@ -307,8 +215,79 @@ check ━━━━━━━━━━━━━━━━━━━━━━━━�
 ├─────────────────────┼────────────────────────────────────────────────────────┤
 │ More info           │ https://github.com/advisories/GHSA-mh99-v99m-4gvg      │
 └─────────────────────┴────────────────────────────────────────────────────────┘
-18 vulnerabilities found
-Severity: 9 moderate | 9 high
+┌─────────────────────┬────────────────────────────────────────────────────────┐
+│ high                │ undici vulnerable to cross-user information disclosure │
+│                     │ and parse-time crash via degenerate private cache      │
+│                     │ directives                                             │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Package             │ undici                                                 │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ >=7.0.0 <7.29.0                                        │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=7.29.0                                               │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Paths               │ .>shadcn>@dotenvx/dotenvx>undici                       │
+│                     │                                                        │
+│                     │ .>shadcn>undici                                        │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-4cwx-7wf7-3272      │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+┌─────────────────────┬────────────────────────────────────────────────────────┐
+│ high                │ fast-uri vulnerable to host confusion via backslash    │
+│                     │ authority introducer                                   │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Package             │ fast-uri                                               │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ >=3.0.0 <3.1.5                                         │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=3.1.5                                                │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Paths               │ .>@prisma/client>prisma>@prisma/dev>@prisma/streams-   │
+│                     │ local>ajv>fast-uri                                     │
+│                     │                                                        │
+│                     │ .>shadcn>@dotenvx/dotenvx>conf>ajv>fast-uri            │
+│                     │                                                        │
+│                     │ .>shadcn>@dotenvx/dotenvx>conf>ajv-formats>ajv>fast-   │
+│                     │ uri                                                    │
+│                     │                                                        │
+│                     │ ... Found 5 paths, run `pnpm why fast-uri` for more    │
+│                     │ information                                            │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-7p8r-x3mc-p8w7      │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+┌─────────────────────┬────────────────────────────────────────────────────────┐
+│ high                │ ip-address: Address4 decodes leading-zero octets as    │
+│                     │ decimal while resolvers decode them as octal, allowing │
+│                     │ SSRF and trust-boundary bypass                         │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Package             │ ip-address                                             │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ <=10.3.0                                               │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=10.3.1                                               │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Paths               │ .>shadcn>@modelcontextprotocol/sdk>express-rate-       │
+│                     │ limit>ip-address                                       │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-mwp4-54f8-5fhr      │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+┌─────────────────────┬────────────────────────────────────────────────────────┐
+│ high                │ brace-expansion: DoS via unbounded intermediate        │
+│                     │ arrays, bypassing the CVE-2026-14257 mitigation        │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Package             │ brace-expansion                                        │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ >=4.0.0 <5.0.9                                         │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=5.0.9                                                │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ Paths               │ .>shadcn>ts-morph>@ts-morph/common>minimatch>brace-    │
+│                     │ expansion                                              │
+├─────────────────────┼────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-rgw5-rvv9-x895      │
+└─────────────────────┴────────────────────────────────────────────────────────┘
+30 vulnerabilities found
+Severity: 17 moderate | 13 high
 
 ```
 </details>

@@ -1,16 +1,16 @@
-[WARN] Unsupported engine: wanted: {"node":"25.x"} (current: {"node":"v26.5.0","pnpm":"11.13.0"})
 $ node scripts/audit-buttons.mjs
 Application raw-button audit
 Mode: no-regression baseline
-- src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx: 1 raw button(s); main baseline 0; violation
-- src/modules/products/ui/admin/import/product-import-queue.tsx: 1 raw button(s); main baseline 0; violation
-- src/modules/products/ui/admin/import/product-import-session.test.tsx: 1 raw button(s); main baseline 0; violation
+- src/components/ui/cloud-upload-button.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/features/admin/settings/store-identity-section.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/modules/payments/ui/disputes/disputes-workspace.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/modules/products/ui/admin/import/product-import-queue.tsx: 6 raw button(s); main baseline 6; legacy-baseline
+- src/modules/products/ui/admin/import/product-import-session.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/modules/products/ui/admin/product-editor/product-images-step.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
+- src/modules/products/ui/admin/product-editor/variant-product-fields.test.tsx: 1 raw button(s); main baseline 1; legacy-baseline
 - src/modules/products/ui/storefront/product-campaign.tsx: 2 raw button(s); main baseline 2; legacy-baseline
 - src/modules/products/ui/storefront/product-purchase-panel.tsx: 1 raw button(s); main baseline 1; legacy-baseline
 - src/providers/session-provider.test.tsx: 2 raw button(s); main baseline 2; legacy-baseline
 
-Raw application buttons require shadcn <Button> migration:
-  src/modules/products/ui/admin/catalogue/catalogue-structure-workspace.test.tsx: current=1, allowed=0
-  src/modules/products/ui/admin/import/product-import-queue.tsx: current=1, allowed=0
-  src/modules/products/ui/admin/import/product-import-session.test.tsx: current=1, allowed=0
-[ELIFECYCLE] Command failed with exit code 1.
+PASS: 11 file(s) inspected with no new raw-button regression.

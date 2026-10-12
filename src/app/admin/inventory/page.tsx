@@ -1,5 +1,5 @@
-import { defaultInventoryPageSize } from "@/features/admin/inventory/inventory-url";
-import { InventoryWorkspace } from "@/features/admin/inventory/inventory-workspace";
+import { defaultInventoryPageSize } from "@/modules/inventory/ui/admin/inventory-url";
+import { InventoryWorkspace } from "@/modules/inventory/ui/admin/inventory-workspace";
 import { AdminAccessDenied } from "@/features/admin/shell/admin-access-denied";
 import {
   defaultInventoryQuery,

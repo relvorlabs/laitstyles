@@ -1,0 +1,35 @@
+[
+  {
+    "port": 7777,
+    "pid": "57252",
+    "health": {
+      "status": "ok",
+      "session_id": "overview-loader-stuck",
+      "uptime": 1094,
+      "log_count": 0,
+      "last_event_ts": 1785924391767
+    }
+  },
+  {
+    "port": 7778,
+    "pid": "32900",
+    "health": {
+      "status": "ok",
+      "session_id": "overview-loader-stuck",
+      "uptime": 248,
+      "log_count": 0,
+      "last_event_ts": 1785925248367
+    }
+  },
+  {
+    "port": 7779,
+    "pid": "56420",
+    "health": {
+      "status": "ok",
+      "session_id": "overview-loader-stuck",
+      "uptime": 73,
+      "log_count": 0,
+      "last_event_ts": 1785925431713
+    }
+  }
+]

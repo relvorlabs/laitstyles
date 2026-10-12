@@ -23,6 +23,10 @@ export function AdminShell({ children, role }: { children: ReactNode; role: Staf
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  // #region debug-point C,E:authorized-shell-render
+  fetch("http://127.0.0.1:7777/event", { method: "POST", body: JSON.stringify({ sessionId: "overview-loader-stuck", runId: "pre-fix", hypothesisId: "C,E", location: "src/features/admin/shell/admin-shell.tsx:AdminShell", msg: "[DEBUG] Authorized admin shell rendered", data: { pathname, role }, ts: Date.now() }) }).catch(() => {});
+  // #endregion
+
   return (
     <AdminAccessProvider role={role}>
       <AdminProvider>

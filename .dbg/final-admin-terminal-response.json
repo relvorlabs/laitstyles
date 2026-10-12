@@ -1,0 +1,7 @@
+{
+    "startedAt":  "2026-08-05T13:17:50.2256189+01:00",
+    "url":  "http://127.0.0.1:3000/admin",
+    "error":  "System.Net.WebException",
+    "message":  "The operation has timed out.",
+    "elapsedMs":  600944
+}

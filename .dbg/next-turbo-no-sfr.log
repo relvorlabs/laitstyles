@@ -1,0 +1,10 @@
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://127.0.0.1:3003
+- Network:       http://127.0.0.1:3003
+- Environments: .env.local
+✓ Ready in 2.4min
+⚠ Slow filesystem detected. The benchmark took 610ms. If c:\Users\olaitan\Dev\laitstyles\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling proxy ...
+- Cache Components enabled
+

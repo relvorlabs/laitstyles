@@ -1,0 +1,23 @@
+▲ Next.js 16.2.10 (webpack)
+- Local:         http://127.0.0.1:3002
+- Network:       http://127.0.0.1:3002
+- Environments: .env.local
+✓ Ready in 68s
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          7292
+- Dir:          c:\Users\olaitan\Dev\laitstyles
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 7292 /F to stop it.
+[?25h
+▲ Next.js 16.2.10 (webpack)
+- Local:         http://127.0.0.1:3000
+- Network:       http://127.0.0.1:3000
+- Environments: .env.local
+✓ Ready in 38.3s
+- Cache Components enabled
+
+○ Compiling proxy ...
+○ Compiling /admin ...

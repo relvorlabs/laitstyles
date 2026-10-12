@@ -1,0 +1,10 @@
+Request timed out after 3000ms
+
+Retrying 1/3...
+
+- Local:        http://localhost:3000
+- PID:          58784
+- Dir:          C:\Users\olaitan\Dev\laitstyles
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 58784 /F to stop it.

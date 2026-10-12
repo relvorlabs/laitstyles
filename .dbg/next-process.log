@@ -1,0 +1,24 @@
+⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use 127.0.0.1:3000
+    at <unknown> (Error: listen EADDRINUSE: address already in use 127.0.0.1:3000) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '127.0.0.1',
+  port: 3000
+}
+[?25h
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://127.0.0.1:3001
+- Network:       http://127.0.0.1:3001
+- Environments: .env.local
+✓ Ready in 21.4s
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          9280
+- Dir:          c:\Users\olaitan\Dev\laitstyles
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 9280 /F to stop it.
+[?25h

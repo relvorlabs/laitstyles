@@ -1,0 +1,16 @@
+{
+  "collector": {
+    "url": "http://127.0.0.1:7777",
+    "eventUrl": "http://127.0.0.1:7777/event",
+    "pid": 57252,
+    "listening": true
+  },
+  "app": {
+    "url": "http://127.0.0.1:3001",
+    "adminUrl": "http://127.0.0.1:3001/admin",
+    "pid": 6988,
+    "launcherPid": 16352,
+    "listening": true,
+    "exitCode": null
+  }
+}
