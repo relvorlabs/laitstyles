@@ -42,5 +42,16 @@
   },
   "worktree": {
     "baseRef": "head"
+  },
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128/v1",
+    "ANTHROPIC_AUTH_TOKEN": "sk-aa539435eacc8f50-gd2rim-3531784e",
+    "ANTHROPIC_API_KEY": "",
+    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "oc/union-alpha[1m]",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "oc/muse-spark-1.3-contributor-free[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "oc/muse-spark-1.3-contributor-free(high)",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "oc/mimo-v2.6-flash-free[1m]",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "oc/muse-spark-1.3-contributor-free(high)"
   }
 }

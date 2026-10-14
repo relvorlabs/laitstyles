@@ -50,6 +50,8 @@
     "prisma:pull:write": "pnpm prisma:clean && node scripts/db/prisma-pull-write.mjs",
     "db:seed:storefront": "tsx scripts/seed/seed-storefront.ts",
     "db:import:catalog": "tsx scripts/seed/import-catalog-snapshot.ts",
+    "db:fixture:generate": "node scripts/seed/generate-catalog-fixture.mjs",
+    "db:fixture:import:api": "tsx scripts/seed/import-catalog-fixture-via-api.ts",
     "smoke:storefront": "NODE_OPTIONS=--conditions=react-server tsx scripts/checks/storefront-smoke.ts",
     "test:styles:e2e": "node scripts/checks/non-admin-style-smoke.mjs",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
